@@ -2,43 +2,46 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Cervinia 2026</title>
+    <title>Cervinia 2026 - Final Test</title>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; color: #1e293b; padding: 40px; border-radius: 30px; text-align: center; width: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        h1 { color: #2563eb; font-weight: 800; font-size: 24px; margin-bottom: 20px; }
-        .label { font-size: 11px; color: #64748b; text-transform: uppercase; }
-        .value { font-size: 45px; font-weight: 900; margin: 10px 0 30px 0; }
-        #update-time { font-size: 10px; color: #94a3b8; margin-top: 25px; }
+        /* עיצוב שונה לחלוטין כדי לדעת שזה עבד */
+        body { background: #1a1a1a; color: #fff; font-family: Arial; text-align: center; padding-top: 100px; }
+        .data-card { border: 5px solid yellow; display: inline-block; padding: 30px; border-radius: 20px; }
+        h1 { color: yellow; }
+        .val { font-size: 50px; color: #00ff00; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>CERVINIA 2026</h1>
-        <div class="label">מעליות פתוחות</div>
-        <div id="lifts" class="value">--/--</div>
-        <div class="label">קישור לצמרט</div>
-        <div id="conn" class="value" style="font-size: 24px;">טוען...</div>
-        <div id="update-time">מתחבר לגיטהאב...</div>
+
+    <div class="data-card">
+        <h1>בדיקת נתונים סופית</h1>
+        <p>מעליות:</p>
+        <div id="lifts" class="val">טוען...</div>
+        <p>חיבור לצמרט:</p>
+        <div id="conn" class="val" style="font-size: 30px;">--</div>
+        <div id="msg" style="margin-top:20px; color: #888;"></div>
     </div>
 
     <script>
-        async function update() {
+        async function getData() {
+            // הכתובת ה-RAW הנכונה שבדקנו קודם
+            const url = 'https://raw.githubusercontent.com/ykrauss1/cervinia-data/main/data.json';
+            
             try {
-                // הכתובת ה-RAW הנכונה
-                const url = 'https://raw.githubusercontent.com/ykrauss1/cervinia-data/main/data.json';
-                const response = await fetch(url + '?v=' + Math.random());
+                // הוספת סימן שאלה וזמן כדי למנוע Cache ב-100%
+                const response = await fetch(url + '?nocache=' + new Date().getTime());
                 const data = await response.json();
-
+                
                 document.getElementById('lifts').innerText = data.lifts;
                 document.getElementById('conn').innerText = data.conn.toUpperCase();
-                document.getElementById('conn').style.color = data.conn.toLowerCase() === 'open' ? '#166534' : '#991b1b';
-                document.getElementById('update-time').innerText = "עודכן: " + data.lastUpdate;
-            } catch (err) {
-                document.getElementById('update-time').innerText = "שגיאת חיבור (תקין בהרצה מהמחשב)";
+                document.getElementById('msg').innerText = "עודכן ב: " + data.lastUpdate;
+            } catch (e) {
+                document.getElementById('msg').innerText = "שגיאת חיבור (CORS) - פועל רק בגיטהאב";
+                // נתונים ידניים כדי לראות שהסקריפט רץ
+                document.getElementById('lifts').innerText = "שגיאה";
             }
         }
-        update();
+        getData();
     </script>
 </body>
 </html>
