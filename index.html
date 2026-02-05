@@ -1,62 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Cervinia Status</title>
+    <title>Cervinia 2026</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding-top: 50px; }
-        .card { background: #333; border-radius: 20px; padding: 30px; display: inline-block; width: 300px; border: 2px solid #444; }
-        .val { font-size: 40px; font-weight: bold; margin: 10px 0; color: #4db8ff; }
-        .label { font-size: 14px; color: #aaa; text-transform: uppercase; }
-        #update-time { font-size: 12px; color: #666; margin-top: 20px; }
-        button { background: #4db8ff; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; color: #1e293b; padding: 40px; border-radius: 30px; text-align: center; width: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        h1 { color: #2563eb; font-weight: 800; font-size: 24px; margin-bottom: 20px; }
+        .label { font-size: 11px; color: #64748b; text-transform: uppercase; }
+        .value { font-size: 45px; font-weight: 900; margin: 10px 0 30px 0; }
+        #update-time { font-size: 10px; color: #94a3b8; margin-top: 25px; }
     </style>
 </head>
 <body>
-
     <div class="card">
-        <div class="label">Lifts Open</div>
-        <div id="lifts" class="val">--/--</div>
-        
-        <div class="label">Zermatt Link</div>
-        <div id="conn" class="val">Checking</div>
-        
-        <div id="update-time">Waiting for data...</div>
-        
-        <button onclick="updateData()">Refresh Now</button>
+        <h1>CERVINIA 2026</h1>
+        <div class="label">מעליות פתוחות</div>
+        <div id="lifts" class="value">--/--</div>
+        <div class="label">קישור לצמרט</div>
+        <div id="conn" class="value" style="font-size: 24px;">טוען...</div>
+        <div id="update-time">מתחבר לגיטהאב...</div>
     </div>
 
     <script>
-        async function updateData() {
-            console.log("Fetching started...");
+        async function update() {
             try {
-                // שימוש ב-timestamp כדי למנוע Cache מהקובץ עצמו
-                const url = 'https://raw.githubusercontent.com/ykrauss1/cervinia-data/main/data.json?cb=' + Date.now();
-                const res = await fetch(url);
-                if (!res.ok) throw new Error("File not found on GitHub");
-                
-                const data = await res.json();
-                console.log("Data received:", data);
+                // הכתובת ה-RAW הנכונה
+                const url = 'https://raw.githubusercontent.com/ykrauss1/cervinia-data/main/data.json';
+                const response = await fetch(url + '?v=' + Math.random());
+                const data = await response.json();
 
-                document.getElementById('lifts').innerText = data.lifts || "N/A";
-                document.getElementById('conn').innerText = (data.conn || "N/A").toUpperCase();
-                document.getElementById('update-time').innerText = "Last update: " + (data.lastUpdate || "Unknown");
-                
-                // צבע לפי סטטוס
-                if(data.conn && data.conn.toLowerCase() === 'open') {
-                    document.getElementById('conn').style.color = "#00ff88";
-                } else {
-                    document.getElementById('conn').style.color = "#ff4d4d";
-                }
-
+                document.getElementById('lifts').innerText = data.lifts;
+                document.getElementById('conn').innerText = data.conn.toUpperCase();
+                document.getElementById('conn').style.color = data.conn.toLowerCase() === 'open' ? '#166534' : '#991b1b';
+                document.getElementById('update-time').innerText = "עודכן: " + data.lastUpdate;
             } catch (err) {
-                console.error("Error:", err);
-                document.getElementById('update-time').innerText = "ERROR: " + err.message;
+                document.getElementById('update-time').innerText = "שגיאת חיבור (תקין בהרצה מהמחשב)";
             }
         }
-
-        // הפעלה מיידית
-        updateData();
+        update();
     </script>
 </body>
 </html>
