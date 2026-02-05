@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cervinia Live Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+
+    <header class="relative h-64 bg-slate-900 overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover opacity-60" alt="Matterhorn">
+        <div class="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-slate-900">
+            <div class="flex items-center gap-2 text-blue-400 mb-2">
+                <i data-lucide="map-pin"></i>
+                <span class="text-sm font-bold tracking-widest uppercase">Cervinia, Italy</span>
+            </div>
+            <h1 class="text-4xl font-black text-white italic tracking-tighter uppercase">BREUIL-CERVINIA</h1>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto -mt-8 relative z-10 px-4 pb-12">
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
+            <div class="bg-slate-50 px-6 py-3 flex justify-between items-center border-b border-slate-100">
+                <div class="flex items-center gap-2 text-slate-500">
+                    <i data-lucide="clock" size="14"></i>
+                    <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Update: <span id="last-update-time">--:--</span></span>
+                </div>
+                <div id="live-indicator" class="flex items-center gap-1 text-green-600 font-bold text-xs uppercase italic">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    Live
+                </div>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                            <i data-lucide="mountain"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-tight">Open Lifts</h3>
+                            <p id="lift-status" class="text-2xl font-black text-slate-800 italic">Connecting...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-px bg-slate-100 w-full"></div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                            <i data-lucide="wind"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-tight">Zermatt Link</h3>
+                            <p id="connection-status" class="text-2xl font-black italic text-slate-300 font-black">Checking...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 flex gap-2">
+                <button onclick="fetchLiveStatus()" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase italic tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="refresh-cw" size="18"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // אתחול אייקונים
+        function initIcons() {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+
+        async function fetchLiveStatus() {
+            const liftEl = document.getElementById('lift-status');
+            const connEl = document.getElementById('connection-status');
+            const timeEl = document.getElementById('last-update-time');
+
+            try {
+                // שימוש בכתובת המלאה שלך
+                const url = `https://raw.githubusercontent.com/ykrauss1/cervinia-data/main/data.json?t=${new Date().getTime()}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Not found');
+                
+                const data = await response.json();
+                
+                // עדכון בזהירות - רק אם האלמנטים קיימים
+                if (liftEl) liftEl.innerText = data.lifts || "22/52";
+                
+                if (connEl) {
+                    const isOpen = String(data.conn).toLowerCase() === "open";
+                    connEl.innerText = isOpen ? "OPEN" : "CLOSED";
+                    connEl.className = `text-2xl font-black italic ${isOpen ? 'text-green-600' : 'text-red-500'}`;
+                }
+                
+                if (timeEl && data.lastUpdate) {
+                    const date = new Date(data.lastUpdate);
+                    timeEl.innerText = date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+                }
+
+            } catch (error) {
+                console.error("Fetch error:", error);
+                if (liftEl) liftEl.innerText = "Check App";
+                if (connEl) connEl.innerText = "Unknown";
+            }
+        }
+
+        // הפעלה מסודרת
+        window.onload = () => {
+            initIcons();
+            fetchLiveStatus();
+            setInterval(fetchLiveStatus, 60000 * 15);
+        };
+    </script>
+</body>
+</html>
