@@ -1,8 +1,8 @@
 name: Fetch Cervinia Data
 on:
   schedule:
-    - cron: '*/15 * * * *' # רץ כל 15 דקות
-  workflow_dispatch: # מאפשר הרצה ידנית לבדיקה
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
 
 jobs:
   scheduled:
@@ -15,6 +15,6 @@ jobs:
       - name: Fetch data
         uses: githubocto/flat@v3
         with:
-          http_url: https://www.cervinia.it/en/live/lift-status
+          http_url: https://www.cervinia.it/en/live/lifte-piste
           downloaded_filename: status.html
-          postprocess: postprocess.js # הוספנו את השורה הזו!
+          postprocess: postprocess.js
