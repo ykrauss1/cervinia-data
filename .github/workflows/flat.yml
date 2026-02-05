@@ -1,0 +1,21 @@
+name: Fetch Cervinia Data
+on:
+  schedule:
+    - cron: '*/15 * * * *' # רץ כל 15 דקות
+  workflow_dispatch: # מאפשר הרצה ידנית לבדיקה
+
+jobs:
+  scheduled:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup deno
+        uses: denoland/setup-deno@v1
+      - name: Check out repo
+        uses: actions/checkout@v3
+      - name: Fetch data
+        uses: githubocto/flat@v3
+        with:
+          # הכתובת של דף הסטטוס הרשמי
+          http_url: https://www.cervinia.it/en/live/lift-status
+          # הקובץ שבו יישמר ה-HTML הגולמי
+          downloaded_filename: status.html
