@@ -1,131 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live Status</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Cervinia Status</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding-top: 50px; }
+        .card { background: #333; border-radius: 20px; padding: 30px; display: inline-block; width: 300px; border: 2px solid #444; }
+        .val { font-size: 40px; font-weight: bold; margin: 10px 0; color: #4db8ff; }
+        .label { font-size: 14px; color: #aaa; text-transform: uppercase; }
+        #update-time { font-size: 12px; color: #666; margin-top: 20px; }
+        button { background: #4db8ff; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900">
+<body>
 
-    <header class="relative h-64 bg-slate-900 overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover opacity-60" alt="Mountain">
-        <div class="absolute inset-0 flex flex-col justify-end p-8 bg-gradient-to-t from-slate-900">
-            <div class="flex items-center gap-2 text-blue-400 mb-2">
-                <i data-lucide="map-pin" size="16"></i>
-                <span class="text-xs font-bold tracking-widest uppercase">Breuil-Cervinia</span>
-            </div>
-            <h1 class="text-4xl font-black text-white italic tracking-tighter uppercase">LIVE STATUS</h1>
-        </div>
-    </header>
-
-    <main class="max-w-md mx-auto -mt-10 relative z-10 px-4 pb-12">
-        <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
-            
-            <div class="bg-slate-50/50 px-8 py-4 flex justify-between items-center border-b border-slate-100">
-                <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">System Active</span>
-                </div>
-                <span id="update-time" class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Checking...</span>
-            </div>
-
-            <div class="p-8 space-y-8">
-                <div class="flex items-center justify-between">
-                    <div class="space-y-1">
-                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Open Lifts</h3>
-                        <p id="lift-status" class="text-4xl font-black text-slate-800 italic tracking-tighter italic">--/--</p>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                        <i data-lucide="mountain"></i>
-                    </div>
-                </div>
-
-                <div class="h-px bg-slate-100 w-full"></div>
-
-                <div class="flex items-center justify-between">
-                    <div class="space-y-1">
-                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Zermatt Link</h3>
-                        <p id="conn-status" class="text-4xl font-black text-slate-300 italic tracking-tighter uppercase">Offline</p>
-                    </div>
-                    <div id="conn-icon-box" class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400">
-                        <i data-lucide="cable-car"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-4 bg-slate-50/50 border-t border-slate-50">
-                <button onclick="fetchData()" class="group w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-200">
-                    <i data-lucide="refresh-cw" size="16" class="group-active:rotate-180 transition-transform"></i>
-                    Refresh Data
-                </button>
-            </div>
-        </div>
+    <div class="card">
+        <div class="label">Lifts Open</div>
+        <div id="lifts" class="val">--/--</div>
         
-        <p class="text-center mt-6 text-[10px] text-slate-400 font-medium uppercase tracking-[0.1em]">Updated via GitHub Data Hub</p>
-    </main>
+        <div class="label">Zermatt Link</div>
+        <div id="conn" class="val">Checking</div>
+        
+        <div id="update-time">Waiting for data...</div>
+        
+        <button onclick="updateData()">Refresh Now</button>
+    </div>
 
     <script>
-        // Initializing Lucide Icons
-        function initIcons() {
-            if (window.lucide) {
-                lucide.createIcons();
-            }
-        }
-
-        async function fetchData() {
-            const liftEl = document.getElementById('lift-status');
-            const connEl = document.getElementById('conn-status');
-            const timeEl = document.getElementById('update-time');
-            const connBox = document.getElementById('conn-icon-box');
-
+        async function updateData() {
+            console.log("Fetching started...");
             try {
-                // Fetching data.json with a timestamp to bypass GitHub cache
-                const response = await fetch('https://raw.githubusercontent.com/ykrauss1/cervinia-data/main/data.json?t=' + Date.now());
+                // שימוש ב-timestamp כדי למנוע Cache מהקובץ עצמו
+                const url = 'https://raw.githubusercontent.com/ykrauss1/cervinia-data/main/data.json?cb=' + Date.now();
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("File not found on GitHub");
                 
-                if (!response.ok) throw new Error('Network response was not ok');
-                
-                const data = await response.json();
+                const data = await res.json();
+                console.log("Data received:", data);
 
-                // Update Lifts
-                liftEl.innerText = data.lifts || "N/A";
-                liftEl.classList.remove('text-slate-300');
-
-                // Update Connection Status
-                const isOpen = data.conn && data.conn.toLowerCase() === 'open';
-                connEl.innerText = isOpen ? "OPEN" : "CLOSED";
+                document.getElementById('lifts').innerText = data.lifts || "N/A";
+                document.getElementById('conn').innerText = (data.conn || "N/A").toUpperCase();
+                document.getElementById('update-time').innerText = "Last update: " + (data.lastUpdate || "Unknown");
                 
-                if (isOpen) {
-                    connEl.className = "text-4xl font-black text-green-600 italic tracking-tighter uppercase";
-                    connBox.className = "w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600";
+                // צבע לפי סטטוס
+                if(data.conn && data.conn.toLowerCase() === 'open') {
+                    document.getElementById('conn').style.color = "#00ff88";
                 } else {
-                    connEl.className = "text-4xl font-black text-red-500 italic tracking-tighter uppercase";
-                    connBox.className = "w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-500";
+                    document.getElementById('conn').style.color = "#ff4d4d";
                 }
 
-                // Update Time
-                if (data.lastUpdate) {
-                    const date = new Date(data.lastUpdate);
-                    timeEl.innerText = "Updated: " + date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
-                }
-
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                timeEl.innerText = "Sync Error";
-                liftEl.innerText = "Check App";
+            } catch (err) {
+                console.error("Error:", err);
+                document.getElementById('update-time').innerText = "ERROR: " + err.message;
             }
         }
 
-        // Run when page is ready
-        window.addEventListener('DOMContentLoaded', () => {
-            initIcons();
-            fetchData();
-        });
+        // הפעלה מיידית
+        updateData();
     </script>
 </body>
 </html>
