@@ -1,20 +1,24 @@
-name: Fetch Cervinia Data
+name: Cervinia Scraper
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/30 * * * *' # רץ כל חצי שעה
   workflow_dispatch:
 
 jobs:
-  scheduled:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup deno
-        uses: denoland/setup-deno@v1
-      - name: Check out repo
-        uses: actions/checkout@v3
-      - name: Fetch data
-        uses: githubocto/flat@v3
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          http_url: https://www.cervinia.it/en/live/lifte-piste
-          downloaded_filename: status.html
-          postprocess: postprocess.js
+          node-version: '18'
+      - name: Run Scraper
+        run: node scraper.js
+      - name: Commit Data
+        run: |
+          git config --global user.name "Cervinia-Bot"
+          git config --global user.email "bot@cervinia.live"
+          git add data.json
+          git commit -m "Update ski data" || exit 0
+          git push
