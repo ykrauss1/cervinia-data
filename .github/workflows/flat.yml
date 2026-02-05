@@ -15,7 +15,6 @@ jobs:
       - name: Fetch data
         uses: githubocto/flat@v3
         with:
-          # הכתובת של דף הסטטוס הרשמי
           http_url: https://www.cervinia.it/en/live/lift-status
-          # הקובץ שבו יישמר ה-HTML הגולמי
           downloaded_filename: status.html
+          postprocess: postprocess.js # הוספנו את השורה הזו!
