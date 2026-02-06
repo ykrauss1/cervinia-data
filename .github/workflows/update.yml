@@ -1,31 +1,33 @@
-import requests
-from bs4 import BeautifulSoup
-import json
+name: Update Cervinia Data
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch: # השורה הזו מייצרת את הכפתור להפעלה ידנית
 
-def get_cervinia_data():
-    # נתוני ברירת מחדל למקרה שהאתר יפול
-    data = {"lifts": "22/52", "town": "45", "peak": "215", "conn": "open"}
-    
-    try:
-        # פנייה לדף המעליות הרשמי
-        url = "https://www.cervinia.it/en/ski-area/piste-and-lifts"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            # כאן אנחנו מחפשים את המספרים בתוך ה-HTML של האתר
-            # הקוד הזה יחפש את הנתונים המעודכנים ויכניס אותם ל-JSON
-            print("Successfully fetched data from Cervinia")
-            
-        # שמירת הנתונים לקובץ שה-index.html שלך יודע לקרוא
-        with open('data.json', 'w') as f:
-            json.dump(data, f)
-            
-    except Exception as e:
-        print(f"Error fetching data: {e}")
-        with open('data.json', 'w') as f:
-            json.dump(data, f)
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-if __name__ == "__main__":
-    get_cervinia_data()
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run Scraper
+        run: python scraper.py
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add data.json
+          git commit -m "Update ski data [skip ci]" || exit 0
+          git push
