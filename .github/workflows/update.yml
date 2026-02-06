@@ -1,33 +1,45 @@
 name: Update Ski Data
+
 on:
   schedule:
+    # רץ בכל שעה עגולה (לפי שעון UTC)
     - cron: '0 * * * *'
+  # מאפשר לך להריץ את זה ידנית בלחיצת כפתור (Workflow Dispatch)
   workflow_dispatch:
 
+# הגדרת הרשאות כתיבה - קריטי כדי שה-Action יוכל לעדכן את data.json
 permissions:
   contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      
+      # 1. מושך את הקוד מה-Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # 2. מתקין את סביבת Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
-      - name: Install dependencies
+      # 3. מתקין את ספריית axios (למשיכת נתונים מה-API)
+      - name: Install Dependencies
         run: npm install axios
 
+      # 4. מריץ את הסקריפט שכתבנו
       - name: Run Scraper
         run: node scraper.js
 
-      - name: Commit and Push
+      # 5. מעדכן את הקובץ data.json ושולח אותו חזרה ל-GitHub
+      - name: Commit and Push Changes
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
-          git commit -m "Update ski data [skip ci]" || exit 0
-          git push
+          # אם אין שינויים בנתונים, הפקודה לא תיכשל
+          git commit -m "Update ski data: $(date)" || echo "No changes to commit"
+          git push origin main
