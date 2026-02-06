@@ -3,48 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live 2026 - Official</title>
+    <title>Cervinia Live 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         :root { --accent: #0284c7; --bg: #f8fafc; --success: #22c55e; --danger: #ef4444; }
         body { background: var(--bg); font-family: system-ui, sans-serif; margin: 0; direction: rtl; }
         
-        /* --- Navbar & Menus (Hover Effect) --- */
+        /* --- Navbar & Menus --- */
         nav { background: white; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; }
         .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 5%; }
-        
-        .logo-wrapper { display: flex; align-items: center; gap: 12px; }
-        .mountain-container { position: relative; display: inline-block; line-height: 0; }
+        .logo-wrapper { display: flex; align-items: center; gap: 12px; font-weight: bold; font-size: 1.2rem; }
+        .mountain-container { position: relative; line-height: 0; }
         .fa-mountain-sun { font-size: 2rem; color: var(--accent); }
-        #status-dot { position: absolute; top: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; border: 2px solid white; transition: 0.4s; color: var(--success); }
+        #status-dot { position: absolute; top: -2px; right: -2px; font-size: 0.75rem; background: white; border-radius: 50%; border: 2px solid white; color: var(--success); }
+
+        .auth-zone { display: flex; align-items: center; gap: 10px; }
+        .btn-auth { background: #1e293b; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
 
         .nav-menu { display: flex; justify-content: center; gap: 30px; padding: 10px 0; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; }
         .menu-item { position: relative; cursor: pointer; font-weight: bold; color: #475569; font-size: 0.95rem; padding: 5px 15px; }
         .menu-item:hover { color: var(--accent); }
-        
-        .dropdown { 
-            position: absolute; top: 100%; right: 0; background: white; 
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1); border-radius: 8px; 
-            min-width: 200px; display: none; z-index: 100; padding: 10px 0; border: 1px solid #e2e8f0;
-        }
+        .dropdown { position: absolute; top: 100%; right: 0; background: white; box-shadow: 0 8px 15px rgba(0,0,0,0.1); border-radius: 8px; min-width: 200px; display: none; z-index: 100; padding: 10px 0; border: 1px solid #e2e8f0; }
         .menu-item:hover .dropdown { display: block; }
         .dropdown a { display: block; padding: 10px 15px; text-decoration: none; color: #334155; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; }
-        .dropdown a:last-child { border: none; }
         .dropdown a:hover { background: #f8fafc; color: var(--accent); }
 
-        /* --- Forum UI (As requested in your example) --- */
-        .forum-actions { display: flex; align-items: stretch; gap: 8px; margin-top: 15px; }
-        .clip-box { display: flex; align-items: center; justify-content: center; background: white; padding: 0 15px; border-radius: 10px; border: 1px solid #ddd; cursor: pointer; color: #64748b; font-size: 1.2rem; }
-        .btn-publish-main { flex-grow: 1; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.1rem; }
-
-        /* --- Layout & Cards --- */
+        /* --- Live Data Banner --- */
         .live-banner { background: #1e293b; color: white; padding: 12px; display: flex; justify-content: center; gap: 20px; font-weight: bold; font-size: 0.9rem; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding: 20px; max-width: 1100px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border: 1px solid #e2e8f0; }
-        .weather-val { font-size: 1.2rem; font-weight: bold; color: #1e293b; }
+        .weather-val { font-size: 1.4rem; font-weight: bold; color: #1e293b; margin-top: 5px; }
+
+        /* --- Forum --- */
+        #forum { max-width: 900px; margin: 30px auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .forum-actions { display: flex; align-items: stretch; gap: 8px; margin-top: 15px; }
+        .clip-box { display: flex; align-items: center; justify-content: center; background: white; padding: 0 15px; border-radius: 10px; border: 1px solid #ddd; cursor: pointer; color: #64748b; }
+        .btn-publish-main { flex: 1; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-publish-main:disabled { background: #cbd5e1; cursor: not-allowed; }
         
-        #forum { max-width: 900px; margin: 30px auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: right; }
-        .post { background: #f1f5f9; padding: 15px; border-radius: 10px; margin-top: 10px; position: relative; border-right: 4px solid var(--accent); }
+        .post { background: #f8fafc; padding: 15px; border-radius: 12px; margin-top: 15px; border-right: 4px solid var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .post-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; margin-bottom: 8px; }
+        .post-user { font-weight: bold; color: #1e293b; }
     </style>
 </head>
 <body>
@@ -56,80 +56,163 @@
                     <i class="fa-solid fa-mountain-sun"></i>
                     <i id="status-dot" class="fa-solid fa-circle"></i>
                 </div>
-                <strong>Cervinia Live</strong>
+                <span>Cervinia Live</span>
             </div>
-            <div id="update-tag" style="font-size: 0.7rem; color: #94a3b8;">מעדכן נתונים...</div>
+            <div class="auth-zone">
+                <span id="user-display" style="font-size: 0.85rem; font-weight: 500;"></span>
+                <button id="auth-btn" class="btn-auth" onclick="handleAuth()">התחברות</button>
+            </div>
         </div>
         
         <div class="nav-menu">
-            <div class="menu-item">
-                <i class="fa-solid fa-snowflake"></i> מצב ההר
+            <div class="menu-item"><i class="fa-solid fa-snowflake"></i> מצב ההר
                 <div class="dropdown">
-                    <a href="#"><i class="fa-solid fa-check-double"></i> מעליות ומסלולים</a>
-                    <a href="#"><i class="fa-solid fa-mound"></i> דו"ח שלג עדכני</a>
-                    <a href="#"><i class="fa-solid fa-arrows-left-right"></i> מעבר לזארמט</a>
+                    <a href="#">מצב מעליות</a>
+                    <a href="#">דו"ח שלג</a>
+                    <a href="#">סטטוס זארמט</a>
                 </div>
             </div>
-            <div class="menu-item">
-                <i class="fa-solid fa-info-circle"></i> מידע לגולש
-                <div class="dropdown">
-                    <a href="https://www.cervinia.it/en/ski-area/piste-map" target="_blank">מפת מסלולים PDF</a>
-                    <a href="#">השכרת ציוד</a>
-                    <a href="#">בתי ספר לסקי</a>
-                </div>
-            </div>
-            <div class="menu-item">
-                <i class="fa-solid fa-video"></i> מדיה ולייב
+            <div class="menu-item"><i class="fa-solid fa-camera"></i> מדיה
                 <div class="dropdown">
                     <a href="https://www.cervinia.it/en/webcam" target="_blank">מצלמות לייב</a>
-                    <a href="#">תחזית מורחבת</a>
-                    <a href="#">גלריית גולשים</a>
+                    <a href="#">גלריה</a>
+                </div>
+            </div>
+            <div class="menu-item"><i class="fa-solid fa-info-circle"></i> מידע
+                <div class="dropdown">
+                    <a href="#">מפת מסלולים</a>
+                    <a href="#">תחזית מזג אוויר</a>
                 </div>
             </div>
         </div>
     </nav>
 
     <div class="live-banner">
-        <span>סטטוס: <span id="v-lifts">טוען...</span></span>
+        <span>מעליות: <span id="v-lifts">--/--</span></span>
         <span>זארמט: <span id="v-conn">בדיקה...</span></span>
     </div>
 
     <div class="grid">
-        <div class="card">
-            <i class="fa-solid fa-cloud-sun" style="color:var(--accent); font-size: 1.5rem;"></i>
-            <h4>מזג אוויר</h4>
-            <div id="w-temp" class="weather-val">--°C</div>
-        </div>
-        <div class="card"><h4>שלג עיירה</h4><p id="s-town" class="weather-val">--</p></div>
-        <div class="card"><h4>שלג פסגה</h4><p id="s-peak" class="weather-val">--</p></div>
+        <div class="card"><i class="fa-solid fa-temperature-half" style="color:var(--accent)"></i><h4>טמפרטורה</h4><div id="w-temp" class="weather-val">--°C</div></div>
+        <div class="card"><i class="fa-solid fa-snowflake" style="color:var(--accent)"></i><h4>שלג עיירה</h4><div id="s-town" class="weather-val">--</div></div>
+        <div class="card"><i class="fa-solid fa-mountain" style="color:var(--accent)"></i><h4>שלג פסגה</h4><div id="s-peak" class="weather-val">--</div></div>
     </div>
 
     <section id="forum">
-        <h3>💬 עדכונים מהשטח</h3>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input id="un" placeholder="שם" style="width:25%; padding:12px; border:1px solid #ddd; border-radius:8px;"> 
-            <input id="um" placeholder="מה המצב בהר?" style="width:75%; padding:12px; border:1px solid #ddd; border-radius:8px;">
-        </div>
+        <h3 style="margin-top:0">💬 עדכונים מהשטח</h3>
+        <p id="login-warning" style="color:var(--danger); font-size:0.85rem;">עליך להתחבר כדי לכתוב הודעה.</p>
+        
+        <input id="post-input" placeholder="כתוב עדכון מההר..." style="width:100%; padding:15px; border:1px solid #e2e8f0; border-radius:12px; box-sizing:border-box;">
         
         <div class="forum-actions">
-            <label for="file-upload" class="clip-box"><i class="fa-solid fa-paperclip"></i></label>
-            <input type="file" id="file-upload" style="display:none" accept="image/*">
-            
-            <button onclick="addMainPost()" class="btn-publish-main">
-                <i class="fa-solid fa-paper-plane"></i> פרסם הודעה לעדכון
+            <label class="clip-box"><i class="fa-solid fa-paperclip"></i></label>
+            <button id="publish-btn" onclick="sendPost()" class="btn-publish-main" disabled>
+                <i class="fa-solid fa-paper-plane"></i> פרסם עדכון
             </button>
         </div>
-        <div id="plist"></div>
+
+        <div id="posts-container" style="margin-top:20px;">טוען הודעות...</div>
     </section>
 
     <script>
-        // פונקציית טעינת הנתונים מה-GitHub Action
-        async function loadLiveData() {
+        // --- הגדרות Supabase ---
+        const SB_URL = "https://cdgqodtbdhsqkvcgcdlm.supabase.co";
+        const SB_KEY = "sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g"; // המפתח שלך
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+
+        let userSession = null;
+
+        // --- ניהול משתמשים ---
+        async function checkUser() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            userSession = user;
+            
+            const authBtn = document.getElementById('auth-btn');
+            const publishBtn = document.getElementById('publish-btn');
+            const loginWarn = document.getElementById('login-warning');
+            const userDisplay = document.getElementById('user-display');
+
+            if (user) {
+                userDisplay.innerText = user.email.split('@')[0];
+                authBtn.innerText = "התנתק";
+                publishBtn.disabled = false;
+                loginWarn.style.display = 'none';
+            } else {
+                userDisplay.innerText = "";
+                authBtn.innerText = "התחברות";
+                publishBtn.disabled = true;
+                loginWarn.style.display = 'block';
+            }
+        }
+
+        async function handleAuth() {
+            if (userSession) {
+                await supabaseClient.auth.signOut();
+                location.reload();
+            } else {
+                const email = prompt("אימייל:");
+                const password = prompt("סיסמה (לפחות 6 תווים):");
+                if (!email || !password) return;
+
+                const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
+                
+                if (signInError) {
+                    const { error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+                    if (signUpError) alert("שגיאה: " + signUpError.message);
+                    else alert("נרשמת בהצלחה! אשר את המייל והתחבר.");
+                } else {
+                    location.reload();
+                }
+            }
+        }
+
+        // --- ניהול הודעות (Supabase) ---
+        async function loadPosts() {
+            const { data, error } = await supabaseClient
+                .from('posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) return console.error(error);
+
+            const container = document.getElementById('posts-container');
+            container.innerHTML = data.length ? "" : "אין הודעות עדיין.";
+            data.forEach(post => {
+                const div = document.createElement('div');
+                div.className = "post";
+                div.innerHTML = `
+                    <div class="post-header">
+                        <span class="post-user">${post.author_name}</span>
+                        <span>${new Date(post.created_at).toLocaleTimeString('he-IL')} | ${new Date(post.created_at).toLocaleDateString('he-IL')}</span>
+                    </div>
+                    <div>${post.content}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function sendPost() {
+            const input = document.getElementById('post-input');
+            if (!input.value) return;
+
+            const { error } = await supabaseClient.from('posts').insert([{
+                content: input.value,
+                author_id: userSession.id,
+                author_name: userSession.email.split('@')[0]
+            }]);
+
+            if (error) alert("שגיאה בשליחה");
+            else {
+                input.value = "";
+                loadPosts();
+            }
+        }
+
+        // --- נתונים אוטומטיים (GitHub Action & Weather) ---
+        async function fetchLiveData() {
             try {
-                // המערכת מנסה למשוך את הקובץ שהרובוט יצר
                 const response = await fetch('data.json');
                 const data = await response.json();
-                
                 document.getElementById('v-lifts').innerText = data.lifts;
                 document.getElementById('s-town').innerText = data.town + " ס\"מ";
                 document.getElementById('s-peak').innerText = data.peak + " ס\"מ";
@@ -137,10 +220,7 @@
                 const isOpen = data.conn === 'open';
                 document.getElementById('v-conn').innerText = isOpen ? "פתוח ✅" : "סגור 🚫";
                 document.getElementById('status-dot').style.color = isOpen ? "var(--success)" : "var(--danger)";
-                document.getElementById('update-tag').innerText = "עודכן אוטומטית";
-            } catch (e) {
-                console.log("Waiting for robot data...");
-            }
+            } catch (e) { console.warn("Waiting for GitHub data file..."); }
         }
 
         async function fetchWeather() {
@@ -149,13 +229,11 @@
             document.getElementById('w-temp').innerText = Math.round(data.current.temperature_2m) + "°C";
         }
 
-        // פונקציות פורום בסיסיות (לוקאליות בינתיים)
-        function renderPosts() { /* כאן יופיע הקוד המקורי של הפורום ששמרת */ }
-
         window.onload = () => {
-            loadLiveData();
+            checkUser();
+            loadPosts();
+            fetchLiveData();
             fetchWeather();
-            // כאן אפשר להוסיף את שאר הלוגיקה של הפורום מהקבצים הקודמים
         };
     </script>
 </body>
