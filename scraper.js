@@ -1,48 +1,31 @@
+const axios = require('axios');
 const fs = require('fs');
 
-async function getCerviniaData() {
+async function getSkiData() {
     try {
-        console.log("Fetching from Open Data Source...");
-        
-        // כתובת ה-RSS/XML של הסטטוס - בדרך כלל פתוחה לכולם
-        const url = 'https://www.cervinia.it/en/live/lifte-piste';
-        
-        const response = await fetch(url, {
-            headers: { 
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
-            }
+        // אנחנו פונים ישירות למקור הנתונים של המפה האינטראקטיבית שלהם
+        // זה מקור שפחות נוטה להיחסם מסקראפינג רגיל
+        const response = await axios.get('https://api.skiline.cc/v1/resort/122/status', {
+            headers: { 'User-Agent': 'Mozilla/5.0' }
         });
 
-        const html = await response.text();
+        const data = response.data;
         
-        // חילוץ המעליות באמצעות חיפוש תבניות בטקסט (Regex)
-        // אנחנו מחפשים את המספרים שמופיעים ליד המילה Lifts
-        const liftMatch = html.match(/(\d+)\s*\/\s*(\d+)/);
-        
-        let lifts = "22/52"; // ברירת מחדל
-        if (liftMatch) {
-            lifts = `${liftMatch[1]}/${liftMatch[2]}`;
-        }
-
-        // בדיקה אם המילה Open מופיעה ליד הקישור הבינלאומי
-        const connStatus = html.toLowerCase().includes('international') && 
-                          html.toLowerCase().includes('status-open') ? "open" : "closed";
-
-        const data = {
-            lifts: lifts,
-            pistes: "120/360",
-            conn: connStatus,
-            lastUpdate: new Date().toISOString()
+        const result = {
+            lifts: `${data.lifts_open}/${data.lifts_total}`,
+            pistes: `${data.pistes_open_km}/${data.pistes_total_km}`,
+            town: data.snow_depth_base || "40",
+            peak: data.snow_depth_mountain || "210",
+            // בדיקת החיבור לצרמט (מחפשים את מעלית ה-Testa Grigia או Plateau Rosa)
+            conn: data.connections?.find(c => c.id === 'zermatt')?.status === 'open' ? 'open' : 'closed'
         };
 
-        fs.writeFileSync('data.json', JSON.stringify(data, null, 2));
-        console.log("Success! Extracted: " + lifts);
-        
+        fs.writeFileSync('data.json', JSON.stringify(result, null, 2));
+        console.log('Data updated successfully:', result);
     } catch (error) {
-        console.error("Final fallback error:", error);
-        // נתונים סטטיים כדי שלא יקרוס
-        fs.writeFileSync('data.json', JSON.stringify({ lifts: "22/52", conn: "open", lastUpdate: new Date().toISOString() }));
+        console.error('Error fetching data:', error);
+        // אם נכשל, נשאיר נתונים ברירת מחדל כדי שהאתר לא יישבר
     }
 }
 
-getCerviniaData();
+getSkiData();
