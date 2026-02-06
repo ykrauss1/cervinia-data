@@ -1,0 +1,22 @@
+name: Update Ski Data
+on:
+  schedule:
+    - cron: '0 * * * *' # רץ כל שעה עגולה
+  workflow_dispatch: # מאפשר להריץ ידנית לבדיקה
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm install axios
+      - name: Run Scraper
+        run: node scraper.js
+      - name: Commit and Push
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add data.json
+          git commit -m "Update ski data" || exit 0
+          git push
