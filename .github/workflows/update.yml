@@ -1,45 +1,33 @@
-name: Update Ski Data
-
+name: Update Cervinia Data
 on:
   schedule:
-    # רץ בכל שעה עגולה (לפי שעון UTC)
-    - cron: '0 * * * *'
-  # מאפשר לך להריץ את זה ידנית בלחיצת כפתור (Workflow Dispatch)
-  workflow_dispatch:
-
-# הגדרת הרשאות כתיבה - קריטי כדי שה-Action יוכל לעדכן את data.json
-permissions:
-  contents: write
+    - cron: '0 * * * *' # רץ פעם בשעה
+  workflow_dispatch: # מאפשר לך להריץ ידנית בלחיצת כפתור
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write # זה החלק הכי חשוב! נותן לרובוט רשות לכתוב את הנתונים
     steps:
-      # 1. מושך את הקוד מה-Repository
-      - name: Checkout Repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      # 2. מתקין את סביבת Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          node-version: '18'
+          python-version: '3.9'
 
-      # 3. מתקין את ספריית axios (למשיכת נתונים מה-API)
       - name: Install Dependencies
-        run: npm install axios
+        run: pip install requests beautifulsoup4
 
-      # 4. מריץ את הסקריפט שכתבנו
       - name: Run Scraper
-        run: node scraper.js
+        run: python scraper.py
 
-      # 5. מעדכן את הקובץ data.json ושולח אותו חזרה ל-GitHub
-      - name: Commit and Push Changes
+      - name: Commit and Push
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
           git add data.json
-          # אם אין שינויים בנתונים, הפקודה לא תיכשל
-          git commit -m "Update ski data: $(date)" || echo "No changes to commit"
-          git push origin main
+          git commit -m "Update ski data [skip ci]" || exit 0
+          git push
