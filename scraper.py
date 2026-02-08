@@ -1,58 +1,79 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+from datetime import datetime
+import pytz
+
+def get_external_temp():
+    """שליפת טמפרטורה ממקור מזג אוויר חיצוני (Open-Meteo)"""
+    try:
+        # קואורדינטות של צ'רביניה
+        url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.63&current_weather=true"
+        response = requests.get(url)
+        data = response.json()
+        return f"{data['current_weather']['temperature']}°C"
+    except:
+        return None
 
 def get_data():
     url = "https://www.cervinia.it/en/info/bollettino-neve"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
     
     try:
-        response = requests.get(url, headers=headers)
+        # בדיקת זמן באיטליה
+        tz_italy = pytz.timezone('Europe/Rome')
+        now = datetime.now(tz_italy)
+        is_daytime = 8 <= now.hour < 17
+
+        # ניסיון שאיבה מהאתר הרשמי
+        response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # 1. שליפת טמפרטורה (לפי התמונה ששלחת)
+        # טמפרטורה - ננסה מהאתר, אם אין (או לילה) ניקח מהמקור החיצוני
         temp_tag = soup.select_one('.weather-info__temp')
-        temp = temp_tag.text.strip() if temp_tag else "-8.4°C"
+        temp = temp_tag.text.strip() if temp_tag else None
+        
+        if not temp or not is_daytime:
+            external_temp = get_external_temp()
+            if external_temp:
+                temp = external_temp
 
-        # 2. שליפת נתוני שלג - חיפוש לפי מחלקות ספציפיות יותר
-        town_snow = "0"
-        peak_snow = "0"
+        # שלג
         snow_values = soup.select('.snow-info__value')
-        if len(snow_values) >= 2:
-            town_snow = snow_values[0].text.strip().replace('cm', '')
-            peak_snow = snow_values[1].text.strip().replace('cm', '')
+        town_snow = snow_values[0].text.strip().replace('cm','') if len(snow_values) > 0 else "0"
+        peak_snow = snow_values[1].text.strip().replace('cm','') if len(snow_values) > 1 else "0"
 
-        # 3. בדיקת סטטוס חיבור זארמט (לפי הכפתור האדום בתמונה)
-        # אנחנו מחפשים אם כתוב "CLOSED" בתוך אזור ה-Zermatt link
-        conn_status = "closed"
-        zermatt_area = soup.select_one('.zermatt-link') # או המחלקה המתאימה באתר
-        if zermatt_area and "open" in zermatt_area.text.lower():
-            conn_status = "open"
-        elif "open" in response.text.lower() and "closed" not in response.text.lower():
-             # גיבוי: בדיקה כללית בטקסט אם אין זיהוי ספציפי
-             conn_status = "open"
-
-        # 4. מעליות פתוחות
-        lifts_open = soup.select_one('.lifts-info__open')
-        lifts_total = soup.select_one('.lifts-info__total')
-        lifts_text = f"{lifts_open.text}/{lifts_total.text}" if lifts_open and lifts_total else "0/0"
+        # מעליות וחיבור - רק ביום
+        if is_daytime:
+            lifts_open = soup.select_one('.lifts-info__open')
+            lifts_total = soup.select_one('.lifts-info__total')
+            lifts = f"{lifts_open.text}/{lifts_total.text}" if lifts_open and lifts_total else "0/0"
+            
+            conn = "closed"
+            if "zermatt" in response.text.lower() and "open" in response.text.lower():
+                conn = "open"
+        else:
+            lifts = "0/0"
+            conn = "closed"
 
         data = {
             "town": town_snow,
             "peak": peak_snow,
-            "lifts": lifts_text,
-            "conn": conn_status,
-            "temp": temp
+            "lifts": lifts,
+            "conn": conn,
+            "temp": temp if temp else "N/A",
+            "last_update": now.strftime("%H:%M")
         }
         
         with open('data.json', 'w') as f:
             json.dump(data, f)
-        print(f"Updated: {data}")
-        
+            
     except Exception as e:
-        print(f"Error: {e}")
+        # אם הכל נכשל, ננסה לפחות להציל את הטמפרטורה
+        ext_temp = get_external_temp()
+        if ext_temp:
+            with open('data.json', 'w') as f:
+                json.dump({"temp": ext_temp, "status": "offline_mode"}, f)
 
 if __name__ == "__main__":
     get_data()
