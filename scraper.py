@@ -14,14 +14,14 @@ def get_forecast():
             date_str = res['daily']['time'][i]
             date_obj = datetime.now() if not date_str else datetime.strptime(date_str, '%Y-%m-%d')
             wind = res['daily']['windspeed_10m_max'][i]
-            prediction = "High" if wind < 25 else "Medium" if wind < 40 else "Low"
+            # תחזית סיכוי קישור מבוססת רוח ב-Plateau Rosa
+            prediction = "High" if wind < 25 else "Medium" if wind < 45 else "Low"
             forecast_list.append({
                 "date": date_obj.strftime('%d/%m'),
                 "temp_max": f"{res['daily']['temperature_2m_max'][i]}°",
                 "temp_min": f"{res['daily']['temperature_2m_min'][i]}°",
                 "wind": f"{wind} km/h",
-                "link_prob": prediction,
-                "status": "Foggy" if res['daily']['weathercode'][i] in [45, 48] else "Clear"
+                "link_prob": prediction
             })
         return forecast_list
     except: return []
@@ -29,56 +29,39 @@ def get_forecast():
 def get_live_data():
     url = "https://www.cervinia.it/en/info/bollettino-neve"
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-    live = {"temp": "N/A", "lifts": "0/47", "slopes": "0/109", "conn": "closed"}
+    live = {"temp": "N/A", "lifts": "N/A", "slopes": "N/A", "conn": "closed"}
     
     try:
         res = requests.get(url, headers=headers, timeout=15)
+        soup = BeautifulSoup(res.text, 'html.parser')
         text = res.text
-        
-        # חיפוש טמפרטורה (חיפוש מספר שצמוד לסימן המעלות)
-        temp_match = re.search(r'(-?\d+\.?\d*)°', text)
+
+        # 1. טמפרטורה - חיפוש בתוך אזור Plateau Rosa ספציפי אם קיים
+        temp_match = re.search(r'(-?\d+)\s*°', text)
         if temp_match: live["temp"] = f"{temp_match.group(1)}°C"
 
-        # חיפוש אגרסיבי של מעליות (מחפש מספר שמופיע לפני "di 47" או "of 47")
-        lifts_match = re.search(r'(\d+)\s*(?:di|of)\s*47', text)
-        if lifts_match:
-            live["lifts"] = f"{lifts_match.group(1)}/47"
-        else:
-            # אם לא מצאנו, נבדוק אם יש מספר פשוט שמופיע בתוך אלמנט ה-lifts-info__open
-            soup = BeautifulSoup(text, 'html.parser')
-            l_tag = soup.select_one('.lifts-info__open')
-            if l_tag and l_tag.text.strip().isdigit():
-                live["lifts"] = f"{l_tag.text.strip()}/47"
-            else: live["lifts"] = "47/47" # כברירת מחדל אם הכל פתוח לפי התמונה שלך
+        # 2. מעליות - חיפוש אלמנט עם class ספציפי של האתר
+        lifts_area = soup.find('div', string=re.compile('Lifts', re.I))
+        if lifts_area:
+            val = lifts_area.find_next('span')
+            if val: live["lifts"] = f"{val.text.strip()}/47"
+        
+        # ניסיון חילוץ רגולרי אם ה-HTML לא תואם
+        if live["lifts"] == "N/A":
+            l_match = re.search(r'(\d+)\s*/\s*47', text)
+            if l_match: live["lifts"] = f"{l_match.group(1)}/47"
 
-        # חיפוש אגרסיבי של מסלולים (לפני "di 109" או "of 109")
-        slopes_match = re.search(r'(\d+)\s*(?:di|of)\s*109', text)
-        if slopes_match:
-            live["slopes"] = f"{slopes_match.group(1)}/109"
-        else: live["slopes"] = "109/109"
+        # 3. מסלולים
+        slopes_match = re.search(r'(\d+)\s*/\s*109', text)
+        if slopes_match: live["slopes"] = f"{slopes_match.group(1)}/109"
 
-        if "open" in text.lower() and "zermatt" in text.lower():
-            live["conn"] = "open"
+        # 4. סטטוס קישור לזארמט (Zermatt)
+        # מחפש את המילה Zermatt ובודק אם מופיעה לידה מילה חיובית
+        zermatt_section = re.search(r'Zermatt.*?(Open|Closed|Aperto|Chiuso)', text, re.I | re.S)
+        if zermatt_section:
+            status = zermatt_section.group(1).lower()
+            if status in ['open', 'aperto']:
+                live["conn"] = "open"
             
-    except Exception as e: print(f"Scrape Error: {e}")
-    return live
-
-def run_update():
-    tz = pytz.timezone('Europe/Rome')
-    live = get_live_data()
-    
-    final_data = {
-        "temp": live["temp"],
-        "lifts": live["lifts"],
-        "slopes": live["slopes"],
-        "conn": live["conn"],
-        "wind_prediction": "High" if "47" in live["lifts"] and not live["lifts"].startswith("0/") else "Medium",
-        "forecast": get_forecast(),
-        "last_update": datetime.now(tz).strftime("%H:%M")
-    }
-    
-    with open('data.json', 'w') as f:
-        json.dump(final_data, f)
-
-if __name__ == "__main__":
-    run_update()
+    except Exception as e: 
+        print(f"Scrape Error: {e
