@@ -3,63 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live</title>
+    <title>Cervinia Live - דאשבורד סקי ותחזית</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #0284c7; --bg: #f1f5f9; --slate: #1e293b; }
-        body { background: var(--bg); font-family: system-ui, sans-serif; margin: 0; direction: rtl; }
-        nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        :root { --accent: #0284c7; --bg: #f1f5f9; --slate: #1e293b; --white: #ffffff; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
+        body { background: var(--bg); font-family: system-ui, -apple-system, sans-serif; margin: 0; color: var(--slate); direction: rtl; }
+        
+        /* Navbar */
+        nav { background: var(--white); padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 1.6rem; font-weight: 900; color: var(--slate); }
+        .logo span { color: var(--accent); }
+
         .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; }
+
+        /* Main Card - Live Data */
+        .card { background: var(--white); padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 25px; border: 1px solid #e2e8f0; }
+        .hero-card { background: linear-gradient(135deg, #075985 0%, #0369a1 100%); color: white; text-align: center; }
+        
+        /* Stats Grid */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .temp-badge { background: #e0f2fe; color: #0369a1; padding: 5px 15px; border-radius: 10px; font-weight: 800; font-size: 1.5rem; display: inline-block; margin-bottom: 10px; }
+        .stat-val { font-size: 2rem; font-weight: 800; direction: ltr; margin: 10px 0; }
+        .temp-badge { background: #e0f2fe; color: #0369a1; padding: 5px 15px; border-radius: 12px; font-weight: 800; font-size: 1.2rem; display: inline-block; }
+
+        /* Forecast Table */
+        .forecast-table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: center; }
+        .forecast-table th { padding: 12px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.9rem; }
+        .forecast-table td { padding: 15px 10px; border-bottom: 1px solid #f1f5f9; font-weight: 500; }
+        .prob-high { color: var(--success); font-weight: 800; }
+        .prob-med { color: var(--warning); font-weight: 800; }
+        .prob-low { color: var(--danger); font-weight: 800; }
+
+        /* Webcams */
         .cam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 20px; }
-        .cam-grid img { width: 100%; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .cam-grid img { width: 100%; border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid white; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size: 1.5rem; font-weight: 900;">Cervinia<span style="color:var(--accent)">Live</span></div>
+    <div class="logo">Cervinia<span>Live</span></div>
+    <div id="update-time" style="font-size: 0.8rem; color: #64748b;">עדכון אחרון: --:--</div>
 </nav>
 
 <div class="container">
-    <div class="card" style="background: var(--accent); color: white;">
-        <h2 style="margin:0">סיכוי לפתיחת קישור לזארמט</h2>
-        <div id="p-link" style="font-size: 1.8rem; font-weight: 900; margin-top:10px;">טוען...</div>
+    <div class="card hero-card">
+        <h2 style="margin:0; opacity: 0.9; font-size: 1.1rem;">סיכוי נוכחי לקישור (Plateau Rosa)</h2>
+        <div id="p-link" style="font-size: 2.5rem; font-weight: 900; margin: 15px 0;">טוען נתונים...</div>
     </div>
 
     <div class="grid">
         <div class="card">
             <div id="d-temp" class="temp-badge">--°C</div>
-            <h3>צ'רביניה</h3>
-            <div id="c-lifts" style="font-size: 2rem; font-weight: 800;">--/--</div>
+            <h3>צ'רביניה (Live)</h3>
+            <div id="c-lifts" class="stat-val">--/--</div>
+            <small style="color: #64748b;">מעליות פתוחות</small>
         </div>
         <div class="card">
             <h3>וולטורננש</h3>
-            <div id="v-lifts" style="font-size: 1.5rem;">--/--</div>
+            <div id="v-lifts" class="stat-val">--/--</div>
+            <div id="z-conn" style="font-weight: 700;">סטטוס קישור: בבדיקה...</div>
         </div>
     </div>
 
-    <h2 style="margin-top:40px;">מצלמות בשידור חי</h2>
+    <div class="card">
+        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
+            📅 תחזית ל-4 ימים קרובים <small style="font-weight: normal; font-size: 0.8rem;">(Plateau Rosa 3,480m)</small>
+        </h3>
+        <div style="overflow-x: auto;">
+            <table class="forecast-table">
+                <thead>
+                    <tr>
+                        <th>תאריך</th>
+                        <th>טמפ' (Min/Max)</th>
+                        <th>רוח מירבית</th>
+                        <th>ראות</th>
+                        <th>סיכוי לקישור</th>
+                    </tr>
+                </thead>
+                <tbody id="forecast-body">
+                    <tr><td colspan="5">מחשב תחזית...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h2 style="margin: 40px 0 20px 0;">🎥 מצלמות בשידור חי</h2>
     <div class="cam-grid">
-        <img src="https://api.skiline.cc/panodata/webcam/635/snapshot" referrerpolicy="no-referrer">
-        <img src="https://api.skiline.cc/panodata/webcam/634/snapshot" referrerpolicy="no-referrer">
+        <div style="text-align:center;">
+            <img src="https://api.skiline.cc/panodata/webcam/635/snapshot" referrerpolicy="no-referrer">
+            <p>Plateau Rosa (3,480m)</p>
+        </div>
+        <div style="text-align:center;">
+            <img src="https://api.skiline.cc/panodata/webcam/634/snapshot" referrerpolicy="no-referrer">
+            <p>Plan Maison (2,555m)</p>
+        </div>
     </div>
 </div>
 
 <script>
-    async function update() {
+    async function updateDashboard() {
         try {
-            const res = await fetch('data.json?v=' + Date.now());
-            const d = await res.json();
-            document.getElementById('p-link').innerText = d.wind_prediction;
-            document.getElementById('d-temp').innerText = d.temp;
-            document.getElementById('c-lifts').innerText = d.cervinia.lifts;
-            document.getElementById('v-lifts').innerText = d.valtournenche.lifts;
-        } catch (e) { console.log("טוען..."); }
+            const response = await fetch('data.json?v=' + Date.now());
+            const data = await response.json();
+
+            // נתונים חיים
+            document.getElementById('p-link').innerText = data.wind_prediction || "בבדיקה";
+            document.getElementById('d-temp').innerText = data.temp || "--°C";
+            document.getElementById('c-lifts').innerText = data.cervinia.lifts || "--/--";
+            document.getElementById('v-lifts').innerText = data.valtournenche.lifts || "--/--";
+            document.getElementById('z-conn').innerText = "סטטוס קישור: " + (data.conn === 'open' ? "פתוח ✅" : "סגור 🚫");
+            document.getElementById('update-time').innerText = "עדכון אחרון: " + data.last_update;
+
+            // עדכון טבלת תחזית
+            if (data.forecast) {
+                const body = document.getElementById('forecast-body');
+                body.innerHTML = data.forecast.map(day => {
+                    let probClass = day.link_prob === 'High' ? 'prob-high' : (day.link_prob === 'Medium' ? 'prob-med' : 'prob-low');
+                    let probHeb = day.link_prob === 'High' ? 'גבוה' : (day.link_prob === 'Medium' ? 'בינוני' : 'נמוך');
+                    
+                    return `
+                        <tr>
+                            <td style="font-weight:bold;">${day.date}</td>
+                            <td style="direction:ltr;">${day.temp_min} / ${day.temp_max}</td>
+                            <td style="direction:ltr;">${day.wind}</td>
+                            <td>${day.status === 'Clear' ? '☀️ בהיר' : '☁️ ערפל/ראות לקויה'}</td>
+                            <td class="${probClass}">${probHeb}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        } catch (e) {
+            console.error("שגיאה בטעינת הנתונים:", e);
+        }
     }
-    window.onload = update;
+
+    window.onload = updateDashboard;
+    setInterval(updateDashboard, 60000); // רענון אוטומטי כל דקה
 </script>
 </body>
 </html>
