@@ -1,25 +1,24 @@
 name: Update Cervinia Data
 on:
   schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch: # השורה הזו מייצרת את הכפתור להפעלה ידנית
+    - cron: '*/20 * * * *' # הרצה אוטומטית כל 20 דקות, 24/7
+  workflow_dispatch: # מאפשר לך להריץ ידנית בלחיצת כפתור לביקורת
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: Install Dependencies
-        run: pip install requests beautifulsoup4
+      - name: Install dependencies
+        # הוספנו כאן את pytz כדי שהסקריפט ידע מה השעה באיטליה
+        run: pip install requests beautifulsoup4 pytz
 
       - name: Run Scraper
         run: python scraper.py
@@ -29,5 +28,5 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add data.json
-          git commit -m "Update ski data [skip ci]" || exit 0
+          git commit -m "Continuous update with night-mode logic" || exit 0
           git push
