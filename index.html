@@ -3,142 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live - דאשבורד סקי ותחזית</title>
+    <title>Cervinia Live - Dashboard & Login</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #0284c7; --bg: #f1f5f9; --slate: #1e293b; --white: #ffffff; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
-        body { background: var(--bg); font-family: system-ui, -apple-system, sans-serif; margin: 0; color: var(--slate); direction: rtl; }
-        
-        /* Navbar */
-        nav { background: var(--white); padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
-        .logo { font-size: 1.6rem; font-weight: 900; color: var(--slate); }
-        .logo span { color: var(--accent); }
-
+        :root { --accent: #0284c7; --bg: #f1f5f9; --white: #ffffff; --slate: #1e293b; }
+        body { background: var(--bg); font-family: system-ui, sans-serif; margin: 0; color: var(--slate); direction: rtl; }
+        nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); sticky: top; z-index: 1000; }
         .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
-
-        /* Main Card - Live Data */
-        .card { background: var(--white); padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 25px; border: 1px solid #e2e8f0; }
-        .hero-card { background: linear-gradient(135deg, #075985 0%, #0369a1 100%); color: white; text-align: center; }
-        
-        /* Stats Grid */
+        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 20px; }
+        .hero { background: linear-gradient(135deg, #075985 0%, #0369a1 100%); color: white; text-align: center; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .stat-val { font-size: 2rem; font-weight: 800; direction: ltr; margin: 10px 0; }
-        .temp-badge { background: #e0f2fe; color: #0369a1; padding: 5px 15px; border-radius: 12px; font-weight: 800; font-size: 1.2rem; display: inline-block; }
-
-        /* Forecast Table */
-        .forecast-table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: center; }
-        .forecast-table th { padding: 12px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 0.9rem; }
-        .forecast-table td { padding: 15px 10px; border-bottom: 1px solid #f1f5f9; font-weight: 500; }
-        .prob-high { color: var(--success); font-weight: 800; }
-        .prob-med { color: var(--warning); font-weight: 800; }
-        .prob-low { color: var(--danger); font-weight: 800; }
-
-        /* Webcams */
+        .temp-badge { background: #e0f2fe; color: #0369a1; padding: 5px 15px; border-radius: 12px; font-weight: 800; font-size: 1.3rem; }
+        .btn-auth { background: var(--slate); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        
+        /* Modal Style */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+        .input-field { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; border-bottom: 1px solid #f1f5f9; text-align: center; }
         .cam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 20px; }
-        .cam-grid img { width: 100%; border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 2px solid white; }
+        .cam-grid img { width: 100%; border-radius: 18px; border: 2px solid white; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="logo">Cervinia<span>Live</span></div>
-    <div id="update-time" style="font-size: 0.8rem; color: #64748b;">עדכון אחרון: --:--</div>
+    <div style="font-size: 1.5rem; font-weight: 900;">Cervinia<span>Live</span></div>
+    <div id="auth-section">
+        <span id="user-email" style="margin-left:10px; font-weight:600;"></span>
+        <button id="login-btn" class="btn-auth" onclick="toggleModal(true)">התחברות</button>
+    </div>
 </nav>
 
 <div class="container">
-    <div class="card hero-card">
-        <h2 style="margin:0; opacity: 0.9; font-size: 1.1rem;">סיכוי נוכחי לקישור (Plateau Rosa)</h2>
-        <div id="p-link" style="font-size: 2.5rem; font-weight: 900; margin: 15px 0;">טוען נתונים...</div>
+    <div class="card hero">
+        <h2 style="margin:0; opacity:0.9;">סיכוי לפתיחת קישור לזארמט</h2>
+        <div id="p-link" style="font-size: 2.2rem; font-weight: 900; margin: 10px 0;">טוען...</div>
     </div>
 
     <div class="grid">
         <div class="card">
-            <div id="d-temp" class="temp-badge">--°C</div>
+            <span id="d-temp" class="temp-badge">--°C</span>
             <h3>צ'רביניה (Live)</h3>
-            <div id="c-lifts" class="stat-val">--/--</div>
-            <small style="color: #64748b;">מעליות פתוחות</small>
+            <div id="c-lifts" style="font-size: 1.8rem; font-weight: 800; direction: ltr;">--/--</div>
         </div>
         <div class="card">
             <h3>וולטורננש</h3>
-            <div id="v-lifts" class="stat-val">--/--</div>
-            <div id="z-conn" style="font-weight: 700;">סטטוס קישור: בבדיקה...</div>
+            <div id="z-status" style="font-weight:bold; font-size: 1.2rem;">בבדיקה...</div>
         </div>
     </div>
 
     <div class="card">
-        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
-            📅 תחזית ל-4 ימים קרובים <small style="font-weight: normal; font-size: 0.8rem;">(Plateau Rosa 3,480m)</small>
-        </h3>
+        <h3>📅 תחזית 4 ימים (Plateau Rosa)</h3>
         <div style="overflow-x: auto;">
-            <table class="forecast-table">
+            <table>
                 <thead>
                     <tr>
                         <th>תאריך</th>
-                        <th>טמפ' (Min/Max)</th>
-                        <th>רוח מירבית</th>
+                        <th>טמפ'</th>
+                        <th>רוח</th>
                         <th>ראות</th>
-                        <th>סיכוי לקישור</th>
+                        <th>סיכוי</th>
                     </tr>
                 </thead>
-                <tbody id="forecast-body">
-                    <tr><td colspan="5">מחשב תחזית...</td></tr>
-                </tbody>
+                <tbody id="forecast-body"></tbody>
             </table>
         </div>
     </div>
 
-    <h2 style="margin: 40px 0 20px 0;">🎥 מצלמות בשידור חי</h2>
     <div class="cam-grid">
-        <div style="text-align:center;">
-            <img src="https://api.skiline.cc/panodata/webcam/635/snapshot" referrerpolicy="no-referrer">
-            <p>Plateau Rosa (3,480m)</p>
-        </div>
-        <div style="text-align:center;">
-            <img src="https://api.skiline.cc/panodata/webcam/634/snapshot" referrerpolicy="no-referrer">
-            <p>Plan Maison (2,555m)</p>
-        </div>
+        <img src="https://api.skiline.cc/panodata/webcam/635/snapshot" referrerpolicy="no-referrer">
+        <img src="https://api.skiline.cc/panodata/webcam/634/snapshot" referrerpolicy="no-referrer">
+    </div>
+</div>
+
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modal-title">התחברות למערכת</h2>
+        <input type="email" id="email" class="input-field" placeholder="אימייל">
+        <input type="password" id="password" class="input-field" placeholder="סיסמה">
+        <button class="btn-auth" style="width:100%; margin-top:10px;" onclick="handleAuth()">אישור</button>
+        <button onclick="toggleModal(false)" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">ביטול</button>
     </div>
 </div>
 
 <script>
-    async function updateDashboard() {
-        try {
-            const response = await fetch('data.json?v=' + Date.now());
-            const data = await response.json();
+    // הגדרות Supabase
+    const SB_URL = "https://cdgqodtbdhsqkvcgcdlm.supabase.co";
+    const SB_KEY = "sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g";
+    const supabase = supabase.createClient(SB_URL, SB_KEY);
 
-            // נתונים חיים
-            document.getElementById('p-link').innerText = data.wind_prediction || "בבדיקה";
-            document.getElementById('d-temp').innerText = data.temp || "--°C";
-            document.getElementById('c-lifts').innerText = data.cervinia.lifts || "--/--";
-            document.getElementById('v-lifts').innerText = data.valtournenche.lifts || "--/--";
-            document.getElementById('z-conn').innerText = "סטטוס קישור: " + (data.conn === 'open' ? "פתוח ✅" : "סגור 🚫");
-            document.getElementById('update-time').innerText = "עדכון אחרון: " + data.last_update;
+    // ניהול מודל
+    function toggleModal(show) {
+        document.getElementById('authModal').style.display = show ? 'flex' : 'none';
+    }
 
-            // עדכון טבלת תחזית
-            if (data.forecast) {
-                const body = document.getElementById('forecast-body');
-                body.innerHTML = data.forecast.map(day => {
-                    let probClass = day.link_prob === 'High' ? 'prob-high' : (day.link_prob === 'Medium' ? 'prob-med' : 'prob-low');
-                    let probHeb = day.link_prob === 'High' ? 'גבוה' : (day.link_prob === 'Medium' ? 'בינוני' : 'נמוך');
-                    
-                    return `
-                        <tr>
-                            <td style="font-weight:bold;">${day.date}</td>
-                            <td style="direction:ltr;">${day.temp_min} / ${day.temp_max}</td>
-                            <td style="direction:ltr;">${day.wind}</td>
-                            <td>${day.status === 'Clear' ? '☀️ בהיר' : '☁️ ערפל/ראות לקויה'}</td>
-                            <td class="${probClass}">${probHeb}</td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-        } catch (e) {
-            console.error("שגיאה בטעינת הנתונים:", e);
+    // פונקציית התחברות
+    async function handleAuth() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        if (error) {
+            alert("שגיאה: " + error.message);
+        } else {
+            toggleModal(false);
+            checkUser();
         }
     }
 
-    window.onload = updateDashboard;
-    setInterval(updateDashboard, 60000); // רענון אוטומטי כל דקה
+    // בדיקת משתמש מחובר
+    async function checkUser() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            document.getElementById('user-email').innerText = user.email;
+            document.getElementById('login-btn').innerText = "התנתק";
+            document.getElementById('login-btn').onclick = async () => {
+                await supabase.auth.signOut();
+                location.reload();
+            };
+        }
+    }
+
+    // עדכון נתונים
+    async function update() {
+        try {
+            const res = await fetch('data.json?v=' + Date.now());
+            const d = await res.json();
+            
+            document.getElementById('p-link').innerText = d.wind_prediction;
+            document.getElementById('d-temp').innerText = d.temp;
+            document.getElementById('c-lifts').innerText = d.cervinia.lifts;
+            document.getElementById('z-status').innerText = d.conn === 'open' ? "קישור פתוח ✅" : "קישור סגור 🚫";
+            
+            if(d.forecast) {
+                document.getElementById('forecast-body').innerHTML = d.forecast.map(day => `
+                    <tr>
+                        <td style="font-weight:bold;">${day.date}</td>
+                        <td style="direction:ltr;">${day.temp_min} / ${day.temp_max}</td>
+                        <td style="direction:ltr;">${day.wind}</td>
+                        <td>${day.status === 'Clear' ? '☀️ בהיר' : '☁️ ערפל'}</td>
+                        <td style="color:${day.link_prob === 'High' ? 'green' : 'orange'}; font-weight:bold;">${day.link_prob}</td>
+                    </tr>
+                `).join('');
+            }
+        } catch (e) { console.log("טוען נתונים..."); }
+    }
+
+    window.onload = () => {
+        update();
+        checkUser();
+    };
 </script>
 </body>
 </html>
