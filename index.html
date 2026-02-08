@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live</title>
+    <title>Cervinia Live - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #0284c7; --bg: #f8fafc; --white: #ffffff; --slate: #1e293b; --success: #22c55e; --danger: #ef4444; }
@@ -18,22 +18,23 @@
         .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
         
         /* Header עם אינדיקטור צדדי */
-        .page-header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .status-box { display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .status-box { display: flex; align-items: center; gap: 10px; padding: 8px 15px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; }
 
         /* Modal UX */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 3000; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; position: relative; }
-        .close-btn { position: absolute; left: 15px; top: 15px; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
+        .modal-content { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; position: relative; }
+        .close-btn { position: absolute; left: 15px; top: 15px; font-size: 1.8rem; cursor: pointer; color: #94a3b8; line-height: 1; }
         .input-group { position: relative; margin: 10px 0; }
-        .input-field { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .eye-icon { position: absolute; left: 10px; top: 12px; cursor: pointer; opacity: 0.6; }
-        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .input-field { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1rem; }
+        .eye-icon { position: absolute; left: 12px; top: 12px; cursor: pointer; opacity: 0.5; font-size: 1.2rem; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 14px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 15px; font-size: 1rem; }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+        .card { background: white; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .stat-val { font-size: 2rem; font-weight: 800; color: var(--accent); margin-bottom: 5px; }
+        .admin-badge { background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -45,34 +46,35 @@
             <li><a href="#">אירוח</a></li>
             <li><a href="#">סקי</a></li>
             <li><a href="#">רכב</a></li>
+            <li><a href="#">עלינו</a></li>
         </ul>
     </div>
     <div id="auth-ui">
-        <button onclick="toggleModal(true)" style="background:none; border: 1px solid #ddd; padding: 6px 15px; border-radius: 8px; cursor:pointer;">כניסה</button>
+        <button onclick="toggleModal(true)" style="background:none; border: 1px solid #ddd; padding: 7px 18px; border-radius: 10px; cursor:pointer; font-weight:600;">כניסה</button>
     </div>
 </nav>
 
 <div class="container">
     <div class="page-header">
-        <h1 style="margin:0; font-size: 1.5rem;">מצב ההר כעת</h1>
+        <h1 style="margin:0; font-size: 1.3rem; font-weight: 800;">מצב ההר כעת</h1>
         <div class="status-box">
             <div id="status-dot" class="status-dot"></div>
-            <span id="status-text" style="font-weight: bold; font-size: 0.9rem;">טוען...</span>
+            <span id="status-text" style="font-weight: 700; font-size: 0.9rem;">טוען...</span>
         </div>
     </div>
 
     <div class="grid">
         <div class="card">
-            <div id="d-temp" style="font-size: 1.5rem; font-weight: bold;">--°C</div>
-            <div style="font-size: 0.8rem; color: #64748b;">טמפרטורה</div>
+            <div id="d-temp" style="font-size: 1.8rem; font-weight: 800;">--°C</div>
+            <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">טמפרטורה</div>
         </div>
         <div class="card">
             <div id="c-lifts" class="stat-val">--/47</div>
-            <div style="font-size: 0.8rem; color: #64748b;">מעליות</div>
+            <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">מעליות פתוחות</div>
         </div>
         <div class="card">
             <div id="c-slopes" class="stat-val">--/109</div>
-            <div style="font-size: 0.8rem; color: #64748b;">מסלולים</div>
+            <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">מסלולים פתוחים</div>
         </div>
     </div>
 </div>
@@ -83,7 +85,7 @@
         <h2 id="modal-title" style="text-align:center; margin-bottom:20px;">כניסה</h2>
         
         <div id="signup-only" style="display:none;">
-            <input type="text" id="user-name" class="input-field" placeholder="שם מלא">
+            <input type="text" id="user-name" class="input-field" placeholder="שם מלא" style="margin-bottom:10px;">
         </div>
         
         <input type="email" id="email" class="input-field" placeholder="אימייל" style="margin-bottom:10px;">
@@ -99,7 +101,7 @@
         </div>
 
         <button class="btn-main" id="primary-btn" onclick="handleAuth()">התחברות</button>
-        <p id="toggle-link" onclick="switchMode()" style="text-align:center; font-size:0.8rem; color:var(--accent); cursor:pointer; margin-top:15px;">אין לך חשבון? הרשמה</p>
+        <p id="toggle-link" onclick="switchMode()" style="text-align:center; font-size:0.85rem; color:var(--accent); cursor:pointer; margin-top:20px; font-weight:600;">אין לך חשבון? להרשמה מהירה</p>
     </div>
 </div>
 
@@ -108,6 +110,7 @@
     const SB_KEY = "sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g";
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
+    const ADMIN_EMAIL = "ykrauss1@gmail.com";
     let isSignup = false;
 
     function toggleModal(show) { document.getElementById('authModal').style.display = show ? 'flex' : 'none'; }
@@ -126,7 +129,7 @@
         document.getElementById('signup-only').style.display = isSignup ? 'block' : 'none';
         document.getElementById('confirm-pass-box').style.display = isSignup ? 'block' : 'none';
         document.getElementById('primary-btn').innerText = isSignup ? 'צור חשבון' : 'התחברות';
-        document.getElementById('toggle-link').innerText = isSignup ? 'כבר רשום? כניסה' : 'אין לך חשבון? הרשמה';
+        document.getElementById('toggle-link').innerText = isSignup ? 'כבר יש לך חשבון? לכניסה' : 'אין לך חשבון? להרשמה מהירה';
     }
 
     async function handleAuth() {
@@ -135,12 +138,14 @@
         const name = document.getElementById('user-name').value;
 
         if(isSignup) {
-            if(password !== document.getElementById('password-confirm').value) return alert("סיסמאות לא תואמות");
-            const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
+            if(password !== document.getElementById('password-confirm').value) return alert("הסיסמאות אינן תואמות");
+            const { data, error } = await supabaseClient.auth.signUp({ 
+                email, password, options: { data: { full_name: name } } 
+            });
             if(error) alert(error.message); else { alert("נרשמת בהצלחה!"); location.reload(); }
         } else {
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if(error) alert(error.message); else location.reload();
+            if(error) alert("שגיאה: וודא שהאימייל והסיסמה נכונים"); else location.reload();
         }
     }
 
@@ -148,21 +153,29 @@
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (user) {
             const displayName = user.user_metadata.full_name || user.email.split('@')[0];
+            const isAdmin = user.email === ADMIN_EMAIL;
+            
             document.getElementById('auth-ui').innerHTML = `
-                <span style="font-weight:bold; margin-left:10px;">שלום, ${displayName}</span>
-                <button onclick="supabaseClient.auth.signOut().then(()=>location.reload())" style="cursor:pointer; border:none; background:none; color:var(--accent); font-size:0.8rem;">התנתק</button>
+                <div style="display:flex; align-items:center;">
+                    ${isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}
+                    <span style="font-weight:700; margin-left:12px;">שלום, ${displayName}</span>
+                    <button onclick="supabaseClient.auth.signOut().then(()=>location.reload())" style="cursor:pointer; border:none; background:none; color:var(--accent); font-size:0.85rem; font-weight:600;">התנתק</button>
+                </div>
             `;
         }
     }
 
     async function updateData() {
-        const res = await fetch('data.json?v=' + Date.now());
-        const d = await res.json();
-        document.getElementById('status-dot').style.background = d.conn === 'open' ? 'var(--success)' : 'var(--danger)';
-        document.getElementById('status-text').innerText = d.conn === 'open' ? 'קישור לזארמט: פתוח' : 'קישור לזארמט: סגור';
-        document.getElementById('d-temp').innerText = d.temp;
-        document.getElementById('c-lifts').innerText = d.lifts;
-        document.getElementById('c-slopes').innerText = d.slopes;
+        try {
+            const res = await fetch('data.json?v=' + Date.now());
+            const d = await res.json();
+            const dot = document.getElementById('status-dot');
+            dot.style.background = d.conn === 'open' ? 'var(--success)' : 'var(--danger)';
+            document.getElementById('status-text').innerText = d.conn === 'open' ? 'הקישור לזארמט: פתוח' : 'הקישור לזארמט: סגור';
+            document.getElementById('d-temp').innerText = d.temp;
+            document.getElementById('c-lifts').innerText = d.lifts;
+            document.getElementById('c-slopes').innerText = d.slopes;
+        } catch(e) { console.log("טוען..."); }
     }
 
     window.onload = () => { updateData(); checkUser(); };
