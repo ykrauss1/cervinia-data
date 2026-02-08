@@ -3,28 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live - Dashboard & Login</title>
+    <title>Cervinia Live - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #0284c7; --bg: #f1f5f9; --white: #ffffff; --slate: #1e293b; }
         body { background: var(--bg); font-family: system-ui, sans-serif; margin: 0; color: var(--slate); direction: rtl; }
-        nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); sticky: top; z-index: 1000; }
+        nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
         .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
-        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 20px; }
-        .hero { background: linear-gradient(135deg, #075985 0%, #0369a1 100%); color: white; text-align: center; }
+        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; }
+        .hero { background: linear-gradient(135deg, #075985 0%, #0369a1 100%); color: white; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .temp-badge { background: #e0f2fe; color: #0369a1; padding: 5px 15px; border-radius: 12px; font-weight: 800; font-size: 1.3rem; }
+        .stat-val { font-size: 2.2rem; font-weight: 800; color: var(--accent); direction: ltr; margin: 10px 0; }
+        .temp-badge { background: #e0f2fe; color: #0369a1; padding: 5px 15px; border-radius: 12px; font-weight: 800; font-size: 1.3rem; display: inline-block; }
         .btn-auth { background: var(--slate); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; }
         
-        /* Modal Style */
+        /* Modal */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
         .input-field { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        
+
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; border-bottom: 1px solid #f1f5f9; text-align: center; }
         .cam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 20px; }
-        .cam-grid img { width: 100%; border-radius: 18px; border: 2px solid white; }
+        .cam-grid img { width: 100%; border-radius: 18px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -32,7 +33,7 @@
 <nav>
     <div style="font-size: 1.5rem; font-weight: 900;">Cervinia<span>Live</span></div>
     <div id="auth-section">
-        <span id="user-email" style="margin-left:10px; font-weight:600;"></span>
+        <span id="user-email" style="margin-left:10px; font-weight:600; font-size: 0.9rem;"></span>
         <button id="login-btn" class="btn-auth" onclick="toggleModal(true)">התחברות</button>
     </div>
 </nav>
@@ -40,23 +41,25 @@
 <div class="container">
     <div class="card hero">
         <h2 style="margin:0; opacity:0.9;">סיכוי לפתיחת קישור לזארמט</h2>
-        <div id="p-link" style="font-size: 2.2rem; font-weight: 900; margin: 10px 0;">טוען...</div>
+        <div id="p-link" style="font-size: 2.5rem; font-weight: 900; margin: 10px 0;">טוען...</div>
+        <div id="update-time" style="font-size: 0.8rem; opacity: 0.8;">עודכן לאחרונה: --:--</div>
     </div>
 
     <div class="grid">
         <div class="card">
             <span id="d-temp" class="temp-badge">--°C</span>
-            <h3>צ'רביניה (Live)</h3>
-            <div id="c-lifts" style="font-size: 1.8rem; font-weight: 800; direction: ltr;">--/--</div>
+            <h3>מעליות (כל המרחב)</h3>
+            <div id="c-lifts" class="stat-val">--/47</div>
         </div>
         <div class="card">
-            <h3>וולטורננש</h3>
-            <div id="z-status" style="font-weight:bold; font-size: 1.2rem;">בבדיקה...</div>
+            <h3 style="color: #64748b; margin-bottom: 5px;">מסלולים פתוחים</h3>
+            <div id="c-slopes" class="stat-val" style="color: var(--slate);">--/109</div>
+            <div id="z-status" style="font-weight:bold;">בבדיקה...</div>
         </div>
     </div>
 
     <div class="card">
-        <h3>📅 תחזית 4 ימים (Plateau Rosa)</h3>
+        <h3 style="margin-top: 0;">📅 תחזית 4 ימים (Plateau Rosa)</h3>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -65,7 +68,7 @@
                         <th>טמפ'</th>
                         <th>רוח</th>
                         <th>ראות</th>
-                        <th>סיכוי</th>
+                        <th>סיכוי לקישור</th>
                     </tr>
                 </thead>
                 <tbody id="forecast-body"></tbody>
@@ -74,69 +77,60 @@
     </div>
 
     <div class="cam-grid">
-        <img src="https://api.skiline.cc/panodata/webcam/635/snapshot" referrerpolicy="no-referrer">
-        <img src="https://api.skiline.cc/panodata/webcam/634/snapshot" referrerpolicy="no-referrer">
+        <div style="text-align:center;">
+            <img src="https://api.skiline.cc/panodata/webcam/635/snapshot" referrerpolicy="no-referrer">
+            <p>Plateau Rosa (3,480m)</p>
+        </div>
+        <div style="text-align:center;">
+            <img src="https://api.skiline.cc/panodata/webcam/634/snapshot" referrerpolicy="no-referrer">
+            <p>Plan Maison (2,555m)</p>
+        </div>
     </div>
 </div>
 
 <div id="authModal" class="modal">
     <div class="modal-content">
-        <h2 id="modal-title">התחברות למערכת</h2>
+        <h2 style="text-align:center;">התחברות</h2>
         <input type="email" id="email" class="input-field" placeholder="אימייל">
         <input type="password" id="password" class="input-field" placeholder="סיסמה">
         <button class="btn-auth" style="width:100%; margin-top:10px;" onclick="handleAuth()">אישור</button>
-        <button onclick="toggleModal(false)" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">ביטול</button>
+        <button onclick="toggleModal(false)" style="background:none; border:none; color:gray; width:100%; margin-top:15px; cursor:pointer;">ביטול</button>
     </div>
 </div>
 
 <script>
-    // הגדרות Supabase
     const SB_URL = "https://cdgqodtbdhsqkvcgcdlm.supabase.co";
     const SB_KEY = "sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g";
-    const supabase = supabase.createClient(SB_URL, SB_KEY);
+    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-    // ניהול מודל
-    function toggleModal(show) {
-        document.getElementById('authModal').style.display = show ? 'flex' : 'none';
-    }
+    function toggleModal(show) { document.getElementById('authModal').style.display = show ? 'flex' : 'none'; }
 
-    // פונקציית התחברות
     async function handleAuth() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        
-        if (error) {
-            alert("שגיאה: " + error.message);
-        } else {
-            toggleModal(false);
-            checkUser();
-        }
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) alert(error.message); else { toggleModal(false); checkUser(); }
     }
 
-    // בדיקת משתמש מחובר
     async function checkUser() {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         if (user) {
             document.getElementById('user-email').innerText = user.email;
             document.getElementById('login-btn').innerText = "התנתק";
-            document.getElementById('login-btn').onclick = async () => {
-                await supabase.auth.signOut();
-                location.reload();
-            };
+            document.getElementById('login-btn').onclick = async () => { await supabaseClient.auth.signOut(); location.reload(); };
         }
     }
 
-    // עדכון נתונים
     async function update() {
         try {
             const res = await fetch('data.json?v=' + Date.now());
             const d = await res.json();
-            
             document.getElementById('p-link').innerText = d.wind_prediction;
             document.getElementById('d-temp').innerText = d.temp;
-            document.getElementById('c-lifts').innerText = d.cervinia.lifts;
+            document.getElementById('c-lifts').innerText = d.lifts;
+            document.getElementById('c-slopes').innerText = d.slopes;
             document.getElementById('z-status').innerText = d.conn === 'open' ? "קישור פתוח ✅" : "קישור סגור 🚫";
+            document.getElementById('update-time').innerText = "עודכן לאחרונה: " + d.last_update;
             
             if(d.forecast) {
                 document.getElementById('forecast-body').innerHTML = d.forecast.map(day => `
@@ -152,10 +146,7 @@
         } catch (e) { console.log("טוען נתונים..."); }
     }
 
-    window.onload = () => {
-        update();
-        checkUser();
-    };
+    window.onload = () => { update(); checkUser(); };
 </script>
 </body>
 </html>
