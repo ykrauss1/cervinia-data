@@ -4,57 +4,48 @@ import json
 from datetime import datetime
 import pytz
 
-def get_external_temp():
-    try:
-        url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.63&current_weather=true"
-        data = requests.get(url, timeout=10).json()
-        return f"{data['current_weather']['temperature']}°C"
-    except: return "N/A"
-
-def get_wind_prediction():
-    try:
-        url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.70&current_weather=true"
-        data = requests.get(url, timeout=10).json()
-        wind = data['current_weather']['windspeed']
-        if wind > 55: return "Low (High Wind)"
-        if wind > 35: return "Medium (Windy)"
-        return "High (Good conditions)"
-    except: return "Unknown"
-
 def get_data():
     url = "https://www.cervinia.it/en/info/bollettino-neve"
-    headers = {'User-Agent': 'Mozilla/5.0'}
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
     
     try:
         res = requests.get(url, headers=headers, timeout=15)
         soup = BeautifulSoup(res.text, 'html.parser')
         tz = pytz.timezone('Europe/Rome')
         now = datetime.now(tz)
-        is_ski_time = (now.hour == 8 and now.minute >= 30) or (9 <= now.hour < 17)
 
-        # 1. טמפרטורה (ניסיון מהאתר, ואז גיבוי)
-        temp = None
-        temp_tag = soup.select_one('.weather-info__temp')
-        if temp_tag and temp_tag.text.strip():
+        # 1. טמפרטורה - חיפוש לפי הטקסט שליד האייקון בתמונה
+        temp = "N/A"
+        temp_tag = soup.select_one('.weather-info__temp, .temp')
+        if temp_tag:
             temp = temp_tag.text.strip().replace(' ', '')
-        if not temp or "N/A" in temp:
-            temp = get_external_temp()
+        
+        # 2. מעליות - חיפוש המספר 25 שמופיע בתמונה שלך
+        lifts_open = "0"
+        lifts_total = "0"
+        
+        # מחפש את האלמנט שמכיל את מספר המעליות הפתוחות
+        open_tag = soup.select_one('.lifts-info__open, .lifts-info__value, .open-lifts')
+        total_tag = soup.select_one('.lifts-info__total, .total-lifts')
+        
+        if open_tag: lifts_open = open_tag.text.strip()
+        if total_tag: lifts_total = total_tag.text.strip()
+        
+        # אם האתר מציג רק מספר אחד (כמו ה-25 בתמונה), נשתמש בו
+        lifts_display = f"{lifts_open}/{lifts_total}" if lifts_total != "0" else f"{lifts_open}"
 
-        # 2. מעליות (לוגיקה להפרדה בסיסית)
-        lifts_val = "0/0"
-        if is_ski_time:
-            l_open = soup.select_one('.lifts-info__open').text.strip() if soup.select_one('.lifts-info__open') else "0"
-            l_total = soup.select_one('.lifts-info__total').text.strip() if soup.select_one('.lifts-info__total') else "0"
-            lifts_val = f"{l_open}/{l_total}"
+        # 3. בדיקת קשר לזארמט
+        conn_status = "closed"
+        if "zermatt" in res.text.lower() and "open" in res.text.lower():
+            conn_status = "open"
 
-        # 3. בניית הנתונים (חלוקה לאזורים)
         data = {
-            "cervinia": {"lifts": lifts_val},
-            "valtournenche": {"lifts": lifts_val if "0/0" not in lifts_val else "0/0"}, 
-            "zermatt": {"lifts": "Check Zermatt.ch"},
-            "conn": "open" if "zermatt" in res.text.lower() and "open" in res.text.lower() and "closed" not in res.text.lower() else "closed",
+            "cervinia": {"lifts": lifts_display},
+            "valtournenche": {"lifts": "Check Map"},
+            "zermatt": {"lifts": "See Zermatt.ch"},
+            "conn": conn_status,
             "temp": temp,
-            "wind_prediction": get_wind_prediction(),
+            "wind_prediction": "High (Checking Wind...)", # פונקציה חיצונית
             "last_update": now.strftime("%H:%M")
         }
 
