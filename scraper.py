@@ -2,30 +2,40 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
-def get_cervinia_data():
-    # נתוני ברירת מחדל למקרה שהאתר יפול
-    data = {"lifts": "22/52", "town": "45", "peak": "215", "conn": "open"}
+def get_data():
+    url = "https://www.cervinia.it/en/info/bollettino-neve"
+    # זה החלק החשוב - גורם לאתר לא לחסום אותנו
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
     
     try:
-        # פנייה לדף המעליות הרשמי
-        url = "https://www.cervinia.it/en/ski-area/piste-and-lifts"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.text, 'html.parser')
         
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            # כאן אנחנו מחפשים את המספרים בתוך ה-HTML של האתר
-            # הקוד הזה יחפש את הנתונים המעודכנים ויכניס אותם ל-JSON
-            print("Successfully fetched data from Cervinia")
-            
-        # שמירת הנתונים לקובץ שה-index.html שלך יודע לקרוא
+        # חיפוש נתוני השלג - עדכנתי את השמות לפי המבנה החדש
+        snow_values = soup.select('.snow-report__value')
+        town_snow = snow_values[0].text.strip() if len(snow_values) > 0 else "N/A"
+        peak_snow = snow_values[1].text.strip() if len(snow_values) > 1 else "N/A"
+        
+        # חיפוש סטטוס חיבור (זארמט)
+        conn_status = "closed"
+        if "zermatt" in response.text.lower() and "open" in response.text.lower():
+            conn_status = "open"
+
+        data = {
+            "town": town_snow,
+            "peak": peak_snow,
+            "lifts": "Open", 
+            "conn": conn_status
+        }
+        
         with open('data.json', 'w') as f:
             json.dump(data, f)
-            
+        print("Data updated!")
+        
     except Exception as e:
-        print(f"Error fetching data: {e}")
-        with open('data.json', 'w') as f:
-            json.dump(data, f)
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
-    get_cervinia_data()
+    get_data()
