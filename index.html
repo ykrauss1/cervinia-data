@@ -3,194 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live - דאשבורד סקי</title>
+    <title>Cervinia Live</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        :root { --accent: #0284c7; --bg: #f1f5f9; --slate: #1e293b; --white: #ffffff; }
-        body { background: var(--bg); font-family: system-ui, -apple-system, sans-serif; margin: 0; color: var(--slate); }
-        
-        /* Navbar */
-        nav { background: var(--white); padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
-        .user-area { display: flex; align-items: center; gap: 15px; }
-        #display-name { font-weight: 700; color: var(--accent); }
-        .btn-auth { background: var(--slate); color: white; border: none; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-
+        :root { --accent: #0284c7; --bg: #f1f5f9; --slate: #1e293b; }
+        body { background: var(--bg); font-family: system-ui, sans-serif; margin: 0; direction: rtl; }
+        nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
-
-        /* Prediction Banner */
-        .prediction-banner { background: linear-gradient(135deg, #075985 0%, #0369a1 100%); color: white; padding: 25px; border-radius: 24px; text-align: center; margin-bottom: 25px; }
-        #p-link { font-size: 2rem; font-weight: 900; margin: 10px 0; }
-
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .resort-card { background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); position: relative; border: 1px solid #e2e8f0; }
-        .resort-card h3 { margin: 0 0 15px 0; font-size: 1.3rem; }
-        .resort-val { font-size: 1.8rem; font-weight: 800; direction: ltr; display: block; }
-        .temp-badge { position: absolute; top: 20px; left: 20px; background: #e0f2fe; color: #0369a1; padding: 5px 10px; border-radius: 8px; font-weight: 800; direction: ltr; }
-
-        /* Webcams */
-        .webcam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px; }
-        .cam-card { background: var(--white); padding: 10px; border-radius: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
-        .cam-card img { width: 100%; border-radius: 12px; display: block; margin-bottom: 10px; }
-
-        /* Forum */
-        #forum-area { background: var(--white); padding: 25px; border-radius: 24px; margin-top: 40px; border: 1px solid #e2e8f0; }
-        #messages { height: 300px; overflow-y: auto; margin-bottom: 20px; padding: 10px; background: #f8fafc; border-radius: 12px; }
-
-        /* Modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .temp-badge { background: #e0f2fe; color: #0369a1; padding: 5px 15px; border-radius: 10px; font-weight: 800; font-size: 1.5rem; display: inline-block; margin-bottom: 10px; }
+        .cam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 20px; }
+        .cam-grid img { width: 100%; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size: 1.6rem; font-weight: 900;">Cervinia<span style="color:var(--accent)">Live</span></div>
-    <div class="user-area">
-        <span id="display-name"></span>
-        <button id="auth-btn" class="btn-auth" onclick="openModal()">התחברות</button>
-    </div>
+    <div style="font-size: 1.5rem; font-weight: 900;">Cervinia<span style="color:var(--accent)">Live</span></div>
 </nav>
 
 <div class="container">
-    <div class="prediction-banner">
-        <h2>סיכוי לפתיחת קישור לזארמט (Plateau Rosa)</h2>
-        <div id="p-link">מחשב נתונים...</div>
-        <div id="last-update" style="font-size: 0.9rem; opacity: 0.8;">--:--</div>
+    <div class="card" style="background: var(--accent); color: white;">
+        <h2 style="margin:0">סיכוי לפתיחת קישור לזארמט</h2>
+        <div id="p-link" style="font-size: 1.8rem; font-weight: 900; margin-top:10px;">טוען...</div>
     </div>
 
-    <div class="stats-grid">
-        <div class="resort-card">
-            <span id="d-temp" class="temp-badge">--°C</span>
+    <div class="grid">
+        <div class="card">
+            <div id="d-temp" class="temp-badge">--°C</div>
             <h3>צ'רביניה</h3>
-            <div id="c-lifts" class="resort-val">--/--</div>
-            <small>מעליות פתוחות</small>
+            <div id="c-lifts" style="font-size: 2rem; font-weight: 800;">--/--</div>
         </div>
-        <div class="resort-card">
+        <div class="card">
             <h3>וולטורננש</h3>
-            <div id="v-lifts" class="resort-val">--/--</div>
-            <small>מעליות פתוחות</small>
-        </div>
-        <div class="resort-card">
-            <h3>זארמט (שוויץ)</h3>
-            <div id="z-lifts" class="resort-val">--/--</div>
-            <small id="z-status">סטטוס קישור: בבדיקה...</small>
+            <div id="v-lifts" style="font-size: 1.5rem;">--/--</div>
         </div>
     </div>
 
     <h2 style="margin-top:40px;">מצלמות בשידור חי</h2>
-    <div class="webcam-grid">
-        <div class="cam-card">
-            <img src="https://api.skiline.cc/panodata/webcam/635/snapshot" referrerpolicy="no-referrer">
-            <span>Plateau Rosa (3,480m)</span>
-        </div>
-        <div class="cam-card">
-            <img src="https://api.skiline.cc/panodata/webcam/634/snapshot" referrerpolicy="no-referrer">
-            <span>Plan Maison (2,555m)</span>
-        </div>
-        <div class="cam-card">
-            <img src="https://api.skiline.cc/panodata/webcam/633/snapshot" referrerpolicy="no-referrer">
-            <span>Cervinia Town (2,050m)</span>
-        </div>
-    </div>
-
-    <div id="forum-area">
-        <h3>פורום גולשים</h3>
-        <div id="messages">טוען הודעות...</div>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="msg-input" class="auth-input" style="margin:0;" placeholder="כתוב הודעה לחברים...">
-            <button onclick="sendMessage()" class="btn-auth" style="background:var(--accent)">שלח</button>
-        </div>
-    </div>
-</div>
-
-<div id="authModal" class="modal">
-    <div class="modal-content">
-        <h3 id="modal-title">התחברות</h3>
-        <div id="signup-fields" style="display:none;">
-            <input type="text" id="user-fullname" class="auth-input" placeholder="שם מלא">
-        </div>
-        <input type="email" id="user-email" class="auth-input" placeholder="אימייל">
-        <input type="password" id="user-pass" class="auth-input" placeholder="סיסמה">
-        <button class="btn-auth" style="width:100%; padding:12px;" onclick="handleAuth()">אישור</button>
-        <button onclick="closeModal()" style="width:100%; background:none; border:none; color:gray; margin-top:10px; cursor:pointer;">ביטול</button>
+    <div class="cam-grid">
+        <img src="https://api.skiline.cc/panodata/webcam/635/snapshot" referrerpolicy="no-referrer">
+        <img src="https://api.skiline.cc/panodata/webcam/634/snapshot" referrerpolicy="no-referrer">
     </div>
 </div>
 
 <script>
-    const SB_URL = "https://cdgqodtbdhsqkvcgcdlm.supabase.co";
-    const SB_KEY = "sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g";
-    const supabase = supabase.createClient(SB_URL, SB_KEY);
-
-    // טעינת נתונים מה-JSON
-    async function loadStats() {
+    async function update() {
         try {
-            const res = await fetch('data.json?t=' + Date.now());
+            const res = await fetch('data.json?v=' + Date.now());
             const d = await res.json();
-            
             document.getElementById('p-link').innerText = d.wind_prediction;
             document.getElementById('d-temp').innerText = d.temp;
             document.getElementById('c-lifts').innerText = d.cervinia.lifts;
             document.getElementById('v-lifts').innerText = d.valtournenche.lifts;
-            document.getElementById('z-lifts').innerText = d.zermatt.lifts;
-            document.getElementById('z-status').innerText = "סטטוס קישור: " + (d.conn === 'open' ? "פתוח ✅" : "סגור 🚫");
-            document.getElementById('last-update').innerText = "עדכון אחרון: " + d.last_update + " (שעון איטליה)";
-        } catch (e) { console.log("נתונים טרם נטענו"); }
+        } catch (e) { console.log("טוען..."); }
     }
-
-    // ניהול משתמשים (מודל)
-    function openModal() { document.getElementById('authModal').style.display = 'flex'; }
-    function closeModal() { document.getElementById('authModal').style.display = 'none'; }
-    
-    async function handleAuth() {
-        const email = document.getElementById('user-email').value;
-        const pass = document.getElementById('user-pass').value;
-        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-        if (error) alert(error.message); else location.reload();
-    }
-
-    async function checkUser() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            document.getElementById('display-name').innerText = "שלום, " + (user.user_metadata.full_name || user.email.split('@')[0]);
-            document.getElementById('auth-btn').innerText = "התנתק";
-            document.getElementById('auth-btn').onclick = () => supabase.auth.signOut().then(() => location.reload());
-        }
-    }
-
-    // פורום
-    async function loadMessages() {
-        const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-        if (data) {
-            document.getElementById('messages').innerHTML = data.map(m => 
-                `<div style="margin-bottom:10px;"><strong>${m.username}:</strong> ${m.text}</div>`
-            ).join('');
-            const div = document.getElementById('messages');
-            div.scrollTop = div.scrollHeight;
-        }
-    }
-
-    async function sendMessage() {
-        const input = document.getElementById('msg-input');
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return alert("אנא התחבר כדי לכתוב בפורום");
-        
-        await supabase.from('messages').insert([{ 
-            text: input.value, 
-            username: user.user_metadata.full_name || user.email.split('@')[0] 
-        }]);
-        input.value = '';
-        loadMessages();
-    }
-
-    window.onload = () => {
-        checkUser();
-        loadStats();
-        loadMessages();
-        setInterval(loadMessages, 5000); // רענון פורום כל 5 שניות
-    };
+    window.onload = update;
 </script>
 </body>
 </html>
