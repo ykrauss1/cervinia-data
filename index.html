@@ -3,63 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live - Dashboard</title>
+    <title>Cervinia Live - המדריך המלא</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #0284c7; --bg: #f1f5f9; --white: #ffffff; --slate: #1e293b; }
+        :root { --accent: #0284c7; --bg: #f8fafc; --white: #ffffff; --slate: #1e293b; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
         body { background: var(--bg); font-family: system-ui, sans-serif; margin: 0; color: var(--slate); direction: rtl; }
-        nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
-        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
-        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; }
-        .hero { background: linear-gradient(135deg, #075985 0%, #0369a1 100%); color: white; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .stat-val { font-size: 2.2rem; font-weight: 800; color: var(--accent); direction: ltr; margin: 10px 0; }
-        .temp-badge { background: #e0f2fe; color: #0369a1; padding: 5px 15px; border-radius: 12px; font-weight: 800; font-size: 1.3rem; display: inline-block; }
-        .btn-auth { background: var(--slate); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; }
         
-        /* Modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
-        .input-field { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        /* Navbar & Menus */
+        nav { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); sticky: top; z-index: 1000; }
+        .nav-links { display: flex; gap: 15px; list-style: none; margin: 0; padding: 0; }
+        .nav-links a { text-decoration: none; color: var(--slate); font-weight: 500; font-size: 0.9rem; }
+        
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 20px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; border-bottom: 1px solid #f1f5f9; text-align: center; }
-        .cam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 20px; }
-        .cam-grid img { width: 100%; border-radius: 18px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        /* Matterhorn Indicator */
+        .mountain-header { position: relative; text-align: center; background: #e2e8f0; border-radius: 24px; padding: 40px 20px; overflow: hidden; margin-bottom: 20px; }
+        .mountain-img { width: 150px; opacity: 0.8; }
+        .status-dot { width: 30px; height: 30px; border-radius: 50%; border: 4px solid white; position: absolute; top: 35px; left: 50%; transform: translateX(-15px); box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        .status-label { margin-top: 10px; font-weight: 900; font-size: 1.5rem; display: block; }
+
+        /* Auth Styles */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 3000; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
+        .input-field { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .stat-val { font-size: 2rem; font-weight: 800; direction: ltr; color: var(--accent); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size: 1.5rem; font-weight: 900;">Cervinia<span>Live</span></div>
-    <div id="auth-section">
-        <span id="user-email" style="margin-left:10px; font-weight:600; font-size: 0.9rem;"></span>
-        <button id="login-btn" class="btn-auth" onclick="toggleModal(true)">התחברות</button>
+    <div style="font-size: 1.4rem; font-weight: 900; color: var(--accent);">CerviniaLive</div>
+    <ul class="nav-links">
+        <li><a href="#">אירוח</a></li>
+        <li><a href="#">שיעורי סקי</a></li>
+        <li><a href="#">השכרת ציוד</a></li>
+        <li><a href="#">רכב וטיסות</a></li>
+        <li><a href="#">עלינו</a></li>
+    </ul>
+    <div id="auth-ui">
+        <button onclick="toggleModal(true)" style="background:none; border: 1px solid #ddd; padding: 5px 12px; border-radius: 8px; cursor:pointer;">כניסה/הרשמה</button>
     </div>
 </nav>
 
 <div class="container">
-    <div class="card hero">
-        <h2 style="margin:0; opacity:0.9;">סיכוי לפתיחת קישור לזארמט</h2>
-        <div id="p-link" style="font-size: 2.5rem; font-weight: 900; margin: 10px 0;">טוען...</div>
-        <div id="update-time" style="font-size: 0.8rem; opacity: 0.8;">עודכן לאחרונה: --:--</div>
+    <div class="card mountain-header">
+        <div id="status-dot" class="status-dot" style="background: gray;"></div>
+        <img src="https://cdn-icons-png.flaticon.com/512/2600/2600021.png" class="mountain-img" alt="Matterhorn">
+        <span class="status-label" id="status-text">בודק סטטוס קישור...</span>
     </div>
 
     <div class="grid">
         <div class="card">
-            <span id="d-temp" class="temp-badge">--°C</span>
-            <h3>מעליות (כל המרחב)</h3>
-            <div id="c-lifts" class="stat-val">--/47</div>
+            <h3 id="d-temp">--°C</h3>
+            <p>טמפרטורה</p>
         </div>
         <div class="card">
-            <h3 style="color: #64748b; margin-bottom: 5px;">מסלולים פתוחים</h3>
-            <div id="c-slopes" class="stat-val" style="color: var(--slate);">--/109</div>
-            <div id="z-status" style="font-weight:bold;">בבדיקה...</div>
+            <div id="c-lifts" class="stat-val">--/47</div>
+            <p>מעליות פתוחות</p>
+        </div>
+        <div class="card">
+            <div id="c-slopes" class="stat-val">--/109</div>
+            <p>מסלולים פתוחים</p>
         </div>
     </div>
 
     <div class="card">
-        <h3 style="margin-top: 0;">📅 תחזית 4 ימים (Plateau Rosa)</h3>
+        <h3>📅 תחזית ל-4 ימים (Plateau Rosa)</h3>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -67,7 +82,6 @@
                         <th>תאריך</th>
                         <th>טמפ'</th>
                         <th>רוח</th>
-                        <th>ראות</th>
                         <th>סיכוי לקישור</th>
                     </tr>
                 </thead>
@@ -76,25 +90,23 @@
         </div>
     </div>
 
-    <div class="cam-grid">
-        <div style="text-align:center;">
-            <img src="https://api.skiline.cc/panodata/webcam/635/snapshot" referrerpolicy="no-referrer">
-            <p>Plateau Rosa (3,480m)</p>
-        </div>
-        <div style="text-align:center;">
-            <img src="https://api.skiline.cc/panodata/webcam/634/snapshot" referrerpolicy="no-referrer">
-            <p>Plan Maison (2,555m)</p>
+    <div class="card">
+        <h3>💬 פורום גולשים</h3>
+        <div id="forum-content" style="background: #f1f5f9; padding: 20px; border-radius: 12px; text-align: center; color: #64748b;">
+            הפורום יהיה זמין למשתמשים מחוברים בקרוב...
         </div>
     </div>
 </div>
 
 <div id="authModal" class="modal">
     <div class="modal-content">
-        <h2 style="text-align:center;">התחברות</h2>
+        <h2 id="auth-title" style="text-align:center;">כניסה למערכת</h2>
+        <input type="text" id="user-name" class="input-field" placeholder="שם מלא (להרשמה)">
         <input type="email" id="email" class="input-field" placeholder="אימייל">
         <input type="password" id="password" class="input-field" placeholder="סיסמה">
-        <button class="btn-auth" style="width:100%; margin-top:10px;" onclick="handleAuth()">אישור</button>
-        <button onclick="toggleModal(false)" style="background:none; border:none; color:gray; width:100%; margin-top:15px; cursor:pointer;">ביטול</button>
+        <button class="btn-main" onclick="handleAuth('login')">התחברות</button>
+        <button class="btn-main" style="background:#64748b;" onclick="handleAuth('signup')">יצירת חשבון חדש</button>
+        <button onclick="toggleModal(false)" style="display:block; margin: 15px auto; background:none; border:none; color:gray; cursor:pointer;">סגור</button>
     </div>
 </div>
 
@@ -105,19 +117,34 @@
 
     function toggleModal(show) { document.getElementById('authModal').style.display = show ? 'flex' : 'none'; }
 
-    async function handleAuth() {
+    // טיפול ב-Email Not Confirmed - Supabase שולח אימייל אימות כברירת מחדל
+    async function handleAuth(type) {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) alert(error.message); else { toggleModal(false); checkUser(); }
+        const name = document.getElementById('user-name').value;
+
+        if (type === 'signup') {
+            const { data, error } = await supabaseClient.auth.signUp({ 
+                email, password, options: { data: { full_name: name } } 
+            });
+            if (error) alert(error.message);
+            else alert("נרשמת בהצלחה! בדוק את תיבת המייל שלך לאישור החשבון.");
+        } else {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) alert("שגיאה: " + error.message);
+            else { toggleModal(false); location.reload(); }
+        }
     }
 
     async function checkUser() {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (user) {
-            document.getElementById('user-email').innerText = user.email;
-            document.getElementById('login-btn').innerText = "התנתק";
-            document.getElementById('login-btn').onclick = async () => { await supabaseClient.auth.signOut(); location.reload(); };
+            const name = user.user_metadata.full_name || user.email;
+            document.getElementById('auth-ui').innerHTML = `
+                <span style="font-weight:bold; margin-left:10px;">שלום, ${name}</span>
+                <button onclick="supabaseClient.auth.signOut().then(()=>location.reload())" style="cursor:pointer; border:none; background:none; color:var(--accent);">התנתק</button>
+            `;
+            document.getElementById('forum-content').innerHTML = "<p>כאן יוצגו ההודעות בפורום בקרוב!</p>";
         }
     }
 
@@ -125,12 +152,24 @@
         try {
             const res = await fetch('data.json?v=' + Date.now());
             const d = await res.json();
-            document.getElementById('p-link').innerText = d.wind_prediction;
+            
+            // עדכון המטרהורן
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            if (d.conn === 'open') {
+                dot.style.background = 'var(--success)';
+                text.innerText = "הקישור לזארמט: פתוח";
+            } else if (d.conn === 'waiting') {
+                dot.style.background = 'var(--warning)';
+                text.innerText = "הקישור לזארמט: בהמתנה";
+            } else {
+                dot.style.background = 'var(--danger)';
+                text.innerText = "הקישור לזארמט: סגור";
+            }
+
             document.getElementById('d-temp').innerText = d.temp;
             document.getElementById('c-lifts').innerText = d.lifts;
             document.getElementById('c-slopes').innerText = d.slopes;
-            document.getElementById('z-status').innerText = d.conn === 'open' ? "קישור פתוח ✅" : "קישור סגור 🚫";
-            document.getElementById('update-time').innerText = "עודכן לאחרונה: " + d.last_update;
             
             if(d.forecast) {
                 document.getElementById('forecast-body').innerHTML = d.forecast.map(day => `
@@ -138,12 +177,11 @@
                         <td style="font-weight:bold;">${day.date}</td>
                         <td style="direction:ltr;">${day.temp_min} / ${day.temp_max}</td>
                         <td style="direction:ltr;">${day.wind}</td>
-                        <td>${day.status === 'Clear' ? '☀️ בהיר' : '☁️ ערפל'}</td>
-                        <td style="color:${day.link_prob === 'High' ? 'green' : 'orange'}; font-weight:bold;">${day.link_prob}</td>
+                        <td style="color:${day.link_prob === 'High' ? 'green' : 'orange'}; font-weight:bold;">${day.link_prob === 'High' ? 'גבוה' : 'בינוני'}</td>
                     </tr>
                 `).join('');
             }
-        } catch (e) { console.log("טוען נתונים..."); }
+        } catch (e) { console.log("טעינה..."); }
     }
 
     window.onload = () => { update(); checkUser(); };
