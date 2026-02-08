@@ -6,6 +6,7 @@ import pytz
 import re
 
 def get_forecast():
+    # שאיבת תחזית מ-Open-Meteo עבור Plateau Rosa
     url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.70&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&timezone=Europe%2FRome"
     try:
         res = requests.get(url, timeout=10).json()
@@ -14,8 +15,10 @@ def get_forecast():
             date_str = res['daily']['time'][i]
             date_obj = datetime.now() if not date_str else datetime.strptime(date_str, '%Y-%m-%d')
             wind = res['daily']['windspeed_10m_max'][i]
-            # תחזית סיכוי קישור מבוססת רוח ב-Plateau Rosa
+            
+            # חישוב סיכוי לקישור על בסיס מהירות רוח (קריטי ב-Cervinia)
             prediction = "High" if wind < 25 else "Medium" if wind < 45 else "Low"
+            
             forecast_list.append({
                 "date": date_obj.strftime('%d/%m'),
                 "temp_max": f"{res['daily']['temperature_2m_max'][i]}°",
@@ -24,44 +27,77 @@ def get_forecast():
                 "link_prob": prediction
             })
         return forecast_list
-    except: return []
+    except Exception as e:
+        print(f"Forecast Error: {e}")
+        return []
 
 def get_live_data():
     url = "https://www.cervinia.it/en/info/bollettino-neve"
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    # ברירת מחדל ל-N/A כדי למנוע הצגת נתונים שגויים
     live = {"temp": "N/A", "lifts": "N/A", "slopes": "N/A", "conn": "closed"}
     
     try:
         res = requests.get(url, headers=headers, timeout=15)
-        soup = BeautifulSoup(res.text, 'html.parser')
         text = res.text
+        soup = BeautifulSoup(text, 'html.parser')
 
-        # 1. טמפרטורה - חיפוש בתוך אזור Plateau Rosa ספציפי אם קיים
+        # 1. חילוץ טמפרטורה
         temp_match = re.search(r'(-?\d+)\s*°', text)
-        if temp_match: live["temp"] = f"{temp_match.group(1)}°C"
+        if temp_match:
+            live["temp"] = f"{temp_match.group(1)}°C"
 
-        # 2. מעליות - חיפוש אלמנט עם class ספציפי של האתר
-        lifts_area = soup.find('div', string=re.compile('Lifts', re.I))
-        if lifts_area:
-            val = lifts_area.find_next('span')
-            if val: live["lifts"] = f"{val.text.strip()}/47"
-        
-        # ניסיון חילוץ רגולרי אם ה-HTML לא תואם
-        if live["lifts"] == "N/A":
-            l_match = re.search(r'(\d+)\s*/\s*47', text)
-            if l_match: live["lifts"] = f"{l_match.group(1)}/47"
+        # 2. חילוץ מעליות (Lifts)
+        # מחפש מספר שמופיע בתוך אלמנט עם מחלקה המכילה 'lifts' או לפני '/ 47'
+        lifts_match = re.search(r'(\d+)\s*/\s*47', text)
+        if lifts_match:
+            live["lifts"] = f"{lifts_match.group(1)}/47"
+        else:
+            # ניסיון חילוץ דרך מבנה ה-HTML של האתר
+            lift_tag = soup.find('div', class_=re.compile(r'lifts.*open', re.I))
+            if lift_tag:
+                live["lifts"] = f"{lift_tag.text.strip()}/47"
 
-        # 3. מסלולים
+        # 3. חילוץ מסלולים (Slopes)
         slopes_match = re.search(r'(\d+)\s*/\s*109', text)
-        if slopes_match: live["slopes"] = f"{slopes_match.group(1)}/109"
+        if slopes_match:
+            live["slopes"] = f"{slopes_match.group(1)}/109"
 
-        # 4. סטטוס קישור לזארמט (Zermatt)
-        # מחפש את המילה Zermatt ובודק אם מופיעה לידה מילה חיובית
-        zermatt_section = re.search(r'Zermatt.*?(Open|Closed|Aperto|Chiuso)', text, re.I | re.S)
-        if zermatt_section:
-            status = zermatt_section.group(1).lower()
-            if status in ['open', 'aperto']:
+        # 4. בדיקת סטטוס קישור לזארמט (Zermatt)
+        # מחפש אזור שמדבר על ה-International Link
+        if "zermatt" in text.lower():
+            # מחפש 'open' או 'aperto' בקרבת המילה Zermatt
+            zermatt_text = re.search(r'Zermatt.*?(Open|Closed|Aperto|Chiuso)', text, re.I | re.S)
+            if zermatt_text and zermatt_text.group(1).lower() in ['open', 'aperto']:
                 live["conn"] = "open"
+            else:
+                live["conn"] = "closed"
             
     except Exception as e: 
-        print(f"Scrape Error: {e
+        print(f"Scrape Error: {e}")
+    
+    return live
+
+def run_update():
+    # הגדרת אזור זמן איטליה
+    tz = pytz.timezone('Europe/Rome')
+    live = get_live_data()
+    
+    final_data = {
+        "temp": live["temp"],
+        "lifts": live["lifts"],
+        "slopes": live["slopes"],
+        "conn": live["conn"],
+        "forecast": get_forecast(),
+        "last_update": datetime.now(tz).strftime("%d/%m/%Y %H:%M")
+    }
+    
+    # שמירה לקובץ ה-JSON שהאתר קורא
+    with open('data.json', 'w') as f:
+        json.dump(final_data, f, indent=4)
+    print(f"Update successful at {final_data['last_update']}")
+
+if __name__ == "__main__":
+    run_update()
