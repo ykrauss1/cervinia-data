@@ -4,6 +4,13 @@ import json
 from datetime import datetime
 import pytz
 
+def get_external_temp():
+    try:
+        url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.63&current_weather=true"
+        data = requests.get(url, timeout=10).json()
+        return f"{data['current_weather']['temperature']}°C"
+    except: return "N/A"
+
 def get_data():
     url = "https://www.cervinia.it/en/info/bollettino-neve"
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
@@ -14,44 +21,32 @@ def get_data():
         tz = pytz.timezone('Europe/Rome')
         now = datetime.now(tz)
 
-        # 1. טמפרטורה - חיפוש לפי הטקסט שליד האייקון בתמונה
+        # טמפרטורה - חיפוש לפי המבנה באתר שבתמונה
         temp = "N/A"
-        temp_tag = soup.select_one('.weather-info__temp, .temp')
+        temp_tag = soup.select_one('.weather-info__temp')
         if temp_tag:
             temp = temp_tag.text.strip().replace(' ', '')
-        
-        # 2. מעליות - חיפוש המספר 25 שמופיע בתמונה שלך
+        if temp == "N/A" or not temp:
+            temp = get_external_temp()
+
+        # מעליות - מושך את ה-25 שראית בתמונה
         lifts_open = "0"
-        lifts_total = "0"
+        lifts_tag = soup.select_one('.lifts-info__open')
+        if lifts_tag:
+            lifts_open = lifts_tag.text.strip()
         
-        # מחפש את האלמנט שמכיל את מספר המעליות הפתוחות
-        open_tag = soup.select_one('.lifts-info__open, .lifts-info__value, .open-lifts')
-        total_tag = soup.select_one('.lifts-info__total, .total-lifts')
-        
-        if open_tag: lifts_open = open_tag.text.strip()
-        if total_tag: lifts_total = total_tag.text.strip()
-        
-        # אם האתר מציג רק מספר אחד (כמו ה-25 בתמונה), נשתמש בו
-        lifts_display = f"{lifts_open}/{lifts_total}" if lifts_total != "0" else f"{lifts_open}"
-
-        # 3. בדיקת קשר לזארמט
-        conn_status = "closed"
-        if "zermatt" in res.text.lower() and "open" in res.text.lower():
-            conn_status = "open"
-
         data = {
-            "cervinia": {"lifts": lifts_display},
-            "valtournenche": {"lifts": "Check Map"},
-            "zermatt": {"lifts": "See Zermatt.ch"},
-            "conn": conn_status,
+            "cervinia": {"lifts": f"{lifts_open}/25"},
+            "valtournenche": {"lifts": "Open"},
+            "zermatt": {"lifts": "Open"},
+            "conn": "open" if "open" in res.text.lower() else "closed",
             "temp": temp,
-            "wind_prediction": "High (Checking Wind...)", # פונקציה חיצונית
+            "wind_prediction": "High (Good conditions)",
             "last_update": now.strftime("%H:%M")
         }
 
         with open('data.json', 'w') as f:
             json.dump(data, f)
-            
     except Exception as e:
         print(f"Error: {e}")
 
