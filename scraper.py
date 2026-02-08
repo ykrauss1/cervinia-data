@@ -4,71 +4,49 @@ import json
 from datetime import datetime
 import pytz
 
-def get_external_temp():
-    """גיבוי: טמפרטורה ממקור חיצוני"""
+def get_wind_prediction():
     try:
-        url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.63&current_weather=true"
-        response = requests.get(url, timeout=10)
-        data = response.json()
-        return f"{data['current_weather']['temperature']}°C"
-    except:
-        return "N/A"
+        # שואב נתוני רוח מגובה 3500 מטר (Plateau Rosa)
+        url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.70&current_weather=true"
+        data = requests.get(url).json()
+        wind = data['current_weather']['windspeed']
+        if wind > 55: return "סיכוי נמוך (רוחות חזקות)"
+        if wind > 35: return "סיכוי בינוני (רוח פעילה)"
+        return "סיכוי גבוה (תנאים טובים)"
+    except: return "לא ניתן לחיזוי"
 
 def get_data():
     url = "https://www.cervinia.it/en/info/bollettino-neve"
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+    headers = {'User-Agent': 'Mozilla/5.0'}
     
     try:
-        tz_italy = pytz.timezone('Europe/Rome')
-        now = datetime.now(tz_italy)
-        # שעות פעילות (08:30 עד 17:00 שעון איטליה)
-        is_ski_time = (now.hour == 8 and now.minute >= 30) or (9 <= now.hour < 17)
-
-        response = requests.get(url, headers=headers, timeout=15)
-        soup = BeautifulSoup(response.text, 'html.parser')
+        res = requests.get(url, headers=headers, timeout=15)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        tz = pytz.timezone('Europe/Rome')
+        now = datetime.now(tz)
         
-        # שלב 1: טמפרטורה (עדיפות לאתר הרשמי)
-        temp = None
-        temp_tag = soup.select_one('.weather-info__temp')
-        if temp_tag and temp_tag.text.strip():
-            temp = temp_tag.text.strip().replace(' ', '')
-        
-        if not temp or "N/A" in temp:
-            temp = get_external_temp()
+        # טמפרטורה
+        temp = soup.select_one('.weather-info__temp').text.strip() if soup.select_one('.weather-info__temp') else "N/A"
 
-        # שלב 2: שלג
-        snow_values = soup.select('.snow-info__value')
-        town_snow = snow_values[0].text.strip().replace('cm','') if len(snow_values) > 0 else "0"
-        peak_snow = snow_values[1].text.strip().replace('cm','') if len(snow_values) > 1 else "0"
-
-        # שלב 3: מעליות וחיבור
-        if is_ski_time:
-            lifts_open = soup.select_one('.lifts-info__open')
-            lifts_total = soup.select_one('.lifts-info__total')
-            lifts = f"{lifts_open.text}/{lifts_total.text}" if lifts_open and lifts_total else "0/0"
-            
-            conn = "closed"
-            if "zermatt" in response.text.lower() and "open" in response.text.lower() and "closed" not in response.text.lower():
-                conn = "open"
-        else:
-            lifts = "0/0"
-            conn = "closed"
+        # כאן אנחנו שואבים נתון כללי ומחלקים אותו לצרכי הדגמה
+        # האתר של צ'רביניה נותן לרוב נתון מאוחד, נשכלל את זה כשנראה את המבנה המדויק
+        lifts_raw = soup.select_one('.lifts-info__open').text.strip() if soup.select_one('.lifts-info__open') else "0"
+        total_raw = soup.select_one('.lifts-info__total').text.strip() if soup.select_one('.lifts-info__total') else "0"
 
         data = {
-            "town": town_snow,
-            "peak": peak_snow,
-            "lifts": lifts,
-            "conn": conn,
+            "cervinia": {"lifts": f"{lifts_raw}/{total_raw}"},
+            "valtournenche": {"lifts": "0/0"}, # דורש זיהוי סקטור ספציפי
+            "zermatt": {"lifts": "0/0"},      # דורש זיהוי סקטור ספציפי
+            "conn": "open" if "zermatt" in res.text.lower() and "open" in res.text.lower() else "closed",
             "temp": temp,
+            "wind_prediction": get_wind_prediction(),
             "last_update": now.strftime("%H:%M")
         }
-        
+
         with open('data.json', 'w') as f:
             json.dump(data, f)
-        print(f"Success! Data: {data}")
-            
     except Exception as e:
-        print(f"Error occurred: {e}")
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     get_data()
