@@ -3,110 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live - המדריך המלא</title>
+    <title>Cervinia Live</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --accent: #0284c7; --bg: #f8fafc; --white: #ffffff; --slate: #1e293b; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; }
+        :root { --accent: #0284c7; --bg: #f8fafc; --white: #ffffff; --slate: #1e293b; --success: #22c55e; --danger: #ef4444; }
         body { background: var(--bg); font-family: system-ui, sans-serif; margin: 0; color: var(--slate); direction: rtl; }
         
-        /* Navbar & Menus */
-        nav { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); sticky: top; z-index: 1000; }
+        /* Navbar */
+        nav { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
+        .nav-right { display: flex; align-items: center; gap: 20px; }
         .nav-links { display: flex; gap: 15px; list-style: none; margin: 0; padding: 0; }
         .nav-links a { text-decoration: none; color: var(--slate); font-weight: 500; font-size: 0.9rem; }
         
         .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
-        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 20px; }
+        
+        /* Header עם אינדיקטור צדדי */
+        .page-header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .status-box { display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
 
-        /* Matterhorn Indicator */
-        .mountain-header { position: relative; text-align: center; background: #e2e8f0; border-radius: 24px; padding: 40px 20px; overflow: hidden; margin-bottom: 20px; }
-        .mountain-img { width: 150px; opacity: 0.8; }
-        .status-dot { width: 30px; height: 30px; border-radius: 50%; border: 4px solid white; position: absolute; top: 35px; left: 50%; transform: translateX(-15px); box-shadow: 0 0 15px rgba(0,0,0,0.2); }
-        .status-label { margin-top: 10px; font-weight: 900; font-size: 1.5rem; display: block; }
-
-        /* Auth Styles */
+        /* Modal UX */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 3000; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
-        .input-field { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; position: relative; }
+        .close-btn { position: absolute; left: 15px; top: 15px; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
+        .input-group { position: relative; margin: 10px 0; }
+        .input-field { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .eye-icon { position: absolute; left: 10px; top: 12px; cursor: pointer; opacity: 0.6; }
         .btn-main { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .stat-val { font-size: 2rem; font-weight: 800; direction: ltr; color: var(--accent); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size: 1.4rem; font-weight: 900; color: var(--accent);">CerviniaLive</div>
-    <ul class="nav-links">
-        <li><a href="#">אירוח</a></li>
-        <li><a href="#">שיעורי סקי</a></li>
-        <li><a href="#">השכרת ציוד</a></li>
-        <li><a href="#">רכב וטיסות</a></li>
-        <li><a href="#">עלינו</a></li>
-    </ul>
+    <div class="nav-right">
+        <div style="font-size: 1.4rem; font-weight: 900; color: var(--accent);">CerviniaLive</div>
+        <ul class="nav-links">
+            <li><a href="#">אירוח</a></li>
+            <li><a href="#">סקי</a></li>
+            <li><a href="#">רכב</a></li>
+        </ul>
+    </div>
     <div id="auth-ui">
-        <button onclick="toggleModal(true)" style="background:none; border: 1px solid #ddd; padding: 5px 12px; border-radius: 8px; cursor:pointer;">כניסה/הרשמה</button>
+        <button onclick="toggleModal(true)" style="background:none; border: 1px solid #ddd; padding: 6px 15px; border-radius: 8px; cursor:pointer;">כניסה</button>
     </div>
 </nav>
 
 <div class="container">
-    <div class="card mountain-header">
-        <div id="status-dot" class="status-dot" style="background: gray;"></div>
-        <img src="https://cdn-icons-png.flaticon.com/512/2600/2600021.png" class="mountain-img" alt="Matterhorn">
-        <span class="status-label" id="status-text">בודק סטטוס קישור...</span>
+    <div class="page-header">
+        <h1 style="margin:0; font-size: 1.5rem;">מצב ההר כעת</h1>
+        <div class="status-box">
+            <div id="status-dot" class="status-dot"></div>
+            <span id="status-text" style="font-weight: bold; font-size: 0.9rem;">טוען...</span>
+        </div>
     </div>
 
     <div class="grid">
         <div class="card">
-            <h3 id="d-temp">--°C</h3>
-            <p>טמפרטורה</p>
+            <div id="d-temp" style="font-size: 1.5rem; font-weight: bold;">--°C</div>
+            <div style="font-size: 0.8rem; color: #64748b;">טמפרטורה</div>
         </div>
         <div class="card">
             <div id="c-lifts" class="stat-val">--/47</div>
-            <p>מעליות פתוחות</p>
+            <div style="font-size: 0.8rem; color: #64748b;">מעליות</div>
         </div>
         <div class="card">
             <div id="c-slopes" class="stat-val">--/109</div>
-            <p>מסלולים פתוחים</p>
-        </div>
-    </div>
-
-    <div class="card">
-        <h3>📅 תחזית ל-4 ימים (Plateau Rosa)</h3>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>תאריך</th>
-                        <th>טמפ'</th>
-                        <th>רוח</th>
-                        <th>סיכוי לקישור</th>
-                    </tr>
-                </thead>
-                <tbody id="forecast-body"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="card">
-        <h3>💬 פורום גולשים</h3>
-        <div id="forum-content" style="background: #f1f5f9; padding: 20px; border-radius: 12px; text-align: center; color: #64748b;">
-            הפורום יהיה זמין למשתמשים מחוברים בקרוב...
+            <div style="font-size: 0.8rem; color: #64748b;">מסלולים</div>
         </div>
     </div>
 </div>
 
-<div id="authModal" class="modal">
-    <div class="modal-content">
-        <h2 id="auth-title" style="text-align:center;">כניסה למערכת</h2>
-        <input type="text" id="user-name" class="input-field" placeholder="שם מלא (להרשמה)">
-        <input type="email" id="email" class="input-field" placeholder="אימייל">
-        <input type="password" id="password" class="input-field" placeholder="סיסמה">
-        <button class="btn-main" onclick="handleAuth('login')">התחברות</button>
-        <button class="btn-main" style="background:#64748b;" onclick="handleAuth('signup')">יצירת חשבון חדש</button>
-        <button onclick="toggleModal(false)" style="display:block; margin: 15px auto; background:none; border:none; color:gray; cursor:pointer;">סגור</button>
+<div id="authModal" class="modal" onclick="if(event.target==this) toggleModal(false)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close-btn" onclick="toggleModal(false)">&times;</span>
+        <h2 id="modal-title" style="text-align:center; margin-bottom:20px;">כניסה</h2>
+        
+        <div id="signup-only" style="display:none;">
+            <input type="text" id="user-name" class="input-field" placeholder="שם מלא">
+        </div>
+        
+        <input type="email" id="email" class="input-field" placeholder="אימייל" style="margin-bottom:10px;">
+        
+        <div class="input-group">
+            <input type="password" id="password" class="input-field" placeholder="סיסמה">
+            <span class="eye-icon" onclick="togglePass('password')">👁️</span>
+        </div>
+
+        <div id="confirm-pass-box" style="display:none;" class="input-group">
+            <input type="password" id="password-confirm" class="input-field" placeholder="אימות סיסמה">
+            <span class="eye-icon" onclick="togglePass('password-confirm')">👁️</span>
+        </div>
+
+        <button class="btn-main" id="primary-btn" onclick="handleAuth()">התחברות</button>
+        <p id="toggle-link" onclick="switchMode()" style="text-align:center; font-size:0.8rem; color:var(--accent); cursor:pointer; margin-top:15px;">אין לך חשבון? הרשמה</p>
     </div>
 </div>
 
@@ -115,76 +108,64 @@
     const SB_KEY = "sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g";
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-    function toggleModal(show) { document.getElementById('authModal').style.display = show ? 'flex' : 'none'; }
+    let isSignup = false;
 
-    // טיפול ב-Email Not Confirmed - Supabase שולח אימייל אימות כברירת מחדל
-    async function handleAuth(type) {
+    function toggleModal(show) { document.getElementById('authModal').style.display = show ? 'flex' : 'none'; }
+    
+    // סגירה עם Escape
+    window.addEventListener('keydown', (e) => { if(e.key === 'Escape') toggleModal(false); });
+
+    function togglePass(id) {
+        const el = document.getElementById(id);
+        el.type = el.type === 'password' ? 'text' : 'password';
+    }
+
+    function switchMode() {
+        isSignup = !isSignup;
+        document.getElementById('modal-title').innerText = isSignup ? 'הרשמה' : 'כניסה';
+        document.getElementById('signup-only').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('confirm-pass-box').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('primary-btn').innerText = isSignup ? 'צור חשבון' : 'התחברות';
+        document.getElementById('toggle-link').innerText = isSignup ? 'כבר רשום? כניסה' : 'אין לך חשבון? הרשמה';
+    }
+
+    async function handleAuth() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const name = document.getElementById('user-name').value;
 
-        if (type === 'signup') {
-            const { data, error } = await supabaseClient.auth.signUp({ 
-                email, password, options: { data: { full_name: name } } 
-            });
-            if (error) alert(error.message);
-            else alert("נרשמת בהצלחה! בדוק את תיבת המייל שלך לאישור החשבון.");
+        if(isSignup) {
+            if(password !== document.getElementById('password-confirm').value) return alert("סיסמאות לא תואמות");
+            const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
+            if(error) alert(error.message); else { alert("נרשמת בהצלחה!"); location.reload(); }
         } else {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) alert("שגיאה: " + error.message);
-            else { toggleModal(false); location.reload(); }
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if(error) alert(error.message); else location.reload();
         }
     }
 
     async function checkUser() {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (user) {
-            const name = user.user_metadata.full_name || user.email;
+            const displayName = user.user_metadata.full_name || user.email.split('@')[0];
             document.getElementById('auth-ui').innerHTML = `
-                <span style="font-weight:bold; margin-left:10px;">שלום, ${name}</span>
-                <button onclick="supabaseClient.auth.signOut().then(()=>location.reload())" style="cursor:pointer; border:none; background:none; color:var(--accent);">התנתק</button>
+                <span style="font-weight:bold; margin-left:10px;">שלום, ${displayName}</span>
+                <button onclick="supabaseClient.auth.signOut().then(()=>location.reload())" style="cursor:pointer; border:none; background:none; color:var(--accent); font-size:0.8rem;">התנתק</button>
             `;
-            document.getElementById('forum-content').innerHTML = "<p>כאן יוצגו ההודעות בפורום בקרוב!</p>";
         }
     }
 
-    async function update() {
-        try {
-            const res = await fetch('data.json?v=' + Date.now());
-            const d = await res.json();
-            
-            // עדכון המטרהורן
-            const dot = document.getElementById('status-dot');
-            const text = document.getElementById('status-text');
-            if (d.conn === 'open') {
-                dot.style.background = 'var(--success)';
-                text.innerText = "הקישור לזארמט: פתוח";
-            } else if (d.conn === 'waiting') {
-                dot.style.background = 'var(--warning)';
-                text.innerText = "הקישור לזארמט: בהמתנה";
-            } else {
-                dot.style.background = 'var(--danger)';
-                text.innerText = "הקישור לזארמט: סגור";
-            }
-
-            document.getElementById('d-temp').innerText = d.temp;
-            document.getElementById('c-lifts').innerText = d.lifts;
-            document.getElementById('c-slopes').innerText = d.slopes;
-            
-            if(d.forecast) {
-                document.getElementById('forecast-body').innerHTML = d.forecast.map(day => `
-                    <tr>
-                        <td style="font-weight:bold;">${day.date}</td>
-                        <td style="direction:ltr;">${day.temp_min} / ${day.temp_max}</td>
-                        <td style="direction:ltr;">${day.wind}</td>
-                        <td style="color:${day.link_prob === 'High' ? 'green' : 'orange'}; font-weight:bold;">${day.link_prob === 'High' ? 'גבוה' : 'בינוני'}</td>
-                    </tr>
-                `).join('');
-            }
-        } catch (e) { console.log("טעינה..."); }
+    async function updateData() {
+        const res = await fetch('data.json?v=' + Date.now());
+        const d = await res.json();
+        document.getElementById('status-dot').style.background = d.conn === 'open' ? 'var(--success)' : 'var(--danger)';
+        document.getElementById('status-text').innerText = d.conn === 'open' ? 'קישור לזארמט: פתוח' : 'קישור לזארמט: סגור';
+        document.getElementById('d-temp').innerText = d.temp;
+        document.getElementById('c-lifts').innerText = d.lifts;
+        document.getElementById('c-slopes').innerText = d.slopes;
     }
 
-    window.onload = () => { update(); checkUser(); };
+    window.onload = () => { updateData(); checkUser(); };
 </script>
 </body>
 </html>
