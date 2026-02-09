@@ -5,119 +5,227 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CerviniaLive - הבית של גולשי צ'רוויניה</title>
     <style>
-        :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; }
+        :root { 
+            --primary: #0a192f; 
+            --accent: #4cc9f0; 
+            --bg: #e0e6ed; 
+            --success: #2ecc71; 
+            --error: #e74c3c; 
+            --white: #ffffff;
+        }
+        
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
 
         /* Navbar */
-        nav { background: var(--primary); color: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .logo-text { font-size: 1.6em; font-weight: 900; }
+        nav { 
+            background: var(--primary); color: var(--white); 
+            padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+        }
+        .logo-text { font-size: 1.8em; font-weight: 900; }
         .logo-text span { color: var(--accent); }
-        .btn-login { background: var(--accent); color: var(--primary); padding: 6px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85em; }
+        .user-nav { display: flex; align-items: center; gap: 15px; }
+        .logout-btn { color: var(--accent); font-size: 0.85em; cursor: pointer; text-decoration: underline; font-weight: bold; }
 
-        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
 
-        /* Status Cards */
-        .status-hero { background: white; border-radius: 15px; padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        /* Hero Header */
+        .hero-title { text-align: center; margin-bottom: 30px; }
+        .hero-title h1 { font-size: 2.2em; color: var(--primary); margin: 0; }
+        .hero-title p { color: #666; margin: 5px 0; font-size: 1.1em; }
+
+        /* Temperature Grid */
+        .temp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .temp-box { background: var(--white); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 3px solid var(--accent); }
+        .temp-box h4 { margin: 0; font-size: 0.85em; color: #777; }
+        .temp-box .val { font-size: 2em; font-weight: 800; color: var(--primary); margin-top: 5px; }
+
+        /* Live Status Cards */
+        .status-hero { 
+            background: var(--white); border-radius: 20px; padding: 30px; 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 40px; 
+        }
         .status-item { text-align: center; border-left: 1px solid #eee; }
         .status-item:last-child { border-left: none; }
-        .status-item .value { font-size: 1.8em; font-weight: 900; color: var(--primary); }
-        .status-open { color: #2ecc71; }
-        .status-closed { color: #e74c3c; }
+        .status-item .label { font-size: 0.9em; color: #888; margin-bottom: 10px; display: block; }
+        .status-item .value { font-size: 2.2em; font-weight: 900; }
+        .status-open { color: var(--success); }
+        .status-closed { color: var(--error); }
 
-        /* 3 Webcams Layout */
-        .webcams-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 35px; }
-        .cam-box { background: #000; border-radius: 12px; overflow: hidden; height: 220px; position: relative; border: 2px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .cam-box iframe { width: 100%; height: 100%; border: none; display: block; }
-        .cam-label { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7em; }
+        /* Forecast Table */
+        .forecast-container { background: var(--white); border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 40px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: center; min-width: 500px; }
+        th { padding: 12px; border-bottom: 2px solid #eee; color: #666; font-size: 0.9em; }
+        td { padding: 15px; border-bottom: 1px solid #f9f9f9; font-weight: 600; }
+
+        /* Webcams */
+        .webcams-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 40px; }
+        .cam-box { background: #000; border-radius: 12px; overflow: hidden; height: 220px; position: relative; border: 2px solid var(--white); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .cam-box iframe { width: 100%; height: 100%; border: none; }
+        .cam-label { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: var(--white); padding: 3px 8px; border-radius: 4px; font-size: 0.75em; }
 
         /* Forum */
-        .forum-section { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        #posts-container { max-height: 180px; overflow-y: auto; margin-bottom: 10px; border-bottom: 1px solid #eee; }
-        .post { padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 0.9em; }
-        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; resize: none; }
-        .btn-post { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 5px; }
+        .forum-section { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .post { padding: 15px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; }
+        .post-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .delete-btn { color: #ccc; cursor: pointer; font-size: 0.8em; font-weight: bold; }
+        .delete-btn:hover { color: var(--error); }
+        .reply-area { margin-right: 25px; border-right: 2px solid #eee; padding-right: 15px; margin-top: 10px; font-size: 0.9em; }
+        
+        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; box-sizing: border-box; resize: none; margin-top: 15px; font-family: inherit; }
+        .btn-post { background: var(--primary); color: var(--white); border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold; width: 100%; }
+        .btn-reply { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85em; font-weight: bold; padding: 0; text-align: right; }
 
-        footer { text-align: center; padding: 25px; color: #888; font-size: 0.8em; direction: ltr; }
+        footer { text-align: center; padding: 40px; color: #888; border-top: 1px solid #d0d7de; margin-top: 50px; direction: rtl; }
+        footer a { color: var(--primary); text-decoration: none; font-weight: bold; }
 
-        @media (max-width: 768px) { .webcams-grid, .status-hero { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { 
+            .temp-grid, .status-hero, .webcams-grid { grid-template-columns: 1fr; } 
+            .status-item { border-left: none; border-bottom: 1px solid #eee; padding-bottom: 10px; } 
+        }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="logo-text">Cervinia<span>Live</span></div>
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <span style="font-size: 0.8em;">שלום, <b>Y Krauss</b></span>
-        <a href="#" class="btn-login">התחברות</a>
+    <div class="user-nav">
+        <span>שלום, <b>Y Krauss</b></span>
+        <span class="logout-btn" onclick="alert('התנתקת מהמערכת')">התנתק</span>
     </div>
 </nav>
 
 <div class="container">
-    <div class="status-hero">
-        <div class="status-item"><span style="color:#888; font-size:0.8em;">מעליות</span><div id="lifts" class="value">--</div></div>
-        <div class="status-item"><span style="color:#888; font-size:0.8em;">מסלולים</span><div id="slopes" class="value">--</div></div>
-        <div class="status-item"><span style="color:#888; font-size:0.8em;">קישור זארמט</span><div id="conn" class="value">--</div></div>
+    <div class="hero-title">
+        <h1>הבית של גולשי צ'רוויניה</h1>
+        <p>דיווחים חיים, מצב קישור ותחזית מעודכנת</p>
     </div>
 
-    <h3 style="margin-bottom: 15px;">מצלמות חיות מההר</h3>
+    <div class="temp-grid">
+        <div class="temp-box"><h4>Cervinia (2050m)</h4><div class="val" id="temp-town">--</div></div>
+        <div class="temp-box"><h4>Plan Maison (2550m)</h4><div class="val" id="temp-mid">--</div></div>
+        <div class="temp-box"><h4>Plateau Rosa (3480m)</h4><div class="val" id="temp-peak">--</div></div>
+    </div>
+
+    <div class="status-hero">
+        <div class="status-item"><span class="label">מעליות פתוחות</span><div id="lifts" class="value">--</div></div>
+        <div class="status-item"><span class="label">מסלולים זמינים</span><div id="slopes" class="value">--</div></div>
+        <div class="status-item"><span class="label">International Link</span><div id="conn" class="value">--</div></div>
+    </div>
+
+    <h3>תחזית ל-4 ימים הקרובים</h3>
+    <div class="forecast-container">
+        <table>
+            <thead><tr><th>תאריך</th><th>מינימום</th><th>מקסימום</th><th>רוח</th><th>סיכוי לקישור</th></tr></thead>
+            <tbody id="forecast-body"></tbody>
+        </table>
+    </div>
+
+    <h3>מצלמות בשידור חי</h3>
     <div class="webcams-grid">
-        <div class="cam-box">
-            <iframe src="https://webcam.cervinia.it/webcam/cervinia/cervinia-1.jpg"></iframe>
-            <div class="cam-label">Cervinia (2050m)</div>
-        </div>
-        <div class="cam-box">
-            <iframe src="https://webcam.cervinia.it/webcam/cervinia/plan-maison-1.jpg"></iframe>
-            <div class="cam-label">Plan Maison (2550m)</div>
-        </div>
-        <div class="cam-box">
-            <iframe src="https://webcam.cervinia.it/webcam/cervinia/plateau-rosa-1.jpg"></iframe>
-            <div class="cam-label">Plateau Rosa (3480m)</div>
-        </div>
+        <div class="cam-box"><iframe src="https://baud.panomax.com/cervinia"></iframe><div class="cam-label">Cervinia Town</div></div>
+        <div class="cam-box"><iframe src="https://baud.panomax.com/plan-maison"></iframe><div class="cam-label">Plan Maison</div></div>
+        <div class="cam-box"><iframe src="https://baud.panomax.com/plateau-rosa"></iframe><div class="cam-label">Plateau Rosa</div></div>
     </div>
 
     <div class="forum-section" id="forum">
-        <h3>פורום קהילה</h3>
+        <h3>עדכונים מהשטח</h3>
         <div id="posts-container">
-            <div class="post"><b>Admin:</b> ברוכים הבאים! הנתונים והמצלמות מעודכנים.</div>
+            <div class="post">
+                <div class="post-header">
+                    <span><b>מנהל מערכת:</b> ברוכים הבאים ל-CerviniaLive. דווחו לנו מהשטח!</span>
+                </div>
+            </div>
         </div>
-        <textarea id="forum-input" placeholder="מה המצב בשטח?"></textarea>
+        <textarea id="forum-input" placeholder="שתפו עדכון או שאלה..."></textarea>
         <button class="btn-post" onclick="addPost()">פרסם הודעה</button>
     </div>
 
     <footer>
-        Update sync: <span id="last-update">--</span> | <a href="mailto:ykrauss1@gmail.com" style="color:#666">ykrauss1@gmail.com</a>
+        לפניות, הצעות ומשוב: <a href="mailto:ykrauss1@gmail.com">ykrauss1@gmail.com</a>
+        <div id="last-update" style="margin-top:10px; font-size: 0.85em; font-weight: bold;">--</div>
     </footer>
 </div>
 
 <script>
+    let postCounter = 1;
+
     async function loadData() {
         try {
             const res = await fetch('data.json?v=' + Date.now());
             const data = await res.json();
+            
             document.getElementById('lifts').innerText = data.lifts;
             document.getElementById('slopes').innerText = data.slopes;
-            document.getElementById('last-update').innerText = data.last_update;
+            document.getElementById('last-update').innerText = "סנכרון נתונים אחרון: " + data.last_update;
 
+            // עדכון טמפרטורות משולש
+            const p = parseFloat(data.temp);
+            document.getElementById('temp-peak').innerText = p.toFixed(1) + "°C";
+            document.getElementById('temp-mid').innerText = (p + 4.2).toFixed(1) + "°C";
+            document.getElementById('temp-town').innerText = (p + 8.4).toFixed(1) + "°C";
+
+            // מצב קישור
             const conn = document.getElementById('conn');
-            conn.innerText = data.conn === "open" ? "OPEN" : "CLOSED";
+            conn.innerText = data.conn.toUpperCase();
             conn.className = "value " + (data.conn === "open" ? "status-open" : "status-closed");
-        } catch (e) { console.error(e); }
+
+            // טבלת תחזית
+            const tbody = document.getElementById('forecast-body');
+            tbody.innerHTML = '';
+            data.forecast.forEach(day => {
+                tbody.innerHTML += `<tr>
+                    <td>${day.date.split('-').reverse().slice(0,2).join('/')}</td>
+                    <td style="color:#007bff">${day.temp_min}</td>
+                    <td style="color:#dc3545">${day.temp_max}</td>
+                    <td>${day.wind}</td>
+                    <td style="color:${day.link_prob==='High'?'#2ecc71':'#f1c40f'}">${day.link_prob}</td>
+                </tr>`;
+            });
+        } catch (e) { console.error("שגיאה בטעינת נתונים", e); }
     }
 
     function addPost() {
         const input = document.getElementById('forum-input');
-        const container = document.getElementById('posts-container');
         if (!input.value.trim()) return;
-        const p = document.createElement('div');
-        p.className = 'post';
-        p.innerHTML = `<b>Y Krauss:</b> ${input.value}`;
-        container.appendChild(p);
+        
+        const id = postCounter++;
+        const postHtml = `
+            <div class="post" id="post-${id}">
+                <div class="post-header">
+                    <span><b>Y Krauss:</b> ${input.value}</span>
+                    <span class="delete-btn" onclick="this.closest('.post').remove()">מחק ✕</span>
+                </div>
+                <button class="btn-reply" onclick="showReplyBox(${id})">הוסף תגובה</button>
+                <div id="replies-${id}" class="reply-area"></div>
+            </div>`;
+        
+        document.getElementById('posts-container').insertAdjacentHTML('beforeend', postHtml);
         input.value = "";
-        container.scrollTop = container.scrollHeight;
+    }
+
+    function showReplyBox(id) {
+        if (document.getElementById(`reply-input-${id}`)) return;
+        const container = document.getElementById(`replies-${id}`);
+        const html = `
+            <div id="box-${id}" style="margin-top:10px; display:flex; gap:5px;">
+                <input type="text" id="reply-input-${id}" placeholder="כתוב תגובה..." style="flex:1; padding:8px; border-radius:5px; border:1px solid #ddd;">
+                <button onclick="submitReply(${id})" style="background:var(--accent); border:none; border-radius:5px; padding:5px 15px; cursor:pointer; font-weight:bold;">שלח</button>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    function submitReply(id) {
+        const input = document.getElementById(`reply-input-${id}`);
+        if (!input.value.trim()) return;
+        const replyHtml = `<div style="margin-top:5px;"><b>Y Krauss (תגובה):</b> ${input.value}</div>`;
+        document.getElementById(`box-${id}`).remove();
+        document.getElementById(`replies-${id}`).insertAdjacentHTML('beforeend', replyHtml);
     }
 
     loadData();
-    setInterval(loadData, 300000); // רענון כל 5 דקות
+    setInterval(loadData, 600000); // רענון כל 10 דקות
 </script>
 </body>
 </html>
