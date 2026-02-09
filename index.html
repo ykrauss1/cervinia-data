@@ -3,211 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cervinia Live - מצב ההר</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>מצב גלישה - Cervinia</title>
     <style>
-        :root { --accent: #0284c7; --bg: #f8fafc; --white: #ffffff; --slate: #1e293b; --success: #22c55e; --danger: #ef4444; }
-        body { background: var(--bg); font-family: system-ui, sans-serif; margin: 0; color: var(--slate); direction: rtl; }
-        nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
-        .nav-links { display: flex; gap: 20px; list-style: none; margin: 0; padding: 0; }
-        .nav-links a { text-decoration: none; color: var(--slate); font-weight: 600; font-size: 0.9rem; }
-        .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+        :root {
+            --primary-blue: #0056b3;
+            --light-bg: #f4f7f9;
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        .live-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .status-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            border-bottom: 5px solid var(--primary-blue);
+        }
+        .status-card h3 { margin: 0; font-size: 1.1em; color: #666; }
+        .status-card .value { font-size: 2em; font-weight: bold; margin: 10px 0; color: #1e3c72; }
         
-        .mountain-status-banner { background: white; border-radius: 20px; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .center-stats { display: flex; gap: 25px; align-items: center; border-right: 1px solid #eee; border-left: 1px solid #eee; padding: 0 30px; }
-        .stat-item span { display: block; font-size: 1.3rem; font-weight: 800; color: var(--accent); }
-        .stat-item label { font-size: 0.7rem; color: gray; font-weight: 600; }
+        .status-open { color: #28a745 !important; }
+        .status-closed { color: #dc3545 !important; }
 
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .data-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; text-align: center; }
-        .data-card h3 { margin: 0 0 12px 0; font-size: 1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: var(--accent); text-align: right; }
-        
-        .table-container { background: white; padding: 20px; border-radius: 20px; border: 1px solid #e2e8f0; overflow-x: auto; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; text-align: center; }
-        th { background: #f8fafc; padding: 12px; font-size: 0.85rem; color: #64748b; }
-        td { padding: 12px; border-top: 1px solid #f1f5f9; font-size: 0.95rem; }
+        .forecast-table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            border-collapse: collapse;
+        }
+        .forecast-table th, .forecast-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .forecast-table th { background-color: #f8f9fa; font-weight: bold; }
 
-        .webcam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }
-        .webcam-box { background: #000; border-radius: 15px; overflow: hidden; aspect-ratio: 16/9; position: relative; }
-        .webcam-label { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; }
+        .update-time {
+            text-align: center;
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 10px;
+        }
 
-        .post-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-right: 4px solid var(--accent); text-align: right; }
-        .forum-locked { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
-        .btn-main { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000; }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            direction: ltr;
+        }
+        footer a { color: var(--primary-blue); text-decoration: none; font-weight: bold; }
+
+        @media (max-width: 600px) {
+            .forecast-table { font-size: 0.9em; }
+            .forecast-table th:nth-child(4), .forecast-table td:nth-child(4) { display: none; }
+        }
     </style>
 </head>
 <body>
 
-<nav>
-    <div style="display:flex; align-items:center; gap:30px;">
-        <div style="font-size: 1.6rem; font-weight: 900; color: var(--accent);">CerviniaLive</div>
-        <ul class="nav-links">
-            <li><a href="#">אירוח</a></li>
-            <li><a href="#">סקי</a></li>
-            <li><a href="#">השכרת ציוד</a></li>
-        </ul>
-    </div>
-    <div id="auth-ui">
-        <button onclick="document.getElementById('authModal').style.display='flex'" class="btn-main">כניסה</button>
-    </div>
-</nav>
-
 <div class="container">
-    <div class="mountain-status-banner">
-        <div style="display:flex; align-items:center; gap:12px;">
-            <h2 style="margin:0; font-size: 1.1rem;">מצב ההר</h2>
+    <header>
+        <h1>Cervinia - Plateau Rosa</h1>
+        <p>מצב מסלולים ותחזית מעודכנת</p>
+    </header>
+
+    <div class="live-status">
+        <div class="status-card">
+            <h3>מעליות פתוחות</h3>
+            <div id="lifts" class="value">--</div>
         </div>
-        <div class="center-stats">
-            <div class="stat-item"><span id="h-lifts">--/47</span><label>מעליות</label></div>
-            <div class="stat-item"><span id="h-slopes">--/109</span><label>מסלולים</label></div>
+        <div class="status-card">
+            <h3>מסלולים (ק"מ יחסי)</h3>
+            <div id="slopes" class="value">--</div>
         </div>
-        <div style="padding: 6px 14px; border-radius: 50px; background: #f1f5f9; display:flex; align-items:center; gap:8px;">
-            <div id="status-dot" style="width:10px; height:10px; border-radius:50%; background:gray;"></div>
-            <span id="status-text" style="font-size:0.85rem; font-weight:700;">טוען...</span>
+        <div class="status-card">
+            <h3>קישור לזארמט</h3>
+            <div id="conn" class="value">--</div>
+        </div>
+        <div class="status-card">
+            <h3>טמפ' נוכחית</h3>
+            <div id="temp" class="value">--</div>
         </div>
     </div>
 
-    <div class="data-grid">
-        <div class="data-card">
-            <h3>🌡️ טמפרטורות</h3>
-            <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>Plateau Rosa</span><strong id="t-high">--</strong></div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>Plan Maison</span><strong id="t-mid">--</strong></div>
-            <div style="display:flex; justify-content:space-between;"><span>Cervinia</span><strong id="t-low">--</strong></div>
-        </div>
-        <div class="data-card">
-            <h3>🇮🇹 Cervinia</h3>
-            <div id="c-lifts" style="font-size:1.6rem; font-weight:800; color:var(--accent); margin:10px 0;">--/47</div>
-            <div style="font-size:0.75rem; color:gray;">מעליות פתוחות</div>
-        </div>
-        <div class="data-card">
-            <h3>🏔️ Valtournenche</h3>
-            <div id="v-status" style="font-size:1.6rem; font-weight:800; margin:10px 0;">N/A</div>
-            <div style="font-size:0.75rem; color:gray;">מצב מסלולים</div>
-        </div>
-        <div class="data-card">
-            <h3>🇨🇭 Zermatt Link</h3>
-            <div id="z-status" style="font-size:1.6rem; font-weight:800; color:var(--danger); margin:10px 0;">סגור</div>
-            <div style="font-size:0.75rem; color:gray;">סטטוס מעבר</div>
-        </div>
-    </div>
+    <h2 style="text-align: center;">תחזית לימים הקרובים</h2>
+    <table class="forecast-table">
+        <thead>
+            <tr>
+                <th>תאריך</th>
+                <th>טמפ' (Min/Max)</th>
+                <th>רוח</th>
+                <th>ראות</th>
+                <th>סיכוי לקישור</th>
+            </tr>
+        </thead>
+        <tbody id="forecast-body">
+            </tbody>
+    </table>
 
-    <div class="table-container">
-        <h3 style="margin-top:0; color:var(--accent);">📅 תחזית ל-4 ימים (Plateau Rosa)</h3>
-        <table>
-            <thead>
-                <tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th><th>מעבר לזארמט</th></tr>
-            </thead>
-            <tbody id="forecast-body"></tbody>
-        </table>
-    </div>
+    <div class="update-time" id="last-update">עדכון אחרון: --</div>
 
-    <h3 style="margin-top:30px;">🎥 מצלמות LIVE</h3>
-    <div class="webcam-grid">
-        <div class="webcam-box"><img src="https://api.skiline.cc/panoramacard/cervinia/plain-maison?width=600" style="width:100%; height:100%; object-fit:cover;"><div class="webcam-label">Plan Maison</div></div>
-        <div class="webcam-box"><img src="https://api.skiline.cc/panoramacard/cervinia/plateau-rosa?width=600" style="width:100%; height:100%; object-fit:cover;"><div class="webcam-label">Plateau Rosa</div></div>
-    </div>
-
-    <div class="data-card" style="margin-top:20px; text-align:right;">
-        <h3>💬 פורום גולשים</h3>
-        <div id="auth-msg" style="background:#fff1f2; padding:15px; border-radius:12px; text-align:center; margin-bottom:15px;">יש להתחבר כדי לכתוב בפורום</div>
-        <div id="forum-content" class="forum-locked">
-            <textarea id="post-input" style="width:100%; height:80px; padding:10px; border-radius:12px; border:1px solid #ddd; box-sizing:border-box;" placeholder="עדכון מהשטח..."></textarea>
-            <button class="btn-main" onclick="sendPost()" style="margin-top:10px;">פרסם הודעה</button>
-            <div id="posts-container" style="margin-top:20px;"></div>
-        </div>
-    </div>
-</div>
-
-<div id="authModal" class="modal" onclick="if(event.target==this) this.style.display='none'">
-    <div style="background:white; padding:30px; border-radius:20px; width:90%; max-width:400px;">
-        <h2 style="text-align:center; margin-top:0;">כניסה למערכת</h2>
-        <input type="text" id="full-name" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing:border-box;" placeholder="שם מלא">
-        <input type="email" id="email" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing:border-box;" placeholder="אימייל">
-        <input type="password" id="password" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd; box-sizing:border-box;" placeholder="סיסמה">
-        <button class="btn-main" onclick="handleAuth()" style="width:100%;">התחברות / הרשמה</button>
-    </div>
+    <footer>
+        <p>Questions or feedback? Contact me at: 
+           <a href="mailto:ykrauss1@gmail.com">ykrauss1@gmail.com</a>
+        </p>
+    </footer>
 </div>
 
 <script>
-    const SB_URL = "https://cdgqodtbdhsqkvcgcdlm.supabase.co";
-    const SB_KEY = "sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g";
-    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
-    async function init() {
+    async function loadData() {
         try {
-            const res = await fetch('data.json?v=' + Date.now());
-            const d = await res.json();
-            document.getElementById('h-lifts').innerText = d.lifts || "--/47";
-            document.getElementById('h-slopes').innerText = d.slopes || "--/109";
-            document.getElementById('c-lifts').innerText = d.lifts || "--/47";
-            document.getElementById('t-high').innerText = d.temp || "--";
-            const baseT = parseFloat(d.temp);
-            if(!isNaN(baseT)) {
-                document.getElementById('t-mid').innerText = (baseT + 4).toFixed(1) + "°C";
-                document.getElementById('t-low').innerText = (baseT + 7).toFixed(1) + "°C";
-            }
-            if(d.conn === 'open') {
-                document.getElementById('status-dot').style.background = 'var(--success)';
-                document.getElementById('status-text').innerText = 'קישור לזארמט: פתוח';
-                document.getElementById('z-status').innerText = 'פתוח';
-                document.getElementById('z-status').style.color = 'var(--success)';
-            }
-            if(d.forecast) {
-                document.getElementById('forecast-body').innerHTML = d.forecast.map(day => `
-                    <tr><td>${day.date}</td><td>${day.temp_min}/${day.temp_max}</td><td>${day.wind}</td><td>${day.visibility}</td>
-                    <td style="color:${day.link_prob==='High'?'green':'orange'}">${day.link_prob==='High'?'גבוה':'בינוני'}</td></tr>`).join('');
-            }
-        } catch(e) { console.error(e); }
-        checkUser();
-    }
+            const response = await fetch('data.json?v=' + new Date().getTime());
+            const data = await response.json();
 
-    async function handleAuth() {
-        const email = document.getElementById('email').value, password = document.getElementById('password').value, full_name = document.getElementById('full-name').value;
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) { await supabaseClient.auth.signUp({ email, password, options: { data: { full_name } } }); }
-        location.reload();
-    }
+            // עדכון נתונים חיים
+            document.getElementById('lifts').innerText = data.lifts;
+            document.getElementById('slopes').innerText = data.slopes;
+            document.getElementById('temp').innerText = data.temp;
+            
+            const connElement = document.getElementById('conn');
+            if(data.conn === "open") {
+                connElement.innerText = "פתוח";
+                connElement.className = "value status-open";
+            } else {
+                connElement.innerText = "סגור";
+                connElement.className = "value status-closed";
+            }
 
-    async function checkUser() {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (user) {
-            document.getElementById('auth-msg').style.display = 'none';
-            document.getElementById('forum-content').classList.remove('forum-locked');
-            const name = user.user_metadata.full_name || user.email;
-            document.getElementById('auth-ui').innerHTML = `<span>שלום, ${name}</span> <button onclick="supabaseClient.auth.signOut().then(()=>location.reload())" style="color:red; background:none; border:none; cursor:pointer;">התנתק</button>`;
-            loadPosts(user);
+            document.getElementById('last-update').innerText = "עדכון אחרון: " + data.last_update;
+
+            // עדכון טבלת תחזית
+            const tbody = document.getElementById('forecast-body');
+            tbody.innerHTML = '';
+            data.forecast.forEach(day => {
+                const row = `<tr>
+                    <td>${day.date}</td>
+                    <td>${day.temp_min} / ${day.temp_max}</td>
+                    <td>${day.wind}</td>
+                    <td>${day.visibility}</td>
+                    <td style="font-weight:bold; color:${day.link_prob === 'High' ? '#28a745' : '#ffc107'}">${day.link_prob}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+
+        } catch (error) {
+            console.error("Error loading JSON:", error);
         }
     }
 
-    async function sendPost() {
-        const content = document.getElementById('post-input').value;
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (content && user) {
-            await supabaseClient.from('forum_posts').insert([{ content, user_name: user.user_metadata.full_name || user.email, user_id: user.id }]);
-            location.reload();
-        }
-    }
-
-    async function loadPosts(user) {
-        const { data: posts } = await supabaseClient.from('forum_posts').select('*').order('created_at', { ascending: false });
-        if (posts) {
-            document.getElementById('posts-container').innerHTML = posts.map(p => `
-                <div class="post-card">
-                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:gray;">
-                        <strong>${p.user_name}</strong>
-                        ${(user && (user.id === p.user_id || user.email === 'ykrauss1@gmail.com')) ? `<span onclick="deletePost('${p.id}')" style="color:red; cursor:pointer;">🗑️</span>` : ''}
-                    </div>
-                    <p>${p.content}</p>
-                </div>`).join('');
-        }
-    }
-
-    async function deletePost(id) {
-        if(confirm("למחוק?")) { await supabaseClient.from('forum_posts').delete().eq('id', id); location.reload(); }
-    }
-
-    window.onload = init;
+    loadData();
 </script>
+
 </body>
 </html>
