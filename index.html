@@ -3,44 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - Ultimate Version</title>
+    <title>CerviniaLive - המרכז המעודכן</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --white: #ffffff; --error: #e74c3c; --success: #2ecc71; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
-        nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        
+        /* Navigation */
+        nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .logo-text { font-size: 1.8em; font-weight: 900; }
         .logo-text span { color: var(--accent); }
+        
         .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
         
-        /* Stats & Links */
+        /* Quick Links Fix */
         .live-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .link-btn { padding: 15px; border-radius: 12px; text-decoration: none; color: white; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .link-it { background: #008c45; } .link-ch { background: #d52b1e; }
+        .link-btn { padding: 15px; border-radius: 12px; text-decoration: none; color: white; font-weight: bold; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
+        .link-it { background: #008c45; }
+        .link-ch { background: #d52b1e; }
+        .link-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
-        /* Forum Layout */
+        /* Forecast Table Design (RESTORED) */
+        .forecast-table { width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; }
+        .forecast-table th { background: #f8f9fa; padding: 12px; border-bottom: 2px solid #eee; color: var(--primary); }
+        .forecast-table td { padding: 12px; border-bottom: 1px solid #eee; font-weight: 500; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.9em; font-weight: bold; }
+
+        /* Forum & Auth (STABLE - DO NOT TOUCH) */
         .post { border-bottom: 2px solid #f8f9fa; padding: 20px 0; }
-        .user-name { font-weight: bold; color: var(--primary); margin-left: 5px; }
         .replies-container { margin-right: 25px; border-right: 3px solid #eef0f2; padding-right: 15px; margin-top: 10px; }
         .reply-item { background: #f8f9fa; padding: 12px; border-radius: 10px; margin-top: 8px; font-size: 0.95em; border: 1px solid #edf2f7; }
-        
-        textarea, .reply-input-field { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; display: block; margin-bottom: 10px; font-family: inherit; }
         .reply-input-box { display: none; margin: 15px 0; padding: 15px; background: #f1f5f9; border-radius: 10px; width: 100%; box-sizing: border-box; }
+        textarea, .reply-input-field { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
         
-        /* Buttons */
-        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-primary { background: var(--accent); color: var(--primary); }
         .btn-cancel { background: #e0e0e0; color: #666; margin-right: 10px; }
-        .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85em; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
-        .btn-delete { color: #ccc; background: none; border: none; cursor: pointer; margin-right: 10px; }
-        .btn-delete:hover { color: var(--error); }
+        .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85em; font-weight: bold; }
         .admin-badge { background: var(--error); color: white; padding: 2px 7px; border-radius: 5px; font-size: 0.7em; margin-right: 5px; }
 
-        /* Auth */
         #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 3000; }
-        .auth-card { background: white; padding: 30px; border-radius: 15px; width: 350px; position: relative; }
+        .auth-card { background: white; padding: 30px; border-radius: 15px; width: 350px; }
         .tab-btn { padding: 10px; cursor: pointer; flex: 1; text-align: center; font-weight: bold; border-bottom: 2px solid #eee; }
         .tab-btn.active { border-bottom-color: var(--accent); color: var(--accent); }
     </style>
@@ -50,9 +55,44 @@
 <nav>
     <div class="logo-text">Cervinia<span>Live</span></div>
     <div id="nav-controls">
-        <button class="btn btn-primary" onclick="openAuth('login')">התחברות / הרשמה</button>
+        <button class="btn btn-primary" onclick="openAuth()">התחברות / הרשמה</button>
     </div>
 </nav>
+
+<div class="container">
+    <div class="live-links">
+        <a href="https://www.cervinia.it/en/מצב-מעליות" target="_blank" class="link-btn link-it">
+            <i class="fa-solid fa-person-skiing"></i> מעליות איטליה (Live)
+        </a>
+        <a href="https://www.matterhornparadise.ch/en/Live/Lifts-and-Pistes" target="_blank" class="link-btn link-ch">
+            <i class="fa-solid fa-mountain"></i> מעליות זנרמט (Live)
+        </a>
+    </div>
+
+    <div class="card" style="text-align:center; padding: 15px;">
+        <h3 style="margin-bottom:15px;"><i class="fa-solid fa-cloud-sun-rain"></i> תחזית שלג חיה</h3>
+        <iframe src="https://www.snow-forecast.com/resorts/Cervinia/forecasts/feed/m/mid" width="100%" height="250" frameborder="0" scrolling="no" style="border-radius:10px; background: white;"></iframe>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-link"></i> צפי סטטוס קישור בינלאומי</h3>
+        <table class="forecast-table">
+            <thead>
+                <tr><th>תאריך</th><th>טמפרטורה</th><th>מהירות רוח</th><th>סטטוס צפוי</th></tr>
+            </thead>
+            <tbody id="forecast-body"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-comments"></i> פורום עדכונים מהשטח</h3>
+        <div id="posts-container">טוען הודעות...</div>
+        <div style="margin-top:25px; border-top: 1px solid #eee; padding-top: 20px;">
+            <textarea id="forum-input" rows="3" placeholder="כתוב הודעה חדשה..."></textarea>
+            <button class="btn btn-primary" style="width:100%" onclick="addPost()">שלח פוסט</button>
+        </div>
+    </div>
+</div>
 
 <div id="auth-modal" onclick="if(event.target.id === 'auth-modal') closeAuth()">
     <div class="auth-card" onclick="event.stopPropagation()">
@@ -60,35 +100,9 @@
             <div id="tab-login" class="tab-btn active" onclick="switchTab('login')">כניסה</div>
             <div id="tab-reg" class="tab-btn" onclick="switchTab('reg')">הרשמה</div>
         </div>
-        <div class="input-group"><input type="text" id="a-name" placeholder="שם משתמש" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ddd;"></div>
-        <div class="input-group"><input type="email" id="a-email" placeholder="אימייל" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ddd;"></div>
-        <div class="input-group"><input type="password" id="a-pass" placeholder="סיסמה" style="width:100%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #ddd;"></div>
+        <input type="text" id="a-name" placeholder="שם משתמש" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ddd;">
+        <input type="email" id="a-email" placeholder="אימייל" style="width:100%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #ddd;">
         <button class="btn btn-primary" style="width:100%" onclick="processAuth()">אישור</button>
-    </div>
-</div>
-
-<div class="container">
-    <div class="live-links">
-        <a href="https://www.cervinia.it/en/מצב-מעליות" target="_blank" class="link-btn link-it"><i class="fa-solid fa-person-skiing"></i> מעליות איטליה (Live)</a>
-        <a href="https://www.matterhornparadise.ch/en/Live/Lifts-and-Pistes" target="_blank" class="link-btn link-ch"><i class="fa-solid fa-mountain"></i> מעליות זנרמט (Live)</a>
-    </div>
-
-    <div class="card" style="text-align:center;">
-        <iframe src="https://www.snow-forecast.com/resorts/Cervinia/forecasts/feed/m/mid" width="100%" height="250" frameborder="0" scrolling="no"></iframe>
-        <h3 style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">צפי סטטוס קישור בינלאומי</h3>
-        <table style="width:100%; border-collapse: collapse; text-align:center;">
-            <thead><tr style="border-bottom:2px solid #eee;"><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>סטטוס</th></tr></thead>
-            <tbody id="forecast-body"></tbody>
-        </table>
-    </div>
-
-    <div class="card">
-        <h3><i class="fa-solid fa-comments"></i> פורום עדכונים</h3>
-        <div id="posts-container">טוען...</div>
-        <div style="margin-top:25px; border-top: 1px solid #eee; padding-top: 20px;">
-            <textarea id="forum-input" rows="3" placeholder="כתוב הודעה חדשה לפורום..."></textarea>
-            <button class="btn btn-primary" style="width:100%" onclick="addPost()">שלח פוסט</button>
-        </div>
     </div>
 </div>
 
@@ -99,12 +113,8 @@
 
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
 
-    window.addEventListener('keydown', (e) => {
-        if (e.key === "Escape") {
-            document.querySelectorAll('.reply-input-box').forEach(box => box.style.display = 'none');
-            closeAuth();
-        }
-    });
+    // ESC Support
+    window.addEventListener('keydown', (e) => { if (e.key === "Escape") { document.querySelectorAll('.reply-input-box').forEach(b => b.style.display = 'none'); closeAuth(); } });
 
     function openAuth() { document.getElementById('auth-modal').style.display = 'flex'; }
     function closeAuth() { document.getElementById('auth-modal').style.display = 'none'; }
@@ -142,14 +152,14 @@
         container.innerHTML = posts.map(p => {
             const repliesHtml = (p.replies || []).map(r => `
                 <div class="reply-item">
-                    <b class="user-name">${r.user}:</b> ${r.content}
+                    <b>${r.user}:</b> ${r.content}
                     <div style="margin-top:8px">
                         <button class="action-link" onclick="showReplyInput('${p.id}', '${r.user}', '${r.id}')">השב</button>
-                        ${admin ? `<button class="btn-delete" onclick="deleteReply('${r.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        ${admin ? `<button onclick="deleteReply('${r.id}')" style="background:none; border:none; color:#ccc; cursor:pointer; margin-right:10px;"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                     <div id="reply-to-reply-${r.id}" class="reply-input-box">
                         <input type="text" id="input-sub-${r.id}" class="reply-input-field" placeholder="השב ל-${r.user}...">
-                        <button class="btn btn-primary" style="width:auto; display:inline-block" onclick="addReply('${p.id}', 'input-sub-${r.id}')">שלח</button>
+                        <button class="btn btn-primary" style="width:auto" onclick="addReply('${p.id}', 'input-sub-${r.id}')">שלח</button>
                         <button class="btn btn-cancel" onclick="hideReplyBox('reply-to-reply-${r.id}')">ביטול</button>
                     </div>
                 </div>
@@ -157,14 +167,14 @@
 
             return `
                 <div class="post">
-                    <div><b class="user-name">${p.user}:</b> ${p.content}</div>
+                    <div><b>${p.user}:</b> ${p.content}</div>
                     <div style="margin-top:10px">
-                        <button class="action-link" onclick="showReplyInput('${p.id}')"><i class="fa-solid fa-comment"></i> תגובה</button>
-                        ${admin ? `<button class="btn-delete" onclick="deletePost('${p.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        <button class="action-link" onclick="showReplyInput('${p.id}')">תגובה</button>
+                        ${admin ? `<button onclick="deletePost('${p.id}')" style="background:none; border:none; color:#ccc; cursor:pointer; margin-right:10px;"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                     <div id="reply-box-${p.id}" class="reply-input-box">
                         <input type="text" id="input-${p.id}" class="reply-input-field" placeholder="כתוב תגובה...">
-                        <button class="btn btn-primary" style="width:auto; display:inline-block" onclick="addReply('${p.id}', 'input-${p.id}')">שלח</button>
+                        <button class="btn btn-primary" style="width:auto" onclick="addReply('${p.id}', 'input-${p.id}')">שלח</button>
                         <button class="btn btn-cancel" onclick="hideReplyBox('reply-box-${p.id}')">ביטול</button>
                     </div>
                     <div class="replies-container">${repliesHtml}</div>
@@ -174,7 +184,7 @@
     }
 
     function showReplyInput(postId, mention = '', replyId = null) {
-        document.querySelectorAll('.reply-input-box').forEach(box => box.style.display = 'none');
+        document.querySelectorAll('.reply-input-box').forEach(b => b.style.display = 'none');
         const targetId = replyId ? `reply-to-reply-${replyId}` : `reply-box-${postId}`;
         const inputId = replyId ? `input-sub-${replyId}` : `input-${postId}`;
         document.getElementById(targetId).style.display = 'block';
@@ -207,8 +217,10 @@
             const data = await res.json();
             document.getElementById('forecast-body').innerHTML = data.forecast.slice(0,4).map(day => {
                 const wind = parseInt(day.wind);
-                const status = wind > 55 ? '<span style="color:red">סגור</span>' : wind > 40 ? '<span style="color:orange">בסיכון</span>' : '<span style="color:green">פתוח ✅</span>';
-                return `<tr><td>${day.date.split('-').reverse().slice(0,2).join('/')}</td><td>${day.temp_min}/${day.temp_max}</td><td>${day.wind}</td><td>${status}</td></tr>`;
+                let status = wind > 55 ? '<span class="status-badge" style="background:#ffebee; color:red">סגור</span>' : 
+                             wind > 40 ? '<span class="status-badge" style="background:#fff3e0; color:orange">בסיכון</span>' : 
+                             '<span class="status-badge" style="background:#e8f5e9; color:green">פתוח ✅</span>';
+                return `<tr><td>${day.date.split('-').reverse().slice(0,2).join('/')}</td><td dir="ltr">${day.temp_min}/${day.temp_max}°C</td><td>${day.wind} קמ"ש</td><td>${status}</td></tr>`;
             }).join('');
         } catch(e) {}
     }
