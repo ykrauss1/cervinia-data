@@ -3,183 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מצב גלישה - Cervinia</title>
+    <title>Cervinia Ski & Info</title>
     <style>
-        :root {
-            --primary-blue: #0056b3;
-            --light-bg: #f4f7f9;
-            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        header {
-            text-align: center;
-            padding: 20px 0;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            border-radius: 15px;
-            margin-bottom: 30px;
-        }
-        .live-status {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .status-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: var(--card-shadow);
-            border-bottom: 5px solid var(--primary-blue);
-        }
-        .status-card h3 { margin: 0; font-size: 1.1em; color: #666; }
-        .status-card .value { font-size: 2em; font-weight: bold; margin: 10px 0; color: #1e3c72; }
+        :root { --primary: #1e3c72; --accent: #00b4d8; --bg: #f4f7f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         
+        /* Navbar */
+        nav { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        nav .logo { font-size: 1.5em; font-weight: bold; }
+        nav ul { list-style: none; display: flex; gap: 20px; margin: 0; }
+        nav a { color: white; text-decoration: none; font-weight: 500; }
+        .user-area { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; font-size: 0.9em; }
+
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+        
+        /* 3 Temp Boxes */
+        .temp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .temp-box { background: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .temp-box h4 { margin: 0; color: #666; font-size: 0.9em; }
+        .temp-box .val { font-size: 1.6em; font-weight: bold; color: var(--primary); }
+
+        /* Main Status */
+        .status-hero { background: white; border-radius: 15px; padding: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; border-top: 5px solid var(--accent); }
+        .status-item { text-align: center; }
+        .status-item .label { font-size: 0.9em; color: #888; display: block; }
+        .status-item .value { font-size: 1.8em; font-weight: bold; color: var(--primary); }
         .status-open { color: #28a745 !important; }
         .status-closed { color: #dc3545 !important; }
 
-        .forecast-table {
-            width: 100%;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-            border-collapse: collapse;
-        }
-        .forecast-table th, .forecast-table td {
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-        }
-        .forecast-table th { background-color: #f8f9fa; font-weight: bold; }
+        /* Webcams */
+        .webcams { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 40px; }
+        .cam-box iframe { width: 100%; height: 250px; border-radius: 10px; border: none; }
 
-        .update-time {
-            text-align: center;
-            font-size: 0.85em;
-            color: #888;
-            margin-top: 10px;
-        }
+        /* Forum Placeholder */
+        .forum-section { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 30px; }
+        .forum-post { border-bottom: 1px solid #eee; padding: 10px 0; }
 
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            border-top: 1px solid #ddd;
-            direction: ltr;
-        }
-        footer a { color: var(--primary-blue); text-decoration: none; font-weight: bold; }
-
-        @media (max-width: 600px) {
-            .forecast-table { font-size: 0.9em; }
-            .forecast-table th:nth-child(4), .forecast-table td:nth-child(4) { display: none; }
-        }
+        footer { text-align: center; padding: 30px; margin-top: 50px; border-top: 1px solid #ddd; direction: ltr; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>Cervinia - Plateau Rosa</h1>
-        <p>מצב מסלולים ותחזית מעודכנת</p>
-    </header>
+<nav>
+    <div class="logo">CERVINIA LIVE</div>
+    <ul>
+        <li><a href="#">בית</a></li>
+        <li><a href="#forecast">תחזית</a></li>
+        <li><a href="#cams">מצלמות</a></li>
+        <li><a href="#forum">פורום</a></li>
+    </ul>
+    <div class="user-area">שלום, <strong>Y Krauss</strong> | <a href="#" style="font-size: 0.8em;">התנתק</a></div>
+</nav>
 
-    <div class="live-status">
-        <div class="status-card">
-            <h3>מעליות פתוחות</h3>
-            <div id="lifts" class="value">--</div>
-        </div>
-        <div class="status-card">
-            <h3>מסלולים (ק"מ יחסי)</h3>
-            <div id="slopes" class="value">--</div>
-        </div>
-        <div class="status-card">
-            <h3>קישור לזארמט</h3>
-            <div id="conn" class="value">--</div>
-        </div>
-        <div class="status-card">
-            <h3>טמפ' נוכחית</h3>
-            <div id="temp" class="value">--</div>
-        </div>
+<div class="container">
+    <div class="temp-grid">
+        <div class="temp-box"><h4>Cervinia (2050m)</h4><div class="val" id="temp-town">--</div></div>
+        <div class="temp-box"><h4>Plan Maison (2550m)</h4><div class="val" id="temp-mid">--</div></div>
+        <div class="temp-box"><h4>Plateau Rosa (3480m)</h4><div class="val" id="temp-peak">--</div></div>
     </div>
 
-    <h2 style="text-align: center;">תחזית לימים הקרובים</h2>
-    <table class="forecast-table">
-        <thead>
-            <tr>
-                <th>תאריך</th>
-                <th>טמפ' (Min/Max)</th>
-                <th>רוח</th>
-                <th>ראות</th>
-                <th>סיכוי לקישור</th>
-            </tr>
-        </thead>
-        <tbody id="forecast-body">
-            </tbody>
-    </table>
+    <div class="status-hero">
+        <div class="status-item"><span class="label">מעליות</span><div class="value" id="lifts">--</div></div>
+        <div class="status-item"><span class="label">מסלולים</span><div class="value" id="slopes">--</div></div>
+        <div class="status-item"><span class="label">קישור לזארמט</span><div class="value" id="conn">--</div></div>
+    </div>
 
-    <div class="update-time" id="last-update">עדכון אחרון: --</div>
+    <h2 id="cams">מצלמות בשידור חי</h2>
+    <div class="webcams">
+        <div class="cam-box"><iframe src="https://baud.panomax.com/plateau-rosa"></iframe></div>
+        <div class="cam-box"><iframe src="https://baud.panomax.com/cervinia"></iframe></div>
+    </div>
+
+    <div class="forum-section" id="forum">
+        <h2>פורום קהילה</h2>
+        <div class="forum-post"><strong>מנהל:</strong> ברוכים הבאים לאתר החדש! הנתונים מתעדכנים כל שעה.</div>
+        <div class="forum-post"><strong>גולש1:</strong> השלג היום בפלמזון פשוט חלומי.</div>
+        <textarea style="width:100%; height:80px; margin-top:15px;" placeholder="כתוב משהו בפורום..."></textarea>
+    </div>
 
     <footer>
-        <p>Questions or feedback? Contact me at: 
-           <a href="mailto:ykrauss1@gmail.com">ykrauss1@gmail.com</a>
-        </p>
+        Contact: <a href="mailto:ykrauss1@gmail.com">ykrauss1@gmail.com</a>
     </footer>
 </div>
 
 <script>
     async function loadData() {
         try {
-            const response = await fetch('data.json?v=' + new Date().getTime());
-            const data = await response.json();
-
-            // עדכון נתונים חיים
+            const res = await fetch('data.json?v=' + Date.now());
+            const data = await res.json();
+            
             document.getElementById('lifts').innerText = data.lifts;
             document.getElementById('slopes').innerText = data.slopes;
-            document.getElementById('temp').innerText = data.temp;
+            document.getElementById('temp-peak').innerText = data.temp; // Plateau Rosa
             
-            const connElement = document.getElementById('conn');
-            if(data.conn === "open") {
-                connElement.innerText = "פתוח";
-                connElement.className = "value status-open";
-            } else {
-                connElement.innerText = "סגור";
-                connElement.className = "value status-closed";
-            }
+            // סימולציה לטמפ' גבהים שונים (במידה וה-JSON לא כולל את כולן כרגע)
+            const baseTemp = parseFloat(data.temp);
+            document.getElementById('temp-town').innerText = (baseTemp + 8).toFixed(1) + "°C";
+            document.getElementById('temp-mid').innerText = (baseTemp + 4).toFixed(1) + "°C";
 
-            document.getElementById('last-update').innerText = "עדכון אחרון: " + data.last_update;
-
-            // עדכון טבלת תחזית
-            const tbody = document.getElementById('forecast-body');
-            tbody.innerHTML = '';
-            data.forecast.forEach(day => {
-                const row = `<tr>
-                    <td>${day.date}</td>
-                    <td>${day.temp_min} / ${day.temp_max}</td>
-                    <td>${day.wind}</td>
-                    <td>${day.visibility}</td>
-                    <td style="font-weight:bold; color:${day.link_prob === 'High' ? '#28a745' : '#ffc107'}">${day.link_prob}</td>
-                </tr>`;
-                tbody.innerHTML += row;
-            });
-
-        } catch (error) {
-            console.error("Error loading JSON:", error);
-        }
+            const conn = document.getElementById('conn');
+            conn.innerText = data.conn === "open" ? "פתוח" : "סגור";
+            conn.className = "value " + (data.conn === "open" ? "status-open" : "status-closed");
+        } catch (e) { console.error(e); }
     }
-
     loadData();
 </script>
-
 </body>
 </html>
