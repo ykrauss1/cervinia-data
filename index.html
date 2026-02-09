@@ -3,180 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - מערכת פורום ורישום</title>
+    <title>CerviniaLive - הבית של גולשי צ'רוויניה</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --error: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        nav { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 900px; margin: 20px auto; padding: 0 20px; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --white: #ffffff; --error: #e74c3c; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
+
+        nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo-text { font-size: 1.8em; font-weight: 900; color: white; text-decoration: none; cursor: pointer; }
+        .logo-text span { color: var(--accent); }
         
-        /* Modal & Form */
-        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+
+        /* Auth Modal */
+        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 3000; }
         .auth-card { background: white; padding: 30px; border-radius: 15px; width: 350px; position: relative; }
         .input-group { position: relative; margin-bottom: 15px; }
         .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .eye-icon { position: absolute; left: 10px; top: 12px; cursor: pointer; opacity: 0.6; }
-        
-        .tab-btn { padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab-btn { padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; flex: 1; text-align: center; }
         .tab-btn.active { border-bottom-color: var(--accent); font-weight: bold; }
-        
+
+        /* Forecast Table */
         .forecast-table { width: 100%; border-collapse: collapse; }
         .forecast-table td, .forecast-table th { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        .temp-col { direction: ltr; font-weight: bold; }
         .status-open { color: #2ecc71; font-weight: bold; }
         .status-closed { color: var(--error); font-weight: bold; }
 
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        .btn-primary { background: var(--accent); color: var(--primary); }
+        /* Webcams */
+        .webcams { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 25px 0; }
+        .cam-box { background: #000; border-radius: 10px; overflow: hidden; border: 2px solid white; position: relative; }
+        .cam-box img { width: 100%; display: block; height: 200px; object-fit: cover; }
+        .cam-label { position: absolute; bottom: 0; background: rgba(0,0,0,0.6); color: white; width: 100%; padding: 5px; text-align: center; font-size: 0.8em; }
+
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: var(--accent); color: var(--primary); width: 100%; }
+        .admin-badge { background: var(--error); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size:1.5em; font-weight:bold;">Cervinia<span>Live</span></div>
-    <div id="nav-user">
-        <button class="btn-primary" style="padding:5px 15px; width:auto;" onclick="openAuth('login')">התחברות / רישום</button>
+    <div class="logo-text">Cervinia<span>Live</span></div>
+    <div id="nav-controls">
+        <button class="btn" style="background:var(--accent); color:var(--primary);" onclick="openAuth('login')">התחברות / רישום</button>
     </div>
 </nav>
 
-<div id="auth-modal">
-    <div class="auth-card">
+<div id="auth-modal" onclick="if(event.target.id === 'auth-modal') closeAuth()">
+    <div class="auth-card" onclick="event.stopPropagation()">
         <span style="position:absolute; top:10px; left:15px; cursor:pointer; font-size:1.5em;" onclick="closeAuth()">&times;</span>
-        <div style="display:flex; justify-content: space-around; margin-bottom: 20px;">
-            <span id="tab-login" class="tab-btn active" onclick="switchTab('login')">כניסה</span>
-            <span id="tab-reg" class="tab-btn" onclick="switchTab('reg')">הרשמה</span>
+        <div style="display:flex; margin-bottom: 20px;">
+            <div id="tab-login" class="tab-btn active" onclick="switchTab('login')">כניסה</div>
+            <div id="tab-reg" class="tab-btn" onclick="switchTab('reg')">הרשמה</div>
         </div>
-
-        <div id="auth-form">
-            <div id="reg-only" style="display:none;">
-                <div class="input-group"><input type="text" id="auth-name" placeholder="שם מלא"></div>
-            </div>
-            <div class="input-group"><input type="email" id="auth-email" placeholder="אימייל"></div>
+        <div id="reg-fields" style="display:none;">
+            <div class="input-group"><input type="text" id="reg-name" placeholder="שם מלא"></div>
+        </div>
+        <div class="input-group"><input type="email" id="auth-email" placeholder="אימייל"></div>
+        <div class="input-group">
+            <input type="password" id="auth-pass" placeholder="סיסמה">
+            <span class="eye-icon" onclick="togglePass('auth-pass')">👁️</span>
+        </div>
+        <div id="confirm-fields" style="display:none;">
             <div class="input-group">
-                <input type="password" id="auth-pass" placeholder="סיסמה">
-                <span class="eye-icon" onclick="togglePass('auth-pass')">👁️</span>
+                <input type="password" id="auth-pass-confirm" placeholder="אימות סיסמה">
+                <span class="eye-icon" onclick="togglePass('auth-pass-confirm')">👁️</span>
             </div>
-            <div id="reg-confirm" style="display:none;">
-                <div class="input-group">
-                    <input type="password" id="auth-pass2" placeholder="אימות סיסמה">
-                    <span class="eye-icon" onclick="togglePass('auth-pass2')">👁️</span>
-                </div>
-            </div>
-            <button class="btn btn-primary" onclick="processAuth()">בצע</button>
         </div>
+        <button class="btn btn-primary" id="auth-submit-btn" onclick="processAuth()">התחבר</button>
     </div>
 </div>
 
 <div class="container">
     <div class="card">
-        <h3>צפי סטטוס קישור (4 ימים קדימה)</h3>
+        <h3 style="margin-top:0">צפי סטטוס קישור לשוויץ (4 ימים קדימה)</h3>
         <table class="forecast-table">
             <thead>
                 <tr>
-                    <th>יום</th>
+                    <th>תאריך</th>
                     <th>טמפ'</th>
-                    <th>רוח בפסגה</th>
-                    <th>צפי קישור לשוויץ</th>
+                    <th>רוח (קמ"ש)</th>
+                    <th>צפי קישור</th>
                 </tr>
             </thead>
-            <tbody id="forecast-body">
-                </tbody>
+            <tbody id="forecast-body"></tbody>
         </table>
+    </div>
+
+    <div class="webcams">
+        <div class="cam-box">
+            <img src="https://webcam.cervinia.it/webcam/cervinia/cervinia-1.jpg" alt="Cervinia Town">
+            <div class="cam-label">Cervinia Town</div>
+        </div>
+        <div class="cam-box">
+            <img src="https://webcam.cervinia.it/webcam/cervinia/plan-maison-1.jpg" alt="Plan Maison">
+            <div class="cam-label">Plan Maison (2550m)</div>
+        </div>
+        <div class="cam-box">
+            <img src="https://webcam.cervinia.it/webcam/cervinia/plateau-rosa-1.jpg" alt="Plateau Rosa">
+            <div class="cam-label">Plateau Rosa (3480m)</div>
+        </div>
     </div>
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
-        <div id="posts-container" style="min-height:100px;">טוען הודעות...</div>
-        <textarea id="forum-input" style="width:100%; height:80px; margin-top:15px; border-radius:8px; padding:10px;" placeholder="כתבו עדכון..."></textarea>
-        <button class="btn btn-primary" onclick="addPost()">שלח</button>
+        <div id="posts-container" style="max-height: 400px; overflow-y: auto;">טוען הודעות...</div>
+        <textarea id="forum-input" style="width:100%; height:80px; margin-top:15px; border-radius:10px; padding:12px; border:1px solid #ddd" placeholder="כתבו עדכון חדש..."></textarea>
+        <button class="btn btn-primary" style="margin-top:10px;" onclick="addPost()">שלח הודעה</button>
     </div>
 </div>
 
 <script>
-    // הגדרות בסיס - חובה לעדכן את המפתחות שלך!
-    const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-    const SUPABASE_KEY = 'YOUR_KEY';
+    const SUPABASE_URL = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentMode = 'login';
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
 
-    // פונקציות AUTH
-    function openAuth(mode) {
-        currentMode = mode;
-        document.getElementById('auth-modal').style.display = 'flex';
+    // Auth Logic
+    function openAuth(mode) { 
+        document.getElementById('auth-modal').style.display = 'flex'; 
         switchTab(mode);
     }
     function closeAuth() { document.getElementById('auth-modal').style.display = 'none'; }
-    
+    window.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAuth(); });
+
     function switchTab(mode) {
         currentMode = mode;
         document.getElementById('tab-login').classList.toggle('active', mode === 'login');
         document.getElementById('tab-reg').classList.toggle('active', mode === 'reg');
-        document.getElementById('reg-only').style.display = mode === 'reg' ? 'block' : 'none';
-        document.getElementById('reg-confirm').style.display = mode === 'reg' ? 'block' : 'none';
+        document.getElementById('reg-fields').style.display = mode === 'reg' ? 'block' : 'none';
+        document.getElementById('confirm-fields').style.display = mode === 'reg' ? 'block' : 'none';
+        document.getElementById('auth-submit-btn').innerText = mode === 'reg' ? 'צור חשבון' : 'התחבר';
     }
 
     function togglePass(id) {
-        const el = document.getElementById(id);
-        el.type = el.type === 'password' ? 'text' : 'password';
+        const input = document.getElementById(id);
+        input.type = input.type === 'password' ? 'text' : 'password';
     }
 
     async function processAuth() {
         const email = document.getElementById('auth-email').value;
         const pass = document.getElementById('auth-pass').value;
         
-        if(currentMode === 'reg') {
-            const pass2 = document.getElementById('auth-pass2').value;
-            const name = document.getElementById('auth-name').value;
-            if(pass !== pass2) return alert("הסיסמאות לא תואמות!");
-            // כאן תבוא לוגיקת הרישום ל-Supabase Auth
-            user = { name, email }; 
+        if (currentMode === 'reg') {
+            const name = document.getElementById('reg-name').value;
+            const pass2 = document.getElementById('auth-pass-confirm').value;
+            if (pass !== pass2) return alert("הסיסמאות לא תואמות");
+            // ברישום ראשוני אנחנו שומרים ל-LocalStorage לצרכי הפורום
+            user = { name: name || email.split('@')[0], email: email };
         } else {
-            // כאן תבוא לוגיקת הכניסה
-            user = { name: email.split('@')[0], email };
+            user = { name: email.split('@')[0], email: email };
         }
         
         localStorage.setItem('skiUser', JSON.stringify(user));
-        location.reload();
+        closeAuth();
+        updateUI();
+        fetchPosts();
     }
 
-    // פורום
+    function updateUI() {
+        if(user) {
+            const isAdmin = user.email === 'ykrauss1@gmail.com';
+            document.getElementById('nav-controls').innerHTML = `
+                <span style="margin-left:15px">שלום, <b>${user.name}</b> ${isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}</span>
+                <button class="btn" style="background:none; color:white; text-decoration:underline" onclick="logout()">התנתק</button>
+            `;
+        }
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+
+    // Forum Logic
     async function fetchPosts() {
         const container = document.getElementById('posts-container');
         try {
             const { data, error } = await _supabase.from('posts').select('*').order('created_at', { ascending: false });
             if (error) throw error;
-            container.innerHTML = data.length ? data.map(p => `<div style="padding:10px; border-bottom:1px solid #eee"><b>${p.user}:</b> ${p.content}</div>`).join('') : "אין הודעות עדיין.";
+            container.innerHTML = data.length ? data.map(p => `
+                <div style="padding:15px; border-bottom:1px solid #eee">
+                    <b>${p.user}:</b> ${p.content}
+                </div>
+            `).join('') : "אין עדכונים עדיין. תהיו הראשונים לדווח!";
         } catch (e) {
-            container.innerHTML = "<span style='color:red'>שגיאה בטעינת נתונים. וודא ש-Supabase מחובר.</span>";
+            container.innerHTML = "<span style='color:red'>שגיאה בחיבור לפורום. וודא שטבלת posts קיימת ב-Supabase.</span>";
         }
     }
 
     async function addPost() {
         if(!user) return openAuth('login');
-        const content = document.getElementById('forum-input').value;
-        await _supabase.from('posts').insert([{ user: user.name, content }]);
-        document.getElementById('forum-input').value = "";
+        const input = document.getElementById('forum-input');
+        if(!input.value.trim()) return;
+        
+        const { error } = await _supabase.from('posts').insert([{ user: user.name, content: input.value }]);
+        if(error) return alert("שגיאה בשליחת ההודעה");
+        
+        input.value = "";
         fetchPosts();
     }
 
-    // תחזית - צפי לינק (לוגיקה מבוססת רוח)
-    async function loadForecast() {
-        const res = await fetch('data.json?v=' + Date.now());
-        const data = await res.json();
-        document.getElementById('forecast-body').innerHTML = data.forecast.slice(0,4).map(day => {
-            const windSpeed = parseInt(day.wind);
-            const status = windSpeed > 50 ? '<span class="status-closed">סגור (רוח חזקה)</span>' : '<span class="status-open">פתוח</span>';
-            return `<tr><td>${day.date}</td><td>${day.temp_max}°</td><td>${day.wind}</td><td>${status}</td></tr>`;
-        }).join('');
+    // Weather Logic
+    async function loadData() {
+        try {
+            const res = await fetch('data.json?v=' + Date.now());
+            const data = await res.json();
+            document.getElementById('forecast-body').innerHTML = data.forecast.slice(0,4).map(day => {
+                const wind = parseInt(day.wind);
+                const status = wind > 55 ? '<span class="status-closed">סגור (רוח)</span>' : 
+                               wind > 40 ? '<span class="status-closed" style="color:orange">בסיכון</span>' : 
+                               '<span class="status-open">פתוח ✅</span>';
+                return `
+                    <tr>
+                        <td>${day.date.split('-').reverse().slice(0,2).join('/')}</td>
+                        <td class="temp-col">${day.temp_min} / ${day.temp_max}</td>
+                        <td>${day.wind}</td>
+                        <td>${status}</td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (e) {}
     }
 
-    if(user) document.getElementById('nav-user').innerHTML = `שלום, ${user.name} | <a href="#" onclick="localStorage.clear();location.reload();">התנתק</a>`;
+    updateUI();
     fetchPosts();
-    loadForecast();
+    loadData();
 </script>
-
 </body>
 </html>
