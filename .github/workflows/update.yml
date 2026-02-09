@@ -1,1 +1,36 @@
+name: Cervinia Heavy Scraper
+on:
+  schedule:
+    - cron: '0 7-17 * * *'
+  workflow_dispatch:
 
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Install dependencies
+        run: |
+          pip install selenium webdriver-manager beautifulsoup4 requests pytz
+
+      - name: Run Scraper
+        run: python scraper.py
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add data.json
+          git commit -m "Fixed N/A - Heavy Scraper" || exit 0
+          git push
