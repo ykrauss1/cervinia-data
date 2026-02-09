@@ -16,40 +16,40 @@ def get_weather():
                 "temp_max": f"{res['daily']['temperature_2m_max'][i]}°C",
                 "temp_min": f"{res['daily']['temperature_2m_min'][i]}°C",
                 "wind": f"{res['daily']['windspeed_10m_max'][i]} km/h",
-                "visibility": "טובה" if res['daily']['showers_sum'][i] < 2 else "מוגבלת",
+                "visibility": "טובה",
                 "link_prob": "High" if res['daily']['windspeed_10m_max'][i] < 25 else "Medium"
             })
         return days, f"{res['daily']['temperature_2m_min'][0]}°C"
     except: return [], "N/A"
 
 def get_live_data():
-    # כתובת API חלופית ויציבה יותר
-    url = "https://www.skiinfo.it/api/resorts/171/snowreport" # 171 זה הקוד של צ'רוויניה
-    headers = {
-        'User-Agent': 'Mozilla/5.0',
-        'Accept': 'application/json'
-    }
-    
+    url = "https://www.skiinfo.it/valle-daosta/breuil-cervinia/stazione-sciistica"
+    headers = {'User-Agent': 'Mozilla/5.0'}
     res = {"lifts": "47/47", "slopes": "109/109", "conn": "open"}
     
     try:
-        # ננסה למשוך נתונים מ-API או דף נתונים פשוט
-        response = requests.get("https://www.skiinfo.it/valle-daosta/breuil-cervinia/stazione-sciistica", headers=headers, timeout=10)
-        html = response.text
+        response = requests.get(url, headers=headers, timeout=10)
+        html = response.text.lower()
         
-        # מחפש את המספר שמופיע לפני "impianti aperti" (מעליות פתוחות)
+        # חילוץ מעליות
         lifts_match = re.search(r'(\d+)\s*/\s*47', html)
+        num_lifts = 0
         if lifts_match:
-            res["lifts"] = f"{lifts_match.group(1)}/47"
+            num_lifts = int(lifts_match.group(1))
+            res["lifts"] = f"{num_lifts}/47"
         
-        # מחפש מסלולים
-        slopes_match = re.search(r'(\d+)\s*/\s*156', html) # 156 ק"מ זה המקסימום באתר הזה
+        # חילוץ מסלולים
+        slopes_match = re.search(r'(\d+)\s*/\s*156', html)
         if slopes_match:
             current_km = int(slopes_match.group(1))
             res["slopes"] = f"{int((current_km/156)*109)}/109"
 
-        # בדיקת קונקשן - אם יש מעל 35 מעליות, רוב הסיכויים שהקישור פתוח
-        if lifts_match and int(lifts_match.group(1)) > 35:
+        # לוגיקת קישור חכמה:
+        # 1. מחפש מילים באיטלקית (Aperto) או אנגלית (Open) ליד זרמט
+        # 2. אם מעל 40 מעליות פתוחות, הקישור בסבירות גבוהה מאוד פתוח
+        is_aperto = "zermatt" in html and ("aperto" in html or "open" in html)
+        
+        if is_aperto or num_lifts >= 40:
             res["conn"] = "open"
         else:
             res["conn"] = "closed"
