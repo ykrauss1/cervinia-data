@@ -3,160 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - הבית של גולשי צ'רוויניה</title>
+    <title>CerviniaLive - מערכת ניהול</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --white: #ffffff; --success: #2ecc71; --error: #e74c3c; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
-
-        nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .logo-text { font-size: 1.8em; font-weight: 900; }
-        .logo-text span { color: var(--accent); }
-
+        :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --white: #ffffff; --error: #e74c3c; --success: #2ecc71; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; }
+        
+        /* Login */
+        #login-overlay { position: fixed; inset: 0; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+        .login-card { background: white; padding: 35px; border-radius: 20px; width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .login-card input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; }
+        
+        /* UI Components */
+        nav { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        
+        /* Pages */
+        .page { display: none; }
+        .page.active { display: block; }
 
-        /* Metrics Grid (Temps & Snow) */
-        .metrics-wrapper { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .card-group { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .metric-item { text-align: center; }
-        .metric-label { font-size: 0.8em; color: #777; margin-bottom: 5px; }
-        .metric-val { font-size: 1.6em; font-weight: 800; color: var(--primary); }
+        /* Admin Dashboard Specific */
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--primary); color: white; padding: 20px; border-radius: 12px; text-align: center; }
+        .admin-table { width: 100%; border-collapse: collapse; background: white; }
+        .admin-table th, .admin-table td { padding: 12px; border-bottom: 1px solid #eee; text-align: right; }
+        .admin-badge { background: var(--error); color: white; padding: 3px 10px; border-radius: 5px; font-size: 0.8em; font-weight: bold; }
+        
+        /* Buttons */
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-primary { background: var(--accent); color: var(--primary); }
+        .btn-admin { background: #f1c40f; color: #000; margin-right: 10px; }
+        .btn-danger { background: var(--error); color: white; padding: 5px 10px; font-size: 0.8em; }
 
-        /* Forecast Table */
-        .forecast-section { background: white; border-radius: 15px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .forecast-note { font-size: 0.75em; color: #e74c3c; font-weight: bold; margin-bottom: 10px; display: block; }
-        table { width: 100%; border-collapse: collapse; text-align: center; }
-        th { padding: 12px; border-bottom: 2px solid #eee; font-size: 0.9em; color: #666; }
-        td { padding: 15px; border-bottom: 1px solid #f9f9f9; font-weight: 600; }
-
-        /* Webcams */
-        .webcams-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
-        .cam-box { background: #000; border-radius: 12px; overflow: hidden; height: 200px; position: relative; border: 2px solid white; }
-        .cam-box iframe { width: 100%; height: 100%; border: none; }
-        .cam-label { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.7em; }
-
-        /* Forum */
-        .forum-section { background: white; padding: 25px; border-radius: 15px; }
-        .post { border-bottom: 1px solid #eee; padding: 10px 0; }
-        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; resize: none; margin-top: 10px; }
-        .btn-post { background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-weight: bold; }
-
-        @media (max-width: 768px) { .metrics-wrapper, .webcams-grid { grid-template-columns: 1fr; } }
+        .webcams { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .cam-box { background: #000; height: 180px; border-radius: 10px; overflow: hidden; border: 2px solid white; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
+<div id="login-overlay">
+    <div class="login-card">
+        <h2 style="margin-top:0">CerviniaLive</h2>
+        <p style="color:#666; font-size:0.9em">הזן פרטים כדי להיכנס למערכת</p>
+        <input type="text" id="login-name" placeholder="שם מלא">
+        <input type="email" id="login-email" placeholder="אימייל">
+        <input type="password" id="login-pass" placeholder="סיסמה">
+        <button class="btn btn-primary" style="width:100%" onclick="handleLogin()">כניסה למערכת</button>
+    </div>
+</div>
+
 <nav>
-    <div class="logo-text">Cervinia<span>Live</span></div>
-    <div style="font-size: 0.9em;">שלום, <b>Y Krauss</b></div>
+    <div style="font-size:1.6em; font-weight:900; cursor:pointer" onclick="showPage('main')">Cervinia<span>Live</span></div>
+    <div id="nav-controls">
+        </div>
 </nav>
 
 <div class="container">
-    <div style="text-align: center; margin-bottom: 25px;">
-        <h1 style="color:var(--primary); margin:0;">הבית של גולשי צ'רוויניה</h1>
-        <p style="color:#666;">כל המידע שחשוב באמת לפני שעולים להר</p>
-    </div>
-
-    <div class="metrics-wrapper">
-        <div class="card-group">
-            <h3 style="margin-top:0; font-size: 0.9em; color:var(--accent);">טמפרטורה נוכחית (°C)</h3>
-            <div class="metrics-grid">
-                <div class="metric-item"><div class="metric-label">Cervinia</div><div id="temp-town" class="metric-val">--</div></div>
-                <div class="metric-item"><div class="metric-label">Plan Maison</div><div id="temp-mid" class="metric-val">--</div></div>
-                <div class="metric-item"><div class="metric-label">Plateau Rosa</div><div id="temp-peak" class="metric-val">--</div></div>
-            </div>
+    
+    <div id="main-page" class="page active">
+        <div class="card" style="display:flex; justify-content:space-around; text-align:center;">
+            <div>עיירה<br><b id="t-town" style="font-size:2em; color:var(--primary)">--</b></div>
+            <div>אמצע<br><b id="t-mid" style="font-size:2em; color:var(--primary)">--</b></div>
+            <div>פסגה<br><b id="t-peak" style="font-size:2em; color:var(--primary)">--</b></div>
         </div>
-        <div class="card-group" style="border-right: 4px solid var(--accent);">
-            <h3 style="margin-top:0; font-size: 0.9em; color:var(--accent);">עומק שלג (cm)</h3>
-            <div class="metrics-grid" style="grid-template-columns: 1fr;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>עיירה:</span><b id="snow-town">--</b></div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>אמצע:</span><b id="snow-mid">--</b></div>
-                <div style="display:flex; justify-content:space-between;"><span>פסגה:</span><b id="snow-peak">--</b></div>
-            </div>
+
+        <div class="webcams">
+            <div class="cam-box"><iframe src="https://webcam.cervinia.it/webcam/cervinia/cervinia-1.jpg"></iframe></div>
+            <div class="cam-box"><iframe src="https://webcam.cervinia.it/webcam/cervinia/plan-maison-1.jpg"></iframe></div>
+            <div class="cam-box"><iframe src="https://webcam.cervinia.it/webcam/cervinia/plateau-rosa-1.jpg"></iframe></div>
+        </div>
+
+        <div class="card" style="margin-top:25px;">
+            <h3>עדכונים מהשטח</h3>
+            <div id="posts-container"></div>
+            <textarea id="forum-input" style="width:100%; height:80px; margin-top:15px; border-radius:10px; padding:12px; border:1px solid #ddd" placeholder="כתוב הודעה לגולשים..."></textarea>
+            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="addPost()">שלח הודעה</button>
         </div>
     </div>
 
-    <div class="forecast-section">
-        <span class="forecast-note">* נתוני התחזית והרוח מתייחסים ל-Plateau Rosa (3480m)</span>
-        <table>
-            <thead>
-                <tr>
-                    <th>תאריך</th>
-                    <th>מזג אוויר</th>
-                    <th>טמפ'</th>
-                    <th>רוח</th>
-                    <th>סיכוי לקישור</th>
-                </tr>
-            </thead>
-            <tbody id="forecast-body">
-                </tbody>
-        </table>
+    <div id="admin-page" class="page">
+        <div class="card">
+            <h2 style="margin-top:0">לוח בקרה - מנהל מערכת</h2>
+            <div class="admin-grid">
+                <div class="stat-card"><small>הודעות בפורום</small><div id="stat-posts" style="font-size:1.5em; font-weight:bold">0</div></div>
+                <div class="stat-card"><small>סטטוס DB</small><div style="font-size:1.5em; font-weight:bold; color:var(--success)">מחובר</div></div>
+                <div class="stat-card"><small>מייל מנהל</small><div style="font-size:0.9em; margin-top:5px;">ykrauss1@gmail.com</div></div>
+            </div>
+
+            <h3>ניהול הודעות פורום</h3>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>כותב</th>
+                        <th>תוכן</th>
+                        <th>תאריך</th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-posts-table">
+                    </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="webcams-grid">
-        <div class="cam-box"><iframe src="https://webcam.cervinia.it/webcam/cervinia/cervinia-1.jpg"></iframe><div class="cam-label">Cervinia Town</div></div>
-        <div class="cam-box"><iframe src="https://webcam.cervinia.it/webcam/cervinia/plan-maison-1.jpg"></iframe><div class="cam-label">Plan Maison</div></div>
-        <div class="cam-box"><iframe src="https://webcam.cervinia.it/webcam/cervinia/plateau-rosa-1.jpg"></iframe><div class="cam-label">Plateau Rosa</div></div>
-    </div>
-
-    <div class="forum-section">
-        <h3>עדכונים מהשטח</h3>
-        <div id="posts-container"></div>
-        <textarea id="forum-input" placeholder="כתוב עדכון לגולשים אחרים..."></textarea>
-        <button class="btn-post" onclick="addPost()">פרסם הודעה</button>
-    </div>
-
-    <footer style="text-align:center; padding:30px; color:#888; font-size:0.8em; direction:ltr;">
-        Updated: <span id="last-update">--</span> | <a href="mailto:ykrauss1@gmail.com" style="color:#888">ykrauss1@gmail.com</a>
-    </footer>
 </div>
 
 <script>
-    async function loadData() {
+    // הגדרות Supabase
+    const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+    const SUPABASE_KEY = 'YOUR_ANON_KEY';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let user = null;
+    let isAdmin = false;
+
+    function handleLogin() {
+        const name = document.getElementById('login-name').value;
+        const email = document.getElementById('login-email').value;
+        if (!name || !email) return alert("מלא פרטים");
+
+        user = { name, email };
+        isAdmin = email.toLowerCase() === 'ykrauss1@gmail.com';
+
+        document.getElementById('login-overlay').style.display = 'none';
+        
+        // בניית התפריט
+        let controls = document.getElementById('nav-controls');
+        controls.innerHTML = `שלום, <b>${name}</b> ${isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}`;
+        if (isAdmin) {
+            controls.innerHTML += `<button class="btn btn-admin" onclick="showPage('admin')">ניהול אתר</button>`;
+        }
+        controls.innerHTML += `<button class="btn" onclick="location.reload()">התנתק</button>`;
+
+        fetchPosts();
+    }
+
+    function showPage(pageName) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageName + '-page').classList.add('active');
+        if(pageName === 'admin') loadAdminStats();
+    }
+
+    async function fetchPosts() {
+        const { data, error } = await _supabase.from('posts').select('*').order('created_at', { ascending: false });
+        if (error) return;
+
+        // עדכון הפורום הציבורי
+        const container = document.getElementById('posts-container');
+        container.innerHTML = "";
+        data.forEach(post => {
+            container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee"><b>${post.user}:</b> ${post.content}</div>`;
+        });
+
+        // הכנת טבלת הניהול (רק אם אדמין)
+        if (isAdmin) {
+            const adminTable = document.getElementById('admin-posts-table');
+            adminTable.innerHTML = "";
+            document.getElementById('stat-posts').innerText = data.length;
+            data.forEach(post => {
+                adminTable.innerHTML += `
+                    <tr>
+                        <td>${post.user}</td>
+                        <td>${post.content.substring(0,30)}...</td>
+                        <td>${new Date(post.created_at).toLocaleDateString()}</td>
+                        <td><button class="btn btn-danger" onclick="deletePost('${post.id}')">מחק</button></td>
+                    </tr>`;
+            });
+        }
+    }
+
+    async function addPost() {
+        const input = document.getElementById('forum-input');
+        if (!input.value.trim()) return;
+        await _supabase.from('posts').insert([{ user: user.name, content: input.value }]);
+        input.value = "";
+        fetchPosts();
+    }
+
+    async function deletePost(id) {
+        if (confirm("למחוק הודעה זו לצמיתות?")) {
+            await _supabase.from('posts').delete().eq('id', id);
+            fetchPosts();
+        }
+    }
+
+    async function loadWeather() {
         try {
             const res = await fetch('data.json?v=' + Date.now());
             const data = await res.json();
-            
-            document.getElementById('last-update').innerText = data.last_update;
-
-            // עדכון טמפרטורות ועומק שלג
-            const p = parseFloat(data.temp);
-            document.getElementById('temp-peak').innerText = p.toFixed(1) + "°";
-            document.getElementById('temp-mid').innerText = (p + 4.2).toFixed(1) + "°";
-            document.getElementById('temp-town').innerText = (p + 8.1).toFixed(1) + "°";
-            
-            // עומק שלג (לדוגמה, אם לא קיים ב-JSON נזין נתונים סטטיים מהתמונה ששלחת)
-            document.getElementById('snow-town').innerText = "45 cm";
-            document.getElementById('snow-mid').innerText = "110 cm";
-            document.getElementById('snow-peak').innerText = "220 cm";
-
-            // טבלת תחזית עם פירוט משקעים
-            const tbody = document.getElementById('forecast-body');
-            tbody.innerHTML = '';
-            data.forecast.forEach(day => {
-                tbody.innerHTML += `<tr>
-                    <td>${day.date.split('-').reverse().slice(0,2).join('/')}</td>
-                    <td style="font-size:0.9em;">${day.condition || 'שלג קל'}</td>
-                    <td><span style="color:#007bff">${day.temp_min}</span> / <span style="color:#dc3545">${day.temp_max}</span></td>
-                    <td>${day.wind}</td>
-                    <td style="color:${day.link_prob==='High'?'#2ecc71':'#f1c40f'}">${day.link_prob}</td>
-                </tr>`;
-            });
-
-        } catch (e) { console.error(e); }
+            document.getElementById('t-peak').innerText = data.temp + "°";
+            document.getElementById('t-mid').innerText = (parseFloat(data.temp)+4).toFixed(1) + "°";
+            document.getElementById('t-town').innerText = (parseFloat(data.temp)+8).toFixed(1) + "°";
+        } catch(e) {}
     }
 
-    function addPost() {
-        const input = document.getElementById('forum-input');
-        if(!input.value.trim()) return;
-        const p = document.createElement('div');
-        p.className = 'post';
-        p.innerHTML = `<b>Y Krauss:</b> ${input.value}`;
-        document.getElementById('posts-container').appendChild(p);
-        input.value = "";
-    }
-
-    loadData();
+    loadWeather();
 </script>
 </body>
 </html>
