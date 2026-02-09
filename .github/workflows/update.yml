@@ -1,32 +1,31 @@
-name: Update Cervinia Data
+name: Cervinia Scraper (Selenium)
 on:
   schedule:
-    - cron: '*/20 * * * *' # הרצה אוטומטית כל 20 דקות, 24/7
-  workflow_dispatch: # מאפשר לך להריץ ידנית בלחיצת כפתור לביקורת
+    - cron: '0 7-17 * * *' # רץ כל שעה בין 7 בבוקר ל-5 אחה"צ
+  workflow_dispatch:
 
 jobs:
-  build:
+  scrape:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Python
+      - uses: actions/checkout@v3
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-
       - name: Install dependencies
-        # הוספנו כאן את pytz כדי שהסקריפט ידע מה השעה באיטליה
-        run: pip install requests beautifulsoup4 pytz
-
+        run: |
+          pip install requests beautifulsoup4 pytz selenium webdriver-manager
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
       - name: Run Scraper
         run: python scraper.py
-
       - name: Commit and Push
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add data.json
-          git commit -m "Continuous update with night-mode logic" || exit 0
+          git commit -m "Updated live data via Selenium" || exit 0
           git push
