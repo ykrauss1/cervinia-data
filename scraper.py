@@ -1,15 +1,8 @@
 import os
 import json
-import time
-import re
+import requests
 from datetime import datetime
 import pytz
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from bs4 import BeautifulSoup
-import requests
 
 def get_weather_and_forecast():
     url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.70&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,showers_sum&timezone=Europe%2FRome"
@@ -28,57 +21,50 @@ def get_weather_and_forecast():
         return days, f"{res['daily']['temperature_2m_min'][0]}°C"
     except: return [], "N/A"
 
-def scrape_cervinia():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    # התחזות מלאה לדפדפן Chrome אמיתי
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
+def get_cervinia_live_data():
+    # כתובת ה-API הפנימית של צ'רוויניה
+    url = "https://api.cervinia.it/api/v1/bollettino-neve" 
+    # הערה: אם ה-URL הזה ישתנה, נחפש את החדש. בינתיים ננסה גישה לנתוני ה-lifts
+    headers = {'User-Agent': 'Mozilla/5.0'}
     
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     results = {"lifts": "N/A", "slopes": "N/A", "conn": "closed"}
     
     try:
-        driver.get("https://www.cervinia.it/en/info/bollettino-neve")
-        time.sleep(15) # המתנה משמעותית לטעינת ה-JavaScript
+        # ניסיון למשוך את ה-HTML ולחפש את ה-JSON שמוחבא בתוכו (שיטה אמינה יותר)
+        res = requests.get("https://www.cervinia.it/en/info/bollettino-neve", headers=headers)
+        html = res.text
         
-        # ניסיון חילוץ נתונים מה-HTML המלא
-        html = driver.page_source
-        soup = BeautifulSoup(html, 'html.parser')
-        text = soup.get_text()
-        
-        # חיפוש תבנית מספרים (למשל: "12 / 47" או "12/47")
-        lifts = re.search(r'(\d+)\s*/\s*47', text)
-        slopes = re.search(r'(\d+)\s*/\s*109', text)
-        
-        if lifts: results["lifts"] = f"{lifts.group(1)}/47"
-        if slopes: results["slopes"] = f"{slopes.group(1)}/109"
-        
-        # בדיקת זארמט - חיפוש מילה 'Zermatt' וסטטוס 'Open' בקרבתה
-        z_area = re.search(r'Zermatt.*?Open', text, re.IGNORECASE | re.DOTALL)
-        if z_area or "international pass open" in text.lower():
+        # חיפוש הנתונים בתוך ה-HTML באמצעות חיפוש תבניות פשוט (Regex)
+        import re
+        # חיפוש מספר המעליות הפתוחות מתוך הטקסט (למשל: "15/47")
+        lifts_match = re.search(r'(\d+)\s*/\s*47', html)
+        if lifts_match:
+            results["lifts"] = f"{lifts_match.group(1)}/47"
+            
+        slopes_match = re.search(r'(\d+)\s*/\s*109', html)
+        if slopes_match:
+            results["slopes"] = f"{slopes_match.group(1)}/109"
+            
+        # בדיקת זארמט
+        if "Zermatt" in html and ("Open" in html or "Aperto" in html):
             results["conn"] = "open"
             
-    except Exception as e:
-        print(f"Scrape Error: {e}")
-    finally:
-        driver.quit()
+    except: pass
     return results
 
 if __name__ == "__main__":
     tz = pytz.timezone('Europe/Rome')
-    forecast_data, current_temp = get_weather_and_forecast()
-    live_data = scrape_cervinia()
+    forecast, current_temp = get_weather_and_forecast()
+    live = get_cervinia_live_data()
     
-    final_output = {
-        "lifts": live_data["lifts"],
-        "slopes": live_data["slopes"],
-        "conn": live_data["conn"],
+    output = {
+        "lifts": live["lifts"],
+        "slopes": live["slopes"],
+        "conn": live["conn"],
         "temp": current_temp,
-        "forecast": forecast_data,
+        "forecast": forecast,
         "last_update": datetime.now(tz).strftime("%d/%m/%Y %H:%M")
     }
     
     with open('data.json', 'w') as f:
-        json.dump(final_output, f, indent=4)
+        json.dump(output, f, indent=4)
