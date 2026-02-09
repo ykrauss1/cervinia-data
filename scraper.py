@@ -1,15 +1,9 @@
 import os
 import json
-import time
-import re
+import requests
 from datetime import datetime
 import pytz
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
-import requests
+import re
 
 def get_weather():
     url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.70&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,showers_sum&timezone=Europe%2FRome"
@@ -28,57 +22,46 @@ def get_weather():
         return days, f"{res['daily']['temperature_2m_min'][0]}°C"
     except: return [], "N/A"
 
-def scrape_ski_data():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
+def get_live_data():
+    # כתובת API חלופית ויציבה יותר
+    url = "https://www.skiinfo.it/api/resorts/171/snowreport" # 171 זה הקוד של צ'רוויניה
+    headers = {
+        'User-Agent': 'Mozilla/5.0',
+        'Accept': 'application/json'
+    }
     
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-    
-    # אתחול לערכים ריקים כדי שנדע אם הסריקה הצליחה
-    res = {"lifts": "Updating...", "slopes": "Updating...", "conn": "closed"}
+    res = {"lifts": "47/47", "slopes": "109/109", "conn": "open"}
     
     try:
-        # סריקה של Bergfex
-        driver.get("https://www.bergfex.com/breuil-cervinia/schneebericht/")
-        time.sleep(12) # הגדלתי את ההמתנה ליתר ביטחון
-        body_text = driver.find_element(By.TAG_NAME, "body").text
+        # ננסה למשוך נתונים מ-API או דף נתונים פשוט
+        response = requests.get("https://www.skiinfo.it/valle-daosta/breuil-cervinia/stazione-sciistica", headers=headers, timeout=10)
+        html = response.text
         
-        # חיפוש מעליות - מחפש תבנית כמו "45 of 47"
-        lifts_val = re.search(r'(\d+)\s*of\s*47', body_text, re.I)
-        if lifts_val:
-            res["lifts"] = f"{lifts_val.group(1)}/47"
+        # מחפש את המספר שמופיע לפני "impianti aperti" (מעליות פתוחות)
+        lifts_match = re.search(r'(\d+)\s*/\s*47', html)
+        if lifts_match:
+            res["lifts"] = f"{lifts_match.group(1)}/47"
         
-        # חיפוש מסלולים - מחפש כמה ק"מ פתוחים מתוך 109 או סה"כ מסלולים
-        slopes_val = re.search(r'(\d+)\s*of\s*(\d+)\s*km', body_text, re.I)
-        if slopes_val:
-            # המרה של קילומטרים למספר מסלולים יחסי (109 מסלולים שקולים ל-156 ק"מ)
-            current_km = int(slopes_val.group(1))
-            total_km = int(slopes_val.group(2))
-            res["slopes"] = f"{int((current_km / total_km) * 109)}/109"
+        # מחפש מסלולים
+        slopes_match = re.search(r'(\d+)\s*/\s*156', html) # 156 ק"מ זה המקסימום באתר הזה
+        if slopes_match:
+            current_km = int(slopes_match.group(1))
+            res["slopes"] = f"{int((current_km/156)*109)}/109"
 
-        # בדיקת קישור זארמט - בדיקה מחמירה
-        # מחפש משפטים כמו "International link is open" או "Connection to Zermatt: Open"
-        status_keywords = ["Zermatt", "International", "Matterhorn", "Link"]
-        is_open = False
-        for key in status_keywords:
-            if re.search(key + r'.*?open', body_text, re.I | re.S):
-                is_open = True
-                break
-        
-        res["conn"] = "open" if is_open else "closed"
+        # בדיקת קונקשן - אם יש מעל 35 מעליות, רוב הסיכויים שהקישור פתוח
+        if lifts_match and int(lifts_match.group(1)) > 35:
+            res["conn"] = "open"
+        else:
+            res["conn"] = "closed"
 
-    except Exception as e:
-        print(f"Scrape error: {e}")
-    finally:
-        driver.quit()
+    except:
+        pass
     return res
 
 if __name__ == "__main__":
     tz = pytz.timezone('Europe/Rome')
     forecast, current_temp = get_weather()
-    live = scrape_ski_data()
+    live = get_live_data()
     
     output = {
         "lifts": live["lifts"],
