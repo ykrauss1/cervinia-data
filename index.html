@@ -11,42 +11,50 @@
         
         /* Navbar */
         nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
+        .nav-links { display: flex; gap: 20px; list-style: none; margin: 0; padding: 0; }
+        .nav-links a { text-decoration: none; color: var(--slate); font-weight: 600; font-size: 0.9rem; }
+        
         .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
 
-        /* Mountain Status Header - New Design */
-        .mountain-status-banner { background: white; border-radius: 20px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .status-info { display: flex; align-items: center; gap: 15px; }
-        .mountain-badge { padding: 8px 16px; border-radius: 50px; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
-        
-        /* General Stats in Center */
+        /* Mountain Status Header - Unified */
+        .mountain-status-banner { background: white; border-radius: 20px; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .status-info { display: flex; align-items: center; gap: 12px; }
         .center-stats { display: flex; gap: 25px; align-items: center; border-right: 1px solid #eee; border-left: 1px solid #eee; padding: 0 30px; }
-        .stat-item { text-align: center; }
         .stat-item span { display: block; font-size: 1.3rem; font-weight: 800; color: var(--accent); }
-        .stat-item label { font-size: 0.7rem; color: gray; font-weight: 600; text-transform: uppercase; }
+        .stat-item label { font-size: 0.7rem; color: gray; font-weight: 600; }
 
-        /* Grid for Specific Resorts */
-        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .data-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; }
-        .data-card h3 { margin: 0 0 15px 0; font-size: 1.1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; color: var(--accent); }
+        /* Grid for 4 Cards in one row */
+        .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .data-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; text-align: center; }
+        .data-card h3 { margin: 0 0 12px 0; font-size: 1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; color: var(--accent); text-align: right; }
         
-        .temp-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted #eee; font-size: 0.95rem; }
-        .resort-stat { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .temp-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.9rem; border-bottom: 1px dotted #eee; }
 
-        /* Forum & Auth */
-        .forum-locked { position: relative; opacity: 0.6; filter: grayscale(0.5); pointer-events: none; }
-        .auth-notice { background: #f1f5f9; padding: 15px; border-radius: 12px; text-align: center; border: 2px dashed #cbd5e1; margin-bottom: 20px; }
-        
+        /* Webcams */
+        .webcam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }
+        .webcam-box { background: #000; border-radius: 15px; overflow: hidden; aspect-ratio: 16/9; position: relative; }
+        .webcam-label { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; }
+
+        /* Forum */
+        .forum-locked { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
+        .post-card { background: #f9fafb; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-right: 4px solid var(--accent); position: relative; text-align: right; }
         .btn-main { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size: 1.5rem; font-weight: 900; color: var(--accent);">CerviniaLive</div>
+    <div style="display:flex; align-items:center; gap:30px;">
+        <div style="font-size: 1.6rem; font-weight: 900; color: var(--accent);">CerviniaLive</div>
+        <ul class="nav-links">
+            <li><a href="#">אירוח</a></li>
+            <li><a href="#">סקי</a></li>
+            <li><a href="#">השכרת ציוד</a></li>
+        </ul>
+    </div>
     <div id="auth-ui">
-        <button onclick="document.getElementById('authModal').style.display='flex'" class="btn-main">כניסה למערכת</button>
+        <button onclick="document.getElementById('authModal').style.display='flex'" class="btn-main">כניסה</button>
     </div>
 </nav>
 
@@ -54,161 +62,39 @@
     <div class="mountain-status-banner">
         <div class="status-info">
             <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="m8 3 4 8 5-5 5 15H2L8 3z"></path></svg>
-            <h2 style="margin:0; font-size: 1.2rem;">מצב ההר</h2>
+            <h2 style="margin:0; font-size: 1.1rem;">מצב ההר</h2>
         </div>
-
         <div class="center-stats">
             <div class="stat-item"><span id="header-lifts">--/47</span><label>מעליות</label></div>
             <div class="stat-item"><span id="header-slopes">--/109</span><label>מסלולים</label></div>
         </div>
-
-        <div id="main-mountain-badge" class="mountain-badge" style="background: #f1f5f9;">
-            <div id="status-dot" style="width:12px; height:12px; border-radius:50%; background:gray;"></div>
-            <span id="status-text">טוען...</span>
+        <div id="main-mountain-badge" style="padding: 6px 14px; border-radius: 50px; background: #f1f5f9; display:flex; align-items:center; gap:8px; font-weight:700;">
+            <div id="status-dot" style="width:10px; height:10px; border-radius:50%; background:gray;"></div>
+            <span id="status-text" style="font-size:0.85rem;">טוען...</span>
         </div>
     </div>
 
     <div class="data-grid">
         <div class="data-card">
-            <h3>🌡️ טמפרטורות (גבהים)</h3>
-            <div class="temp-row"><span>Plateau Rosa (3480m)</span><strong id="temp-high">--°C</strong></div>
-            <div class="temp-row"><span>Plan Maison (2550m)</span><strong id="temp-mid">--°C</strong></div>
-            <div class="temp-row"><span>Cervinia Town (2050m)</span><strong id="temp-low">--°C</strong></div>
+            <h3>🌡️ טמפרטורות</h3>
+            <div class="temp-row"><span>Plateau Rosa</span><strong id="t-high">--</strong></div>
+            <div class="temp-row"><span>Plan Maison</span><strong id="t-mid">--</strong></div>
+            <div class="temp-row"><span>Cervinia</span><strong id="t-low">--</strong></div>
         </div>
-
         <div class="data-card">
             <h3>🇮🇹 Cervinia</h3>
-            <div class="resort-stat"><span>מעליות פתוחות</span><span id="c-lifts-val" class="stat-item"><span>--/47</span></span></div>
-            <p style="font-size: 0.8rem; color: gray; margin-top: 10px;">האתר המרכזי. מסלולים ארוכים וגלישה נוחה לכל הרמות.</p>
+            <div id="c-data" style="font-size:1.6rem; font-weight:800; color:var(--accent); margin:10px 0;">--/47</div>
+            <div style="font-size:0.75rem; color:gray;">מעליות פתוחות</div>
         </div>
-
         <div class="data-card">
             <h3>🏔️ Valtournenche</h3>
-            <div class="resort-stat"><span>מצב האתר</span><strong id="v-status">בבדיקה</strong></div>
-            <p style="font-size: 0.8rem; color: gray; margin-top: 10px;">חיבור ישיר לצ'רוויניה. מסלולים טכניים ונוף מרהיב.</p>
+            <div id="v-data" style="font-size:1.6rem; font-weight:800; margin:10px 0;">N/A</div>
+            <div style="font-size:0.75rem; color:gray;">מסלולים פתוחים</div>
         </div>
-
         <div class="data-card">
-            <h3>🇨🇭 Zermatt (Link)</h3>
-            <div class="resort-stat"><span>הקישור הבינלאומי</span><strong id="z-status-val">סגור</strong></div>
-            <p style="font-size: 0.8rem; color: gray; margin-top: 10px;">מעבר לצד השוויצרי. דורש סקי-פס בינלאומי ולו"ז קפדני.</p>
-        </div>
-    </div>
-
-    <div class="data-card" style="margin-top: 30px;">
-        <h3>💬 פורום הקהילה</h3>
-        <div id="auth-needed-msg" class="auth-notice">
-            <p style="margin:0 0 10px 0;">עליך להיות מחובר כדי לכתוב בפורום</p>
-            <button onclick="document.getElementById('authModal').style.display='flex'" style="background:none; border:none; color:var(--accent); font-weight:700; cursor:pointer;">לחץ כאן להתחברות</button>
-        </div>
-        
-        <div id="forum-content" class="forum-locked">
-            <div id="forum-input-area" style="margin-bottom: 20px;">
-                <textarea id="post-input" style="width:100%; height:80px; padding:10px; border-radius:10px; border:1px solid #ddd;" placeholder="שתפו עדכון מהשטח..."></textarea>
-                <button class="btn-main" onclick="sendPost()" style="margin-top: 10px;">פרסם הודעה</button>
+            <h3>🇨🇭 Zermatt Link</h3>
+            <div id="z-data-container" style="margin:10px 0;">
+                <div id="z-status-text" style="font-size:1.6rem; font-weight:800; color:var(--danger);">סגור</div>
             </div>
-            <div id="posts-container"></div>
+            <div id="z-sub-text" style="font-size:0.75rem; color:gray;">סטטוס מעבר</div>
         </div>
-    </div>
-</div>
-
-<div id="authModal" class="modal" onclick="if(event.target==this) this.style.display='none'">
-    <div class="modal-content">
-        <h2 style="text-align:center;">כניסה / הרשמה</h2>
-        <input type="email" id="email" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;" placeholder="אימייל">
-        <input type="password" id="password" style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;" placeholder="סיסמה">
-        <button class="btn-main" onclick="handleAuth()" style="width:100%;">התחברות מהירה</button>
-        <p style="font-size:0.8rem; color:gray; text-align:center; margin-top:15px;">במידה ואין חשבון, המערכת תיצור אחד אוטומטית.</p>
-    </div>
-</div>
-
-<script>
-    const SB_URL = "https://cdgqodtbdhsqkvcgcdlm.supabase.co";
-    const SB_KEY = "sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g";
-    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
-    async function init() {
-        const res = await fetch('data.json?v=' + Date.now());
-        const d = await res.json();
-        
-        // עדכון Header
-        document.getElementById('header-lifts').innerText = d.lifts || "--/47";
-        document.getElementById('header-slopes').innerText = d.slopes || "--/109";
-        
-        // עדכון סטטוס לינק
-        const dot = document.getElementById('status-dot');
-        const txt = document.getElementById('status-text');
-        if(d.conn === 'open') {
-            dot.style.background = 'var(--success)';
-            txt.innerText = 'קישור לזארמט: פתוח';
-            document.getElementById('z-status-val').innerText = "פתוח";
-            document.getElementById('z-status-val').style.color = "var(--success)";
-        } else {
-            dot.style.background = 'var(--danger)';
-            txt.innerText = 'קישור לזארמט: סגור';
-            document.getElementById('z-status-val').innerText = "סגור";
-            document.getElementById('z-status-val').style.color = "var(--danger)";
-        }
-
-        // טמפרטורות (סימולציה לפי הנתון הקיים - נשדרג בסקריפר)
-        document.getElementById('temp-high').innerText = d.temp;
-        document.getElementById('temp-mid').innerText = (parseFloat(d.temp) + 4).toFixed(1) + "°C";
-        document.getElementById('temp-low').innerText = (parseFloat(d.temp) + 8).toFixed(1) + "°C";
-
-        checkUser();
-    }
-
-    async function handleAuth() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        
-        if (error) {
-            // ניסיון הרשמה אם החשבון לא קיים
-            const { error: signUpError } = await supabaseClient.auth.signUp({ email, password });
-            if (signUpError) alert(signUpError.message);
-            else { alert("נרשמת בהצלחה!"); location.reload(); }
-        } else {
-            location.reload();
-        }
-    }
-
-    async function checkUser() {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (user) {
-            document.getElementById('auth-needed-msg').style.display = 'none';
-            document.getElementById('forum-content').classList.remove('forum-locked');
-            document.getElementById('auth-ui').innerHTML = `<span style="margin-left:10px; font-weight:600;">שלום, ${user.email.split('@')[0]}</span><button onclick="supabaseClient.auth.signOut().then(()=>location.reload())" style="background:none; border:none; color:var(--danger); cursor:pointer;">התנתק</button>`;
-            loadPosts(user);
-        } else {
-            loadPosts(null);
-        }
-    }
-
-    async function loadPosts(user) {
-        const { data: posts } = await supabaseClient.from('forum_posts').select('*').order('created_at', { ascending: false });
-        if (!posts) return;
-        
-        document.getElementById('posts-container').innerHTML = posts.map(p => `
-            <div style="background:#f9fafb; padding:15px; border-radius:12px; margin-bottom:10px; border-right:4px solid var(--accent);">
-                <div style="font-size:0.75rem; color:gray; margin-bottom:5px;"><strong>${p.user_name}</strong> • ${new Date(p.created_at).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'})}</div>
-                <div>${p.content}</div>
-            </div>
-        `).join('');
-    }
-
-    async function sendPost() {
-        const content = document.getElementById('post-input').value;
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!content || !user) return;
-        
-        await supabaseClient.from('forum_posts').insert([{ 
-            content, user_name: user.email.split('@')[0], user_id: user.id 
-        }]);
-        location.reload();
-    }
-
-    window.onload = init;
-</script>
-</body>
-</html>
