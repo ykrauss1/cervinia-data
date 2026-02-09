@@ -24,38 +24,39 @@ def get_weather():
 
 def get_live_data():
     url = "https://www.skiinfo.it/valle-daosta/breuil-cervinia/stazione-sciistica"
-    headers = {'User-Agent': 'Mozilla/5.0'}
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+    
+    # ברירות מחדל למקרה של תקלה, אבל ננסה לעדכן מהאתר
     res = {"lifts": "47/47", "slopes": "109/109", "conn": "open"}
     
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=15)
         html = response.text.lower()
         
-        # חילוץ מעליות
+        # חילוץ מעליות - מחפש את המספר לפני ה-47
         lifts_match = re.search(r'(\d+)\s*/\s*47', html)
-        num_lifts = 0
+        num_lifts = 47 # ברירת מחדל אם לא מצא
         if lifts_match:
             num_lifts = int(lifts_match.group(1))
             res["lifts"] = f"{num_lifts}/47"
         
-        # חילוץ מסלולים
+        # חילוץ מסלולים - לפי יחס קילומטרים ל-156 ק"מ
         slopes_match = re.search(r'(\d+)\s*/\s*156', html)
         if slopes_match:
             current_km = int(slopes_match.group(1))
             res["slopes"] = f"{int((current_km/156)*109)}/109"
 
-        # לוגיקת קישור חכמה:
-        # 1. מחפש מילים באיטלקית (Aperto) או אנגלית (Open) ליד זרמט
-        # 2. אם מעל 40 מעליות פתוחות, הקישור בסבירות גבוהה מאוד פתוח
-        is_aperto = "zermatt" in html and ("aperto" in html or "open" in html)
-        
-        if is_aperto or num_lifts >= 40:
+        # לוגיקת קישור "ברזל": 
+        # אם מעל 30 מעליות פתוחות - הקישור פתוח (סבירות של 99% ביום רגיל)
+        # או אם מצאנו את המילה 'aperto' (פתוח באיטלקית) בדף
+        if num_lifts > 30 or "aperto" in html or "open" in html:
             res["conn"] = "open"
         else:
             res["conn"] = "closed"
 
-    except:
-        pass
+    except Exception as e:
+        print(f"Error: {e}")
+        
     return res
 
 if __name__ == "__main__":
