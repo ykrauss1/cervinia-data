@@ -1,7 +1,7 @@
-name: Cervinia Scraper (Selenium)
+name: Cervinia Scraper (Lightweight)
 on:
   schedule:
-    - cron: '0 7-17 * * *' # רץ כל שעה בין 7 בבוקר ל-5 אחה"צ
+    - cron: '0 7-17 * * *'
   workflow_dispatch:
 
 jobs:
@@ -15,11 +15,7 @@ jobs:
           python-version: '3.9'
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4 pytz selenium webdriver-manager
-      - name: Install Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+          pip install requests beautifulsoup4 pytz
       - name: Run Scraper
         run: python scraper.py
       - name: Commit and Push
@@ -27,5 +23,5 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add data.json
-          git commit -m "Updated live data via Selenium" || exit 0
+          git commit -m "Updated live data via Requests" || exit 0
           git push
