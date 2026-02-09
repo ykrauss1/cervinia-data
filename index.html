@@ -3,63 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - המקצועי</title>
+    <title>CerviniaLive - גרסה יציבה</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --white: #ffffff; --error: #e74c3c; --success: #2ecc71; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
-
-        nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
         .logo-text { font-size: 1.8em; font-weight: 900; color: white; text-decoration: none; }
         .logo-text span { color: var(--accent); }
-        
         .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
-
-        /* Auth Modal */
+        
+        /* Auth */
         #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 3000; }
         .auth-card { background: white; padding: 30px; border-radius: 15px; width: 350px; position: relative; }
         .input-group { position: relative; margin-bottom: 15px; }
         .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .eye-icon { position: absolute; left: 12px; top: 13px; cursor: pointer; color: #777; transition: 0.2s; }
-        .eye-icon:hover { color: var(--accent); }
-        .tab-btn { padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; flex: 1; text-align: center; transition: 0.3s; }
-        .tab-btn.active { border-bottom-color: var(--accent); font-weight: bold; color: var(--accent); }
+        .eye-icon { position: absolute; left: 12px; top: 13px; cursor: pointer; color: #777; }
+        .tab-btn { padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; flex: 1; text-align: center; }
+        .tab-btn.active { border-bottom-color: var(--accent); font-weight: bold; }
 
-        /* Forecast */
-        .forecast-table { width: 100%; border-collapse: collapse; }
-        .forecast-table td, .forecast-table th { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
-        .status-open { color: var(--success); font-weight: bold; }
-        .status-closed { color: var(--error); font-weight: bold; }
-
-        /* Webcams */
+        /* Forecast & Cams */
+        .forecast-table { width: 100%; border-collapse: collapse; text-align: center; }
+        .forecast-table td, .forecast-table th { padding: 12px; border-bottom: 1px solid #eee; }
         .webcams { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .cam-box { background: #000; border-radius: 12px; overflow: hidden; border: 2px solid white; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .cam-box img { width: 100%; display: block; height: 180px; object-fit: cover; }
+        .cam-box { background: #000; border-radius: 12px; overflow: hidden; border: 2px solid white; position: relative; }
+        .cam-box img { width: 100%; height: 180px; object-fit: cover; display: block; }
         .cam-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; padding: 5px; text-align: center; font-size: 0.85em; }
 
         /* Forum */
         .post { border-bottom: 2px solid #f8f9fa; padding: 20px 0; }
-        .post-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .user-name { font-weight: bold; color: var(--primary); margin-left: 8px; }
-        .replies-container { margin-right: 25px; border-right: 3px solid #eef0f2; padding-right: 15px; margin-top: 12px; }
-        .reply-item { background: #f8f9fa; padding: 12px; border-radius: 10px; margin-top: 8px; font-size: 0.95em; border: 1px solid #edf2f7; }
-        
+        .user-name { font-weight: bold; color: var(--primary); margin-left: 5px; }
+        .replies-container { margin-right: 25px; border-right: 3px solid #eef0f2; padding-right: 15px; margin-top: 10px; }
+        .reply-item { background: #f8f9fa; padding: 10px; border-radius: 10px; margin-top: 8px; font-size: 0.95em; }
+        .reply-input-box { display: none; margin: 15px 0; padding: 15px; background: #f1f5f9; border-radius: 10px; }
         .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85em; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
-        .action-link:hover { text-decoration: underline; }
-        
-        .btn-delete { color: #ccc; transition: 0.2s; background: none; border: none; cursor: pointer; margin-right: 10px; }
+        .btn-delete { color: #ccc; background: none; border: none; cursor: pointer; margin-right: 10px; }
         .btn-delete:hover { color: var(--error); }
-
-        .reply-input-box { display: none; margin-top: 12px; padding: 15px; background: #f1f5f9; border-radius: 10px; }
-        
-        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .btn-primary { background: var(--accent); color: var(--primary); }
-        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-        .admin-badge { background: var(--error); color: white; padding: 2px 7px; border-radius: 5px; font-size: 0.7em; margin-right: 5px; vertical-align: middle; }
-        
-        textarea { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 12px; font-family: inherit; resize: none; box-sizing: border-box; }
+        .admin-badge { background: var(--error); color: white; padding: 2px 7px; border-radius: 5px; font-size: 0.7em; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -67,67 +51,55 @@
 <nav>
     <div class="logo-text">Cervinia<span>Live</span></div>
     <div id="nav-controls">
-        <button class="btn btn-primary" onclick="openAuth('login')">
-            <i class="fa-solid fa-user-plus"></i> התחברות / רישום
-        </button>
+        <button class="btn btn-primary" onclick="openAuth('login')"><i class="fa-solid fa-user"></i> התחברות</button>
     </div>
 </nav>
 
 <div id="auth-modal" onclick="if(event.target.id === 'auth-modal') closeAuth()">
     <div class="auth-card" onclick="event.stopPropagation()">
-        <span style="position:absolute; top:10px; left:15px; cursor:pointer; font-size:1.5em; color: #aaa;" onclick="closeAuth()">&times;</span>
-        <div style="display:flex; margin-bottom: 25px;">
+        <div style="display:flex; margin-bottom: 20px;">
             <div id="tab-login" class="tab-btn active" onclick="switchTab('login')">כניסה</div>
             <div id="tab-reg" class="tab-btn" onclick="switchTab('reg')">הרשמה</div>
         </div>
         <div id="reg-fields" style="display:none;">
-            <div class="input-group"><input type="text" id="reg-name" placeholder="שם מלא"></div>
+            <div class="input-group"><input type="text" id="reg-name" placeholder="שם משתמש (כתוב ADMIN לניהול)"></div>
         </div>
         <div class="input-group"><input type="email" id="auth-email" placeholder="אימייל"></div>
         <div class="input-group">
             <input type="password" id="auth-pass" placeholder="סיסמה">
-            <i class="fa-solid fa-eye eye-icon" id="toggle-eye-1" onclick="togglePass('auth-pass', 'toggle-eye-1')"></i>
+            <i class="fa-solid fa-eye eye-icon" id="eye1" onclick="togglePass('auth-pass', 'eye1')"></i>
         </div>
         <div id="confirm-fields" style="display:none;">
             <div class="input-group">
                 <input type="password" id="auth-pass-confirm" placeholder="אימות סיסמה">
-                <i class="fa-solid fa-eye eye-icon" id="toggle-eye-2" onclick="togglePass('auth-pass-confirm', 'toggle-eye-2')"></i>
+                <i class="fa-solid fa-eye eye-icon" id="eye2" onclick="togglePass('auth-pass-confirm', 'eye2')"></i>
             </div>
         </div>
-        <button class="btn btn-primary" style="width:100%" onclick="processAuth()">בצע כניסה</button>
+        <button class="btn btn-primary" style="width:100%" onclick="processAuth()">אישור</button>
     </div>
 </div>
 
 <div class="container">
     <div class="card">
-        <h3 style="margin-top:0"><i class="fa-solid fa-cloud-sun"></i> צפי סטטוס קישור לשוויץ (4 ימים)</h3>
+        <h3><i class="fa-solid fa-cloud-sun"></i> צפי סטטוס קישור</h3>
         <table class="forecast-table">
-            <thead>
-                <tr>
-                    <th>תאריך</th>
-                    <th>טמפ'</th>
-                    <th>רוח (קמ"ש)</th>
-                    <th>צפי קישור</th>
-                </tr>
-            </thead>
+            <thead><tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>צפי</th></tr></thead>
             <tbody id="forecast-body"></tbody>
         </table>
     </div>
 
     <div class="webcams">
-        <div class="cam-box"><img src="https://webcam.cervinia.it/webcam/cervinia/cervinia-1.jpg"><div class="cam-label">Cervinia Town</div></div>
-        <div class="cam-box"><img src="https://webcam.cervinia.it/webcam/cervinia/plan-maison-1.jpg"><div class="cam-label">Plan Maison (2550m)</div></div>
-        <div class="cam-box"><img src="https://webcam.cervinia.it/webcam/cervinia/plateau-rosa-1.jpg"><div class="cam-label">Plateau Rosa (3480m)</div></div>
+        <div class="cam-box"><img src="https://webcam.cervinia.it/webcam/cervinia/cervinia-1.jpg"><div class="cam-label">Town</div></div>
+        <div class="cam-box"><img src="https://webcam.cervinia.it/webcam/cervinia/plan-maison-1.jpg"><div class="cam-label">Plan Maison</div></div>
+        <div class="cam-box"><img src="https://webcam.cervinia.it/webcam/cervinia/plateau-rosa-1.jpg"><div class="cam-label">Plateau Rosa</div></div>
     </div>
 
     <div class="card">
-        <h3><i class="fa-solid fa-comments"></i> עדכונים מהשטח</h3>
-        <div id="posts-container">טוען הודעות...</div>
-        <div style="margin-top: 20px;">
-            <textarea id="forum-input" rows="3" placeholder="יש לך עדכון מעניין מההר? שתף אותנו..."></textarea>
-            <button class="btn btn-primary" style="margin-top:10px; width:100%" onclick="addPost()">
-                <i class="fa-solid fa-paper-plane"></i> שלח הודעה
-            </button>
+        <h3><i class="fa-solid fa-comments"></i> פורום עדכונים</h3>
+        <div id="posts-container">טוען...</div>
+        <div style="margin-top:20px">
+            <textarea id="forum-input" rows="3" placeholder="כתוב הודעה חדשה..."></textarea>
+            <button class="btn btn-primary" style="width:100%; margin-top:10px" onclick="addPost()">שלח</button>
         </div>
     </div>
 </div>
@@ -141,19 +113,12 @@
 
     function openAuth(mode) { document.getElementById('auth-modal').style.display = 'flex'; switchTab(mode); }
     function closeAuth() { document.getElementById('auth-modal').style.display = 'none'; }
-    
     function togglePass(id, eyeId) { 
-        const input = document.getElementById(id); 
+        const input = document.getElementById(id);
         const icon = document.getElementById(eyeId);
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
-        }
+        input.type = input.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
     }
-
     function switchTab(mode) {
         document.getElementById('reg-fields').style.display = mode === 'reg' ? 'block' : 'none';
         document.getElementById('confirm-fields').style.display = mode === 'reg' ? 'block' : 'none';
@@ -164,51 +129,52 @@
     async function processAuth() {
         const email = document.getElementById('auth-email').value;
         const name = document.getElementById('reg-name').value || email.split('@')[0];
-        if(!email) return alert("נא להזין אימייל");
+        if(!email) return;
         user = { name, email };
         localStorage.setItem('skiUser', JSON.stringify(user));
         location.reload();
     }
 
+    function isUserAdmin() {
+        return user && user.email.toLowerCase() === 'ykrauss1@gmail.com' && user.name === 'ADMIN';
+    }
+
     function updateUI() {
         if(user) {
-            const isAdmin = user.email.toLowerCase() === 'ykrauss1@gmail.com';
             document.getElementById('nav-controls').innerHTML = `
-                <span style="margin-left:15px">שלום, <span class="user-name">${user.name}</span> ${isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}</span>
-                <button onclick="localStorage.clear();location.reload()" class="action-link" style="color:white; opacity:0.8"><i class="fa-solid fa-right-from-bracket"></i> התנתק</button>
+                <span style="margin-left:15px">שלום, <b style="color:var(--accent)">${user.name}</b> ${isUserAdmin() ? '<span class="admin-badge">ADMIN</span>' : ''}</span>
+                <button onclick="localStorage.clear();location.reload()" class="action-link" style="color:white"><i class="fa-solid fa-sign-out"></i> התנתק</button>
             `;
         }
     }
 
     async function fetchPosts() {
-        const { data: posts, error } = await _supabase.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
-        if (error) return;
-        const isAdmin = user && user.email.toLowerCase() === 'ykrauss1@gmail.com';
+        const { data: posts } = await _supabase.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
+        if (!posts) return;
+        const admin = isUserAdmin();
         const container = document.getElementById('posts-container');
         
         container.innerHTML = posts.map(p => {
             const repliesHtml = (p.replies || []).map(r => `
                 <div class="reply-item">
-                    <span class="user-name">${r.user}:</span> ${r.content}
-                    <div style="margin-top:5px">
-                        <button class="action-link" onclick="showReplyInput('${p.id}', '${r.user}')"><i class="fa-solid fa-reply"></i> השב</button>
-                        ${isAdmin ? `<button class="btn-delete" onclick="deleteReply('${r.id}')"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                    <b>${r.user}:</b> ${r.content}
+                    <div>
+                        <button class="action-link" onclick="showReplyInput('${p.id}', '${r.user}')">השב</button>
+                        ${admin ? `<button class="btn-delete" onclick="deleteReply('${r.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                 </div>
             `).join('');
 
             return `
                 <div class="post">
-                    <div class="post-header">
-                        <div><span class="user-name">${p.user}:</span> ${p.content}</div>
-                        <div style="display:flex; align-items:center;">
-                            <button class="action-link" onclick="showReplyInput('${p.id}')"><i class="fa-solid fa-comment-dots"></i> השב</button>
-                            ${isAdmin ? `<button class="btn-delete" onclick="deletePost('${p.id}')"><i class="fa-solid fa-trash-can"></i></button>` : ''}
-                        </div>
+                    <div><b class="user-name">${p.user}:</b> ${p.content}</div>
+                    <div style="margin-top:10px">
+                        <button class="action-link" onclick="showReplyInput('${p.id}')"><i class="fa-solid fa-reply"></i> השב</button>
+                        ${admin ? `<button class="btn-delete" onclick="deletePost('${p.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                     <div id="reply-box-${p.id}" class="reply-input-box">
-                        <input type="text" id="input-${p.id}" style="width:75%;padding:10px;border-radius:8px;border:1px solid #ddd" placeholder="כתוב תגובה...">
-                        <button class="btn btn-primary" style="padding:10px" onclick="addReply('${p.id}')">שלח</button>
+                        <input type="text" id="input-${p.id}" style="width:70%; padding:8px; border-radius:5px; border:1px solid #ddd">
+                        <button class="btn btn-primary" onclick="addReply('${p.id}')">שלח</button>
                     </div>
                     <div class="replies-container">${repliesHtml}</div>
                 </div>
@@ -216,35 +182,28 @@
         }).join('');
     }
 
-    function showReplyInput(id, mentionUser = '') {
+    function showReplyInput(id, mention = '') {
         const box = document.getElementById(`reply-box-${id}`);
-        const input = document.getElementById(`input-${id}`);
         box.style.display = 'block';
-        if(mentionUser) input.value = `@${mentionUser} `;
-        input.focus();
+        if(mention) document.getElementById(`input-${id}`).value = `@${mention} `;
     }
 
     async function addPost() {
         if(!user) return openAuth('login');
         const content = document.getElementById('forum-input').value;
-        if(!content.trim()) return;
-        await _supabase.from('posts').insert([{ user: user.name, content }]);
-        document.getElementById('forum-input').value = "";
-        fetchPosts();
+        if(content.trim()) await _supabase.from('posts').insert([{ user: user.name, content }]);
+        document.getElementById('forum-input').value = ""; fetchPosts();
     }
 
     async function addReply(postId) {
         if(!user) return openAuth('login');
-        const input = document.getElementById(`input-${postId}`);
-        if(!input.value.trim()) return;
-        await _supabase.from('replies').insert([{ post_id: postId, user: user.name, content: input.value }]);
-        input.value = "";
-        document.getElementById(`reply-box-${postId}`).style.display = 'none';
+        const content = document.getElementById(`input-${postId}`).value;
+        if(content.trim()) await _supabase.from('replies').insert([{ post_id: postId, user: user.name, content }]);
         fetchPosts();
     }
 
-    async function deletePost(id) { if(confirm("למחוק פוסט זה?")) { await _supabase.from('posts').delete().eq('id', id); fetchPosts(); } }
-    async function deleteReply(id) { if(confirm("למחוק תגובה זו?")) { await _supabase.from('replies').delete().eq('id', id); fetchPosts(); } }
+    async function deletePost(id) { if(confirm("למחוק?")) { await _supabase.from('posts').delete().eq('id', id); fetchPosts(); } }
+    async function deleteReply(id) { if(confirm("למחוק?")) { await _supabase.from('replies').delete().eq('id', id); fetchPosts(); } }
 
     async function loadWeather() {
         try {
@@ -252,17 +211,13 @@
             const data = await res.json();
             document.getElementById('forecast-body').innerHTML = data.forecast.slice(0,4).map(day => {
                 const wind = parseInt(day.wind);
-                const status = wind > 55 ? '<span class="status-closed"><i class="fa-solid fa-wind"></i> סגור (רוח)</span>' : 
-                               wind > 40 ? '<span class="status-closed" style="color:orange"><i class="fa-solid fa-triangle-exclamation"></i> בסיכון</span>' : 
-                               '<span class="status-open"><i class="fa-solid fa-circle-check"></i> פתוח ✅</span>';
-                return `<tr><td>${day.date.split('-').reverse().slice(0,2).join('/')}</td><td style="direction:ltr;font-weight:bold">${day.temp_min}/${day.temp_max}</td><td>${day.wind}</td><td>${status}</td></tr>`;
+                const status = wind > 55 ? '<span class="status-closed">סגור</span>' : wind > 40 ? '<span style="color:orange">בסיכון</span>' : '<span class="status-open">פתוח ✅</span>';
+                return `<tr><td>${day.date.split('-').reverse().slice(0,2).join('/')}</td><td dir="ltr">${day.temp_min}/${day.temp_max}</td><td>${day.wind}</td><td>${status}</td></tr>`;
             }).join('');
-        } catch (e) {}
+        } catch(e) {}
     }
 
-    updateUI();
-    fetchPosts();
-    loadWeather();
+    updateUI(); fetchPosts(); loadWeather();
 </script>
 </body>
 </html>
