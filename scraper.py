@@ -1,103 +1,68 @@
-import requests
-from bs4 import BeautifulSoup
+import os
 import json
+import time
 from datetime import datetime
 import pytz
-import re
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
+import requests
 
 def get_forecast():
-    # שאיבת תחזית מ-Open-Meteo עבור Plateau Rosa
-    url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.70&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&timezone=Europe%2FRome"
+    # שאיבת תחזית מ-Open-Meteo
+    url = "https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.70&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max&timezone=Europe%2FRome"
     try:
-        res = requests.get(url, timeout=10).json()
-        forecast_list = []
-        for i in range(4):
-            date_str = res['daily']['time'][i]
-            date_obj = datetime.now() if not date_str else datetime.strptime(date_str, '%Y-%m-%d')
-            wind = res['daily']['windspeed_10m_max'][i]
-            
-            # חישוב סיכוי לקישור על בסיס מהירות רוח (קריטי ב-Cervinia)
-            prediction = "High" if wind < 25 else "Medium" if wind < 45 else "Low"
-            
-            forecast_list.append({
-                "date": date_obj.strftime('%d/%m'),
-                "temp_max": f"{res['daily']['temperature_2m_max'][i]}°",
-                "temp_min": f"{res['daily']['temperature_2m_min'][i]}°",
-                "wind": f"{wind} km/h",
-                "link_prob": prediction
-            })
-        return forecast_list
-    except Exception as e:
-        print(f"Forecast Error: {e}")
-        return []
+        res = requests.get(url).json()
+        return res['daily']['temperature_2m_max'][0] # מחזיר טמפ' נוכחית מקסימלית להיום
+    except: return "N/A"
 
-def get_live_data():
-    url = "https://www.cervinia.it/en/info/bollettino-neve"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    # ברירת מחדל ל-N/A כדי למנוע הצגת נתונים שגויים
-    live = {"temp": "N/A", "lifts": "N/A", "slopes": "N/A", "conn": "closed"}
+def scrape_cervinia():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    
+    data = {"lifts": "N/A", "slopes": "N/A", "conn": "closed", "temp": "N/A"}
     
     try:
-        res = requests.get(url, headers=headers, timeout=15)
-        text = res.text
-        soup = BeautifulSoup(text, 'html.parser')
+        driver.get("https://www.cervinia.it/en/info/bollettino-neve")
+        time.sleep(5) # מחכה שהאתר יטען
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        text = soup.get_text()
 
-        # 1. חילוץ טמפרטורה
-        temp_match = re.search(r'(-?\d+)\s*°', text)
-        if temp_match:
-            live["temp"] = f"{temp_match.group(1)}°C"
+        # חילוץ מעליות (מחפש את המבנה X / 47)
+        import re
+        lifts = re.search(r'(\d+)\s*/\s*47', text)
+        if lifts: data["lifts"] = f"{lifts.group(1)}/47"
 
-        # 2. חילוץ מעליות (Lifts)
-        # מחפש מספר שמופיע בתוך אלמנט עם מחלקה המכילה 'lifts' או לפני '/ 47'
-        lifts_match = re.search(r'(\d+)\s*/\s*47', text)
-        if lifts_match:
-            live["lifts"] = f"{lifts_match.group(1)}/47"
-        else:
-            # ניסיון חילוץ דרך מבנה ה-HTML של האתר
-            lift_tag = soup.find('div', class_=re.compile(r'lifts.*open', re.I))
-            if lift_tag:
-                live["lifts"] = f"{lift_tag.text.strip()}/47"
+        # חילוץ מסלולים (X / 109)
+        slopes = re.search(r'(\d+)\s*/\s*109', text)
+        if slopes: data["slopes"] = f"{slopes.group(1)}/109"
 
-        # 3. חילוץ מסלולים (Slopes)
-        slopes_match = re.search(r'(\d+)\s*/\s*109', text)
-        if slopes_match:
-            live["slopes"] = f"{slopes_match.group(1)}/109"
-
-        # 4. בדיקת סטטוס קישור לזארמט (Zermatt)
-        # מחפש אזור שמדבר על ה-International Link
+        # בדיקת קישור לזארמט
         if "zermatt" in text.lower():
-            # מחפש 'open' או 'aperto' בקרבת המילה Zermatt
-            zermatt_text = re.search(r'Zermatt.*?(Open|Closed|Aperto|Chiuso)', text, re.I | re.S)
-            if zermatt_text and zermatt_text.group(1).lower() in ['open', 'aperto']:
-                live["conn"] = "open"
-            else:
-                live["conn"] = "closed"
-            
-    except Exception as e: 
-        print(f"Scrape Error: {e}")
-    
-    return live
+            # מחפש מילים ירוקות או סטטוס פתוח ליד המילה Zermatt
+            z_section = soup.find(text=re.compile("Zermatt", re.I))
+            if z_section and ("open" in z_section.parent.get_text().lower() or "aperto" in z_section.parent.get_text().lower()):
+                data["conn"] = "open"
 
-def run_update():
-    # הגדרת אזור זמן איטליה
-    tz = pytz.timezone('Europe/Rome')
-    live = get_live_data()
+        data["temp"] = f"{get_forecast()}°C"
+        
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        driver.quit()
     
-    final_data = {
-        "temp": live["temp"],
-        "lifts": live["lifts"],
-        "slopes": live["slopes"],
-        "conn": live["conn"],
-        "forecast": get_forecast(),
-        "last_update": datetime.now(tz).strftime("%d/%m/%Y %H:%M")
-    }
-    
-    # שמירה לקובץ ה-JSON שהאתר קורא
-    with open('data.json', 'w') as f:
-        json.dump(final_data, f, indent=4)
-    print(f"Update successful at {final_data['last_update']}")
+    return data
 
 if __name__ == "__main__":
-    run_update()
+    tz = pytz.timezone('Europe/Rome')
+    live_results = scrape_cervinia()
+    live_results["last_update"] = datetime.now(tz).strftime("%d/%m/%Y %H:%M")
+    
+    with open('data.json', 'w') as f:
+        json.dump(live_results, f, indent=4)
