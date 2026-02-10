@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - Status Center</title>
+    <title>CerviniaLive - Database Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -15,73 +15,52 @@
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
 
-        /* Status Header */
-        .live-status-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .status-item { background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
-        .status-item i { display: block; font-size: 1.5em; color: var(--accent); margin-bottom: 8px; }
+        /* Align Minuses and Temperature */
+        .ltr-text { direction: ltr; display: inline-block; }
 
-        /* Weather Grid - 3 Levels */
-        .weather-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .weather-card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid #eee; }
-        .weather-card h4 { margin: 0 0 15px 0; color: var(--primary); font-size: 1.2em; border-bottom: 2px solid var(--accent); display: inline-block; padding-bottom: 5px; }
-        .weather-info { display: flex; justify-content: space-around; align-items: center; margin-top: 10px; }
-        .info-box { flex: 1; }
-        .info-box span { display: block; font-size: 0.8em; color: #777; }
-        .info-box b { font-size: 1.3em; color: var(--primary); }
+        /* Weather Levels */
+        .weather-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .weather-card { background: white; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #eee; }
+        .weather-card b { direction: ltr; display: inline-block; font-size: 1.2em; color: var(--primary); }
 
-        /* Forum & Table Styles */
+        /* Forecast Table */
         .forecast-table { width: 100%; border-collapse: collapse; text-align: center; }
         .forecast-table th { background: #f1f5f9; padding: 12px; border-bottom: 2px solid #ddd; }
         .forecast-table td { padding: 12px; border-bottom: 1px solid #eee; }
-        .post { border-bottom: 2px solid #f8f9fa; padding: 20px 0; }
+
+        /* Forum - Fixed Height & Scroll */
+        .forum-window { max-height: 450px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 15px; }
+        .post { border-bottom: 2px solid #f0f0f0; padding: 15px 0; }
         .time-stamp { font-size: 0.75em; color: #888; margin-right: 10px; }
-        .replies-container { margin-right: 25px; border-right: 3px solid #eef0f2; padding-right: 15px; margin-top: 10px; }
-        .reply-item { background: #f8f9fa; padding: 12px; border-radius: 10px; margin-top: 8px; border: 1px solid #edf2f7; }
-        .reply-input-box { display: none; margin-top: 10px; }
-        .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; font-size: 0.85em; margin-left: 10px; }
+        .replies-container { margin-right: 20px; border-right: 2px solid #ddd; padding-right: 10px; margin-top: 8px; }
+        .reply-item { background: #f0f4f8; padding: 8px; border-radius: 5px; margin-top: 5px; font-size: 0.9em; }
+
+        /* Auth Modal */
+        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 3000; }
+        .auth-card { background: white; padding: 30px; border-radius: 15px; width: 320px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-primary { background: var(--accent); color: var(--primary); }
+        .btn-primary:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="logo-text">Cervinia<span>Live</span></div>
-    <div id="nav-controls"><button onclick="openAuth()" style="background:var(--accent); border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">כניסה / הרשמה</button></div>
+    <div id="nav-controls">
+        <button class="btn btn-primary" onclick="openAuth()">כניסה / הרשמה</button>
+    </div>
 </nav>
 
 <div class="container">
-    
-    <div class="live-status-bar">
-        <div class="status-item"><i class="fa-solid fa-cable-car"></i><div class="status-val" id="live-lifts">N/A</div><small>מעליות פתוחות</small></div>
-        <div class="status-item"><i class="fa-solid fa-route"></i><div class="status-val" id="live-slopes">N/A</div><small>מסלולים פתוחים</small></div>
-        <div class="status-item"><i class="fa-solid fa-link"></i><div class="status-val" id="live-link">N/A</div><small>קישור לצ'רמט</small></div>
-    </div>
-
     <div class="weather-grid">
-        <div class="weather-card">
-            <h4>עיירה (2050m)</h4>
-            <div class="weather-info">
-                <div class="info-box"><span>טמפ'</span><b id="t-town-temp">--</b></div>
-                <div class="info-box"><span>שלג</span><b id="t-town-snow">--</b></div>
-            </div>
-        </div>
-        <div class="weather-card">
-            <h4>Plan Maison (2550m)</h4>
-            <div class="weather-info">
-                <div class="info-box"><span>טמפ'</span><b id="t-plan-temp">--</b></div>
-                <div class="info-box"><span>שלג</span><b id="t-plan-snow">--</b></div>
-            </div>
-        </div>
-        <div class="weather-card">
-            <h4>Plateau Rosa (3480m)</h4>
-            <div class="weather-info">
-                <div class="info-box"><span>טמפ'</span><b id="t-plateau-temp">--</b></div>
-                <div class="info-box"><span>שלג</span><b id="t-plateau-snow">--</b></div>
-            </div>
-        </div>
+        <div class="weather-card"><h4>עיירה (2050m)</h4><div>🌡️ <b id="t-town-temp">--</b> | ❄️ <b id="t-town-snow">--</b></div></div>
+        <div class="weather-card"><h4>Plan Maison (2550m)</h4><div>🌡️ <b id="t-plan-temp">--</b> | ❄️ <b id="t-plan-snow">--</b></div></div>
+        <div class="weather-card"><h4>Plateau Rosa (3480m)</h4><div>🌡️ <b id="t-plateau-temp">--</b> | ❄️ <b id="t-plateau-snow">--</b></div></div>
     </div>
 
     <div class="card">
-        <h3>תחזית וסטטוס קישור</h3>
+        <h3><i class="fa-solid fa-calendar-day"></i> תחזית (4 ימים קרובים)</h3>
         <table class="forecast-table">
             <thead><tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th><th>ממטרים</th><th>סטטוס</th></tr></thead>
             <tbody id="forecast-body"></tbody>
@@ -89,10 +68,21 @@
     </div>
 
     <div class="card">
-        <h3>פורום עדכונים</h3>
-        <div id="posts-container">טוען...</div>
-        <textarea id="forum-input" rows="3" style="width:100%; border-radius:8px; padding:10px; margin-top:20px; border:1px solid #ddd;" placeholder="כתוב הודעה..."></textarea>
-        <button onclick="addPost()" style="width:100%; margin-top:10px; background:var(--accent); padding:10px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">שלח פוסט</button>
+        <h3><i class="fa-solid fa-comments"></i> עדכונים מהשטח</h3>
+        <div id="posts-container" class="forum-window">טוען הודעות מבסיס הנתונים...</div>
+        <div style="margin-top:15px;">
+            <textarea id="forum-input" rows="2" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;" placeholder="כתוב הודעה..."></textarea>
+            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="addPost()">שלח פוסט</button>
+        </div>
+    </div>
+</div>
+
+<div id="auth-modal" onclick="if(event.target.id === 'auth-modal') closeAuth()">
+    <div class="auth-card" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0">התחברות למערכת</h3>
+        <input type="text" id="a-name" placeholder="שם משתמש" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
+        <input type="email" id="a-email" placeholder="אימייל" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:5px;">
+        <button class="btn btn-primary" style="width:100%" onclick="processAuth()">אישור</button>
     </div>
 </div>
 
@@ -100,57 +90,90 @@
     const SUPABASE_URL = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let user = JSON.parse(localStorage.getItem('skiUser')) || null;
+    
+    // ניהול המשתמש הנוכחי לצורך זיהוי בפורום
+    let currentUser = JSON.parse(localStorage.getItem('skiUser')) || null;
+
+    function openAuth() { document.getElementById('auth-modal').style.display = 'flex'; }
+    function closeAuth() { document.getElementById('auth-modal').style.display = 'none'; }
+    
+    function processAuth() {
+        const name = document.getElementById('a-name').value;
+        const email = document.getElementById('a-email').value;
+        if(name && email) {
+            currentUser = { name, email };
+            localStorage.setItem('skiUser', JSON.stringify(currentUser));
+            location.reload();
+        }
+    }
 
     async function loadData() {
         try {
             const res = await fetch('data.json?v=' + Date.now());
             const data = await res.json();
             
-            // 1. Update Levels Data (The 3 cards)
+            // עדכון גבהים
             if(data.levels) {
-                document.getElementById('t-town-temp').innerText = data.levels.town.temp || '--';
-                document.getElementById('t-town-snow').innerText = data.levels.town.snow || '--';
-                document.getElementById('t-plan-temp').innerText = data.levels.plan.temp || '--';
-                document.getElementById('t-plan-snow').innerText = data.levels.plan.snow || '--';
-                document.getElementById('t-plateau-temp').innerText = data.levels.plateau.temp || '--';
-                document.getElementById('t-plateau-snow').innerText = data.levels.plateau.snow || '--';
+                document.getElementById('t-town-temp').innerText = data.levels.town.temp;
+                document.getElementById('t-town-snow').innerText = data.levels.town.snow;
+                document.getElementById('t-plan-temp').innerText = data.levels.plan.temp;
+                document.getElementById('t-plan-snow').innerText = data.levels.plan.snow;
+                document.getElementById('t-plateau-temp').innerText = data.levels.plateau.temp;
+                document.getElementById('t-plateau-snow').innerText = data.levels.plateau.snow;
             }
 
-            // 2. Update Forecast Table (Filtered to 4 days from today)
+            // סינון תאריכים
             const today = new Date(); today.setHours(0,0,0,0);
-            const futureForecast = data.forecast.filter(day => {
+            const future = data.forecast.filter(day => {
                 const [d, m] = day.date.split('-');
                 return new Date(2026, m-1, d) >= today;
             }).slice(0, 4);
 
-            document.getElementById('forecast-body').innerHTML = futureForecast.map(day => {
-                const wind = parseInt(day.wind);
-                const status = wind > 55 ? '<b style="color:red">סגור</b>' : wind > 40 ? '<b style="color:orange">בסיכון</b>' : '<b style="color:green">פתוח ✅</b>';
-                return `<tr><td>${day.date}</td><td>${day.temp_min}/${day.temp_max}</td><td>${day.wind}km/h</td><td>${day.visibility || 'N/A'}</td><td>${day.humidity || 'N/A'}</td><td>${status}</td></tr>`;
+            document.getElementById('forecast-body').innerHTML = future.map(day => {
+                const isRisk = parseInt(day.wind) > 40;
+                return `<tr>
+                    <td>${day.date}</td>
+                    <td class="ltr-text">${day.temp_min}/${day.temp_max}°C</td>
+                    <td>${day.wind}km/h</td>
+                    <td>${day.visibility || 'N/A'}</td>
+                    <td>${day.humidity || 'N/A'}</td>
+                    <td style="color:${isRisk?'orange':'green'}; font-weight:bold">${isRisk?'בסיכון':'פתוח'}</td>
+                </tr>`;
             }).join('');
-
-            // 3. Update Live Stats
-            if(data.live) {
-                document.getElementById('live-lifts').innerText = data.live.lifts || 'N/A';
-                document.getElementById('live-slopes').innerText = data.live.slopes || 'N/A';
-                document.getElementById('live-link').innerText = data.live.link_status || 'N/A';
-            }
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Data Error:", e); }
     }
 
-    // Forum Logic (STABLE)
-    function formatDate(dStr) { const d = new Date(dStr); return d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'}); }
     async function fetchPosts() {
         const { data: posts } = await _supabase.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
-        if (!posts) return;
-        document.getElementById('posts-container').innerHTML = posts.map(p => {
-            const reps = (p.replies || []).map(r => `<div class="reply-item"><b>${r.user}</b> <span class="time-stamp">${formatDate(r.created_at)}</span><br>${r.content}</div>`).join('');
-            return `<div class="post"><b>${p.user}</b> <span class="time-stamp">${formatDate(p.created_at)}</span><br>${p.content}<div class="replies-container">${reps}</div></div>`;
-        }).join('');
+        if (posts) {
+            document.getElementById('posts-container').innerHTML = posts.map(p => `
+                <div class="post">
+                    <b>${p.user}</b> <span class="time-stamp">${new Date(p.created_at).toLocaleString('he-IL')}</span>
+                    <div style="margin-top:5px">${p.content}</div>
+                    <div class="replies-container">
+                        ${(p.replies||[]).map(r => `<div class="reply-item"><b>${r.user}:</b> ${r.content}</div>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
     }
 
-    fetchPosts(); loadData();
+    async function addPost() {
+        if(!currentUser) return openAuth();
+        const content = document.getElementById('forum-input').value;
+        if(content.trim()) {
+            await _supabase.from('posts').insert([{ user: currentUser.name, content: content }]);
+            document.getElementById('forum-input').value = "";
+            fetchPosts();
+        }
+    }
+
+    if(currentUser) { 
+        document.getElementById('nav-controls').innerHTML = `<span>שלום, <b>${currentUser.name}</b></span> <button onclick="localStorage.clear();location.reload()" style="background:none; border:none; color:white; cursor:pointer; text-decoration:underline; margin-right:10px;">התנתק</button>`; 
+    }
+    
+    loadData();
+    fetchPosts();
 </script>
 </body>
 </html>
