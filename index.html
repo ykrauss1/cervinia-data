@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - Stable Version</title>
+    <title>CerviniaLive - Official</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -18,35 +18,40 @@
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
 
-        /* Status & Weather Headers */
+        /* Status Bar - The Black Boxes */
         .live-status-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .status-item { background: #0d1b3e; color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
         .status-item i { display: block; font-size: 1.5em; color: var(--accent); margin-bottom: 8px; }
         .status-val { font-size: 1.5em; font-weight: bold; color: var(--error); }
 
+        /* Weather Levels - The Blue Boxes */
         .weather-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .weather-card { background: #d9e2ec; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #c0cbd9; }
         .weather-card h4 { margin: 0 0 10px 0; border-bottom: 1px solid #b0bbc9; padding-bottom: 5px; }
+        .ltr { direction: ltr; display: inline-block; }
 
-        /* Table Styles */
+        /* Table */
         .forecast-table { width: 100%; border-collapse: collapse; text-align: center; }
         .forecast-table th { background: #f1f5f9; padding: 12px; border-bottom: 2px solid #ddd; }
         .forecast-table td { padding: 12px; border-bottom: 1px solid #eee; }
-        .ltr { direction: ltr; display: inline-block; }
 
-        /* Forum - Matches your image */
+        /* Forum */
         .forum-window { max-height: 450px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 15px; }
         .post { border-bottom: 2px solid #f0f0f0; padding: 15px 0; }
         .post-meta { font-weight: bold; color: #333; margin-bottom: 5px; }
         .time-stamp { font-size: 0.75em; color: #888; margin-right: 10px; font-weight: normal; }
         .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; font-size: 0.85em; margin-left: 10px; }
         .replies-container { margin-right: 25px; border-right: 3px solid #ddd; padding-right: 15px; margin-top: 10px; }
-        .reply-item { background: #f0f4f8; padding: 8px; border-radius: 6px; margin-top: 5px; font-size: 0.9em; }
-        .reply-input-box { display: none; margin-top: 10px; }
+        .reply-item { background: #f0f4f8; padding: 8px; border-radius: 6px; margin-top: 5px; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center; }
         
-        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-primary { background: var(--accent); color: var(--primary); }
-        .btn-logout { background: var(--error); color: white; margin-right: 10px; }
+        .btn-primary:hover { opacity: 0.8; }
+
+        /* Auth Modal */
+        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 3000; }
+        .auth-card { background: white; padding: 30px; border-radius: 15px; width: 320px; }
+        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -54,7 +59,7 @@
 <nav>
     <div class="logo-text" onclick="location.reload()">Cervinia<span>Live</span></div>
     <div id="nav-controls">
-        <button class="btn btn-primary" onclick="openAuth()">כניסה</button>
+        <button class="btn btn-primary" onclick="openAuth()">כניסה / הרשמה</button>
     </div>
 </nav>
 
@@ -72,18 +77,40 @@
     </div>
 
     <div class="card">
-        <h3>תחזית וסטטוס (10/02 ואילך)</h3>
+        <h3>תחזית וסטטוס (מעודכן להיום)</h3>
         <table class="forecast-table">
-            <thead><tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th><th>ממטרים</th><th>סטטוס</th></tr></thead>
-            <tbody id="forecast-body"></tbody>
+            <thead>
+                <tr>
+                    <th>תאריך</th>
+                    <th>טמפ'</th>
+                    <th>רוח</th>
+                    <th>ראות</th>
+                    <th>ממטרים</th>
+                    <th>סטטוס</th>
+                </tr>
+            </thead>
+            <tbody id="forecast-body">
+                </tbody>
         </table>
     </div>
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
         <div id="posts-container" class="forum-window">טוען הודעות...</div>
-        <textarea id="forum-input" rows="2" style="width:100%; margin-top:15px; padding:10px; border-radius:8px; border:1px solid #ddd;" placeholder="כתוב הודעה..."></textarea>
-        <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="addPost()">שלח פוסט</button>
+        <div style="margin-top:15px;">
+            <textarea id="forum-input" rows="2" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; font-family: inherit;" placeholder="כתוב עדכון מהמסלול..."></textarea>
+            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="addPost()">שלח פוסט</button>
+        </div>
+    </div>
+</div>
+
+<div id="auth-modal" onclick="if(event.target.id === 'auth-modal') closeAuth()">
+    <div class="auth-card" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0">התחברות</h3>
+        <input type="text" id="a-name" placeholder="שם משתמש">
+        <input type="email" id="a-email" placeholder="אימייל">
+        <input type="password" id="a-pass" placeholder="סיסמה">
+        <button class="btn btn-primary" style="width:100%" onclick="processAuth()">אישור</button>
     </div>
 </div>
 
@@ -93,12 +120,24 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
 
+    function openAuth() { document.getElementById('auth-modal').style.display = 'flex'; }
+    function closeAuth() { document.getElementById('auth-modal').style.display = 'none'; }
+    
+    function processAuth() {
+        const n = document.getElementById('a-name').value;
+        const e = document.getElementById('a-email').value;
+        if(n && e) {
+            user = { name: n, email: e };
+            localStorage.setItem('skiUser', JSON.stringify(user));
+            location.reload();
+        }
+    }
+
     async function loadData() {
         try {
             const res = await fetch('data.json?v=' + Date.now());
             const data = await res.json();
             
-            // Levels Data
             if(data.levels) {
                 document.getElementById('p-temp').innerText = data.levels.plateau.temp;
                 document.getElementById('p-snow').innerText = data.levels.plateau.snow;
@@ -108,17 +147,24 @@
                 document.getElementById('t-snow').innerText = data.levels.town.snow;
             }
 
-            // Forecast Filter (FIXED)
-            const today = new Date(); today.setHours(0,0,0,0);
+            const today = new Date(); 
+            today.setHours(0,0,0,0);
+
+            // סינון חכם שמתעלם מפורמט התאריך (לוודא שהטבלה לא ריקה)
             const future = data.forecast.filter(d => {
-                const parts = d.date.split('/');
-                const dObj = new Date(2026, parseInt(parts[1])-1, parseInt(parts[0]));
+                const parts = d.date.includes('/') ? d.date.split('/') : d.date.split('-');
+                let dObj;
+                if(parts[0].length === 4) dObj = new Date(parts[0], parts[1]-1, parts[2]); // YYYY-MM-DD
+                else dObj = new Date(2026, parts[1]-1, parts[0]); // DD/MM/YYYY
                 return dObj >= today;
             });
 
-            document.getElementById('forecast-body').innerHTML = future.map(d => `
+            // אם הסינון מחמיר מדי, נציג לפחות 4 ימים מהרשימה
+            const toDisplay = future.length > 0 ? future : data.forecast.slice(0, 4);
+
+            document.getElementById('forecast-body').innerHTML = toDisplay.map(d => `
                 <tr>
-                    <td>${d.date}</td>
+                    <td><b>${d.date}</b></td>
                     <td class="ltr">${d.temp_min}/${d.temp_max}°C</td>
                     <td>${d.wind} km/h</td>
                     <td>${d.visibility || 'טובה'}</td>
@@ -126,49 +172,56 @@
                     <td style="color:${parseInt(d.wind)>45?'orange':'green'}; font-weight:bold">${parseInt(d.wind)>45?'בסיכון':'פתוח'}</td>
                 </tr>
             `).join('');
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("JSON Error:", e); }
     }
 
     async function fetchPosts() {
         const { data: posts } = await _supabase.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
         if (!posts) return;
-        const isAdmin = user && user.email === 'ykrauss1@gmail.com';
+        const isAdmin = user && (user.email === 'ykrauss1@gmail.com' || user.name === 'ADMIN');
 
-        document.getElementById('posts-container').innerHTML = posts.map(p => `
-            <div class="post">
-                <div class="post-meta">${p.user} <span class="time-stamp">${new Date(p.created_at).toLocaleString('he-IL')}</span></div>
-                <div>${p.content}</div>
-                <div style="margin-top:8px">
-                    <button class="action-link" onclick="toggleReply('${p.id}')">השב</button>
-                    ${isAdmin ? `<button class="action-link" style="color:red" onclick="delP('${p.id}')">מחק</button>` : ''}
+        document.getElementById('posts-container').innerHTML = posts.map(p => {
+            const reps = (p.replies || []).map(r => `
+                <div class="reply-item">
+                    <span><b>${r.user}:</b> ${r.content}</span>
+                    ${isAdmin ? `<button class="action-link" style="color:red; font-size:10px;" onclick="delR('${r.id}')">מחק</button>` : ''}
                 </div>
-                <div id="reply-box-${p.id}" class="reply-input-box">
-                    <input type="text" id="ri-${p.id}" placeholder="כתוב תגובה..." style="width:70%; padding:5px;">
-                    <button class="btn btn-primary" onclick="sendReply('${p.id}')">שלח</button>
+            `).join('');
+
+            return `
+                <div class="post">
+                    <div class="post-meta">${p.user} <span class="time-stamp">${new Date(p.created_at).toLocaleString('he-IL')}</span></div>
+                    <div>${p.content}</div>
+                    <div style="margin-top:8px">
+                        <button class="action-link" onclick="toggleReply('${p.id}')">השב</button>
+                        ${isAdmin ? `<button class="action-link" style="color:red" onclick="delP('${p.id}')">מחק פוסט</button>` : ''}
+                    </div>
+                    <div id="box-${p.id}" class="reply-input-box" style="display:none; margin-top:10px;">
+                        <input type="text" id="in-${p.id}" placeholder="כתוב תגובה..." style="width:70%; padding:5px; border:1px solid #ddd; border-radius:4px;">
+                        <button class="btn btn-primary" style="padding:4px 10px" onclick="sendReply('${p.id}')">שלח</button>
+                    </div>
+                    <div class="replies-container">${reps}</div>
                 </div>
-                <div class="replies-container">
-                    ${(p.replies || []).map(r => `<div class="reply-item"><b>${r.user}:</b> ${r.content}</div>`).join('')}
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    function toggleReply(id) { 
-        const el = document.getElementById(`reply-box-${id}`);
-        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    function toggleReply(id) {
+        const el = document.getElementById(`box-${id}`);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
     }
 
     async function sendReply(pId) {
-        if(!user) return alert("יש להתחבר");
-        const val = document.getElementById(`ri-${pId}`).value;
-        if(val) {
+        if(!user) return openAuth();
+        const val = document.getElementById(`in-${pId}`).value;
+        if(val.trim()) {
             await _supabase.from('replies').insert([{ post_id: pId, user: user.name, content: val }]);
             fetchPosts();
         }
     }
 
     async function addPost() {
-        if(!user) return alert("יש להתחבר");
+        if(!user) return openAuth();
         const c = document.getElementById('forum-input').value;
         if(c.trim()) {
             await _supabase.from('posts').insert([{ user: user.name, content: c }]);
@@ -177,16 +230,18 @@
         }
     }
 
-    async function delP(id) { if(confirm("למחוק?")) { await _supabase.from('posts').delete().eq('id', id); fetchPosts(); } }
+    async function delP(id) { if(confirm("למחוק פוסט?")) { await _supabase.from('posts').delete().eq('id', id); fetchPosts(); } }
+    async function delR(id) { if(confirm("למחוק תגובה?")) { await _supabase.from('replies').delete().eq('id', id); fetchPosts(); } }
 
     if(user) {
         document.getElementById('nav-controls').innerHTML = `
             <span>שלום, <b>${user.name}</b></span>
-            <button class="btn btn-logout" onclick="localStorage.clear();location.reload()">התנתק</button>
+            <button class="btn" style="background:#ff4d4d; color:white; margin-right:10px;" onclick="localStorage.clear();location.reload()">התנתק</button>
         `;
     }
 
-    loadData(); fetchPosts();
+    loadData();
+    fetchPosts();
 </script>
 </body>
 </html>
