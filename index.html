@@ -3,62 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - Final Fixed</title>
+    <title>CerviniaLive - Final Recovery</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --white: #ffffff; --error: #e74c3c; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
-        
-        /* Navbar */
         nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 2000; }
         .logo-text { font-size: 1.8em; font-weight: 900; }
         .logo-text span { color: var(--accent); }
-
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
 
-        /* The "Concrete" Top Section */
+        /* Status & Weather Headers */
         .live-status-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .status-item { background: #0d1b3e; color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
         .status-val { font-size: 1.5em; font-weight: bold; color: var(--error); }
-        
         .weather-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .weather-card { background: #d9e2ec; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #c0cbd9; }
 
-        /* Forecast Table Fix */
-        .forecast-table { width: 100%; border-collapse: collapse; table-layout: fixed; } /* Fixed layout for alignment */
-        .forecast-table th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #ddd; text-align: center; font-size: 0.9em; }
-        .forecast-table td { padding: 15px 5px; border-bottom: 1px solid #eee; text-align: center; }
+        /* Forecast Table */
+        .forecast-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .forecast-table th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #ddd; text-align: center; }
+        .forecast-table td { padding: 15px 5px; border-bottom: 1px solid #eee; text-align: center; word-wrap: break-word; }
         .ltr { direction: ltr; display: inline-block; }
-        .status-open { color: #2ecc71; font-weight: bold; }
 
-        /* Forum - The Correction */
-        .post { border-bottom: 2px solid #edf2f7; padding: 20px 0; }
-        .post-header { font-weight: bold; margin-bottom: 5px; }
-        .reply-item { 
-            background: #f1f5f9; 
-            margin-top: 10px; 
-            margin-right: 40px; /* Indentation for RTL */
-            padding: 12px; 
-            border-radius: 8px; 
-            border-right: 4px solid var(--accent); 
-        }
+        /* Forum - The Nesting Fix */
+        .post-container { border-bottom: 2px solid #edf2f7; padding: 15px 0; }
+        .post-main { background: #fff; padding: 10px; border-radius: 8px; }
+        .replies-area { margin-right: 40px; margin-top: 10px; border-right: 3px solid var(--accent); padding-right: 15px; }
+        .reply-item { background: #f1f5f9; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e2e8f0; }
         
-        .action-bar { margin-top: 10px; display: flex; gap: 15px; }
-        .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; font-size: 0.85em; }
-        .action-link.delete { color: var(--error); }
+        .author { font-weight: bold; color: var(--primary); }
+        .action-bar { margin-top: 5px; display: flex; gap: 15px; }
+        .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; font-size: 0.8em; padding: 0; }
+        .action-link.del { color: var(--error); }
 
-        /* Reply Box & Buttons */
-        .reply-box-inline { background: #fff; border: 2px solid var(--accent); border-radius: 10px; padding: 15px; margin: 10px 0; }
-        .reply-box-inline textarea { width: 100%; border: 1px solid #ddd; padding: 10px; border-radius: 5px; box-sizing: border-box; font-family: inherit; }
-        
-        .btn-row { display: flex; flex-direction: row-reverse; gap: 10px; margin-top: 10px; justify-content: flex-start; }
-        .btn { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        /* Reply Box */
+        .reply-box { background: #fff; border: 2px solid var(--accent); border-radius: 10px; padding: 12px; margin: 10px 0; }
+        .btn-row { display: flex; flex-direction: row-reverse; gap: 10px; margin-top: 10px; }
+        .btn { padding: 6px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .btn-send { background: var(--accent); color: var(--primary); }
-        .btn-cancel { background: #cbd5e0; color: #333; }
-
-        #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 3000; }
+        .btn-cancel { background: #ccc; }
+        
+        textarea { width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 8px; font-family: inherit; resize: none; }
     </style>
 </head>
 <body>
@@ -70,9 +58,9 @@
 
 <div class="container">
     <div class="live-status-bar">
-        <div class="status-item"><i class="fa-solid fa-link"></i><div class="status-val">N/A</div><small>קישור לצ'רמט</small></div>
-        <div class="status-item"><i class="fa-solid fa-route"></i><div class="status-val">N/A</div><small>מסלולים פתוחים</small></div>
-        <div class="status-item"><i class="fa-solid fa-cable-car"></i><div class="status-val">N/A</div><small>מעליות פתוחות</small></div>
+        <div class="status-item"><i class="fa-solid fa-link"></i><div class="status-val" id="link-stat">N/A</div><small>קישור לצ'רמט</small></div>
+        <div class="status-item"><i class="fa-solid fa-route"></i><div class="status-val" id="slopes-stat">N/A</div><small>מסלולים פתוחים</small></div>
+        <div class="status-item"><i class="fa-solid fa-cable-car"></i><div class="status-val" id="lifts-stat">N/A</div><small>מעליות פתוחות</small></div>
     </div>
 
     <div class="weather-grid">
@@ -86,12 +74,12 @@
         <table class="forecast-table">
             <thead>
                 <tr>
-                    <th style="width: 15%;">תאריך</th>
-                    <th style="width: 25%;">טמפ'</th>
-                    <th style="width: 20%;">רוח</th>
-                    <th style="width: 15%;">ראות</th>
-                    <th style="width: 10%;">ממטרים</th>
-                    <th style="width: 15%;">סטטוס</th>
+                    <th style="width:18%">תאריך</th>
+                    <th style="width:22%">טמפ'</th>
+                    <th style="width:20%">רוח</th>
+                    <th style="width:15%">ראות</th>
+                    <th style="width:10%">ממטרים</th>
+                    <th style="width:15%">סטטוס</th>
                 </tr>
             </thead>
             <tbody id="forecast-body"></tbody>
@@ -100,23 +88,11 @@
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
-        <div id="posts-container">טוען הודעות...</div>
-        <hr>
-        <div style="margin-top:20px;">
-            <textarea id="forum-input" rows="2" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;" placeholder="כתוב עדכון חדש..."></textarea>
-            <div class="btn-row">
-                <button class="btn btn-send" onclick="addPost()">פרסם פוסט</button>
-            </div>
+        <div id="posts-display">טוען הודעות...</div>
+        <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
+            <textarea id="main-input" rows="2" placeholder="כתוב פוסט חדש..."></textarea>
+            <div class="btn-row"><button class="btn btn-send" onclick="addPost()">פרסם פוסט</button></div>
         </div>
-    </div>
-</div>
-
-<div id="auth-modal" onclick="if(event.target.id === 'auth-modal') this.style.display='none'">
-    <div class="card" style="width:300px;" onclick="event.stopPropagation()">
-        <h3>התחברות</h3>
-        <input type="text" id="a-name" placeholder="שם" style="width:100%; margin-bottom:10px; padding:10px;">
-        <input type="email" id="a-email" placeholder="אימייל" style="width:100%; margin-bottom:10px; padding:10px;">
-        <button class="btn btn-send" style="width:100%" onclick="processAuth()">אישור</button>
     </div>
 </div>
 
@@ -126,119 +102,122 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
 
-    function openAuth() { document.getElementById('auth-modal').style.display='flex'; }
-    function processAuth() {
-        const n = document.getElementById('a-name').value, e = document.getElementById('a-email').value;
-        if(n && e) { localStorage.setItem('skiUser', JSON.stringify({name:n, email:e})); location.reload(); }
-    }
-
-    async function loadData() {
+    async function loadWeather() {
         try {
-            const res = await fetch('data.json?v=' + Date.now());
+            const res = await fetch('data.json?t=' + Date.now());
             const data = await res.json();
             
-            // Levels
-            ['p','m','t'].forEach((k,i) => {
-                const lvl = ['plateau','plan','town'][i];
-                document.getElementById(k+'-temp').innerText = data.levels[lvl].temp;
-                document.getElementById(k+'-snow').innerText = data.levels[lvl].snow;
-            });
+            // עליון
+            document.getElementById('p-temp').innerText = data.levels.plateau.temp;
+            document.getElementById('p-snow').innerText = data.levels.plateau.snow;
+            document.getElementById('m-temp').innerText = data.levels.plan.temp;
+            document.getElementById('m-snow').innerText = data.levels.plan.snow;
+            document.getElementById('t-temp').innerText = data.levels.town.temp;
+            document.getElementById('t-snow').innerText = data.levels.town.snow;
 
-            // Table Fix: Format Date and Clean Strings
-            document.getElementById('forecast-body').innerHTML = data.forecast.slice(0, 4).map(d => {
-                const cleanTemp = d.temp_min.replace('°C','') + '/' + d.temp_max.replace('°C','') + '°C';
-                const dateParts = d.date.split(/[/-]/);
-                const displayDate = dateParts[0] + '/' + dateParts[1]; // DD/MM
-
-                return `
+            // טבלה - גישה ישירה למערך למניעת "טבלה ריקה"
+            const rows = data.forecast.slice(0, 4);
+            document.getElementById('forecast-body').innerHTML = rows.map(d => `
                 <tr>
-                    <td><b>${displayDate}</b></td>
-                    <td class="ltr">${cleanTemp}</td>
+                    <td><b>${d.date}</b></td>
+                    <td class="ltr">${d.temp_min.replace('°C','')}/${d.temp_max.replace('°C','')}°C</td>
                     <td class="ltr">${d.wind.replace('km/h','')} km/h</td>
                     <td>${d.visibility || 'טובה'}</td>
-                    <td>${d.humidity || 'N/A'}</td>
-                    <td><span class="status-open">פתוח</span></td>
-                </tr>`;
-            }).join('');
-        } catch(e) { console.error(e); }
+                    <td>${d.humidity || '0%'}</td>
+                    <td style="color:green; font-weight:bold">פתוח</td>
+                </tr>
+            `).join('');
+        } catch(e) { console.error("Error loading JSON:", e); }
     }
 
-    async function fetchPosts() {
-        const { data: posts } = await _supabase.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
-        if (!posts) return;
+    async function fetchForum() {
+        const { data: posts, error } = await _supabase.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
+        if (error) return console.error(error);
+        
         const isAdmin = user && (user.email === 'ykrauss1@gmail.com' || user.name === 'ADMIN');
 
-        document.getElementById('posts-container').innerHTML = posts.map(p => {
-            const reps = (p.replies || []).map(r => `
+        document.getElementById('posts-display').innerHTML = posts.map(p => {
+            const repliesHtml = (p.replies || []).map(r => `
                 <div class="reply-item">
-                    <div class="post-header">${r.user}:</div>
-                    <div>${r.content}</div>
+                    <span class="author">${r.user}:</span> ${r.content}
                     <div class="action-bar">
                         <button class="action-link" onclick="openReply('${p.id}', '${r.id}')">השב</button>
-                        ${isAdmin ? `<button class="action-link delete" onclick="delR('${r.id}')">מחק</button>` : ''}
+                        ${isAdmin ? `<button class="action-link del" onclick="deleteItem('replies','${r.id}')">מחק</button>` : ''}
                     </div>
                     <div id="box-${r.id}"></div>
-                </div>`).join('');
+                </div>
+            `).join('');
 
             return `
-                <div class="post">
-                    <div class="post-header">${p.user}:</div>
-                    <div>${p.content}</div>
-                    <div class="action-bar">
-                        <button class="action-link" onclick="openReply('${p.id}', '${p.id}')">השב</button>
-                        ${isAdmin ? `<button class="action-link delete" onclick="delP('${p.id}')">מחק פוסט</button>` : ''}
+                <div class="post-container">
+                    <div class="post-main">
+                        <span class="author">${p.user}:</span> ${p.content}
+                        <div class="action-bar">
+                            <button class="action-link" onclick="openReply('${p.id}', '${p.id}')">השב</button>
+                            ${isAdmin ? `<button class="action-link del" onclick="deleteItem('posts','${p.id}')">מחק פוסט</button>` : ''}
+                        </div>
+                        <div id="box-${p.id}"></div>
                     </div>
-                    <div id="box-${p.id}"></div>
-                    <div class="replies-list">${reps}</div>
-                </div>`;
+                    <div class="replies-area">${repliesHtml}</div>
+                </div>
+            `;
         }).join('');
     }
 
     function openReply(postId, targetId) {
-        document.querySelectorAll('.reply-box-inline').forEach(el => el.remove());
-        const div = document.getElementById('box-' + targetId);
-        div.innerHTML = `
-            <div class="reply-box-inline">
-                <textarea id="txt-${targetId}" rows="2" placeholder="כתוב תגובה..."></textarea>
+        document.querySelectorAll('.reply-box').forEach(el => el.remove());
+        const target = document.getElementById('box-' + targetId);
+        target.innerHTML = `
+            <div class="reply-box">
+                <textarea id="input-${targetId}" rows="2" placeholder="כתוב תגובה..."></textarea>
                 <div class="btn-row">
                     <button class="btn btn-send" onclick="sendReply('${postId}', '${targetId}')">שלח</button>
                     <button class="btn btn-cancel" onclick="this.parentElement.parentElement.remove()">ביטול</button>
                 </div>
             </div>`;
-        document.getElementById('txt-' + targetId).focus();
+        document.getElementById(`input-${targetId}`).focus();
     }
 
-    window.addEventListener('keydown', (e) => { if(e.key === 'Escape') document.querySelectorAll('.reply-box-inline').forEach(el => el.remove()); });
-
     async function sendReply(pId, tId) {
-        if(!user) return openAuth();
-        const val = document.getElementById('txt-' + tId).value;
-        if(val.trim()){ 
-            await _supabase.from('replies').insert([{post_id: pId, user: user.name, content: val}]); 
-            fetchPosts(); 
-        }
+        if(!user) return alert("נא להתחבר");
+        const txt = document.getElementById('input-' + tId).value;
+        if(!txt.trim()) return;
+        await _supabase.from('replies').insert([{ post_id: pId, user: user.name, content: txt }]);
+        fetchForum();
     }
 
     async function addPost() {
-        if(!user) return openAuth();
-        const c = document.getElementById('forum-input').value;
-        if(c.trim()){ 
-            await _supabase.from('posts').insert([{user:user.name, content:c}]); 
-            document.getElementById('forum-input').value=""; fetchPosts(); 
-        }
+        if(!user) return alert("נא להתחבר");
+        const txt = document.getElementById('main-input').value;
+        if(!txt.trim()) return;
+        await _supabase.from('posts').insert([{ user: user.name, content: txt }]);
+        document.getElementById('main-input').value = "";
+        fetchForum();
     }
 
-    async function delP(id) { if(confirm("מחק?")) { await _supabase.from('posts').delete().eq('id', id); fetchPosts(); } }
-    async function delR(id) { if(confirm("מחק?")) { await _supabase.from('replies').delete().eq('id', id); fetchPosts(); } }
+    async function deleteItem(table, id) {
+        if(!confirm("למחוק?")) return;
+        const { error } = await _supabase.from(table).delete().eq('id', id);
+        if(error) alert("שגיאה במחיקה: " + error.message);
+        else fetchForum();
+    }
+
+    function openAuth() {
+        const n = prompt("שם:"), e = prompt("אימייל:");
+        if(n && e) { localStorage.setItem('skiUser', JSON.stringify({name:n, email:e})); location.reload(); }
+    }
 
     if(user) {
         document.getElementById('nav-controls').innerHTML = `
-            <span style="margin-left:15px;">שלום, <b>${user.name}</b></span>
-            <button class="btn" style="background:#ff4d4d; color:white;" onclick="localStorage.clear();location.reload()">התנתק</button>
+            <span style="margin-left:10px">שלום, <b>${user.name}</b></span>
+            <button class="btn" style="background:red; color:white" onclick="localStorage.clear();location.reload()">התנתק</button>
         `;
     }
 
-    loadData(); fetchPosts();
+    window.addEventListener('keydown', e => { if(e.key === 'Escape') document.querySelectorAll('.reply-box').forEach(el => el.remove()); });
+    
+    loadWeather();
+    fetchForum();
 </script>
 </body>
 </html>
