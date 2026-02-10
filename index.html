@@ -2,43 +2,66 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Final Fix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CerviniaLive - Locked & Stable</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --p: #0a192f; --a: #4cc9f0; --bg: #f4f7f9; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; }
-        nav { background: var(--p); color: white; padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        :root { --p: #0a192f; --s: #172a45; --a: #4cc9f0; --bg: #f0f2f5; --error: #ff4d4d; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; color: #333; }
         
-        /* טבלה נקייה ומקצועית */
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th { background: #f8fafc; padding: 15px; border-bottom: 2px solid #edf2f7; color: var(--p); }
-        td { padding: 15px; border-bottom: 1px solid #edf2f7; text-align: center; font-size: 1rem; }
-        .temp { direction: ltr; font-weight: bold; color: #e53e3e; }
-        .wind { direction: ltr; color: #4a5568; }
-        .status-ok { color: #38a169; font-weight: bold; }
+        /* Navbar */
+        nav { background: var(--p); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 1.8rem; font-weight: 900; }
+        .logo span { color: var(--a); }
 
-        /* פורום */
-        .post { border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-        .reply { margin-right: 35px; background: #f7fafc; padding: 10px; border-right: 4px solid var(--a); margin-top: 10px; border-radius: 4px; }
-        .error-msg { color: #e53e3e; border: 1px solid #feb2b2; padding: 10px; border-radius: 5px; background: #fff5f5; }
+        .container { max-width: 1100px; margin: 25px auto; padding: 0 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+
+        /* Forecast Table - התיקון הקבוע */
+        .f-table { width: 100%; border-collapse: collapse; }
+        .f-table th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #eee; text-align: center; color: var(--p); }
+        .f-table td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        .ltr { direction: ltr; display: inline-block; font-weight: bold; }
+        .temp-val { color: #d63031; }
+
+        /* Forum Nesting - הקינון שחזר */
+        .post-container { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: #fff; }
+        .reply-item { margin-right: 45px; margin-top: 12px; padding: 12px; background: #f8fafc; border-right: 4px solid var(--a); border-radius: 8px; }
+        .user-info { font-weight: bold; color: var(--p); margin-bottom: 5px; }
+        .actions { margin-top: 10px; display: flex; gap: 15px; font-size: 0.85rem; }
+        .act-btn { background: none; border: none; color: var(--a); cursor: pointer; font-weight: 700; padding: 0; }
+        .act-btn.del { color: var(--error); }
+
+        /* Auth Modal - המודאל המקצועי */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 380px; position: relative; }
+        .form-field { margin-bottom: 15px; position: relative; }
+        .form-field label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-field input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .eye-toggle { position: absolute; left: 10px; top: 35px; cursor: pointer; color: #888; }
         
-        button { cursor: pointer; border: none; border-radius: 5px; padding: 8px 15px; font-weight: bold; }
-        .btn-p { background: var(--a); color: var(--p); }
+        /* Buttons Order */
+        .btn-row { display: flex; flex-direction: row-reverse; gap: 10px; margin-top: 15px; justify-content: flex-end; }
+        .btn { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: var(--a); color: var(--p); }
+        .btn-secondary { background: #eee; color: #555; }
+        .btn-submit { width: 100%; background: var(--p); color: white; padding: 12px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size:1.5rem; font-weight:bold;">Cervinia<span>Live</span></div>
-    <div id="user-ui"><button class="btn-p" onclick="login()">כניסה</button></div>
+    <div class="logo">Cervinia<span>Live</span></div>
+    <div id="auth-nav">
+        <button class="btn btn-primary" onclick="openAuth(true)">כניסה / הרשמה</button>
+    </div>
 </nav>
 
 <div class="container">
     <div class="card">
-        <h3 style="margin-top:0;">תחזית וסטטוס (מעודכן)</h3>
-        <table>
+        <h3>תחזית וסטטוס (4 ימים)</h3>
+        <table class="f-table">
             <thead>
                 <tr>
                     <th>תאריך</th>
@@ -48,121 +71,195 @@
                     <th>סטטוס</th>
                 </tr>
             </thead>
-            <tbody id="f-body"><tr><td colspan="5">טוען נתונים...</td></tr></tbody>
+            <tbody id="forecast-body"></tbody>
         </table>
     </div>
 
     <div class="card">
-        <h3 style="margin-top:0;">עדכונים מהשטח</h3>
-        <div id="forum-root">מחבר לפורום...</div>
-        <div style="margin-top:20px;">
-            <textarea id="p-txt" style="width:100%; height:60px; padding:10px; border:1px solid #ddd; border-radius:5px;" placeholder="עדכון חדש..."></textarea>
-            <button class="btn-p" style="margin-top:10px; float:left;" onclick="sendPost()">שלח עדכון</button>
-            <div style="clear:both;"></div>
+        <h3>עדכונים מהשטח</h3>
+        <div id="forum-display">טוען הודעות...</div>
+        <div style="margin-top:30px; border-top: 1px solid #eee; padding-top:20px;">
+            <textarea id="new-post-content" style="width:100%; height:80px; padding:15px; border-radius:10px; border:1px solid #ddd;" placeholder="כתוב עדכון חדש..."></textarea>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="submitMainPost()">פרסם עדכון</button>
+            </div>
         </div>
     </div>
 </div>
 
+<div id="auth-modal" class="modal">
+    <div class="modal-content">
+        <h2 id="modal-title">כניסה</h2>
+        <div class="form-field">
+            <label>אימייל</label>
+            <input type="email" id="email-field" placeholder="your@email.com">
+        </div>
+        <div class="form-field" id="signup-name-field" style="display:none;">
+            <label>שם מלא</label>
+            <input type="text" id="name-field" placeholder="השם שיופיע באתר">
+        </div>
+        <div class="form-field">
+            <label>סיסמה</label>
+            <input type="password" id="pass-field">
+            <i class="fa fa-eye eye-toggle" onclick="togglePass('pass-field')"></i>
+        </div>
+        <div class="form-field" id="signup-confirm-field" style="display:none;">
+            <label>אימות סיסמה</label>
+            <input type="password" id="confirm-field">
+            <i class="fa fa-eye eye-toggle" onclick="togglePass('confirm-field')"></i>
+        </div>
+        <button class="btn btn-submit" onclick="handleAuth()">אישור</button>
+        <p id="auth-switch" style="text-align:center; cursor:pointer; color:var(--a); margin-top:15px;" onclick="toggleSignupMode()">אין לך חשבון? הירשם כאן</p>
+        <button class="btn btn-secondary" style="width:100%; margin-top:10px;" onclick="openAuth(false)">ביטול</button>
+    </div>
+</div>
+
 <script>
-    const URL = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co';
-    const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
-    const _sb = supabase.createClient(URL, KEY);
-    let user = JSON.parse(localStorage.getItem('skiUser')) || null;
+    const SB_URL = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co';
+    const SB_KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
+    const _sb = supabase.createClient(SB_URL, SB_KEY);
+    
+    let currentUser = JSON.parse(localStorage.getItem('skiUser')) || null;
+    let isSignupMode = false;
 
-    // פונקציית ניקוי מספרים בלבד - פותרת את הדרעק בטבלה
-    function clean(str, unit) {
-        if (!str) return "N/A";
-        let num = str.replace(/[^\d.-]/g, ' ').trim().split(' ')[0];
-        return num + " " + unit;
-    }
+    // --- אתחול ---
+    window.onload = () => {
+        updateAuthUI();
+        loadWeather();
+        loadForum();
+    };
 
-    async function init() {
-        if(user) document.getElementById('user-ui').innerHTML = `שלום, ${user.name} | <a href="#" onclick="logout()" style="color:white">התנתק</a>`;
-        
-        // טעינת טבלה
+    // --- טבלה: תיקון פורמט וניקוי כפילויות ---
+    async function loadWeather() {
         try {
-            const r = await fetch('data.json?v=' + Math.random());
-            const d = await r.json();
-            document.getElementById('f-body').innerHTML = d.forecast.slice(0,4).map(f => {
-                let date = f.date;
-                if(date.includes('-')) date = date.split('-').reverse().join('/');
-                
-                // כאן הניקוי הקריטי:
-                let tMin = f.temp_min.replace('°C','').trim();
-                let tMax = f.temp_max.replace('°C','').trim();
-                let windNum = f.wind.replace('km/h','').trim();
+            const res = await fetch('data.json?v=' + Date.now());
+            const data = await res.json();
+            document.getElementById('forecast-body').innerHTML = data.forecast.slice(0, 4).map(f => {
+                let dStr = f.date;
+                if(dStr.includes('-')) {
+                    const [y, m, d] = dStr.split('-');
+                    dStr = `${d}/${m}/${y}`;
+                }
+                const cleanWind = f.wind.replace(/km\/h/g, '').trim();
+                const tMin = f.temp_min.replace('°C', '').trim();
+                const tMax = f.temp_max.replace('°C', '').trim();
 
                 return `<tr>
-                    <td><b>${date}</b></td>
-                    <td class="temp">${tMin}/${tMax}°C</td>
-                    <td class="wind">${windNum} קמ"ש</td>
+                    <td><b>${dStr}</b></td>
+                    <td class="ltr temp-val">${tMin}/${tMax}°C</td>
+                    <td class="ltr">${cleanWind} קמ"ש</td>
                     <td>${f.visibility || 'טובה'}</td>
-                    <td class="status-ok">פתוח</td>
+                    <td><b style="color:green">פתוח</b></td>
                 </tr>`;
             }).join('');
-        } catch(e) { document.getElementById('f-body').innerHTML = "שגיאת נתונים"; }
-
-        loadForum();
+        } catch (e) { console.error("Weather Fail", e); }
     }
 
-    // פורום עם הגנה מפני AbortError
-    async function loadForum(retryCount = 0) {
+    // --- פורום: קינון ותגובות ---
+    async function loadForum() {
         try {
-            const { data: ps, error } = await _sb.from('posts').select('*, replies(*)').order('created_at', {ascending: false});
+            const { data: posts, error } = await _sb.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
             if (error) throw error;
 
-            document.getElementById('forum-root').innerHTML = ps.map(p => `
-                <div class="post">
-                    <b>${p.user}:</b> ${p.content}
-                    <div style="font-size:0.8rem; color:blue; cursor:pointer;" onclick="doRep('${p.id}')">השב</div>
-                    <div id="r-${p.id}"></div>
-                    ${(p.replies||[]).map(r => `<div class="reply"><b>${r.user}:</b> ${r.content}</div>`).join('')}
-                </div>
-            `).join('');
+            const isAdmin = currentUser && currentUser.email === 'ykrauss1@gmail.com';
+            const display = document.getElementById('forum-display');
+            
+            display.innerHTML = posts.map(p => {
+                const reps = (p.replies || []).map(r => `
+                    <div class="reply-item">
+                        <div class="user-info"><i class="fa-solid fa-reply"></i> ${r.user}:</div>
+                        <div>${r.content}</div>
+                        <div class="actions">
+                            <button class="act-btn" onclick="showReplyBox('${p.id}', '${r.id}')">השב</button>
+                            ${isAdmin ? `<button class="act-btn del" onclick="deleteItem('replies','${r.id}')">מחק</button>` : ''}
+                        </div>
+                        <div id="box-${r.id}"></div>
+                    </div>`).join('');
+
+                return `
+                    <div class="post-container">
+                        <div class="user-info"><i class="fa-solid fa-user-circle"></i> ${p.user}:</div>
+                        <div>${p.content}</div>
+                        <div class="actions">
+                            <button class="act-btn" onclick="showReplyBox('${p.id}', '${p.id}')">השב</button>
+                            ${isAdmin ? `<button class="act-btn del" onclick="deleteItem('posts','${p.id}')">מחק פוסט</button>` : ''}
+                        </div>
+                        <div id="box-${p.id}"></div>
+                        <div class="replies-area">${reps}</div>
+                    </div>`;
+            }).join('');
         } catch (e) {
-            console.log("Forum Error:", e);
-            if (retryCount < 3) {
-                setTimeout(() => loadForum(retryCount + 1), 1000);
-            } else {
-                document.getElementById('forum-root').innerHTML = `<div class="error-msg">שגיאת חיבור (Abort). נסה לרענן את הדף (F5).</div>`;
-            }
+            document.getElementById('forum-display').innerHTML = `<div style="color:red">שגיאת טעינה: ${e.message}</div>`;
         }
     }
 
-    function login() {
-        const n = prompt("שם משתמש:");
-        if(n) { 
-            user = { name: n, email: 'user@test.com' };
-            localStorage.setItem('skiUser', JSON.stringify(user));
+    // --- כניסה / הרשמה ---
+    function openAuth(s) { document.getElementById('auth-modal').style.display = s ? 'flex' : 'none'; }
+    function togglePass(id) { const el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; }
+    function toggleSignupMode() {
+        isSignupMode = !isSignupMode;
+        document.getElementById('modal-title').innerText = isSignupMode ? 'הרשמה' : 'כניסה';
+        document.getElementById('signup-name-field').style.display = isSignupMode ? 'block' : 'none';
+        document.getElementById('signup-confirm-field').style.display = isSignupMode ? 'block' : 'none';
+        document.getElementById('auth-switch').innerText = isSignupMode ? 'כבר יש לך חשבון? היכנס' : 'אין לך חשבון? הירשם כאן';
+    }
+
+    function handleAuth() {
+        const email = document.getElementById('email-field').value;
+        const name = isSignupMode ? document.getElementById('name-field').value : email.split('@')[0];
+        if(email) {
+            currentUser = { email, name: name || 'גולש' };
+            localStorage.setItem('skiUser', JSON.stringify(currentUser));
             location.reload();
         }
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
-
-    async function sendPost() {
-        if(!user) return login();
-        const t = document.getElementById('p-txt').value;
-        if(t) {
-            await _sb.from('posts').insert([{ user: user.name, content: t }]);
-            document.getElementById('p-txt').value = "";
-            loadForum();
+    function updateAuthUI() {
+        if(currentUser) {
+            document.getElementById('auth-nav').innerHTML = `
+                <span style="color:white; margin-left:15px">שלום, <b>${currentUser.name}</b></span>
+                <button class="btn btn-secondary" onclick="localStorage.clear();location.reload()">התנתק</button>
+            `;
         }
     }
 
-    function doRep(id) {
-        if(!user) return login();
-        const div = document.getElementById('r-' + id);
-        div.innerHTML = `<input id="i-${id}" style="width:70%"><button onclick="sendRep('${id}')">שלח</button>`;
+    // --- כתיבת פוסטים ותגובות ---
+    function showReplyBox(pId, tId) {
+        if(!currentUser) return openAuth(true);
+        document.querySelectorAll('.reply-input-box').forEach(el => el.remove());
+        const target = document.getElementById('box-' + tId);
+        target.innerHTML = `
+            <div class="reply-input-box" style="margin-top:10px;">
+                <textarea id="input-${tId}" style="width:100%; border-radius:8px; padding:10px; border:1px solid var(--a);" placeholder="כתוב תגובה..."></textarea>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="sendReply('${pId}', '${tId}')">שלח</button>
+                    <button class="btn btn-secondary" onclick="this.parentElement.parentElement.remove()">ביטול</button>
+                </div>
+            </div>`;
     }
 
-    async function sendRep(id) {
-        const val = document.getElementById('i-' + id).value;
-        await _sb.from('replies').insert([{ post_id: id, user: user.name, content: val }]);
+    async function sendReply(pId, tId) {
+        const val = document.getElementById('input-' + tId).value;
+        if(!val.trim()) return;
+        await _sb.from('replies').insert([{ post_id: pId, user: currentUser.name, content: val }]);
         loadForum();
     }
 
-    init();
+    async function submitMainPost() {
+        if(!currentUser) return openAuth(true);
+        const val = document.getElementById('new-post-content').value;
+        if(!val.trim()) return;
+        await _sb.from('posts').insert([{ user: currentUser.name, content: val }]);
+        document.getElementById('new-post-content').value = "";
+        loadForum();
+    }
+
+    async function deleteItem(table, id) {
+        if(confirm("למחוק?")) {
+            await _sb.from(table).delete().eq('id', id);
+            loadForum();
+        }
+    }
 </script>
 </body>
 </html>
