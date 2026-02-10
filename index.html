@@ -3,71 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - Master Fix</title>
+    <title>CerviniaLive - Forum Fix</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --white: #ffffff; --error: #e74c3c; }
+        :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --white: #ffffff; --error: #e74c3c; --grey: #f1f5f9; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .logo-text { font-size: 1.8em; font-weight: 900; }
-        .logo-text span { color: var(--accent); }
+        nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
 
-        /* Status & Weather Headers */
-        .live-status-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .status-item { background: #0d1b3e; color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
-        .status-val { font-size: 1.5em; font-weight: bold; color: var(--error); }
-        .weather-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .weather-card { background: #d9e2ec; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #c0cbd9; }
-
-        /* Table */
+        /* Forecast Table Cleanup */
         .forecast-table { width: 100%; border-collapse: collapse; text-align: center; }
         .forecast-table th { background: #f1f5f9; padding: 12px; border-bottom: 2px solid #ddd; }
         .forecast-table td { padding: 12px; border-bottom: 1px solid #eee; }
         .ltr { direction: ltr; display: inline-block; }
 
-        /* Forum - The Core Fixes */
-        .forum-window { max-height: 500px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 15px; }
-        .post { border-bottom: 2px solid #edf2f7; padding: 15px 0; }
-        .post-header { font-weight: bold; margin-bottom: 5px; color: var(--primary); }
-        .time-stamp { font-size: 0.75em; color: #888; font-weight: normal; margin-right: 8px; }
+        /* Forum - The Core Fix */
+        .forum-window { max-height: 600px; overflow-y: auto; padding: 10px; }
+        .post { border-bottom: 2px solid #e2e8f0; padding: 20px 0; position: relative; }
+        .post-header { font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 1.1em; }
         
-        .replies-container { margin-top: 10px; margin-right: 35px; border-right: 3px solid #cbd5e0; padding-right: 15px; }
-        .reply-item { background: #edf2f7; padding: 10px; border-radius: 8px; margin-top: 8px; border: 1px solid #e2e8f0; }
+        /* Indented Replies */
+        .replies-container { margin-top: 15px; margin-right: 40px; border-right: 3px solid #cbd5e0; padding-right: 15px; }
+        .reply-item { background: #f8fafc; padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #e2e8f0; }
 
-        .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; font-size: 0.85em; margin-left: 12px; padding: 0; }
+        /* Buttons & Actions */
+        .action-bar { margin-top: 10px; display: flex; gap: 15px; }
+        .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; font-size: 0.9em; padding: 0; }
         .action-link.delete { color: var(--error); }
         
-        .reply-box-inline { background: #fff; border: 2px solid var(--accent); border-radius: 8px; padding: 10px; margin-top: 10px; }
-        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-primary { background: var(--accent); color: var(--primary); }
-        .btn-cancel { background: #ccc; color: #333; margin-right: 5px; }
+        /* Reply Box - Precisely Placed */
+        .reply-box-inline { background: #fff; border: 2px solid var(--accent); border-radius: 10px; padding: 12px; margin: 10px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .reply-box-inline textarea { width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 8px; margin-bottom: 10px; font-family: inherit; resize: none; box-sizing: border-box; }
+        
+        .btn-row { display: flex; gap: 10px; flex-direction: row-reverse; justify-content: flex-end; } /* Reverse for "Send" on right */
+        .btn { padding: 6px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-send { background: var(--accent); color: var(--primary); }
+        .btn-cancel { background: #e2e8f0; color: #475569; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="logo-text">Cervinia<span>Live</span></div>
-    <div id="nav-controls"><button class="btn btn-primary" onclick="openAuth()">כניסה</button></div>
+    <div style="font-size: 1.8em; font-weight: 900;">Cervinia<span style="color:var(--accent)">Live</span></div>
+    <div id="nav-controls"><button class="btn btn-send" onclick="openAuth()">כניסה</button></div>
 </nav>
 
 <div class="container">
-    <div class="live-status-bar">
-        <div class="status-item"><i class="fa-solid fa-link"></i><div class="status-val">N/A</div><small>קישור לצ'רמט</small></div>
-        <div class="status-item"><i class="fa-solid fa-route"></i><div class="status-val">N/A</div><small>מסלולים פתוחים</small></div>
-        <div class="status-item"><i class="fa-solid fa-cable-car"></i><div class="status-val">N/A</div><small>מעליות פתוחות</small></div>
-    </div>
-
-    <div class="weather-grid">
-        <div class="weather-card"><h4>Plateau Rosa (3480m)</h4><div class="ltr"><b id="p-temp">--</b>° | <b id="p-snow">--</b>cm</div></div>
-        <div class="weather-card"><h4>Plan Maison (2550m)</h4><div class="ltr"><b id="m-temp">--</b>° | <b id="m-snow">--</b>cm</div></div>
-        <div class="weather-card"><h4>עיירה (2050m)</h4><div class="ltr"><b id="t-temp">--</b>° | <b id="t-snow">--</b>cm</div></div>
-    </div>
-
     <div class="card">
-        <h3>תחזית וסטטוס (4 ימים)</h3>
+        <h3>תחזית (4 ימים)</h3>
         <table class="forecast-table">
             <thead><tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th><th>ממטרים</th><th>סטטוס</th></tr></thead>
             <tbody id="forecast-body"></tbody>
@@ -76,20 +61,20 @@
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
-        <div id="posts-container" class="forum-window">טוען...</div>
-        <div style="margin-top:15px;">
-            <textarea id="forum-input" rows="2" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;" placeholder="כתוב הודעה חדשה..."></textarea>
-            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="addPost()">שלח פוסט</button>
+        <div id="posts-container" class="forum-window">טוען הודעות...</div>
+        <div style="margin-top:20px; border-top: 2px solid #eee; pt: 15px;">
+            <textarea id="forum-input" rows="2" style="width:100%; padding:12px; border-radius:10px; border:1px solid #cbd5e0;" placeholder="הוסף פוסט חדש..."></textarea>
+            <button class="btn btn-send" style="width:100%; margin-top:10px; padding: 12px;" onclick="addPost()">פרסם פוסט</button>
         </div>
     </div>
 </div>
 
-<div id="auth-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:3000;">
-    <div class="card" style="width:300px;">
+<div id="auth-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:9999;">
+    <div class="card" style="width:320px;">
         <h3>התחברות</h3>
-        <input type="text" id="a-name" placeholder="שם" style="width:100%; margin-bottom:10px; padding:8px;">
-        <input type="email" id="a-email" placeholder="אימייל" style="width:100%; margin-bottom:10px; padding:8px;">
-        <button class="btn btn-primary" style="width:100%" onclick="processAuth()">אישור</button>
+        <input type="text" id="a-name" placeholder="שם" style="width:100%; margin-bottom:10px; padding:10px; border:1px solid #ddd; border-radius:5px;">
+        <input type="email" id="a-email" placeholder="אימייל" style="width:100%; margin-bottom:10px; padding:10px; border:1px solid #ddd; border-radius:5px;">
+        <button class="btn btn-send" style="width:100%" onclick="processAuth()">אישור</button>
     </div>
 </div>
 
@@ -109,24 +94,13 @@
         try {
             const res = await fetch('data.json?v=' + Date.now());
             const data = await res.json();
-            
-            // גבהים
-            if(data.levels) {
-                document.getElementById('p-temp').innerText = data.levels.plateau.temp;
-                document.getElementById('p-snow').innerText = data.levels.plateau.snow;
-                document.getElementById('m-temp').innerText = data.levels.plan.temp;
-                document.getElementById('m-snow').innerText = data.levels.plan.snow;
-                document.getElementById('t-temp').innerText = data.levels.town.temp;
-                document.getElementById('t-snow').innerText = data.levels.town.snow;
-            }
-
-            // טבלה - לוגיקה פשוטה ל-4 ימים
             const tbody = document.getElementById('forecast-body');
+            // ניקוי כפילויות תצוגה
             tbody.innerHTML = data.forecast.slice(0, 4).map(d => `
                 <tr>
                     <td><b>${d.date}</b></td>
-                    <td class="ltr">${d.temp_min}/${d.temp_max}°C</td>
-                    <td class="ltr">${d.wind} km/h</td>
+                    <td class="ltr">${d.temp_min.replace('°C','')}/${d.temp_max.replace('°C','')}°C</td>
+                    <td class="ltr">${d.wind.replace('km/h','')} km/h</td>
                     <td>${d.visibility || 'טובה'}</td>
                     <td>${d.humidity || 'N/A'}</td>
                     <td style="color:${parseInt(d.wind)>45?'orange':'green'}; font-weight:bold">${parseInt(d.wind)>45?'בסיכון':'פתוח'}</td>
@@ -140,75 +114,86 @@
         const isAdmin = user && user.email === 'ykrauss1@gmail.com';
 
         document.getElementById('posts-container').innerHTML = posts.map(p => {
-            const reps = (p.replies || []).map(r => `
+            const repsHtml = (p.replies || []).map(r => `
                 <div class="reply-item">
-                    <div class="post-header">${r.user}</div>
+                    <div class="post-header" style="font-size:0.95em;">${r.user}</div>
                     <div>${r.content}</div>
-                    <div style="margin-top:5px">
-                        <button class="action-link" onclick="showReplyBox('${p.id}')">השב</button>
+                    <div class="action-bar">
+                        <button class="action-link" onclick="showReplyBox('${p.id}', '${r.id}')">השב</button>
                         ${isAdmin ? `<button class="action-link delete" onclick="delR('${r.id}')">מחק</button>` : ''}
                     </div>
+                    <div id="target-${r.id}"></div>
                 </div>`).join('');
 
             return `
-                <div class="post" id="post-${p.id}">
-                    <div class="post-header">${p.user} <span class="time-stamp">${new Date(p.created_at).toLocaleString('he-IL')}</span></div>
+                <div class="post">
+                    <div class="post-header">${p.user} <span style="font-size:0.7em; color:#888; font-weight:normal;">${new Date(p.created_at).toLocaleString('he-IL')}</span></div>
                     <div>${p.content}</div>
-                    <div style="margin-top:8px">
-                        <button class="action-link" onclick="showReplyBox('${p.id}')">השב</button>
+                    <div class="action-bar">
+                        <button class="action-link" onclick="showReplyBox('${p.id}', '${p.id}')">השב</button>
                         ${isAdmin ? `<button class="action-link delete" onclick="delP('${p.id}')">מחק פוסט</button>` : ''}
                     </div>
-                    <div id="reply-container-${p.id}"></div>
-                    <div class="replies-container">${reps}</div>
+                    <div id="target-${p.id}"></div>
+                    <div class="replies-container">${repsHtml}</div>
                 </div>`;
         }).join('');
     }
 
-    function showReplyBox(pId) {
-        // סגירת תיבות קודמות
+    function showReplyBox(postId, targetId) {
+        // מסיר תיבות פתוחות אחרות
         document.querySelectorAll('.reply-box-inline').forEach(el => el.remove());
         
-        const container = document.getElementById(`reply-container-${pId}`);
+        const container = document.getElementById(`target-${targetId}`);
         container.innerHTML = `
             <div class="reply-box-inline">
-                <input type="text" id="in-${pId}" style="width:100%; padding:8px; margin-bottom:8px; border:1px solid #ddd;" placeholder="כתוב תגובה...">
-                <div style="text-align:left;">
+                <textarea id="input-${targetId}" rows="2" placeholder="כתוב תגובה..."></textarea>
+                <div class="btn-row">
+                    <button class="btn btn-send" onclick="sendReply('${postId}', '${targetId}')">שלח</button>
                     <button class="btn btn-cancel" onclick="this.parentElement.parentElement.remove()">ביטול</button>
-                    <button class="btn btn-primary" onclick="sendReply('${pId}')">שלח</button>
                 </div>
             </div>`;
-        document.getElementById(`in-${pId}`).focus();
+        document.getElementById(`input-${targetId}`).focus();
     }
 
-    // Escape לביטול
+    // Escape לביטול מהיר
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') document.querySelectorAll('.reply-box-inline').forEach(el => el.remove());
     });
 
-    async function sendReply(pId) {
+    async function sendReply(postId, targetId) {
         if(!user) return openAuth();
-        const v = document.getElementById(`in-${pId}`).value;
-        if(v.trim()){ 
-            await _supabase.from('replies').insert([{post_id:pId, user:user.name, content:v}]); 
-            fetchPosts(); 
-        }
+        const val = document.getElementById(`input-${targetId}`).value;
+        if(!val.trim()) return;
+        
+        // אם זו תגובה לתגובה, נוסיף @ לשם המשתמש
+        await _supabase.from('replies').insert([{
+            post_id: postId, 
+            user: user.name, 
+            content: val 
+        }]);
+        fetchPosts();
     }
 
     async function addPost() {
         if(!user) return openAuth();
         const c = document.getElementById('forum-input').value;
-        if(c.trim()){ 
-            await _supabase.from('posts').insert([{user:user.name, content:c}]); 
-            document.getElementById('forum-input').value=""; 
-            fetchPosts(); 
+        if(c.trim()) {
+            await _supabase.from('posts').insert([{ user: user.name, content: c }]);
+            document.getElementById('forum-input').value = "";
+            fetchPosts();
         }
     }
 
-    async function delP(id) { if(confirm("מחק?")) { await _supabase.from('posts').delete().eq('id', id); fetchPosts(); } }
-    async function delR(id) { if(confirm("מחק?")) { await _supabase.from('replies').delete().eq('id', id); fetchPosts(); } }
+    async function delP(id) { if(confirm("למחוק פוסט?")) { await _supabase.from('posts').delete().eq('id', id); fetchPosts(); } }
+    async function delR(id) { if(confirm("למחוק תגובה?")) { await _supabase.from('replies').delete().eq('id', id); fetchPosts(); } }
 
-    if(user) { document.getElementById('nav-controls').innerHTML = `<span>שלום, <b>${user.name}</b></span> <button class="btn" style="background:red; color:white; margin-right:10px;" onclick="localStorage.clear();location.reload()">התנתק</button>`; }
-    
+    if(user) {
+        document.getElementById('nav-controls').innerHTML = `
+            <span style="color:white; margin-left:15px;">שלום, <b>${user.name}</b></span>
+            <button class="btn" style="background:red; color:white;" onclick="localStorage.clear();location.reload()">התנתק</button>
+        `;
+    }
+
     loadData();
     fetchPosts();
 </script>
