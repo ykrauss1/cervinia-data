@@ -3,83 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - Final Recovery</title>
+    <title>CerviniaLive - Stable Version</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --white: #ffffff; --error: #e74c3c; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
-        nav { background: var(--primary); color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 2000; }
-        .logo-text { font-size: 1.8em; font-weight: 900; }
-        .logo-text span { color: var(--accent); }
-        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        :root { --primary: #0a192f; --accent: #4cc9f0; --bg: #e0e6ed; --error: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        
+        /* Navbar */
+        nav { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 1.8em; font-weight: 900; }
+        .logo span { color: var(--accent); }
+        
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
 
-        /* Status & Weather Headers */
-        .live-status-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .status-item { background: #0d1b3e; color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
-        .status-val { font-size: 1.5em; font-weight: bold; color: var(--error); }
-        .weather-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .weather-card { background: #d9e2ec; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #c0cbd9; }
+        /* Top Status (The Concrete Part) */
+        .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .status-box { background: #0d1b3e; color: white; padding: 15px; border-radius: 10px; text-align: center; border-bottom: 4px solid var(--accent); }
+        .status-box b { display: block; font-size: 1.4em; color: var(--error); }
 
-        /* Forecast Table */
-        .forecast-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .forecast-table th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #ddd; text-align: center; }
-        .forecast-table td { padding: 15px 5px; border-bottom: 1px solid #eee; text-align: center; word-wrap: break-word; }
+        /* Table Alignment */
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background: #f1f5f9; padding: 12px; border: 1px solid #ddd; }
+        td { padding: 12px; border: 1px solid #eee; text-align: center; }
         .ltr { direction: ltr; display: inline-block; }
 
-        /* Forum - The Nesting Fix */
-        .post-container { border-bottom: 2px solid #edf2f7; padding: 15px 0; }
-        .post-main { background: #fff; padding: 10px; border-radius: 8px; }
-        .replies-area { margin-right: 40px; margin-top: 10px; border-right: 3px solid var(--accent); padding-right: 15px; }
-        .reply-item { background: #f1f5f9; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e2e8f0; }
+        /* Forum & Nesting */
+        .post { border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; margin-bottom: 15px; background: #fff; }
+        .reply-node { 
+            margin-right: 40px; /* הזחה לימין ב-RTL = הזחה שמאלה ויזואלית */
+            margin-top: 10px; 
+            padding: 10px; 
+            background: #f8fafc; 
+            border-right: 3px solid var(--accent); 
+            border-radius: 6px; 
+        }
         
-        .author { font-weight: bold; color: var(--primary); }
-        .action-bar { margin-top: 5px; display: flex; gap: 15px; }
-        .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; font-size: 0.8em; padding: 0; }
-        .action-link.del { color: var(--error); }
+        /* Action Links */
+        .action-bar { margin-top: 8px; display: flex; gap: 15px; }
+        .action-link { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85em; font-weight: bold; padding: 0; }
+        .btn-del { color: var(--error); }
 
-        /* Reply Box */
-        .reply-box { background: #fff; border: 2px solid var(--accent); border-radius: 10px; padding: 12px; margin: 10px 0; }
-        .btn-row { display: flex; flex-direction: row-reverse; gap: 10px; margin-top: 10px; }
-        .btn { padding: 6px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-send { background: var(--accent); color: var(--primary); }
-        .btn-cancel { background: #ccc; }
+        /* Reply Input Box */
+        .reply-box { background: white; border: 2px solid var(--accent); padding: 10px; border-radius: 8px; margin-top: 10px; }
+        textarea { width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 8px; font-family: inherit; box-sizing: border-box; }
         
-        textarea { width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 8px; font-family: inherit; resize: none; }
+        /* Button Order Fix */
+        .btn-group { display: flex; justify-content: flex-start; gap: 10px; margin-top: 10px; }
+        .btn { padding: 6px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-send { background: var(--accent); color: var(--primary); } /* מופיע ראשון מימין */
+        .btn-cancel { background: #cbd5e0; color: #333; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="logo-text">Cervinia<span>Live</span></div>
-    <div id="nav-controls"><button class="btn btn-send" onclick="openAuth()">כניסה</button></div>
+    <div class="logo">Cervinia<span>Live</span></div>
+    <div id="auth-zone"><button class="btn btn-send" onclick="login()">כניסה</button></div>
 </nav>
 
 <div class="container">
-    <div class="live-status-bar">
-        <div class="status-item"><i class="fa-solid fa-link"></i><div class="status-val" id="link-stat">N/A</div><small>קישור לצ'רמט</small></div>
-        <div class="status-item"><i class="fa-solid fa-route"></i><div class="status-val" id="slopes-stat">N/A</div><small>מסלולים פתוחים</small></div>
-        <div class="status-item"><i class="fa-solid fa-cable-car"></i><div class="status-val" id="lifts-stat">N/A</div><small>מעליות פתוחות</small></div>
-    </div>
-
-    <div class="weather-grid">
-        <div class="weather-card"><h4>Plateau Rosa (3480m)</h4><div class="ltr"><b id="p-temp">--</b>° | <b id="p-snow">--</b>cm</div></div>
-        <div class="weather-card"><h4>Plan Maison (2550m)</h4><div class="ltr"><b id="m-temp">--</b>° | <b id="m-snow">--</b>cm</div></div>
-        <div class="weather-card"><h4>עיירה (2050m)</h4><div class="ltr"><b id="t-temp">--</b>° | <b id="t-snow">--</b>cm</div></div>
+    <div class="status-grid">
+        <div class="status-box"><small>קישור לצ'רמט</small><b id="link-val">פתוח</b></div>
+        <div class="status-box"><small>מסלולים פתוחים</small><b id="slopes-val">54/72</b></div>
+        <div class="status-box"><small>מעליות פתוחות</small><b id="lifts-val">18/22</b></div>
     </div>
 
     <div class="card">
         <h3>תחזית וסטטוס (4 ימים)</h3>
-        <table class="forecast-table">
+        <table id="weather-table">
             <thead>
                 <tr>
-                    <th style="width:18%">תאריך</th>
-                    <th style="width:22%">טמפ'</th>
-                    <th style="width:20%">רוח</th>
-                    <th style="width:15%">ראות</th>
-                    <th style="width:10%">ממטרים</th>
-                    <th style="width:15%">סטטוס</th>
+                    <th>תאריך</th>
+                    <th>טמפ'</th>
+                    <th>רוח</th>
+                    <th>ראות</th>
+                    <th>סטטוס</th>
                 </tr>
             </thead>
             <tbody id="forecast-body"></tbody>
@@ -88,10 +88,12 @@
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
-        <div id="posts-display">טוען הודעות...</div>
-        <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
-            <textarea id="main-input" rows="2" placeholder="כתוב פוסט חדש..."></textarea>
-            <div class="btn-row"><button class="btn btn-send" onclick="addPost()">פרסם פוסט</button></div>
+        <div id="forum-root">טוען הודעות...</div>
+        <div style="margin-top:20px;">
+            <textarea id="main-post-input" rows="2" placeholder="כתוב עדכון חדש..."></textarea>
+            <div class="btn-group">
+                <button class="btn btn-send" onclick="sendMainPost()">פרסם פוסט</button>
+            </div>
         </div>
     </div>
 </div>
@@ -102,122 +104,115 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
 
+    // --- טעינת נתונים ---
     async function loadWeather() {
         try {
-            const res = await fetch('data.json?t=' + Date.now());
+            const res = await fetch('data.json?v=' + Date.now());
             const data = await res.json();
-            
-            // עליון
-            document.getElementById('p-temp').innerText = data.levels.plateau.temp;
-            document.getElementById('p-snow').innerText = data.levels.plateau.snow;
-            document.getElementById('m-temp').innerText = data.levels.plan.temp;
-            document.getElementById('m-snow').innerText = data.levels.plan.snow;
-            document.getElementById('t-temp').innerText = data.levels.town.temp;
-            document.getElementById('t-snow').innerText = data.levels.town.snow;
-
-            // טבלה - גישה ישירה למערך למניעת "טבלה ריקה"
-            const rows = data.forecast.slice(0, 4);
-            document.getElementById('forecast-body').innerHTML = rows.map(d => `
+            const tbody = document.getElementById('forecast-body');
+            tbody.innerHTML = data.forecast.slice(0, 4).map(d => `
                 <tr>
                     <td><b>${d.date}</b></td>
-                    <td class="ltr">${d.temp_min.replace('°C','')}/${d.temp_max.replace('°C','')}°C</td>
-                    <td class="ltr">${d.wind.replace('km/h','')} km/h</td>
+                    <td class="ltr">${d.temp_min}/${d.temp_max}°C</td>
+                    <td class="ltr">${d.wind} km/h</td>
                     <td>${d.visibility || 'טובה'}</td>
-                    <td>${d.humidity || '0%'}</td>
                     <td style="color:green; font-weight:bold">פתוח</td>
                 </tr>
             `).join('');
-        } catch(e) { console.error("Error loading JSON:", e); }
+        } catch (e) { console.error("Table Error:", e); }
     }
 
-    async function fetchForum() {
-        const { data: posts, error } = await _supabase.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
-        if (error) return console.error(error);
+    // --- פורום וקינון ---
+    async function loadForum() {
+        const { data: posts } = await _supabase.from('posts').select('*, replies(*)').order('created_at', { ascending: false });
+        if (!posts) return;
+
+        const isAdmin = user && user.email === 'ykrauss1@gmail.com';
+        const root = document.getElementById('forum-root');
         
-        const isAdmin = user && (user.email === 'ykrauss1@gmail.com' || user.name === 'ADMIN');
-
-        document.getElementById('posts-display').innerHTML = posts.map(p => {
-            const repliesHtml = (p.replies || []).map(r => `
-                <div class="reply-item">
-                    <span class="author">${r.user}:</span> ${r.content}
-                    <div class="action-bar">
-                        <button class="action-link" onclick="openReply('${p.id}', '${r.id}')">השב</button>
-                        ${isAdmin ? `<button class="action-link del" onclick="deleteItem('replies','${r.id}')">מחק</button>` : ''}
-                    </div>
-                    <div id="box-${r.id}"></div>
+        root.innerHTML = posts.map(p => `
+            <div class="post">
+                <div style="font-weight:bold; color:var(--primary)">${p.user}:</div>
+                <div>${p.content}</div>
+                <div class="action-bar">
+                    <button class="action-link" onclick="openReplyBox('${p.id}', '${p.id}')">השב</button>
+                    ${isAdmin ? `<button class="action-link btn-del" onclick="deleteItem('posts','${p.id}')">מחק פוסט</button>` : ''}
                 </div>
-            `).join('');
-
-            return `
-                <div class="post-container">
-                    <div class="post-main">
-                        <span class="author">${p.user}:</span> ${p.content}
-                        <div class="action-bar">
-                            <button class="action-link" onclick="openReply('${p.id}', '${p.id}')">השב</button>
-                            ${isAdmin ? `<button class="action-link del" onclick="deleteItem('posts','${p.id}')">מחק פוסט</button>` : ''}
+                <div id="box-${p.id}"></div>
+                <div class="replies-container">
+                    ${(p.replies || []).map(r => `
+                        <div class="reply-node">
+                            <div style="font-weight:bold">${r.user}:</div>
+                            <div>${r.content}</div>
+                            <div class="action-bar">
+                                <button class="action-link" onclick="openReplyBox('${p.id}', '${r.id}')">השב</button>
+                                ${isAdmin ? `<button class="action-link btn-del" onclick="deleteItem('replies','${r.id}')">מחק</button>` : ''}
+                            </div>
+                            <div id="box-${r.id}"></div>
                         </div>
-                        <div id="box-${p.id}"></div>
-                    </div>
-                    <div class="replies-area">${repliesHtml}</div>
+                    `).join('')}
                 </div>
-            `;
-        }).join('');
+            </div>
+        `).join('');
     }
 
-    function openReply(postId, targetId) {
+    function openReplyBox(postId, targetId) {
         document.querySelectorAll('.reply-box').forEach(el => el.remove());
-        const target = document.getElementById('box-' + targetId);
-        target.innerHTML = `
+        const div = document.getElementById('box-' + targetId);
+        div.innerHTML = `
             <div class="reply-box">
-                <textarea id="input-${targetId}" rows="2" placeholder="כתוב תגובה..."></textarea>
-                <div class="btn-row">
-                    <button class="btn btn-send" onclick="sendReply('${postId}', '${targetId}')">שלח</button>
+                <textarea id="input-${targetId}" placeholder="כתוב תגובה..."></textarea>
+                <div class="btn-group">
+                    <button class="btn btn-send" onclick="submitReply('${postId}', '${targetId}')">שלח</button>
                     <button class="btn btn-cancel" onclick="this.parentElement.parentElement.remove()">ביטול</button>
                 </div>
             </div>`;
-        document.getElementById(`input-${targetId}`).focus();
     }
 
-    async function sendReply(pId, tId) {
-        if(!user) return alert("נא להתחבר");
-        const txt = document.getElementById('input-' + tId).value;
-        if(!txt.trim()) return;
-        await _supabase.from('replies').insert([{ post_id: pId, user: user.name, content: txt }]);
-        fetchForum();
+    async function submitReply(pId, tId) {
+        if(!user) return login();
+        const val = document.getElementById('input-' + tId).value;
+        if(!val.trim()) return;
+        await _supabase.from('replies').insert([{ post_id: pId, user: user.name, content: val }]);
+        loadForum();
     }
 
-    async function addPost() {
-        if(!user) return alert("נא להתחבר");
-        const txt = document.getElementById('main-input').value;
-        if(!txt.trim()) return;
-        await _supabase.from('posts').insert([{ user: user.name, content: txt }]);
-        document.getElementById('main-input').value = "";
-        fetchForum();
+    async function sendMainPost() {
+        if(!user) return login();
+        const val = document.getElementById('main-post-input').value;
+        if(!val.trim()) return;
+        await _supabase.from('posts').insert([{ user: user.name, content: val }]);
+        document.getElementById('main-post-input').value = "";
+        loadForum();
     }
 
     async function deleteItem(table, id) {
-        if(!confirm("למחוק?")) return;
-        const { error } = await _supabase.from(table).delete().eq('id', id);
-        if(error) alert("שגיאה במחיקה: " + error.message);
-        else fetchForum();
+        if(confirm("למחוק?")) {
+            await _supabase.from(table).delete().eq('id', id);
+            loadForum();
+        }
     }
 
-    function openAuth() {
+    function login() {
         const n = prompt("שם:"), e = prompt("אימייל:");
-        if(n && e) { localStorage.setItem('skiUser', JSON.stringify({name:n, email:e})); location.reload(); }
+        if(n && e) {
+            localStorage.setItem('skiUser', JSON.stringify({name:n, email:e}));
+            location.reload();
+        }
     }
 
     if(user) {
-        document.getElementById('nav-controls').innerHTML = `
-            <span style="margin-left:10px">שלום, <b>${user.name}</b></span>
-            <button class="btn" style="background:red; color:white" onclick="localStorage.clear();location.reload()">התנתק</button>
+        document.getElementById('auth-zone').innerHTML = `
+            <span>שלום, <b>${user.name}</b></span>
+            <button class="btn btn-cancel" style="margin-right:10px" onclick="localStorage.clear();location.reload()">התנתק</button>
         `;
     }
 
+    // Escape לסגירת תיבות
     window.addEventListener('keydown', e => { if(e.key === 'Escape') document.querySelectorAll('.reply-box').forEach(el => el.remove()); });
-    
+
     loadWeather();
-    fetchForum();
+    loadForum();
 </script>
 </body>
 </html>
