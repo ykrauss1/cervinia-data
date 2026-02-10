@@ -2,107 +2,99 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - Locked Version</title>
+    <title>CerviniaLive - Final Stable Build</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --p: #0a192f; --a: #4cc9f0; --bg: #f4f7f9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: #333; }
+        :root { --dark: #0a192f; --light-blue: #4cc9f0; --bg: #f4f7f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
         
-        /* Navbar */
-        nav { background: var(--p); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .logo { font-size: 1.6rem; font-weight: 900; }
-        .logo span { color: var(--a); }
-
+        nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
 
-        /* 3 המלבנים השחורים - לא ייעלמו לעולם */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .stat-card { background: var(--p); color: white; padding: 20px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--a); }
-        .stat-card i { font-size: 1.5rem; color: var(--a); margin-bottom: 10px; }
-        .stat-val { font-size: 1.4rem; font-weight: bold; display: block; }
+        /* מלבנים שחורים - שלד קבוע */
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: var(--dark); color: white; padding: 20px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--light-blue); }
+        .stat-box i { font-size: 1.5rem; color: var(--light-blue); margin-bottom: 8px; }
 
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
 
-        /* טבלה עם עמודות מיושרות */
-        table { width: 100%; border-collapse: collapse; }
+        /* טבלה נקייה */
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #ddd; text-align: center; }
-        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; word-wrap: break-word; }
         .ltr { direction: ltr; display: inline-block; }
 
-        /* פורום עם הזחה (קינון) */
-        .post-item { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
-        .reply-item { margin-right: 40px; margin-top: 10px; padding: 10px; background: #f9f9f9; border-right: 4px solid var(--a); border-radius: 5px; }
-        .user-tag { font-weight: bold; color: var(--p); font-size: 0.9rem; }
+        /* פורום עם הזחה */
+        .post-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .reply-nested { margin-right: 40px; margin-top: 10px; padding: 10px; background: #f9f9f9; border-right: 4px solid var(--light-blue); border-radius: 5px; }
         
-        /* מודאל כניסה */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 350px; position: relative; }
-        .f-group { margin-bottom: 15px; position: relative; }
-        .f-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .f-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .eye { position: absolute; left: 10px; top: 35px; cursor: pointer; color: #777; }
-
-        .btn { padding: 8px 18px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-a { background: var(--a); color: var(--p); }
-        .btn-p { background: var(--p); color: white; width: 100%; margin-top: 10px; }
+        /* כפתורים */
         .btn-row { display: flex; flex-direction: row-reverse; gap: 10px; margin-top: 10px; }
+        .btn { padding: 8px 18px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-send { background: var(--light-blue); color: var(--dark); }
+        .btn-cancel { background: #ddd; color: #333; }
+
+        /* מודאל */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 350px; }
+        .input-group { margin-bottom: 15px; position: relative; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .eye { position: absolute; left: 10px; top: 10px; cursor: pointer; color: #777; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="logo">Cervinia<span>Live</span></div>
-    <div id="nav-auth"><button class="btn btn-a" onclick="openModal(true)">כניסה / הרשמה</button></div>
+    <div style="font-size:1.5rem; font-weight:900;">Cervinia<span style="color:var(--light-blue)">Live</span></div>
+    <div id="user-area"><button class="btn btn-send" onclick="toggleModal(true)">כניסה / הרשמה</button></div>
 </nav>
 
 <div class="container">
-    <div class="stats-grid">
-        <div class="stat-card"><i class="fa-solid fa-link"></i><small>סטטוס קישור</small><span class="stat-val">פתוח</span></div>
-        <div class="stat-card"><i class="fa-solid fa-person-skiing"></i><small>מסלולים פתוחים</small><span class="stat-val">58 / 72</span></div>
-        <div class="stat-card"><i class="fa-solid fa-wind"></i><small>רוח Plateau Rosa</small><span class="stat-val">12 קמ"ש</span></div>
+    <div class="stats-row">
+        <div class="stat-box"><i class="fa-solid fa-link"></i><br><small>סטטוס קישור</small><br><b>פתוח</b></div>
+        <div class="stat-box"><i class="fa-solid fa-mountain"></i><br><small>מסלולים</small><br><b>58 / 72</b></div>
+        <div class="stat-box"><i class="fa-solid fa-wind"></i><br><small>רוח</small><br><b>12 קמ"ש</b></div>
     </div>
 
     <div class="card">
-        <h3>תחזית שבועית</h3>
+        <h3>תחזית (DD/MM/YYYY)</h3>
         <table>
             <thead>
                 <tr>
-                    <th>תאריך</th>
-                    <th>טמפרטורה</th>
-                    <th>רוח</th>
-                    <th>ראות</th>
-                    <th>סטטוס</th>
+                    <th style="width:20%">תאריך</th>
+                    <th style="width:25%">טמפרטורה</th>
+                    <th style="width:20%">רוח</th>
+                    <th style="width:15%">ראות</th>
+                    <th style="width:20%">סטטוס</th>
                 </tr>
             </thead>
-            <tbody id="weather-body"></tbody>
+            <tbody id="weather-table"></tbody>
         </table>
     </div>
 
     <div class="card">
-        <h3>עדכונים ודיווחים</h3>
-        <div id="forum-content">טוען פורום...</div>
-        <div style="margin-top:20px;">
-            <textarea id="main-input" style="width:100%; height:60px; padding:10px;" placeholder="שתף משהו..."></textarea>
-            <div class="btn-row"><button class="btn btn-a" onclick="sendPost()">פרסם</button></div>
+        <h3>עדכונים מהשטח</h3>
+        <div id="forum-list">טוען הודעות...</div>
+        <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
+            <textarea id="main-msg" style="width:100%; height:60px; padding:10px; border-radius:5px; border:1px solid #ddd;" placeholder="כתוב עדכון..."></textarea>
+            <div class="btn-row"><button class="btn btn-send" onclick="addPost()">פרסם פוסט</button></div>
         </div>
     </div>
 </div>
 
 <div id="auth-modal" class="modal">
     <div class="modal-content">
-        <h2 id="m-title">כניסה</h2>
-        <div class="f-group"><label>אימייל</label><input type="email" id="m-email"></div>
-        <div class="f-group" id="m-name-group" style="display:none;"><label>שם משתמש</label><input type="text" id="m-name"></div>
-        <div class="f-group">
-            <label>סיסמה</label>
-            <input type="password" id="m-pass">
-            <i class="fa fa-eye eye" onclick="document.getElementById('m-pass').type=(document.getElementById('m-pass').type=='password'?'text':'password')"></i>
+        <h2 id="modal-title">כניסה</h2>
+        <div class="input-group"><input type="email" id="m-email" placeholder="אימייל"></div>
+        <div class="input-group" id="m-name-box" style="display:none;"><input type="text" id="m-name" placeholder="שם משתמש"></div>
+        <div class="input-group">
+            <input type="password" id="m-pass" placeholder="סיסמה">
+            <i class="fa fa-eye eye" onclick="togglePass()"></i>
         </div>
-        <button class="btn btn-p" onclick="doAuth()">בצע</button>
-        <p onclick="toggleSignup()" id="m-toggle" style="text-align:center; color:blue; cursor:pointer; margin-top:10px;">אין לך חשבון? הירשם</p>
-        <button class="btn" style="width:100%; background:#eee;" onclick="openModal(false)">ביטול</button>
+        <button class="btn btn-send" style="width:100%" onclick="handleAuth()">אישור</button>
+        <p onclick="switchAuth()" style="text-align:center; color:blue; cursor:pointer; margin-top:10px;">אין לך חשבון? הירשם</p>
+        <button class="btn btn-cancel" style="width:100%; margin-top:10px;" onclick="toggleModal(false)">ביטול</button>
     </div>
 </div>
 
@@ -110,28 +102,33 @@
     const S_URL = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co';
     const S_KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const _s = supabase.createClient(S_URL, S_KEY);
+    
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
-    let isSignup = false;
+    let isReg = false;
 
     window.onload = () => {
-        if(user) document.getElementById('nav-auth').innerHTML = `שלום, ${user.name} | <button class="btn" onclick="localStorage.clear();location.reload()">התנתק</button>`;
+        if(user) document.getElementById('user-area').innerHTML = `שלום, ${user.name} | <a href="#" onclick="logout()" style="color:white">התנתק</a>`;
         loadWeather();
         loadForum();
     };
 
     async function loadWeather() {
         try {
-            const r = await fetch('data.json?v=' + Math.random());
+            const r = await fetch('data.json?cache=' + Date.now());
             const d = await r.json();
-            document.getElementById('weather-body').innerHTML = d.forecast.slice(0,4).map(f => {
-                let dt = f.date;
-                if(dt.includes('-')) dt = dt.split('-').reverse().join('/');
+            document.getElementById('weather-table').innerHTML = d.forecast.slice(0,4).map(f => {
+                // ניקוי ידני מוחלט של הנתונים כדי למנוע ערבוב עמודות
+                let date = f.date.includes('-') ? f.date.split('-').reverse().join('/') : f.date;
+                let tMin = f.temp_min.replace(/[^\d.-]/g, '');
+                let tMax = f.temp_max.replace(/[^\d.-]/g, '');
+                let wind = f.wind.replace(/[^\d.]/g, '');
+                
                 return `<tr>
-                    <td><b>${dt}</b></td>
-                    <td class="ltr" style="color:red">${f.temp_min}/${f.temp_max}°C</td>
-                    <td class="ltr">${f.wind.replace('km/h','')} קמ"ש</td>
+                    <td><b>${date}</b></td>
+                    <td class="ltr" style="color:#d63031">${tMin}° / ${tMax}°C</td>
+                    <td class="ltr">${wind} קמ"ש</td>
                     <td>${f.visibility || 'טובה'}</td>
-                    <td style="color:green; font-weight:bold">פתוח</td>
+                    <td style="color:green; font-weight:bold;">פתוח</td>
                 </tr>`;
             }).join('');
         } catch(e) {}
@@ -139,31 +136,29 @@
 
     async function loadForum() {
         try {
-            const { data: ps, error } = await _s.from('posts').select('*, replies(*)').order('created_at', {ascending: false});
+            const { data, error } = await _s.from('posts').select('*, replies(*)').order('created_at', {ascending: false});
             if(error) throw error;
-            document.getElementById('forum-content').innerHTML = ps.map(p => `
-                <div class="post-item">
-                    <span class="user-tag">${p.user}:</span>
-                    <div>${p.content}</div>
+            document.getElementById('forum-list').innerHTML = data.map(p => {
+                const reps = (p.replies || []).map(r => `<div class="reply-nested"><b>${r.user}:</b> ${r.content}</div>`).join('');
+                return `<div class="post-box">
+                    <b style="color:var(--dark)">${p.user}:</b> ${p.content}
                     <div style="font-size:0.8rem; color:blue; cursor:pointer; margin-top:5px;" onclick="openRep('${p.id}')">השב</div>
-                    <div id="rep-target-${p.id}"></div>
-                    ${(p.replies||[]).map(r => `<div class="reply-item"><span class="user-tag">${r.user}:</span><br>${r.content}</div>`).join('')}
-                </div>
-            `).join('');
-        } catch(e) { document.getElementById('forum-content').innerText = "שגיאה בחיבור לפורום."; }
+                    <div id="rep-area-${p.id}"></div>
+                    ${reps}
+                </div>`;
+            }).join('');
+        } catch(e) {
+            document.getElementById('forum-list').innerHTML = `<div style="color:red">שגיאת חיבור. נסה לרענן (F5).</div>`;
+        }
     }
 
-    function openModal(s) { document.getElementById('auth-modal').style.display = s ? 'flex' : 'none'; }
-    function toggleSignup() {
-        isSignup = !isSignup;
-        document.getElementById('m-title').innerText = isSignup ? 'הרשמה' : 'כניסה';
-        document.getElementById('m-name-group').style.display = isSignup ? 'block' : 'none';
-        document.getElementById('m-toggle').innerText = isSignup ? 'יש לך חשבון? כנס' : 'אין לך חשבון? הירשם';
-    }
+    function toggleModal(s) { document.getElementById('auth-modal').style.display = s ? 'flex' : 'none'; }
+    function switchAuth() { isReg = !isReg; document.getElementById('m-name-box').style.display = isReg ? 'block' : 'none'; }
+    function togglePass() { const x = document.getElementById('m-pass'); x.type = x.type === 'password' ? 'text' : 'password'; }
 
-    function doAuth() {
+    function handleAuth() {
         const email = document.getElementById('m-email').value;
-        const name = isSignup ? document.getElementById('m-name').value : email.split('@')[0];
+        const name = isReg ? document.getElementById('m-name').value : email.split('@')[0];
         if(email) {
             user = { name, email };
             localStorage.setItem('skiUser', JSON.stringify(user));
@@ -171,27 +166,30 @@
         }
     }
 
-    async function sendPost() {
-        if(!user) return openModal(true);
-        const txt = document.getElementById('main-input').value;
-        if(txt.trim()) {
-            await _s.from('posts').insert([{ user: user.name, content: txt }]);
-            document.getElementById('main-input').value = "";
+    function logout() { localStorage.clear(); location.reload(); }
+
+    async function addPost() {
+        if(!user) return toggleModal(true);
+        const val = document.getElementById('main-msg').value;
+        if(val.trim()) {
+            await _s.from('posts').insert([{ user: user.name, content: val }]);
+            document.getElementById('main-msg').value = "";
             loadForum();
         }
     }
 
     function openRep(pId) {
-        if(!user) return openModal(true);
-        document.getElementById('rep-target-' + pId).innerHTML = `
+        if(!user) return toggleModal(true);
+        document.getElementById('rep-area-' + pId).innerHTML = `
             <div class="btn-row">
-                <textarea id="ti-${pId}" style="width:100%"></textarea>
-                <button class="btn btn-a" onclick="sendRep('${pId}')">שלח</button>
+                <textarea id="t-${pId}" style="width:100%"></textarea>
+                <button class="btn btn-send" onclick="sendRep('${pId}')">שלח</button>
+                <button class="btn btn-cancel" onclick="this.parentElement.remove()">ביטול</button>
             </div>`;
     }
 
     async function sendRep(pId) {
-        const val = document.getElementById('ti-' + pId).value;
+        const val = document.getElementById('t-' + pId).value;
         if(val.trim()) {
             await _s.from('replies').insert([{ post_id: pId, user: user.name, content: val }]);
             loadForum();
