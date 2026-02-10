@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Admin, Replies & Timestamp</title>
+    <title>CerviniaLive - True Nested Forum</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; }
@@ -10,33 +10,31 @@
         nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
         
-        /* שלד נעול */
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--dark); color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
         
-        /* טבלה */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { padding: 10px; border: 1px solid #eee; text-align: center; font-size: 0.95rem; }
+        th, td { padding: 10px; border: 1px solid #eee; text-align: center; }
 
-        /* פורום */
-        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
-        .reply-item { margin-right: 35px; margin-top: 10px; border-right: 3px solid var(--accent); padding: 8px 12px; background: #f0f7ff; border-radius: 4px; }
-        .user-tag { font-weight: bold; color: var(--dark); }
-        .time-tag { font-size: 0.75rem; color: #888; margin-right: 8px; }
-        .reply-link { color: #3498db; cursor: pointer; font-size: 0.8rem; margin-top: 5px; display: inline-block; font-weight: bold; }
+        /* פורום היררכי */
+        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 20px; background: white; position: relative; }
+        .reply-item { margin-right: 40px; margin-top: 10px; border-right: 3px solid var(--accent); padding: 8px 12px; background: #f8fbff; border-radius: 4px; }
+        .user-tag { font-weight: 800; color: var(--dark); }
+        .time-tag { font-size: 0.75rem; color: #999; margin-right: 8px; }
         
-        /* כפתורים */
-        .btn-row { display: flex; flex-direction: row-reverse; gap: 10px; margin-top: 10px; }
-        .btn { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-send { background: var(--accent); color: var(--dark); }
-        .btn-cancel { background: #eee; }
-        .del-btn { color: var(--error); cursor: pointer; background: none; border: none; font-size: 0.9rem; float: left; }
+        .action-link { color: #3498db; cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: inline-block; }
+        .del-btn { color: var(--error); cursor: pointer; background: none; border: none; float: left; }
 
-        /* מודאל */
+        /* תיבת תגובה בתוך הפוסט */
+        .inner-reply-box { margin-top: 10px; padding: 10px; background: #eee; border-radius: 8px; }
+        .btn-row { display: flex; flex-direction: row-reverse; gap: 10px; margin-top: 8px; }
+        .btn { padding: 6px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-send { background: var(--accent); color: var(--dark); }
+
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 340px; }
-        .input-f { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 320px; }
+        .input-f { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -48,9 +46,9 @@
 
 <div class="container">
     <div class="stats">
-        <div class="stat-card"><i class="fa fa-link"></i><br><small>קישור</small><br><b>פתוח</b></div>
-        <div class="stat-card"><i class="fa fa-mountain"></i><br><small>מסלולים</small><br><b>58/72</b></div>
-        <div class="stat-card"><i class="fa fa-wind"></i><br><small>רוח</small><br><b>12 קמ"ש</b></div>
+        <div class="stat-card"><i class="fa fa-link"></i><br><b>פתוח</b></div>
+        <div class="stat-card"><i class="fa fa-mountain"></i><br><b>58/72</b></div>
+        <div class="stat-card"><i class="fa fa-wind"></i><br><b>12 קמ"ש</b></div>
     </div>
 
     <div class="card">
@@ -63,9 +61,9 @@
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
-        <div id="f-container">טוען הודעות...</div>
+        <div id="f-container">טוען פורום...</div>
         <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
-            <textarea id="f-input" style="width:100%; height:80px; padding:10px; border-radius:8px; border:1px solid #ddd; font-family: inherit;" placeholder="כתוב עדכון..."></textarea>
+            <textarea id="f-input" style="width:100%; height:60px; padding:10px; border-radius:8px; border:1px solid #ddd;" placeholder="פרסם פוסט חדש..."></textarea>
             <div class="btn-row"><button class="btn btn-send" onclick="sendPost()">פרסם פוסט</button></div>
         </div>
     </div>
@@ -73,12 +71,11 @@
 
 <div id="login-modal" class="modal">
     <div class="modal-content">
-        <h2 style="margin-top:0">כניסה למערכת</h2>
+        <h3>כניסה</h3>
         <input type="email" id="u-email" class="input-f" placeholder="אימייל">
-        <input type="text" id="u-name" class="input-f" placeholder="שם שיוצג בפורום">
-        <input type="password" id="u-pass" class="input-f" placeholder="סיסמה">
-        <button class="btn btn-send" style="width:100%" onclick="login()">אישור</button>
-        <button class="btn btn-cancel" style="width:100%; margin-top:10px;" onclick="closeLogin()">ביטול</button>
+        <input type="text" id="u-name" class="input-f" placeholder="שם שיוצג">
+        <button class="btn btn-send" style="width:100%" onclick="login()">כניסה</button>
+        <button class="btn" style="width:100%; margin-top:5px;" onclick="closeLogin()">ביטול</button>
     </div>
 </div>
 
@@ -89,17 +86,12 @@
 
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
 
-    window.onload = () => {
-        renderAuth();
-        loadWeather();
-        loadForum();
-    };
+    window.onload = () => { renderAuth(); loadWeather(); loadForum(); };
 
     function renderAuth() {
         const area = document.getElementById('auth-area');
         if(user) {
-            const adminTag = user.email === 'ykrauss1@gmail.com' ? '<span style="color:var(--accent)">[Admin]</span>' : '';
-            area.innerHTML = `שלום, ${user.name} ${adminTag} | <a href="#" onclick="logout()" style="color:white; text-decoration:none;">התנתק</a>`;
+            area.innerHTML = `שלום, ${user.name} | <a href="#" onclick="logout()" style="color:white">התנתק</a>`;
         } else {
             area.innerHTML = `<button class="btn btn-send" onclick="document.getElementById('login-modal').style.display='flex'">כניסה</button>`;
         }
@@ -119,7 +111,7 @@
 
     function formatDate(iso) {
         const d = new Date(iso);
-        return d.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'}) + ' ,' + d.toLocaleDateString('he-IL', {day: '2-digit', month:'2-digit'});
+        return d.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'}) + ' ,' + d.toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'});
     }
 
     async function loadWeather() {
@@ -128,7 +120,7 @@
             const d = await r.json();
             document.getElementById('w-body').innerHTML = d.forecast.slice(0,4).map(f => {
                 let dt = f.date.includes('-') ? f.date.split('-').reverse().join('/') : f.date;
-                return `<tr><td><b>${dt}</b></td><td style="color:red;direction:ltr">${f.temp_min.replace(/[^\d.-]/g,'')}°/${f.temp_max.replace(/[^\d.-]/g,'')}°C</td><td>${f.wind.replace(/[^\d.]/g,'')} קמ"ש</td><td>${f.visibility}</td><td style="color:green;font-weight:bold">פתוח</td></tr>`;
+                return `<tr><td><b>${dt}</b></td><td style="color:red">${f.temp_min.replace(/[^\d.-]/g,'')}°/${f.temp_max.replace(/[^\d.-]/g,'')}°C</td><td>${f.wind.replace(/[^\d.]/g,'')} קמ"ש</td><td>${f.visibility}</td><td style="color:green;font-weight:bold">פתוח</td></tr>`;
             }).join('');
         } catch(e) {}
     }
@@ -140,46 +132,55 @@
             const isAdmin = user && user.email === 'ykrauss1@gmail.com';
 
             document.getElementById('f-container').innerHTML = data.map(p => {
-                const reps = (p.replies || []).map(r => `
+                const rs = (p.replies || []).map(r => `
                     <div class="reply-item">
+                        <span class="user-tag">${r.user}</span> <span class="time-tag">${formatDate(r.created_at)}</span>
+                        <div>${r.content}</div>
                         ${isAdmin ? `<button class="del-btn" onclick="del('replies','${r.id}')"><i class="fa fa-trash"></i></button>` : ''}
-                        <span class="user-tag">${r.user}:</span>
-                        <span class="time-tag">${formatDate(r.created_at)}</span>
-                        <div style="margin-top:4px;">${r.content}</div>
-                        <span class="reply-link" onclick="replyTo('${r.user}')">השב</span>
                     </div>`).join('');
 
                 return `
                     <div class="post">
-                        ${isAdmin ? `<button class="del-btn" onclick="del('posts','${p.id}')"><i class="fa fa-trash"></i> מחק</button>` : ''}
-                        <span class="user-tag">${p.user}:</span>
-                        <span class="time-tag">${formatDate(p.created_at)}</span>
-                        <div style="margin-top:8px;">${p.content}</div>
-                        <span class="reply-link" onclick="replyTo('${p.user}')">השב</span>
-                        ${reps}
+                        <span class="user-tag">${p.user}</span> <span class="time-tag">${formatDate(p.created_at)}</span>
+                        <div style="margin-top:5px;">${p.content}</div>
+                        <span class="action-link" onclick="showReplyBox('${p.id}')">השב</span>
+                        ${isAdmin ? `<button class="del-btn" onclick="del('posts','${p.id}')"><i class="fa fa-trash"></i></button>` : ''}
+                        <div id="box-${p.id}"></div>
+                        <div class="replies-list">${rs}</div>
                     </div>`;
             }).join('');
-        } catch(e) { document.getElementById('f-container').innerText = "שגיאת חיבור."; }
+        } catch(e) {}
     }
 
-    function replyTo(name) {
+    function showReplyBox(pId) {
         if(!user) return document.getElementById('login-modal').style.display='flex';
-        const input = document.getElementById('f-input');
-        input.value = `@${name}: `;
-        input.focus();
+        document.getElementById('box-' + pId).innerHTML = `
+            <div class="inner-reply-box">
+                <textarea id="input-${pId}" style="width:100%; border:1px solid #ccc; padding:5px;"></textarea>
+                <div class="btn-row">
+                    <button class="btn btn-send" onclick="sendReply('${pId}')">שלח תגובה</button>
+                    <button class="btn" onclick="this.parentElement.parentElement.remove()">ביטול</button>
+                </div>
+            </div>`;
     }
 
     async function sendPost() {
-        if(!user) return document.getElementById('login-modal').style.display='flex';
         const txt = document.getElementById('f-input').value;
-        if(!txt.trim()) return;
+        if(!user || !txt.trim()) return !user ? document.getElementById('login-modal').style.display='flex' : null;
         await fetch(`${API_URL}/posts`, { method: 'POST', ...CONF, body: JSON.stringify({ user: user.name, content: txt }) });
         document.getElementById('f-input').value = "";
         loadForum();
     }
 
+    async function sendReply(pId) {
+        const txt = document.getElementById('input-' + pId).value;
+        if(!txt.trim()) return;
+        await fetch(`${API_URL}/replies`, { method: 'POST', ...CONF, body: JSON.stringify({ post_id: pId, user: user.name, content: txt }) });
+        loadForum();
+    }
+
     async function del(tbl, id) {
-        if(confirm("למחוק הודעה זו?")) {
+        if(confirm("למחוק?")) {
             await fetch(`${API_URL}/${tbl}?id=eq.${id}`, { method: 'DELETE', ...CONF });
             loadForum();
         }
