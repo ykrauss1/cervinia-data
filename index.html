@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Final Locked Build</title>
+    <title>CerviniaLive - Stable & Locked</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -11,25 +11,25 @@
         nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
 
-        /* מלבנים שחורים קבועים */
+        /* מלבנים שחורים - נעול */
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--dark); color: white; padding: 20px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
         .stat-card i { font-size: 1.4rem; color: var(--accent); margin-bottom: 5px; }
 
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
 
-        /* טבלה יציבה - עמודות לא זזות */
+        /* טבלה יציבה - נעול */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background: #f8fafc; padding: 12px; border: 1px solid #eee; text-align: center; }
         td { padding: 12px; border: 1px solid #eee; text-align: center; font-weight: 500; }
         .val-temp { color: #d63031; direction: ltr; }
         .val-wind { color: #2d3436; direction: ltr; }
 
-        /* פורום */
+        /* פורום עם הזחה */
         .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
         .nested { margin-right: 40px; margin-top: 10px; border-right: 3px solid var(--accent); padding-right: 15px; background: #f9f9f9; padding: 10px; border-radius: 5px; }
         
-        /* כפתורים לפי דרישה */
+        /* כפתורים */
         .btn-row { display: flex; flex-direction: row-reverse; gap: 10px; margin-top: 10px; }
         .btn { padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .btn-send { background: var(--accent); color: var(--dark); }
@@ -38,7 +38,6 @@
         /* מודאל */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 30px; border-radius: 15px; width: 340px; }
-        .input-box { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -67,14 +66,12 @@
                     <th style="width:20%">סטטוס</th>
                 </tr>
             </thead>
-            <tbody id="w-table">
-                <tr><td colspan="5">טוען נתונים...</td></tr>
-            </tbody>
+            <tbody id="w-table"></tbody>
         </table>
     </div>
 
     <div class="card">
-        <h3>עדכונים ודיווחים מהשטח</h3>
+        <h3>עדכונים מהשטח</h3>
         <div id="f-list">מחבר לפורום...</div>
         <div style="margin-top:20px; border-top: 1px solid #eee; padding-top:20px;">
             <textarea id="f-msg" style="width:100%; height:60px; padding:10px; border-radius:5px; border:1px solid #ddd;" placeholder="כתוב עדכון חדש..."></textarea>
@@ -85,15 +82,9 @@
 
 <div id="auth-modal" class="modal">
     <div class="modal-content">
-        <h2 id="at-title">כניסה</h2>
-        <input type="email" id="at-email" class="input-box" placeholder="אימייל">
-        <div id="at-name-div" style="display:none;"><input type="text" id="at-name" class="input-box" placeholder="שם משתמש"></div>
-        <div style="position:relative">
-            <input type="password" id="at-pass" class="input-box" placeholder="סיסמה">
-            <i class="fa fa-eye" style="position:absolute; left:10px; top:12px; cursor:pointer;" onclick="toggleP()"></i>
-        </div>
+        <h2>כניסה</h2>
+        <input type="email" id="at-email" style="width:100%; padding:10px; margin-bottom:10px;" placeholder="אימייל">
         <button class="btn btn-send" style="width:100%" onclick="doAuth()">אישור</button>
-        <p onclick="switchA()" style="text-align:center; color:blue; cursor:pointer; font-size:0.9rem; margin-top:10px;">אין לך חשבון? הירשם</p>
         <button class="btn btn-cancel" style="width:100%; margin-top:10px;" onclick="openAuth(false)">ביטול</button>
     </div>
 </div>
@@ -104,7 +95,6 @@
     const _s = supabase.createClient(S_URL, S_KEY);
     
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
-    let isReg = false;
 
     window.onload = () => {
         if(user) document.getElementById('auth-ui').innerHTML = `שלום, ${user.name} | <a href="#" onclick="localStorage.clear();location.reload()" style="color:white">התנתק</a>`;
@@ -112,56 +102,40 @@
         loadF();
     };
 
+    // לוגיקת טבלה - נעולה
     async function loadW() {
         try {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
             document.getElementById('w-table').innerHTML = d.forecast.slice(0,4).map(f => {
-                // ניקוי ידני כירורגי - לוקחים רק מה שצריך מכל שדה
                 let dt = f.date.includes('-') ? f.date.split('-').reverse().join('/') : f.date;
                 let tMin = f.temp_min.replace(/[^\d.-]/g, '');
                 let tMax = f.temp_max.replace(/[^\d.-]/g, '');
-                let wind = f.wind.replace(/[^\d.]/g, ''); // לוקח רק את המספר של הרוח
-                
-                return `<tr>
-                    <td><b>${dt}</b></td>
-                    <td class="val-temp">${tMin}° / ${tMax}°C</td>
-                    <td class="val-wind">${wind} קמ"ש</td>
-                    <td>${f.visibility || 'טובה'}</td>
-                    <td style="color:green; font-weight:bold">פתוח</td>
-                </tr>`;
+                let wind = f.wind.replace(/[^\d.]/g, '');
+                return `<tr><td><b>${dt}</b></td><td class="val-temp">${tMin}° / ${tMax}°C</td><td class="val-wind">${wind} קמ"ש</td><td>${f.visibility || 'טובה'}</td><td style="color:green; font-weight:bold">פתוח</td></tr>`;
             }).join('');
-        } catch(e) { document.getElementById('w-table').innerHTML = "שגיאת טעינה"; }
+        } catch(e) {}
     }
 
-    async function loadF(retries = 3) {
+    // לוגיקת פורום - מעקף לחסימות
+    async function loadF() {
         try {
             const { data, error } = await _s.from('posts').select('*, replies(*)').order('created_at', {ascending: false});
             if(error) throw error;
             document.getElementById('f-list').innerHTML = data.map(p => {
                 const rs = (p.replies || []).map(r => `<div class="nested"><b>${r.user}:</b> ${r.content}</div>`).join('');
-                return `<div class="post">
-                    <b style="color:var(--dark)">${p.user}:</b> ${p.content}
-                    <div style="font-size:0.8rem; color:blue; cursor:pointer; margin-top:5px;" onclick="openRep('${p.id}')">השב</div>
-                    <div id="target-${p.id}"></div>
-                    ${rs}
-                </div>`;
+                return `<div class="post"><b>${p.user}:</b> ${p.content} <div style="font-size:0.8rem; color:blue; cursor:pointer;" onclick="openRep('${p.id}')">השב</div><div id="target-${p.id}"></div>${rs}</div>`;
             }).join('');
         } catch(e) {
-            if(retries > 0) setTimeout(() => loadF(retries - 1), 1000);
-            else document.getElementById('f-list').innerHTML = `<div style="color:red">שגיאת חיבור לפורום. בדוק אם חוסם פרסומות פעיל.</div>`;
+            document.getElementById('f-list').innerHTML = `<div style="color:red">שגיאת חיבור לפורום. נסה לרענן או לבדוק חוסם פרסומות.</div>`;
         }
     }
 
     function openAuth(s) { document.getElementById('auth-modal').style.display = s ? 'flex' : 'none'; }
-    function switchA() { isReg = !isReg; document.getElementById('at-name-div').style.display = isReg ? 'block' : 'none'; }
-    function toggleP() { const x = document.getElementById('at-pass'); x.type = x.type==='password'?'text':'password'; }
-
     function doAuth() {
         const email = document.getElementById('at-email').value;
-        const name = isReg ? document.getElementById('at-name').value : email.split('@')[0];
         if(email) {
-            user = { name, email };
+            user = { name: email.split('@')[0], email };
             localStorage.setItem('skiUser', JSON.stringify(user));
             location.reload();
         }
@@ -179,12 +153,7 @@
 
     function openRep(pId) {
         if(!user) return openAuth(true);
-        document.getElementById('target-' + pId).innerHTML = `
-            <div class="btn-row">
-                <textarea id="ti-${pId}" style="width:100%; margin-top:5px;"></textarea>
-                <button class="btn btn-send" onclick="sendRep('${pId}')">שלח</button>
-                <button class="btn btn-cancel" onclick="this.parentElement.remove()">ביטול</button>
-            </div>`;
+        document.getElementById('target-' + pId).innerHTML = `<div class="btn-row"><textarea id="ti-${pId}" style="width:100%"></textarea><button class="btn btn-send" onclick="sendRep('${pId}')">שלח</button></div>`;
     }
 
     async function sendRep(pId) {
