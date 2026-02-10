@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - Database Edition</title>
+    <title>CerviniaLive - Stable System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -15,9 +15,6 @@
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
 
-        /* Align Minuses and Temperature */
-        .ltr-text { direction: ltr; display: inline-block; }
-
         /* Weather Levels */
         .weather-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .weather-card { background: white; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #eee; }
@@ -27,29 +24,31 @@
         .forecast-table { width: 100%; border-collapse: collapse; text-align: center; }
         .forecast-table th { background: #f1f5f9; padding: 12px; border-bottom: 2px solid #ddd; }
         .forecast-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .ltr-text { direction: ltr; display: inline-block; }
 
         /* Forum - Fixed Height & Scroll */
-        .forum-window { max-height: 450px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 15px; }
+        .forum-window { max-height: 450px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
         .post { border-bottom: 2px solid #f0f0f0; padding: 15px 0; }
         .time-stamp { font-size: 0.75em; color: #888; margin-right: 10px; }
-        .replies-container { margin-right: 20px; border-right: 2px solid #ddd; padding-right: 10px; margin-top: 8px; }
-        .reply-item { background: #f0f4f8; padding: 8px; border-radius: 5px; margin-top: 5px; font-size: 0.9em; }
 
-        /* Auth Modal */
+        /* Auth Modal - FULL VERSION */
         #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 3000; }
-        .auth-card { background: white; padding: 30px; border-radius: 15px; width: 320px; }
-        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .auth-card { background: white; padding: 30px; border-radius: 15px; width: 350px; position: relative; }
+        .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
+        .tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: bold; color: #777; }
+        .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        .pass-container { position: relative; width: 100%; }
+        .pass-container i { position: absolute; left: 10px; top: 12px; cursor: pointer; color: #777; }
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
         .btn-primary { background: var(--accent); color: var(--primary); }
-        .btn-primary:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="logo-text">Cervinia<span>Live</span></div>
-    <div id="nav-controls">
-        <button class="btn btn-primary" onclick="openAuth()">כניסה / הרשמה</button>
-    </div>
+    <div id="nav-controls"><button class="btn btn-primary" style="width:auto" onclick="openAuth()">כניסה / הרשמה</button></div>
 </nav>
 
 <div class="container">
@@ -60,7 +59,7 @@
     </div>
 
     <div class="card">
-        <h3><i class="fa-solid fa-calendar-day"></i> תחזית (4 ימים קרובים)</h3>
+        <h3>תחזית (החל מהיום)</h3>
         <table class="forecast-table">
             <thead><tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th><th>ממטרים</th><th>סטטוס</th></tr></thead>
             <tbody id="forecast-body"></tbody>
@@ -68,21 +67,32 @@
     </div>
 
     <div class="card">
-        <h3><i class="fa-solid fa-comments"></i> עדכונים מהשטח</h3>
-        <div id="posts-container" class="forum-window">טוען הודעות מבסיס הנתונים...</div>
-        <div style="margin-top:15px;">
-            <textarea id="forum-input" rows="2" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;" placeholder="כתוב הודעה..."></textarea>
-            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="addPost()">שלח פוסט</button>
-        </div>
+        <h3>עדכונים מהשטח</h3>
+        <div id="posts-container" class="forum-window">טוען הודעות...</div>
+        <textarea id="forum-input" rows="2" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;" placeholder="כתוב עדכון..."></textarea>
+        <button class="btn btn-primary" style="margin-top:10px" onclick="addPost()">שלח פוסט</button>
     </div>
 </div>
 
 <div id="auth-modal" onclick="if(event.target.id === 'auth-modal') closeAuth()">
     <div class="auth-card" onclick="event.stopPropagation()">
-        <h3 style="margin-top:0">התחברות למערכת</h3>
-        <input type="text" id="a-name" placeholder="שם משתמש" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
-        <input type="email" id="a-email" placeholder="אימייל" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:5px;">
-        <button class="btn btn-primary" style="width:100%" onclick="processAuth()">אישור</button>
+        <div class="auth-tabs">
+            <div id="tab-login" class="tab active" onclick="switchTab('login')">כניסה</div>
+            <div id="tab-reg" class="tab" onclick="switchTab('reg')">הרשמה</div>
+        </div>
+        <input type="text" id="a-name" placeholder="שם משתמש">
+        <input type="email" id="a-email" placeholder="אימייל">
+        <div class="pass-container">
+            <input type="password" id="a-pass" placeholder="סיסמה">
+            <i class="fa-solid fa-eye" onclick="togglePass('a-pass')"></i>
+        </div>
+        <div id="reg-fields" style="display:none">
+            <div class="pass-container">
+                <input type="password" id="a-pass-conf" placeholder="אימות סיסמה">
+                <i class="fa-solid fa-eye" onclick="togglePass('a-pass-conf')"></i>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="processAuth()">אישור</button>
     </div>
 </div>
 
@@ -91,28 +101,40 @@
     const SUPABASE_KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    // ניהול המשתמש הנוכחי לצורך זיהוי בפורום
     let currentUser = JSON.parse(localStorage.getItem('skiUser')) || null;
+    let authMode = 'login';
 
     function openAuth() { document.getElementById('auth-modal').style.display = 'flex'; }
     function closeAuth() { document.getElementById('auth-modal').style.display = 'none'; }
-    
-    function processAuth() {
+    function togglePass(id) { 
+        const el = document.getElementById(id);
+        el.type = el.type === 'password' ? 'text' : 'password';
+    }
+    function switchTab(mode) {
+        authMode = mode;
+        document.getElementById('tab-login').classList.toggle('active', mode==='login');
+        document.getElementById('tab-reg').classList.toggle('active', mode==='reg');
+        document.getElementById('reg-fields').style.display = mode==='reg' ? 'block' : 'none';
+    }
+
+    async function processAuth() {
         const name = document.getElementById('a-name').value;
         const email = document.getElementById('a-email').value;
-        if(name && email) {
-            currentUser = { name, email };
-            localStorage.setItem('skiUser', JSON.stringify(currentUser));
-            location.reload();
-        }
+        const pass = document.getElementById('a-pass').value;
+        
+        if(!name || !email || !pass) return alert("נא למלא הכל");
+        if(authMode === 'reg' && pass !== document.getElementById('a-pass-conf').value) return alert("הסיסמאות לא תואמות");
+
+        // שמירת סשן מקומי
+        currentUser = { name, email };
+        localStorage.setItem('skiUser', JSON.stringify(currentUser));
+        location.reload();
     }
 
     async function loadData() {
         try {
             const res = await fetch('data.json?v=' + Date.now());
             const data = await res.json();
-            
-            // עדכון גבהים
             if(data.levels) {
                 document.getElementById('t-town-temp').innerText = data.levels.town.temp;
                 document.getElementById('t-town-snow').innerText = data.levels.town.snow;
@@ -121,26 +143,22 @@
                 document.getElementById('t-plateau-temp').innerText = data.levels.plateau.temp;
                 document.getElementById('t-plateau-snow').innerText = data.levels.plateau.snow;
             }
-
-            // סינון תאריכים
             const today = new Date(); today.setHours(0,0,0,0);
             const future = data.forecast.filter(day => {
                 const [d, m] = day.date.split('-');
                 return new Date(2026, m-1, d) >= today;
             }).slice(0, 4);
-
-            document.getElementById('forecast-body').innerHTML = future.map(day => {
-                const isRisk = parseInt(day.wind) > 40;
-                return `<tr>
+            document.getElementById('forecast-body').innerHTML = future.map(day => `
+                <tr>
                     <td>${day.date}</td>
                     <td class="ltr-text">${day.temp_min}/${day.temp_max}°C</td>
                     <td>${day.wind}km/h</td>
                     <td>${day.visibility || 'N/A'}</td>
                     <td>${day.humidity || 'N/A'}</td>
-                    <td style="color:${isRisk?'orange':'green'}; font-weight:bold">${isRisk?'בסיכון':'פתוח'}</td>
-                </tr>`;
-            }).join('');
-        } catch(e) { console.error("Data Error:", e); }
+                    <td style="color:${parseInt(day.wind)>45?'orange':'green'}; font-weight:bold">${parseInt(day.wind)>45?'בסיכון':'פתוח'}</td>
+                </tr>
+            `).join('');
+        } catch(e) {}
     }
 
     async function fetchPosts() {
@@ -149,10 +167,7 @@
             document.getElementById('posts-container').innerHTML = posts.map(p => `
                 <div class="post">
                     <b>${p.user}</b> <span class="time-stamp">${new Date(p.created_at).toLocaleString('he-IL')}</span>
-                    <div style="margin-top:5px">${p.content}</div>
-                    <div class="replies-container">
-                        ${(p.replies||[]).map(r => `<div class="reply-item"><b>${r.user}:</b> ${r.content}</div>`).join('')}
-                    </div>
+                    <div>${p.content}</div>
                 </div>
             `).join('');
         }
@@ -162,9 +177,8 @@
         if(!currentUser) return openAuth();
         const content = document.getElementById('forum-input').value;
         if(content.trim()) {
-            await _supabase.from('posts').insert([{ user: currentUser.name, content: content }]);
-            document.getElementById('forum-input').value = "";
-            fetchPosts();
+            await _supabase.from('posts').insert([{ user: currentUser.name, content }]);
+            location.reload();
         }
     }
 
@@ -172,8 +186,7 @@
         document.getElementById('nav-controls').innerHTML = `<span>שלום, <b>${currentUser.name}</b></span> <button onclick="localStorage.clear();location.reload()" style="background:none; border:none; color:white; cursor:pointer; text-decoration:underline; margin-right:10px;">התנתק</button>`; 
     }
     
-    loadData();
-    fetchPosts();
+    loadData(); fetchPosts();
 </script>
 </body>
 </html>
