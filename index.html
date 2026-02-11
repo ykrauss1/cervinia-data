@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Stable Version</title>
+    <title>CerviniaLive - Professional Threading</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; }
@@ -12,26 +12,25 @@
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--dark); color: white; padding: 20px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
-
-        /* פורום */
+        
+        /* עיצוב הפורום */
         .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
         .reply-item { 
-            margin-top: 10px; 
-            padding: 10px; 
-            background: #f8fbff; 
-            border-right: 4px solid #cbd5e0; 
+            margin-top: 10px; padding: 10px; 
+            background: #f8fbff; border-right: 4px solid #cbd5e0; 
             border-radius: 6px; 
         }
-        /* הזחה לתגובה שהיא תגובה למשהו אחר */
-        .reply-item.is-child { margin-right: 40px; border-right-color: var(--accent); }
+        /* הזחה משתנה לפי עומק */
+        .depth-1 { margin-right: 40px; border-right-color: var(--accent); }
+        .depth-2 { margin-right: 80px; border-right-color: #2c3e50; }
 
         .user-tag { font-weight: 800; color: var(--dark); }
         .time-tag { font-size: 0.75rem; color: #999; margin-right: 10px; }
         .action-link { color: #3498db; cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: inline-block; }
-        .del-btn { color: var(--error); cursor: pointer; background: #fff1f0; border: 1px solid var(--error); border-radius: 4px; float: left; padding: 2px 8px; font-size: 0.8rem; }
+        .del-btn { color: var(--error); cursor: pointer; float: left; border: none; background: none; font-size: 0.9rem; }
+        .logout-btn { background: none; border: 1px solid white; color: white; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
         
+        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; }
         .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
@@ -44,24 +43,16 @@
 
 <div class="container">
     <div class="stats">
-        <div class="stat-card"><i class="fa fa-link"></i><br><small>קישור</small><br><b>טוען...</b></div>
+        <div class="stat-card"><i class="fa fa-link"></i><br><small>קישור לצ'רמט</small><br><b>בבדיקה</b></div>
         <div class="stat-card"><i class="fa fa-mountain"></i><br><small>מסלולים</small><br><b>109</b></div>
         <div class="stat-card"><i class="fa fa-wind"></i><br><small>מעליות</small><br><b>47</b></div>
-    </div>
-
-    <div class="card">
-        <h3>תחזית ל-4 ימים הקרובים</h3>
-        <table>
-            <thead><tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th><th>סטטוס</th></tr></thead>
-            <tbody id="w-body"></tbody>
-        </table>
     </div>
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
         <div id="f-container">טוען הודעות...</div>
         <hr>
-        <textarea id="f-input" style="width:100%; height:70px; padding:10px;" placeholder="כתוב פוסט חדש..."></textarea>
+        <textarea id="f-input" placeholder="כתוב פוסט חדש..."></textarea>
         <button class="btn-send" onclick="sendPost()">פרסם פוסט</button>
     </div>
 </div>
@@ -73,50 +64,23 @@
 
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
 
-    window.onload = () => { renderHeader(); loadW(); loadF(); };
+    window.onload = () => { renderHeader(); loadF(); };
 
     function renderHeader() {
         const area = document.getElementById('auth-area');
         if(user) {
-            const isAdmin = user.email === 'ykrauss1@gmail.com';
-            // הוספת כפתור התנתקות כפי שביקשת
-            area.innerHTML = `
-                ${isAdmin ? '<span style="color:red; font-weight:bold; margin-left:10px;">ADMIN</span>' : ''}
-                שלום, <b>${user.name}</b> 
-                | <button onclick="logout()" style="background:none; border:none; color:white; cursor:pointer; text-decoration:underline;">התנתק</button>`;
+            area.innerHTML = `שלום, <b>${user.name}</b> | <button class="logout-btn" onclick="logout()">התנתק</button>`;
         } else {
-            area.innerHTML = `<button class="btn-send" onclick="promptLogin()">כניסה</button>`;
+            area.innerHTML = `<button class="btn-send" onclick="login()">כניסה</button>`;
         }
     }
 
-    function promptLogin() {
-        const name = prompt("שם מלא:");
-        const email = prompt("אימייל:");
-        if(name && email) {
-            user = { name, email };
-            localStorage.setItem('skiUser', JSON.stringify(user));
-            location.reload();
-        }
+    function login() {
+        const n = prompt("שם:"); const e = prompt("אימייל:");
+        if(n && e) { user = {name:n, email:e}; localStorage.setItem('skiUser', JSON.stringify(user)); location.reload(); }
     }
 
     function logout() { localStorage.removeItem('skiUser'); location.reload(); }
-
-    async function loadW() {
-        try {
-            const r = await fetch('data.json?v=' + Date.now());
-            const d = await r.json();
-            const today = new Date(); today.setHours(0,0,0,0);
-            const future = d.forecast.filter(f => new Date(f.date) >= today).slice(0,4);
-            document.getElementById('w-body').innerHTML = future.map(f => `
-                <tr>
-                    <td><b>${f.date.split('-').reverse().join('/')}</b></td>
-                    <td style="direction:ltr">${f.temp_min}/${f.temp_max}</td>
-                    <td>${f.wind}</td>
-                    <td>${f.visibility}</td>
-                    <td>פתוח</td>
-                </tr>`).join('');
-        } catch(e) {}
-    }
 
     async function loadF() {
         try {
@@ -124,61 +88,71 @@
             const data = await res.json();
             const isAdmin = user && user.email === 'ykrauss1@gmail.com';
 
-            document.getElementById('f-container').innerHTML = data.map(p => {
-                const rs = (p.replies || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at)).map(r => `
-                    <div class="reply-item ${r.content.includes('@') ? 'is-child' : ''}">
-                        ${isAdmin ? `<button class="del-btn" onclick="delMsg('replies','${r.id}')">מחק</button>` : ''}
-                        <span class="user-tag">${r.user}</span> <span class="time-tag">${new Date(r.created_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span>
-                        <div>${r.content}</div>
-                        <span class="action-link" onclick="openBox('${p.id}', '${r.user}', this)">השב</span>
-                        <div class="reply-box-target"></div>
-                    </div>`).join('');
+            let html = '';
+            data.forEach(p => {
+                const replies = p.replies || [];
+                replies.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
 
-                return `
+                // פונקציית עזר לבניית עץ תגובות
+                function buildTree(parentId = null, depth = 0) {
+                    return replies
+                        .filter(r => r.parent_id === parentId)
+                        .map(r => `
+                            <div class="reply-item ${depth > 0 ? 'depth-' + depth : ''}">
+                                ${isAdmin ? `<button class="del-btn" onclick="delMsg('replies','${r.id}')"><i class="fa fa-trash"></i></button>` : ''}
+                                <span class="user-tag">${r.user}</span>
+                                <span class="time-tag">${new Date(r.created_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span>
+                                <div>${r.content}</div>
+                                <span class="action-link" onclick="openBox('${p.id}', '${r.user}', this, '${r.id}')">השב</span>
+                                <div class="reply-target"></div>
+                                ${buildTree(r.id, depth + 1).join('')}
+                            </div>
+                        `);
+                }
+
+                html += `
                     <div class="post">
                         ${isAdmin ? `<button class="del-btn" onclick="delMsg('posts','${p.id}')">מחק פוסט</button>` : ''}
-                        <span class="user-tag">${p.user}</span> <span class="time-tag">${new Date(p.created_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span>
+                        <span class="user-tag">${p.user}</span>
                         <div style="margin:10px 0; font-weight:bold;">${p.content}</div>
-                        <span class="action-link" onclick="openBox('${p.id}', '${p.user}', this)">השב</span>
-                        <div class="reply-box-target"></div>
-                        <div class="replies-list">${rs}</div>
+                        <span class="action-link" onclick="openBox('${p.id}', '${p.user}', this, null)">השב</span>
+                        <div class="reply-target"></div>
+                        <div class="replies-list">${buildTree(null, 0).join('')}</div>
                     </div>`;
-            }).join('');
+            });
+            document.getElementById('f-container').innerHTML = html;
         } catch(e) {}
     }
 
-    function openBox(pId, toUser, el) {
-        if(!user) return alert("התחבר קודם");
+    function openBox(pId, toUser, el, parentId) {
+        if(!user) return alert("התחבר");
         const target = el.nextElementSibling;
         if(target.innerHTML !== '') { target.innerHTML = ''; return; }
-        document.querySelectorAll('.reply-box-target').forEach(b => b.innerHTML = '');
+        document.querySelectorAll('.reply-target').forEach(t => t.innerHTML = '');
         target.innerHTML = `
-            <div style="margin-top:10px; background:#eee; padding:10px; border-radius:5px;">
-                <textarea id="temp-in-${pId}" style="width:100%;">@${toUser}: </textarea>
-                <button class="btn-send" onclick="sendReply('${pId}')">שלח</button>
+            <div style="margin:10px 0; background:#eee; padding:10px; border-radius:5px;">
+                <textarea id="temp-in-${pId}">@${toUser}: </textarea>
+                <button class="btn-send" onclick="sendReply('${pId}', ${parentId ? `'${parentId}'` : 'null'})">שלח</button>
             </div>`;
     }
 
     async function sendPost() {
-        const val = document.getElementById('f-input').value;
-        if(!val.trim() || !user) return;
-        await fetch(`${API}/posts`, { method:'POST', ...HEAD, body: JSON.stringify({user: user.name, content: val}) });
-        document.getElementById('f-input').value = '';
-        loadF();
+        const c = document.getElementById('f-input').value;
+        if(!c.trim()) return;
+        await fetch(`${API}/posts`, { method:'POST', ...HEAD, body: JSON.stringify({user: user.name, content: c}) });
+        document.getElementById('f-input').value = ''; loadF();
     }
 
-    async function sendReply(pId) {
-        const val = document.querySelector(`#temp-in-${pId}`).value;
-        if(!val.trim()) return;
-        await fetch(`${API}/replies`, { method:'POST', ...HEAD, body: JSON.stringify({post_id: pId, user: user.name, content: val}) });
+    async function sendReply(pId, parentId) {
+        const c = document.querySelector(`#temp-in-${pId}`).value;
+        if(!c.trim()) return;
+        const body = { post_id: pId, user: user.name, content: c, parent_id: parentId };
+        await fetch(`${API}/replies`, { method:'POST', ...HEAD, body: JSON.stringify(body) });
         loadF();
     }
 
     async function delMsg(table, id) {
-        if(confirm("למחוק?")) {
-            await fetch(`${API}/${table}?id=eq.${id}`, { method:'DELETE', headers: HEAD.headers });
-            loadF();
-        }
+        if(confirm("למחוק?")) { await fetch(`${API}/${table}?id=eq.${id}`, { method:'DELETE', headers: HEAD.headers }); loadF(); }
     }
 </script>
 </body>
