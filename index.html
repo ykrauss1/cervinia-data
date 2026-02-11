@@ -2,15 +2,32 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Stable Version</title>
+    <title>CerviniaLive - All-in-One</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; }
+        :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --white: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
         nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        
+        /* בלוק סטטיסטיקה */
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--dark); color: white; padding: 20px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
+
+        /* בלוק שירותים חדש */
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 25px; }
+        .service-btn { background: var(--white); border: 1px solid #ddd; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; text-decoration: none; color: var(--dark); font-weight: bold; }
+        .service-btn:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-3px); }
+        .service-btn i { font-size: 1.5rem; margin-bottom: 8px; display: block; color: var(--accent); }
+        .service-btn:hover i { color: var(--dark); }
+
+        /* בלוק מצלמות חדש */
+        .webcam-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .webcam-card { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .webcam-card img { width: 100%; border-radius: 8px; border: 1px solid #eee; }
+        .webcam-title { font-weight: bold; margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+
+        /* עיצוב הפורום והתחזית (לא השתנה) */
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
@@ -31,10 +48,35 @@
 </nav>
 
 <div class="container">
+    
     <div class="stats">
         <div class="stat-card"><i class="fa fa-mountain"></i><br><small>מסלולים</small><br><b>109</b></div>
         <div class="stat-card"><i class="fa fa-wind"></i><br><small>מעליות</small><br><b>47</b></div>
-        <div class="stat-card"><i class="fa fa-skiers"></i><br><small>מצב האתר</small><br><b>פתוח</b></div>
+        <div class="stat-card"><i class="fa fa- skiers"></i><br><small>מצב האתר</small><br><b>פתוח</b></div>
+    </div>
+
+    <div class="services-grid">
+        <a href="#" class="service-btn"><i class="fa fa-hotel"></i>אירוח</a>
+        <a href="#" class="service-btn"><i class="fa fa-person-skiing"></i>הדרכת סקי</a>
+        <a href="#" class="service-btn"><i class="fa fa-tools"></i>השכרת ציוד</a>
+        <a href="#" class="service-btn"><i class="fa fa-car"></i>השכרת רכב</a>
+        <a href="#" class="service-btn"><i class="fa fa-map-marked-alt"></i>מפות האתר</a>
+    </div>
+
+    <h3 style="margin-bottom:15px;"><i class="fa fa-video"></i> מצלמות בשידור חי</h3>
+    <div class="webcam-section">
+        <div class="webcam-card">
+            <div class="webcam-title"><span style="color:red">●</span> Plan Maison (2550m)</div>
+            <img src="https://images.viedat.com/v2/cervinia-plan-maison/latest.jpg" alt="Plan Maison">
+        </div>
+        <div class="webcam-card">
+            <div class="webcam-title"><span style="color:red">●</span> Plateau Rosa (3480m)</div>
+            <img src="https://images.viedat.com/v2/cervinia-plateau-rosa/latest.jpg" alt="Plateau Rosa">
+        </div>
+        <div class="webcam-card">
+            <div class="webcam-title"><span style="color:red">●</span> Cervinia Village (2050m)</div>
+            <img src="https://images.viedat.com/v2/cervinia-village/latest.jpg" alt="Cervinia Village">
+        </div>
     </div>
 
     <div class="card">
@@ -55,6 +97,7 @@
 </div>
 
 <script>
+    // הגדרות API (לא השתנו)
     const API = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co/rest/v1';
     const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json', 'Prefer': 'representation' }};
@@ -64,6 +107,7 @@
 
     window.onload = () => { renderHeader(); loadW(); loadF(); };
 
+    // --- בלוק פונקציות ממשק (לא השתנה) ---
     function renderHeader() {
         const area = document.getElementById('auth-area');
         if(user) {
@@ -73,6 +117,7 @@
         }
     }
 
+    // --- בלוק תחזית (לא השתנה) ---
     async function loadW() {
         try {
             const r = await fetch('data.json?v=' + Date.now());
@@ -81,6 +126,7 @@
         } catch(e) { document.getElementById('w-body').innerHTML = 'תקלה בטעינה'; }
     }
 
+    // --- בלוק פורום (לא השתנה - כולל תיקוני ביטול ופוקוס) ---
     async function loadF() {
         try {
             const res = await fetch(`${API}/posts?select=*,replies(*)&order=created_at.desc`, HEAD);
@@ -138,16 +184,13 @@
     function openBox(pId, toUser, el, parentId) {
         const target = el.nextElementSibling;
         if(target.innerHTML !== '') { target.innerHTML = ''; return; }
-        
         document.querySelectorAll('.reply-target').forEach(t => t.innerHTML = '');
-        
         target.innerHTML = `
             <div style="margin:10px 0;">
                 <textarea id="temp-in-${pId}" onkeydown="if(event.key==='Escape') closeBox(this)">@${toUser}: </textarea><br>
                 <button class="btn-send" onclick="sendReply('${pId}', ${parentId ? `'${parentId}'` : 'null'})">שלח</button>
                 <button class="btn-cancel" onclick="closeBox(this)">ביטול</button>
             </div>`;
-            
         const tx = document.getElementById(`temp-in-${pId}`);
         tx.focus();
         tx.setSelectionRange(tx.value.length, tx.value.length);
