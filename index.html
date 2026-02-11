@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Locked & Secure</title>
+    <title>CerviniaLive - Final Stable</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
@@ -10,39 +10,32 @@
         nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
         
-        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--dark); color: white; padding: 20px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
+        .stat-card { background: var(--dark); color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
 
         .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 25px; }
         .service-btn { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; color: var(--dark); font-weight: bold; transition: all 0.3s ease; }
         .service-btn:hover { background: var(--accent); transform: translateY(-3px); }
         .service-btn i { font-size: 1.5rem; margin-bottom: 8px; display: block; color: var(--accent); }
 
-        .webcam-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .webcam-card { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
-        .webcam-container { position: relative; width: 100%; height: 200px; background: #eee; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .webcam-img { width: 100%; height: 100%; object-fit: cover; }
-        .cam-fallback { position: absolute; font-size: 0.8rem; font-weight: bold; color: #666; text-decoration: none; }
-
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
+        
         .prob-High { color: var(--success); font-weight: bold; }
         .prob-Medium { color: var(--warning); font-weight: bold; }
         .prob-Low { color: var(--error); font-weight: bold; }
+        .last-update { font-size: 0.8rem; color: #888; text-align: left; margin-top: 10px; }
 
-        /* פורום - שחזור מלא */
-        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
+        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; position: relative; }
         .reply-item { margin-top: 10px; padding: 10px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 6px; }
         .del-btn { color: var(--error); cursor: pointer; float: left; border: 1px solid var(--error); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; background: white; }
-        .del-btn:hover { background: var(--error); color: white; }
         .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .btn-cancel { background: #ccc; color: #333; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 5px; }
         textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; font-family: inherit; }
 
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 90%; max-width: 900px; padding: 20px; border-radius: 15px; position: relative; }
-        #map-frame { width: 100%; height: 500px; border-radius: 8px; border: 1px solid #ddd; }
+        .modal-content { background: white; width: 95%; max-width: 1000px; padding: 20px; border-radius: 15px; position: relative; max-height: 90vh; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -54,47 +47,21 @@
 
 <div class="container">
     <div class="stats">
+        <div class="stat-card"><i class="fa fa-thermometer-half"></i><br><small>טמפ' כעת</small><br><b id="stat-temp">--</b></div>
         <div class="stat-card"><i class="fa fa-mountain"></i><br><small>מסלולים</small><br><b id="stat-slopes">--</b></div>
         <div class="stat-card"><i class="fa fa-wind"></i><br><small>מעליות</small><br><b id="stat-lifts">--</b></div>
-        <div class="stat-card"><i class="fa fa-skiers"></i><br><small>מצב האתר</small><br><b id="stat-conn">--</b></div>
+        <div class="stat-card"><i class="fa fa-check-circle"></i><br><small>מצב האתר</small><br><b id="stat-conn">--</b></div>
     </div>
 
     <div class="services-grid">
         <div class="service-btn"><i class="fa fa-hotel"></i>אירוח</div>
         <div class="service-btn"><i class="fa fa-person-skiing"></i>הדרכת סקי</div>
         <div class="service-btn"><i class="fa fa-tools"></i>השכרת ציוד</div>
-        <div class="service-btn"><i class="fa fa-car"></i>השכרת רכב</div>
         <div class="service-btn" onclick="openMaps()"><i class="fa fa-map-marked-alt"></i>מפות האתר</div>
     </div>
 
-    <h3 style="margin-bottom:15px;"><i class="fa fa-video"></i> מצלמות בשידור חי</h3>
-    <div class="webcam-section">
-        <div class="webcam-card">
-            <div style="font-weight:bold; margin-bottom:5px;">Plan Maison (2550m)</div>
-            <div class="webcam-container">
-                <a href="https://www.cervinia.it/en/live/webcam" target="_blank" class="cam-fallback">צפייה באתר הרשמי</a>
-                <img class="webcam-img" src="https://images.viedat.com/v2/cervinia-plan-maison/latest.jpg" onerror="this.style.display='none'">
-            </div>
-        </div>
-        <div class="webcam-card">
-            <div style="font-weight:bold; margin-bottom:5px;">Plateau Rosa (3480m)</div>
-            <div class="webcam-container">
-                <a href="https://www.cervinia.it/en/live/webcam" target="_blank" class="cam-fallback">צפייה באתר הרשמי</a>
-                <img class="webcam-img" src="https://images.viedat.com/v2/cervinia-plateau-rosa/latest.jpg" onerror="this.style.display='none'">
-            </div>
-        </div>
-        <div class="webcam-card">
-            <div style="font-weight:bold; margin-bottom:5px;">Cervinia Village</div>
-            <div class="webcam-container">
-                <a href="https://www.cervinia.it/en/live/webcam" target="_blank" class="cam-fallback">צפייה באתר הרשמי</a>
-                <img class="webcam-img" src="https://images.viedat.com/v2/cervinia-village/latest.jpg" onerror="this.style.display='none'">
-            </div>
-        </div>
-    </div>
-
     <div class="card">
-        <h3>תחזית ל-4 ימים הקרובים</h3>
-        <p style="font-size: 0.85rem; color: #666; margin-top: -10px;">* הנתונים מתייחסים לפלטאו רוזה (3480 מ')</p>
+        <h3>תחזית ל-4 ימים הקרובים (Plateau Rosà)</h3>
         <table>
             <thead>
                 <tr>
@@ -107,6 +74,7 @@
             </thead>
             <tbody id="w-body"></tbody>
         </table>
+        <div id="update-time" class="last-update"></div>
     </div>
 
     <div class="card">
@@ -121,14 +89,17 @@
 <div id="mapModal" class="modal">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0;">מפות האתר</h3>
+            <h3 style="margin:0;">מפות האתר והעיירה</h3>
             <button onclick="closeMaps()" style="border:none; background:none; font-size:2rem; cursor:pointer;">&times;</button>
         </div>
-        <div style="margin-bottom:15px; display:flex; gap:10px;">
-            <button class="btn-send" style="margin:0;" onclick="document.getElementById('map-frame').src='https://www.cervinia.it/en/live/skirama'">מפת מסלולים</button>
-            <button class="btn-send" style="margin:0; background:#eee; color:#333;" onclick="document.getElementById('map-frame').src='LINK_TO_TOWN_MAP'">מפת עיירה</button>
+        <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap: wrap;">
+            <button class="btn-send" style="margin:0;" onclick="changeMap('https://www.cervinia.it/static/media/skirama.jpg')">מפת מסלולים</button>
+            <button class="btn-send" style="margin:0; background:#eee; color:#333;" onclick="changeMap('town-map.jpg')">מפת עיירה</button>
+            <button class="btn-send" style="margin:0; background:#eee; color:#333;" onclick="changeMap('mymap.jpg')">הנקודות שלי</button>
         </div>
-        <iframe id="map-frame" src=""></iframe>
+        <div style="overflow: auto; border: 1px solid #ddd; border-radius: 8px;">
+            <img id="map-img" src="https://www.cervinia.it/static/media/skirama.jpg" alt="טוען מפה..." style="width:100%;">
+        </div>
     </div>
 </div>
 
@@ -152,26 +123,26 @@
         }
     }
 
-    function formatTemp(t) {
-        if(!t) return '--';
-        let s = t.replace('°C', '').trim();
-        return s.includes('-') ? s.replace('-', '') + '-' : s;
-    }
-
     async function loadW() {
         try {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
+            document.getElementById('stat-temp').innerText = (d.temp || '--');
             document.getElementById('stat-slopes').innerText = d.slopes || '--';
             document.getElementById('stat-lifts').innerText = d.lifts || '--';
             document.getElementById('stat-conn').innerText = d.conn === 'open' ? 'פתוח' : 'סגור';
+            document.getElementById('update-time').innerText = 'עדכון אחרון: ' + (d.last_update || '--');
 
             document.getElementById('w-body').innerHTML = d.forecast.slice(0,4).map(f => {
-                const probText = f.link_prob === 'High' ? 'גבוה' : (f.link_prob === 'Low' ? 'נמוך' : 'בינוני');
+                const windSpeed = parseFloat(f.wind) || 0;
+                let probText = 'בינוני', probClass = 'prob-Medium';
+                if (windSpeed < 32) { probText = 'גבוה'; probClass = 'prob-High'; }
+                else if (windSpeed > 50) { probText = 'נמוך'; probClass = 'prob-Low'; }
+
                 return `<tr>
-                    <td class="prob-${f.link_prob}">${probText}</td>
+                    <td class="${probClass}">${probText}</td>
                     <td>${f.date}</td>
-                    <td style="direction:ltr">${formatTemp(f.temp_min)} / ${formatTemp(f.temp_max)}</td>
+                    <td style="direction:ltr">${f.temp_min} / ${f.temp_max}</td>
                     <td>${f.wind}</td>
                     <td>${f.visibility}</td>
                 </tr>`;
@@ -214,23 +185,17 @@
         const target = el.nextElementSibling;
         if(target.innerHTML !== '') { target.innerHTML = ''; return; }
         document.querySelectorAll('.reply-target').forEach(t => t.innerHTML = '');
-        
         target.innerHTML = `<div style="margin:10px 0;">
             <textarea id="temp-in-${pId}" onkeydown="handleEsc(event, this)">@${toUser}: </textarea><br>
             <button class="btn-send" onclick="sendReply('${pId}', ${parentId ? `'${parentId}'` : 'null'})">שלח</button>
             <button class="btn-cancel" onclick="this.closest('.reply-target').innerHTML=''">ביטול</button>
         </div>`;
-        
         const tx = document.getElementById(`temp-in-${pId}`);
         tx.focus();
         tx.setSelectionRange(tx.value.length, tx.value.length);
     }
 
-    function handleEsc(e, el) {
-        if(e.key === 'Escape') {
-            el.closest('.reply-target').innerHTML = '';
-        }
-    }
+    function handleEsc(e, el) { if(e.key === 'Escape') el.closest('.reply-target').innerHTML = ''; }
 
     async function sendPost() {
         const input = document.getElementById('f-input');
@@ -254,6 +219,7 @@
 
     function openMaps() { document.getElementById('mapModal').style.display='flex'; }
     function closeMaps() { document.getElementById('mapModal').style.display='none'; }
+    function changeMap(src) { document.getElementById('map-img').src = src; }
     function login() { const n = prompt("שם:"); if(n) { user = {name:n}; localStorage.setItem('skiUser', JSON.stringify(user)); location.reload(); } }
     function logout() { localStorage.removeItem('skiUser'); location.reload(); }
 </script>
