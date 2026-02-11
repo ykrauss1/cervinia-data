@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>CerviniaLive</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
@@ -20,16 +22,17 @@
         .prob-High { color: var(--success); font-weight: bold; }
         .prob-Medium { color: var(--warning); font-weight: bold; }
         .prob-Low { color: var(--error); font-weight: bold; }
+        /* פורום */
         .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
         .reply-item { margin-top: 10px; padding: 10px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 6px; }
         .del-btn { color: var(--error); cursor: pointer; float: left; border: 1px solid var(--error); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; background: white; }
         .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         .btn-cancel { background: #ccc; color: #333; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 5px; }
         textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; font-family: inherit; }
+        /* מודלים */
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 95%; max-width: 1000px; padding: 20px; border-radius: 15px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .booking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .booking-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .modal-content { background: white; width: 95%; max-width: 600px; padding: 30px; border-radius: 15px; position: relative; }
+        .booking-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -55,7 +58,7 @@
     </div>
 
     <div class="card">
-        <h3>תחזית ל-4 ימים הקרובים</h3>
+        <h3>תחזית ל-4 ימים הקרובים (Plateau Rosà)</h3>
         <table>
             <thead><tr><th>צפי ללינק</th><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th></tr></thead>
             <tbody id="w-body"></tbody>
@@ -72,34 +75,32 @@
 </div>
 
 <div id="hotelModal" class="modal">
-    <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>חיפוש לינה</h3>
+            <h3>חיפוש אירוח חכם</h3>
             <button onclick="closeHotels()" style="border:none; background:none; font-size:2rem; cursor:pointer;">&times;</button>
         </div>
-        <div class="booking-grid">
-            <div><label>כניסה</label><input type="date" id="checkin" class="booking-input"></div>
-            <div><label>יציאה</label><input type="date" id="checkout" class="booking-input"></div>
+        <p>בחר טווח תאריכים:</p>
+        <input type="text" id="dateRange" class="booking-input" placeholder="לחץ לבחירת תאריכים...">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
+            <select id="guests" class="booking-input"><option value="2">2 אורחים</option><option value="1">אורח אחד</option><option value="3">3 אורחים</option><option value="4">4 אורחים</option></select>
+            <select id="rooms" class="booking-input"><option value="1">חדר אחד</option><option value="2">2 חדרים</option></select>
         </div>
-        <div class="booking-grid">
-            <div><label>אורחים</label><input type="number" id="guests" value="2" class="booking-input"></div>
-            <div><label>חדרים</label><input type="number" id="rooms" value="1" class="booking-input"></div>
-        </div>
-        <button class="btn-send" style="width:100%; margin-top:20px;" onclick="performSearch()">חפש ב-Booking ו-Airbnb</button>
+        <button class="btn-send" style="width:100%; margin-top:20px; padding:15px;" onclick="performSearch()">חפש ב-Booking ו-Airbnb</button>
     </div>
 </div>
 
 <div id="mapModal" class="modal">
-    <div class="modal-content">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div class="modal-content" style="max-width: 900px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <h3>מפות</h3>
             <button onclick="closeMaps()" style="border:none; background:none; font-size:2rem; cursor:pointer;">&times;</button>
         </div>
-        <div style="margin:15px 0; display:flex; gap:10px;">
+        <div style="margin-bottom:10px; display:flex; gap:10px;">
             <button class="btn-send" onclick="changeMap('town-map.jpg')">מפת עיירה</button>
             <button class="btn-send" onclick="changeMap('mymap.jpg')">הנקודות שלי</button>
         </div>
-        <div style="overflow:auto; border:1px solid #ddd;">
+        <div style="overflow:auto; border:1px solid #ddd; max-height:70vh;">
             <img id="map-img" src="" style="width:100%;">
         </div>
     </div>
@@ -109,16 +110,19 @@
     const API = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co/rest/v1';
     const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json' }};
-    
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
     const ADMIN_NAME = 'ADMIN';
+
+    // הגדרת לוח שנה מודרני
+    let fp = flatpickr("#dateRange", { mode: "range", dateFormat: "Y-m-d", minDate: "today" });
 
     window.onload = () => { renderHeader(); loadW(); loadF(); };
 
     function renderHeader() {
         const area = document.getElementById('auth-area');
         if(user) {
-            area.innerHTML = `<div>שלום, <b>${user.name}</b> | <a href="#" onclick="logout()">התנתק</a></div>`;
+            const isAdmin = user.name === ADMIN_NAME;
+            area.innerHTML = `<div>${isAdmin ? '<span style="background:red;color:white;padding:2px 5px;border-radius:4px;font-size:0.75rem;margin-left:5px;font-weight:bold;">ADMIN</span>' : ''}שלום, <b>${user.name}</b> | <a href="#" onclick="logout()" style="color:white; margin-right:5px;">התנתק</a></div>`;
         } else {
             area.innerHTML = `<button class="btn-send" onclick="login()">כניסה</button>`;
         }
@@ -139,7 +143,7 @@
                 let p = 'בינוני', c = 'prob-Medium';
                 if(wind < 32) { p = 'גבוה'; c = 'prob-High'; }
                 else if(wind > 50) { p = 'נמוך'; c = 'prob-Low'; }
-                return `<tr><td class="${c}">${p}</td><td>${f.date}</td><td>${f.temp_min}/${f.temp_max}</td><td>${f.wind}</td><td>${f.visibility}</td></tr>`;
+                return `<tr><td class="${c}">${p}</td><td>${f.date}</td><td style="direction:ltr">${f.temp_min} / ${f.temp_max}</td><td>${f.wind}</td><td>${f.visibility}</td></tr>`;
             }).join('');
         } catch(e) {}
     }
@@ -184,6 +188,10 @@
             <button class="btn-send" onclick="sendReply('${pId}', ${parentId ? `'${parentId}'` : 'null'})">שלח</button>
             <button class="btn-cancel" onclick="this.closest('.reply-target').innerHTML=''">ביטול</button>
         </div>`;
+        // מיקום הסמן בתיבה
+        const tx = document.getElementById(`temp-in-${pId}`);
+        tx.focus();
+        tx.setSelectionRange(tx.value.length, tx.value.length);
     }
 
     async function sendPost() {
@@ -208,12 +216,13 @@
 
     function openHotels() { document.getElementById('hotelModal').style.display='flex'; }
     function closeHotels() { document.getElementById('hotelModal').style.display='none'; }
+    
     function performSearch() {
-        const ci = document.getElementById('checkin').value, co = document.getElementById('checkout').value;
+        const dates = document.getElementById('dateRange').value.split(" to ");
+        if(dates.length < 2) return alert("בחר טווח תאריכים מלא");
         const g = document.getElementById('guests').value, r = document.getElementById('rooms').value;
-        if(!ci || !co) return alert("בחר תאריכים");
-        window.open(`https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=${ci}&checkout=${co}&group_adults=${g}&no_rooms=${r}`, '_blank');
-        window.open(`https://www.airbnb.com/s/Breuil~Cervinia--Italy/homes?checkin=${ci}&checkout=${co}&adults=${g}`, '_blank');
+        window.open(`https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=${dates[0]}&checkout=${dates[1]}&group_adults=${g}&no_rooms=${r}`, '_blank');
+        window.open(`https://www.airbnb.com/s/Breuil~Cervinia--Italy/homes?checkin=${dates[0]}&checkout=${dates[1]}&adults=${g}`, '_blank');
     }
 
     function openMaps() { document.getElementById('mapModal').style.display='flex'; changeMap('town-map.jpg'); }
