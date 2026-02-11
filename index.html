@@ -2,9 +2,10 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Admin Fix</title>
+    <title>CerviniaLive - Clean Logic</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* --- בלוק עיצוב: לא נגענו --- */
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
         nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
@@ -23,7 +24,6 @@
         .time-tag { font-size: 0.75rem; color: #999; margin-right: 10px; }
         .action-link { color: #3498db; cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: inline-block; }
         
-        /* כפתור מחיקה בולט */
         .del-btn { color: var(--error); cursor: pointer; background: #fff1f0; border: 1px solid var(--error); border-radius: 4px; float: left; padding: 2px 8px; font-size: 0.8rem; }
         .del-btn:hover { background: var(--error); color: white; }
 
@@ -82,6 +82,7 @@
 </div>
 
 <script>
+    // --- לוגיקה בלוק 1: הגדרות ---
     const API = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co/rest/v1';
     const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }};
@@ -91,6 +92,7 @@
 
     window.onload = () => { renderHeader(); loadW(); loadF(); };
 
+    // --- לוגיקה בלוק 2: ניהול משתמשים ---
     function renderHeader() {
         const area = document.getElementById('auth-area');
         if(user) {
@@ -116,6 +118,7 @@
     }
     function logout() { localStorage.clear(); location.reload(); }
 
+    // --- לוגיקה בלוק 3: מזג אוויר ---
     async function loadW() {
         try {
             const r = await fetch('data.json?v=' + Date.now());
@@ -124,13 +127,16 @@
         } catch(e) {}
     }
 
+    // --- לוגיקה בלוק 4: ניהול הפורום (לב המערכת) ---
     async function loadF() {
         try {
+            // טעינת פוסטים כולל התגובות שלהם
             const res = await fetch(`${API}/posts?select=*,replies(*)&order=created_at.desc`, HEAD);
             const data = await res.json();
             const isAdmin = user && user.email === 'ykrauss1@gmail.com';
 
             document.getElementById('f-container').innerHTML = data.map(p => {
+                // רינדור התגובות בתוך הפוסט (מסודר מהישן לחדש)
                 const rs = (p.replies || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at)).map(r => `
                     <div class="reply-item">
                         ${isAdmin ? `<button class="del-btn" onclick="delMsg('replies','${r.id}')"><i class="fa fa-trash"></i></button>` : ''}
@@ -151,11 +157,14 @@
                         <div class="replies-area">${rs}</div>
                     </div>`;
             }).join('');
-        } catch(e) {}
+        } catch(e) { console.error("Forum Error:", e); }
     }
 
     function openBox(pId, toUser, el) {
         if(!user) return alert("אנא התחבר כדי להגיב.");
+        // סגירת תיבות השבה פתוחות אחרות
+        document.querySelectorAll('.reply-target').forEach(d => d.innerHTML = '');
+        
         const target = el.nextElementSibling;
         target.innerHTML = `<div style="background:#eee; padding:10px; border-radius:8px; margin-top:10px;">
             <textarea id="in-${pId}" style="width:100%; padding:5px; border:1px solid #ccc;">@${toUser}: </textarea>
@@ -178,9 +187,9 @@
         loadF();
     }
 
-    // פונקציית מחיקה עם דיווח שגיאות
+    // --- לוגיקה בלוק 5: מחיקה (מתוקן) ---
     async function delMsg(table, id) {
-        if(!confirm("למחוק לצמיתות מהפורום?")) return;
+        if(!confirm("למחוק לצמיתות?")) return;
         
         try {
             const response = await fetch(`${API}/${table}?id=eq.${id}`, {
@@ -189,15 +198,13 @@
             });
 
             if (response.ok) {
-                loadF(); // טעינה מחדש של הפורום
+                loadF();
             } else {
                 const errorData = await response.json();
-                console.error("Supabase Error:", errorData);
-                alert("שגיאת שרת: " + (errorData.message || "אין הרשאת מחיקה ב-Database"));
+                alert("שגיאת הרשאה או שרת. וודא ש-RLS מאופשר ב-Supabase למחיקה.");
             }
         } catch (err) {
-            console.error("Network Error:", err);
-            alert("שגיאת תקשורת. בדוק חיבור אינטרנט.");
+            alert("שגיאת תקשורת.");
         }
     }
 </script>
