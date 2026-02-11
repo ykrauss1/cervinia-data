@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Stable</title>
+    <title>CerviniaLive - Stable Version</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; }
@@ -17,9 +17,9 @@
         .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; position: relative; }
         .reply-item { margin-top: 10px; padding: 10px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 6px; }
         .admin-badge { background: var(--error); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-left: 5px; }
-        .del-btn { color: var(--error); cursor: pointer; float: left; border: 1px solid var(--error); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: white; }
+        .del-btn { color: var(--error); cursor: pointer; float: left; border: 1px solid var(--error); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: white; font-weight: bold; }
         .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; }
+        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; font-family: inherit; }
     </style>
 </head>
 <body>
@@ -31,16 +31,16 @@
 
 <div class="container">
     <div class="stats">
-        <div class="stat-card"><i class="fa fa-link"></i><br><small>קישור לצ'רמט</small><br><b>בבדיקה...</b></div>
         <div class="stat-card"><i class="fa fa-mountain"></i><br><small>מסלולים</small><br><b>109</b></div>
         <div class="stat-card"><i class="fa fa-wind"></i><br><small>מעליות</small><br><b>47</b></div>
+        <div class="stat-card"><i class="fa fa- skiers"></i><br><small>מצב האתר</small><br><b>פתוח</b></div>
     </div>
 
     <div class="card">
         <h3>תחזית ל-4 ימים הקרובים</h3>
         <table>
             <thead><tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th></tr></thead>
-            <tbody id="w-body"></tbody>
+            <tbody id="w-body"><tr><td colspan="4">טוען...</td></tr></tbody>
         </table>
     </div>
 
@@ -57,6 +57,7 @@
     const API = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co/rest/v1';
     const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }};
+    
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
     const ADMIN_NAME = 'ADMIN';
 
@@ -65,7 +66,7 @@
     function renderHeader() {
         const area = document.getElementById('auth-area');
         if(user) {
-            area.innerHTML = `<div>${user.name === ADMIN_NAME ? '<span class="admin-badge">ADMIN</span>' : ''} שלום, <b>${user.name}</b> | <a href="#" onclick="logout()" style="color:white; font-size:0.8rem;">התנתק</a></div>`;
+            area.innerHTML = `<div>${user.name === ADMIN_NAME ? '<span class="admin-badge">ADMIN</span>' : ''} שלום, <b>${user.name}</b> | <a href="#" onclick="logout()" style="color:white; text-decoration:underline; font-size:0.8rem;">התנתק</a></div>`;
         } else {
             area.innerHTML = `<button class="btn-send" onclick="login()">כניסה</button>`;
         }
@@ -76,7 +77,7 @@
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
             document.getElementById('w-body').innerHTML = d.forecast.slice(0,4).map(f => `<tr><td>${f.date}</td><td>${f.temp_min}/${f.temp_max}</td><td>${f.wind}</td><td>${f.visibility}</td></tr>`).join('');
-        } catch(e) {}
+        } catch(e) { document.getElementById('w-body').innerHTML = 'תקלה בטעינה'; }
     }
 
     async function loadF() {
@@ -90,10 +91,10 @@
                 const buildTree = (parentId = null) => {
                     return (p.replies || []).filter(r => r.parent_id === parentId).map(r => `
                         <div class="reply-item">
-                            ${isAdmin ? `<button class="del-btn" onclick="deepDelete('${r.id}')">מחק</button>` : ''}
+                            ${isAdmin ? `<button class="del-btn" onclick="deleteMsg('replies','${r.id}')">מחק</button>` : ''}
                             <span style="font-weight:800;">${r.user === ADMIN_NAME ? '<span class="admin-badge">ADMIN</span>' : r.user}</span>
-                            <div>${r.content}</div>
-                            <span style="color:#3498db; cursor:pointer; font-size:0.8rem;" onclick="openBox('${p.id}', '${r.user}', this, '${r.id}')">השב</span>
+                            <div style="margin:5px 0;">${r.content}</div>
+                            <span style="color:#3498db; cursor:pointer; font-size:0.8rem; font-weight:bold;" onclick="openBox('${p.id}', '${r.user}', this, '${r.id}')">השב</span>
                             <div class="reply-target"></div>
                             ${buildTree(r.id)}
                         </div>`).join('');
@@ -101,10 +102,10 @@
 
                 html += `
                     <div class="post">
-                        ${isAdmin ? `<button class="del-btn" onclick="deepDelete('${p.id}', true)">מחק פוסט</button>` : ''}
+                        ${isAdmin ? `<button class="del-btn" onclick="deleteMsg('posts','${p.id}')">מחק פוסט</button>` : ''}
                         <span style="font-weight:800;">${p.user === ADMIN_NAME ? '<span class="admin-badge">ADMIN</span>' : p.user}</span>
-                        <div style="margin:10px 0; font-weight:bold;">${p.content}</div>
-                        <span style="color:#3498db; cursor:pointer; font-size:0.8rem;" onclick="openBox('${p.id}', '${p.user}', this, null)">השב</span>
+                        <div style="margin:10px 0; font-weight:bold; font-size:1.1rem;">${p.content}</div>
+                        <span style="color:#3498db; cursor:pointer; font-size:0.8rem; font-weight:bold;" onclick="openBox('${p.id}', '${p.user}', this, null)">השב</span>
                         <div class="reply-target"></div>
                         ${buildTree(null)}
                     </div>`;
@@ -113,37 +114,11 @@
         } catch(e) {}
     }
 
-    async function deepDelete(id, isPost = false) {
-        if(!confirm("למחוק לצמיתות?")) return;
-        
-        try {
-            if(isPost) {
-                // מוחק תגובות של פוסט
-                await fetch(`${API}/replies?post_id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers });
-                // מוחק פוסט
-                await fetch(`${API}/posts?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers });
-            } else {
-                // מחיקה עמוקה של תגובה וכל תתי-התגובות שלה
-                const all = await fetch(`${API}/replies?post_id=gt.0`, HEAD).then(r => r.json());
-                const toDelete = [];
-                
-                const findChildren = (pid) => {
-                    all.filter(x => x.parent_id === pid).forEach(child => {
-                        findChildren(child.id);
-                        toDelete.push(child.id);
-                    });
-                };
-                
-                findChildren(id);
-                
-                for(const childId of toDelete) {
-                    await fetch(`${API}/replies?id=eq.${childId}`, { method: 'DELETE', headers: HEAD.headers });
-                }
-                
-                await fetch(`${API}/replies?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers });
-            }
-            loadF();
-        } catch(e) { loadF(); }
+    async function deleteMsg(table, id) {
+        if(!confirm("למחוק?")) return;
+        const res = await fetch(`${API}/${table}?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers });
+        if(res.ok) loadF();
+        else alert("שגיאה במחיקה. וודא שה-SQL בוצע.");
     }
 
     async function sendPost() {
@@ -155,6 +130,7 @@
 
     async function sendReply(pId, pParentId) {
         const area = document.querySelector(`#temp-in-${pId}`);
+        if(!area.value.trim()) return;
         await fetch(`${API}/replies`, { method:'POST', headers: HEAD.headers, body: JSON.stringify({post_id: pId, user: user.name, content: area.value.trim(), parent_id: pParentId}) });
         loadF();
     }
