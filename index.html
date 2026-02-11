@@ -2,10 +2,9 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Clean Logic</title>
+    <title>CerviniaLive - Threaded Forum</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* --- בלוק עיצוב: לא נגענו --- */
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
         nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
@@ -16,16 +15,31 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
 
-        /* פורום */
-        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; position: relative; }
-        .reply-item { margin-right: 40px; margin-top: 10px; border-right: 4px solid var(--accent); padding: 10px; background: #f8fbff; border-radius: 6px; }
+        /* פורום ושרשור */
+        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
+        
+        /* עיצוב תגובה רגילה */
+        .reply-item { 
+            margin-top: 10px; 
+            border-right: 3px solid #ddd; 
+            padding: 10px 15px; 
+            background: #fcfcfc; 
+            border-radius: 6px;
+        }
+
+        /* עיצוב תגובה שהיא תשובה לתגובה אחרת (הזחה) */
+        .nested-reply {
+            margin-right: 30px; /* הזחה פנימה */
+            border-right-color: var(--accent); /* צבע שונה לתגובה משורשרת */
+            background: #f4fbff;
+        }
+
         .user-tag { font-weight: 800; color: var(--dark); }
         .admin-badge { background: var(--error); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 10px; }
         .time-tag { font-size: 0.75rem; color: #999; margin-right: 10px; }
         .action-link { color: #3498db; cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: inline-block; }
         
         .del-btn { color: var(--error); cursor: pointer; background: #fff1f0; border: 1px solid var(--error); border-radius: 4px; float: left; padding: 2px 8px; font-size: 0.8rem; }
-        .del-btn:hover { background: var(--error); color: white; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 25px; border-radius: 15px; width: 350px; }
@@ -52,7 +66,7 @@
     </div>
 
     <div class="card">
-        <h3>תחזית וסטטוס</h3>
+        <h3>תחזית וסטטוס (מהיום)</h3>
         <table id="forecast-table">
             <thead><tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th><th>סטטוס</th></tr></thead>
             <tbody id="w-body"></tbody>
@@ -82,17 +96,15 @@
 </div>
 
 <script>
-    // --- לוגיקה בלוק 1: הגדרות ---
     const API = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co/rest/v1';
     const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }};
 
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
-    let isReg = false;
 
     window.onload = () => { renderHeader(); loadW(); loadF(); };
 
-    // --- לוגיקה בלוק 2: ניהול משתמשים ---
+    // --- מערכת משתמשים ---
     function renderHeader() {
         const area = document.getElementById('auth-area');
         if(user) {
@@ -102,12 +114,13 @@
             area.innerHTML = `<button class="btn btn-send" onclick="openModal()">כניסה / הרשמה</button>`;
         }
     }
-
     function openModal() { document.getElementById('auth-modal').style.display='flex'; }
     function closeModal() { document.getElementById('auth-modal').style.display='none'; }
-    function toggleAuthMode() { isReg = !isReg; document.getElementById('m-title').innerText = isReg ? 'הרשמה' : 'כניסה'; document.getElementById('m-conf-div').style.display = isReg ? 'block' : 'none'; }
-    function togglePass(id) { const el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; }
-
+    function toggleAuthMode() { 
+        const isReg = document.getElementById('m-title').innerText === 'כניסה';
+        document.getElementById('m-title').innerText = isReg ? 'הרשמה' : 'כניסה'; 
+        document.getElementById('m-conf-div').style.display = isReg ? 'block' : 'none'; 
+    }
     function handleAuth() {
         const email = document.getElementById('m-email').value;
         const name = document.getElementById('m-name').value;
@@ -118,34 +131,40 @@
     }
     function logout() { localStorage.clear(); location.reload(); }
 
-    // --- לוגיקה בלוק 3: מזג אוויר ---
+    // --- תחזית ---
     async function loadW() {
         try {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
-            document.getElementById('w-body').innerHTML = d.forecast.slice(0,4).map(f => `<tr><td><b>${f.date.split('-').reverse().join('/')}</b></td><td style="color:red; direction:ltr">${f.temp_min.replace(/[^\d.-]/g,'')}°/${f.temp_max.replace(/[^\d.-]/g,'')}°C</td><td>${f.wind.replace(/[^\d.]/g,'')} קמ"ש</td><td>${f.visibility}</td><td style="color:green; font-weight:bold">פתוח</td></tr>`).join('');
+            const today = new Date().toISOString().split('T')[0];
+            const future = d.forecast.filter(f => f.date >= today).slice(0,4);
+            document.getElementById('w-body').innerHTML = future.map(f => `<tr><td><b>${f.date.split('-').reverse().join('/')}</b></td><td style="color:red; direction:ltr">${f.temp_min.replace(/[^\d.-]/g,'')}°/${f.temp_max.replace(/[^\d.-]/g,'')}°C</td><td>${f.wind.replace(/[^\d.]/g,'')} קמ"ש</td><td>${f.visibility}</td><td style="color:green; font-weight:bold">פתוח</td></tr>`).join('');
         } catch(e) {}
     }
 
-    // --- לוגיקה בלוק 4: ניהול הפורום (לב המערכת) ---
+    // --- פורום משופר עם שרשור ---
     async function loadF() {
         try {
-            // טעינת פוסטים כולל התגובות שלהם
             const res = await fetch(`${API}/posts?select=*,replies(*)&order=created_at.desc`, HEAD);
             const data = await res.json();
             const isAdmin = user && user.email === 'ykrauss1@gmail.com';
 
             document.getElementById('f-container').innerHTML = data.map(p => {
-                // רינדור התגובות בתוך הפוסט (מסודר מהישן לחדש)
-                const rs = (p.replies || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at)).map(r => `
-                    <div class="reply-item">
+                // סידור התגובות: אלו שמכילות "@" יקבלו קלאס של הזחה
+                const sortedReplies = (p.replies || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+                
+                const rs = sortedReplies.map(r => {
+                    const isThreaded = r.content.includes('@'); // אם יש @ זו תגובה לתגובה
+                    return `
+                    <div class="reply-item ${isThreaded ? 'nested-reply' : ''}">
                         ${isAdmin ? `<button class="del-btn" onclick="delMsg('replies','${r.id}')"><i class="fa fa-trash"></i></button>` : ''}
                         <span class="user-tag">${r.user}</span> 
                         <span class="time-tag">${new Date(r.created_at).toLocaleString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span>
                         <div style="margin:5px 0;">${r.content}</div>
                         <span class="action-link" onclick="openBox('${p.id}', '${r.user}', this)">השב</span>
                         <div class="reply-target"></div>
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
 
                 return `<div class="post">
                         ${isAdmin ? `<button class="del-btn" onclick="delMsg('posts','${p.id}')"><i class="fa fa-trash"></i> מחק פוסט</button>` : ''}
@@ -157,18 +176,18 @@
                         <div class="replies-area">${rs}</div>
                     </div>`;
             }).join('');
-        } catch(e) { console.error("Forum Error:", e); }
+        } catch(e) {}
     }
 
     function openBox(pId, toUser, el) {
         if(!user) return alert("אנא התחבר כדי להגיב.");
-        // סגירת תיבות השבה פתוחות אחרות
-        document.querySelectorAll('.reply-target').forEach(d => d.innerHTML = '');
-        
         const target = el.nextElementSibling;
+        if(target.innerHTML !== '') { target.innerHTML = ''; return; }
+        
+        document.querySelectorAll('.reply-target').forEach(d => d.innerHTML = '');
         target.innerHTML = `<div style="background:#eee; padding:10px; border-radius:8px; margin-top:10px;">
             <textarea id="in-${pId}" style="width:100%; padding:5px; border:1px solid #ccc;">@${toUser}: </textarea>
-            <div class="btn-row"><button class="btn btn-send" onclick="sendReply('${pId}')">שלח</button><button class="btn" style="background:#ddd;" onclick="this.parentElement.parentElement.remove()">ביטול</button></div>
+            <div class="btn-row"><button class="btn btn-send" onclick="sendReply('${pId}')">שלח</button></div>
         </div>`;
     }
 
@@ -187,25 +206,10 @@
         loadF();
     }
 
-    // --- לוגיקה בלוק 5: מחיקה (מתוקן) ---
     async function delMsg(table, id) {
         if(!confirm("למחוק לצמיתות?")) return;
-        
-        try {
-            const response = await fetch(`${API}/${table}?id=eq.${id}`, {
-                method: 'DELETE',
-                headers: HEAD.headers
-            });
-
-            if (response.ok) {
-                loadF();
-            } else {
-                const errorData = await response.json();
-                alert("שגיאת הרשאה או שרת. וודא ש-RLS מאופשר ב-Supabase למחיקה.");
-            }
-        } catch (err) {
-            alert("שגיאת תקשורת.");
-        }
+        await fetch(`${API}/${table}?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers });
+        loadF();
     }
 </script>
 </body>
