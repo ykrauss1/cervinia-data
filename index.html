@@ -19,6 +19,7 @@
         .admin-badge { background: var(--error); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-left: 5px; }
         .del-btn { color: var(--error); cursor: pointer; float: left; border: 1px solid var(--error); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: white; font-weight: bold; }
         .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-cancel { background: #ccc; color: #333; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 5px; }
         textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; font-family: inherit; }
     </style>
 </head>
@@ -33,7 +34,7 @@
     <div class="stats">
         <div class="stat-card"><i class="fa fa-mountain"></i><br><small>מסלולים</small><br><b>109</b></div>
         <div class="stat-card"><i class="fa fa-wind"></i><br><small>מעליות</small><br><b>47</b></div>
-        <div class="stat-card"><i class="fa fa- skiers"></i><br><small>מצב האתר</small><br><b>פתוח</b></div>
+        <div class="stat-card"><i class="fa fa-skiers"></i><br><small>מצב האתר</small><br><b>פתוח</b></div>
     </div>
 
     <div class="card">
@@ -56,7 +57,7 @@
 <script>
     const API = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co/rest/v1';
     const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
-    const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }};
+    const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json', 'Prefer': 'representation' }};
     
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
     const ADMIN_NAME = 'ADMIN';
@@ -118,7 +119,6 @@
         if(!confirm("למחוק?")) return;
         const res = await fetch(`${API}/${table}?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers });
         if(res.ok) loadF();
-        else alert("שגיאה במחיקה. וודא שה-SQL בוצע.");
     }
 
     async function sendPost() {
@@ -130,7 +130,7 @@
 
     async function sendReply(pId, pParentId) {
         const area = document.querySelector(`#temp-in-${pId}`);
-        if(!area.value.trim()) return;
+        if(!area || !area.value.trim()) return;
         await fetch(`${API}/replies`, { method:'POST', headers: HEAD.headers, body: JSON.stringify({post_id: pId, user: user.name, content: area.value.trim(), parent_id: pParentId}) });
         loadF();
     }
@@ -138,8 +138,24 @@
     function openBox(pId, toUser, el, parentId) {
         const target = el.nextElementSibling;
         if(target.innerHTML !== '') { target.innerHTML = ''; return; }
+        
         document.querySelectorAll('.reply-target').forEach(t => t.innerHTML = '');
-        target.innerHTML = `<div style="margin:10px 0;"><textarea id="temp-in-${pId}">@${toUser}: </textarea><br><button class="btn-send" onclick="sendReply('${pId}', ${parentId ? `'${parentId}'` : 'null'})">שלח</button></div>`;
+        
+        target.innerHTML = `
+            <div style="margin:10px 0;">
+                <textarea id="temp-in-${pId}" onkeydown="if(event.key==='Escape') closeBox(this)">@${toUser}: </textarea><br>
+                <button class="btn-send" onclick="sendReply('${pId}', ${parentId ? `'${parentId}'` : 'null'})">שלח</button>
+                <button class="btn-cancel" onclick="closeBox(this)">ביטול</button>
+            </div>`;
+            
+        const tx = document.getElementById(`temp-in-${pId}`);
+        tx.focus();
+        tx.setSelectionRange(tx.value.length, tx.value.length);
+    }
+
+    function closeBox(el) {
+        const container = el.closest('.reply-target');
+        if(container) container.innerHTML = '';
     }
 
     function login() {
