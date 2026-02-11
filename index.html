@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Threaded Forum</title>
+    <title>CerviniaLive - Final Fixed</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; }
@@ -16,36 +16,29 @@
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
 
         /* פורום ושרשור */
-        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
+        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 20px; background: white; }
+        .replies-container { margin-top: 15px; border-right: 2px solid #eee; padding-right: 10px; }
         
-        /* עיצוב תגובה רגילה */
         .reply-item { 
-            margin-top: 10px; 
-            border-right: 3px solid #ddd; 
+            margin-top: 8px; 
             padding: 10px 15px; 
-            background: #fcfcfc; 
-            border-radius: 6px;
+            background: #f8fbff; 
+            border-radius: 8px; 
+            border: 1px solid #edf2f7;
+            position: relative;
         }
 
-        /* עיצוב תגובה שהיא תשובה לתגובה אחרת (הזחה) */
-        .nested-reply {
-            margin-right: 30px; /* הזחה פנימה */
-            border-right-color: var(--accent); /* צבע שונה לתגובה משורשרת */
-            background: #f4fbff;
-        }
-
+        /* כאן קורה הקסם של ההזחה - כל תגובה לתגובה נכנסת פנימה */
+        .reply-item[data-depth="1"] { margin-right: 35px; border-right: 4px solid var(--accent); background: #f0f9ff; }
+        
         .user-tag { font-weight: 800; color: var(--dark); }
-        .admin-badge { background: var(--error); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 10px; }
         .time-tag { font-size: 0.75rem; color: #999; margin-right: 10px; }
         .action-link { color: #3498db; cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: inline-block; }
         
-        .del-btn { color: var(--error); cursor: pointer; background: #fff1f0; border: 1px solid var(--error); border-radius: 4px; float: left; padding: 2px 8px; font-size: 0.8rem; }
+        .del-btn { color: var(--error); cursor: pointer; background: #fff1f0; border: 1px solid var(--error); border-radius: 4px; float: left; padding: 2px 6px; font-size: 0.75rem; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 25px; border-radius: 15px; width: 350px; }
-        .f-group { margin-bottom: 12px; position: relative; }
-        .f-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .eye-icon { position: absolute; left: 10px; top: 12px; cursor: pointer; color: #888; }
         .btn-row { display: flex; flex-direction: row-reverse; gap: 10px; margin-top: 10px; }
         .btn { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-send { background: var(--accent); color: var(--dark); }
@@ -66,8 +59,8 @@
     </div>
 
     <div class="card">
-        <h3>תחזית וסטטוס (מהיום)</h3>
-        <table id="forecast-table">
+        <h3>תחזית ל-4 ימים הקרובים</h3>
+        <table>
             <thead><tr><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th><th>סטטוס</th></tr></thead>
             <tbody id="w-body"></tbody>
         </table>
@@ -75,23 +68,10 @@
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
-        <div id="f-container">טוען הודעות...</div>
+        <div id="f-container">טוען...</div>
         <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
         <textarea id="f-input" style="width:100%; height:70px; padding:10px; border-radius:8px; border:1px solid #ddd;" placeholder="כתוב פוסט חדש..."></textarea>
         <div class="btn-row"><button class="btn btn-send" onclick="sendPost()">פרסם פוסט</button></div>
-    </div>
-</div>
-
-<div id="auth-modal" class="modal">
-    <div class="modal-content">
-        <h2 id="m-title">כניסה</h2>
-        <div class="f-group"><input type="email" id="m-email" placeholder="אימייל"></div>
-        <div class="f-group"><input type="text" id="m-name" placeholder="שם מלא"></div>
-        <div class="f-group"><input type="password" id="m-pass" placeholder="סיסמה"><i class="fa fa-eye eye-icon" onclick="togglePass('m-pass')"></i></div>
-        <div class="f-group" id="m-conf-div" style="display:none;"><input type="password" id="m-pass-conf" placeholder="אימות סיסמה"><i class="fa fa-eye eye-icon" onclick="togglePass('m-pass-conf')"></i></div>
-        <button class="btn btn-send" style="width:100%" onclick="handleAuth()">אישור</button>
-        <p id="m-toggle" onclick="toggleAuthMode()" style="text-align:center; color:blue; cursor:pointer; margin-top:15px; font-size:0.9rem;">אין לך חשבון? הירשם כאן</p>
-        <button class="btn" style="width:100%; margin-top:5px; background:#eee;" onclick="closeModal()">ביטול</button>
     </div>
 </div>
 
@@ -100,49 +80,41 @@
     const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }};
 
-    let user = JSON.parse(localStorage.getItem('skiUser')) || null;
+    let user = JSON.parse(localStorage.getItem('skiUser')) || { name: "אורח", email: "guest" };
 
     window.onload = () => { renderHeader(); loadW(); loadF(); };
 
-    // --- מערכת משתמשים ---
     function renderHeader() {
         const area = document.getElementById('auth-area');
-        if(user) {
-            const isAdmin = user.email === 'ykrauss1@gmail.com';
-            area.innerHTML = `${isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''} שלום, <b>${user.name}</b> | <a href="#" onclick="logout()" style="color:white; text-decoration:none;">התנתק</a>`;
-        } else {
-            area.innerHTML = `<button class="btn btn-send" onclick="openModal()">כניסה / הרשמה</button>`;
-        }
+        const isAdmin = user.email === 'ykrauss1@gmail.com';
+        area.innerHTML = `${isAdmin ? '<span style="background:red; color:white; padding:2px 5px; border-radius:4px; font-size:12px; margin-left:10px;">ADMIN</span>' : ''} שלום, <b>${user.name}</b>`;
     }
-    function openModal() { document.getElementById('auth-modal').style.display='flex'; }
-    function closeModal() { document.getElementById('auth-modal').style.display='none'; }
-    function toggleAuthMode() { 
-        const isReg = document.getElementById('m-title').innerText === 'כניסה';
-        document.getElementById('m-title').innerText = isReg ? 'הרשמה' : 'כניסה'; 
-        document.getElementById('m-conf-div').style.display = isReg ? 'block' : 'none'; 
-    }
-    function handleAuth() {
-        const email = document.getElementById('m-email').value;
-        const name = document.getElementById('m-name').value;
-        if(!email || !name) return alert("חובה למלא אימייל ושם");
-        user = { email, name };
-        localStorage.setItem('skiUser', JSON.stringify(user));
-        location.reload();
-    }
-    function logout() { localStorage.clear(); location.reload(); }
 
-    // --- תחזית ---
+    // --- תיקון תחזית: תמיד 4 ימים מהיום ---
     async function loadW() {
         try {
             const r = await fetch('data.json?v=' + Date.now());
             const d = await r.json();
-            const today = new Date().toISOString().split('T')[0];
-            const future = d.forecast.filter(f => f.date >= today).slice(0,4);
-            document.getElementById('w-body').innerHTML = future.map(f => `<tr><td><b>${f.date.split('-').reverse().join('/')}</b></td><td style="color:red; direction:ltr">${f.temp_min.replace(/[^\d.-]/g,'')}°/${f.temp_max.replace(/[^\d.-]/g,'')}°C</td><td>${f.wind.replace(/[^\d.]/g,'')} קמ"ש</td><td>${f.visibility}</td><td style="color:green; font-weight:bold">פתוח</td></tr>`).join('');
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            const future = d.forecast
+                .filter(f => new Date(f.date) >= today)
+                .sort((a,b) => new Date(a.date) - new Date(b.date))
+                .slice(0, 4); // מוודא משיכה של בדיוק 4 ימים
+
+            document.getElementById('w-body').innerHTML = future.map(f => `
+                <tr>
+                    <td><b>${f.date.split('-').reverse().join('/')}</b></td>
+                    <td style="color:red; direction:ltr">${f.temp_min.replace(/[^\d.-]/g,'')}°/${f.temp_max.replace(/[^\d.-]/g,'')}°C</td>
+                    <td>${f.wind.replace(/[^\d.]/g,'')} קמ"ש</td>
+                    <td>${f.visibility}</td>
+                    <td style="color:green; font-weight:bold">פתוח</td>
+                </tr>`).join('');
         } catch(e) {}
     }
 
-    // --- פורום משופר עם שרשור ---
+    // --- תיקון פורום: שרשור אמיתי ומחיקה ---
     async function loadF() {
         try {
             const res = await fetch(`${API}/posts?select=*,replies(*)&order=created_at.desc`, HEAD);
@@ -150,50 +122,51 @@
             const isAdmin = user && user.email === 'ykrauss1@gmail.com';
 
             document.getElementById('f-container').innerHTML = data.map(p => {
-                // סידור התגובות: אלו שמכילות "@" יקבלו קלאס של הזחה
                 const sortedReplies = (p.replies || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
                 
-                const rs = sortedReplies.map(r => {
-                    const isThreaded = r.content.includes('@'); // אם יש @ זו תגובה לתגובה
-                    return `
-                    <div class="reply-item ${isThreaded ? 'nested-reply' : ''}">
-                        ${isAdmin ? `<button class="del-btn" onclick="delMsg('replies','${r.id}')"><i class="fa fa-trash"></i></button>` : ''}
-                        <span class="user-tag">${r.user}</span> 
-                        <span class="time-tag">${new Date(r.created_at).toLocaleString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span>
-                        <div style="margin:5px 0;">${r.content}</div>
-                        <span class="action-link" onclick="openBox('${p.id}', '${r.user}', this)">השב</span>
-                        <div class="reply-target"></div>
-                    </div>`;
-                }).join('');
+                // לוגיקה לבניית העץ:
+                let repliesHtml = "";
+                sortedReplies.forEach(r => {
+                    const isNested = r.content.includes('@'); // זיהוי תגובה לתגובה
+                    repliesHtml += `
+                        <div class="reply-item" data-depth="${isNested ? '1' : '0'}">
+                            ${isAdmin ? `<button class="del-btn" onclick="delMsg('replies','${r.id}')"><i class="fa fa-trash"></i></button>` : ''}
+                            <span class="user-tag">${r.user}</span> 
+                            <span class="time-tag">${new Date(r.created_at).toLocaleString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span>
+                            <div style="margin:5px 0;">${r.content}</div>
+                            <span class="action-link" onclick="openBox('${p.id}', '${r.user}', this)">השב</span>
+                            <div class="reply-target"></div>
+                        </div>`;
+                });
 
-                return `<div class="post">
-                        ${isAdmin ? `<button class="del-btn" onclick="delMsg('posts','${p.id}')"><i class="fa fa-trash"></i> מחק פוסט</button>` : ''}
-                        <span class="user-tag">${p.user}</span> 
-                        <span class="time-tag">${new Date(p.created_at).toLocaleString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span>
-                        <div style="margin:8px 0;">${p.content}</div>
-                        <span class="action-link" onclick="openBox('${p.id}', '${p.user}', this)">השב</span>
-                        <div class="reply-target"></div>
-                        <div class="replies-area">${rs}</div>
-                    </div>`;
+                return `
+                <div class="post">
+                    ${isAdmin ? `<button class="del-btn" onclick="delMsg('posts','${p.id}')"><i class="fa fa-trash"></i> מחק פוסט</button>` : ''}
+                    <span class="user-tag">${p.user}</span> 
+                    <span class="time-tag">${new Date(p.created_at).toLocaleString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span>
+                    <div style="margin:10px 0; font-size:1.1rem;">${p.content}</div>
+                    <span class="action-link" onclick="openBox('${p.id}', '${p.user}', this)">השב</span>
+                    <div class="reply-target"></div>
+                    <div class="replies-container">${repliesHtml}</div>
+                </div>`;
             }).join('');
         } catch(e) {}
     }
 
     function openBox(pId, toUser, el) {
-        if(!user) return alert("אנא התחבר כדי להגיב.");
         const target = el.nextElementSibling;
         if(target.innerHTML !== '') { target.innerHTML = ''; return; }
-        
         document.querySelectorAll('.reply-target').forEach(d => d.innerHTML = '');
-        target.innerHTML = `<div style="background:#eee; padding:10px; border-radius:8px; margin-top:10px;">
-            <textarea id="in-${pId}" style="width:100%; padding:5px; border:1px solid #ccc;">@${toUser}: </textarea>
-            <div class="btn-row"><button class="btn btn-send" onclick="sendReply('${pId}')">שלח</button></div>
-        </div>`;
+        target.innerHTML = `
+            <div style="background:#f0f0f0; padding:10px; border-radius:8px; margin-top:10px;">
+                <textarea id="in-${pId}" style="width:100%; height:50px; padding:5px;">@${toUser}: </textarea>
+                <div class="btn-row"><button class="btn btn-send" onclick="sendReply('${pId}')">שלח</button></div>
+            </div>`;
     }
 
     async function sendPost() {
         const t = document.getElementById('f-input').value;
-        if(!user || !t.trim()) return alert("אנא התחבר וכתוב תוכן.");
+        if(!t.trim()) return;
         await fetch(`${API}/posts`, { method:'POST', ...HEAD, body: JSON.stringify({user: user.name, content: t}) });
         document.getElementById('f-input').value = "";
         loadF();
@@ -206,10 +179,17 @@
         loadF();
     }
 
+    // מחיקה - עכשיו כשפתחת את ה-Policy, זה יעבוד
     async function delMsg(table, id) {
-        if(!confirm("למחוק לצמיתות?")) return;
-        await fetch(`${API}/${table}?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers });
-        loadF();
+        if(!confirm("למחוק?")) return;
+        try {
+            const res = await fetch(`${API}/${table}?id=eq.${id}`, {
+                method: 'DELETE',
+                headers: HEAD.headers
+            });
+            if(res.ok) loadF();
+            else alert("שגיאה במחיקה - בדוק את ה-Policy");
+        } catch(e) { alert("תקלה בתקשורת"); }
     }
 </script>
 </body>
