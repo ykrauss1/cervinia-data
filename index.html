@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Final Stable</title>
+    <title>CerviniaLive - Stable Forum</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; }
@@ -15,19 +15,18 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
         
-        /* עיצוב פורום */
         .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; position: relative; }
         .reply-item { margin-top: 10px; padding: 10px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 6px; }
         .depth-1 { margin-right: 40px; border-right-color: var(--accent); }
         .depth-2 { margin-right: 80px; border-right-color: #2c3e50; }
 
-        .admin-badge { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-left: 5px; }
+        .admin-badge { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-left: 8px; display: inline-block; vertical-align: middle; }
         .user-tag { font-weight: 800; color: var(--dark); }
         .time-tag { font-size: 0.75rem; color: #999; margin-right: 10px; }
         .action-link { color: #3498db; cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: inline-block; }
-        .del-icon { color: var(--error); cursor: pointer; float: left; margin-left: 5px; font-size: 1.1rem; border: none; background: none; }
+        .del-icon { color: var(--error); cursor: pointer; float: left; border: none; background: none; font-size: 1.1rem; padding: 0; }
         
-        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; }
+        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; font-family: inherit; }
         .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
@@ -65,7 +64,7 @@
 <script>
     const API = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co/rest/v1';
     const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
-    const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json' }};
+    const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }};
 
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
     const ADMIN_EMAIL = 'ykrauss1@gmail.com';
@@ -77,9 +76,11 @@
         if(user) {
             const isAdmin = user.email === ADMIN_EMAIL;
             area.innerHTML = `
-                ${isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}
-                שלום, <b>${user.name}</b> | 
-                <button onclick="logout()" style="background:none; border:none; color:white; cursor:pointer; text-decoration:underline;">התנתק</button>`;
+                <div style="display:flex; align-items:center; gap:10px;">
+                    ${isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}
+                    <span>שלום, <b>${user.name}</b></span>
+                    <button onclick="logout()" style="background:none; border:none; color:white; cursor:pointer; text-decoration:underline; font-size:0.8rem;">התנתק</button>
+                </div>`;
         } else {
             area.innerHTML = `<button class="btn-send" onclick="login()">כניסה</button>`;
         }
@@ -127,7 +128,7 @@
                                 <div class="reply-target"></div>
                                 ${buildTree(r.id, depth + 1).join('')}
                             </div>`;
-                        });
+                        }).join('');
                 }
 
                 html += `
@@ -138,19 +139,44 @@
                         <div style="margin:10px 0; font-weight:bold; font-size:1.1rem;">${p.content}</div>
                         <span class="action-link" onclick="openBox('${p.id}', '${p.user}', this, null)">השב</span>
                         <div class="reply-target"></div>
-                        <div class="replies-list">${buildTree(null, 0).join('')}</div>
+                        <div class="replies-list">${buildTree(null, 0)}</div>
                     </div>`;
             });
             document.getElementById('f-container').innerHTML = html;
-        } catch(e) {}
+        } catch(e) { console.error(e); }
+    }
+
+    async function sendPost() {
+        const c = document.getElementById('f-input').value;
+        if(!user) return login();
+        if(!c.trim()) return;
+        const res = await fetch(`${API}/posts`, { 
+            method:'POST', 
+            headers: HEAD.headers, 
+            body: JSON.stringify({user: user.name, content: c, user_email: user.email}) 
+        });
+        if(res.ok) { document.getElementById('f-input').value = ''; loadF(); }
+    }
+
+    async function sendReply(pId, pParentId) {
+        const c = document.querySelector(`#temp-in-${pId}`).value;
+        if(!user) return login();
+        if(!c.trim()) return;
+        const res = await fetch(`${API}/replies`, { 
+            method:'POST', 
+            headers: HEAD.headers, 
+            body: JSON.stringify({post_id: pId, user: user.name, content: c, parent_id: pParentId, user_email: user.email}) 
+        });
+        if(res.ok) loadF();
     }
 
     async function delMsg(table, id) {
         if(!confirm("למחוק לצמיתות?")) return;
-        // תיקון המחיקה: שליחת בקשה נקייה ללא Prefer שעלול להכשיל את הדפדפן
-        const r = await fetch(`${API}/${table}?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers });
+        const r = await fetch(`${API}/${table}?id=eq.${id}`, { 
+            method: 'DELETE', 
+            headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}` } 
+        });
         if(r.ok) loadF();
-        else alert("שגיאה במחיקה. וודא שהגדרת CASCADE ב-Supabase");
     }
 
     function openBox(pId, toUser, el, parentId) {
@@ -161,20 +187,6 @@
             <textarea id="temp-in-${pId}">@${toUser}: </textarea>
             <button class="btn-send" onclick="sendReply('${pId}', ${parentId ? `'${parentId}'` : 'null'})">שלח</button>
         </div>`;
-    }
-
-    async function sendPost() {
-        const c = document.getElementById('f-input').value;
-        if(!c.trim() || !user) return;
-        await fetch(`${API}/posts`, { method:'POST', ...HEAD, body: JSON.stringify({user: user.name, content: c, user_email: user.email}) });
-        document.getElementById('f-input').value = ''; loadF();
-    }
-
-    async function sendReply(pId, pParentId) {
-        const c = document.querySelector(`#temp-in-${pId}`).value;
-        if(!c.trim()) return;
-        await fetch(`${API}/replies`, { method:'POST', ...HEAD, body: JSON.stringify({post_id: pId, user: user.name, content: c, parent_id: pParentId, user_email: user.email}) });
-        loadF();
     }
 
     function login() {
