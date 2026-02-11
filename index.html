@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Stable</title>
+    <title>CerviniaLive - Final Fix</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; }
@@ -15,7 +15,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
         
-        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; position: relative; }
+        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
         .reply-item { margin-top: 10px; padding: 10px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 6px; }
         .depth-1 { margin-right: 30px; border-right-color: var(--accent); }
         .depth-2 { margin-right: 60px; border-right-color: #2c3e50; }
@@ -126,7 +126,7 @@
                             <div>${r.content}</div>
                             <span class="action-link" onclick="openBox('${p.id}', '${r.user}', this, '${r.id}')">השב</span>
                             <div class="reply-target"></div>
-                            ${buildTree(r.id, depth + 1)}
+                            ${buildTree(r.id, depth + 1).join('')}
                         </div>`;
                     }).join('');
                 }
@@ -147,25 +147,71 @@
     }
 
     async function sendPost() {
-        const c = document.getElementById('f-input').value;
+        const input = document.getElementById('f-input');
+        const content = input.value.trim();
         if(!user) return login();
-        if(!c.trim()) return;
-        const res = await fetch(`${API}/posts`, { method:'POST', ...HEAD, body: JSON.stringify({user: user.name, content: c, user_email: user.email}) });
-        if(res.ok) { document.getElementById('f-input').value = ''; loadF(); }
+        if(!content) return;
+
+        try {
+            const res = await fetch(`${API}/posts`, { 
+                method: 'POST', 
+                headers: HEAD.headers, 
+                body: JSON.stringify({
+                    user: user.name, 
+                    content: content, 
+                    user_email: user.email 
+                }) 
+            });
+
+            if(res.ok) {
+                input.value = '';
+                loadF();
+            } else {
+                const err = await res.json();
+                alert("שגיאה בפרסום: " + err.message);
+            }
+        } catch (e) {
+            alert("תקלת תקשורת בפרסום פוסט.");
+        }
     }
 
     async function sendReply(pId, pParentId) {
-        const c = document.querySelector(`#temp-in-${pId}`).value;
+        const area = document.querySelector(`#temp-in-${pId}`);
+        const content = area.value.trim();
         if(!user) return login();
-        if(!c.trim()) return;
-        const res = await fetch(`${API}/replies`, { method:'POST', ...HEAD, body: JSON.stringify({post_id: pId, user: user.name, content: c, parent_id: pParentId, user_email: user.email}) });
-        if(res.ok) loadF();
+        if(!content) return;
+
+        try {
+            const res = await fetch(`${API}/replies`, { 
+                method: 'POST', 
+                headers: HEAD.headers, 
+                body: JSON.stringify({
+                    post_id: pId, 
+                    user: user.name, 
+                    content: content, 
+                    parent_id: pParentId, 
+                    user_email: user.email 
+                }) 
+            });
+            if(res.ok) loadF();
+            else {
+                const err = await res.json();
+                alert("שגיאה בתגובה: " + err.message);
+            }
+        } catch (e) {
+            alert("תקלת תקשורת בשליחת תגובה.");
+        }
     }
 
     async function delMsg(table, id) {
         if(!confirm("למחוק?")) return;
-        const r = await fetch(`${API}/${table}?id=eq.${id}`, { method: 'DELETE', headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}` } });
-        if(r.ok) loadF();
+        try {
+            const r = await fetch(`${API}/${table}?id=eq.${id}`, { 
+                method: 'DELETE', 
+                headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}` } 
+            });
+            if(r.ok) loadF();
+        } catch (e) { alert("שגיאה במחיקה"); }
     }
 
     function openBox(pId, toUser, el, parentId) {
