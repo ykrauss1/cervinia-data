@@ -2,14 +2,15 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Master Locked Version</title>
+    <title>CerviniaLive - Master Stable Version</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
-        nav { background: var(--dark); color: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; }
+        nav { background: var(--dark); color: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         .admin-badge { background: #ff0000; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-left: 10px; }
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
         
@@ -18,33 +19,41 @@
         .stat-card { background: var(--dark); color: white; padding: 20px; border-radius: 12px; text-align: center; }
         .stat-card b { font-size: 1.4rem; direction: ltr; display: inline-block; }
 
-        /* Menu / Services */
+        /* Menu */
         .services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; }
-        .service-btn { background: white; border: 1px solid #ddd; padding: 18px; border-radius: 12px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .service-btn:hover { border-color: var(--accent); background: #f8fbff; }
+        .service-btn { background: white; border: 1px solid #ddd; padding: 18px; border-radius: 12px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .service-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
 
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
         
-        /* Guide */
+        /* Guide - Rich Design */
         .info-hub { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-        .info-box { background: #f8fbff; border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; text-align: center; }
+        .info-box { background: #f8fbff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; text-align: center; transition: 0.3s; }
+        .info-box i { font-size: 1.8rem; color: var(--accent); margin-bottom: 10px; display: block; }
+        .info-box h4 { margin: 5px 0; color: var(--dark); }
+        .info-box p { margin: 0; font-size: 0.85rem; color: #666; }
+
+        /* FAQ */
         .faq-item { border-bottom: 1px solid #eee; padding: 15px 0; cursor: pointer; }
-        .faq-a { display: none; padding: 10px; color: #555; background: #f9f9f9; border-radius: 8px; margin-top: 5px; }
+        .faq-a { display: none; padding: 10px; color: #555; background: #f9f9f9; border-radius: 8px; margin-top: 5px; line-height: 1.6; }
         .faq-item.active .faq-a { display: block; }
 
-        /* Weather */
-        table { width: 100%; border-collapse: collapse; }
+        /* Weather Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
+        .temp-cell { direction: ltr; font-weight: bold; }
 
-        /* Forum */
-        .post { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; background: white; }
+        /* Forum - Original Restricted Style */
+        .post { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; background: white; position: relative; }
         .reply-item { margin-top: 10px; padding: 12px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 8px; margin-right: 30px; }
         .reply-btn { color: var(--accent); cursor: pointer; font-weight: bold; font-size: 0.85rem; margin-top: 5px; display: inline-block; }
 
         /* Modals */
         .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
         .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; position: relative; }
-        .modal-large { max-width: 1000px; height: 85vh; display: flex; flex-direction: column; }
+        .modal-large { max-width: 1000px; height: 90vh; display: flex; flex-direction: column; }
+        
+        .close-btn { position: absolute; left: 20px; top: 20px; font-size: 1.5rem; cursor: pointer; color: #666; }
     </style>
 </head>
 <body>
@@ -70,21 +79,26 @@
     </div>
 
     <div class="card">
-        <h3>מדריך צרביניה והמדד</h3>
+        <h3>מדריך צרביניה המהיר</h3>
         <div class="info-hub">
-            <div class="info-box"><i class="fa fa-mountain"></i><h4>גובה</h4><p>3,883 מ'</p></div>
-            <div class="info-box"><i class="fa fa-chart-line"></i><h4>רמה</h4><p>בינוני-קל</p></div>
-            <div class="info-box"><i class="fa fa-users"></i><h4>קהל</h4><p>משפחות</p></div>
-            <div class="info-box"><i class="fa fa-cocktail"></i><h4>אפרה</h4><p>איטלקי</p></div>
+            <div class="info-box"><i class="fa fa-mountain"></i><h4>גובה שיא</h4><p>3,883 מ' - שלג מובטח</p></div>
+            <div class="info-box"><i class="fa fa-chart-line"></i><h4>רמת גלישה</h4><p>אידיאלי למתחילים ובינוניים</p></div>
+            <div class="info-box"><i class="fa fa-users"></i><h4>קהל יעד</h4><p>משפחות וזוגות</p></div>
+            <div class="info-box"><i class="fa fa-cocktail"></i><h4>אפרה סקי</h4><p>רגוע ביום, תוסס במרכז העיר</p></div>
         </div>
         <div class="faq-item" onclick="this.classList.toggle('active')">
-            <b>📍 איפה לישון?</b>
-            <div class="faq-a">מומלץ Cretaz או Via Carrel.</div>
+            <b>📍 היכן הכי כדאי לישון?</b>
+            <div class="faq-a">לגישת Ski-in מומלץ אזור Cretaz. לחיי לילה ומסעדות - Via Carrel (המדרחוב). Cielo Alto מציע נוף מדהים ומחירים זולים אך מרוחק מהמרכז.</div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('active')">
+            <b>🇨🇭 מעבר לצד השוויצרי (Zermatt)</b>
+            <div class="faq-a">המעבר מתבצע דרך Plateau Rosà. חובה להחזיק סקי-פס בינלאומי. שימו לב: הרכבלים חזור נסגרים סביב 15:00-15:30. מונית חזור מצרמט לצרביניה עולה כ-500 יורו!</div>
         </div>
     </div>
 
     <div class="card">
-        <h3>תחזית מלאה</h3>
+        <h3>תחזית וטמפרטורות</h3>
+        <canvas id="tempChart" height="100"></canvas>
         <table>
             <thead><tr><th>צפי</th><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th></tr></thead>
             <tbody id="w-body"></tbody>
@@ -93,15 +107,15 @@
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
-        <div id="f-container">טוען...</div>
+        <div id="f-container">טוען הודעות...</div>
         <div style="background: #f1f3f5; padding: 20px; border-radius: 12px; margin-top: 20px;">
-            <textarea id="f-input" rows="3" placeholder="מה קורה?" style="width:100%; border:1px solid #ddd; border-radius:8px; padding:10px; resize:none;"></textarea>
+            <textarea id="f-input" rows="3" placeholder="מה קורה בצרביניה כרגע?" style="width:100%; border:1px solid #ddd; border-radius:8px; padding:10px; resize:none; font-family:inherit;"></textarea>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
                 <div>
-                    <span style="cursor:pointer; color:#888; margin-left:15px;" onclick="document.getElementById('f-input').value=''">בטל</span>
-                    <i class="fa fa-paperclip" style="font-size:1.3rem; color:#666;"></i>
+                    <span style="cursor:pointer; color:#888; margin-left:15px; font-size:0.9rem;" onclick="document.getElementById('f-input').value=''">בטל</span>
+                    <i class="fa fa-paperclip" style="font-size:1.3rem; color:#666; cursor:pointer;"></i>
                 </div>
-                <button class="service-btn" style="background:var(--accent); border:none; padding:10px 25px;" onclick="sendPost()">פרסם</button>
+                <button class="service-btn" style="background:var(--accent); border:none; padding:10px 25px; color:white;" onclick="sendPost()">פרסם עדכון</button>
             </div>
         </div>
     </div>
@@ -109,24 +123,32 @@
 
 <div id="hotelModal" class="modal">
     <div class="modal-content">
-        <span onclick="closeM('hotelModal')" style="float:left; cursor:pointer; font-size:1.5rem;">&times;</span>
-        <h3>חיפוש אירוח</h3>
-        <input type="text" id="dateRange" style="width:100%; padding:10px; margin-bottom:15px;" placeholder="בחר תאריכים...">
-        <button class="service-btn" style="width:100%; background:var(--accent); border:none;" onclick="doSearch()">חפש</button>
-        <div id="hotel-results" style="display:none; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
-            <button class="service-btn" onclick="window.open(hUrls.booking)"><img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" width="80"></button>
-            <button class="service-btn" onclick="window.open(hUrls.airbnb)"><img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_Belo.svg" width="80"></button>
+        <span class="close-btn" onclick="closeM('hotelModal')">&times;</span>
+        <h3 style="text-align:center;">חיפוש אירוח חכם</h3>
+        <p style="font-size:0.9rem; color:#666; text-align:center;">בחר תאריכים כדי לראות זמינות בצרביניה</p>
+        <input type="text" id="dateRange" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" placeholder="בחר טווח תאריכים...">
+        <button class="service-btn" style="width:100%; background:var(--accent); border:none; color:white;" onclick="doSearch()">חפש עכשיו</button>
+        <div id="hotel-results" style="display:none; grid-template-columns:1fr 1fr; gap:15px; margin-top:20px;">
+            <button class="service-btn" style="flex-direction:column; padding:10px;" onclick="window.open(hUrls.booking)">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" width="90">
+                <small style="color:#666; margin-top:5px;">מלונות ודירות</small>
+            </button>
+            <button class="service-btn" style="flex-direction:column; padding:10px;" onclick="window.open(hUrls.airbnb)">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_Belo.svg/512px-Airbnb_Logo_Belo.svg.png" width="80">
+                <small style="color:#666; margin-top:5px;">דירות נופש</small>
+            </button>
         </div>
     </div>
 </div>
 
 <div id="mapModal" class="modal">
     <div class="modal-content modal-large">
-        <span onclick="closeM('mapModal')" style="float:left; cursor:pointer; font-size:1.5rem;">&times;</span>
-        <iframe id="map-iframe" src="" width="100%" height="90%" style="border:none;"></iframe>
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="service-btn" style="flex:1" onclick="loadMap('slopes')">מסלולים</button>
-            <button class="service-btn" style="flex:1" onclick="loadMap('town')">העיירה</button>
+        <span class="close-btn" onclick="closeM('mapModal')">&times;</span>
+        <iframe id="map-iframe" src="" width="100%" height="80%" style="border:none; border-radius:10px;"></iframe>
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-top:20px;">
+            <button class="service-btn" onclick="loadMap('slopes')"><i class="fa fa-skiing"></i> מפת מסלולים</button>
+            <button class="service-btn" onclick="loadMap('town')"><i class="fa fa-home"></i> מפת העיירה</button>
+            <button class="service-btn" style="background:#fffae6" onclick="window.open('https://www.google.com/maps', '_blank')"><i class="fa fa-star" style="color:orange"></i> המפה שלי</button>
         </div>
     </div>
 </div>
@@ -137,14 +159,18 @@
     const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json' }};
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
     let hUrls = { booking: '', airbnb: '' };
+    let tempChart;
 
-    window.onload = () => { renderHeader(); loadW(); loadF(); flatpickr("#dateRange", { mode: "range" }); };
+    window.onload = () => { renderHeader(); loadW(); loadF(); flatpickr("#dateRange", { mode: "range", minDate: "today" }); };
 
     function renderHeader() {
         const area = document.getElementById('auth-area');
         if(user) {
-            area.innerHTML = `<div>${user.name === 'ADMIN' ? '<span class="admin-badge">ADMIN</span>' : ''} <b>${user.name}</b> | <a href="#" onclick="logout()" style="color:#aaa;">התנתק</a></div>`;
-        } else { area.innerHTML = `<button onclick="login()" class="service-btn">כניסה</button>`; }
+            area.innerHTML = `<div style="display:flex; align-items:center;">
+                ${user.name === 'ADMIN' ? '<span class="admin-badge">ADMIN</span>' : ''}
+                <span>שלום <b>${user.name}</b> | <a href="#" onclick="logout()" style="color:#888; font-size:0.8rem; text-decoration:none;">התנתק</a></span>
+            </div>`;
+        } else { area.innerHTML = `<button onclick="login()" class="service-btn" style="padding:5px 15px;">כניסה למערכת</button>`; }
     }
 
     async function loadW() {
@@ -154,11 +180,36 @@
         document.getElementById('stat-slopes').innerText = d.slopes;
         document.getElementById('stat-lifts').innerText = d.lifts;
         document.getElementById('stat-conn').innerText = d.conn === 'open' ? 'פתוח' : 'סגור';
+        
+        // Table
         document.getElementById('w-body').innerHTML = d.forecast.slice(0,4).map(f => {
             const wind = parseFloat(f.wind);
-            const prob = wind < 32 ? {c:'var(--success)', t:'גבוה'} : (wind > 50 ? {c:'var(--error)', t:'נמוך'} : {c:'var(--warning)', t:'בינוני'});
-            return `<tr><td style="color:${prob.c}; font-weight:bold;">${prob.t}</td><td>${f.date}</td><td style="direction:ltr; font-weight:bold;">${f.temp_min.replace('--','-')}/${f.temp_max.replace('--','-')}</td><td>${f.wind}</td><td>${f.visibility}</td></tr>`;
+            const prob = wind < 32 ? {c:'var(--success)', t:'גבוהה'} : (wind > 50 ? {c:'var(--error)', t:'נמוכה'} : {c:'var(--warning)', t:'בינונית'});
+            return `<tr><td style="color:${prob.c}; font-weight:bold;">${prob.t}</td><td>${f.date}</td><td class="temp-cell">${f.temp_min.replace('--','-')}/${f.temp_max.replace('--','-')}</td><td>${f.wind}</td><td>${f.visibility}</td></tr>`;
         }).join('');
+
+        initChart(d.forecast.slice(0,4));
+    }
+
+    function initChart(data) {
+        const ctx = document.getElementById('tempChart').getContext('2d');
+        if(tempChart) tempChart.destroy();
+        tempChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(f => f.date),
+                datasets: [{
+                    label: 'טמפ׳ מקסימלית',
+                    data: data.map(f => parseFloat(f.temp_max.replace('--','-'))),
+                    borderColor: '#e74c3c', fill: false, tension: 0.3
+                }, {
+                    label: 'טמפ׳ מינימלית',
+                    data: data.map(f => parseFloat(f.temp_min.replace('--','-'))),
+                    borderColor: '#3498db', fill: false, tension: 0.3
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
     }
 
     async function loadF() {
@@ -198,21 +249,27 @@
     function openRBox(pId, toUser, el, rId) {
         const target = el.nextElementSibling;
         if(target.innerHTML) return target.innerHTML = '';
-        target.innerHTML = `<div style="margin-top:10px; background:#fff; padding:10px; border-radius:8px; border:1px solid #eee;">
-            <textarea id="in-${pId}" rows="2" style="width:100%; border:1px solid #ddd; border-radius:6px; padding:8px; resize:none;">@${toUser}: </textarea>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                <div><span style="cursor:pointer; color:#888; margin-left:12px;" onclick="this.closest('.r-target').innerHTML=''">בטל</span><i class="fa fa-paperclip"></i></div>
-                <button class="service-btn" style="padding:5px 15px; background:var(--accent); border:none;" onclick="sendR('${pId}','${rId||''}')">שלח</button>
+        target.innerHTML = `<div style="margin-top:10px; background:#fff; padding:15px; border-radius:10px; border:1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <textarea id="in-${pId}" rows="2" style="width:100%; border:1px solid #ddd; border-radius:8px; padding:10px; resize:none; direction:rtl; font-family:inherit;">@${toUser}: </textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <div><span style="cursor:pointer; color:#888; margin-left:15px; font-size:0.9rem;" onclick="this.closest('.r-target').innerHTML=''">בטל</span><i class="fa fa-paperclip" style="color:#666;"></i></div>
+                <button class="service-btn" style="padding:8px 20px; background:var(--accent); border:none; color:white;" onclick="sendR('${pId}','${rId||''}')">שלח תגובה</button>
             </div>
         </div>`;
-        setTimeout(() => { const tx = document.getElementById(`in-${pId}`); tx.focus(); }, 50);
+        
+        setTimeout(() => { 
+            const tx = document.getElementById(`in-${pId}`); 
+            tx.focus();
+            tx.setSelectionRange(tx.value.length, tx.value.length);
+        }, 50);
     }
 
     async function sendPost() {
         const v = document.getElementById('f-input').value;
-        if(!user || !v) return login();
+        if(!user || !v) return user ? alert("כתוב משהו...") : login();
         await fetch(`${API}/posts`, { method:'POST', headers: HEAD.headers, body: JSON.stringify({user:user.name, content:v}) });
-        location.reload();
+        document.getElementById('f-input').value = '';
+        loadF();
     }
 
     async function sendR(pId, rId) {
@@ -221,10 +278,11 @@
         loadF();
     }
 
-    async function del(t, id) { if(confirm('למחוק?')) { await fetch(`${API}/${t}?id=eq.${id}`, { method:'DELETE', headers: HEAD.headers }); loadF(); } }
+    async function del(t, id) { if(confirm('למחוק לצמיתות?')) { await fetch(`${API}/${t}?id=eq.${id}`, { method:'DELETE', headers: HEAD.headers }); loadF(); } }
     function openHotel() { document.getElementById('hotelModal').style.display='flex'; }
     function doSearch() { 
         const d = document.getElementById('dateRange').value.split(" to ");
+        if(d.length < 2) return alert("אנא בחר טווח תאריכים מלא");
         hUrls.booking = `https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=${d[0]}&checkout=${d[1]}`;
         hUrls.airbnb = `https://www.airbnb.co.il/s/Breuil-Cervinia/homes?checkin=${d[0]}&checkout=${d[1]}`;
         document.getElementById('hotel-results').style.display='grid';
@@ -235,7 +293,7 @@
         document.getElementById('map-iframe').src = urls[type];
     }
     function closeM(id) { document.getElementById(id).style.display='none'; }
-    function login() { const n = prompt("שם:"); if(n) { user={name:n}; localStorage.setItem('skiUser', JSON.stringify(user)); location.reload(); } }
+    function login() { const n = prompt("איך קוראים לך?"); if(n) { user={name:n}; localStorage.setItem('skiUser', JSON.stringify(user)); location.reload(); } }
     function logout() { localStorage.removeItem('skiUser'); location.reload(); }
 </script>
 </body>
