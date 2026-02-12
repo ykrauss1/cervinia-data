@@ -11,44 +11,30 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
         nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
-        
-        /* Stats */
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
         .stat-card { background: var(--dark); color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
-        
-        /* Services */
         .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 25px; }
         .service-btn { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; color: var(--dark); font-weight: bold; transition: all 0.3s ease; }
         .service-btn:hover { background: var(--accent); transform: translateY(-3px); }
-        
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
         .prob-High { color: var(--success); font-weight: bold; }
-        .prob-Medium { color: var(--warning); font-weight: bold; }
-        .prob-Low { color: var(--error); font-weight: bold; }
-        
-        /* Forum */
         .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
         .reply-item { margin-top: 10px; padding: 10px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 6px; }
         .del-btn { color: var(--error); cursor: pointer; float: left; border: 1px solid var(--error); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; background: white; }
-        
         .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-cancel { background: #ccc; color: #333; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
         textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; font-family: inherit; resize: none; }
         .img-preview { max-width: 250px; border-radius: 8px; margin-top: 10px; cursor: pointer; display: block; border: 1px solid #eee; }
-
         .file-label { cursor: pointer; color: var(--dark); font-size: 1.3rem; display: inline-flex; align-items: center; gap: 5px; }
-
-        /* Modern Hotel Modal */
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-content { background: white; width: 95%; max-width: 450px; padding: 25px; border-radius: 20px; }
         .counter-box { display: flex; align-items: center; justify-content: space-between; background: #f1f3f5; padding: 10px; border-radius: 10px; margin: 10px 0; }
         .counter-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: white; cursor: pointer; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .provider-card { border: 2px solid #eee; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
         .provider-card:hover { border-color: var(--accent); background: #f0faff; }
-        .provider-card img { height: 25px; margin-bottom: 8px; }
+        .provider-card img { height: 25px; margin-bottom: 8px; object-fit: contain; }
     </style>
 </head>
 <body>
@@ -69,7 +55,7 @@
     <div class="services-grid">
         <div class="service-btn" onclick="openHotels()"><i class="fa fa-hotel"></i> אירוח</div>
         <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-schools', '_blank')"><i class="fa fa-person-skiing"></i> הדרכת סקי</div>
-        <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-rental', '_blank')"><i class="fa fa-ski"></i> השכרת ציוד</div>
+        <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-rental', '_blank')"><i class="fa fa-person-skiing-nordic"></i> השכרת ציוד</div>
         <div class="service-btn" onclick="openMaps()"><i class="fa fa-map-marked-alt"></i> מפות האתר</div>
     </div>
 
@@ -85,16 +71,11 @@
     <div class="card">
         <h3>עדכונים מהשטח</h3>
         <div id="f-container">טוען הודעות...</div>
-        
         <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #eee;">
             <textarea id="f-input" rows="3" placeholder="מה קורה בצרביניה כרגע?"></textarea>
             <div style="display:flex; justify-content: flex-start; align-items:center; margin-top:10px; gap: 15px;">
                 <button class="btn-send" onclick="sendPost()">פרסם פוסט</button>
-                <label class="file-label">
-                    <i class="fa fa-paperclip"></i>
-                    <span id="f-file-name" style="font-size:0.75rem; color:var(--success);"></span>
-                    <input type="file" id="f-file" accept="image/*" hidden onchange="document.getElementById('f-file-name').innerText = '✔'">
-                </label>
+                <label class="file-label"><i class="fa fa-paperclip"></i><span id="f-file-name" style="font-size:0.75rem; color:var(--success);"></span><input type="file" id="f-file" accept="image/*" hidden onchange="document.getElementById('f-file-name').innerText = '✔'"></label>
             </div>
         </div>
     </div>
@@ -106,39 +87,16 @@
             <h3 style="margin:0">חיפוש אירוח חכם</h3>
             <button onclick="closeHotels()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">×</button>
         </div>
-        
         <div id="search-form">
             <label>בחר טווח תאריכים:</label>
             <input type="text" id="dateRange" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; margin:10px 0;" placeholder="לחץ לבחירת תאריכים...">
-            
-            <div class="counter-box">
-                <span>אורחים</span>
-                <div>
-                    <button class="counter-btn" onclick="updateCount('guests', -1)">-</button>
-                    <b id="guests-val" style="margin:0 10px;">2</b>
-                    <button class="counter-btn" onclick="updateCount('guests', 1)">+</button>
-                </div>
-            </div>
-            
-            <div class="counter-box">
-                <span>חדרים</span>
-                <div>
-                    <button class="counter-btn" onclick="updateCount('rooms', -1)">-</button>
-                    <b id="rooms-val" style="margin:0 10px;">1</b>
-                    <button class="counter-btn" onclick="updateCount('rooms', 1)">+</button>
-                </div>
-            </div>
-            
+            <div class="counter-box"><span>אורחים</span><div><button class="counter-btn" onclick="updateCount('guests', -1)">-</button><b id="guests-val" style="margin:0 10px;">2</b><button class="counter-btn" onclick="updateCount('guests', 1)">+</button></div></div>
+            <div class="counter-box"><span>חדרים</span><div><button class="counter-btn" onclick="updateCount('rooms', -1)">-</button><b id="rooms-val" style="margin:0 10px;">1</b><button class="counter-btn" onclick="updateCount('rooms', 1)">+</button></div></div>
             <button class="btn-send" style="width:100%; padding:15px; margin-top:10px;" onclick="generateSearchLinks()">חפש מקום לינה</button>
         </div>
-
         <div id="search-results" style="display:none; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
-            <div class="provider-card" onclick="goToLink('booking')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg"><br>Booking
-            </div>
-            <div class="provider-card" onclick="goToLink('airbnb')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_Belo.svg/256px-Airbnb_Logo_Belo.svg.png"><br>Airbnb
-            </div>
+            <div class="provider-card" onclick="goToLink('booking')"><img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg"><br>Booking</div>
+            <div class="provider-card" onclick="goToLink('airbnb')"><img src="https://znews.vn/airbnb-thay-doi-logo-moi-post440188.html" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_Belo.svg/256px-Airbnb_Logo_Belo.svg.png'"><br>Airbnb</div>
             <button class="btn-send" style="grid-column: span 2; background:#eee; color:#333;" onclick="resetSearch()">חיפוש חדש</button>
         </div>
     </div>
@@ -155,6 +113,14 @@
     let searchUrls = { booking: '', airbnb: '' };
     const ADMIN_NAME = 'ADMIN';
 
+    // הוספת סגירה ב-Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeHotels();
+            document.querySelectorAll('.reply-target').forEach(t => t.innerHTML = '');
+        }
+    });
+
     flatpickr("#dateRange", { mode: "range", dateFormat: "Y-m-d", minDate: "today" });
 
     window.onload = () => { renderHeader(); loadW(); loadF(); };
@@ -164,9 +130,7 @@
         if(user) {
             const isAdmin = user.name === ADMIN_NAME;
             area.innerHTML = `<div>${isAdmin ? '<span style="background:red;color:white;padding:2px 5px;border-radius:4px;font-size:0.75rem;margin-left:5px;font-weight:bold;">ADMIN</span>' : ''}שלום, <b>${user.name}</b> | <a href="#" onclick="logout()" style="color:white; text-decoration:none; margin-right:5px;">התנתק</a></div>`;
-        } else {
-            area.innerHTML = `<button class="btn-send" style="margin-top:0" onclick="login()">כניסה</button>`;
-        }
+        } else { area.innerHTML = `<button class="btn-send" onclick="login()">כניסה</button>`; }
     }
 
     async function loadW() {
@@ -177,11 +141,8 @@
             document.getElementById('stat-slopes').innerText = d.slopes || '--';
             document.getElementById('stat-lifts').innerText = d.lifts || '--';
             document.getElementById('stat-conn').innerText = d.conn === 'open' ? 'פתוח' : 'סגור';
-            document.getElementById('update-time').innerText = 'עדכון: ' + (d.last_update || '--');
-
             const today = new Date().toISOString().split('T')[0];
-            const filtered = d.forecast.filter(f => f.date >= today).slice(0,4);
-            document.getElementById('w-body').innerHTML = filtered.map(f => {
+            document.getElementById('w-body').innerHTML = d.forecast.filter(f => f.date >= today).slice(0,4).map(f => {
                 const wind = parseFloat(String(f.wind).replace(/[^0-9.]/g, '')) || 0;
                 let p = wind < 32 ? 'גבוה' : (wind > 50 ? 'נמוך' : 'בינוני');
                 let c = wind < 32 ? 'prob-High' : (wind > 50 ? 'prob-Low' : 'prob-Medium');
@@ -244,14 +205,13 @@
         if(!input.value.trim()) return;
         let fileUrl = await uploadFile(fileIn.files[0]);
         await fetch(`${API}/posts`, { method:'POST', headers: HEAD.headers, body: JSON.stringify({user: user.name, content: input.value.trim(), file_url: fileUrl}) });
-        input.value = ''; fileIn.value = ''; document.getElementById('f-file-name').innerText = ''; loadF();
+        location.reload();
     }
 
     async function sendReply(pId, pParentId) {
         const area = document.getElementById(`temp-in-${pId}`);
         const fileIn = document.getElementById(`file-in-${pId}`);
-        if(!user) return login();
-        if(!area.value.trim()) return;
+        if(!user || !area.value.trim()) return login();
         let fileUrl = await uploadFile(fileIn.files[0]);
         await fetch(`${API}/replies`, { method:'POST', headers: HEAD.headers, body: JSON.stringify({post_id: pId, user: user.name, content: area.value.trim(), parent_id: pParentId, file_url: fileUrl}) });
         loadF();
@@ -268,7 +228,6 @@
 
     async function deleteMsg(table, id) { if(confirm("למחוק?")) { await fetch(`${API}/${table}?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers }); loadF(); } }
 
-    /* Modern Hotels Logic - Injected */
     function updateCount(type, delta) { counts[type] = Math.max(1, counts[type] + delta); document.getElementById(`${type}-val`).innerText = counts[type]; }
     function generateSearchLinks() {
         const dates = document.getElementById('dateRange').value.split(" to ");
@@ -282,10 +241,9 @@
     function resetSearch() { document.getElementById('search-form').style.display = 'block'; document.getElementById('search-results').style.display = 'none'; }
     function openHotels() { document.getElementById('hotelModal').style.display='flex'; }
     function closeHotels() { document.getElementById('hotelModal').style.display='none'; }
-    
-    function openMaps() { alert("מפות ייפתחו בקרוב"); }
     function login() { const n = prompt("שם:"); if(n) { user = {name:n}; localStorage.setItem('skiUser', JSON.stringify(user)); location.reload(); } }
     function logout() { localStorage.removeItem('skiUser'); location.reload(); }
+    function openMaps() { alert("מפות ייפתחו בקרוב"); }
 </script>
 </body>
 </html>
