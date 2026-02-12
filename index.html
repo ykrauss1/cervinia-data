@@ -11,11 +11,16 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
         nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        
+        /* Stats */
         .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
         .stat-card { background: var(--dark); color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
+        
+        /* Services */
         .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 25px; }
         .service-btn { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; color: var(--dark); font-weight: bold; transition: all 0.3s ease; }
         .service-btn:hover { background: var(--accent); transform: translateY(-3px); }
+        
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
@@ -23,17 +28,19 @@
         .prob-Medium { color: var(--warning); font-weight: bold; }
         .prob-Low { color: var(--error); font-weight: bold; }
         
-        /* Forum Styles */
-        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; position: relative; }
+        /* Forum */
+        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
         .reply-item { margin-top: 10px; padding: 10px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 6px; }
         .del-btn { color: var(--error); cursor: pointer; float: left; border: 1px solid var(--error); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; background: white; }
-        .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .btn-cancel { background: #ccc; color: #333; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 5px; }
-        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; font-family: inherit; }
+        
+        .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-cancel { background: #ccc; color: #333; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; font-family: inherit; resize: none; }
         .img-preview { max-width: 250px; border-radius: 8px; margin-top: 10px; cursor: pointer; display: block; border: 1px solid #eee; }
 
-        /* כפתור סיכה מעוצב */
-        .file-label { cursor: pointer; color: var(--dark); font-size: 1.2rem; padding: 5px; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+        /* כפתור אטב מעוצב */
+        .file-label { cursor: pointer; color: var(--dark); font-size: 1.3rem; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
         .file-label:hover { color: var(--accent); }
         .file-status-text { font-size: 0.75rem; color: var(--success); font-weight: bold; }
 
@@ -79,14 +86,14 @@
         <div id="f-container">טוען הודעות...</div>
         
         <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #eee;">
-            <textarea id="f-input" placeholder="מה קורה בצרביניה כרגע?"></textarea>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                <label class="file-label">
+            <textarea id="f-input" rows="3" placeholder="מה קורה בצרביניה כרגע?"></textarea>
+            <div style="display:flex; justify-content: flex-start; align-items:center; margin-top:10px; gap: 15px;">
+                <button class="btn-send" onclick="sendPost()">פרסם פוסט</button>
+                <label class="file-label" title="צרף תמונה">
                     <i class="fa fa-paperclip"></i>
                     <span id="f-file-name" class="file-status-text"></span>
-                    <input type="file" id="f-file" accept="image/*" hidden onchange="document.getElementById('f-file-name').innerText = 'תמונה נבחרה ✔'">
+                    <input type="file" id="f-file" accept="image/*" hidden onchange="document.getElementById('f-file-name').innerText = '✔ תמונה נבחרה'">
                 </label>
-                <button class="btn-send" onclick="sendPost()">פרסם פוסט</button>
             </div>
         </div>
     </div>
@@ -98,31 +105,23 @@
             <h3>חיפוש אירוח חכם</h3>
             <button onclick="closeHotels()" style="border:none; background:none; font-size:2rem; cursor:pointer;">×</button>
         </div>
-        <div style="margin-top:15px;">
-            <label>בחר טווח תאריכים:</label>
-            <input type="text" id="dateRange" class="booking-input" placeholder="לחץ לבחירת תאריכים...">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-                <select id="guests" class="booking-input"><option value="2">2 אורחים</option><option value="1">אורח 1</option><option value="3">3 אורחים</option><option value="4">4 אורחים</option></select>
-                <select id="rooms" class="booking-input"><option value="1">חדר 1</option><option value="2">2 חדרים</option></select>
-            </div>
-            <button class="btn-send" style="width:100%; margin-top:20px; padding:15px;" onclick="performSearch()">חפש ב-Booking ו-Airbnb</button>
+        <input type="text" id="dateRange" class="booking-input" placeholder="בחר תאריכים...">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+            <select id="guests" class="booking-input"><option value="2">2 אורחים</option><option value="1">1 אורח</option></select>
+            <select id="rooms" class="booking-input"><option value="1">1 חדר</option></select>
         </div>
+        <button class="btn-send" style="width:100%; margin-top:20px; padding:15px;" onclick="performSearch()">חפש ב-Booking</button>
     </div>
 </div>
 
 <div id="mapModal" class="modal">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3>מפות האתר</h3>
+            <h3>מפות</h3>
             <button onclick="closeMaps()" style="border:none; background:none; font-size:2rem; cursor:pointer;">×</button>
         </div>
-        <div class="map-controls">
-            <button id="btn-google" class="map-btn active" onclick="showMap('google')">מפת עיירה</button>
-            <button id="btn-slopes" class="map-btn" onclick="showMap('slopes')">מפת מסלולים</button>
-        </div>
-        <div id="mapView" style="border:1px solid #ddd; border-radius:8px; height:500px; background:#eee;">
-            <iframe id="googleFrame" width="100%" height="100%" frameborder="0" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11103.49072481074!2d7.7056426!3d45.9329158!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4788f2858888b50b%3A0xb35359b36034f494!2s14021%20Breuil-Cervinia%2C%20Aosta%20Valley%2C%20Italy!5e0!3m2!1sen!2sil!4v1700000000000!5m2!1sen!2sil"></iframe>
-            <img id="staticImg" src="" style="width:100%; display:none;">
+        <div id="mapView" style="height:500px; background:#eee; border-radius: 8px;">
+            <iframe width="100%" height="100%" frameborder="0" src="https://www.google.com/maps/embed/v1/place?key=YOUR_KEY&q=Breuil-Cervinia"></iframe>
         </div>
     </div>
 </div>
@@ -142,11 +141,8 @@
 
     function renderHeader() {
         const area = document.getElementById('auth-area');
-        if(user) {
-            area.innerHTML = `<div>שלום, <b>${user.name}</b> | <a href="#" onclick="logout()" style="color:white;">התנתק</a></div>`;
-        } else {
-            area.innerHTML = `<button class="btn-send" style="margin-top:0" onclick="login()">כניסה</button>`;
-        }
+        if(user) area.innerHTML = `<div>שלום, <b>${user.name}</b> | <a href="#" onclick="logout()" style="color:white; text-decoration:none;">התנתק</a></div>`;
+        else area.innerHTML = `<button class="btn-send" style="margin-top:0" onclick="login()">כניסה</button>`;
     }
 
     async function uploadFile(file) {
@@ -219,22 +215,26 @@
         const target = el.nextElementSibling;
         if(target.innerHTML !== '') { target.innerHTML = ''; return; }
         document.querySelectorAll('.reply-target').forEach(t => t.innerHTML = '');
+        
         target.innerHTML = `<div style="margin-top:10px;">
-            <textarea id="temp-in-${pId}">@${toUser}: </textarea>
-            <label class="file-label">
-                <i class="fa fa-paperclip"></i>
-                <span id="reply-file-name-${pId}" class="file-status-text"></span>
-                <input type="file" id="file-in-${pId}" hidden onchange="document.getElementById('reply-file-name-${pId}').innerText = 'תמונה נבחרה'">
-            </label><br>
-            <button class="btn-send" onclick="sendReply('${pId}', ${parentId ? `'${parentId}'` : 'null'})">שלח</button>
-            <button class="btn-cancel" onclick="this.closest('.reply-target').innerHTML=''">ביטול</button>
+            <textarea id="temp-in-${pId}" rows="2">@${toUser}: </textarea>
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 5px;">
+                <button class="btn-send" onclick="sendReply('${pId}', ${parentId ? `'${parentId}'` : 'null'})">שלח</button>
+                <button class="btn-cancel" onclick="this.closest('.reply-target').innerHTML=''">ביטול</button>
+                <label class="file-label" title="צרף תמונה">
+                    <i class="fa fa-paperclip"></i>
+                    <span id="reply-file-name-${pId}" class="file-status-text"></span>
+                    <input type="file" id="file-in-${pId}" hidden onchange="document.getElementById('reply-file-name-${pId}').innerText = '✔'">
+                </label>
+            </div>
         </div>`;
     }
 
     async function sendPost() {
         const input = document.getElementById('f-input');
         const fileIn = document.getElementById('f-file');
-        if(!user || !input.value.trim()) return login();
+        if(!user) return login();
+        if(!input.value.trim()) return;
         let fileUrl = await uploadFile(fileIn.files[0]);
         await fetch(`${API}/posts`, { method:'POST', headers: HEAD.headers, body: JSON.stringify({user: user.name, content: input.value.trim(), file_url: fileUrl}) });
         input.value = ''; fileIn.value = ''; document.getElementById('f-file-name').innerText = ''; loadF();
@@ -243,7 +243,8 @@
     async function sendReply(pId, pParentId) {
         const area = document.getElementById(`temp-in-${pId}`);
         const fileIn = document.getElementById(`file-in-${pId}`);
-        if(!area || !area.value.trim()) return;
+        if(!user) return login();
+        if(!area.value.trim()) return;
         let fileUrl = await uploadFile(fileIn.files[0]);
         await fetch(`${API}/replies`, { method:'POST', headers: HEAD.headers, body: JSON.stringify({post_id: pId, user: user.name, content: area.value.trim(), parent_id: pParentId, file_url: fileUrl}) });
         loadF();
@@ -256,20 +257,12 @@
     function performSearch() {
         const dates = document.getElementById('dateRange').value.split(" to ");
         if(dates.length < 2) return alert("בחר תאריכים");
-        const g = document.getElementById('guests').value;
-        window.open(`https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=${dates[0]}&checkout=${dates[1]}&group_adults=${g}`, '_blank');
+        window.open(`https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=${dates[0]}&checkout=${dates[1]}`, '_blank');
     }
 
     function openMaps() { document.getElementById('mapModal').style.display='flex'; }
     function closeMaps() { document.getElementById('mapModal').style.display='none'; }
-    function showMap(type) {
-        document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-' + type).classList.add('active');
-        const gFrame = document.getElementById('googleFrame'), sImg = document.getElementById('staticImg');
-        if(type === 'google') { gFrame.style.display = 'block'; sImg.style.display = 'none'; }
-        else { gFrame.style.display = 'none'; sImg.style.display = 'block'; sImg.src = 'slopesmap.jpg'; }
-    }
-
+    
     function login() { const n = prompt("שם:"); if(n) { user = {name:n}; localStorage.setItem('skiUser', JSON.stringify(user)); location.reload(); } }
     function logout() { localStorage.removeItem('skiUser'); location.reload(); }
 </script>
