@@ -9,81 +9,63 @@
     <style>
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
-        
-        /* Header & Admin Status */
-        nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .admin-badge { background: #ff0000; color: white; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; margin-left: 10px; }
-        .logout-btn { color: #ffadad; text-decoration: none; font-size: 0.85rem; transition: 0.2s; }
-        .logout-btn:hover { text-decoration: underline; }
-
+        nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
         
-        /* Stats & Services */
-        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        /* Stats & Buttons */
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
         .stat-card { background: var(--dark); color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
-        
-        .services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; }
-        .service-btn { background: white; border: 1px solid #ddd; padding: 18px; border-radius: 12px; text-align: center; cursor: pointer; color: var(--dark); font-weight: bold; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .service-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: var(--accent); }
-        
-        /* Forecast Table */
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px; border-bottom: 1px solid #eee; text-align: center; }
-        .temp-cell { direction: ltr !important; unicode-bidi: plaintext; font-weight: 600; }
-        .prob-High { color: var(--success); font-weight: bold; }
-        .prob-Medium { color: var(--warning); font-weight: bold; }
-        .prob-Low { color: var(--error); font-weight: bold; }
+        .services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
+        .service-btn { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .service-btn:hover { background: #f8f9fa; transform: translateY(-2px); }
 
-        /* Forum - Depth & Branching */
-        .post { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; background: white; position: relative; }
-        .reply-item { margin-top: 12px; padding: 12px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 8px; margin-right: 25px; position: relative; }
-        .del-msg { color: var(--error); cursor: pointer; float: left; font-size: 0.8rem; font-weight: bold; padding: 2px 6px; border: 1px solid var(--error); border-radius: 4px; }
-        .del-msg:hover { background: var(--error); color: white; }
+        /* Table */
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
+        .temp-cell { direction: ltr !important; unicode-bidi: plaintext; }
+
+        /* Forum - Matches image_5ba1a4 and image_5ce476 */
+        .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; position: relative; }
+        .reply-item { margin-top: 10px; padding: 10px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 6px; margin-right: 20px; }
+        .del-btn { color: var(--error); cursor: pointer; float: left; font-size: 0.8rem; font-weight: bold; }
+        .post-time { font-size: 0.75rem; color: #888; margin-right: 8px; }
         
-        textarea { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 12px; box-sizing: border-box; font-family: inherit; resize: none; transition: 0.3s; }
-        textarea:focus { border-color: var(--accent); outline: none; }
+        .input-box-area { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-top: 10px; }
+        textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; resize: none; font-family: inherit; }
+        .input-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
 
         /* Modals */
-        .modal { display: none; position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: white; width: 95%; max-width: 850px; padding: 30px; border-radius: 20px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .close-modal { position: absolute; top: 15px; left: 15px; font-size: 2rem; cursor: pointer; color: #333; line-height: 1; }
-        
-        /* Map Specific View */
-        .map-frame-container { width: 100%; height: 500px; background: #eee; border-radius: 12px; margin-top: 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid #ddd; }
-        .map-nav-btn { background: #f1f3f5; border: 1px solid #ccc; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .map-nav-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
-
-        /* Hotel Specific */
-        .hotel-counter { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 12px; border-radius: 10px; margin: 10px 0; }
-        .cnt-btn { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 1.2rem; }
-        .btn-main { background: var(--accent); color: var(--dark); padding: 14px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; }
+        .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 95%; max-width: 500px; padding: 25px; border-radius: 20px; position: relative; }
+        .close-x { position: absolute; top: 15px; left: 15px; font-size: 1.5rem; cursor: pointer; border: none; background: none; }
+        .btn-send { background: var(--accent); color: var(--dark); padding: 8px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size:1.6rem; font-weight:900;">Cervinia<span style="color:var(--accent)">Live</span></div>
+    <div style="font-size:1.5rem; font-weight:900;">Cervinia<span style="color:var(--accent)">Live</span></div>
     <div id="auth-area"></div>
 </nav>
 
 <div class="container">
     <div class="stats">
-        <div class="stat-card"><i class="fa fa-thermometer-half"></i><br><small>טמפ' כעת</small><br><b id="stat-temp">--</b></div>
-        <div class="stat-card"><i class="fa fa-mountain"></i><br><small>מסלולים</small><br><b id="stat-slopes">--</b></div>
-        <div class="stat-card"><i class="fa fa-wind"></i><br><small>מעליות</small><br><b id="stat-lifts">--</b></div>
-        <div class="stat-card"><i class="fa fa-check-circle"></i><br><small>מצב האתר</small><br><b id="stat-conn">--</b></div>
+        <div class="stat-card"><small>טמפ'</small><br><b id="stat-temp">--</b></div>
+        <div class="stat-card"><small>מסלולים</small><br><b id="stat-slopes">--</b></div>
+        <div class="stat-card"><small>מעליות</small><br><b id="stat-lifts">--</b></div>
+        <div class="stat-card"><small>סטטוס</small><br><b id="stat-conn">--</b></div>
     </div>
 
     <div class="services-grid">
-        <div class="service-btn" onclick="openHotels()"><i class="fa fa-hotel"></i> אירוח</div>
-        <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-schools', '_blank')"><i class="fa fa-person-skiing"></i> הדרכה</div>
-        <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-rental', '_blank')"><i class="fa fa-skis"></i> ציוד</div>
-        <div class="service-btn" onclick="openMaps()"><i class="fa fa-map-marked-alt"></i> מפות האתר</div>
+        <div class="service-btn" onclick="openModal('hotelModal')">אירוח</div>
+        <div class="service-btn">הדרכת סקי</div>
+        <div class="service-btn">השכרת ציוד</div>
+        <div class="service-btn" onclick="openModal('mapModal')">מפות האתר</div>
     </div>
 
     <div class="card">
-        <h3>תחזית ל-4 ימים הקרובים (Plateau Rosà)</h3>
+        <h3>תחזית ל-4 ימים הקרובים</h3>
         <table>
             <thead><tr><th>צפי</th><th>תאריך</th><th>טמפ'</th><th>רוח</th><th>ראות</th></tr></thead>
             <tbody id="w-body"></tbody>
@@ -92,52 +74,36 @@
 
     <div class="card">
         <h3>עדכונים מהשטח</h3>
-        <div id="f-container">טוען הודעות...</div>
-        <div style="background: #f1f3f5; padding: 20px; border-radius: 15px; margin-top: 20px;">
+        <div id="f-container">טוען...</div>
+        <div class="input-box-area">
             <textarea id="f-input" rows="3" placeholder="מה קורה בצרביניה כרגע?"></textarea>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+            <div class="input-footer">
                 <div>
-                    <i class="fa fa-paperclip" style="cursor:pointer; color:#666; font-size:1.2rem; margin-left:15px;"></i>
-                    <span style="cursor:pointer; color:#888;" onclick="document.getElementById('f-input').value=''">בטל</span>
+                    <span style="cursor:pointer; color:#888; margin-left:15px;" onclick="document.getElementById('f-input').value=''">בטל</span>
+                    <i class="fa fa-paperclip" style="color:#666; cursor:pointer;"></i>
                 </div>
-                <button class="btn-main" style="width:auto;" onclick="sendPost()">פרסם פוסט</button>
+                <button class="btn-send" onclick="sendPost()">פרסם פוסט</button>
             </div>
         </div>
     </div>
 </div>
 
 <div id="mapModal" class="modal">
-    <div class="modal-content" style="max-width: 1000px;">
-        <span class="close-modal" onclick="closeModals()">×</span>
-        <h2 style="text-align:center;">מפות האתר</h2>
-        <div style="display:flex; justify-content:center; gap:15px; margin-bottom:15px;">
-            <button class="map-nav-btn" onclick="loadMap('slopes')">מפת מסלולים</button>
-            <button class="map-nav-btn" onclick="loadMap('town')">מפת העיירה</button>
-            <button class="map-nav-btn" onclick="loadMap('mymap')">המפה שלי</button>
-        </div>
-        <div class="map-frame-container" id="map-viewer">
-            <p style="color:#888;">בחר מפה להצגה</p>
-        </div>
+    <div class="modal-content">
+        <button class="close-x" onclick="closeModal('mapModal')">×</button>
+        <h3 style="text-align:center;">מפות האתר</h3>
+        <button class="service-btn" style="width:100%; margin-bottom:10px;" onclick="window.open('https://github.com/ykrauss/Cervinia/raw/main/slopesmap.pdf', '_blank')">מפת מסלולים (PDF)</button>
+        <button class="service-btn" style="width:100%; margin-bottom:10px;" onclick="window.open('https://www.google.com/maps/search/Breuil-Cervinia', '_blank')">מפת העיירה (Google)</button>
+        <button class="service-btn" style="width:100%;" onclick="window.open('https://github.com/ykrauss/Cervinia/raw/main/mymap.jpg', '_blank')">המפה שלי (JPG)</button>
     </div>
 </div>
 
 <div id="hotelModal" class="modal">
-    <div class="modal-content" style="max-width: 450px;">
-        <span class="close-modal" onclick="closeModals()">×</span>
-        <h2 style="text-align:center;">חיפוש אירוח חכם</h2>
-        <div id="hotel-form">
-            <input type="text" id="dateRange" style="width:100%; padding:14px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;" placeholder="בחר תאריכים...">
-            <div class="hotel-counter"><span>אורחים</span><div><button class="cnt-btn" onclick="updateCnt('guests',-1)">-</button><b id="guests-val" style="margin:0 15px">2</b><button class="cnt-btn" onclick="updateCnt('guests',1)">+</button></div></div>
-            <div class="hotel-counter"><span>חדרים</span><div><button class="cnt-btn" onclick="updateCnt('rooms',-1)">-</button><b id="rooms-val" style="margin:0 15px">1</b><button class="cnt-btn" onclick="updateCnt('rooms',1)">+</button></div></div>
-            <button class="btn-main" style="margin-top:15px;" onclick="doSearch()">חפש מקום לינה</button>
-        </div>
-        <div id="hotel-results" style="display:none; margin-top:20px;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                <button class="service-btn" onclick="goHotel('booking')"><img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" height="20"></button>
-                <button class="service-btn" onclick="goHotel('airbnb')"><img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_Belo.svg" height="20"></button>
-            </div>
-            <button class="btn-main" style="background:#eee; color:#333; margin-top:15px;" onclick="resetHotel()">חיפוש חדש</button>
-        </div>
+    <div class="modal-content">
+        <button class="close-x" onclick="closeModal('hotelModal')">×</button>
+        <h3 style="text-align:center;">חיפוש אירוח חכם</h3>
+        <input type="text" id="dateRange" style="width:100%; padding:10px; margin-bottom:15px;" placeholder="בחר תאריכים...">
+        <button class="btn-send" style="width:100%; padding:15px;" onclick="alert('מחפש...')">חפש מקום לינה</button>
     </div>
 </div>
 
@@ -145,38 +111,24 @@
     const API = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co/rest/v1';
     const KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
     const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json' }};
-
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
-    let counts = { guests: 2, rooms: 1 };
-    let searchUrls = { booking: '', airbnb: '' };
 
-    window.onload = () => { renderHeader(); loadW(); loadF(); flatpickr("#dateRange", { mode: "range", minDate: "today" }); };
+    window.onload = () => { renderHeader(); loadW(); loadF(); flatpickr("#dateRange", { mode: "range" }); };
 
     function renderHeader() {
         const area = document.getElementById('auth-area');
-        if(user) {
-            area.innerHTML = `<div style="display:flex; align-items:center;">
-                ${user.name === 'ADMIN' ? '<span class="admin-badge">ADMIN</span>' : ''}
-                <span style="margin-left:15px;">שלום, <b>${user.name}</b></span>
-                <a href="#" class="logout-btn" onclick="logout()">התנתק</a>
-            </div>`;
-        } else { area.innerHTML = `<button class="btn-main" style="width:auto; padding:8px 20px;" onclick="login()">כניסה</button>`; }
+        if(user) area.innerHTML = `<div>שלום <b>${user.name}</b> | <a href="#" onclick="logout()">התנתק</a></div>`;
+        else area.innerHTML = `<button class="btn-send" onclick="login()">כניסה</button>`;
     }
 
     async function loadW() {
         const r = await fetch('data.json?v=' + Date.now());
         const d = await r.json();
-        document.getElementById('stat-temp').innerText = d.temp || '--';
-        document.getElementById('stat-slopes').innerText = d.slopes || '--';
-        document.getElementById('stat-lifts').innerText = d.lifts || '--';
+        document.getElementById('stat-temp').innerText = d.temp;
+        document.getElementById('stat-slopes').innerText = d.slopes;
+        document.getElementById('stat-lifts').innerText = d.lifts;
         document.getElementById('stat-conn').innerText = d.conn === 'open' ? 'פתוח' : 'סגור';
-        
-        document.getElementById('w-body').innerHTML = (d.forecast || []).slice(0,4).map(f => {
-            const wind = parseFloat(f.wind) || 0;
-            const prob = wind < 32 ? 'prob-High' : (wind > 50 ? 'prob-Low' : 'prob-Medium');
-            const probText = wind < 32 ? 'גבוה' : (wind > 50 ? 'נמוך' : 'בינוני');
-            return `<tr><td class="${prob}">${probText}</td><td>${f.date}</td><td class="temp-cell">${f.temp_min}/${f.temp_max}</td><td>${f.wind}</td><td>${f.visibility}</td></tr>`;
-        }).join('');
+        document.getElementById('w-body').innerHTML = d.forecast.slice(0,4).map(f => `<tr><td>--</td><td>${f.date}</td><td class="temp-cell">${f.temp_min}/${f.temp_max}</td><td>${f.wind}</td><td>${f.visibility}</td></tr>`).join('');
     }
 
     async function loadF() {
@@ -186,13 +138,13 @@
 
         const buildTree = (replies, parentId = null) => {
             return replies.filter(r => r.parent_id === parentId).map(r => {
-                const time = new Date(r.created_at).toLocaleString('he-IL', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
+                const time = new Date(r.created_at).toLocaleString('he-IL', {hour:'2-digit', minute:'2-digit'});
                 return `
                 <div class="reply-item">
-                    ${isAdmin ? `<span class="del-msg" onclick="del('replies','${r.id}')">מחק</span>` : ''}
-                    <b>${r.user}</b> <span style="font-size:0.7rem; color:#888;">${time}</span>
-                    <div style="margin:8px 0;">${r.content}</div>
-                    <div style="color:var(--accent); cursor:pointer; font-size:0.8rem; font-weight:bold;" onclick="openR('${r.post_id}', '${r.user}', this, '${r.id}')">השב <i class="fa fa-paperclip"></i></div>
+                    ${isAdmin ? `<span class="del-btn" onclick="del('replies','${r.id}')">מחק</span>` : ''}
+                    <b>${r.user}</b> <span class="post-time">${time}</span>
+                    <div style="margin:5px 0;">${r.content}</div>
+                    <div style="color:var(--accent); cursor:pointer; font-size:0.8rem;" onclick="openReplyBox('${r.post_id}', '${r.user}', this, '${r.id}')">השב</div>
                     <div class="r-target"></div>
                     ${buildTree(replies, r.id)}
                 </div>`;
@@ -200,24 +152,38 @@
         };
 
         document.getElementById('f-container').innerHTML = data.map(p => {
-            const time = new Date(p.created_at).toLocaleString('he-IL', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
+            const time = new Date(p.created_at).toLocaleString('he-IL', {hour:'2-digit', minute:'2-digit'});
             return `
             <div class="post">
-                ${isAdmin ? `<span class="del-msg" onclick="del('posts','${p.id}')">מחק פוסט</span>` : ''}
-                <b>${p.user}</b> <span style="font-size:0.7rem; color:#888;">${time}</span>
-                <div style="margin:10px 0; font-size:1.1rem;">${p.content}</div>
-                <div style="color:var(--accent); cursor:pointer; font-size:0.85rem; font-weight:bold;" onclick="openR('${p.id}', '${p.user}', this, null)">השב <i class="fa fa-paperclip"></i></div>
+                ${isAdmin ? `<span class="del-btn" onclick="del('posts','${p.id}')">מחק פוסט</span>` : ''}
+                <b>${p.user}</b> <span class="post-time">${time}</span>
+                <div style="margin:10px 0;">${p.content}</div>
+                <div style="color:var(--accent); cursor:pointer; font-size:0.8rem;" onclick="openReplyBox('${p.id}', '${p.user}', this, null)">השב</div>
                 <div class="r-target"></div>
                 ${buildTree(p.replies || [], null)}
             </div>`;
         }).join('');
     }
 
-    function openR(pId, toUser, el, rId) {
+    function openReplyBox(pId, toUser, el, rId) {
         const target = el.nextElementSibling;
         if(target.innerHTML) { target.innerHTML = ''; return; }
-        document.querySelectorAll('.r-target').forEach(t => t.innerHTML = '');
-        target.innerHTML = `<div style="margin-top:10px;"><textarea id="in-${pId}">@${toUser}: </textarea><button class="btn-main" style="width:auto; margin-top:5px;" onclick="sendR('${pId}','${rId||''}')">שלח</button></div>`;
+        
+        target.innerHTML = `
+            <div class="input-box-area">
+                <textarea id="in-${pId}" rows="2">@${toUser}: </textarea>
+                <div class="input-footer">
+                    <div>
+                        <span style="cursor:pointer; color:#888; margin-left:15px;" onclick="this.parentElement.parentElement.parentElement.innerHTML=''">בטל</span>
+                        <i class="fa fa-paperclip" style="color:#666; cursor:pointer;"></i>
+                    </div>
+                    <button class="btn-send" onclick="sendR('${pId}','${rId||''}')">שלח</button>
+                </div>
+            </div>`;
+        
+        const tx = document.getElementById(`in-${pId}`);
+        tx.focus();
+        tx.setSelectionRange(tx.value.length, tx.value.length);
     }
 
     async function sendPost() {
@@ -233,38 +199,10 @@
         loadF();
     }
 
-    async function del(t, id) { if(confirm('למחוק לצמיתות?')) { await fetch(`${API}/${t}?id=eq.${id}`, { method:'DELETE', headers: HEAD.headers }); loadF(); } }
-    
-    // MODALS LOGIC
-    function openHotels() { document.getElementById('hotelModal').style.display='flex'; }
-    function openMaps() { document.getElementById('mapModal').style.display='flex'; }
-    function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
-    
-    function updateCnt(t, d) { counts[t] = Math.max(1, counts[t]+d); document.getElementById(`${t}-val`).innerText = counts[t]; }
-    
-    function doSearch() {
-        const d = document.getElementById('dateRange').value.split(" to ");
-        if(d.length < 2) return alert("בחר תאריכים לחיפוש");
-        searchUrls.booking = `https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=${d[0]}&checkout=${d[1]}&group_adults=${counts.guests}&no_rooms=${counts.rooms}`;
-        searchUrls.airbnb = `https://www.airbnb.co.il/s/Breuil-Cervinia/homes?checkin=${d[0]}&checkout=${d[1]}&adults=${counts.guests}`;
-        document.getElementById('hotel-form').style.display = 'none';
-        document.getElementById('hotel-results').style.display = 'block';
-    }
-    function resetHotel() { document.getElementById('hotel-form').style.display = 'block'; document.getElementById('hotel-results').style.display = 'none'; }
-    function goHotel(p) { window.open(searchUrls[p], '_blank'); }
-
-    function loadMap(type) {
-        const viewer = document.getElementById('map-viewer');
-        let url = "";
-        if(type === 'slopes') url = "https://raw.githubusercontent.com/ykrauss/Cervinia/main/slopesmap.jpg";
-        else if(type === 'town') url = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11123.456!2d7.625!3d45.933!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDXCsDU2JzAwLjAiTiA3wrAzNyczMC4wIkU!5e0!3m2!1sen!2sit!4v123456789";
-        else if(type === 'mymap') url = "https://raw.githubusercontent.com/ykrauss/Cervinia/main/mymap.jpg";
-        
-        if(type === 'town') viewer.innerHTML = `<iframe src="${url}" width="100%" height="100%" style="border:0;" allowfullscreen=""></iframe>`;
-        else viewer.innerHTML = `<img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
-    }
-
-    function login() { const n = prompt("שם משתמש:"); if(n) { user = {name:n}; localStorage.setItem('skiUser', JSON.stringify(user)); location.reload(); } }
+    async function del(t, id) { if(confirm('למחוק?')) { await fetch(`${API}/${t}?id=eq.${id}`, { method:'DELETE', headers: HEAD.headers }); loadF(); } }
+    function openModal(id) { document.getElementById(id).style.display='flex'; }
+    function closeModal(id) { document.getElementById(id).style.display='none'; }
+    function login() { const n = prompt("שם:"); if(n) { user={name:n}; localStorage.setItem('skiUser', JSON.stringify(user)); location.reload(); } }
     function logout() { localStorage.removeItem('skiUser'); location.reload(); }
 </script>
 </body>
