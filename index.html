@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CerviniaLive - הכל במקום אחד</title>
+    <title>CerviniaLive - הגרסה היציבה</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -11,83 +11,83 @@
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; direction: rtl; }
         nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px; }
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
         
-        /* Stats & Dashboard */
-        .admin-box { background: #fff3cd; border: 2px solid #ffeeba; padding: 20px; border-radius: 12px; margin-bottom: 25px; display: none; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 25px; }
+        /* Stats & Admin */
+        .admin-box { background: #fff3cd; border: 2px solid #ffeeba; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
         .stat-card { background: var(--dark); color: white; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--accent); }
         
-        /* Services */
-        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 25px; }
-        .service-btn { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .service-btn:hover { transform: translateY(-5px); border-color: var(--accent); }
-        .service-btn i { font-size: 1.8rem; color: var(--accent); margin-bottom: 10px; }
+        /* Menu Services */
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .service-btn { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .service-btn:hover { border-color: var(--accent); transform: translateY(-3px); }
+        .service-btn i { font-size: 1.5rem; color: var(--accent); margin-bottom: 8px; }
 
         /* Forum Layout */
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        .post { border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; background: white; }
-        .post img { max-width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
-        .reply { margin-right: 30px; margin-top: 10px; padding: 12px; background: #f0f7ff; border-right: 3px solid var(--accent); border-radius: 8px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .post { border-bottom: 1px solid #eee; padding: 15px 0; position: relative; }
+        .post img { max-width: 100%; border-radius: 8px; margin-top: 10px; }
+        .reply { margin: 10px 30px 0 0; padding: 10px; background: #f0f7ff; border-right: 3px solid var(--accent); border-radius: 8px; font-size: 0.9rem; }
         
-        /* Inputs */
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; box-sizing: border-box; }
-        .btn-send { background: var(--accent); color: var(--dark); padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.2s; }
-        .btn-send:hover { opacity: 0.9; }
-        .reply-btn { color: var(--accent); cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-top: 10px; display: inline-block; }
-        .del-btn { color: var(--error); cursor: pointer; float: left; font-size: 0.75rem; border: 1px solid; padding: 2px 6px; border-radius: 4px; }
+        /* Controls */
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-top: 8px; box-sizing: border-box; font-family: inherit; }
+        .btn-main { background: var(--accent); color: var(--dark); padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        .reply-link { color: var(--accent); cursor: pointer; font-size: 0.8rem; font-weight: bold; margin-top: 8px; display: inline-block; }
+        .del-btn { color: var(--error); cursor: pointer; float: left; font-size: 0.7rem; border: 1px solid; padding: 2px 5px; border-radius: 4px; }
 
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 20px; position: relative; }
+        /* Modals */
+        .modal { display: none; position: fixed; z-index: 3000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; width: 90%; max-width: 450px; padding: 25px; border-radius: 15px; position: relative; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-size:1.5rem; font-weight:900;">Cervinia<span style="color:var(--accent)">Live</span></div>
+    <div style="font-size:1.4rem; font-weight:900;">Cervinia<span style="color:var(--accent)">Live</span></div>
     <div id="auth-area"></div>
 </nav>
 
 <div class="container">
     <div id="admin-dashboard" class="admin-box">
-        <h3><i class="fa fa-user-shield"></i> ניהול מערכת</h3>
-        <button class="btn-send" style="width:auto; background:var(--dark); color:white;" onclick="updateSiteStatusManual()">עדכן מצב אתר</button>
-        <span id="visit-count" style="margin-right:20px; font-weight:bold"></span>
+        <strong>ניהול:</strong> <button onclick="updateSiteStatusManual()">עדכן מצב אתר</button>
+        <span id="visit-count" style="margin-right:15px;"></span>
     </div>
 
     <div class="stats">
-        <div class="stat-card"><i class="fa fa-thermometer-half"></i><br><small>טמפ'</small><br><b id="stat-temp">--</b></div>
-        <div class="stat-card"><i class="fa fa-mountain"></i><br><small>מסלולים</small><br><b id="stat-slopes">--</b></div>
-        <div class="stat-card"><i class="fa fa-wind"></i><br><small>מעליות</small><br><b id="stat-lifts">--</b></div>
-        <div class="stat-card"><i class="fa fa-exchange-alt"></i><br><small>צ'רמט</small><br><b id="stat-conn">--</b></div>
+        <div class="stat-card"><small>טמפ'</small><br><b id="stat-temp">--</b></div>
+        <div class="stat-card"><small>מסלולים</small><br><b id="stat-slopes">--</b></div>
+        <div class="stat-card"><small>מעליות</small><br><b id="stat-lifts">--</b></div>
+        <div class="stat-card"><small>צ'רמט</small><br><b id="stat-conn">--</b></div>
     </div>
 
     <div class="services-grid">
         <div class="service-btn" onclick="openHotels()"><i class="fa fa-hotel"></i><br><b>אירוח</b></div>
-        <div class="service-btn"><i class="fa fa-skiing"></i><br><b>סקי</b></div>
-        <div class="service-btn"><i class="fa fa-utensils"></i><br><b>מסעדות</b></div>
-        <div class="service-btn"><i class="fa fa-map-marked-alt"></i><br><b>מפות</b></div>
+        <div class="service-btn" onclick="alert('בקרוב: רשימת חנויות ציוד והדרכה')"><i class="fa fa-skiing"></i><br><b>סקי</b></div>
+        <div class="service-btn" onclick="alert('בקרוב: מסעדות מומלצות בהר ובעיירה')"><i class="fa fa-utensils"></i><br><b>מסעדות</b></div>
+        <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/skirama','_blank')"><i class="fa fa-map-marked-alt"></i><br><b>מפות</b></div>
     </div>
 
     <div class="card">
-        <h3>עדכונים מהשטח</h3>
-        <div id="f-container">טוען...</div>
-        <div class="card" style="margin-top:20px; border:1px solid #eee;">
-            <textarea id="f-input" rows="3" placeholder="מה קורה בצרביניה?"></textarea>
-            <input type="text" id="f-img" placeholder="קישור לתמונה (אופציונלי)">
-            <button class="btn-send" onclick="sendPost()">פרסם פוסט</button>
+        <h3>פורום עדכונים מהשטח</h3>
+        <div id="f-container">טוען הודעות...</div>
+        
+        <div style="margin-top:25px; border-top:2px solid #f4f7f9; padding-top:15px;">
+            <h4>פרסם פוסט חדש</h4>
+            <textarea id="f-input" rows="2" placeholder="מה תרצה לשתף?"></textarea>
+            <input type="text" id="f-img" placeholder="קישור לתמונה (לא חובה)">
+            <button class="btn-main" onclick="sendPost()">שלח פוסט</button>
         </div>
     </div>
 </div>
 
 <div id="hotelModal" class="modal">
     <div class="modal-content">
-        <button onclick="closeHotels()" style="position:absolute; top:10px; left:10px; border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
-        <h3>חיפוש אירוח</h3>
-        <input type="text" id="dateRange" placeholder="בחר תאריכים...">
-        <button class="btn-send" onclick="window.open('https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia','_blank')">חפש ב-Booking</button>
-        <button class="btn-send" style="background:#ff5a5f; color:white;" onclick="window.open('https://www.airbnb.co.il/s/Breuil~Cervinia','_blank')">חפש ב-Airbnb</button>
+        <button onclick="closeHotels()" style="position:absolute; top:10px; left:10px; border:none; background:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+        <h3>מצא אירוח בצרביניה</h3>
+        <input type="text" id="dateRange" placeholder="בחר תאריכים לחופשה">
+        <button class="btn-main" style="background:#003580; color:white" onclick="goToProvider('booking')">חפש ב-Booking.com</button>
+        <button class="btn-main" style="background:#ff5a5f; color:white" onclick="goToProvider('airbnb')">חפש ב-Airbnb</button>
     </div>
 </div>
 
@@ -99,93 +99,128 @@
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
     const ADMIN_NAME = 'ADMIN';
 
+    flatpickr("#dateRange", { mode: "range", dateFormat: "Y-m-d", minDate: "today" });
+
     window.onload = () => { renderHeader(); loadLiveWeather(); loadSiteStatus(); loadF(); };
 
     function renderHeader() {
         const area = document.getElementById('auth-area');
         if(user) {
-            area.innerHTML = `<span><b>${user.name}</b> | <a href="#" onclick="logout()" style="color:white">התנתק</a></span>`;
+            area.innerHTML = `<span>${user.name === ADMIN_NAME ? '🔴 ' : ''}<b>${user.name}</b> | <a href="#" onclick="logout()" style="color:white; font-size:0.8rem">התנתק</a></span>`;
             if(user.name === ADMIN_NAME) document.getElementById('admin-dashboard').style.display='block';
         } else {
-            area.innerHTML = `<button onclick="login()" style="background:var(--accent); border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">כניסה</button>`;
+            area.innerHTML = `<button onclick="login()" style="background:var(--accent); border:none; padding:5px 12px; border-radius:5px; cursor:pointer; font-weight:bold">כניסה</button>`;
         }
     }
 
     async function loadLiveWeather() {
-        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.71&current=temperature_2m&timezone=Europe%2FRome');
-        const d = await res.json();
-        document.getElementById('stat-temp').innerText = d.current.temperature_2m + '°C';
+        try {
+            const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=45.93&longitude=7.71&current=temperature_2m&timezone=Europe%2FRome');
+            const d = await res.json();
+            document.getElementById('stat-temp').innerText = d.current.temperature_2m + '°C';
+        } catch(e) { console.error(e); }
     }
 
     async function loadSiteStatus() {
-        const res = await fetch(`${API}/site_status?select=*&id=eq.1`, HEAD);
-        const [data] = await res.json();
-        if(data) {
-            document.getElementById('stat-slopes').innerText = data.slopes;
-            document.getElementById('stat-lifts').innerText = data.lifts;
-            document.getElementById('stat-conn').innerText = data.zermatt_link === 'open' ? 'פתוח' : 'סגור';
-            document.getElementById('stat-conn').style.color = data.zermatt_link === 'open' ? 'var(--success)' : 'var(--error)';
-        }
+        try {
+            const res = await fetch(`${API}/site_status?select=*&id=eq.1`, HEAD);
+            const [data] = await res.json();
+            if(data) {
+                document.getElementById('stat-slopes').innerText = data.slopes;
+                document.getElementById('stat-lifts').innerText = data.lifts;
+                const c = document.getElementById('stat-conn');
+                c.innerText = data.zermatt_link === 'open' ? 'פתוח' : 'סגור';
+                c.style.color = data.zermatt_link === 'open' ? 'var(--success)' : 'var(--error)';
+            }
+        } catch(e) {}
     }
 
     async function loadF() {
-        const res = await fetch(`${API}/posts?select=*,replies(*)&order=created_at.desc`, HEAD);
-        const data = await res.json();
-        const isAdmin = user && user.name === ADMIN_NAME;
-        
-        document.getElementById('f-container').innerHTML = data.map(p => `
-            <div class="post">
-                ${isAdmin ? `<span class="del-btn" onclick="deleteMsg('posts','${p.id}')">מחק</span>` : ''}
-                <b>${p.user}</b>: ${p.content}
-                ${p.image_url ? `<img src="${p.image_url}">` : ''}
-                
-                <div id="replies-${p.id}">
-                    ${(p.replies || []).map(r => `
-                        <div class="reply">
-                            ${isAdmin ? `<span class="del-btn" onclick="deleteMsg('replies','${r.id}')">מחק</span>` : ''}
-                            <b>${r.user}</b>: ${r.content}
-                        </div>
-                    `).join('')}
-                </div>
+        try {
+            const res = await fetch(`${API}/posts?select=*,replies(*)&order=created_at.desc`, HEAD);
+            const data = await res.json();
+            const isAdmin = user && user.name === ADMIN_NAME;
+            
+            document.getElementById('f-container').innerHTML = data.map(p => `
+                <div class="post">
+                    ${isAdmin ? `<span class="del-btn" onclick="deleteMsg('posts','${p.id}')">מחק פוסט</span>` : ''}
+                    <strong>${p.user}</strong>: ${p.content}
+                    ${p.image_url ? `<br><img src="${p.image_url}">` : ''}
+                    
+                    <div id="replies-list-${p.id}">
+                        ${(p.replies || []).map(r => `
+                            <div class="reply">
+                                ${isAdmin ? `<span class="del-btn" onclick="deleteMsg('replies','${r.id}')">מחק</span>` : ''}
+                                <strong>${r.user}</strong>: ${r.content}
+                            </div>
+                        `).join('')}
+                    </div>
 
-                <span class="reply-btn" onclick="document.getElementById('reply-box-${p.id}').style.display='block'">השב</span>
-                
-                <div id="reply-box-${p.id}" style="display:none; margin-top:10px;">
-                    <input type="text" id="in-${p.id}" placeholder="כתוב תגובה..." style="width:75%;">
-                    <button class="btn-send" style="width:20%; padding:8px; margin:0;" onclick="sendReply('${p.id}')">שלח</button>
+                    <span class="reply-link" onclick="toggleReplyBox('${p.id}')"><i class="fa fa-reply"></i> השב</span>
+                    
+                    <div id="reply-box-${p.id}" style="display:none; margin-top:10px;">
+                        <input type="text" id="reply-input-${p.id}" placeholder="כתוב תגובה...">
+                        <button class="btn-main" style="width:auto; padding:5px 15px; margin-top:5px" onclick="sendReply('${p.id}')">שלח תגובה</button>
+                    </div>
                 </div>
-            </div>
-        `).join('') || 'אין הודעות';
+            `).join('') || 'אין הודעות בפורום.';
+        } catch(e) { document.getElementById('f-container').innerText = 'שגיאה בטעינת הודעות.'; }
     }
 
     async function sendPost() {
         const content = document.getElementById('f-input').value;
         const img = document.getElementById('f-img').value;
         if(!user) return login();
-        if(!content) return;
-        await fetch(`${API}/posts`, { method:'POST', headers:HEAD.headers, body:JSON.stringify({user:user.name, content, image_url:img}) });
+        if(!content.trim()) return;
+        
+        await fetch(`${API}/posts`, { method:'POST', headers:HEAD.headers, body:JSON.stringify({user:user.name, content:content.trim(), image_url:img}) });
         document.getElementById('f-input').value = ''; document.getElementById('f-img').value = '';
         loadF();
     }
 
+    function toggleReplyBox(postId) {
+        const box = document.getElementById(`reply-box-${postId}`);
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+
     async function sendReply(postId) {
-        const content = document.getElementById(`in-${postId}`).value;
+        const input = document.getElementById(`reply-input-${postId}`);
         if(!user) return login();
-        if(!content) return;
-        await fetch(`${API}/replies`, { method:'POST', headers:HEAD.headers, body:JSON.stringify({post_id:postId, user:user.name, content}) });
+        if(!input.value.trim()) return;
+        
+        await fetch(`${API}/replies`, { 
+            method:'POST', 
+            headers:HEAD.headers, 
+            body:JSON.stringify({post_id:postId, user:user.name, content:input.value.trim()}) 
+        });
+        input.value = '';
         loadF();
     }
 
-    async function deleteMsg(table, id) { if(confirm("למחוק?")) { await fetch(`${API}/${table}?id=eq.${id}`, { method:'DELETE', headers:HEAD.headers }); loadF(); } }
+    async function deleteMsg(table, id) {
+        if(confirm("למחוק לצמיתות?")) {
+            await fetch(`${API}/${table}?id=eq.${id}`, { method:'DELETE', headers:HEAD.headers });
+            loadF();
+        }
+    }
+
+    // Modal & Helpers
     function openHotels() { document.getElementById('hotelModal').style.display='flex'; }
     function closeHotels() { document.getElementById('hotelModal').style.display='none'; }
-    function login() { const n = prompt("שם:"); if(n) { localStorage.setItem('skiUser', JSON.stringify({name:n})); location.reload(); } }
+    function goToProvider(type) {
+        const dates = document.getElementById('dateRange').value.split(' to ');
+        const base = type === 'booking' ? 'https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia' : 'https://www.airbnb.co.il/s/Breuil~Cervinia/homes';
+        const url = dates.length === 2 ? `${base}&checkin=${dates[0]}&checkout=${dates[1]}` : base;
+        window.open(url, '_blank');
+    }
+
+    function login() { const n = prompt("איך קוראים לך?"); if(n) { localStorage.setItem('skiUser', JSON.stringify({name:n})); location.reload(); } }
     function logout() { localStorage.removeItem('skiUser'); location.reload(); }
     
     async function updateSiteStatusManual() {
-        const s = prompt("מסלולים:", document.getElementById('stat-slopes').innerText);
-        const l = prompt("מעליות:", document.getElementById('stat-lifts').innerText);
-        const z = confirm("צ'רמט פתוח?") ? 'open' : 'closed';
+        const s = prompt("מסלולים פתוחים:", document.getElementById('stat-slopes').innerText);
+        const l = prompt("מעליות פתוחות:", document.getElementById('stat-lifts').innerText);
+        const z = confirm("האם הקישור לצ'רמט פתוח?") ? 'open' : 'closed';
         if(s && l) {
             await fetch(`${API}/site_status?id=eq.1`, { method:'PATCH', headers:HEAD.headers, body:JSON.stringify({slopes:s, lifts:l, zermatt_link:z}) });
             location.reload();
