@@ -23,7 +23,6 @@
         .prob-Medium { color: var(--warning); font-weight: bold; }
         .prob-Low { color: var(--error); font-weight: bold; }
         
-        /* Forum Styles */
         .post { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: white; }
         .reply-item { margin-top: 10px; padding: 10px; background: #f8fbff; border-right: 4px solid #cbd5e0; border-radius: 6px; }
         .del-btn { color: var(--error); cursor: pointer; float: left; border: 1px solid var(--error); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; background: white; }
@@ -31,17 +30,15 @@
         .btn-cancel { background: #ccc; color: #333; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; font-family: inherit; }
         .img-preview { max-width: 250px; border-radius: 8px; margin-top: 10px; cursor: pointer; display: block; }
-
-        /* כפתור אטב */
         .file-label { cursor: pointer; color: var(--dark); font-size: 1.2rem; display: inline-flex; align-items: center; gap: 5px; }
 
-        /* Modern Modal & Search Results */
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-content { background: white; width: 95%; max-width: 450px; padding: 25px; border-radius: 20px; }
         .counter-box { display: flex; align-items: center; justify-content: space-between; background: #f1f3f5; padding: 10px; border-radius: 10px; margin: 10px 0; }
-        .counter-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: white; cursor: pointer; font-weight: bold; }
-        .provider-card { border: 2px solid #eee; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .counter-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: white; cursor: pointer; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .provider-card { border: 2px solid #eee; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
         .provider-card:hover { border-color: var(--accent); background: #f0faff; }
+        .provider-card svg, .provider-card img { height: 30px; margin-bottom: 8px; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -62,7 +59,7 @@
     <div class="services-grid">
         <div class="service-btn" onclick="openHotels()"><i class="fa fa-hotel"></i> אירוח</div>
         <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-schools', '_blank')"><i class="fa fa-person-skiing"></i> הדרכת סקי</div>
-        <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-rental', '_blank')"><i class="fa fa-tools"></i> השכרת ציוד</div>
+        <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-rental', '_blank')"><i class="fa fa-skiing-nordic"></i> השכרת ציוד</div>
         <div class="service-btn" onclick="openMaps()"><i class="fa fa-map-marked-alt"></i> מפות האתר</div>
     </div>
 
@@ -79,7 +76,7 @@
         <h3>עדכונים מהשטח</h3>
         <div id="f-container">טוען הודעות...</div>
         <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px;">
-            <textarea id="f-input" placeholder="כתוב פוסט חדש..."></textarea>
+            <textarea id="f-input" placeholder="מה קורה בצרביניה כרגע?"></textarea>
             <div style="display:flex; justify-content:flex-start; align-items:center; margin-top:10px; gap:15px;">
                 <button class="btn-send" onclick="sendPost()">פרסם פוסט</button>
                 <label class="file-label">
@@ -102,30 +99,28 @@
         <div id="search-form">
             <label>בחר טווח תאריכים:</label>
             <input type="text" id="dateRange" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; margin:10px 0;" placeholder="לחץ לבחירת תאריכים...">
-            
             <label>אורחים:</label>
             <div class="counter-box">
                 <button class="counter-btn" onclick="updateCount('guests', -1)">-</button>
                 <b id="guests-val">2</b>
                 <button class="counter-btn" onclick="updateCount('guests', 1)">+</button>
             </div>
-            
             <label>חדרים:</label>
             <div class="counter-box">
                 <button class="counter-btn" onclick="updateCount('rooms', -1)">-</button>
                 <b id="rooms-val">1</b>
                 <button class="counter-btn" onclick="updateCount('rooms', 1)">+</button>
             </div>
-            
             <button class="btn-send" style="width:100%; padding:15px; margin-top:10px;" onclick="generateSearchLinks()">חפש מקום לינה</button>
         </div>
 
         <div id="search-results" style="display:none; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
             <div class="provider-card" onclick="goToLink('booking')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" style="height:25px; margin-bottom:5px;"><br>Booking
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" alt="Booking"><br><b>Booking</b>
             </div>
             <div class="provider-card" onclick="goToLink('airbnb')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_Belo.svg" style="height:25px; margin-bottom:5px;"><br>Airbnb
+                <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="fill:#FF5A5F;"><path d="M16 1c2.008 0 3.463.963 4.751 3.269l.533 1.025c1.954 3.83 6.114 12.54 7.1 14.836l.145.353c.667 1.591.91 2.472.96 3.396l.01.415.001.228c0 4.062-2.877 6.478-6.357 6.478-2.224 0-4.556-1.258-6.709-3.386l-.257-.26-.172-.179h-.011l-.176.185c-2.044 2.1-4.392 3.415-6.701 3.415-3.477 0-6.357-2.416-6.357-6.478 0-1.297.394-2.862 1.108-4.382l.144-.306c1.01-2.126 5.146-10.843 7.1-14.836l.533-1.025C12.537 1.963 13.992 1 16 1zm0 2c-1.234 0-2.31.67-3.392 2.608l-.513.987c-2.1 4.1-5.148 10.45-6.505 13.307l-.145.313c-.66 1.411-.967 2.66-.967 3.738 0 2.84 1.936 4.478 4.357 4.478 1.83 0 3.882-1.127 5.76-3.134l.43-.473.18-.2.18.2.43.473c1.878 2.007 3.93 3.134 5.76 3.134 2.421 0 4.357-1.638 4.357-4.478 0-1.161-.341-2.46-.962-3.953l-.15-.353c-1.357-2.857-4.405-9.207-6.505-13.307l-.513-.987C18.31 3.67 17.234 3 16 3zm0 10.5c1.933 0 3.5 1.567 3.5 3.5s-1.567 3.5-3.5 3.5-3.5-1.567-3.5-3.5 1.567-3.5 3.5-3.5zm0 2c-.828 0-1.5.672-1.5 1.5s.672 1.5 1.5 1.5 1.5-.672 1.5-1.5-.672-1.5-1.5-1.5z"/></svg>
+                <br><b>Airbnb</b>
             </div>
             <button class="btn-send" style="grid-column: span 2; background:#eee; color:#333;" onclick="resetSearch()">חיפוש חדש</button>
         </div>
@@ -157,15 +152,6 @@
         }
     }
 
-    async function uploadFile(file) {
-        if(!file) return null;
-        const fileName = `${Date.now()}_${file.name}`;
-        const res = await fetch(`https://cdgqodtbdhsqkvcgcdlm.supabase.co/storage/v1/object/uploads/${fileName}`, {
-            method: 'POST', headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}` }, body: file
-        });
-        return res.ok ? `${BUCKET_URL}/${fileName}` : null;
-    }
-
     async function loadW() {
         try {
             const r = await fetch('data.json?v=' + Date.now());
@@ -175,10 +161,8 @@
             document.getElementById('stat-lifts').innerText = d.lifts || '--';
             document.getElementById('stat-conn').innerText = d.conn === 'open' ? 'פתוח' : 'סגור';
             document.getElementById('update-time').innerText = 'עדכון: ' + (d.last_update || '--');
-
             const today = new Date().toISOString().split('T')[0];
-            const filtered = d.forecast.filter(f => f.date >= today).slice(0,4);
-            document.getElementById('w-body').innerHTML = filtered.map(f => {
+            document.getElementById('w-body').innerHTML = d.forecast.filter(f => f.date >= today).slice(0,4).map(f => {
                 const wind = parseFloat(String(f.wind).replace(/[^0-9.]/g, '')) || 0;
                 let p = wind < 32 ? 'גבוה' : (wind > 50 ? 'נמוך' : 'בינוני');
                 let c = wind < 32 ? 'prob-High' : (wind > 50 ? 'prob-Low' : 'prob-Medium');
@@ -252,6 +236,15 @@
         loadF();
     }
 
+    async function uploadFile(file) {
+        if(!file) return null;
+        const fileName = `${Date.now()}_${file.name}`;
+        const res = await fetch(`https://cdgqodtbdhsqkvcgcdlm.supabase.co/storage/v1/object/uploads/${fileName}`, {
+            method: 'POST', headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}` }, body: file
+        });
+        return res.ok ? `${BUCKET_URL}/${fileName}` : null;
+    }
+
     async function deleteMsg(table, id) { if(confirm("למחוק?")) { await fetch(`${API}/${table}?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers }); loadF(); } }
 
     // Modern Hotels Logic
@@ -260,17 +253,4 @@
         const dates = document.getElementById('dateRange').value.split(" to ");
         if(dates.length < 2) return alert("בחר תאריכים");
         searchUrls.booking = `https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=${dates[0]}&checkout=${dates[1]}&group_adults=${counts.guests}&no_rooms=${counts.rooms}`;
-        searchUrls.airbnb = `https://www.airbnb.co.il/s/Breuil~Cervinia--Italy/homes?checkin=${dates[0]}&checkout=${dates[1]}&adults=${counts.guests}`;
-        document.getElementById('search-form').style.display = 'none';
-        document.getElementById('search-results').style.display = 'grid';
-    }
-    function goToLink(provider) { window.open(searchUrls[provider], '_blank'); }
-    function resetSearch() { document.getElementById('search-form').style.display = 'block'; document.getElementById('search-results').style.display = 'none'; }
-    function openHotels() { document.getElementById('hotelModal').style.display='flex'; }
-    function closeHotels() { document.getElementById('hotelModal').style.display='none'; }
-    function openMaps() { alert("מפות ייפתחו בקרוב"); }
-    function login() { const n = prompt("שם:"); if(n) { user = {name:n}; localStorage.setItem('skiUser', JSON.stringify(user)); location.reload(); } }
-    function logout() { localStorage.removeItem('skiUser'); location.reload(); }
-</script>
-</body>
-</html>
+        searchUrls.airbnb = `
