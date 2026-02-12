@@ -31,15 +31,18 @@
         .del-btn { color: var(--error); cursor: pointer; float: left; border: 1px solid var(--error); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; background: white; }
         
         .btn-send { background: var(--accent); color: var(--dark); padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-cancel { background: #ccc; color: #333; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
         textarea { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; margin-top: 10px; font-family: inherit; resize: none; }
-        .img-preview { max-width: 250px; border-radius: 8px; margin-top: 10px; cursor: pointer; display: block; border: 1px solid #eee; }
 
+        /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal-content { background: white; width: 95%; max-width: 450px; padding: 25px; border-radius: 20px; }
+        .modal-content { background: white; width: 95%; max-width: 450px; padding: 25px; border-radius: 20px; position: relative; }
+        .close-modal { position: absolute; top: 15px; left: 15px; font-size: 1.5rem; cursor: pointer; border: none; background: none; }
         .counter-box { display: flex; align-items: center; justify-content: space-between; background: #f1f3f5; padding: 10px; border-radius: 10px; margin: 10px 0; }
-        .counter-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: white; cursor: pointer; font-weight: bold; }
+        .counter-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: white; cursor: pointer; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .provider-card { border: 2px solid #eee; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .provider-card:hover { border-color: var(--accent); background: #f0faff; }
+        .booking-logo { color: #003580; font-weight: bold; font-size: 1.2rem; }
+        .airbnb-logo { color: #FF5A5F; font-weight: bold; font-size: 1.2rem; }
     </style>
 </head>
 <body>
@@ -84,15 +87,20 @@
 
 <div id="hotelModal" class="modal">
     <div class="modal-content">
-        <h3>חיפוש אירוח חכם</h3>
-        <input type="text" id="dateRange" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; margin:10px 0;" placeholder="בחר תאריכים...">
-        <div class="counter-box"><span>אורחים</span><div><button class="counter-btn" onclick="updateCount('guests', -1)">-</button><b id="guests-val" style="margin:0 10px;">2</b><button class="counter-btn" onclick="updateCount('guests', 1)">+</button></div></div>
-        <button class="btn-send" style="width:100%; padding:15px;" onclick="generateSearchLinks()">חפש מקום לינה</button>
-        <div id="search-results" style="display:none; grid-template-columns: 1fr 1fr; gap:15px; margin-top:15px;">
-            <button class="service-btn" onclick="goToLink('booking')">Booking</button>
-            <button class="service-btn" onclick="goToLink('airbnb')">Airbnb</button>
+        <button class="close-modal" onclick="closeHotels()">×</button>
+        <h3 style="margin-top:0">חיפוש אירוח חכם</h3>
+        <div id="search-form">
+            <label>בחר טווח תאריכים:</label>
+            <input type="text" id="dateRange" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; margin:10px 0;" placeholder="לחץ לבחירת תאריכים...">
+            <div class="counter-box"><span>אורחים</span><div><button class="counter-btn" onclick="updateCount('guests', -1)">-</button><b id="guests-val" style="margin:0 10px;">2</b><button class="counter-btn" onclick="updateCount('guests', 1)">+</button></div></div>
+            <div class="counter-box"><span>חדרים</span><div><button class="counter-btn" onclick="updateCount('rooms', -1)">-</button><b id="rooms-val" style="margin:0 10px;">1</b><button class="counter-btn" onclick="updateCount('rooms', 1)">+</button></div></div>
+            <button class="btn-send" style="width:100%; padding:15px; margin-top:10px;" onclick="generateSearchLinks()">חפש מקום לינה</button>
         </div>
-        <button onclick="closeHotels()" style="width:100%; margin-top:10px; background:none; border:none; cursor:pointer;">סגור</button>
+        <div id="search-results" style="display:none; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
+            <div class="provider-card" onclick="goToLink('booking')"><span class="booking-logo">Booking.com</span></div>
+            <div class="provider-card" onclick="goToLink('airbnb')"><span class="airbnb-logo">Airbnb</span></div>
+            <button class="btn-send" style="grid-column: span 2; background:#eee; color:#333;" onclick="resetSearch()">חיפוש חדש</button>
+        </div>
     </div>
 </div>
 
@@ -102,11 +110,11 @@
     const HEAD = { headers: { 'apikey': KEY, 'Authorization': `Bearer ${KEY}`, 'Content-Type': 'application/json' }};
 
     let user = JSON.parse(localStorage.getItem('skiUser')) || null;
-    let counts = { guests: 2 };
+    let counts = { guests: 2, rooms: 1 };
     let searchUrls = { booking: '', airbnb: '' };
     const ADMIN_NAME = 'ADMIN';
 
-    window.onload = () => { renderHeader(); loadW(); loadF(); flatpickr("#dateRange", { mode: "range", minDate: "today" }); };
+    window.onload = () => { renderHeader(); loadW(); loadF(); flatpickr("#dateRange", { mode: "range", dateFormat: "Y-m-d", minDate: "today" }); };
 
     function renderHeader() {
         const area = document.getElementById('auth-area');
@@ -186,14 +194,23 @@
     }
 
     async function deleteMsg(table, id) { if(confirm("למחוק?")) { await fetch(`${API}/${table}?id=eq.${id}`, { method: 'DELETE', headers: HEAD.headers }); loadF(); } }
+    
     function updateCount(type, delta) { counts[type] = Math.max(1, counts[type] + delta); document.getElementById(`${type}-val`).innerText = counts[type]; }
+    
     function generateSearchLinks() {
         const dates = document.getElementById('dateRange').value.split(" to ");
         if(dates.length < 2) return alert("בחר תאריכים");
-        searchUrls.booking = `https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=${dates[0]}&checkout=${dates[1]}&group_adults=${counts.guests}`;
+        searchUrls.booking = `https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=${dates[0]}&checkout=${dates[1]}&group_adults=${counts.guests}&no_rooms=${counts.rooms}`;
         searchUrls.airbnb = `https://www.airbnb.co.il/s/Breuil-Cervinia/homes?checkin=${dates[0]}&checkout=${dates[1]}&adults=${counts.guests}`;
+        document.getElementById('search-form').style.display = 'none';
         document.getElementById('search-results').style.display = 'grid';
     }
+    
+    function resetSearch() {
+        document.getElementById('search-form').style.display = 'block';
+        document.getElementById('search-results').style.display = 'none';
+    }
+
     function goToLink(provider) { window.open(searchUrls[provider], '_blank'); }
     function openHotels() { document.getElementById('hotelModal').style.display='flex'; }
     function closeHotels() { document.getElementById('hotelModal').style.display='none'; }
