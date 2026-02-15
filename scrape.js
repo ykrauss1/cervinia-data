@@ -77,4 +77,94 @@ const puppeteer = require("puppeteer");
 
       if (!breuil) return null;
 
-      const name
+      const name = breuil.querySelector("p.size-20")?.innerText.trim() || null;
+      const elevation = breuil.querySelector("p.size-16")?.innerText.trim() || null;
+
+      const rows = [...breuil.querySelectorAll("table tr")];
+      const data = rows.map(r => {
+        const key = r.querySelector("td p.dark-grey")?.innerText.trim() || null;
+        const value = r.querySelector("td:nth-child(2) p")?.innerText.trim() || null;
+        return { key, value };
+      });
+
+      const updated = breuil.querySelector("p.size-14")?.innerText.trim() || null;
+
+      return { name, elevation, data, updated };
+    });
+
+    // תחזית ימים הבאים
+    const dailyForecast = await page.evaluate(() => {
+      const days = [...document.querySelectorAll(".grid__col")];
+
+      return days
+        .map(day => {
+          const date = day.querySelector("p.size-25")?.innerText.trim() || null;
+          if (!date) return null;
+
+          const parts = [...day.querySelectorAll(".s8COa")].map(part => {
+            const label = part.querySelector("span.demi.size-18")?.innerText.trim() || null;
+            const hours = part.querySelector("span.dark-grey.size-16")?.innerText.trim() || null;
+            const icon = part.querySelector("svg use")?.getAttribute("xlink:href") || null;
+
+            return { label, hours, icon };
+          });
+
+          return { date, parts };
+        })
+        .filter(Boolean);
+    });
+
+    // תחזית מפולות
+    const avalanche = await page.evaluate(() => {
+      const root = document.querySelector(".kpCCY");
+      if (!root) return null;
+
+      const level = root.querySelector("span.anpIX")?.innerText.trim() || null;
+      const description = root.querySelector("span.size-20")?.innerText.trim() || null;
+
+      return { level, description };
+    });
+
+    // מצלמות
+    const cameras = await page.evaluate(() => {
+      const slides = [...document.querySelectorAll(".swiper-slide")];
+
+      return slides.map(slide => {
+        const iframe = slide.querySelector("iframe");
+        const name = slide.querySelector("p.size-16")?.innerText.trim() || null;
+
+        return {
+          name,
+          src: iframe ? iframe.src : null
+        };
+      });
+    });
+
+    // --- בניית האובייקט הסופי ---
+    const data = {
+      weather: homeData.weather,
+      lifts: homeData.lifts,
+      slopes: homeData.slopes,
+      zermattConnection,
+      snowDepth,
+      forecast,
+      dailyForecast,
+      avalanche,
+      cameras,
+      last_update: new Date().toISOString()
+    };
+
+    // לוודא שהתיקייה קיימת
+    if (!fs.existsSync("data")) {
+      fs.mkdirSync("data");
+    }
+
+    fs.writeFileSync("data/data.json", JSON.stringify(data, null, 2));
+    await browser.close();
+    console.log("Scraping completed successfully.");
+
+  } catch (err) {
+    console.error("Scraping failed:", err);
+    process.exit(1);
+  }
+})();
