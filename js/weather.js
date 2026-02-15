@@ -23,7 +23,9 @@ async function loadW() {
         .slice(0, 4);
 
     document.getElementById('w-body').innerHTML = future.map(f => {
-        const wind = parseFloat(f.wind);
+        // ⭐ כאן השינוי:
+        const wind = parseFloat(f.wind.replace(/[^\d.]/g, ''));
+
         const prob = wind < 32 
             ? {c:'var(--success)', t:'גבוה'} 
             : (wind > 50 ? {c:'var(--error)', t:'נמוך'} : {c:'var(--warning)', t:'בינוני'});
@@ -41,4 +43,3 @@ async function loadW() {
 }
 
 // === WEATHER END ===
-
