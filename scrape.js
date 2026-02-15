@@ -18,6 +18,7 @@ const puppeteer = require("puppeteer");
 
     await page.waitForSelector(".home-highlights", { timeout: 30000 });
 
+    // מזג אוויר / מעליות / מסלולים
     const homeData = await page.evaluate(() => {
       const items = [...document.querySelectorAll(".home-highlights .highlight-item")];
 
@@ -28,6 +29,12 @@ const puppeteer = require("puppeteer");
       return { weather, lifts, slopes };
     });
 
+    // חיבור לצ'רמט
+    const zermattConnection = await page.evaluate(() => {
+      const el = document.querySelector(".connection .status");
+      return el ? el.innerText.trim() : null;
+    });
+
     // --- חלק 2: עמוד תחזית ---
     await page.goto("https://www.cervinia.it/en/meteo", {
       waitUntil: "networkidle2",
@@ -36,51 +43,31 @@ const puppeteer = require("puppeteer");
 
     // עומקי שלג
     const snowDepth = await page.evaluate(() => {
-      const rows = [...document.querySelectorAll(".snow-report table tr")];
-      return rows.map(r => r.innerText.trim());
+      const rows = [...document.querySelectorAll("table.DD2Zg tbody tr")];
+
+      return rows.map(r => {
+        const cells = r.querySelectorAll("td");
+        return {
+          location: cells[0]?.innerText.trim() || null,
+          snow: cells[1]?.innerText.trim() || null,
+          lastSnowfall: cells[2]?.innerText.trim() || null
+        };
+      });
     });
 
-    // תחזית
+    // תחזית Breuil‑Cervinia
     const forecast = await page.evaluate(() => {
-      const items = [...document.querySelectorAll(".weather-forecast .forecast-day")];
-      return items.map(i => i.innerText.trim());
-    });
+      const stations = [...document.querySelectorAll(".euR2V")];
 
-    // מצלמות
-    const cameras = await page.evaluate(() => {
-      const frames = [...document.querySelectorAll(".webcam-item iframe")];
-      return frames.map(f => f.src);
-    });
+      const breuil = stations.find(st => {
+        const name = st.querySelector("p.size-20")?.innerText || "";
+        return name.includes("Breuil");
+      });
 
-    // חיבור לצ'רמט
-    const zermattConnection = await page.evaluate(() => {
-      const el = document.querySelector(".connection .status");
-      return el ? el.innerText.trim() : null;
-    });
+      if (!breuil) return null;
 
-    // --- בניית האובייקט הסופי ---
-    const data = {
-      weather: homeData.weather,
-      lifts: homeData.lifts,
-      slopes: homeData.slopes,
-      snowDepth,
-      forecast,
-      cameras,
-      zermattConnection,
-      last_update: new Date().toISOString()
-    };
+      const name = breuil.querySelector("p.size-20")?.innerText.trim() || null;
+      const elevation = breuil.querySelector("p.size-16")?.innerText.trim() || null;
 
-    // לוודא שהתיקייה קיימת
-    if (!fs.existsSync("data")) {
-      fs.mkdirSync("data");
-    }
-
-    fs.writeFileSync("data/data.json", JSON.stringify(data, null, 2));
-    await browser.close();
-    console.log("Scraping completed successfully.");
-
-  } catch (err) {
-    console.error("Scraping failed:", err);
-    process.exit(1);
-  }
-})();
+      const rows = [...breuil.querySelectorAll("table tr")];
+      const data = rows.map
