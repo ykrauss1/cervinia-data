@@ -1,25 +1,35 @@
-name: Cervinia Fast Scraper
+name: Update Cervinia Data
+
 on:
   schedule:
-    - cron: '0 7-17 * * *'
-  workflow_dispatch:
+    - cron: "0 * * * *"   # כל שעה עגולה
+  workflow_dispatch:       # אפשר גם להריץ ידנית מה־UI
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.9'
+          node-version: 20
+
       - name: Install dependencies
-        run: pip install requests pytz
-      - name: Run Scraper
-        run: python scraper.py
-      - name: Commit and Push
+        run: npm install
+
+      - name: Run scraper
+        run: node scrape.js
+
+      - name: Commit updated data
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          git add data.json
-          git commit -m "Update via Fast Scraper" || exit 0
-          git push
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add data/data.json
+          git commit -m "Update data.json from Cervinia" || echo "No changes to commit"
+
+      - name: Push changes
+        run: git push
