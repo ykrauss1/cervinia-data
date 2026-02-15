@@ -2,67 +2,75 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>CerviniaLive - Stable Build v7</title>
+    <title>CerviniaLive - Modular Steel v8</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
+        /* --- GLOBAL SETTINGS (The only shared part) --- */
         :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; }
         body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; direction: rtl; }
-        nav { background: var(--dark); color: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; }
-        .admin-badge { background: #ff0000; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-left: 10px; }
-        .container { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
         
-        /* תיקון סמן עומד מימין, כתיבה מימין לשמאל */
-        input, textarea { 
-            direction: rtl !important; 
-            text-align: right !important; 
-            unicode-bidi: plaintext !important; 
-            font-family: inherit; 
-        }
+        /* --- MODULE: NAVIGATION --- */
+        #nav-header { background: var(--dark); color: white; padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; }
+        .admin-badge { background: #ff0000; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-left: 10px; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        /* --- MODULE: STATS --- */
+        #stats-section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px auto; max-width: 1000px; padding: 0 20px; }
         .stat-card { background: var(--dark); color: white; padding: 15px; border-radius: 12px; text-align: center; }
 
-        .services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; }
+        /* --- MODULE: SERVICES (Icons) --- */
+        #services-section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px auto; max-width: 1000px; padding: 0 20px; }
         .service-btn { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
+        /* --- MODULE: WEATHER TABLE --- */
+        #weather-module { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
+        #weather-module .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        #weather-module table { width: 100%; border-collapse: collapse; }
+        #weather-module th, #weather-module td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
 
-        .post { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; background: white; text-align: right; }
-        .reply-item { margin-top: 8px; padding: 10px; background: #f8fbff; border-right: 3px solid var(--accent); border-radius: 4px; font-size: 0.95rem; }
+        /* --- MODULE: FORUM (Strictly Isolated) --- */
+        #forum-module { max-width: 1000px; margin: 20px auto; padding: 0 20px; }
+        #forum-module .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
-        .f-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .f-icons { display: flex; align-items: center; gap: 15px; color: #666; }
-        
+        /* תיקון סמן וכיוון כתיבה - מוגדר רק לפורום */
+        #forum-module textarea { 
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; 
+            direction: rtl !important; text-align: right !important; unicode-bidi: plaintext !important;
+            box-sizing: border-box;
+        }
+        .post { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; position: relative; }
+        .reply-item { margin-top: 8px; padding: 10px; background: #f8fbff; border-right: 3px solid var(--accent); border-radius: 4px; }
+        .forum-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .forum-icons { display: flex; align-items: center; gap: 15px; color: #666; }
+
+        /* --- MODALS --- */
         .modal { display: none; position: fixed; z-index: 999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
         .modal-content { background: white; width: 90%; max-width: 400px; padding: 30px; border-radius: 20px; }
     </style>
 </head>
 <body>
 
-<nav>
+<nav id="nav-header">
     <div style="font-size:1.5rem; font-weight:bold;">Cervinia<span style="color:var(--accent)">Live</span></div>
     <div id="auth-area"></div>
 </nav>
 
-<div class="container">
-    <div class="stats-grid">
-        <div class="stat-card"><small>טמפ'</small><br><b id="stat-temp">--</b></div>
-        <div class="stat-card"><small>מסלולים</small><br><b id="stat-slopes">--</b></div>
-        <div class="stat-card"><small>מעליות</small><br><b id="stat-lifts">--</b></div>
-        <div class="stat-card"><small>סטטוס</small><br><b id="stat-conn">--</b></div>
-    </div>
+<section id="stats-section">
+    <div class="stat-card"><small>טמפ'</small><br><b id="stat-temp">--</b></div>
+    <div class="stat-card"><small>מסלולים</small><br><b id="stat-slopes">--</b></div>
+    <div class="stat-card"><small>מעליות</small><br><b id="stat-lifts">--</b></div>
+    <div class="stat-card"><small>סטטוס</small><br><b id="stat-conn">--</b></div>
+</section>
 
-    <div class="services-grid">
-        <div class="service-btn" onclick="openM('hotelModal')"><i class="fa-solid fa-hotel"></i> אירוח</div>
-        <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-schools')"><i class="fa-solid fa-graduation-cap"></i> הדרכה</div>
-        <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-rental')"><i class="fa-solid fa-person-skiing"></i> השכרת ציוד</div>
-        <div class="service-btn" onclick="openMaps()"><i class="fa-solid fa-map-location-dot"></i> מפות</div>
-    </div>
+<section id="services-section">
+    <div class="service-btn" onclick="openM('hotelModal')"><i class="fa-solid fa-hotel"></i> אירוח</div>
+    <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-schools')"><i class="fa-solid fa-graduation-cap"></i> הדרכה</div>
+    <div class="service-btn" onclick="window.open('https://www.cervinia.it/en/winter/ski-rental')"><i class="fa-solid fa-person-skiing"></i> השכרת ציוד</div>
+    <div class="service-btn" onclick="alert('מפות ייפתחו בקרוב')"><i class="fa-solid fa-map-location-dot"></i> מפות</div>
+</section>
 
+<section id="weather-module">
     <div class="card">
         <h3>תחזית וצפי (4 ימים)</h3>
         <table>
@@ -70,29 +78,31 @@
             <tbody id="w-body"></tbody>
         </table>
     </div>
+</section>
 
+<section id="forum-module">
     <div class="card">
         <h3>עדכונים מהשטח</h3>
         <div id="f-container">טוען הודעות...</div>
         
         <div style="background: #f1f3f5; padding: 20px; border-radius: 12px; margin-top: 20px;">
-            <textarea id="f-input" rows="3" placeholder="מה קורה בצרביניה?" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
-            <div class="f-footer">
-                <div class="f-icons">
-                    <span style="cursor:pointer;" onclick="document.getElementById('f-input').value=''">בטל</span>
+            <textarea id="f-input" rows="3" placeholder="מה קורה בצרביניה?"></textarea>
+            <div class="forum-footer">
+                <div class="forum-icons">
+                    <span style="cursor:pointer; font-weight:bold;" onclick="document.getElementById('f-input').value=''">בטל</span>
                     <i class="fa-solid fa-paperclip" style="cursor:pointer; font-size:1.2rem;"></i>
                 </div>
                 <button class="service-btn" style="background:var(--accent); color:white; border:none; padding:10px 30px;" onclick="sendPost()">פרסם</button>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <div id="authModal" class="modal">
     <div class="modal-content">
         <h3 style="text-align:center;">כניסה</h3>
-        <input type="text" id="authName" placeholder="שם מלא" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
-        <input type="email" id="authEmail" placeholder="אימייל" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:8px;">
+        <input type="text" id="authName" placeholder="שם מלא" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; direction:rtl;">
+        <input type="email" id="authEmail" placeholder="אימייל" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:8px; direction:rtl;">
         <button class="service-btn" style="width:100%; background:var(--accent); color:white; border:none;" onclick="handleAuth()">התחברות</button>
     </div>
 </div>
@@ -114,21 +124,15 @@
     }
 
     async function loadW() {
-        try {
-            const r = await fetch('data.json?v=' + Date.now());
-            const d = await r.json();
-            document.getElementById('stat-temp').innerText = d.temp.replace('--', '-') + '°C';
-            document.getElementById('stat-slopes').innerText = d.slopes;
-            document.getElementById('stat-lifts').innerText = d.lifts;
-            document.getElementById('stat-conn').innerText = d.conn === 'open' ? 'פתוח' : 'סגור';
+        const r = await fetch('data.json?v=' + Date.now());
+        const d = await r.json();
+        document.getElementById('stat-temp').innerText = d.temp.replace('--', '-') + '°C';
+        document.getElementById('stat-slopes').innerText = d.slopes;
+        document.getElementById('stat-lifts').innerText = d.lifts;
+        document.getElementById('stat-conn').innerText = d.conn === 'open' ? 'פתוח' : 'סגור';
 
-            const filtered = d.forecast.filter(f => parseInt(f.date.split('.')[0]) >= 13).slice(0, 4);
-            document.getElementById('w-body').innerHTML = filtered.map(f => {
-                const wind = parseFloat(f.wind);
-                const prob = wind < 32 ? {c:'var(--success)', t:'גבוה'} : (wind > 50 ? {c:'var(--error)', t:'נמוך'} : {c:'#f1c40f', t:'בינוני'});
-                return `<tr><td style="color:${prob.c}; font-weight:bold;">${prob.t}</td><td>${f.date}</td><td style="direction:ltr; font-weight:bold;">${f.temp_min.replace('--','-')}/${f.temp_max.replace('--','-')}</td><td>${f.wind}</td><td>${f.visibility}</td></tr>`;
-            }).join('');
-        } catch(e) { console.error("Weather load failed"); }
+        const filtered = d.forecast.filter(f => parseInt(f.date.split('.')[0]) >= 14).slice(0, 4);
+        document.getElementById('w-body').innerHTML = filtered.map(f => `<tr><td>-</td><td>${f.date}</td><td style="direction:ltr;">${f.temp_min}/${f.temp_max}</td><td>${f.wind}</td><td>${f.visibility}</td></tr>`).join('');
     }
 
     async function loadF() {
@@ -138,14 +142,12 @@
         
         document.getElementById('f-container').innerHTML = data.map(p => `
             <div class="post">
-                ${isAdmin ? `<span style="color:red; cursor:pointer; float:left; font-size:0.8rem;" onclick="del('posts','${p.id}')"><i class="fa-solid fa-trash-can"></i> מחק</span>` : ''}
-                <b style="font-size:1.1rem;">${p.user}</b>
-                <div style="margin:12px 0; line-height:1.5;">${p.content}</div>
-                <span style="color:var(--accent); cursor:pointer; font-weight:bold; font-size:0.85rem;" onclick="openRBox('${p.id}', '${p.user}', this)">השב</span>
+                ${isAdmin ? `<span style="color:red; cursor:pointer; float:left;" onclick="del('posts','${p.id}')"><i class="fa-solid fa-trash-can"></i></span>` : ''}
+                <b>${p.user}</b>
+                <div style="margin:10px 0;">${p.content}</div>
+                <span style="color:var(--accent); cursor:pointer; font-size:0.85rem;" onclick="openRBox('${p.id}', '${p.user}', this)">השב</span>
                 <div class="r-target"></div>
-                <div class="replies-list">
-                    ${(p.replies || []).map(r => `<div class="reply-item"><b>${r.user}:</b> ${r.content}</div>`).join('')}
-                </div>
+                ${(p.replies || []).map(r => `<div class="reply-item"><b>${r.user}:</b> ${r.content}</div>`).join('')}
             </div>`).join('');
     }
 
@@ -158,16 +160,8 @@
         loadF();
     }
 
-    async function sendR(pId) {
-        const v = document.getElementById(`in-${pId}`).value;
-        if(!user) return openM('authModal');
-        if(!v.trim()) return;
-        await fetch(`${API}/replies`, { method:'POST', headers: HEAD.headers, body: JSON.stringify({post_id:pId, user:user.name, content:v}) });
-        loadF();
-    }
-
     async function del(tbl, id) {
-        if(!confirm('למחוק פוסט זה?')) return;
+        if(!confirm('למחוק?')) return;
         await fetch(`${API}/${tbl}?id=eq.${id}`, { method:'DELETE', headers: HEAD.headers });
         loadF();
     }
@@ -175,17 +169,15 @@
     function openRBox(pId, toUser, el) {
         const target = el.nextElementSibling;
         if(target.innerHTML) return target.innerHTML = '';
-        target.innerHTML = `<div style="margin-top:10px; padding:10px; background:#fff; border:1px solid #eee; border-radius:8px;">
-            <textarea id="in-${pId}" rows="2" style="width:100%; border:1px solid #ddd; border-radius:6px; padding:8px;">@${toUser}: </textarea>
-            <div style="text-align:left; margin-top:5px;">
-                <button class="service-btn" style="padding:4px 15px; font-size:0.8rem; background:var(--accent); color:white; border:none;" onclick="sendR('${pId}')">שלח תגובה</button>
-            </div>
-        </div>`;
-        setTimeout(() => { 
-            const tx = document.getElementById(`in-${pId}`);
-            tx.focus();
-            tx.setSelectionRange(tx.value.length, tx.value.length);
-        }, 50);
+        target.innerHTML = `<div style="margin-top:10px;"><textarea id="in-${pId}" rows="2">@${toUser}: </textarea>
+        <button class="service-btn" style="padding:5px 15px; font-size:0.8rem; background:var(--accent); color:white; border:none; margin-top:5px;" onclick="sendR('${pId}')">שלח</button></div>`;
+        setTimeout(() => { document.getElementById(`in-${pId}`).focus(); }, 50);
+    }
+
+    async function sendR(pId) {
+        const v = document.getElementById(`in-${pId}`).value;
+        await fetch(`${API}/replies`, { method:'POST', headers: HEAD.headers, body: JSON.stringify({post_id:pId, user:user.name, content:v}) });
+        loadF();
     }
 
     function handleAuth() {
@@ -196,7 +188,6 @@
     function logout() { localStorage.removeItem('skiUser'); location.reload(); }
     function openM(id) { document.getElementById(id).style.display='flex'; }
     function closeM(id) { document.getElementById(id).style.display='none'; }
-    function openMaps() { alert("מפות ייפתחו כאן."); }
 </script>
 </body>
 </html>
