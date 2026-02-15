@@ -10,60 +10,59 @@ const puppeteer = require("puppeteer");
 
     const page = await browser.newPage();
 
-    await page.goto("https://www.cervinia.it/en/ski-area", {
+    // --- חלק 1: עמוד ראשי ---
+    await page.goto("https://www.cervinia.it/en", {
       waitUntil: "networkidle2",
       timeout: 60000
     });
 
-    // מחכים שהעמוד ייטען ושהאלמנטים יהיו זמינים
-    await page.waitForSelector(".lifts-status", { timeout: 30000 });
-    await page.waitForSelector(".slopes-status", { timeout: 30000 });
+    await page.waitForSelector(".home-highlights", { timeout: 30000 });
 
-    // מעליות
-    const lifts = await page.evaluate(() => {
-      const root = document.querySelector(".lifts-status");
-      if (!root) return null;
-      const open = root.querySelector(".open")?.innerText.trim();
-      const total = root.querySelector(".total")?.innerText.trim();
-      return { open, total };
+    const homeData = await page.evaluate(() => {
+      const items = [...document.querySelectorAll(".home-highlights .highlight-item")];
+
+      const weather = items[0]?.querySelector(".value")?.innerText.trim() || null;
+      const lifts = items[1]?.querySelector(".value")?.innerText.trim() || null;
+      const slopes = items[2]?.querySelector(".value")?.innerText.trim() || null;
+
+      return { weather, lifts, slopes };
     });
 
-    // מסלולים
-    const slopes = await page.evaluate(() => {
-      const root = document.querySelector(".slopes-status");
-      if (!root) return null;
-      const open = root.querySelector(".open")?.innerText.trim();
-      const total = root.querySelector(".total")?.innerText.trim();
-      return { open, total };
+    // --- חלק 2: עמוד תחזית ---
+    await page.goto("https://www.cervinia.it/en/meteo", {
+      waitUntil: "networkidle2",
+      timeout: 60000
     });
 
     // עומקי שלג
     const snowDepth = await page.evaluate(() => {
-      const rows = [...document.querySelectorAll(".snow-table tr")];
+      const rows = [...document.querySelectorAll(".snow-report table tr")];
       return rows.map(r => r.innerText.trim());
     });
 
     // תחזית
     const forecast = await page.evaluate(() => {
-      const items = [...document.querySelectorAll(".forecast-item")];
+      const items = [...document.querySelectorAll(".weather-forecast .forecast-day")];
       return items.map(i => i.innerText.trim());
     });
 
     // מצלמות
     const cameras = await page.evaluate(() => {
-      const frames = [...document.querySelectorAll("iframe")];
+      const frames = [...document.querySelectorAll(".webcam-item iframe")];
       return frames.map(f => f.src);
     });
 
-    // קישור לצ'רמט
+    // חיבור לצ'רמט
     const zermattConnection = await page.evaluate(() => {
-      const el = document.querySelector(".connection-status");
+      const el = document.querySelector(".connection .status");
       return el ? el.innerText.trim() : null;
     });
 
+    // --- בניית האובייקט הסופי ---
     const data = {
-      lifts,
-      slopes,
+      weather: homeData.weather,
+      lifts: homeData.lifts,
+      slopes: homeData.slopes,
       snowDepth,
       forecast,
       cameras,
