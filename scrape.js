@@ -35,7 +35,7 @@ async function scrapeHomePage(page) {
       liftsGlobalBlock?.querySelector(".edagF, .size-25")
     );
     const globalLiftsTotal = numOf(
-      liftsGlobalGlobalBlock?.querySelector(".size-18.medium.u-ml-10, .size-18.u-ml-10")
+      liftsGlobalBlock?.querySelector(".size-18.medium.u-ml-10, .size-18.u-ml-10")
     );
 
     const globalSlopesOpen = numOf(
