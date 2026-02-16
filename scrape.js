@@ -7,7 +7,7 @@ async function scrapeHomePage(page) {
   });
 
   // נותן ל-Nuxt עוד רגע להיטען
-  await page.waitForTimeout(3000);
+await new Promise(resolve => setTimeout(resolve, 3000));
 
   return await page.evaluate(() => {
     const textOf = el => (el ? el.textContent.trim() : null);
