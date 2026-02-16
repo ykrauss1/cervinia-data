@@ -1,27 +1,32 @@
 const puppeteer = require("puppeteer-core");
 const fs = require("fs");
 
-// פונקציה לסגירת Cookiebot (תופסת את כל הכפתורים האפשריים)
+// פונקציה לסגירת Cookiebot לפי טקסט (הכי אמין)
 async function closeCookieBanner(page) {
-  const selectors = [
-    '#CybotCookiebotDialogBodyButtonAccept',
-    '#CybotCookiebotDialogBodyButtonAcceptAll',
-    '#CybotCookiebotDialogBodyButtonAcceptOnlyNecessary',
-    'button[aria-label="Allow all"]',
-    'button[aria-label="Accept all"]',
-    '.CybotCookiebotDialogBodyButtonAccept',
-    '.CybotCookiebotDialogBodyButtonAcceptAll'
-  ];
+  try {
+    // מחכים שהבאנר יופיע
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
-  for (const sel of selectors) {
-    try {
-      await page.waitForSelector(sel, { timeout: 2000 });
-      await page.click(sel);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return;
-    } catch (e) {
-      // ממשיכים לנסות selector אחר
+    // לוכדים את כל הכפתורים
+    const buttons = await page.$$('button, a');
+
+    for (const btn of buttons) {
+      const text = await page.evaluate(el => el.innerText?.trim() || "", btn);
+      const lower = text.toLowerCase();
+
+      if (
+        lower.includes("accept") ||
+        lower.includes("allow") ||
+        lower.includes("ok") ||
+        lower.includes("agree")
+      ) {
+        await btn.click();
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        return;
+      }
     }
+  } catch (e) {
+    // אם לא הצליח — ממשיכים
   }
 }
 
