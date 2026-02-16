@@ -1,5 +1,4 @@
 import puppeteer from "puppeteer";
-import fetch from "node-fetch";
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
