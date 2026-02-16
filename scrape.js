@@ -4,12 +4,11 @@ const fs = require("fs");
 // פונקציה לסגירת Cookiebot
 async function closeCookieBanner(page) {
   try {
-    // לפעמים הכפתור נקרא כך:
     await page.waitForSelector('#CybotCookiebotDialogBodyButtonAccept', { timeout: 5000 });
     await page.click('#CybotCookiebotDialogBodyButtonAccept');
-    await page.waitForTimeout(1000);
+    await new Promise(resolve => setTimeout(resolve, 1000));
   } catch (e) {
-    // אם לא נמצא — ממשיכים
+    // אם לא הופיע — ממשיכים
   }
 }
 
@@ -23,12 +22,12 @@ async function scrapeHomePage(page) {
   });
 
   await closeCookieBanner(page);
-  await page.waitForTimeout(2000);
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
   const html = await page.content();
   fs.writeFileSync("home.html", html);
 
-  return {}; // נעדכן אחרי שנראה את ה‑HTML האמיתי
+  return {};
 }
 
 // =========================
@@ -41,7 +40,7 @@ async function scrapeMeteoPage(page) {
   });
 
   await closeCookieBanner(page);
-  await page.waitForTimeout(2000);
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
   const html = await page.content();
   fs.writeFileSync("meteo.html", html);
@@ -59,7 +58,7 @@ async function scrapeWebcamsPage(page) {
   });
 
   await closeCookieBanner(page);
-  await page.waitForTimeout(2000);
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
   const html = await page.content();
   fs.writeFileSync("webcams.html", html);
@@ -79,16 +78,9 @@ async function main() {
 
   const page = await browser.newPage();
 
-  const home = await scrapeHomePage(page);
-  const meteo = await scrapeMeteoPage(page);
-  const webcams = await scrapeWebcamsPage(page);
-
-  const result = {
-    updatedAt: new Date().toISOString(),
-    home,
-    meteo,
-    webcams
-  };
+  await scrapeHomePage(page);
+  await scrapeMeteoPage(page);
+  await scrapeWebcamsPage(page);
 
   console.log("Scraping completed.");
 
