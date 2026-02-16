@@ -35,7 +35,7 @@ async function scrapeHomePage(page) {
       liftsGlobalBlock?.querySelector(".edagF, .size-25")
     );
     const globalLiftsTotal = numOf(
-      liftsGlobalBlock?.querySelector(".size-18.medium.u-ml-10, .size-18.u-ml-10")
+      liftsGlobalGlobalBlock?.querySelector(".size-18.medium.u-ml-10, .size-18.u-ml-10")
     );
 
     const globalSlopesOpen = numOf(
@@ -167,4 +167,112 @@ async function scrapeMeteoPage(page) {
 
     const visMatch = bodyText.match(/Visibility\s*:?[\s\n]*([\d.,]+)\s*m/i);
     if (visMatch)
-      weatherNow.visibilityM = parseFloat(vis
+      weatherNow.visibilityM = parseFloat(visMatch[1].replace(",", "."));
+
+    const forecast = [];
+    const forecastBlocks = Array.from(
+      document.querySelectorAll("div.forecast, li.forecast, .meteo-forecast")
+    );
+
+    for (const block of forecastBlocks) {
+      const t = block.innerText;
+      const dateMatch = t.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+      const minMatch = t.match(/min\s*:?[\s\n]*(-?\d+)/i);
+      const maxMatch = t.match(/max\s*:?[\s\n]*(-?\d+)/i);
+
+      if (!dateMatch) continue;
+
+      forecast.push({
+        raw: t.trim(),
+        date: dateMatch[1],
+        min: minMatch ? parseInt(minMatch[1], 10) : null,
+        max: maxMatch ? parseInt(maxMatch[1], 10) : null
+      });
+    }
+
+    return {
+      snow,
+      weather: {
+        now: weatherNow,
+        forecast
+      }
+    };
+  });
+}
+
+// =========================
+// WEBCAMS PAGE
+// =========================
+async function scrapeWebcamsPage(page) {
+  await page.goto("https://www.cervinia.it/en/webcam", {
+    waitUntil: "networkidle0",
+    timeout: 120000
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 3000));
+
+  const html = await page.content();
+  console.log("WEBCAMS HTML:", html);
+  fs.writeFileSync("webcams.html", html);
+
+  return await page.evaluate(() => {
+    const webcams = [];
+    const cards = document.querySelectorAll(
+      "a, article, .webcam, .webcam-card"
+    );
+
+    for (const el of cards) {
+      const img = el.querySelector("img");
+      const titleEl =
+        el.querySelector("h2, h3, .title, .webcam-name") ||
+        (img && img.getAttribute("alt")
+          ? { textContent: img.getAttribute("alt") }
+          : null);
+
+      if (!img || !titleEl) continue;
+
+      webcams.push({
+        name: titleEl.textContent.trim(),
+        image: img.src,
+        url: el.href || null
+      });
+    }
+
+    return webcams;
+  });
+}
+
+// =========================
+// MAIN
+// =========================
+async function main() {
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: process.env.CHROME_PATH || "/usr/bin/google-chrome",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  });
+
+  const page = await browser.newPage();
+
+  const home = await scrapeHomePage(page);
+  const meteo = await scrapeMeteoPage(page);
+  const webcams = await scrapeWebcamsPage(page);
+
+  const result = {
+    updatedAt: new Date().toISOString(),
+    global: home.global,
+    cervinia: home.cervinia,
+    snow: meteo.snow,
+    weather: meteo.weather,
+    webcams
+  };
+
+  console.log(JSON.stringify(result, null, 2));
+
+  await browser.close();
+}
+
+main().catch(err => {
+  console.error("Scraping failed:", err);
+  process.exit(1);
+});
