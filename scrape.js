@@ -22,13 +22,13 @@ const puppeteer = require("puppeteer");
     });
 
     await page.waitForNetworkIdle({ idleTime: 1000, timeout: 60000 });
-    await page.waitForTimeout(3000);
+await new Promise(r => setTimeout(r, 3000));
 
     const html1 = await page.content();
     if (html1.includes("cf-browser-verification") || html1.includes("Cloudflare")) {
       console.log("Blocked by Cloudflare on homepage, retrying...");
       await page.reload({ waitUntil: "networkidle2" });
-      await page.waitForTimeout(3000);
+await new Promise(r => setTimeout(r, 3000));
     }
 
     try {
@@ -36,7 +36,7 @@ const puppeteer = require("puppeteer");
     } catch (e) {
       console.log("Retrying homepage load...");
       await page.reload({ waitUntil: "networkidle2" });
-      await page.waitForTimeout(3000);
+await new Promise(r => setTimeout(r, 3000));
       await page.waitForSelector(".home-highlights", { timeout: 60000 });
     }
 
@@ -61,7 +61,7 @@ const puppeteer = require("puppeteer");
     });
 
     await page.waitForNetworkIdle({ idleTime: 1000, timeout: 60000 });
-    await page.waitForTimeout(3000);
+await new Promise(r => setTimeout(r, 3000));
 
       // עומקי שלג
     const snowDepth = await page.evaluate(() => {
