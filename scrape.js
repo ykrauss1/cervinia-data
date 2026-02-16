@@ -107,7 +107,7 @@ async function scrapeMeteoPage(page) {
     waitUntil: "networkidle0",
     timeout: 120000
   });
-  await page.waitForTimeout(3000);
+await new Promise(resolve => setTimeout(resolve, 3000));
 
   return await page.evaluate(() => {
     const textOf = el => (el ? el.textContent.trim() : null);
@@ -180,7 +180,7 @@ async function scrapeWebcamsPage(page) {
     waitUntil: "networkidle0",
     timeout: 120000
   });
-  await page.waitForTimeout(3000);
+await new Promise(resolve => setTimeout(resolve, 3000));
 
   return await page.evaluate(() => {
     const webcams = [];
