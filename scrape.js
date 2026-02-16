@@ -1,111 +1,97 @@
-const puppeteer = require("puppeteer-core");
-const fs = require("fs");
+import puppeteer from "puppeteer";
+import fetch from "node-fetch";
+import { createClient } from "@supabase/supabase-js";
 
-// פונקציה לסגירת Cookiebot לפי טקסט (הכי אמין)
-async function closeCookieBanner(page) {
-  try {
-    // מחכים שהבאנר יופיע
-    await new Promise(resolve => setTimeout(resolve, 2000));
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
-    // לוכדים את כל הכפתורים
-    const buttons = await page.$$('button, a');
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    for (const btn of buttons) {
-      const text = await page.evaluate(el => el.innerText?.trim() || "", btn);
-      const lower = text.toLowerCase();
-
-      if (
-        lower.includes("accept") ||
-        lower.includes("allow") ||
-        lower.includes("ok") ||
-        lower.includes("agree")
-      ) {
-        await btn.click();
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        return;
-      }
-    }
-  } catch (e) {
-    // אם לא הצליח — ממשיכים
-  }
-}
-
-// =========================
-// HOME PAGE
-// =========================
-async function scrapeHomePage(page) {
-  await page.goto("https://www.cervinia.it/en", {
-    waitUntil: "networkidle0",
-    timeout: 120000
-  });
-
-  await closeCookieBanner(page);
-  await new Promise(resolve => setTimeout(resolve, 2000));
-
-  const html = await page.content();
-  fs.writeFileSync("home.html", html);
-
-  return {};
-}
-
-// =========================
-// METEO PAGE
-// =========================
-async function scrapeMeteoPage(page) {
-  await page.goto("https://www.cervinia.it/en/meteo", {
-    waitUntil: "networkidle0",
-    timeout: 120000
-  });
-
-  await closeCookieBanner(page);
-  await new Promise(resolve => setTimeout(resolve, 2000));
-
-  const html = await page.content();
-  fs.writeFileSync("meteo.html", html);
-
-  return {};
-}
-
-// =========================
-// WEBCAMS PAGE
-// =========================
-async function scrapeWebcamsPage(page) {
-  await page.goto("https://www.cervinia.it/en/webcam", {
-    waitUntil: "networkidle0",
-    timeout: 120000
-  });
-
-  await closeCookieBanner(page);
-  await new Promise(resolve => setTimeout(resolve, 2000));
-
-  const html = await page.content();
-  fs.writeFileSync("webcams.html", html);
-
-  return [];
-}
-
-// =========================
-// MAIN
-// =========================
-async function main() {
+async function scrape() {
   const browser = await puppeteer.launch({
-    headless: true,
-    executablePath: process.env.CHROME_PATH || "/usr/bin/google-chrome",
+    headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
 
   const page = await browser.newPage();
+  await page.goto("https://www.cervinia.it/en", { waitUntil: "networkidle2" });
 
-  await scrapeHomePage(page);
-  await scrapeMeteoPage(page);
-  await scrapeWebcamsPage(page);
+  // --- DOM SCRAPING ---
+  const temperature = await page.$eval(".edagF", el => el.innerText.trim());
+  const zermatt_link = await page.$eval(".FkAOa span", el => el.innerText.trim());
 
-  console.log("Scraping completed.");
+  // Breuil Cervinia lifts/slopes
+  const lifts_open = await page.$eval(
+    'a[href="/en/impianti"] .vv1Cd span.size-25.secondary',
+    el => el.innerText.trim()
+  );
+
+  const lifts_total = await page.$eval(
+    'a[href="/en/impianti"] .vv1Cd span.size-18.medium',
+    el => el.innerText.trim()
+  );
+
+  const slopes_open = await page.$eval(
+    'a[href="/en/impianti"] .vv1Cd span.size-25.secondary.demi',
+    el => el.innerText.trim()
+  );
+
+  const slopes_total = await page.$eval(
+    'a[href="/en/impianti"] .vv1Cd span.size-18.medium.u-ml-10',
+    el => el.innerText.trim()
+  );
+
+  // Global slopes total (109)
+  const global_slopes_total = 109;
 
   await browser.close();
+
+  // --- API FETCHING ---
+  const impiantiRes = await fetch("https://www.cervinia.it/wp-json/cervinia/v1/impianti");
+  const impianti = await impiantiRes.json();
+
+  const meteoRes = await fetch("https://www.cervinia.it/wp-json/cervinia/v1/meteo");
+  const meteo = await meteoRes.json();
+
+  const snowRes = await fetch("https://www.cervinia.it/wp-json/cervinia/v1/neve");
+  const snow = await snowRes.json();
+
+  // Count total lifts from API
+  const lifts_total_api = Object.values(impianti.orari || {})
+    .flatMap(area => area.orari_impianti_singoli || [])
+    .length;
+
+  // Build areas object
+  const areas = {};
+  for (const [areaName, areaData] of Object.entries(impianti.orari || {})) {
+    areas[areaName] = {
+      lifts: areaData.orari_impianti_singoli?.length || 0,
+      seasonal_opening: areaData.apertura_stagionale_descrizione || null
+    };
+  }
+
+  // --- SAVE TO SUPABASE ---
+  const { error } = await supabase.from("ski_status_history").insert({
+    temperature: parseFloat(temperature),
+    zermatt_link,
+    alpine_crossing: "Closed", // אפשר לגרד גם את זה אם תרצה
+
+    lifts_open: parseInt(lifts_open),
+    lifts_total: lifts_total_api,
+    slopes_open: parseInt(slopes_open),
+    slopes_total: global_slopes_total,
+
+    snow,
+    forecast: meteo.previsioni || [],
+    areas,
+
+    raw_impianti: impianti,
+    raw_meteo: meteo,
+    raw_snow: snow
+  });
+
+  if (error) console.error("Supabase insert error:", error);
+  else console.log("Data saved successfully");
 }
 
-main().catch(err => {
-  console.error("Scraping failed:", err);
-  process.exit(1);
-});
+scrape();
