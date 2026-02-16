@@ -27,6 +27,8 @@ puppeteer.use(StealthPlugin());
       waitUntil: "domcontentloaded",
       timeout: 60000
     });
+    
+    console.log(await page.content());
 
     await new Promise(r => setTimeout(r, 3000));
 
