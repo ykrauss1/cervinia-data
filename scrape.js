@@ -230,23 +230,7 @@ await page.authenticate({
   password: "wxKRgWoNwUsaGgV0"
 });
 
-  console.log("Testing proxy...");
-try {
-  const testPage = await browser.newPage();
-  await testPage.authenticate({
-    username: "4tf5u0SPrsDfvmCQ",
-    password: "wxKRgWoNwUsaGgV0"
-  });
-  await testPage.goto("https://api.ipify.org?format=json", { timeout: 20000 });
-  const ip = await testPage.evaluate(() => document.body.innerText);
-  console.log("Proxy IP:", ip);
-  await testPage.close();
-} catch (err) {
-  console.error("Proxy test failed:", err);
-}
-
-
-   const home = await scrapeHomePage(page);
+    const home = await scrapeHomePage(page);
   const meteo = await scrapeMeteoPage(page);
   const webcams = await scrapeWebcamsPage(page);
 
