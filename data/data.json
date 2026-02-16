@@ -1,42 +1,48 @@
+Testing proxy...
+Proxy IP: {"ip":"96.162.158.162"}
 {
-    "lifts": "47/47",
-    "slopes": "109/109",
-    "conn": "open",
-    "temp": "-13.5°C",
-    "forecast": [
-        {
-            "date": "15.02",
-            "temp_max": "-7.8°C",
-            "temp_min": "-13.5°C",
-            "wind": "42.6",
-            "visibility": "טובה",
-            "link_prob": "Medium"
-        },
-        {
-            "date": "16.02",
-            "temp_max": "-7.9°C",
-            "temp_min": "-14.3°C",
-            "wind": "47.2",
-            "visibility": "טובה",
-            "link_prob": "Medium"
-        },
-        {
-            "date": "17.02",
-            "temp_max": "-12.9°C",
-            "temp_min": "-15.1°C",
-            "wind": "45.0",
-            "visibility": "טובה",
-            "link_prob": "Medium"
-        },
-        {
-            "date": "18.02",
-            "temp_max": "-7.6°C",
-            "temp_min": "-13.2°C",
-            "wind": "10.8",
-            "visibility": "טובה",
-            "link_prob": "High"
-        }
-    ],
-    "last_update": "15/02/2026 10:04"
+  "updatedAt": "2026-02-16T11:24:45.026Z",
+  "global": {
+    "lifts": {
+      "open": 30,
+      "total": null
+    },
+    "slopes": {
+      "open": 53,
+      "total": null
+    },
+    "temperature": -7.4,
+    "zermattLink": null
+  },
+  "cervinia": {
+    "lifts": {
+      "open": -7.4,
+      "total": 16
+    },
+    "slopes": {
+      "open": -7.4,
+      "total": 16
+    },
+    "temperature": -7.4
+  },
+  "snow": {
+    "baseDepthCm": null,
+    "freshSnowCm": null,
+    "quality": null
+  },
+  "weather": {
+    "now": {
+      "windSpeedKmh": null,
+      "windDirection": null,
+      "visibilityM": null
+    },
+    "forecast": []
+  },
+  "webcams": [
+    {
+      "name": "Alpine Crossing",
+      "image": "https://www.cervinia.it/assets/img/matterhorn-alpine-crossing-logo.svg",
+      "url": "https://www.cervinia.it/en/matterhorn-alpine-crossing"
+    }
+  ]
 }
-
