@@ -221,9 +221,7 @@ await page.authenticate({
   password: "wxKRgWoNwUsaGgV0"
 });
 
-  */
-
-  const home = await scrapeHomePage(page);
+   const home = await scrapeHomePage(page);
   const meteo = await scrapeMeteoPage(page);
   const webcams = await scrapeWebcamsPage(page);
 
