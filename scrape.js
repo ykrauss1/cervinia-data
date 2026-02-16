@@ -11,15 +11,15 @@ puppeteer.use(StealthPlugin());
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
-        "--proxy-server=http://31.59.20.176:6754"
+        "--proxy-server=http://geo.iproyal.com:12321"
       ]
     });
 
     const page = await browser.newPage();
 
     await page.authenticate({
-      username: "cbndvfbb",
-      password: "mkflaz4onwbq"
+      username: "4tf5u0SPrsDfvmCQ",
+      password: "wxKRgWoNwUsaGgV0"
     });
 
     console.log("Proxy connected. Loading homepage...");
@@ -28,14 +28,8 @@ puppeteer.use(StealthPlugin());
       timeout: 60000
     });
 
-    // בדיקה אם Cloudflare חסם
-    if (await page.$("title") === null) {
-      console.log("Blocked by Cloudflare on homepage, retrying...");
-      await new Promise(r => setTimeout(r, 3000));
-      await page.reload({ waitUntil: "domcontentloaded" });
-    }
+    await new Promise(r => setTimeout(r, 3000));
 
-    // מחכים לאלמנט הראשי
     await page.waitForSelector(".home-highlights", { timeout: 60000 });
 
     const data = await page.evaluate(() => {
