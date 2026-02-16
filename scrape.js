@@ -8,6 +8,7 @@ async function scrapeHomePage(page) {
 
   // נותן ל-Nuxt עוד רגע להיטען
 await new Promise(resolve => setTimeout(resolve, 3000));
+  console.log("HOME HTML:", await page.content());
 
   return await page.evaluate(() => {
     const textOf = el => (el ? el.textContent.trim() : null);
@@ -108,6 +109,7 @@ async function scrapeMeteoPage(page) {
     timeout: 120000
   });
 await new Promise(resolve => setTimeout(resolve, 3000));
+  console.log("METEO HTML:", await page.content());
 
   return await page.evaluate(() => {
     const textOf = el => (el ? el.textContent.trim() : null);
@@ -181,6 +183,7 @@ async function scrapeWebcamsPage(page) {
     timeout: 120000
   });
 await new Promise(resolve => setTimeout(resolve, 3000));
+  console.log("WEBCAMS HTML:", await page.content());
 
   return await page.evaluate(() => {
     const webcams = [];
