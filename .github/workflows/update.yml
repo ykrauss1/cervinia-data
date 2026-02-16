@@ -1,9 +1,9 @@
-name: Update Cervinia Data
+name: Cervinia Scraper
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
 jobs:
   scrape:
@@ -12,13 +12,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          persist-credentials: true
 
-      - name: Install Chrome
-        uses: browser-actions/setup-chrome@v1
-
-      - name: Install Node
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 20
@@ -27,12 +22,7 @@ jobs:
         run: npm install
 
       - name: Run scraper
-        run: node scrape.js
-
-      - name: Commit updated HTML files
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add home.html meteo.html webcams.html || true
-          git commit -m "Update scraped HTML" || true
-          git push || true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: node scraper.js
