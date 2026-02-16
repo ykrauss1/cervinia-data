@@ -1,14 +1,27 @@
 const puppeteer = require("puppeteer-core");
 const fs = require("fs");
 
-// פונקציה לסגירת Cookiebot
+// פונקציה לסגירת Cookiebot (תופסת את כל הכפתורים האפשריים)
 async function closeCookieBanner(page) {
-  try {
-    await page.waitForSelector('#CybotCookiebotDialogBodyButtonAccept', { timeout: 5000 });
-    await page.click('#CybotCookiebotDialogBodyButtonAccept');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  } catch (e) {
-    // אם לא הופיע — ממשיכים
+  const selectors = [
+    '#CybotCookiebotDialogBodyButtonAccept',
+    '#CybotCookiebotDialogBodyButtonAcceptAll',
+    '#CybotCookiebotDialogBodyButtonAcceptOnlyNecessary',
+    'button[aria-label="Allow all"]',
+    'button[aria-label="Accept all"]',
+    '.CybotCookiebotDialogBodyButtonAccept',
+    '.CybotCookiebotDialogBodyButtonAcceptAll'
+  ];
+
+  for (const sel of selectors) {
+    try {
+      await page.waitForSelector(sel, { timeout: 2000 });
+      await page.click(sel);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return;
+    } catch (e) {
+      // ממשיכים לנסות selector אחר
+    }
   }
 }
 
