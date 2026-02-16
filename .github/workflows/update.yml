@@ -1,25 +1,27 @@
 name: Update Cervinia Data
 
 on:
-  schedule:
-    - cron: "0 * * * *"   # כל שעה עגולה
   workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
         with:
-          node-version: 20
+          persist-credentials: true
 
       - name: Install Chrome
-        run: sudo apt-get update && sudo apt-get install -y google-chrome-stable
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
 
       - name: Install dependencies
         run: npm install
@@ -27,12 +29,10 @@ jobs:
       - name: Run scraper
         run: node scrape.js
 
-      - name: Commit updated data
+      - name: Commit updated HTML files
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add data/data.json
-          git commit -m "Update data.json from Cervinia" || echo "No changes to commit"
-
-      - name: Push changes
-        run: git push
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add home.html meteo.html webcams.html || true
+          git commit -m "Update scraped HTML" || true
+          git push || true
