@@ -9,6 +9,8 @@ async function scrapeHomePage(page) {
   // נותן ל-Nuxt עוד רגע להיטען
 await new Promise(resolve => setTimeout(resolve, 3000));
   console.log("HOME HTML:", await page.content());
+  const fs = require("fs");
+fs.writeFileSync("home.html", await page.content());
 
   return await page.evaluate(() => {
     const textOf = el => (el ? el.textContent.trim() : null);
@@ -110,6 +112,8 @@ async function scrapeMeteoPage(page) {
   });
 await new Promise(resolve => setTimeout(resolve, 3000));
   console.log("METEO HTML:", await page.content());
+  const fs = require("fs");
+fs.writeFileSync("meteo.html", await page.content());
 
   return await page.evaluate(() => {
     const textOf = el => (el ? el.textContent.trim() : null);
@@ -184,6 +188,8 @@ async function scrapeWebcamsPage(page) {
   });
 await new Promise(resolve => setTimeout(resolve, 3000));
   console.log("WEBCAMS HTML:", await page.content());
+  const fs = require("fs");
+fs.writeFileSync("webcams.html", await page.content());
 
   return await page.evaluate(() => {
     const webcams = [];
