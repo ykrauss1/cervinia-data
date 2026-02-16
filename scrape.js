@@ -207,22 +207,20 @@ async function scrapeWebcamsPage(page) {
 
 async function main() {
   const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      // כאן תכניס את הפרוקסי שלך אם צריך
-      // "--proxy-server=http://geo.iproyal.com:12321"
-    ],
-    executablePath: process.env.CHROME_PATH || "/usr/bin/google-chrome"
-  });
+  headless: true,
+  args: [
+    "--proxy-server=http://geo.iproyal.com:12321"
+  ],
+  executablePath: process.env.CHROME_PATH || "/usr/bin/google-chrome"
+});
 
-  const page = await browser.newPage();
+const page = await browser.newPage();
 
-  // אם צריך authenticate לפרוקסי:
-  /*
-  await page.authenticate({
-    username: "4tf5u0SPrsDfvmCQ",
-    password: "wxKRgWoNwUsaGgV0"
-  });
+await page.authenticate({
+  username: "4tf5u0SPrsDfvmCQ",
+  password: "wxKRgWoNwUsaGgV0"
+});
+
   */
 
   const home = await scrapeHomePage(page);
