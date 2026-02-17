@@ -1,7 +1,5 @@
-// scrape.js — יוסי, גרסה מלאה עם שמירה ל‑Supabase
-
-const puppeteer = require('puppeteer');
-const { createClient } = require('@supabase/supabase-js');
+import puppeteer from 'puppeteer';
+import { createClient } from '@supabase/supabase-js';
 
 // ----------- SUPABASE CONFIG -----------
 const supabase = createClient(
@@ -202,14 +200,6 @@ async function saveToSupabase(data) {
 // MAIN
 // ============================================================
 
-(async () => {
-  try {
-    const data = await scrape();
-    console.log('SCRAPED DATA:', JSON.stringify(data, null, 2));
-
-    await saveToSupabase(data);
-  } catch (err) {
-    console.error('SCRAPE ERROR:', err);
-    process.exit(1);
-  }
-})();
+const data = await scrape();
+console.log('SCRAPED DATA:', JSON.stringify(data, null, 2));
+await saveToSupabase(data);
