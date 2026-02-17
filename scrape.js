@@ -11,6 +11,24 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function autoScroll(page) {
+  await page.evaluate(async () => {
+    await new Promise(resolve => {
+      let totalHeight = 0;
+      const distance = 400;
+      const timer = setInterval(() => {
+        const scrollHeight = document.body.scrollHeight;
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+        if (totalHeight >= scrollHeight - 1000) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 200);
+    });
+  });
+}
+
 // ----------- HELPERS -----------
 async function extractForecastBlock(page, titleText) {
   return await page.$$eval('div.HHL8B', (blocks, titleText) => {
@@ -40,6 +58,11 @@ async function scrape() {
 
   const page = await browser.newPage();
 
+  // USER AGENT אמיתי
+  await page.setUserAgent(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121 Safari/537.36"
+  );
+
   // ============================================================
   // 1) HOME PAGE — GLOBAL + LOCAL + ZERMATT
   // ============================================================
@@ -49,41 +72,50 @@ async function scrape() {
     timeout: 60000
   });
 
-  await sleep(2000);
+  await autoScroll(page);
+  await sleep(1500);
+
+  const raw_home_html = await page.content();
 
   // ---------- GLOBAL DATA ----------
-  const globalBlocks = await page.$$eval('div._4ruBB a', items =>
-    items.map(a => {
-      const value = a.querySelector('.edagF')?.innerText.trim() || null;
-      const label = a.querySelector('.Ognil')?.innerText.trim().toLowerCase() || null;
-      return { value, label };
-    })
-  ).catch(() => []);
-
   let temperature_global = null;
   let lifts_open_global = null;
   let slopes_open_global = null;
 
-  for (const item of globalBlocks) {
-    if (!item.label || !item.value) continue;
+  try {
+    await page.waitForSelector('div._4ruBB', { timeout: 5000 });
 
-    if (item.label === 'weather') {
-      temperature_global = parseFloat(item.value.replace('°', ''));
-    }
+    const globalBlocks = await page.$$eval('div._4ruBB a', items =>
+      items.map(a => {
+        const value = a.querySelector('.edagF')?.innerText.trim() || null;
+        const label = a.querySelector('.Ognil')?.innerText.trim().toLowerCase() || null;
+        return { value, label };
+      })
+    );
 
-    if (item.label === 'lifts') {
-      lifts_open_global = parseInt(item.value);
-    }
+    for (const item of globalBlocks) {
+      if (!item.label || !item.value) continue;
 
-    if (item.label === 'slopes') {
-      slopes_open_global = parseInt(item.value);
+      if (item.label === 'weather') {
+        temperature_global = parseFloat(item.value.replace('°', ''));
+      }
+
+      if (item.label === 'lifts') {
+        lifts_open_global = parseInt(item.value);
+      }
+
+      if (item.label === 'slopes') {
+        slopes_open_global = parseInt(item.value);
+      }
     }
+  } catch (e) {
+    console.log("GLOBAL DATA NOT FOUND");
   }
 
   const lifts_total_global = 47;
   const slopes_total_global = 109;
 
-  // ---------- ZERMATT LINK ----------
+  // ---------- ZERMATT ----------
   let zermatt_link = await page.$eval(
     'span.U4QfZ',
     el => el.innerText.trim().toUpperCase()
@@ -112,11 +144,11 @@ async function scrape() {
       slopes_total_local = parseInt(localBlocks[1].total);
     }
   } catch (e) {
-    console.log("Local lifts/slopes not found");
+    console.log("LOCAL LIFTS NOT FOUND");
   }
 
   // ============================================================
-  // 2) SNOW PAGE — SNOW TABLE + AVALANCHE
+  // 2) SNOW PAGE
   // ============================================================
 
   await page.goto('https://www.cervinia.it/en/neve', {
@@ -124,13 +156,17 @@ async function scrape() {
     timeout: 60000
   });
 
-  await sleep(2000);
+  await autoScroll(page);
+  await sleep(1500);
 
-  // SNOW TABLE
+  const raw_snow_html = await page.content();
+
   let snow_depth = null;
   let last_snowfall = null;
 
   try {
+    await page.waitForSelector('table.DD2Zg tbody tr', { timeout: 5000 });
+
     const snowRows = await page.$$eval('table.DD2Zg tbody tr', rows =>
       rows.map(r => {
         const cells = [...r.querySelectorAll('td')].map(td => td.innerText.trim());
@@ -147,10 +183,10 @@ async function scrape() {
       last_snowfall = snowRows[0].last;
     }
   } catch (e) {
-    console.log("Snow table not found");
+    console.log("SNOW TABLE NOT FOUND");
   }
 
-  // AVALANCHE RISK
+  // ---------- AVALANCHE ----------
   let avalanche_level = null;
   let avalanche_text = null;
 
@@ -158,11 +194,13 @@ async function scrape() {
     avalanche_level = await page.$eval('span.anpIX', el => el.innerText.trim());
     avalanche_text = await page.$eval('div.kpCCY span.size-20', el => el.innerText.trim());
   } catch (e) {
-    console.log("Avalanche data not found");
+    console.log("AVALANCHE NOT FOUND");
   }
 
+  const raw_avalanche_html = raw_snow_html; // אותו דף
+
   // ============================================================
-  // 3) METEO PAGE — TODAY + NEXT DAYS
+  // 3) METEO PAGE
   // ============================================================
 
   await page.goto('https://www.cervinia.it/en/meteo', {
@@ -170,18 +208,19 @@ async function scrape() {
     timeout: 60000
   });
 
-  await sleep(2000);
+  await autoScroll(page);
+  await sleep(1500);
+
+  const raw_meteo_html = await page.content();
 
   let forecast_date = await page.$eval(
     'h3.size-25.demi.bg-title',
     el => el.innerText.trim()
   ).catch(() => null);
 
-  // TODAY: MORNING + AFTERNOON/EVENING
   const forecast_morning = await extractForecastBlock(page, 'Morning').catch(() => []);
   const forecast_afternoon = await extractForecastBlock(page, 'Pomeriggio e sera').catch(() => []);
 
-  // NEXT DAYS TABLE
   let forecast_next_days = await page.$$eval('div._4yTBS .grid__col', days =>
     days
       .map(day => {
@@ -206,7 +245,7 @@ async function scrape() {
   await browser.close();
 
   // ============================================================
-  // BUILD FINAL RESULT OBJECT
+  // BUILD FINAL RESULT
   // ============================================================
 
   const result = {
@@ -235,7 +274,12 @@ async function scrape() {
       afternoon: forecast_afternoon
     },
 
-    forecast_next_days
+    forecast_next_days,
+
+    raw_home_html,
+    raw_snow_html,
+    raw_avalanche_html,
+    raw_meteo_html
   };
 
   return result;
