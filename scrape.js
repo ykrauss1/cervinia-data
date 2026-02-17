@@ -11,6 +11,27 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// ----------- HELPERS -----------
+async function extractForecastBlock(page, titleText) {
+  return await page.$$eval('div.HHL8B', (blocks, titleText) => {
+    const block = blocks.find(b =>
+      b.querySelector('p')?.innerText.trim().toLowerCase() === titleText.toLowerCase()
+    );
+    if (!block) return [];
+
+    const items = [...block.querySelectorAll('div._66oia')];
+
+    return items.map(item => {
+      const name = item.querySelector('span.demi')?.innerText.trim() || null;
+      const icon = item
+        .querySelector('use')
+        ?.getAttribute('xlink:href')
+        ?.replace('#icon-', '') || null;
+      return { name, icon };
+    });
+  }, titleText);
+}
+
 async function scrape() {
   const browser = await puppeteer.launch({
     headless: 'new',
@@ -20,7 +41,7 @@ async function scrape() {
   const page = await browser.newPage();
 
   // ============================================================
-  // 1) HOME PAGE — GLOBAL DATA + ZERMATT LINK
+  // 1) HOME PAGE — GLOBAL + LOCAL + ZERMATT
   // ============================================================
 
   await page.goto('https://www.cervinia.it/en', {
@@ -30,6 +51,7 @@ async function scrape() {
 
   await sleep(2000);
 
+  // ---------- GLOBAL DATA ----------
   const globalBlocks = await page.$$eval('div._4ruBB a', items =>
     items.map(a => {
       const value = a.querySelector('.edagF')?.innerText.trim() || null;
@@ -61,13 +83,40 @@ async function scrape() {
   const lifts_total_global = 47;
   const slopes_total_global = 109;
 
+  // ---------- ZERMATT LINK ----------
   let zermatt_link = await page.$eval(
     'span.U4QfZ',
     el => el.innerText.trim().toUpperCase()
   ).catch(() => null);
 
+  // ---------- LOCAL LIFTS & SLOPES ----------
+  let lifts_open_local = null;
+  let lifts_total_local = null;
+  let slopes_open_local = null;
+  let slopes_total_local = null;
+
+  try {
+    const localBlocks = await page.$$eval('a[href="/en/impianti"]', items =>
+      items.map(a => {
+        const open = a.querySelector('.size-25')?.innerText.trim() || null;
+        const total = a.querySelector('.size-18')?.innerText.trim() || null;
+        return { open, total };
+      })
+    );
+
+    if (localBlocks.length >= 2) {
+      lifts_open_local = parseInt(localBlocks[0].open);
+      lifts_total_local = parseInt(localBlocks[0].total);
+
+      slopes_open_local = parseInt(localBlocks[1].open);
+      slopes_total_local = parseInt(localBlocks[1].total);
+    }
+  } catch (e) {
+    console.log("Local lifts/slopes not found");
+  }
+
   // ============================================================
-  // 2) SNOW PAGE — SNOW TABLE + AVALANCHE RISK
+  // 2) SNOW PAGE — SNOW TABLE + AVALANCHE
   // ============================================================
 
   await page.goto('https://www.cervinia.it/en/neve', {
@@ -77,33 +126,40 @@ async function scrape() {
 
   await sleep(2000);
 
-  const snowRows = await page.$$eval('tr.u-text-left.size-18.medium', rows =>
-    rows.map(row => {
-      const cells = [...row.querySelectorAll('td')].map(td => td.innerText.trim());
-      return {
-        location: cells[0] || null,
-        snow_depth: cells[1] || null,
-        last_snowfall: cells[2] || null
-      };
-    })
-  ).catch(() => []);
+  // SNOW TABLE
+  let snow_depth = null;
+  let last_snowfall = null;
 
-  let snow = null;
-  if (snowRows.length > 0) {
-    snow =
-      snowRows.find(r => (r.location || '').toLowerCase().includes('plateau')) ||
-      snowRows[0];
+  try {
+    const snowRows = await page.$$eval('table.DD2Zg tbody tr', rows =>
+      rows.map(r => {
+        const cells = [...r.querySelectorAll('td')].map(td => td.innerText.trim());
+        return {
+          location: cells[0],
+          snow: cells[1],
+          last: cells[2]
+        };
+      })
+    );
+
+    if (snowRows.length > 0) {
+      snow_depth = snowRows[0].snow;
+      last_snowfall = snowRows[0].last;
+    }
+  } catch (e) {
+    console.log("Snow table not found");
   }
 
-  let avalanche_risk_level = await page.$eval(
-    'span.anpIX',
-    el => el.innerText.trim()
-  ).catch(() => null);
+  // AVALANCHE RISK
+  let avalanche_level = null;
+  let avalanche_text = null;
 
-  let avalanche_risk_text = await page.$eval(
-    'div.kpCCY span.size-20',
-    el => el.innerText.trim()
-  ).catch(() => null);
+  try {
+    avalanche_level = await page.$eval('span.anpIX', el => el.innerText.trim());
+    avalanche_text = await page.$eval('div.kpCCY span.size-20', el => el.innerText.trim());
+  } catch (e) {
+    console.log("Avalanche data not found");
+  }
 
   // ============================================================
   // 3) METEO PAGE — TODAY + NEXT DAYS
@@ -121,17 +177,11 @@ async function scrape() {
     el => el.innerText.trim()
   ).catch(() => null);
 
-  let forecast_regions = await page.$$eval('div._66oia', regions =>
-    regions.map(r => {
-      const name = r.querySelector('span.demi')?.innerText.trim() || null;
-      const icon = r
-        .querySelector('use')
-        ?.getAttribute('xlink:href')
-        ?.replace('#icon-', '') || null;
-      return { name, icon };
-    })
-  ).catch(() => []);
+  // TODAY: MORNING + AFTERNOON/EVENING
+  const forecast_morning = await extractForecastBlock(page, 'Morning').catch(() => []);
+  const forecast_afternoon = await extractForecastBlock(page, 'Pomeriggio e sera').catch(() => []);
 
+  // NEXT DAYS TABLE
   let forecast_next_days = await page.$$eval('div._4yTBS .grid__col', days =>
     days
       .map(day => {
@@ -162,20 +212,27 @@ async function scrape() {
   const result = {
     temperature: temperature_global,
     zermatt_link,
+
     lifts_open_global,
     lifts_total_global,
     slopes_open_global,
     slopes_total_global,
 
-    snow_depth: snow?.snow_depth || null,
-    last_snowfall: snow?.last_snowfall || null,
+    lifts_open_local,
+    lifts_total_local,
+    slopes_open_local,
+    slopes_total_local,
 
-    avalanche_level: avalanche_risk_level,
-    avalanche_text: avalanche_risk_text,
+    snow_depth,
+    last_snowfall,
+
+    avalanche_level,
+    avalanche_text,
 
     forecast_today: {
       date: forecast_date,
-      regions: forecast_regions
+      morning: forecast_morning,
+      afternoon: forecast_afternoon
     },
 
     forecast_next_days
