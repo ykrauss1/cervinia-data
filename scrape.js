@@ -7,6 +7,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function scrape() {
   const browser = await puppeteer.launch({
     headless: 'new',
@@ -24,7 +28,7 @@ async function scrape() {
     timeout: 60000
   });
 
-  await page.waitForTimeout(2000);
+  await sleep(2000);
 
   const globalBlocks = await page.$$eval('div._4ruBB a', items =>
     items.map(a => {
@@ -71,7 +75,7 @@ async function scrape() {
     timeout: 60000
   });
 
-  await page.waitForTimeout(2000);
+  await sleep(2000);
 
   const snowRows = await page.$$eval('tr.u-text-left.size-18.medium', rows =>
     rows.map(row => {
@@ -110,7 +114,7 @@ async function scrape() {
     timeout: 60000
   });
 
-  await page.waitForTimeout(2000);
+  await sleep(2000);
 
   let forecast_date = await page.$eval(
     'h3.size-25.demi.bg-title',
