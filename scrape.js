@@ -1,5 +1,8 @@
-import puppeteer from 'puppeteer';
+import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { createClient } from '@supabase/supabase-js';
+
+puppeteerExtra.use(StealthPlugin());
 
 // ----------- SUPABASE CONFIG -----------
 const supabase = createClient(
@@ -29,7 +32,6 @@ async function autoScroll(page) {
   });
 }
 
-// ----------- HELPERS -----------
 async function extractForecastBlock(page, titleText) {
   return await page.$$eval('div.HHL8B', (blocks, titleText) => {
     const block = blocks.find(b =>
@@ -51,20 +53,23 @@ async function extractForecastBlock(page, titleText) {
 }
 
 async function scrape() {
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  const browser = await puppeteerExtra.launch({
+    headless: false, // חשוב! stealth עובד טוב יותר ככה
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-blink-features=AutomationControlled'
+    ]
   });
 
   const page = await browser.newPage();
 
-  // USER AGENT אמיתי
   await page.setUserAgent(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121 Safari/537.36"
   );
 
   // ============================================================
-  // 1) HOME PAGE — GLOBAL + LOCAL + ZERMATT
+  // 1) HOME PAGE
   // ============================================================
 
   await page.goto('https://www.cervinia.it/en', {
@@ -77,13 +82,12 @@ async function scrape() {
 
   const raw_home_html = await page.content();
 
-  // ---------- GLOBAL DATA ----------
   let temperature_global = null;
   let lifts_open_global = null;
   let slopes_open_global = null;
 
   try {
-    await page.waitForSelector('div._4ruBB', { timeout: 5000 });
+    await page.waitForSelector('div._4ruBB', { timeout: 8000 });
 
     const globalBlocks = await page.$$eval('div._4ruBB a', items =>
       items.map(a => {
@@ -115,13 +119,12 @@ async function scrape() {
   const lifts_total_global = 47;
   const slopes_total_global = 109;
 
-  // ---------- ZERMATT ----------
   let zermatt_link = await page.$eval(
     'span.U4QfZ',
     el => el.innerText.trim().toUpperCase()
   ).catch(() => null);
 
-  // ---------- LOCAL LIFTS & SLOPES ----------
+  // LOCAL LIFTS
   let lifts_open_local = null;
   let lifts_total_local = null;
   let slopes_open_local = null;
@@ -165,7 +168,7 @@ async function scrape() {
   let last_snowfall = null;
 
   try {
-    await page.waitForSelector('table.DD2Zg tbody tr', { timeout: 5000 });
+    await page.waitForSelector('table.DD2Zg tbody tr', { timeout: 8000 });
 
     const snowRows = await page.$$eval('table.DD2Zg tbody tr', rows =>
       rows.map(r => {
@@ -186,7 +189,6 @@ async function scrape() {
     console.log("SNOW TABLE NOT FOUND");
   }
 
-  // ---------- AVALANCHE ----------
   let avalanche_level = null;
   let avalanche_text = null;
 
@@ -197,7 +199,7 @@ async function scrape() {
     console.log("AVALANCHE NOT FOUND");
   }
 
-  const raw_avalanche_html = raw_snow_html; // אותו דף
+  const raw_avalanche_html = raw_snow_html;
 
   // ============================================================
   // 3) METEO PAGE
