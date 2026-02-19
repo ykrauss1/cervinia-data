@@ -280,6 +280,53 @@ async function scrape() {
   await autoScroll(page);
   await sleep(2000);
 
+  // חלץ נתוני שלג ומפולות מה-NUXT JSON של דף המטאו
+  try {
+    const meteoNuxt = await page.evaluate(() => {
+      const scripts = [...document.querySelectorAll('script:not([src])')];
+      for (const s of scripts) {
+        if (s.textContent.includes('snow') || s.textContent.includes('avalanche') || s.textContent.includes('neve')) {
+          return s.textContent.slice(0, 8000);
+        }
+      }
+      return null;
+    });
+
+    if (meteoNuxt) {
+      console.log('METEO NUXT SAMPLE:', meteoNuxt.slice(0, 4000));
+
+      // נסה לחלץ עומק שלג
+      const snowPatterns = [
+        /snow_depth[":]+\s*"?(\d+)"?/i,
+        /snowDepth[":]+\s*"?(\d+)"?/i,
+        /neve[":]+\s*"?(\d+)"?/i,
+        /altezza[_\s]?neve[":]+\s*"?(\d+)"?/i,
+      ];
+      for (const pat of snowPatterns) {
+        const m = meteoNuxt.match(pat);
+        if (m) { snow_depth = m[1] + ' cm'; break; }
+      }
+
+      // נסה לחלץ רמת מפולת
+      const avalanchePatterns = [
+        /avalanche[_\s]?level[":]+\s*"?(\d+)"?/i,
+        /rischio[_\s]?valanghe[":]+\s*"?(\d+)"?/i,
+        /danger[_\s]?level[":]+\s*"?(\d+)"?/i,
+      ];
+      for (const pat of avalanchePatterns) {
+        const m = meteoNuxt.match(pat);
+        if (m) { avalanche_level = m[1]; break; }
+      }
+
+      console.log('From meteo NUXT:', { snow_depth, avalanche_level });
+    } else {
+      const pageText = await page.evaluate(() => document.body.innerText);
+      console.log('METEO PAGE TEXT:', pageText.slice(0, 2000));
+    }
+  } catch (e) {
+    console.log('Meteo NUXT error:', e.message);
+  }
+
   let forecast_date = await page.$eval(
     'h3.size-25.demi.bg-title',
     el => el.innerText.trim()
