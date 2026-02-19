@@ -167,6 +167,9 @@ async function scrape() {
   let wind_speed = null;
   let wind_gust = null;
   let humidity = null;
+  let weather_description = null;
+  let opening_hours = null;
+  let snow_points = [];
 
   // נסה כמה URL אפשריים לדף השלג
   const snowUrls = [
@@ -318,7 +321,28 @@ async function scrape() {
         if (m) { avalanche_level = m[1]; break; }
       }
 
-      console.log('From meteo NUXT:', { snow_depth, avalanche_level });
+      // חלץ רמת מפולת מהטקסט "avalanche risk:4"
+      const avMatch = meteoNuxt.match(/avalanche risk:(\d+)/i);
+      if (avMatch) avalanche_level = avMatch[1];
+
+      // חלץ תיאור מזג אוויר
+      const weatherDescMatch = meteoNuxt.match(/weather:"([^"]+)"/);
+      if (weatherDescMatch) weather_description = weatherDescMatch[1];
+
+      // חלץ שעות פתיחה
+      const hoursMatch = meteoNuxt.match(/opening_hours:"([^"]+)"/);
+      if (hoursMatch) opening_hours = hoursMatch[1];
+
+      // חלץ עומק שלג לפי גובה
+      const snowPoints = [];
+      const spRegex = /station:"([^"]+)"[^{]*?altitude:"(\d+)"[^{]*?snowdepth:"(\d+)"/g;
+      let sp;
+      while ((sp = spRegex.exec(meteoNuxt)) !== null) {
+        snowPoints.push({ station: sp[1], altitude: parseInt(sp[2]), depth: parseInt(sp[3]) });
+      }
+      if (snowPoints.length > 0) snow_points = snowPoints;
+
+      console.log('From meteo NUXT:', { snow_depth, avalanche_level, weather_description, opening_hours, snow_points });
     } else {
       const pageText = await page.evaluate(() => document.body.innerText);
       console.log('METEO PAGE TEXT:', pageText.slice(0, 2000));
@@ -377,6 +401,9 @@ async function scrape() {
 
     avalanche_level,
     avalanche_text,
+    weather_description,
+    opening_hours,
+    snow_points,
 
     forecast_today: {
       date: forecast_date,
