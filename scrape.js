@@ -236,10 +236,21 @@ async function scrape() {
   // חלץ נתוני מזג אוויר מה-__NUXT__ JSON אם יש
   if (nuxtData) {
     try {
-      // הדפס 3000 תווים מה-NUXT לדיבאג כדי לראות את המבנה
-      console.log('NUXT DATA SAMPLE:', nuxtData.slice(0, 3000));
+      // חלץ לחות — humidity:{current:"75"
+      const humidityMatch = nuxtData.match(/humidity:\{current:"(\d+\.?\d*)"/);
+      if (humidityMatch) humidity = parseInt(humidityMatch[1]);
+
+      // חלץ מהירות רוח ממוצעת — avg_speed_kmh:{current:"11.2"
+      const windMatch = nuxtData.match(/avg_speed_kmh:\{current:"(\d+\.?\d*)"/);
+      if (windMatch) wind_speed = parseFloat(windMatch[1]);
+
+      // חלץ שיא רוח — gust_speed_kmh:{max:{value:"83.9"
+      const gustMatch = nuxtData.match(/gust_speed_kmh:\{max:\{value:"(\d+\.?\d*)"/);
+      if (gustMatch) wind_gust = parseFloat(gustMatch[1]);
+
+      console.log('Weather from NUXT:', { wind_speed, wind_gust, humidity });
     } catch (e) {
-      console.log('NUXT print error:', e.message);
+      console.log('NUXT parse error:', e.message);
     }
   }
 
@@ -336,12 +347,9 @@ async function scrape() {
 // SAVE TO SUPABASE
 // ============================================================
 async function saveToSupabase(data) {
-  // הסר שדות שלא קיימים עדיין בטבלה
-  const { wind_speed, wind_gust, humidity, ...safeData } = data;
-
   const { error } = await supabase
     .from('ski_status_history')
-    .insert([safeData]);
+    .insert([data]);
 
   if (error) {
     console.error('Supabase insert error:', error);
