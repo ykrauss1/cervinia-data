@@ -129,13 +129,17 @@ async function scrape() {
   let slopes_total_local = null;
 
   try {
+    const localLinks = await page.$$('a[href="/en/impianti"]');
+    console.log('Local lifts links found:', localLinks.length);
+
     const localBlocks = await page.$$eval('a[href="/en/impianti"]', items =>
-      items.map(a => {
-        const open = a.querySelector('.size-25')?.innerText.trim() || null;
-        const total = a.querySelector('.size-18')?.innerText.trim() || null;
-        return { open, total };
-      })
+      items.map(a => ({
+        open: a.querySelector('.size-25')?.innerText.trim() || null,
+        total: a.querySelector('.size-18')?.innerText.trim() || null,
+        html: a.innerHTML.slice(0, 200)
+      }))
     );
+    console.log('Local blocks:', JSON.stringify(localBlocks));
 
     if (localBlocks.length >= 2) {
       lifts_open_local = parseInt(localBlocks[0].open);
@@ -143,9 +147,9 @@ async function scrape() {
       slopes_open_local = parseInt(localBlocks[1].open);
       slopes_total_local = parseInt(localBlocks[1].total);
     }
-    console.log('Local lifts:', { lifts_open_local, lifts_total_local, slopes_open_local, slopes_total_local });
+    console.log('Local lifts result:', { lifts_open_local, lifts_total_local, slopes_open_local, slopes_total_local });
   } catch (e) {
-    console.log('LOCAL LIFTS NOT FOUND:', e.message);
+    console.log('LOCAL LIFTS ERROR:', e.message);
   }
 
   // ============================================================
@@ -163,35 +167,62 @@ async function scrape() {
 
   let snow_depth = null;
   let last_snowfall = null;
-
-  try {
-    await page.waitForSelector('table.DD2Zg tbody tr', { timeout: 10000 });
-
-    const snowRows = await page.$$eval('table.DD2Zg tbody tr', rows =>
-      rows.map(r => {
-        const cells = [...r.querySelectorAll('td')].map(td => td.innerText.trim());
-        return { location: cells[0], snow: cells[1], last: cells[2] };
-      })
-    );
-
-    if (snowRows.length > 0) {
-      snow_depth = snowRows[0].snow;
-      last_snowfall = snowRows[0].last;
-    }
-    console.log('Snow:', { snow_depth, last_snowfall });
-  } catch (e) {
-    console.log('SNOW TABLE NOT FOUND:', e.message);
-  }
-
   let avalanche_level = null;
   let avalanche_text = null;
 
+  // צלם screenshot לדיבאג
+  await page.screenshot({ path: 'data/debug_snow.png', fullPage: true });
+
+  // הדפס טקסט מהדף לדיבאג
+  const snowPageText = await page.evaluate(() => document.body.innerText);
+  console.log('SNOW PAGE TEXT:', snowPageText.slice(0, 2000));
+
+  // בדוק אילו טבלאות קיימות
+  const allTables = await page.$$eval('table', tables =>
+    tables.map(t => ({ class: t.className, rows: t.querySelectorAll('tr').length }))
+  );
+  console.log('All tables on snow page:', JSON.stringify(allTables));
+
+  // חפש אלמנטים עם cm
+  const cmElements = await page.$$eval('*', els =>
+    els.filter(e => e.children.length === 0 && /\d+\s*cm/i.test(e.innerText))
+       .slice(0, 10)
+       .map(e => ({ tag: e.tagName, class: e.className, text: e.innerText.trim() }))
+  );
+  console.log('Elements with cm:', JSON.stringify(cmElements));
+
+  // נסה selector מקורי
+  try {
+    const rows = await page.$$('table.DD2Zg tbody tr');
+    console.log('table.DD2Zg rows:', rows.length);
+    if (rows.length > 0) {
+      const snowRows = await page.$$eval('table.DD2Zg tbody tr', rs =>
+        rs.map(r => [...r.querySelectorAll('td')].map(td => td.innerText.trim()))
+      );
+      snow_depth = snowRows[0]?.[1] || null;
+      last_snowfall = snowRows[0]?.[2] || null;
+    }
+  } catch (e) {
+    console.log('SNOW SELECTOR ERROR:', e.message);
+  }
+
+  // נסה avalanche
   try {
     avalanche_level = await page.$eval('span.anpIX', el => el.innerText.trim());
+  } catch (_) {}
+  try {
     avalanche_text = await page.$eval('div.kpCCY span.size-20', el => el.innerText.trim());
-  } catch (e) {
-    console.log('AVALANCHE NOT FOUND:', e.message);
-  }
+  } catch (_) {}
+
+  // הדפס כל span עם מספר בדף (רמזים לסלקטורים חדשים)
+  const spans = await page.$$eval('span', els =>
+    els.filter(e => /\d/.test(e.innerText) && e.innerText.length < 30)
+       .slice(0, 20)
+       .map(e => ({ class: e.className, text: e.innerText.trim() }))
+  );
+  console.log('Spans with numbers:', JSON.stringify(spans));
+
+  console.log('Snow result:', { snow_depth, last_snowfall, avalanche_level, avalanche_text });
 
   // ============================================================
   // 3) METEO PAGE
