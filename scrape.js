@@ -1,6 +1,7 @@
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { createClient } from '@supabase/supabase-js';
+import { writeFileSync, mkdirSync } from 'fs';
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -38,15 +39,10 @@ async function extractForecastBlock(page, titleText) {
       b.querySelector('p')?.innerText.trim().toLowerCase() === titleText.toLowerCase()
     );
     if (!block) return [];
-
     const items = [...block.querySelectorAll('div._66oia')];
-
     return items.map(item => {
       const name = item.querySelector('span.demi')?.innerText.trim() || null;
-      const icon = item
-        .querySelector('use')
-        ?.getAttribute('xlink:href')
-        ?.replace('#icon-', '') || null;
+      const icon = item.querySelector('use')?.getAttribute('xlink:href')?.replace('#icon-', '') || null;
       return { name, icon };
     });
   }, titleText);
@@ -54,10 +50,12 @@ async function extractForecastBlock(page, titleText) {
 
 async function scrape() {
   const browser = await puppeteerExtra.launch({
-    headless: false, // חשוב! stealth עובד טוב יותר ככה
+    headless: 'new',   // תוקן — חייב להיות new בגיטהאב Actions
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
       '--disable-blink-features=AutomationControlled'
     ]
   });
@@ -71,6 +69,7 @@ async function scrape() {
   // ============================================================
   // 1) HOME PAGE
   // ============================================================
+  console.log('Fetching home page...');
 
   await page.goto('https://www.cervinia.it/en', {
     waitUntil: 'networkidle2',
@@ -78,16 +77,14 @@ async function scrape() {
   });
 
   await autoScroll(page);
-  await sleep(1500);
-
-  const raw_home_html = await page.content();
+  await sleep(2000);
 
   let temperature_global = null;
   let lifts_open_global = null;
   let slopes_open_global = null;
 
   try {
-    await page.waitForSelector('div._4ruBB', { timeout: 8000 });
+    await page.waitForSelector('div._4ruBB', { timeout: 10000 });
 
     const globalBlocks = await page.$$eval('div._4ruBB a', items =>
       items.map(a => {
@@ -99,21 +96,20 @@ async function scrape() {
 
     for (const item of globalBlocks) {
       if (!item.label || !item.value) continue;
-
-      if (item.label === 'weather') {
-        temperature_global = parseFloat(item.value.replace('°', ''));
-      }
-
-      if (item.label === 'lifts') {
-        lifts_open_global = parseInt(item.value);
-      }
-
-      if (item.label === 'slopes') {
-        slopes_open_global = parseInt(item.value);
-      }
+      if (item.label === 'weather') temperature_global = parseFloat(item.value.replace('°', ''));
+      if (item.label === 'lifts') lifts_open_global = parseInt(item.value);
+      if (item.label === 'slopes') slopes_open_global = parseInt(item.value);
     }
+
+    console.log('Global data:', { temperature_global, lifts_open_global, slopes_open_global });
   } catch (e) {
-    console.log("GLOBAL DATA NOT FOUND");
+    console.log('GLOBAL DATA NOT FOUND:', e.message);
+
+    // fallback: try to find data with broader selectors
+    try {
+      const bodyText = await page.evaluate(() => document.body.innerText);
+      console.log('Page body snippet:', bodyText.slice(0, 500));
+    } catch (_) {}
   }
 
   const lifts_total_global = 47;
@@ -123,6 +119,8 @@ async function scrape() {
     'span.U4QfZ',
     el => el.innerText.trim().toUpperCase()
   ).catch(() => null);
+
+  console.log('Zermatt link status:', zermatt_link);
 
   // LOCAL LIFTS
   let lifts_open_local = null;
@@ -142,17 +140,18 @@ async function scrape() {
     if (localBlocks.length >= 2) {
       lifts_open_local = parseInt(localBlocks[0].open);
       lifts_total_local = parseInt(localBlocks[0].total);
-
       slopes_open_local = parseInt(localBlocks[1].open);
       slopes_total_local = parseInt(localBlocks[1].total);
     }
+    console.log('Local lifts:', { lifts_open_local, lifts_total_local, slopes_open_local, slopes_total_local });
   } catch (e) {
-    console.log("LOCAL LIFTS NOT FOUND");
+    console.log('LOCAL LIFTS NOT FOUND:', e.message);
   }
 
   // ============================================================
   // 2) SNOW PAGE
   // ============================================================
+  console.log('Fetching snow page...');
 
   await page.goto('https://www.cervinia.it/en/neve', {
     waitUntil: 'networkidle2',
@@ -160,24 +159,18 @@ async function scrape() {
   });
 
   await autoScroll(page);
-  await sleep(1500);
-
-  const raw_snow_html = await page.content();
+  await sleep(2000);
 
   let snow_depth = null;
   let last_snowfall = null;
 
   try {
-    await page.waitForSelector('table.DD2Zg tbody tr', { timeout: 8000 });
+    await page.waitForSelector('table.DD2Zg tbody tr', { timeout: 10000 });
 
     const snowRows = await page.$$eval('table.DD2Zg tbody tr', rows =>
       rows.map(r => {
         const cells = [...r.querySelectorAll('td')].map(td => td.innerText.trim());
-        return {
-          location: cells[0],
-          snow: cells[1],
-          last: cells[2]
-        };
+        return { location: cells[0], snow: cells[1], last: cells[2] };
       })
     );
 
@@ -185,8 +178,9 @@ async function scrape() {
       snow_depth = snowRows[0].snow;
       last_snowfall = snowRows[0].last;
     }
+    console.log('Snow:', { snow_depth, last_snowfall });
   } catch (e) {
-    console.log("SNOW TABLE NOT FOUND");
+    console.log('SNOW TABLE NOT FOUND:', e.message);
   }
 
   let avalanche_level = null;
@@ -196,14 +190,13 @@ async function scrape() {
     avalanche_level = await page.$eval('span.anpIX', el => el.innerText.trim());
     avalanche_text = await page.$eval('div.kpCCY span.size-20', el => el.innerText.trim());
   } catch (e) {
-    console.log("AVALANCHE NOT FOUND");
+    console.log('AVALANCHE NOT FOUND:', e.message);
   }
-
-  const raw_avalanche_html = raw_snow_html;
 
   // ============================================================
   // 3) METEO PAGE
   // ============================================================
+  console.log('Fetching meteo page...');
 
   await page.goto('https://www.cervinia.it/en/meteo', {
     waitUntil: 'networkidle2',
@@ -211,9 +204,7 @@ async function scrape() {
   });
 
   await autoScroll(page);
-  await sleep(1500);
-
-  const raw_meteo_html = await page.content();
+  await sleep(2000);
 
   let forecast_date = await page.$eval(
     'h3.size-25.demi.bg-title',
@@ -224,33 +215,26 @@ async function scrape() {
   const forecast_afternoon = await extractForecastBlock(page, 'Pomeriggio e sera').catch(() => []);
 
   let forecast_next_days = await page.$$eval('div._4yTBS .grid__col', days =>
-    days
-      .map(day => {
-        const date = day.querySelector('p.demi.size-25')?.innerText.trim() || null;
-        if (!date) return null;
-
-        const periods = [...day.querySelectorAll('.s8COa')].map(p => {
-          const label = p.querySelector('span.demi')?.innerText.trim() || null;
-          const icon = p
-            .querySelector('use')
-            ?.getAttribute('xlink:href')
-            ?.replace('#icon-', '') || null;
-
-          return { label, icon };
-        });
-
-        return { date, periods };
-      })
-      .filter(Boolean)
+    days.map(day => {
+      const date = day.querySelector('p.demi.size-25')?.innerText.trim() || null;
+      if (!date) return null;
+      const periods = [...day.querySelectorAll('.s8COa')].map(p => ({
+        label: p.querySelector('span.demi')?.innerText.trim() || null,
+        icon: p.querySelector('use')?.getAttribute('xlink:href')?.replace('#icon-', '') || null
+      }));
+      return { date, periods };
+    }).filter(Boolean)
   ).catch(() => []);
 
   await browser.close();
+  console.log('Browser closed.');
 
   // ============================================================
   // BUILD FINAL RESULT
   // ============================================================
 
   const result = {
+    updated_at: new Date().toISOString(),
     temperature: temperature_global,
     zermatt_link,
 
@@ -276,12 +260,7 @@ async function scrape() {
       afternoon: forecast_afternoon
     },
 
-    forecast_next_days,
-
-    raw_home_html,
-    raw_snow_html,
-    raw_avalanche_html,
-    raw_meteo_html
+    forecast_next_days
   };
 
   return result;
@@ -290,8 +269,8 @@ async function scrape() {
 // ============================================================
 // SAVE TO SUPABASE
 // ============================================================
-
 async function saveToSupabase(data) {
+  // שמור raw HTML בנפרד — לא שדות כבדים ב-JSON
   const { error } = await supabase
     .from('ski_status_history')
     .insert([data]);
@@ -301,12 +280,34 @@ async function saveToSupabase(data) {
   } else {
     console.log('Saved to Supabase successfully.');
   }
+
+  // עדכן גם את הרשומה "הנוכחית"
+  const { error: upsertError } = await supabase
+    .from('ski_status_current')
+    .upsert([{ id: 1, ...data }]);
+
+  if (upsertError) {
+    console.warn('ski_status_current upsert (optional):', upsertError.message);
+  }
+}
+
+// ============================================================
+// SAVE TO data/data.json (for GitHub Pages)
+// ============================================================
+function saveToJson(data) {
+  try {
+    mkdirSync('data', { recursive: true });
+    writeFileSync('data/data.json', JSON.stringify(data, null, 2), 'utf-8');
+    console.log('data/data.json written successfully.');
+  } catch (e) {
+    console.error('Failed to write data.json:', e.message);
+  }
 }
 
 // ============================================================
 // MAIN
 // ============================================================
-
 const data = await scrape();
 console.log('SCRAPED DATA:', JSON.stringify(data, null, 2));
+saveToJson(data);
 await saveToSupabase(data);
