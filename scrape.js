@@ -286,14 +286,14 @@ async function scrape() {
       const scripts = [...document.querySelectorAll('script:not([src])')];
       for (const s of scripts) {
         if (s.textContent.includes('snow') || s.textContent.includes('avalanche') || s.textContent.includes('neve')) {
-          return s.textContent.slice(0, 8000);
+          return s.textContent.slice(0, 25000);
         }
       }
       return null;
     });
 
     if (meteoNuxt) {
-      console.log('METEO NUXT SAMPLE:', meteoNuxt.slice(0, 4000));
+      console.log('METEO NUXT SAMPLE:', meteoNuxt.slice(4000, 10000));
 
       // נסה לחלץ עומק שלג
       const snowPatterns = [
