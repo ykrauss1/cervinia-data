@@ -141,11 +141,14 @@ async function scrape() {
     );
     console.log('Local blocks:', JSON.stringify(localBlocks));
 
-    if (localBlocks.length >= 2) {
-      lifts_open_local = parseInt(localBlocks[0].open);
-      lifts_total_local = parseInt(localBlocks[0].total);
-      slopes_open_local = parseInt(localBlocks[1].open);
-      slopes_total_local = parseInt(localBlocks[1].total);
+    // מסנן בלוקים ריקים ולוקח רק את אלה עם נתונים
+    const validBlocks = localBlocks.filter(b => b.open !== null && b.total !== null);
+    console.log('Valid local blocks:', JSON.stringify(validBlocks));
+    if (validBlocks.length >= 2) {
+      lifts_open_local = parseInt(validBlocks[0].open);
+      lifts_total_local = parseInt(validBlocks[0].total);
+      slopes_open_local = parseInt(validBlocks[1].open);
+      slopes_total_local = parseInt(validBlocks[1].total);
     }
     console.log('Local lifts result:', { lifts_open_local, lifts_total_local, slopes_open_local, slopes_total_local });
   } catch (e) {
@@ -153,76 +156,114 @@ async function scrape() {
   }
 
   // ============================================================
-  // 2) SNOW PAGE
+  // 2) SNOW & WEATHER DATA — from __NUXT__ JSON embedded in page
   // ============================================================
-  console.log('Fetching snow page...');
-
-  await page.goto('https://www.cervinia.it/en/neve', {
-    waitUntil: 'networkidle2',
-    timeout: 60000
-  });
-
-  await autoScroll(page);
-  await sleep(2000);
+  console.log('Fetching snow/weather data from neve page...');
 
   let snow_depth = null;
   let last_snowfall = null;
   let avalanche_level = null;
   let avalanche_text = null;
+  let wind_speed = null;
+  let wind_gust = null;
+  let humidity = null;
 
-  // צלם screenshot לדיבאג
-  await page.screenshot({ path: 'data/debug_snow.png', fullPage: true });
+  // נסה כמה URL אפשריים לדף השלג
+  const snowUrls = [
+    'https://www.cervinia.it/en/snow',
+    'https://www.cervinia.it/en/neve',
+    'https://www.cervinia.it/snow',
+    'https://www.cervinia.it/en/meteo'
+  ];
 
-  // הדפס טקסט מהדף לדיבאג
-  const snowPageText = await page.evaluate(() => document.body.innerText);
-  console.log('SNOW PAGE TEXT:', snowPageText.slice(0, 2000));
+  let nuxtData = null;
 
-  // בדוק אילו טבלאות קיימות
-  const allTables = await page.$$eval('table', tables =>
-    tables.map(t => ({ class: t.className, rows: t.querySelectorAll('tr').length }))
-  );
-  console.log('All tables on snow page:', JSON.stringify(allTables));
+  for (const url of snowUrls) {
+    try {
+      console.log('Trying URL:', url);
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      await sleep(1500);
 
-  // חפש אלמנטים עם cm
-  const cmElements = await page.$$eval('*', els =>
-    els.filter(e => e.children.length === 0 && /\d+\s*cm/i.test(e.innerText))
-       .slice(0, 10)
-       .map(e => ({ tag: e.tagName, class: e.className, text: e.innerText.trim() }))
-  );
-  console.log('Elements with cm:', JSON.stringify(cmElements));
+      // חלץ נתוני __NUXT__ מה-script
+      nuxtData = await page.evaluate(() => {
+        const scripts = [...document.querySelectorAll('script:not([src])')];
+        for (const s of scripts) {
+          if (s.textContent.includes('weatherHeader') || s.textContent.includes('snow_depth') || s.textContent.includes('impiantiOpened')) {
+            return s.textContent.slice(0, 5000);
+          }
+        }
+        return null;
+      });
 
-  // נסה selector מקורי
-  try {
-    const rows = await page.$$('table.DD2Zg tbody tr');
-    console.log('table.DD2Zg rows:', rows.length);
-    if (rows.length > 0) {
-      const snowRows = await page.$$eval('table.DD2Zg tbody tr', rs =>
-        rs.map(r => [...r.querySelectorAll('td')].map(td => td.innerText.trim()))
-      );
-      snow_depth = snowRows[0]?.[1] || null;
-      last_snowfall = snowRows[0]?.[2] || null;
+      if (nuxtData) {
+        console.log('Found __NUXT__ data at:', url);
+        break;
+      }
+    } catch (e) {
+      console.log('URL failed:', url, e.message);
     }
-  } catch (e) {
-    console.log('SNOW SELECTOR ERROR:', e.message);
   }
 
-  // נסה avalanche
+  // נסה לחלץ נתוני שלג מה-DOM
   try {
-    avalanche_level = await page.$eval('span.anpIX', el => el.innerText.trim());
-  } catch (_) {}
-  try {
-    avalanche_text = await page.$eval('div.kpCCY span.size-20', el => el.innerText.trim());
-  } catch (_) {}
+    // נסה selector חדש לטבלת שלג
+    const tableSelectors = ['table.DD2Zg', 'table', '.snow-table', '[class*="snow"]'];
+    for (const sel of tableSelectors) {
+      const rows = await page.$$(sel + ' tr');
+      if (rows.length > 0) {
+        console.log('Found rows with selector:', sel, rows.length);
+        const rowData = await page.$$eval(sel + ' tr', rs =>
+          rs.map(r => [...r.querySelectorAll('td, th')].map(c => c.innerText.trim()))
+        );
+        console.log('Table rows:', JSON.stringify(rowData.slice(0, 5)));
 
-  // הדפס כל span עם מספר בדף (רמזים לסלקטורים חדשים)
-  const spans = await page.$$eval('span', els =>
-    els.filter(e => /\d/.test(e.innerText) && e.innerText.length < 30)
-       .slice(0, 20)
-       .map(e => ({ class: e.className, text: e.innerText.trim() }))
-  );
-  console.log('Spans with numbers:', JSON.stringify(spans));
+        // חפש שורה עם cm
+        for (const row of rowData) {
+          const snowCell = row.find(c => /\d+\s*cm/i.test(c));
+          if (snowCell) {
+            snow_depth = snowCell;
+            console.log('Snow depth found:', snow_depth);
+            break;
+          }
+        }
+        if (snow_depth) break;
+      }
+    }
+  } catch (e) {
+    console.log('Snow table error:', e.message);
+  }
 
-  console.log('Snow result:', { snow_depth, last_snowfall, avalanche_level, avalanche_text });
+  // חלץ נתוני מזג אוויר מה-__NUXT__ JSON אם יש
+  if (nuxtData) {
+    try {
+      // מצא temp, wind, humidity מה-JSON המוטמע
+      const tempMatch = nuxtData.match(/"current":"(-?\d+\.?\d*)"/);
+      const windMatch = nuxtData.match(/avg_speed_kmh[^}]*"current":"(\d+\.?\d*)"/);
+      const gustMatch = nuxtData.match(/gust_speed_kmh[^}]*"max":\{"value":"(\d+\.?\d*)"/);
+      const humidityMatch = nuxtData.match(/humidity[^}]*"current":"(\d+)"/);
+
+      if (windMatch) wind_speed = parseFloat(windMatch[1]);
+      if (gustMatch) wind_gust = parseFloat(gustMatch[1]);
+      if (humidityMatch) humidity = parseInt(humidityMatch[1]);
+
+      console.log('Weather from NUXT:', { wind_speed, wind_gust, humidity });
+    } catch (e) {
+      console.log('NUXT parse error:', e.message);
+    }
+  }
+
+  // נסה לחלץ עומק שלג מה-__NUXT__ JSON
+  if (!snow_depth && nuxtData) {
+    const snowMatch = nuxtData.match(/"snow[_\s]?depth["\s]*:["\s]*(\d+)/i) ||
+                      nuxtData.match(/"neve["\s]*:["\s]*(\d+)/i) ||
+                      nuxtData.match(/(\d+)\s*cm/i);
+    if (snowMatch) {
+      snow_depth = snowMatch[1] + ' cm';
+      console.log('Snow depth from NUXT:', snow_depth);
+    }
+  }
+
+  console.log('Snow/weather result:', { snow_depth, last_snowfall, wind_speed, wind_gust, humidity });
 
   // ============================================================
   // 3) METEO PAGE
@@ -281,6 +322,9 @@ async function scrape() {
 
     snow_depth,
     last_snowfall,
+    wind_speed,
+    wind_gust,
+    humidity,
 
     avalanche_level,
     avalanche_text,
