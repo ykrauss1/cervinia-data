@@ -333,7 +333,7 @@ async function scrape() {
       const hoursMatch = meteoNuxt.match(/opening_hours:"([^"]+)"/);
       if (hoursMatch) opening_hours = hoursMatch[1];
 
-      // חלץ עומק שלג לפי גובה
+      // חלץ עומק שלג לפי גובה — כל התחנות עם מספר ישיר
       const snowPoints = [];
       const spRegex = /station:"([^"]+)"[^{]*?altitude:"(\d+)"[^{]*?snowdepth:"(\d+)"/g;
       let sp;
@@ -341,6 +341,13 @@ async function scrape() {
         snowPoints.push({ station: sp[1], altitude: parseInt(sp[2]), depth: parseInt(sp[3]) });
       }
       if (snowPoints.length > 0) snow_points = snowPoints;
+
+      // עומק שלג ראשי — Plan Maison (mid) > base > הראשון הזמין
+      const planMaison = snowPoints.find(p => p.station === 'mid');
+      const baseStation = snowPoints.find(p => p.station === 'base');
+      if (planMaison) snow_depth = planMaison.depth + ' cm';
+      else if (baseStation) snow_depth = baseStation.depth + ' cm';
+      else if (snowPoints.length > 0) snow_depth = snowPoints[0].depth + ' cm';
 
       console.log('From meteo NUXT:', { snow_depth, avalanche_level, weather_description, opening_hours, snow_points });
     } else {
