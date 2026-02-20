@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-02-20T00:02:51.057Z",
-  "temperature": -6.1,
+  "updated_at": "2026-02-20T05:11:05.831Z",
+  "temperature": -5.7,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 2,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "135 cm",
   "last_snowfall": null,
-  "wind_speed": 4.7,
-  "wind_gust": 59.8,
-  "humidity": 73,
+  "wind_speed": 43.6,
+  "wind_gust": null,
+  "humidity": 72,
   "avalanche_level": "4",
   "avalanche_text": null,
   "weather_description": "Nuvoloso con nevicate",
@@ -37,66 +37,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Thursday, February 19",
+    "date": "Friday, February 20",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": "snow-low"
       },
       {
         "name": "Valtournenche",
-        "icon": "snow"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "snow"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "snow"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Saturday, February 21",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Sunday, February 22",
       "periods": [
@@ -136,6 +115,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Tuesday, February 24",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
         }
       ]
     }
