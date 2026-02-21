@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-02-20T23:56:54.647Z",
-  "temperature": -2.7,
+  "updated_at": "2026-02-21T04:54:20.289Z",
+  "temperature": -2.6,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 14,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "170 cm",
   "last_snowfall": null,
-  "wind_speed": 7.9,
-  "wind_gust": 63.4,
-  "humidity": 65,
+  "wind_speed": 31.7,
+  "wind_gust": 90.7,
+  "humidity": 53,
   "avalanche_level": "4",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -32,29 +32,29 @@
     }
   ],
   "forecast_today": {
-    "date": "Friday, February 20",
+    "date": "Saturday, February 21",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow-low"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
@@ -71,27 +71,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Sunday, February 22",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Monday, February 23",
       "periods": [
