@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-02-21T23:48:43.513Z",
+  "updated_at": "2026-02-22T05:13:57.318Z",
   "temperature": 1.9,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "150 cm",
   "last_snowfall": null,
-  "wind_speed": 47.5,
-  "wind_gust": 97.6,
-  "humidity": 25,
+  "wind_speed": 20.9,
+  "wind_gust": 100.8,
+  "humidity": null,
   "avalanche_level": "4",
   "avalanche_text": null,
   "weather_description": "Nuvoloso con nevicate",
@@ -24,15 +24,10 @@
       "station": "mid",
       "altitude": 2555,
       "depth": 150
-    },
-    {
-      "station": "basev",
-      "altitude": 1524,
-      "depth": 50
     }
   ],
   "forecast_today": {
-    "date": "Saturday, February 21",
+    "date": "Sunday, February 22",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -71,27 +66,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Monday, February 23",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Tuesday, February 24",
       "periods": [
