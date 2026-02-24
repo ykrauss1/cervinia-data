@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-02-24T11:11:31.938Z",
-  "temperature": 2.8,
+  "updated_at": "2026-02-24T14:40:31.569Z",
+  "temperature": 4.3,
   "zermatt_link": "OPEN",
   "lifts_open_global": 47,
   "lifts_total_global": 47,
@@ -12,18 +12,23 @@
   "slopes_total_local": 46,
   "snow_depth": "140 cm",
   "last_snowfall": null,
-  "wind_speed": 6.1,
+  "wind_speed": 23,
   "wind_gust": 82.1,
-  "humidity": 65,
+  "humidity": 45,
   "avalanche_level": "3",
   "avalanche_text": null,
-  "weather_description": "Poco nuvoloso",
+  "weather_description": "Sereno",
   "opening_hours": "08:00 - 16:45",
   "snow_points": [
     {
       "station": "mid",
       "altitude": 2555,
       "depth": 140
+    },
+    {
+      "station": "basev",
+      "altitude": 1524,
+      "depth": 50
     }
   ],
   "forecast_today": {
