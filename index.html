@@ -3090,12 +3090,13 @@ function renderLiveBar(d) {
   const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
 
   // ── Main bar ──
-  set('bar-temp', d.temperature != null ? Math.round(d.temperature) + '°C' : '--°');
+  const temp = d.temperature_local != null ? d.temperature_local : d.temperature;
+  set('bar-temp', temp != null ? Math.round(temp) + '°C' : '--°');
   const sLocal = (d.slopes_open_local != null && d.slopes_total_local != null) ? d.slopes_open_local + '/' + d.slopes_total_local : null;
-  const sGlobal = (d.slopes_open != null && d.slopes_total != null) ? d.slopes_open + '/' + d.slopes_total : null;
+  const sGlobal = (d.slopes_open_global != null && d.slopes_total_global != null) ? d.slopes_open_global + '/' + d.slopes_total_global : null;
   set('bar-slopes', sLocal && sGlobal ? sLocal + ' (' + sGlobal + ')' : sLocal || sGlobal || '--');
   const lLocal = (d.lifts_open_local != null && d.lifts_total_local != null) ? d.lifts_open_local + '/' + d.lifts_total_local : null;
-  const lGlobal = (d.lifts_open != null && d.lifts_total != null) ? d.lifts_open + '/' + d.lifts_total : null;
+  const lGlobal = (d.lifts_open_global != null && d.lifts_total_global != null) ? d.lifts_open_global + '/' + d.lifts_total_global : null;
   set('bar-lifts', lLocal && lGlobal ? lLocal + ' (' + lGlobal + ')' : lLocal || lGlobal || '--');
   set('bar-wind', d.wind_speed != null ? Math.round(d.wind_speed) + ' km/h' : '--');
 
