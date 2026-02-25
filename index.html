@@ -3079,7 +3079,7 @@ function showDataSourceBadge(mode) {
 }
 
 function renderLiveBar(d) {
-  console.log('renderLiveBar called, temp:', d && d.temperature, 'bar-temp el:', document.getElementById('bar-temp') ? 'found' : 'NOT FOUND');
+  console.log('renderLiveBar called, temp:', d && d.temperature, 'slopes_open_local:', d && d.slopes_open_local, 'slopes_open:', d && d.slopes_open, 'forecast_today type:', d && typeof d.forecast_today, 'forecast_next_days type:', d && typeof d.forecast_next_days, 'forecast_next_days val:', d && d.forecast_next_days ? JSON.stringify(d.forecast_next_days).slice(0,100) : 'null');
   const navSnow = document.getElementById('nav-snow-badge');
   if (navSnow && d.fresh_snow_cm) { navSnow.textContent = '❄️ ' + d.fresh_snow_cm + 'cm טרי'; navSnow.style.display = 'inline'; }
 
