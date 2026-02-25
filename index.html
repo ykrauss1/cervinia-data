@@ -3079,7 +3079,10 @@ function showDataSourceBadge(mode) {
 }
 
 function renderLiveBar(d) {
-  console.log('renderLiveBar called, temp:', d && d.temperature, 'slopes_open_local:', d && d.slopes_open_local, 'slopes_open:', d && d.slopes_open, 'forecast_today type:', d && typeof d.forecast_today, 'forecast_next_days type:', d && typeof d.forecast_next_days, 'forecast_next_days val:', d && d.forecast_next_days ? JSON.stringify(d.forecast_next_days).slice(0,100) : 'null');
+  // Parse forecast fields if they come as strings from Supabase
+  if (d && typeof d.forecast_today === 'string') { try { d.forecast_today = JSON.parse(d.forecast_today); } catch(e) {} }
+  if (d && typeof d.forecast_next_days === 'string') { try { d.forecast_next_days = JSON.parse(d.forecast_next_days); } catch(e) {} }
+  console.log('renderLiveBar: temp:', d && d.temperature, 'forecast_next_days:', d && d.forecast_next_days ? JSON.stringify(d.forecast_next_days).slice(0,120) : 'null');
   const navSnow = document.getElementById('nav-snow-badge');
   if (navSnow && d.fresh_snow_cm) { navSnow.textContent = '❄️ ' + d.fresh_snow_cm + 'cm טרי'; navSnow.style.display = 'inline'; }
 
@@ -3088,12 +3091,12 @@ function renderLiveBar(d) {
 
   // ── Main bar ──
   set('bar-temp', d.temperature != null ? Math.round(d.temperature) + '°C' : '--°');
-  const sLocal = d.slopes_open_local != null ? d.slopes_open_local + '/' + d.slopes_total_local : null;
-  const sGlobal = d.slopes_open != null ? d.slopes_open + '/' + d.slopes_total : null;
-  set('bar-slopes', sLocal ? sLocal + (sGlobal ? ' (' + sGlobal + ')' : '') : (sGlobal || '--'));
-  const lLocal = d.lifts_open_local != null ? d.lifts_open_local + '/' + d.lifts_total_local : null;
-  const lGlobal = d.lifts_open != null ? d.lifts_open + '/' + d.lifts_total : null;
-  set('bar-lifts', lLocal ? lLocal + (lGlobal ? ' (' + lGlobal + ')' : '') : (lGlobal || '--'));
+  const sLocal = (d.slopes_open_local != null && d.slopes_total_local != null) ? d.slopes_open_local + '/' + d.slopes_total_local : null;
+  const sGlobal = (d.slopes_open != null && d.slopes_total != null) ? d.slopes_open + '/' + d.slopes_total : null;
+  set('bar-slopes', sLocal && sGlobal ? sLocal + ' (' + sGlobal + ')' : sLocal || sGlobal || '--');
+  const lLocal = (d.lifts_open_local != null && d.lifts_total_local != null) ? d.lifts_open_local + '/' + d.lifts_total_local : null;
+  const lGlobal = (d.lifts_open != null && d.lifts_total != null) ? d.lifts_open + '/' + d.lifts_total : null;
+  set('bar-lifts', lLocal && lGlobal ? lLocal + ' (' + lGlobal + ')' : lLocal || lGlobal || '--');
   set('bar-wind', d.wind_speed != null ? Math.round(d.wind_speed) + ' km/h' : '--');
 
   // snow_depth — supports both string "140 cm" and number 140
