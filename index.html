@@ -193,7 +193,6 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         <div id="bar-zermatt" style="font-size:0.95rem;font-weight:800;padding:5px 14px;border-radius:20px;">--</div>
         <div id="forecast-tomorrow-text" style="color:rgba(255,255,255,0.5);font-size:0.72rem;">טוען תחזית...</div>
         <div style="color:rgba(76,201,240,0.6);font-size:0.68rem;">לחץ לתחזית 4 ימים ▼</div>
-        <div id="data-source-badge" style="display:none;font-size:0.62rem;font-weight:bold;"></div>
       </div>
 
     </div>
@@ -1592,15 +1591,6 @@ function submitReply(targetId, postId) {
     addToReply(post.replies || []);
   }
   renderPosts('');
-  // Save reply to Supabase async
-  const sb = getSB();
-  if (sb) {
-    sb.from('replies').insert({ post_id: postId, user: user.name, content: txt, parent_id: targetId !== postId ? targetId : null })
-      .then(function(res) {
-        if (res.error) console.warn('Reply save failed:', res.error.message);
-        else console.log('✅ Reply saved to Supabase');
-      });
-  }
 }
 function openImg(src) { window.open(src, '_blank'); }
 
@@ -2762,7 +2752,6 @@ function showProfileMsg(msg, type) {
 // and set USE_SUPABASE = true
 const SUPABASE_URL = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
-// Note: using publishable key format (Supabase new format)
 const USE_SUPABASE = true;
 
 // ── Supabase client ──
@@ -2831,59 +2820,11 @@ async function checkSupabaseSession() {
   }
 }
 
-// ── Posts — Hybrid (Supabase → fallback to DEMO) ──
-async function loadPostsHybrid() {
-  const sb = getSB();
-  if (sb) {
-    try {
-      // Fetch posts + replies in parallel
-      const [postsRes, repliesRes] = await Promise.all([
-        sb.from('posts').select('*').order('created_at', { ascending: false }).limit(50),
-        sb.from('replies').select('*').order('created_at', { ascending: true })
-      ]);
-      if (postsRes.data && !postsRes.error) {
-        console.log('✅ Posts from Supabase:', postsRes.data.length);
-        // Group replies by post_id
-        const repliesByPost = {};
-        if (repliesRes.data) {
-          repliesRes.data.forEach(function(r) {
-            if (!repliesByPost[r.post_id]) repliesByPost[r.post_id] = [];
-            repliesByPost[r.post_id].push({
-              id: r.id,
-              user: r.user || 'אנונימי',
-              content: r.content || '',
-              timestamp: new Date(r.created_at).getTime()
-            });
-          });
-        }
-        allPosts = postsRes.data.map(function(p) {
-          return {
-            id: p.id,
-            user: p.user || 'אנונימי',
-            content: p.content || '',
-            timestamp: new Date(p.created_at).getTime(),
-            tag: p.tag || 'כללי',
-            file_url: p.file_url || null,
-            replies: repliesByPost[p.id] || [],
-            likes: p.likes || 0
-          };
-        });
-        renderPosts('');
-        return;
-      }
-    } catch(e) {
-      console.warn('Supabase posts fetch failed, using demo:', e.message);
-    }
-  }
-  // Fallback to demo
-  allPosts = DEMO_POSTS.map(function(p) { return Object.assign({}, p); });
-  renderPosts('');
-}
-
 window.onload = async function() {
   try { user = JSON.parse(localStorage.getItem('skiUser')) || null; } catch(e) {}
   renderHeader();
-  await loadPostsHybrid();
+  allPosts = DEMO_POSTS.map(p => ({...p}));
+  renderPosts('');
   renderFilterChips();
   renderPostBtn();
   loadLiveData();
@@ -3057,17 +2998,17 @@ function renderHeader() {
   if (user) {
     const adminBadge = isAdmin() ? '<span class="admin-badge">ADMIN</span>' : '';
     const gear = isAdmin() ? `<span onclick="openAdminDashboard()" style="cursor:pointer;font-size:1.1rem;margin-left:2px;" title="ניהול">⚙️</span>` : '';
-    const avatar = `<div onclick="openM("profileModal")" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:0.9rem;cursor:pointer;border:2px solid rgba(255,255,255,0.3);">${user.discipline==='snowboard'?'&#127938;':'&#9975;&#65039;'}</div>`;
+    const avatar = `<div onclick="openM('profileModal')" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:0.9rem;cursor:pointer;border:2px solid rgba(255,255,255,0.3);">${user.discipline==='snowboard'?'&#127938;':'&#9975;&#65039;'}</div>`;
     const lvEmoji = {'מתחיל':'🟢','בינוני':'🔵','מתקדם':'🔴','מקצועי':'⚫'}[user.level] || '';
-    area.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">${adminBadge}${gear}${avatar}<div style="display:flex;flex-direction:column;line-height:1.2;cursor:pointer;" onclick="openM("profileModal")"><b style="color:white;font-size:0.9rem;">${user.name}</b>${user.level?`<span style="color:#4cc9f0;font-size:0.68rem;">${lvEmoji} ${user.level}</span>`:''}</div><button onclick="logout()" title="התנתקות" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:0.8rem;padding:4px 6px;border-radius:6px;transition:color 0.15s;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">⏏</button></div>`;
+    area.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">${adminBadge}${gear}${avatar}<div style="display:flex;flex-direction:column;line-height:1.2;cursor:pointer;" onclick="openM('profileModal')"><b style="color:white;font-size:0.9rem;">${user.name}</b>${user.level?`<span style="color:#4cc9f0;font-size:0.68rem;">${lvEmoji} ${user.level}</span>`:''}</div><button onclick="logout()" title="התנתקות" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:0.8rem;padding:4px 6px;border-radius:6px;transition:color 0.15s;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">⏏</button></div>`;
   } else {
     area.innerHTML = `<button onclick="openM('authModal')" class="service-btn" style="padding:8px 18px;">&#1499;&#1504;&#1497;&#1505;&#1492;</button>`;
   }
 }
 
-// ── Live Bar — Hybrid (Supabase REST → fallback to DEMO) ──
+// ── Live Bar ──
 async function loadLiveData() {
-  if (USE_SUPABASE && SUPABASE_URL && SUPABASE_KEY) {
+  if (SUPABASE_URL && SUPABASE_KEY) {
     try {
       const url = SUPABASE_URL + '/rest/v1/ski_status_history?select=*&order=updated_at.desc&limit=1';
       const res = await fetch(url, {
@@ -3079,35 +3020,31 @@ async function loadLiveData() {
       if (res.ok) {
         const rows = await res.json();
         if (rows && rows.length > 0) {
-          console.log('✅ Live data from Supabase REST:', rows[0].updated_at);
+          console.log('✅ Live data from Supabase:', rows[0].updated_at);
           renderLiveBar(rows[0]);
           showDataSourceBadge('live');
           return;
         }
       } else {
-        console.warn('Supabase REST error:', res.status, res.statusText);
+        console.warn('Supabase REST error:', res.status, await res.text());
       }
     } catch(e) {
-      console.warn('Supabase REST fetch failed, using demo:', e.message);
+      console.warn('Supabase fetch failed, using demo:', e.message);
     }
   }
-  // Fallback to demo
-  console.log('ℹ️ Using demo data');
   renderLiveBar(DEMO_LIVE);
-  showDataSourceBadge('demo');
 }
 
 function showDataSourceBadge(mode) {
-  const el = document.getElementById('data-source-badge');
-  if (!el) return;
+  const badge = document.getElementById('data-source-badge');
+  if (!badge) return;
   if (mode === 'live') {
-    el.textContent = '🟢 נתונים חיים';
-    el.style.color = '#2ecc71';
+    badge.textContent = '🟢 נתונים חיים';
+    badge.style.color = '#2ecc71';
   } else {
-    el.textContent = '🟡 מצב דמו';
-    el.style.color = '#f39c12';
+    badge.textContent = '🟡 נתונים לדוגמה';
+    badge.style.color = '#f39c12';
   }
-  el.style.display = 'inline';
 }
 
 function renderLiveBar(d) {
@@ -3356,20 +3293,10 @@ function submitPost() {
   const ta = document.getElementById('new-post-text');
   const txt = ta?.value.trim();
   if (!txt) return;
-  const newPost = { id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), replies: [], reactions: {} };
-  allPosts.unshift(newPost);
+  allPosts.unshift({ id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), replies: [], reactions: {} });
   ta.value = '';
   document.getElementById('new-post-area').style.display = 'none';
   renderPosts('');
-  // Save to Supabase async (fire and forget)
-  const sb = getSB();
-  if (sb) {
-    sb.from('posts').insert({ user: user.name, content: txt })
-      .then(function(res) {
-        if (res.error) console.warn('Post save failed:', res.error.message);
-        else console.log('✅ Post saved to Supabase');
-      });
-  }
 }
 
 function highlight(text, q) {
