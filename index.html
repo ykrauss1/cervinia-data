@@ -2762,6 +2762,7 @@ function showProfileMsg(msg, type) {
 // and set USE_SUPABASE = true
 const SUPABASE_URL = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
+// Note: using publishable key format (Supabase new format)
 const USE_SUPABASE = true;
 
 // ── Supabase client ──
@@ -3064,25 +3065,30 @@ function renderHeader() {
   }
 }
 
-// ── Live Bar — Hybrid (Supabase → fallback to DEMO) ──
+// ── Live Bar — Hybrid (Supabase REST → fallback to DEMO) ──
 async function loadLiveData() {
-  const sb = getSB();
-  if (sb) {
+  if (USE_SUPABASE && SUPABASE_URL && SUPABASE_KEY) {
     try {
-      const { data, error } = await sb
-        .from('ski_status_history')
-        .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
-      if (data && !error) {
-        console.log('✅ Live data from Supabase:', data.updated_at);
-        renderLiveBar(data);
-        showDataSourceBadge('live');
-        return;
+      const url = SUPABASE_URL + '/rest/v1/ski_status_history?select=*&order=updated_at.desc&limit=1';
+      const res = await fetch(url, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY
+        }
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        if (rows && rows.length > 0) {
+          console.log('✅ Live data from Supabase REST:', rows[0].updated_at);
+          renderLiveBar(rows[0]);
+          showDataSourceBadge('live');
+          return;
+        }
+      } else {
+        console.warn('Supabase REST error:', res.status, res.statusText);
       }
     } catch(e) {
-      console.warn('Supabase live fetch failed, using demo:', e.message);
+      console.warn('Supabase REST fetch failed, using demo:', e.message);
     }
   }
   // Fallback to demo
@@ -4537,5 +4543,2006 @@ if ('serviceWorker' in navigator) {
       </div>
     </div>
   </div>
+</div>TYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CerviniaLive - Preview</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<style>
+:root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
+body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; direction: rtl; }
+input[type=file] { display: none !important; }
+#sticky-header { position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
+        nav { background: var(--dark); color: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.admin-badge { background: var(--error); color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-left: 10px; }
+.services-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 25px; }
+.service-btn { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: box-shadow 0.2s; }
+.service-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+.card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
+th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
+.post { border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 10px; background: white; position: relative; }
+.reply-item { margin: 8px 0 0 0; padding: 10px; background: #f8fbff; border-right: 3px solid var(--accent); border-radius: 4px; }
+.r-target { display: block; width: 100%; box-sizing: border-box; }
+.filter-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border:1px solid #ddd; border-radius:20px; font-size:0.78rem; cursor:pointer; background:white; color:#444; }
+.filter-chip:has(input:checked) { background:#e8f4fd; border-color:var(--accent); color:var(--accent); font-weight:bold; }
+.filter-chip input { display:none; }
+.ttab-btn { flex:1; padding:8px 4px; border:1.5px solid #ddd; border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:bold; background:#f5f5f5; color:#555; transition:all 0.15s; }
+        .ttab-active { background:var(--accent) !important; color:var(--dark) !important; border-color:var(--accent) !important; }
+        .result-link { display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid #e5e5e5; border-radius:9px; margin-bottom:7px; text-decoration:none; color:inherit; background:white; transition:box-shadow 0.15s; }
+        .result-link:hover { box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+        .result-link .rl-icon { font-size:1.4rem; flex-shrink:0; }
+        .result-link .rl-body { flex:1; }
+        .result-link .rl-title { font-weight:bold; font-size:0.88rem; }
+        .result-link .rl-desc { font-size:0.75rem; color:#888; margin-top:2px; }
+        .result-link .rl-arrow { color:#ccc; font-size:1rem; }
+        .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+.modal-content { background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; position: relative; }
+.close-btn { position: absolute; left: 20px; top: 16px; cursor: pointer; font-size: 1.5rem; color: #888; z-index: 10; line-height: 1; }
+.close-btn:hover { color: #333; }
+.counter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+.c-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent); background: white; cursor: pointer; color: var(--accent); font-weight: bold; }
+.preview-banner { background: #fff3cd; border: 1px solid #ffc107; padding: 10px 20px; text-align: center; font-size: 0.85rem; color: #856404; }
+.flatpickr-calendar { z-index:99999 !important; }
+
+/* Live Bar */
+#live-bar { background: var(--dark); border-bottom: 1px solid rgba(76,201,240,0.2); overflow: hidden; }
+#live-bar-inner { display: flex; align-items: stretch; overflow-x: auto; scrollbar-width: none; min-height: 62px; max-width: 1100px; margin: 0 auto; padding: 14px 16px; gap: 10px; }
+#live-bar-inner::-webkit-scrollbar { display: none; }
+.lv-item { display: flex; flex-direction: row; align-items: center; gap: 9px; padding: 0 14px; flex-shrink: 0; border-left: 1px solid rgba(255,255,255,0.08); cursor: default; }
+.lv-item:hover { background: rgba(76,201,240,0.07); }
+.lv-emoji { font-size: 1.2rem; flex-shrink: 0; width: 24px; text-align: center; line-height: 1; }
+.lv-text-block { display: flex; flex-direction: column; }
+.lv-num { font-size: 1.05rem; font-weight: 700; line-height: 1; letter-spacing: -0.3px; color: white; }
+.lv-label { font-size: 0.62rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.lv-badge { display: inline-block !important; padding: 5px 16px !important; border-radius: 6px !important; font-size: 1.1rem !important; font-weight: 900 !important; }
+.lv-badge-closed { background: #e74c3c; color: white; box-shadow: 0 2px 8px rgba(231,76,60,0.5); }
+.lv-badge-open   { background: #2ecc71; color: #0a2a1a; box-shadow: 0 2px 8px rgba(46,204,113,0.5); }
+.lv-badge-warn   { background: #f39c12; color: white; box-shadow: 0 2px 8px rgba(243,156,18,0.5); }
+.lv-livenow { font-size: 0.6rem; color: rgba(255,255,255,0.45); margin-bottom: 1px; }
+.lv-spacer { flex: 1; }
+.lv-meta { display: flex; align-items: center; gap: 14px; padding: 0 8px; flex-shrink: 0; }
+.lv-updated { font-size: 0.67rem; color: rgba(255,255,255,0.4); white-space: nowrap; }
+.lv-expand-btn { font-size: 0.72rem; color: var(--accent); cursor: pointer; white-space: nowrap; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76,201,240,0.3); }
+#live-expanded { display: none; background: #0d2240; border-top: 1px solid rgba(76,201,240,0.15); animation: slideDown 0.25s ease; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+#live-expanded.open { display: block; }
+.live-tiles-row { display: flex; flex-wrap: wrap; gap: 10px; max-width: 1100px; margin: 0 auto; padding: 14px 16px; }
+.live-tile { background: rgba(255,255,255,0.05); border: 1px solid rgba(76,201,240,0.15); border-radius: 10px; padding: 12px 14px; text-align: center; }
+.live-tile-label { font-size: 0.65rem; color: #4cc9f0; margin-bottom: 5px; }
+.live-tile-val { font-size: 1.25rem; font-weight: bold; color: white; }
+.live-tile-sub { font-size: 0.68rem; color: rgba(255,255,255,0.45); margin-top: 3px; }
+.snow-points-row { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.snow-pt { background: rgba(76,201,240,0.12); border: 1px solid rgba(76,201,240,0.2); border-radius: 6px; padding: 3px 8px; font-size: 0.7rem; color: white; }
+@keyframes fadeOut { 0%{opacity:1;transform:translateX(50%) translateY(0)} 70%{opacity:1} 100%{opacity:0;transform:translateX(50%) translateY(-10px)} }
+.alert-strip { display:none; position:relative; z-index:200; padding:10px 50px 10px 16px; font-size:0.88rem; font-weight:bold; text-align:center; line-height:1.4; animation: alertPulse 2s ease-in-out infinite; }
+.alert-strip.severity-warning { background:#fff3cd; color:#856404; border-bottom:2px solid #ffc107; }
+.alert-strip.severity-danger  { background:#f8d7da; color:#842029; border-bottom:2px solid #e74c3c; }
+.alert-strip.severity-info    { background:#cff4fc; color:#055160; border-bottom:2px solid #0dcaf0; }
+.alert-close { position:absolute; left:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.1rem; opacity:0.6; background:none; border:none; color:inherit; }
+.alert-close:hover { opacity:1; }
+@keyframes alertPulse { 0%,100%{opacity:1} 50%{opacity:0.85} }
+
+.wcam-card { border-radius:10px;overflow:hidden;background:#f5f5f5;border:1px solid #e0e0e0;cursor:pointer; }
+.wcam-label { font-size:0.78rem;font-weight:bold;padding:6px 10px;background:#0a192f;color:white; }
+.wcam-img { width:100%;height:160px;object-fit:cover;display:block;transition:opacity 0.2s; }
+.wcam-img:hover { opacity:0.85; }
+
+</style>
+
+  <!-- PWA -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CerviniaLive">
+  <meta name="application-name" content="CerviniaLive">
+  <meta name="theme-color" content="#0a192f">
+  <link rel="manifest" href="manifest.json">
+  <!-- Apple touch icons -->
+  <link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+
+<div class="preview-banner">
+  🔍 <b>מצב תצוגה מקדימה</b> — מזג אוויר ופורום מוצגים עם נתונים לדוגמה
+</div>
+<div style="background:#e8f4fd;border-bottom:1px solid #b8d9f0;padding:8px 20px;text-align:center;font-size:0.82rem;color:#444;display:flex;justify-content:center;gap:12px;align-items:center;flex-wrap:wrap;">
+  <span>🧪 כניסה מהירה לבדיקה:</span>
+  <button onclick="quickLogin('admin')" style="background:#e74c3c;color:white;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;font-weight:bold;">admin</button>
+  <button onclick="quickLogin('דני')" style="background:#4cc9f0;color:white;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;">משתמש רגיל</button>
+  <button onclick="logout()" style="background:#aaa;color:white;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;">התנתק</button>
+</div>
+
+<!-- 🚨 Alert Strip -->
+<div id="alert-strip" class="alert-strip severity-danger">
+  <span id="alert-text"></span>
+  <button class="alert-close" onclick="dismissAlert()" title="סגור">✕</button>
+</div>
+
+<header id="sticky-header">
+  <nav>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+        <path d="M2 26 L10 10 L16 18 L22 8 L30 26 Z" fill="rgba(76,201,240,0.25)" stroke="#4cc9f0" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M22 8 L19 14 L25 14 Z" fill="white" opacity="0.8"/>
+        <circle cx="13" cy="13" r="1.5" fill="white"/>
+      </svg>
+      <div style="font-size:1.3rem;font-weight:bold;line-height:1;">Cervinia<span style="color:var(--accent)">Live</span></div>
+    </div>
+
+    <div id="auth-area"></div>
+  </nav>
+</header>
+
+
+
+
+<div class="container">
+
+  <!-- בר נתונים חי -->
+  <div id="live-data-bar" onclick="openM('forecastModal')" style="margin:14px 0;cursor:pointer;">
+    <div style="background:linear-gradient(135deg,#0a192f,#162d5a);border-radius:14px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 3px 14px rgba(0,0,0,0.2);transition:transform 0.15s,box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.28)'" onmouseout="this.style.transform='';this.style.boxShadow='0 3px 14px rgba(0,0,0,0.2)'">
+
+      <!-- Stats group -->
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+
+        <div style="text-align:center;">
+          <div id="bar-temp" style="color:white;font-size:1.25rem;font-weight:800;line-height:1;">--°</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🌡️ מזג אויר</div>
+        </div>
+
+        <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
+
+        <div style="text-align:center;">
+          <div id="bar-slopes" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים</div>
+        </div>
+
+        <div style="text-align:center;">
+          <div id="bar-lifts" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות</div>
+        </div>
+
+        <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
+
+        <div style="text-align:center;">
+          <div id="bar-wind" style="color:white;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">💨 רוח km/h</div>
+        </div>
+
+        <div style="text-align:center;">
+          <div id="bar-snow" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">❄️ שלג ס"מ</div>
+        </div>
+
+        <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
+
+        <div style="text-align:center;">
+          <div id="bar-weather-desc" style="color:#ffe066;font-size:1.1rem;font-weight:800;line-height:1;">--</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">☁️ מזג</div>
+        </div>
+
+        <div style="text-align:center;">
+          <div id="bar-hours" style="color:rgba(255,255,255,0.85);font-size:0.82rem;font-weight:700;line-height:1;">--</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🕗 שעות</div>
+        </div>
+
+      </div>
+
+      <!-- Right: zermatt + forecast hint -->
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+        <div id="bar-zermatt" style="font-size:0.95rem;font-weight:800;padding:5px 14px;border-radius:20px;">--</div>
+        <div id="forecast-tomorrow-text" style="color:rgba(255,255,255,0.5);font-size:0.72rem;">טוען תחזית...</div>
+        <div style="color:rgba(76,201,240,0.6);font-size:0.68rem;">לחץ לתחזית 4 ימים ▼</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- שירותים -->
+  <div class="services-grid">
+    <div class="service-btn" onclick="openM('hotelModal')">✈️ תכנון טיול</div>
+    <div class="service-btn" onclick="openM('skipassModal')">🎫 סקי פס</div>
+    <div class="service-btn" onclick="openM('rentalModal')">⛷️ השכרת ציוד</div>
+    <div class="service-btn" onclick="openM('lessonsModal')">🏫 הדרכת סקי</div>
+    <div class="service-btn" onclick="openM('kosherModal')">🍽️ כשר</div>
+    <div class="service-btn" onclick="openM('webcamModal')">📷 מצלמות</div>
+    <div class="service-btn" onclick="openM('parkingModal')">🅿️ חניה וכביש</div>
+    <div class="service-btn" onclick="openParkEmergency()">🚨 חירום</div>
+    <div class="service-btn" onclick="openM('mapModal')"><span style="font-size:1.3rem;">🗺️</span> מפות</div>
+  <div class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים</div>
+  </div>
+
+  <!-- Why Cervinia card -->
+  <div onclick="openM('whyModal')" style="margin-bottom:25px;border-radius:16px;overflow:hidden;cursor:pointer;position:relative;height:160px;background:linear-gradient(135deg,#0a192f,#1a3a6c);box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform=''">
+    <!-- Snow effect dots -->
+    <div style="position:absolute;inset:0;overflow:hidden;opacity:0.15;">
+      <div style="position:absolute;width:4px;height:4px;background:white;border-radius:50%;top:20%;left:15%;"></div>
+      <div style="position:absolute;width:3px;height:3px;background:white;border-radius:50%;top:40%;left:35%;"></div>
+      <div style="position:absolute;width:5px;height:5px;background:white;border-radius:50%;top:65%;left:60%;"></div>
+      <div style="position:absolute;width:3px;height:3px;background:white;border-radius:50%;top:25%;left:80%;"></div>
+      <div style="position:absolute;width:4px;height:4px;background:white;border-radius:50%;top:75%;left:25%;"></div>
+    </div>
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px;">
+      <!-- Mountain SVG icon -->
+      <div style="margin-bottom:10px;">
+        <svg width="52" height="36" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="26,2 50,34 2,34" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>
+          <polygon points="26,2 38,18 14,18" fill="rgba(255,255,255,0.25)"/>
+          <!-- Skier -->
+          <circle cx="36" cy="12" r="2.5" fill="white"/>
+          <line x1="36" y1="14.5" x2="33" y2="20" stroke="white" stroke-width="1.5"/>
+          <line x1="34.5" y1="17" x2="38" y2="15" stroke="white" stroke-width="1.2"/>
+          <line x1="33" y1="20" x2="30" y2="23" stroke="white" stroke-width="1.5"/>
+          <line x1="33" y1="20" x2="36" y2="23" stroke="white" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div style="color:white;font-size:1.2rem;font-weight:bold;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,0.4);">למה צ'רוויניה?</div>
+      <div style="color:rgba(255,255,255,0.75);font-size:0.82rem;">לחץ לגלות יתרונות האתר ►</div>
+    </div>
+  </div>
+
+  <!-- פורום -->
+  <div class="card">
+    <!-- Forum / Reviews tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button id="forum-main-tab" onclick="switchForumTab('forum')"
+        style="flex:1;padding:9px;border:none;border-radius:10px;cursor:pointer;font-size:0.92rem;font-weight:bold;background:var(--accent);color:white;transition:all 0.15s;">
+        💬 פורום גולשים
+      </button>
+      <button id="forum-review-tab" onclick="switchForumTab('reviews')"
+        style="flex:1;padding:9px;border:1.5px solid #ddd;border-radius:10px;cursor:pointer;font-size:0.92rem;font-weight:bold;background:#f5f5f5;color:#555;transition:all 0.15s;">
+        ⭐ ביקורות
+      </button>
+    </div>
+
+    <!-- Forum panel -->
+    <div id="forum-panel">
+    <!-- Facebook Group Banner -->
+    <a href="https://www.facebook.com/groups/385880019907484/" target="_blank"
+      style="display:flex;align-items:center;gap:11px;padding:10px 13px;
+             background:linear-gradient(135deg,#e8f0fe,#dce8ff);
+             border:1.5px solid #c0d0f0;border-radius:10px;
+             text-decoration:none;color:inherit;margin-bottom:12px;">
+      <span style="font-size:1.5rem;">👥</span>
+      <div>
+        <div style="font-weight:bold;font-size:0.84rem;color:#1a3a8c;">קבוצת הפייסבוק הישראלית של צ'רוויניה</div>
+        <div style="font-size:0.72rem;color:#555;margin-top:1px;">שאלות, עצות וחוויות מהקהילה ←</div>
+      </div>
+    </a>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="font-size:0.88rem;color:#888;">שיחות, עדכונים ועצות מהשטח</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="filter-area"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+      <input id="search-input" type="text" placeholder="חפש בפורום..." style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;">
+      <select id="forum-sort" onchange="filterPosts()" style="padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;color:#555;background:white;">
+        <option value="newest">מיון: חדש</option>
+        <option value="oldest">מיון: ישן</option>
+        <option value="popular">מיון: פופולרי</option>
+      </select>
+    </div>
+
+    <div id="posts-list"></div>
+    <div id="new-post-area" style="margin-top:15px;display:none;">
+      <textarea id="new-post-text" placeholder="שתף עדכון מהשלטונות..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;direction:rtl;resize:vertical;font-family:inherit;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
+        <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="new-post-file" style="display:none;" onchange="document.getElementById('new-post-file-name').textContent=this.files[0]?.name||''"></label>
+        <span id="new-post-file-name" style="font-size:0.78rem;color:#888;"></span>
+        <div style="margin-right:auto;display:flex;gap:8px;">
+          <button onclick="document.getElementById('new-post-area').style.display='none'" style="padding:8px 16px;background:#eee;border:none;border-radius:8px;cursor:pointer;">ביטול</button>
+          <button onclick="submitPost()" style="padding:8px 20px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">שלח</button>
+        </div>
+      </div>
+    </div>
+    <div id="forum-footer" class="forum-footer" style="margin-top:12px;">
+      <div id="post-btn-area"></div>
+    </div>
+    </div><!-- /forum-panel -->
+
+    <!-- Reviews panel -->
+    <div id="reviews-panel" style="display:none;">
+      <div id="reviews-list" style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px;"></div>
+      <div id="review-write-area">
+        <!-- shown only to logged-in users -->
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /container -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- Forecast Modal -->
+<div id="forecastModal" class="modal" onclick="if(event.target===this)closeM('forecastModal')">
+  <div class="modal-content" style="max-width:520px;padding:0;border-radius:16px;overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#0a192f,#1a3a6c);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="color:white;font-weight:bold;font-size:1rem;">🌤️ תחזית מזג אוויר</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;">Cervinia · Valtournenche · Chamois</div>
+      </div>
+      <span class="close-btn" onclick="closeM('forecastModal')" style="color:white;background:rgba(255,255,255,0.15);">×</span>
+    </div>
+    <div style="padding:14px;max-height:80vh;overflow-y:auto;">
+
+      <!-- Snow points -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;" id="snow-points-row">
+        <div style="flex:1;background:#e8f4ff;border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:bold;color:#1a3a6c;" id="snow-mid-depth">--</div>
+          <div style="font-size:0.7rem;color:#555;">❄️ שלג — Mid</div>
+          <div style="font-size:0.65rem;color:#999;" id="snow-mid-alt">--מ'</div>
+        </div>
+        <div style="flex:1;background:#f0faff;border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:bold;color:#2980b9;" id="snow-base-depth">--</div>
+          <div style="font-size:0.7rem;color:#555;">❄️ שלג — בסיס</div>
+          <div style="font-size:0.65rem;color:#999;" id="snow-base-alt">--מ'</div>
+        </div>
+        <div style="flex:1;background:#fff8e1;border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:bold;color:#e67e22;" id="bar-avalanche-modal">--</div>
+          <div style="font-size:0.7rem;color:#555;">🏔️ סכנת שלגים</div>
+          <div style="font-size:0.65rem;color:#999;">רמה 1–5</div>
+        </div>
+      </div>
+
+      <!-- Today forecast -->
+      <div id="forecast-today-section" style="margin-bottom:14px;">
+        <div style="font-weight:bold;font-size:0.82rem;color:#0a192f;margin-bottom:8px;" id="forecast-today-date">📅 היום</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="forecast-today-grid"></div>
+      </div>
+
+      <!-- Next days -->
+      <div id="forecast-next-section">
+        <div style="font-weight:bold;font-size:0.82rem;color:#0a192f;margin-bottom:8px;">📆 ימים הבאים</div>
+        <div id="forecast-next-grid" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Trip Planner Modal -->
+<div id="hotelModal" class="modal">
+  <div class="modal-content" style="max-width:580px;max-height:92vh;overflow-y:auto;padding:28px 24px;">
+    <span class="close-btn" onclick="closeM('hotelModal')">×</span>
+    <h3 style="margin:0 0 18px;font-size:1.15rem;">✈️ תכנון טיול לצ’רוויניה</h3>
+
+    <!-- Date + passengers row -->
+    <div style="margin-bottom:18px;">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;">
+        <!-- Date picker -->
+        <div>
+          <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">📅 תאריכי טיסה (יציאה — חזרה)</label>
+          <input type="text" id="trip-dates"
+            placeholder="בחר תאריכי יציאה וחזרה"
+            style="width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:10px;box-sizing:border-box;font-size:0.9rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;" readonly>
+        </div>
+        <!-- Passengers counter -->
+        <div style="text-align:center;">
+          <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">✈️ נוסעים</label>
+          <div style="display:flex;align-items:center;gap:8px;border:1.5px solid #ddd;border-radius:10px;padding:8px 12px;background:white;">
+            <button class="c-btn" onclick="adjField('fl-adults',-1,1)" style="width:26px;height:26px;">-</button>
+            <b id="fl-adults" style="font-size:1.1rem;min-width:20px;text-align:center;">2</b>
+            <button class="c-btn" onclick="adjField('fl-adults',1,1)" style="width:26px;height:26px;">+</button>
+          </div>
+        </div>
+      </div>
+      <!-- Result strip after date selection -->
+      <div id="trip-summary" style="display:none;margin-top:10px;padding:10px 14px;background:linear-gradient(135deg,#f0f8ff,#e8f4fd);border-radius:9px;border:1px solid #c8e4f8;align-items:center;justify-content:space-between;">
+        <div style="font-size:0.88rem;font-weight:bold;color:#1a5276;">
+          <span id="trip-summary-dates"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="trip-summary-nights" style="font-size:0.8rem;color:#2980b9;font-weight:600;background:white;padding:3px 10px;border-radius:12px;"></span>
+          <button onclick="resetTripDates()" style="font-size:0.72rem;color:#aaa;background:none;border:none;cursor:pointer;">↺</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs: כולל / טיסה / רכב / לינה -->
+    <div style="display:flex;gap:5px;margin-bottom:16px;">
+      <button id="ttab-all"    onclick="switchTripTab('all')"    class="ttab-btn ttab-active">✨ הכל</button>
+      <button id="ttab-flight" onclick="switchTripTab('flight')" class="ttab-btn">✈️ טיסה</button>
+      <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn">🚗 רכב</button>
+      <button id="ttab-hotel"  onclick="switchTripTab('hotel')"  class="ttab-btn">🏨 לינה</button>
+    </div>
+
+    <!-- === TAB: כולל (ALL) === -->
+    <div id="tpanel-all">
+      <div style="background:#f0f7ff;border-radius:10px;padding:14px;margin-bottom:14px;font-size:0.83rem;color:#555;line-height:1.7;">
+        <b>חיפוש כולל</b> — בלחיצה אחת תקבל קישורים לטיסה, רכב ולינה יחד.
+      </div>
+      <!-- Include accommodation checkbox -->
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.86rem;margin-bottom:8px;padding:10px;background:#f8f9fa;border-radius:8px;">
+        <input type="checkbox" id="all-hotel-check" onchange="toggleCarDetails('all-hotel-details',this.checked)" checked style="width:15px;height:15px;">
+        🏨 כלול גם לינה
+      </label>
+      <div id="all-hotel-details" style="padding:10px;background:#f0fff4;border-radius:8px;margin-bottom:8px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
+          <div style="background:white;padding:8px;border-radius:7px;text-align:center;">
+            <div style="font-size:0.65rem;color:#888;margin-bottom:4px;">מבוגרים</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+              <button class="c-btn" onclick="adjField('all-h-adults',-1,1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
+              <b id="all-h-adults">2</b>
+              <button class="c-btn" onclick="adjField('all-h-adults',1,1)" style="width:22px;height:22px;font-size:0.8rem;">+</button>
+            </div>
+          </div>
+          <div style="background:white;padding:8px;border-radius:7px;text-align:center;">
+            <div style="font-size:0.65rem;color:#888;margin-bottom:4px;">ילדים</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+              <button class="c-btn" onclick="adjField('all-h-children',-1,0)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
+              <b id="all-h-children">0</b>
+              <button class="c-btn" onclick="adjField('all-h-children',1,0)" style="width:22px;height:22px;font-size:0.8rem;">+</button>
+            </div>
+          </div>
+          <div style="background:white;padding:8px;border-radius:7px;text-align:center;">
+            <div style="font-size:0.65rem;color:#888;margin-bottom:4px;">חדרים</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+              <button class="c-btn" onclick="adjField('all-h-rooms',-1,1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
+              <b id="all-h-rooms">1</b>
+              <button class="c-btn" onclick="adjField('all-h-rooms',1,1)" style="width:22px;height:22px;font-size:0.8rem;">+</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="hotel" checked> מלון</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="apt"> דירה</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="any"> הכל</label>
+        </div>
+      </div>
+
+      <!-- Include car checkbox -->
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.86rem;margin-bottom:8px;padding:10px;background:#f8f9fa;border-radius:8px;">
+        <input type="checkbox" id="all-car-check" onchange="toggleCarDetails('all-car-details',this.checked)" style="width:15px;height:15px;">
+        🚗 כלול גם השכרת רכב
+      </label>
+      <div id="all-car-details" style="display:none;padding:10px;background:#f0f7ff;border-radius:8px;margin-bottom:8px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div>
+            <label style="font-size:0.73rem;color:#777;">שעת איסוף</label>
+            <input type="time" id="all-car-pickup" value="10:00" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;margin-top:3px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:0.73rem;color:#777;">שעת החזרה</label>
+            <input type="time" id="all-car-dropoff" value="18:00" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;margin-top:3px;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;background:white;flex:1;">
+            <input type="checkbox" id="all-airport-pickup" style="width:14px;height:14px;"> ✈️ קבלה בשדה התעופה
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;background:white;flex:1;">
+            <input type="checkbox" id="all-automatic" checked style="width:14px;height:14px;"> 🔄 גיר אוטומטי
+          </label>
+        </div>
+      </div>
+
+      <button onclick="searchAll()" style="width:100%;padding:13px;background:var(--accent);color:var(--dark);border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;margin-top:4px;">
+        🔍 חפש הכל
+      </button>
+      <!-- Results area -->
+      <div id="all-results" style="display:none;margin-top:14px;"></div>
+    </div>
+
+    <!-- === TAB: טיסה === -->
+    <div id="tpanel-flight" style="display:none;">
+      <div style="padding:12px;background:#f0f7ff;border-radius:9px;font-size:0.82rem;color:#444;line-height:1.7;margin-bottom:14px;">
+        ✈️ <b>שדות תעופה קרובים:</b><br>
+        • Turin (TRN) ~100 ק"מ &nbsp;|&nbsp; Milan Malpensa (MXP) ~175 ק"מ &nbsp;|&nbsp; Milan Bergamo (BGY) ~200 ק"מ
+      </div>
+      <div style="display:flex;justify-content:center;margin-bottom:14px;">
+        <div style="background:#f8f9fa;padding:12px 30px;border-radius:10px;text-align:center;">
+          <div style="font-size:0.75rem;color:#888;margin-bottom:6px;">מספר נוסעים</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:14px;">
+            <button class="c-btn" onclick="adjField('fl-adults',-1,1)" style="width:32px;height:32px;font-size:1.1rem;">-</button>
+            <b id="fl-adults" style="font-size:1.4rem;min-width:24px;text-align:center;">2</b>
+            <button class="c-btn" onclick="adjField('fl-adults',1,1)" style="width:32px;height:32px;font-size:1.1rem;">+</button>
+          </div>
+        </div>
+      </div>
+      <button onclick="searchFlight()" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;margin-bottom:8px;">
+        🔍 חפש טיסות
+      </button>
+      <div id="flight-results" style="display:none;margin-top:10px;"></div>
+    </div>
+
+    <!-- === TAB: רכב === -->
+    <div id="tpanel-car" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div>
+          <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">שעת איסוף</label>
+          <input type="time" id="car-pickup" value="10:00" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:7px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">שעת החזרה</label>
+          <input type="time" id="car-dropoff" value="18:00" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:7px;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.85rem;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;background:#f9f9f9;flex:1;transition:border-color 0.15s;">
+          <input type="checkbox" id="car-airport" checked style="width:15px;height:15px;accent-color:var(--accent);">
+          <div><div style="font-weight:bold;">✈️ קבלה בשדה</div><div style="font-size:0.72rem;color:#888;">Turin Airport</div></div>
+        </label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.85rem;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;background:#f9f9f9;flex:1;transition:border-color 0.15s;">
+          <input type="checkbox" id="car-automatic" checked style="width:15px;height:15px;accent-color:var(--accent);">
+          <div><div style="font-weight:bold;">🔄 אוטומטי</div><div style="font-size:0.72rem;color:#888;">גיר אוטומטי בלבד</div></div>
+        </label>
+      </div>
+      <button onclick="searchCar()" style="width:100%;padding:12px;background:#2c3e50;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
+        🔍 חפש רכב
+      </button>
+      <div id="car-results" style="display:none;margin-top:10px;"></div>
+    </div>
+
+    <!-- === TAB: לינה === -->
+    <div id="tpanel-hotel" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
+          <div style="font-size:0.72rem;color:#888;margin-bottom:5px;">מבוגרים</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+            <button class="c-btn" onclick="adjField('h-adults',-1,1)">-</button>
+            <b id="h-adults">2</b>
+            <button class="c-btn" onclick="adjField('h-adults',1,1)">+</button>
+          </div>
+        </div>
+        <div style="background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
+          <div style="font-size:0.72rem;color:#888;margin-bottom:5px;">ילדים</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+            <button class="c-btn" onclick="adjField('h-children',-1,0)">-</button>
+            <b id="h-children">0</b>
+            <button class="c-btn" onclick="adjField('h-children',1,0)">+</button>
+          </div>
+        </div>
+        <div style="background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
+          <div style="font-size:0.72rem;color:#888;margin-bottom:5px;">חדרים</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+            <button class="c-btn" onclick="adjField('h-rooms',-1,1)">-</button>
+            <b id="h-rooms">1</b>
+            <button class="c-btn" onclick="adjField('h-rooms',1,1)">+</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">רדיוס חיפוש (ק"מ מהמרכז): <span id="radius-val">5</span></label>
+        <input type="range" min="1" max="20" value="5" id="radius-slider"
+          oninput="document.getElementById('radius-val').textContent=this.value"
+          style="width:100%;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:6px;">סוג לינה</label>
+        <div style="display:flex;gap:6px;">
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="hotel" checked> מלון</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="apt"> דירה</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="any"> הכל</label>
+        </div>
+      </div>
+      <button onclick="searchHotel()" style="width:100%;padding:12px;background:#003580;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
+        🔍 חפש לינה
+      </button>
+      <div id="hotel-results" style="display:none;margin-top:10px;"></div>
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- Auth Modal -->
+<div id="authModal" class="modal" onclick="if(event.target===this)closeM('authModal')">
+  <div class="modal-content" style="max-width:360px;">
+    <span class="close-btn" onclick="closeM('authModal')">×</span>
+
+    <!-- Tabs -->
+    <div style="display:flex;border-bottom:2px solid #eee;margin-bottom:20px;">
+      <button id="auth-tab-login" onclick="switchAuthTab('login')"
+        style="flex:1;padding:10px;border:none;background:none;font-size:0.95rem;font-weight:bold;cursor:pointer;color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px;">
+        🔑 כניסה
+      </button>
+      <button id="auth-tab-register" onclick="switchAuthTab('register')"
+        style="flex:1;padding:10px;border:none;background:none;font-size:0.95rem;font-weight:bold;cursor:pointer;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-2px;">
+        ✍️ הרשמה
+      </button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="auth-panel-login">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">שם משתמש או מייל</label>
+        <input id="login-name" type="text" placeholder="שם משתמש / your@email.com" autocomplete="username"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמא</label>
+        <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;"
+          onkeydown="if(event.key==='Enter') login()">
+      </div>
+      <button onclick="login()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+        🔓 כניסה
+      </button>
+      <div style="text-align:center;margin-top:10px;">
+        <span onclick="showAdminLogin()" style="font-size:0.68rem;color:#e0e0e0;cursor:pointer;user-select:none;">⚙</span>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="auth-panel-register" style="display:none;">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">שם משתמש (יוצג בפוסטים)</label>
+        <input id="reg-name" type="text" placeholder="למשל: דני_סקי" autocomplete="username"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;">
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">כתובת מייל</label>
+        <input id="reg-email" type="email" placeholder="your@email.com" autocomplete="email" dir="ltr"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;font-family:inherit;">
+        <div style="font-size:0.7rem;color:#bbb;margin-top:3px;">לשחזור סיסמא בעתיד. לא יוצג לאחרים.</div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמא</label>
+        <input id="reg-pass" type="password" placeholder="לפחות 6 תווים" autocomplete="new-password"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;"
+          onkeydown="if(event.key='Enter') register()">
+      </div>
+      <button onclick="register()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+        ✅ הרשמה
+      </button>
+      <div style="font-size:0.75rem;color:#aaa;text-align:center;margin-top:10px;line-height:1.5;">
+        פרטים נוספים (רמת סקי, ענף) אפשר להשלים דרך הפרופיל.
+      </div>
+    </div>
+
+    <!-- ADMIN (hidden) -->
+    <div id="auth-panel-admin" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed #eee;">
+      <input id="auth-pass" type="password" placeholder="סיסמת אדמין"
+        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #fcc;border-radius:9px;margin-bottom:10px;font-size:0.93rem;direction:rtl;font-family:inherit;"
+        onkeydown="if(event.key==='Enter') loginAdmin()">
+      <button onclick="loginAdmin()" style="width:100%;padding:10px;background:#c0392b;color:white;border:none;border-radius:9px;font-size:0.9rem;cursor:pointer;font-weight:bold;">
+        🔐 כניסת אדמין
+      </button>
+    </div>
+
+    <div id="auth-err" style="color:#e74c3c;font-size:0.85rem;margin-top:10px;display:none;text-align:center;padding:8px;background:#fff5f5;border-radius:8px;"></div>
+  </div>
+</div>
+
+<!-- Why Modal -->
+<div id="whyModal" class="modal" onclick="if(event.target===this)closeM('whyModal')">
+  <div class="modal-content" style="max-width:520px;max-height:85vh;overflow-y:auto;">
+    <span class="close-btn" onclick="closeM('whyModal')">×</span>
+    <h2 style="margin-top:0;color:#0a192f;">⛷️ למה צ'רוויניה?</h2>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
+        <span style="font-size:2rem;">⛷️</span>
+        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">מסלולים לכל הרמות</div>
+        <div style="font-size:0.85rem;color:#444;line-height:1.6;">מעל 160 קמ מסלולים — ירוקים, כחולים, אדומים ושחורים. שלג מעולה לאורך כל העונה.</div></div>
+      </div>
+      <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
+        <span style="font-size:2rem;">🇨🇭</span>
+        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">חיבור לצ'רמט</div>
+        <div style="font-size:0.85rem;color:#444;line-height:1.6;">כשהתנאים מאפשרים, המעבר לצ'רמט השוויצרי פתוח. גולשים מה-Plateau Rosa לאיטליה ולשוויץ וחזרה — ביום אחד.</div></div>
+      </div>
+      <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
+        <span style="font-size:2rem;">🍽️</span>
+        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">אוכל כשר ואווירה יהודית</div>
+        <div style="font-size:0.85rem;color:#444;line-height:1.6;">מסעדות כשריות בכפר. גבינות ורכבלים אוסטה ולודיינים — אווירה איטלקית אמיתית.</div></div>
+      </div>
+      <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
+        <span style="font-size:2rem;">💲</span>
+        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">מחיר שדה תעופה + סקי פס</div>
+        <div style="font-size:0.85rem;color:#444;line-height:1.6;">טיסות למילאנו זולות יחסית. סקי פס זול ב-20-40% מצ'רמט או קורטינה.</div></div>
+      </div>
+    </div>
+    <!-- קישורים בעברית -->
+    <div style="border-top:1px solid #f0f0f0;padding-top:12px;margin-top:12px;">
+      <div style="font-size:0.75rem;color:#888;font-weight:bold;margin-bottom:8px;">📚 קריאה נוספת בעברית</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="https://snow.org.il/listing-item/cervinia/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0f8ff;border:1px solid #c0e0f8;border-radius:8px;text-decoration:none;color:#0a192f;font-size:0.8rem;font-weight:bold;">❄️ snow.org.il — צ'רוויניה</a>
+        <a href="https://snow.org.il/listing-item/zermatt/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0fff4;border:1px solid #b8e0c8;border-radius:8px;text-decoration:none;color:#0a2a1a;font-size:0.8rem;font-weight:bold;">🇨🇭 snow.org.il — זרמט</a>
+        <a href="https://www.youtube.com/watch?v=51HCOZl4g6k" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;">▶️ סרטון בעברית</a>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+      <button onclick="closeM('whyModal');openM('hotelModal');" style="flex:1;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;">📅 תכנון טיול</button>
+      <button onclick="closeM('whyModal');loadMap('piste');" class="service-btn" style="flex:1">⛷️ מסלולים PDF</button>
+    </div>
+          <!-- Facebook group -->
+          <a href="https://www.facebook.com/groups/385880019907484/" target="_blank"
+            style="display:flex;align-items:center;gap:11px;padding:11px 14px;margin-top:14px;
+                   background:linear-gradient(135deg,#e8f0fe,#dce8ff);
+                   border:1.5px solid #c0d0f0;border-radius:11px;text-decoration:none;color:inherit;">
+            <span style="font-size:1.6rem;">👥</span>
+            <div>
+              <div style="font-weight:bold;font-size:0.86rem;color:#1a3a8c;">קבוצת הפייסבוק הישראלית של צ'רוויניה</div>
+              <div style="font-size:0.73rem;color:#555;margin-top:2px;">הקהילה הישראלית — שאלות, עצות וחוויות מהשטח</div>
+            </div>
+          </a>
+  </div>
+</div>
+
+<!-- Simple placeholder modals -->
+<div id="rentalModal" class="modal" onclick="if(event.target===this)closeM('rentalModal')">
+  <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
+    <span class="close-btn" onclick="closeM('rentalModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;">⛷️ השכרת ציוד</h3>
+    <p style="color:#888;font-size:0.82rem;margin:0 0 18px;">צ'רוויניה מציעה חנויות השכרה רבות ברמות ומחירים שונים</p>
+
+    <!-- Type selector -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button id="rent-tab-ski" onclick="switchRentTab('ski')" class="ttab-btn ttab-active" style="flex:1;">⛷️ סקי</button>
+      <button id="rent-tab-snowboard" onclick="switchRentTab('snowboard')" class="ttab-btn" style="flex:1;">🏂 סנובורד</button>
+      <button id="rent-tab-other" onclick="switchRentTab('other')" class="ttab-btn" style="flex:1;">🥽 אחר</button>
+    </div>
+
+    <!-- SKI panel -->
+    <div id="rent-panel-ski">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="padding:14px;background:#f0f8ff;border-radius:10px;border:1px solid #d0e8f8;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">🎿 חבילה בסיסית</div>
+          <div style="font-size:0.82rem;color:#555;margin-bottom:8px;">מגלשיים + מגפיים + מקלות</div>
+          <div style="font-weight:bold;color:#1a5276;font-size:1rem;">~€25-35 / יום</div>
+        </div>
+        <div style="padding:14px;background:#f0fff4;border-radius:10px;border:1px solid #c8f0d8;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">🎿⭐ חבילה מורחבת</div>
+          <div style="font-size:0.82rem;color:#555;margin-bottom:8px;">ציוד מתקדם + קסדה + מגנות</div>
+          <div style="font-weight:bold;color:#1a6e3c;font-size:1rem;">~€45-65 / יום</div>
+        </div>
+      </div>
+      <div style="padding:12px;background:#fffbf0;border-radius:10px;border:1px solid #fde8a0;margin-bottom:14px;">
+        <b style="font-size:0.85rem;">💡 טיפים להשכרה:</b>
+        <ul style="margin:6px 0 0;padding-right:18px;font-size:0.8rem;color:#555;line-height:1.8;">
+          <li>הזמן מראש אונליין — לרוב 20-30% זול יותר</li>
+          <li>קסדה חובה לילדים, מומלץ מאוד למבוגרים</li>
+          <li>ציוד לטיול שלם? כדאי להזמין כבר מישראל</li>
+          <li>חנויות בכפר זולות יותר מאשר ליד הרכבלים</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SNOWBOARD panel -->
+    <div id="rent-panel-snowboard" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="padding:14px;background:#f0f8ff;border-radius:10px;border:1px solid #d0e8f8;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">🏂 חבילה בסיסית</div>
+          <div style="font-size:0.82rem;color:#555;margin-bottom:8px;">לוח + נעלי בורד</div>
+          <div style="font-weight:bold;color:#1a5276;font-size:1rem;">~€30-40 / יום</div>
+        </div>
+        <div style="padding:14px;background:#f0fff4;border-radius:10px;border:1px solid #c8f0d8;">
+          <div style="font-size:1.1rem;margin-bottom:4px;">🏂⭐ חבילה מלאה</div>
+          <div style="font-size:0.82rem;color:#555;margin-bottom:8px;">לוח + נעליים + קסדה + מגנות</div>
+          <div style="font-weight:bold;color:#1a6e3c;font-size:1rem;">~€50-70 / יום</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OTHER panel -->
+    <div id="rent-panel-other" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="padding:12px;background:#f8f9fa;border-radius:9px;">🥽 משקפי שלג — €10-20/יום</div>
+        <div style="padding:12px;background:#f8f9fa;border-radius:9px;">🧤 כפפות — €8-15/יום</div>
+        <div style="padding:12px;background:#f8f9fa;border-radius:9px;">🪖 קסדה — €10-18/יום</div>
+        <div style="padding:12px;background:#f8f9fa;border-radius:9px;">👕 חליפת סקי — €20-35/יום</div>
+        <div style="padding:12px;background:#f8f9fa;border-radius:9px;">🛷 מזחלת — €15-25/יום</div>
+        <div style="padding:12px;background:#f8f9fa;border-radius:9px;">🎒 גב מגן — €8-15/יום</div>
+      </div>
+    </div>
+
+    <!-- Shops on the way from Milan -->
+    <div style="border-top:1px solid #eee;padding-top:14px;margin-bottom:14px;">
+      <div style="font-size:0.82rem;font-weight:bold;margin-bottom:6px;">🚗 חנויות ציוד בדרך ממילאנו</div>
+      <div style="font-size:0.75rem;color:#888;margin-bottom:10px;">לכפפות, גוגלס, ביגוד תרמי, קסדה וכל השלמות — <b>הרבה יותר זול מהכפר</b></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+
+        <div style="padding:10px 13px;border:1.5px solid #dce9f8;border-radius:10px;background:#f5f9ff;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+            <div style="font-weight:bold;font-size:0.88rem;">🔵 Decathlon — Aosta</div>
+            <span style="font-size:0.68rem;background:#1565c0;color:white;padding:2px 8px;border-radius:10px;">📍 ממש בדרך</span>
+          </div>
+          <div style="font-size:0.75rem;color:#555;margin-bottom:6px;">הכל תחת קורת גג: בגדי סקי, כפפות, גוגלס, קסדות, גרביים, ביגוד תרמי — במחירים נגישים</div>
+          <a href="https://www.google.com/maps/search/Decathlon+Saint-Christophe+Aosta" target="_blank"
+            style="display:inline-block;padding:5px 12px;background:#1565c0;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מיקום ושעות</a>
+        </div>
+
+        <div style="padding:10px 13px;border:1.5px solid #ffe0cc;border-radius:10px;background:#fff8f5;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+            <div style="font-weight:bold;font-size:0.88rem;">🟠 Intersport — Aosta</div>
+            <span style="font-size:0.68rem;background:#e65100;color:white;padding:2px 8px;border-radius:10px;">📍 אאוסטה</span>
+          </div>
+          <div style="font-size:0.75rem;color:#555;margin-bottom:6px;">📍 <b>Corso Battaglione Aosta 63</b>, Aosta<br>מותגים: Salomon, Rossignol, Head · ביגוד טכני ומקצועי</div>
+          <a href="https://www.intersport.it/" target="_blank"
+            style="display:inline-block;padding:5px 12px;background:#e65100;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 Intersport</a>
+        </div>
+
+      </div>
+      <div style="padding:10px 13px;background:#fffbf0;border:1px solid #fde8a0;border-radius:9px;font-size:0.79rem;color:#555;line-height:1.8;">
+        🛒 <b>מה כדאי לקנות בדרך (ולא בכפר):</b><br>
+        כפפות · גוגלס · גרביים תרמיות · Base Layer (בגד תחתון מנדף) · צוואריון · קרם הגנה לשמש+שלג · כדורי חימום ידיים
+      </div>
+    </div>
+
+    <!-- Local recommended shops -->
+    <div style="border-top:1px solid #eee;padding-top:14px;">
+      <div style="font-size:0.78rem;color:#888;margin-bottom:10px;">🏪 חנויות מומלצות בכפר:</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+
+        <!-- La Genzianella -->
+        <div style="padding:13px 15px;border:1.5px solid #d0e8f8;border-radius:11px;background:#f5fbff;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-weight:bold;font-size:0.92rem;">🎿 La Genzianella</div>
+            
+          </div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">📍 📍 <b>Piazzale Funivie 14</b> · ☎ 0166 550102 · <a href="https://www.genzianellasport.it/" target="_blank" style="color:#1a73e8;font-size:0.75rem;">🌐 אתר</a> · <a href="https://maps.app.goo.gl/TKUJSWwpcx5RKFzY9" target="_blank" style="color:#1a73e8;font-size:0.75rem;">🗺️ מפה</a><br>ממש ליד הגונדולה הראשית — נוח להחלפה לפני העלייה</div>
+          <a href="https://www.genzianellasport.it/it/" target="_blank"
+            style="display:inline-block;padding:7px 14px;background:#1a73e8;color:white;border-radius:8px;text-decoration:none;font-size:0.82rem;font-weight:bold;">
+            🌐 אתר + הזמנה מראש
+          </a>
+        </div>
+
+        <!-- Ski 2.0 -->
+        <div style="padding:13px 15px;border:1.5px solid #fde8c0;border-radius:11px;background:#fffbf5;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-weight:bold;font-size:0.92rem;">🎿 Ski 2.0</div>
+            <span style="background:#e67e22;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;">🎟️ קופון הנחה</span>
+          </div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:4px;">📍 📍 <b>Via Guido Rey</b>, Breuil-Cervinia</div>
+          <!-- Coupon box -->
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid #3dbfa0;border-radius:10px;margin-bottom:10px;background:#f0fffc;">
+            <img id="coupon-thumb" src="" alt="קופון הנחה 20%" onclick="openCouponModal()"
+              style="width:72px;height:auto;border-radius:7px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);"
+              title="לחץ להגדלה">
+            <div style="flex:1;">
+              <div style="font-weight:bold;font-size:0.88rem;color:#2a9d8f;margin-bottom:3px;">🎟️ קופון הנחה 20%</div>
+              <div style="font-size:0.73rem;color:#555;margin-bottom:8px;">על ציוד, ביגוד ולוקרים</div>
+              <div style="display:flex;gap:7px;">
+                <button onclick="openCouponModal()"
+                  style="padding:6px 12px;border:1.5px solid #3dbfa0;background:white;color:#2a9d8f;border-radius:7px;font-size:0.78rem;font-weight:bold;cursor:pointer;">
+                  🔍 הגדל
+                </button>
+                <a id="coupon-dl1" href="" download="קופון_Ski2.0_הנחה20.jpg" style="padding:6px 12px;background:#3dbfa0;color:white;border-radius:7px;font-size:0.78rem;font-weight:bold;text-decoration:none;">
+                  📥 הורד
+                </a>
+              </div>
+            </div>
+          </div>
+          <div id="coupon-modal" onclick="closeCouponModal()"
+            style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);
+                   align-items:center;justify-content:center;padding:20px;">
+            <div style="position:relative;max-width:480px;width:100%;" onclick="event.stopPropagation()">
+              <img id="coupon-full" src="" style="width:100%;border-radius:12px;display:block;">
+              <div style="display:flex;gap:10px;margin-top:12px;">
+                <a id="coupon-dl2" href="" download="קופון_Ski2.0_הנחה20.jpg" style="flex:1;padding:11px;background:#3dbfa0;color:white;border-radius:9px;
+                         text-decoration:none;font-weight:bold;font-size:0.88rem;text-align:center;">
+                  📥 הורד את הקופון
+                </a>
+                <button onclick="closeCouponModal()"
+                  style="padding:11px 16px;border:2px solid white;background:transparent;color:white;
+                         border-radius:9px;font-size:0.88rem;cursor:pointer;">
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div></div>
+          <div style="font-size:0.75rem;color:#888;margin-top:8px;line-height:1.6;border-top:1px solid #f0e8d0;padding-top:8px;">
+            📞 <a href="tel:+390166691210" style="color:#1a73e8;text-decoration:none;">+39 0166 691210</a> &nbsp;|&nbsp;
+            <a href="https://maps.app.goo.gl/M7SWb5vQ2xorhEVcA" target="_blank" style="color:#1a73e8;text-decoration:none;">🗺️ מפה</a><br>
+            📍 Via Carrel 2, Breuil-Cervinia<br>
+            <a href="https://nolski.it/20skirental" target="_blank" style="color:#1a73e8;text-decoration:none;font-size:0.7rem;">🌐 nolski.it/20skirental</a>
+          </div>
+        </div>
+
+        <!-- Noleggio Ski Service -->
+        <div style="padding:13px 15px;border:1.5px solid #e0e0e0;border-radius:11px;background:#f9f9f9;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="font-weight:bold;font-size:0.92rem;">🎿 Noleggio Ski Service</div><span style="background:#2ecc71;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;">⭐ מומלץ</span></div>
+          <div style="font-size:0.78rem;color:#555;">📍 📍 <b>Via Bich 15</b> · ☎ 0166 949484 · <a href="https://maps.app.goo.gl/V8JvmEaKSd5ofSSy8" target="_blank" style="color:#1a73e8;font-size:0.75rem;">🗺️ מפה</a><br>מול כיסאות Campetto — מיקום נוח לאיסוף והחזרה</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div id="lessonsModal" class="modal" onclick="if(event.target===this)closeM('lessonsModal')">
+  <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
+    <span class="close-btn" onclick="closeM('lessonsModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;">🏫 שיעורי סקי וסנובורד</h3>
+    <p style="color:#888;font-size:0.82rem;margin:0 0 18px;">מורים מוסמכים מהאיגוד האיטלקי לסקי</p>
+
+    <!-- Lesson type tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button id="les-tab-group" onclick="switchLessonTab('group')" class="ttab-btn ttab-active" style="flex:1;">👥 קבוצתי</button>
+      <button id="les-tab-private" onclick="switchLessonTab('private')" class="ttab-btn" style="flex:1;">👤 פרטי</button>
+      <button id="les-tab-kids" onclick="switchLessonTab('kids')" class="ttab-btn" style="flex:1;">👶 ילדים</button>
+    </div>
+
+    <!-- GROUP -->
+    <div id="les-panel-group">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="padding:14px;background:#f0f8ff;border-radius:10px;border:1px solid #d0e8f8;">
+          <div style="font-size:0.82rem;font-weight:bold;margin-bottom:4px;">📅 יום אחד</div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:6px;">3-4 שעות בוקר, קבוצה עד 8 אנשים</div>
+          <div style="font-weight:bold;color:#1a5276;">~€50-70 / אדם</div>
+        </div>
+        <div style="padding:14px;background:#f0f8ff;border-radius:10px;border:1px solid #d0e8f8;">
+          <div style="font-size:0.82rem;font-weight:bold;margin-bottom:4px;">📅📅 שלושה ימים</div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:6px;">חיסכון משמעותי, רציפות בלמידה</div>
+          <div style="font-weight:bold;color:#1a5276;">~€120-150 / אדם</div>
+        </div>
+      </div>
+      <div style="padding:11px;background:#f5f5f5;border-radius:9px;font-size:0.8rem;color:#555;line-height:1.7;margin-bottom:14px;">
+        <b>רמות:</b> מתחילים · ביניים · מתקדמים · אקסטרים<br>
+        <b>שפות:</b> איטלקית ואנגלית
+      </div>
+    </div>
+
+    <!-- PRIVATE -->
+    <div id="les-panel-private" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="padding:14px;background:#fff8f0;border-radius:10px;border:1px solid #fde8c0;">
+          <div style="font-size:0.82rem;font-weight:bold;margin-bottom:4px;">⏱️ שעה אחת</div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:6px;">מושלם לשיפור טכניקה ספציפי</div>
+          <div style="font-weight:bold;color:#7d4e00;">~€60-80</div>
+        </div>
+        <div style="padding:14px;background:#fff8f0;border-radius:10px;border:1px solid #fde8c0;">
+          <div style="font-size:0.82rem;font-weight:bold;margin-bottom:4px;">⏱️⏱️ חצי יום</div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:6px;">3 שעות — שיפור מהיר ומשמעותי</div>
+          <div style="font-weight:bold;color:#7d4e00;">~€150-200</div>
+        </div>
+      </div>
+      <div style="padding:11px;background:#fffbf0;border-radius:9px;font-size:0.8rem;color:#555;border:1px solid #fde8a0;margin-bottom:14px;">
+        💡 שיעור פרטי עם משפחה (עד 5 איש) חלוקה שווה של המחיר — מאוד כדאי!
+      </div>
+
+      <!-- Recommended instructors -->
+      <div style="margin-top:14px;border-top:1px solid #f0e8d0;padding-top:12px;">
+        <div style="font-size:0.82rem;font-weight:bold;margin-bottom:3px;">🎿 מדריכים אישיים מומלצים</div>
+        <div style="font-size:0.73rem;color:#888;margin-bottom:9px;">לחץ לפתיחת וואטסאפ ישירות</div>
+        <div id="instructors-list" style="display:flex;flex-direction:column;gap:7px;"></div>
+      </div>
+    </div>
+
+    <!-- KIDS -->
+    <div id="les-panel-kids" style="display:none;">
+      <div style="padding:14px;background:#f0fff4;border-radius:10px;border:1px solid #b8f0c8;margin-bottom:12px;">
+        <div style="font-size:0.85rem;font-weight:bold;margin-bottom:6px;">🎿 גן שלג (4-6 שנים)</div>
+        <div style="font-size:0.8rem;color:#555;line-height:1.7;">ליווי מלא, ציוד מותאם, קצב אישי. כולל קסדה.<br>
+        <b>מחיר:</b> ~€60-80 / יום כולל ציוד</div>
+      </div>
+      <div style="padding:14px;background:#f0fff4;border-radius:10px;border:1px solid #b8f0c8;margin-bottom:14px;">
+        <div style="font-size:0.85rem;font-weight:bold;margin-bottom:6px;">🎿⭐ קבוצת ילדים (7-14 שנים)</div>
+        <div style="font-size:0.8rem;color:#555;line-height:1.7;">קבוצות לפי גיל ורמה. יום שלם (10:00-16:00).<br>
+        <b>מחיר:</b> ~€70-90 / יום</div>
+      </div>
+      <div style="padding:10px;background:#fffbf0;border-radius:9px;font-size:0.8rem;color:#555;border:1px solid #fde8a0;">
+        💡 הזמן מראש בעונת שיא — קבוצות מתמלאות מהר. לילדים מעל גיל 6 שיעור פרטי ביום הראשון — משנה!
+      </div>
+    </div>
+
+    <!-- Links -->
+    <div style="border-top:1px solid #eee;padding-top:14px;">
+
+      <!-- Personal instructors -->
+      <div style="margin-bottom:18px;">
+        <div style="font-size:0.82rem;font-weight:bold;margin-bottom:3px;">🎿 מדריכים אישיים מומלצים</div>
+        <div style="font-size:0.73rem;color:#888;margin-bottom:10px;">מדריכים מנוסים — לחץ לפתיחת וואטסאפ</div>
+        <div id="instructors-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+      <div>
+      <div style="font-size:0.82rem;font-weight:bold;margin-bottom:10px;">🏫 בתי ספר לסקי בצ'רוויניה</div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+
+        <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
+          <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Scuola Sci del Cervino <span style="font-size:0.68rem;background:#1a3a6c;color:white;padding:1px 7px;border-radius:8px;">מאז 1936</span></div>
+          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Piazzale Funivie + Chalet Cretaz</b> · ☎ +39 0166 948744</div>
+          <a href="https://scuolacervino.com/en/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuolacervino.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola+Sci+Cervino+Cervinia" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+        </div>
+
+        <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
+          <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Ride'em / New Ski School</div>
+          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Via Meynet 3</b>, Breuil-Cervinia · ☎ +39 0166 948532</div>
+          <a href="https://www.ride-em.com/?lang=en" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 ride-em.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Via+Meynet+3+Breuil-Cervinia" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+        </div>
+
+        <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
+          <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Scuola Sci Breuil</div>
+          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Piazzale Funivie</b>, Breuil-Cervinia · מאז 1999</div>
+          <a href="https://scuoladiscibreuil.com/en/homepage-english/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuoladiscibreuil.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola+Sci+Breuil+Cervinia" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+        </div>
+
+        <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
+          <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ GR Mountain Cervinia</div>
+          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Località Cielo Alto</b>, Cervinia · שיעורים + השכרה</div>
+          <a href="https://www.gr-mountain.com/cervinia/?lang=en" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 gr-mountain.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/GR+Mountain+Cervinia" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+        </div>
+
+      </div>
+    </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="https://www.scuolascicervinia.com" target="_blank" style="padding:8px 14px;background:#1a3a6c;color:white;border-radius:8px;text-decoration:none;font-size:0.82rem;font-weight:bold;">🇮🇹 Scuola Sci Cervinia</a>
+        <a href="https://www.evolutionski.it" target="_blank" style="padding:8px 14px;background:#e74c3c;color:white;border-radius:8px;text-decoration:none;font-size:0.82rem;font-weight:bold;">Evolution Ski</a>
+        <a href="https://www.takelessons.com/search?q=ski+cervinia" target="_blank" style="padding:8px 14px;background:#2c3e50;color:white;border-radius:8px;text-decoration:none;font-size:0.82rem;font-weight:bold;">TakeLessons</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="kosherModal" class="modal" onclick="if(event.target===this)closeM('kosherModal')">
+  <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
+    <span class="close-btn" onclick="closeM('kosherModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;">🍽️ מזון כשר — מדריך מלא</h3>
+    <p style="color:#888;font-size:0.82rem;margin:0 0 16px;">צ'רוויניה · משלוח לכפר · מילאנו · טורינו</p>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;">
+      <button id="kosh-tab-shabbat" onclick="switchKoshTab('shabbat')" class="ttab-btn" style="flex:1;font-size:0.82rem;">🕯️ שבת</button>
+      <button id="kosh-tab-cervinia" onclick="switchKoshTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;font-size:0.82rem;">🏔️ בכפר</button>
+      <button id="kosh-tab-delivery" onclick="switchKoshTab('delivery')" class="ttab-btn" style="flex:1;font-size:0.82rem;">📦 משלוח</button>
+      <button id="kosh-tab-milan"    onclick="switchKoshTab('milan')"    class="ttab-btn" style="flex:1;font-size:0.82rem;">🏙️ מילאנו</button>
+      <button id="kosh-tab-torino"   onclick="switchKoshTab('torino')"   class="ttab-btn" style="flex:1;font-size:0.82rem;">🏛️ טורינו</button>
+    </div>
+
+    <!-- CERVINIA -->
+    <!-- SHABBAT PANEL -->
+    <div id="kosh-panel-shabbat" style="display:none;">
+      <div id="shabbat-times-widget">
+        <div style="text-align:center;color:#aaa;font-size:0.82rem;padding:12px;">טוען זמנים...</div>
+      </div>
+    </div>
+
+    <div id="kosh-panel-cervinia">
+
+      <div style="padding:14px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:11px;margin-bottom:12px;">
+        <div style="font-size:1rem;font-weight:bold;margin-bottom:8px;">ℹ️ מה יש בכפר?</div>
+        <div style="font-size:0.84rem;color:#555;line-height:1.9;">
+          בצ'רוויניה עצמה <b>אין מסעדות כשרות</b>.<br>
+          בסופרמרקט המקומי ניתן למצוא:<br>
+          🍎 פירות וירקות · 🥚 ביצים · ☕ קפה ותה
+        </div>
+      </div>
+      <div style="padding:13px;background:#f0fff4;border:1.5px solid #a5d6a7;border-radius:11px;">
+        <div style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;">💡 טיפים לשהייה כשרה</div>
+        <div style="font-size:0.82rem;color:#555;line-height:2;">
+          🧳 <b>הבאת מזון מישראל</b> — מותר ומומלץ (שימורים, קפואים בצידנית)<br>
+          🛒 <b>הצטיידות במילאנו</b> לפני העלייה לכפר<br>
+          📦 <b>הזמנת משלוח כשר</b> ישירות לנקודת איסוף בכפר<br>
+          🔥 רוב דירות הנופש מגיעות עם מטבח — כדאי לבשל!<br>
+          🏨 בעת הזמנת מלון — שאלו על מקרר ומיקרוגל בחדר
+        </div>
+      </div>
+    
+      <!-- Kosher resources -->
+      <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px;">
+        <div style="font-size:0.82rem;font-weight:bold;margin-bottom:9px;">📋 מידע כשרות למטייל באיטליה</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+
+          <a href="https://www.italykosherunion.it/en/kosher-products-list/" target="_blank"
+            style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">🏷️ Italy Kosher Union — רשימת מוצרים כשרים</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מוצרים מאושרים בפיקוח כשרות איטלקי</div>
+          </a>
+
+          <a href="https://beitchabadmalpensa.com/food/5443/" target="_blank"
+            style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">✡️ בית חב"ד מלפנסה — מדריך מזון</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מה מותר לאכול — מאיפוס ועד פרטים</div>
+          </a>
+
+          <a href="https://metaylimbkipa.com/kosher-food-what-is-allowed-to-eat/" target="_blank"
+            style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">🌍 מטיילים בכיפה — מה מותר לאכול?</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מדריך כשרות לטיול בחו"ל</div>
+          </a>
+
+          <a href="https://kipaonmap.com/%D7%A8%D7%95%D7%9E%D7%90/kosherlistitaly/" target="_blank"
+            style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">🗺️ Kipa on Map — רשימת כשר איטליה</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מפה ורשימה של מוצרים ומסעדות</div>
+          </a>
+
+          <a href="https://www.tjt.co.il/%D7%A0%D7%95%D7%A4%D7%A9_%D7%9B%D7%A9%D7%A8-TL331-%D7%90%D7%99%D7%98%D7%9C%D7%99%D7%94_%D7%90%D7%99%D7%A8%D7%95%D7%A4%D7%94-%D7%97%D7%95%D7%A4%D7%A9%D7%95%D7%AA.html" target="_blank"
+            style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">✈️ TJT — נופש כשר באיטליה</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;">חופשות ומידע למטייל הדתי באיטליה ואירופה</div>
+          </a>
+
+        </div>
+      </div>
+</div>
+
+    <!-- DELIVERY -->
+    <div id="kosh-panel-delivery" style="display:none;">
+      <div style="padding:16px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:2px solid #66bb6a;border-radius:12px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <span style="font-size:2rem;">📦</span>
+          <div>
+            <div style="font-weight:bold;font-size:1rem;">Kosher4U</div>
+            <div style="font-size:0.78rem;color:#555;">משלוח מזון כשר לאתרי סקי באירופה</div>
+          </div>
+        </div>
+        <div style="font-size:0.83rem;color:#444;line-height:1.8;margin-bottom:12px;">
+          אתר אירופאי המתמחה במשלוחי מזון כשר לאתרי סקי באיטליה ושווייץ. מזמינים אונליין ומקבלים את החבילה <b>בנקודת איסוף בצ'רוויניה</b> — ללא צורך לשאת אוכל מהבית.
+        </div>
+        <a href="https://www.kosher4u.eu/" target="_blank"
+          style="display:inline-block;padding:11px 24px;background:#2e7d32;color:white;border-radius:10px;text-decoration:none;font-size:0.92rem;font-weight:bold;">
+          🛒 להזמנה — Kosher4U
+        </a>
+      </div>
+      <div style="padding:11px 14px;background:#fffbf0;border:1px solid #fde8a0;border-radius:9px;font-size:0.8rem;color:#666;line-height:1.7;">
+        💡 מומלץ להזמין לפחות <b>שבוע מראש</b>, במיוחד בעונת שיא. ציין בהזמנה את תאריכי השהייה ופרטי הכתובת.
+      </div>
+    </div>
+
+    <!-- MILAN -->
+    <div id="kosh-panel-milan" style="display:none;">
+      <div style="font-size:0.8rem;color:#666;background:#f5f5f5;padding:9px 12px;border-radius:8px;margin-bottom:14px;">
+        🚗 מילאנו בדרך לצ'רוויניה — הזדמנות מצוינת להצטייד לפני העלייה לכפר
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
+
+        <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
+          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🥩 Simonato Kosher</div>
+          <div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Washington 9, Milano — ממש במרכז הקהילה</div>
+          <div style="font-size:0.77rem;color:#777;margin-bottom:7px;">בשר, נקניקים, גבינות, מוצרי מזון כשר למהדרין · א׳–ה׳ 9:00–19:00</div>
+          <a href="https://www.google.com/maps/search/kosher+milano+via+washington" target="_blank"
+            style="font-size:0.77rem;color:#1a73e8;">🗺️ מפה</a>
+        </div>
+
+        <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
+          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏪 Supermercato Kosher — Via Guastalla</div>
+          <div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Guastalla 19, Milano — ליד בית הכנסת הגדול</div>
+          <div style="font-size:0.77rem;color:#777;margin-bottom:7px;">סופר כשר מלא — שימורים, קפואים, יבש, חלבי ובשרי בנפרד</div>
+          <a href="https://www.google.com/maps/search/supermercato+kosher+via+guastalla+milano" target="_blank"
+            style="font-size:0.77rem;color:#1a73e8;">🗺️ מפה</a>
+        </div>
+
+        <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
+          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🍽️ מסעדות כשרות במילאנו</div>
+          <div style="font-size:0.77rem;color:#777;line-height:1.8;">
+            <a href="https://www.kosher.it/ristoranti/milano/" target="_blank" style="color:#1a73e8;">🔗 רשימה מלאה — Kosher.it</a><br>
+            מומלץ לאמת שעות פתיחה לפני הביקור
+          </div>
+        </div>
+
+      </div>
+      <div style="padding:10px 13px;background:#fffbf0;border:1px solid #fde8a0;border-radius:9px;font-size:0.79rem;color:#555;line-height:1.8;">
+        🛒 <b>מה כדאי לקנות במילאנו לשהייה בכפר:</b><br>
+        שימורי טונה · פסטה + רוטב · עוגיות · גבינות מאוטמות · מיצים · חטיפים לרכבל
+      </div>
+    </div>
+
+    <!-- TORINO -->
+    <div id="kosh-panel-torino" style="display:none;">
+      <div style="font-size:0.8rem;color:#666;background:#f5f5f5;padding:9px 12px;border-radius:8px;margin-bottom:14px;">
+        🚗 טורינו — כ-100 ק"מ מצ'רוויניה, עם קהילה יהודית פעילה ואפשרויות כשרות
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
+
+        <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
+          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏛️ Comunità Ebraica di Torino</div>
+          <div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Piazzetta Primo Levi 12, Torino</div>
+          <div style="font-size:0.77rem;color:#777;margin-bottom:7px;">מרכז הקהילה — בית כנסת, חנות כשרה, ומידע על אפשרויות בעיר</div>
+          <a href="https://www.torinoebraica.it/" target="_blank" style="font-size:0.77rem;color:#1a73e8;">🌐 אתר הקהילה</a>
+        </div>
+
+        <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
+          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🍽️ מסעדות ואוכל כשר בטורינו</div>
+          <div style="font-size:0.77rem;color:#777;line-height:1.8;">
+            <a href="https://www.kosher.it/ristoranti/torino/" target="_blank" style="color:#1a73e8;">🔗 רשימה מלאה — Kosher.it</a><br>
+            מומלץ לאמת שעות פתיחה לפני הביקור
+          </div>
+        </div>
+
+      </div>
+      <div style="padding:10px 13px;background:#e8f4fd;border:1px solid #c0d8f0;border-radius:9px;font-size:0.79rem;color:#1a5276;">
+        ℹ️ טורינו שימושית בעיקר אם מגיעים דרך נמל התעופה TRN או בדרך חזרה.
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="mapModal" class="modal" onclick="if(event.target===this)closeM('mapModal')">
+  <div class="modal-content" style="max-width:850px;height:80vh;">
+    <span class="close-btn" onclick="closeM('mapModal')">×</span>
+    <div style="display:flex;gap:10px;margin-bottom:15px;">
+      <button class="service-btn" style="flex:1" onclick="loadMap('piste')">⛷️ מסלולים PDF</button>
+      <button class="service-btn" style="flex:1" onclick="loadMap('town')">🏘️ הכפר</button>
+      <button class="service-btn" style="flex:1" onclick="loadMap('mymap')">📍 המפה שלי</button>
+    </div>
+    <div style="height:80%;border:1px solid #eee;border-radius:10px;overflow:hidden;">
+      <img id="map-img" src="" style="width:100%;height:100%;object-fit:contain;display:none;">
+      <iframe id="map-frame" src="" width="100%" height="100%" style="border:none;display:none;"></iframe>
+      <div id="map-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f8f9fa;color:#999;flex-direction:column;gap:10px;">
+        <span style="font-size:3rem;">🗺️</span>
+        <span>בחר מפה מלמעלה</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Admin Dashboard Modal ══ -->
+<div id="adminModal" class="modal" style="z-index:10000;">
+    <div class="modal-content" style="max-width:600px; padding:0; border-radius:20px; max-height:92vh; display:flex; flex-direction:column;">
+
+        <!-- כותרת -->
+        <div style="background:linear-gradient(160deg,#1a0a2e,#4a1a6e); padding:18px 20px 0; border-radius:20px 20px 0 0; flex-shrink:0;">
+            <span class="close-btn" onclick="closeM('adminModal')" style="color:white;opacity:0.7;top:12px;left:14px;">×</span>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                <span style="font-size:1.8rem;">⚙️</span>
+                <div>
+                    <div style="color:white;font-weight:bold;font-size:1.1rem;">לוח בקרה</div>
+                    <div style="color:#c8a0ff;font-size:0.75rem;">CerviniaLive Admin</div>
+                </div>
+            </div>
+            <!-- לשוניות -->
+            <div style="display:flex;gap:2px;">
+                <button id="adtab-stats" onclick="switchAdminTab('stats')"
+                    style="flex:1;padding:9px 4px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid white;border-radius:8px 8px 0 0;">
+                    📊 סטטיסטיקות
+                </button>
+                <button id="adtab-content" onclick="switchAdminTab('content')"
+                    style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
+                    📝 ניהול תוכן
+                </button>
+                <button id="adtab-users" onclick="switchAdminTab('users')"
+                    style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
+                    👥 משתמשים
+                </button>
+                <button id="adtab-system" onclick="switchAdminTab('system')"
+                    style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
+                    🔧 מערכת
+                </button>
+            </div>
+        </div>
+
+        <!-- תוכן גלילה -->
+        <div style="overflow-y:auto;flex:1;padding:18px;background:#fafafa;">
+
+            <!-- ══ סטטיסטיקות ══ -->
+            <div id="adtab-content-stats">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+                    <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);text-align:center;">
+                        <div style="font-size:2rem;font-weight:800;color:#4a1a6e;" id="stat-users">—</div>
+                        <div style="font-size:0.75rem;color:#888;margin-top:2px;">משתמשים רשומים</div>
+                    </div>
+                    <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);text-align:center;">
+                        <div style="font-size:2rem;font-weight:800;color:#0a192f;" id="stat-posts">—</div>
+                        <div style="font-size:0.75rem;color:#888;margin-top:2px;">פוסטים בפורום</div>
+                    </div>
+                    <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);text-align:center;">
+                        <div style="font-size:2rem;font-weight:800;color:#2ecc71;" id="stat-today-posts">—</div>
+                        <div style="font-size:0.75rem;color:#888;margin-top:2px;">פוסטים היום</div>
+                    </div>
+                    <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);text-align:center;">
+                        <div style="font-size:2rem;font-weight:800;color:#e74c3c;" id="stat-reactions">—</div>
+                        <div style="font-size:0.75rem;color:#888;margin-top:2px;">סה"כ תגובות</div>
+                    </div>
+                </div>
+
+                <!-- פעילות אחרונה -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:10px;">💬 פעילות אחרונה בפורום</div>
+                    <div id="admin-recent-posts" style="font-size:0.8rem;color:#555;"></div>
+                </div>
+
+                <!-- מצב live data -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:10px;">📡 נתונים חיים</div>
+                    <div id="admin-live-status" style="font-size:0.8rem;color:#555;line-height:1.8;"></div>
+                </div>
+            </div>
+
+            <!-- ══ ניהול תוכן ══ -->
+            <div id="adtab-content-content" style="display:none;">
+
+                <!-- באנר מערכת -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:8px;">🚨 הודעת מערכת / באנר חירום</div>
+                    <textarea id="admin-banner-text" placeholder="למשל: הרכבל העליון סגור היום בגלל רוח..." 
+                        style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;min-height:60px;resize:vertical;direction:rtl;font-family:inherit;"></textarea>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <select id="admin-banner-type" style="padding:7px;border:1px solid #ddd;border-radius:8px;font-size:0.82rem;flex:1;">
+                            <option value="info">ℹ️ מידע</option>
+                            <option value="warning">⚠️ אזהרה</option>
+                            <option value="success">✅ חיובי</option>
+                            <option value="danger">🔴 דחוף</option>
+                        </select>
+                        <button onclick="publishBanner()" style="padding:7px 14px;background:#4a1a6e;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:bold;">פרסם</button>
+                        <button onclick="clearBanner()" style="padding:7px 10px;background:#eee;color:#555;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;">מחק</button>
+                    </div>
+                </div>
+
+                <!-- ניהול פוסטים -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:8px;">📋 ניהול פוסטים</div>
+                    <div id="admin-posts-list" style="max-height:200px;overflow-y:auto;"></div>
+                </div>
+
+                <!-- עדכון נתון ידני -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:8px;">✏️ עדכון נתון ידני (אם Scraper נכשל)</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <div>
+                            <label style="font-size:0.75rem;color:#888;">מסלולים פתוחים</label>
+                            <input type="text" id="manual-slopes" placeholder="למשל: 12/18" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #ddd;border-radius:6px;font-size:0.85rem;margin-top:3px;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem;color:#888;">מעליות</label>
+                            <input type="text" id="manual-lifts" placeholder="למשל: 8/14" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #ddd;border-radius:6px;font-size:0.85rem;margin-top:3px;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem;color:#888;">טמפרטורה</label>
+                            <input type="text" id="manual-temp" placeholder="למשל: -5°C" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #ddd;border-radius:6px;font-size:0.85rem;margin-top:3px;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem;color:#888;">סטטוס צ'רמט</label>
+                            <select id="manual-zermatt" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #ddd;border-radius:6px;font-size:0.85rem;margin-top:3px;">
+                                <option value="">— לפי scraper —</option>
+                                <option value="OPEN">OPEN</option>
+                                <option value="CLOSED">CLOSED</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="applyManualData()" style="margin-top:10px;width:100%;padding:9px;background:#0a192f;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:bold;">
+                        ✅ החל נתונים ידניים
+                    </button>
+                </div>
+            </div>
+
+            <!-- ══ משתמשים ══ -->
+            <div id="adtab-content-users" style="display:none;">
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:10px;">👥 משתמשים רשומים</div>
+                    <div id="admin-users-list"></div>
+                    <div style="font-size:0.75rem;color:#aaa;margin-top:10px;text-align:center;">
+                        * בגרסה הנוכחית נתוני משתמשים ב-localStorage<br>
+                        בגרסה עם Supabase יהיה כאן ניהול מלא
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ מערכת ══ -->
+            <div id="adtab-content-system" style="display:none;">
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:10px;">🔍 מצב Scraper ו-Data</div>
+                    <div id="admin-system-status" style="font-size:0.82rem;color:#555;line-height:2;"></div>
+                </div>
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:10px;">📋 TODO — פיתוח עתידי</div>
+                    <div style="font-size:0.8rem;color:#555;line-height:1.8;">
+                        ⬜ מחשבון עלויות טיול<br>
+                        ⬜ מפת מסלולים אינטראקטיבית<br>
+                        ⬜ Supabase — users/posts אמיתיים<br>
+                        ⬜ Push notifications (שינוי סטטוס צ'רמט)<br>
+                        ⬜ אמוג'י גולש — לעדכן כשנמצא<br>
+                        ⬜ עמוד שגרירים / משתמשים מובילים
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+<div id="profileModal" class="modal" onclick="if(event.target===this)closeM('profileModal')">
+  <div class="modal-content" style="max-width:400px;">
+    <span class="close-btn" onclick="closeM('profileModal')">×</span>
+    <h3 style="margin:0 0 18px;font-size:1.1rem;">👤 הפרופיל שלי</h3>
+
+    <!-- Avatar + name row -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:14px;background:#f8f9fa;border-radius:11px;">
+      <div id="profile-avatar" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;"></div>
+      <div>
+        <div id="profile-name-display" style="font-weight:bold;font-size:1.05rem;"></div>
+        <div id="profile-joined" style="font-size:0.75rem;color:#aaa;margin-top:2px;"></div>
+      </div>
+    </div>
+
+    <!-- Editable fields -->
+    <div style="margin-bottom:12px;">
+      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">ענף</label>
+      <div style="display:flex;gap:8px;">
+        <label id="prof-ski-lbl" style="display:flex;align-items:center;gap:6px;cursor:pointer;flex:1;padding:9px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;transition:all 0.15s;">
+          <input type="radio" name="prof-disc" value="ski"> ⛷️ סקי
+        </label>
+        <label id="prof-sb-lbl" style="display:flex;align-items:center;gap:6px;cursor:pointer;flex:1;padding:9px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;transition:all 0.15s;">
+          <input type="radio" name="prof-disc" value="snowboard"> 🏂 סנובורד
+        </label>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">רמת סקי</label>
+      <select id="prof-level" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;background:white;">
+        <option value="">לא צוין</option>
+        <option value="מתחיל">🟢 מתחיל</option>
+        <option value="בינוני">🟡 בינוני</option>
+        <option value="מתקדם">🔴 מתקדם</option>
+        <option value="מקצועי">⚫ מקצועי</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">כמה פעמים ביקרת בצ'רוויניה?</label>
+      <select id="prof-visits" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;background:white;">
+        <option value="">לא ציין</option>
+        <option value="ראשון">🆕 פעם ראשונה (מתכנן)</option>
+        <option value="1">1 פעם</option>
+        <option value="2-3">2-3 פעמים</option>
+        <option value="4+">4+ פעמים</option>
+        <option value="וותיק">🏔️ וותיק מושבע</option>
+      </select>
+    </div>
+
+    <!-- Change password -->
+    <details style="margin-bottom:16px;">
+      <summary style="font-size:0.82rem;color:#888;cursor:pointer;padding:8px 0;">🔑 שינוי סיסמא</summary>
+      <div style="padding:10px 0 0;">
+        <input id="prof-pass-old" type="password" placeholder="סיסמא נוכחית"
+          style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;margin-bottom:8px;font-size:0.9rem;direction:rtl;font-family:inherit;">
+        <input id="prof-pass-new" type="password" placeholder="סיסמא חדשה (לפחות 4 תווים)"
+          style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:0.9rem;direction:rtl;font-family:inherit;">
+      </div>
+    </details>
+
+    <button onclick="saveProfile()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;margin-bottom:10px;">
+      💾 שמור שינויים
+    </button>
+
+
+    <div id="profile-msg" style="display:none;text-align:center;font-size:0.85rem;margin-top:10px;padding:8px;border-radius:8px;"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+
+<div id="skipassModal" class="modal" onclick="if(event.target===this)closeM('skipassModal')">
+  <div class="modal-content" style="max-width:580px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
+    <span class="close-btn" onclick="closeM('skipassModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;">🎫 סקי פס — צ'רוויניה</h3>
+    <p style="color:#888;font-size:0.82rem;margin:0 0 18px;">עונת 2025/2026 · מחירים לפי האתר הרשמי</p>
+
+    <!-- Pass type tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:18px;">
+      <button id="pass-tab-cervinia" onclick="switchPassTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;">🇮🇹 Cervinia</button>
+      <button id="pass-tab-zermatt" onclick="switchPassTab('zermatt')" class="ttab-btn" style="flex:1;">🇨🇭 + צ'רמט</button>
+    </div>
+
+    <!-- CERVINIA ONLY -->
+    <div id="pass-panel-cervinia">
+      <!-- Category legend -->
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;font-size:0.71rem;">
+        <span style="padding:2px 8px;background:#e8f4fd;border-radius:10px;">👶 Baby (אחרי 31/10/2017) — <b>חינם</b> עם הורה</span>
+        <span style="padding:2px 8px;background:#f0fff4;border-radius:10px;">🧒 Junior (אחרי 31/10/2009)</span>
+        <span style="padding:2px 8px;background:#fff8f0;border-radius:10px;">🧑 Young (אחרי 31/10/2001)</span>
+        <span style="padding:2px 8px;background:#f8f9fa;border-radius:10px;">🧔 Adult</span>
+        <span style="padding:2px 8px;background:#fdf0ff;border-radius:10px;">👴 Senior (לפני 31/05/1961)</span>
+        <span style="padding:2px 8px;background:#fff0f0;border-radius:10px;">🎉 Over 80 (לפני 01/11/1945) — <b>חינם!</b></span>
+      </div>
+      <div style="overflow-x:auto;margin-bottom:10px;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;min-width:380px;">
+          <thead>
+            <tr style="background:#0a192f;color:white;">
+              <th style="padding:7px 8px;text-align:right;border-radius:8px 0 0 0;">פס</th>
+              <th style="padding:7px 6px;text-align:center;">Junior</th>
+              <th style="padding:7px 6px;text-align:center;">Young</th>
+              <th style="padding:7px 6px;text-align:center;">Adult</th>
+              <th style="padding:7px 6px;text-align:center;border-radius:0 8px 0 0;">Senior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background:#f8f9fa;"><td style="padding:7px 8px;">🌅 בוקר/צהריים</td><td style="text-align:center;">€35.50</td><td style="text-align:center;">€40.50</td><td style="text-align:center;font-weight:bold;">€50.50</td><td style="text-align:center;">€44.50</td></tr>
+            <tr><td style="padding:7px 8px;">☀️ יום אחד</td><td style="text-align:center;">€44.00</td><td style="text-align:center;">€50.50</td><td style="text-align:center;font-weight:bold;">€63.00</td><td style="text-align:center;">€55.50</td></tr>
+            <tr style="background:#f8f9fa;"><td style="padding:7px 8px;">2 ימים</td><td style="text-align:center;">€84.50</td><td style="text-align:center;">€97.00</td><td style="text-align:center;font-weight:bold;">€121.00</td><td style="text-align:center;">€106.50</td></tr>
+            <tr><td style="padding:7px 8px;">3 ימים *</td><td style="text-align:center;">€124.50</td><td style="text-align:center;">€142.00</td><td style="text-align:center;font-weight:bold;">€177.50</td><td style="text-align:center;">€156.50</td></tr>
+            <tr style="background:#f8f9fa;"><td style="padding:7px 8px;">4 ימים *</td><td style="text-align:center;">€162.50</td><td style="text-align:center;">€185.50</td><td style="text-align:center;font-weight:bold;">€232.00</td><td style="text-align:center;">€204.00</td></tr>
+            <tr><td style="padding:7px 8px;">5 ימים *</td><td style="text-align:center;">€198.50</td><td style="text-align:center;">€227.00</td><td style="text-align:center;font-weight:bold;">€283.50</td><td style="text-align:center;">€249.50</td></tr>
+            <tr style="background:#f8f9fa;"><td style="padding:7px 8px;">6 ימים *</td><td style="text-align:center;">€233.00</td><td style="text-align:center;">€266.00</td><td style="text-align:center;font-weight:bold;">€332.50</td><td style="text-align:center;">€292.50</td></tr>
+            <tr><td style="padding:7px 8px;">7 ימים *</td><td style="text-align:center;">€265.50</td><td style="text-align:center;">€303.50</td><td style="text-align:center;font-weight:bold;">€379.50</td><td style="text-align:center;">€333.50</td></tr>
+            <tr style="background:#f0fff4;"><td style="padding:7px 8px;font-weight:bold;">עונה מלאה</td><td style="text-align:center;color:#27ae60;font-weight:bold;">€858</td><td style="text-align:center;color:#27ae60;font-weight:bold;">€980.50</td><td style="text-align:center;color:#27ae60;font-weight:bold;">€1,225.50</td><td style="text-align:center;color:#27ae60;font-weight:bold;">€980.50</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:0.71rem;color:#888;margin-bottom:6px;line-height:1.6;">
+        * מ-3 ימים: כולל יום אחד נוסף בכל אתר אחר בעמק אאוסטה.<br>
+        * Keycard (כרטיס חוזר) — €2.00 נוספים בקופה.<br>
+        * בוקר — עד 13:00. צהריים — מ-12:00.
+      </div>
+    </div>
+    <div id="pass-panel-zermatt" style="display:none;">
+      <div style="padding:10px 14px;background:#e8f4fd;border-radius:9px;border:1px solid #c0d8f0;margin-bottom:12px;font-size:0.82rem;color:#1a5276;">
+        🇨🇭 הפס המשולב כולל גישה לכל רמות צ'רמט (Zermatt Bergbahnen + GGB). ⚠️ <b>יש לצאת עם תעודת זהות</b> לשווייץ.
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;font-size:0.71rem;">
+        <span style="padding:2px 8px;background:#e8f4fd;border-radius:10px;">👶 ילדים (3-8) — <b>חינם</b> עם הורה</span>
+        <span style="padding:2px 8px;background:#f0fff4;border-radius:10px;">🧒 Junior (9-16)</span>
+        <span style="padding:2px 8px;background:#fff8f0;border-radius:10px;">🧑 Young (אחרי 31/10/2001)</span>
+        <span style="padding:2px 8px;background:#f8f9fa;border-radius:10px;">🧔 Adult</span>
+        <span style="padding:2px 8px;background:#fdf0ff;border-radius:10px;">👴 Senior (לפני 31/05/1961)</span>
+      </div>
+      <div style="overflow-x:auto;margin-bottom:10px;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;min-width:380px;">
+          <thead>
+            <tr style="background:#0a192f;color:white;">
+              <th style="padding:7px 8px;text-align:right;border-radius:8px 0 0 0;">פס</th>
+              <th style="padding:7px 6px;text-align:center;">Junior</th>
+              <th style="padding:7px 6px;text-align:center;">Young</th>
+              <th style="padding:7px 6px;text-align:center;">Adult</th>
+              <th style="padding:7px 6px;text-align:center;border-radius:0 8px 0 0;">Senior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background:#f8f9fa;"><td style="padding:7px 8px;">☀️ יום אחד</td><td style="text-align:center;">€61.00</td><td style="text-align:center;">€69.50</td><td style="text-align:center;font-weight:bold;">€87.00</td><td style="text-align:center;">€76.50</td></tr>
+            <tr><td style="padding:7px 8px;">2 ימים</td><td style="text-align:center;">€117.00</td><td style="text-align:center;">€133.50</td><td style="text-align:center;font-weight:bold;">€167.00</td><td style="text-align:center;">€147.00</td></tr>
+            <tr style="background:#f8f9fa;"><td style="padding:7px 8px;">3 ימים</td><td style="text-align:center;">€171.50</td><td style="text-align:center;">€196.50</td><td style="text-align:center;font-weight:bold;">€245.50</td><td style="text-align:center;">€216.00</td></tr>
+            <tr><td style="padding:7px 8px;">4 ימים</td><td style="text-align:center;">€224.00</td><td style="text-align:center;">€256.00</td><td style="text-align:center;font-weight:bold;">€320.00</td><td style="text-align:center;">€281.50</td></tr>
+            <tr style="background:#f8f9fa;"><td style="padding:7px 8px;">5 ימים</td><td style="text-align:center;">€274.00</td><td style="text-align:center;">€313.00</td><td style="text-align:center;font-weight:bold;">€391.50</td><td style="text-align:center;">€344.50</td></tr>
+            <tr><td style="padding:7px 8px;">6 ימים</td><td style="text-align:center;">€321.50</td><td style="text-align:center;">€367.50</td><td style="text-align:center;font-weight:bold;">€459.50</td><td style="text-align:center;">€404.00</td></tr>
+            <tr style="background:#f8f9fa;"><td style="padding:7px 8px;">7 ימים</td><td style="text-align:center;">€366.50</td><td style="text-align:center;">€419.00</td><td style="text-align:center;font-weight:bold;">€523.50</td><td style="text-align:center;">€461.00</td></tr>
+            <tr style="background:#f0fff4;"><td style="padding:7px 8px;font-weight:bold;">עונה מלאה</td><td style="text-align:center;color:#27ae60;font-weight:bold;">€1,009.50</td><td style="text-align:center;color:#27ae60;font-weight:bold;">€1,153.50</td><td style="text-align:center;color:#27ae60;font-weight:bold;">€1,442.00</td><td style="text-align:center;color:#27ae60;font-weight:bold;">€1,153.50</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:0.71rem;color:#888;margin-bottom:6px;line-height:1.6;">
+        ⚠️ <b>Matterhorn Alpine Crossing סגור 05/01 עד 27/02/2026</b> לתחזוקה. בתקופה זו אין מעבר לשווייץ.
+      </div>
+    </div>
+    <!-- Skipas Mobile -->
+    <div style="padding:13px 15px;background:linear-gradient(135deg,#f0f8ff,#e8f4fd);border:1.5px solid #4cc9f0;border-radius:11px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <span style="font-size:1.4rem;">📱</span>
+        <div>
+          <div style="font-weight:bold;font-size:0.92rem;">SkiPass Mobile — הפס בסמארטפון</div>
+          <div style="font-size:0.75rem;color:#555;">ללא תור בקופות — קונים אונליין והשער נפתח דרך הטלפון</div>
+        </div>
+      </div>
+      <a href="https://www.cervinia.it/en/ski-area/ski-passes/" target="_blank"
+        style="display:inline-block;padding:7px 16px;background:#4cc9f0;color:white;border-radius:8px;text-decoration:none;font-size:0.83rem;font-weight:bold;">
+        📱 רכישה ב-Skipas Mobile
+      </a>
+    </div>
+
+    <!-- Discounts -->
+    <div style="padding:12px 15px;background:#fffbf0;border:1px solid #fde8a0;border-radius:10px;margin-bottom:14px;">
+      <div style="font-weight:bold;font-size:0.85rem;margin-bottom:8px;">💡 הנחות וחינמיות שכדאי לדעת:</div>
+      <div style="font-size:0.81rem;color:#555;line-height:2.1;">
+        👶 <b>Baby (נולד אחרי 31/10/2017)</b> — חינם עם פס הורה; ללא הורה: 75% הנחה<br>
+        🎉 <b>Over 80 (נולד לפני 01/11/1945)</b> — פס יומי וחינם לגמרי!<br>
+        🧒 <b>Junior</b> — נולד אחרי 31/10/2009 · <b>Young</b> — נולד אחרי 31/10/2001<br>
+        👴 <b>Senior</b> — נולד לפני 31/05/1961 (יש להציג ת.ז.)<br>
+        👥 <b>קבוצות</b> — פס חינם על כל 15 שרוכשים (הפס ה-16)<br>
+        🗓️ <b>רכישה מראש אונליין</b> — ממוצע 5-10% זול יותר<br>
+        🏨 <b>מבצע אפריל 2026</b> — 30% הנחה עם 4+ לילות ו-4+ ימי סקי<br>
+        🎓 <b>סטודנטים</b> — Aosta Valley University Pass (יומי + 6 ימים)</div>
+      <div style="font-size:0.81rem;color:#555;line-height:2.1;">
+        👶 <b>Kids (עד 7)</b> — חינם בצ'רוויניה; עד גיל 8 חינם בפס הבינלאומי (עם פס הורה)<br>
+        🧒 <b>Junior (8-14)</b> — ~25% הנחה מול מבוגר<br>
+        🧑 <b>Youth / Teen (15-17)</b> — ~15% הנחה מול מבוגר<br>
+        👴 <b>Senior (65+)</b> — ~15% הנחה מול מבוגר<br>
+        👴👴 <b>Senior מאוד (לפני 1944)</b> — פס חינם!<br>
+        ♿ <b>נכים</b> — הנחה משמעותית, יש להציג תעודה בקופה<br>
+        🎓 <b>סטודנטים</b> — Aosta Valley University Pass, הנחה על יומי ו-6 ימים<br>
+        🗓️ <b>רכישה מראש אונליין</b> — לרוב 5-10% זול יותר מהקופה<br>
+        🏨 <b>לינה בצ'רוויניה</b> — מ-7 אפריל 2026: 30% הנחה עם 4 לילות + 4 ימי סקי בבתי מלון שותפים
+      </div>
+    </div>
+
+    <!-- Buy online buttons -->
+    <div style="border-top:1px solid #eee;padding-top:14px;">
+      <div style="font-size:0.78rem;color:#888;margin-bottom:8px;">רכישה מראש אונליין:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="https://www.cervinia.it/en/ski-area/ski-passes/" target="_blank"
+          style="padding:9px 16px;background:#0a192f;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;">
+          🌐 אתר רשמי Cervinia
+        </a>
+        <a href="https://www.matterhornski.it/en/ski-passes" target="_blank"
+          style="padding:9px 16px;background:#e74c3c;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;">
+          🇨🇭 Matterhorn Ski Paradise
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- 🚨 Alert Modal -->
+<div id="alertModal" class="modal" onclick="if(event.target===this)closeM('alertModal')">
+  <div class="modal-content" style="max-width:420px;">
+    <span class="close-btn" onclick="closeM('alertModal')">×</span>
+    <h3 style="margin:0 0 6px;color:#e74c3c;">🚨 דיווח מיידי — תנאי שטח</h3>
+    <p style="font-size:0.8rem;color:#888;margin:0 0 16px;">הדיווח יופיע בראש האתר לכל המשתמשים. לדיווחים חשובים בלבד.</p>
+
+    <!-- Preset buttons -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:0.78rem;color:#888;margin-bottom:8px;">בחר מהיר:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <button onclick="fillAlert('⚠️ רוחות חזקות — הגבלות על רכבלים עיליים', 'warning')" style="padding:6px 10px;border:1.5px solid #ffc107;background:#fff8e1;border-radius:8px;font-size:0.78rem;cursor:pointer;">💨 רוחות חזקות</button>
+        <button onclick="fillAlert('🌫️ ראות לקויה — עננות כבדה בגבהים', 'warning')" style="padding:6px 10px;border:1.5px solid #ffc107;background:#fff8e1;border-radius:8px;font-size:0.78rem;cursor:pointer;">🌫️ ראות לקויה</button>
+        <button onclick="fillAlert('🚡 הגונדולה הראשית סגורה כרגע', 'danger')" style="padding:6px 10px;border:1.5px solid #e74c3c;background:#fdf0f0;border-radius:8px;font-size:0.78rem;cursor:pointer;">🚡 גונדולה סגורה</button>
+        <button onclick="fillAlert('❄️ שלג כבד — מסלולים מוגבלים, זהירות', 'warning')" style="padding:6px 10px;border:1.5px solid #ffc107;background:#fff8e1;border-radius:8px;font-size:0.78rem;cursor:pointer;">❄️ שלג כבד</button>
+        <button onclick="fillAlert('🟢 התנאים השתפרו — כל הרכבלים פתוחים', 'info')" style="padding:6px 10px;border:1.5px solid #0dcaf0;background:#f0fbff;border-radius:8px;font-size:0.78rem;cursor:pointer;">✅ כל רכבלים פתוחים</button>
+        <button onclick="fillAlert('⛔ כל הרכבלים סגורים עקב תנאי מזג אוויר קיצוניים', 'danger')" style="padding:6px 10px;border:1.5px solid #e74c3c;background:#fdf0f0;border-radius:8px;font-size:0.78rem;cursor:pointer;">⛔ כל רכבלים סגורים</button>
+      </div>
+    </div>
+
+    <!-- Custom text -->
+    <div style="margin-bottom:10px;">
+      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">או כתוב הודעה מותאמת:</label>
+      <textarea id="alert-text-input" rows="2" placeholder="למשל: הכביש לעיירה חסום בגלל שלג..."
+        style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;resize:none;direction:rtl;"></textarea>
+    </div>
+
+    <!-- Severity -->
+    <div style="margin-bottom:16px;">
+      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:6px;">רמת חומרה:</label>
+      <div style="display:flex;gap:8px;">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:7px 12px;border:1.5px solid #ffc107;border-radius:8px;font-size:0.82rem;">
+          <input type="radio" name="alert-severity" value="warning" checked> ⚠️ אזהרה
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:7px 12px;border:1.5px solid #e74c3c;border-radius:8px;font-size:0.82rem;">
+          <input type="radio" name="alert-severity" value="danger"> 🚨 דחוף
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:7px 12px;border:1.5px solid #0dcaf0;border-radius:8px;font-size:0.82rem;">
+          <input type="radio" name="alert-severity" value="info"> ℹ️ מידע
+        </label>
+      </div>
+    </div>
+
+    <button onclick="submitAlert()" style="width:100%;padding:12px;background:#e74c3c;color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+      📢 פרסם התראה לכולם
+    </button>
+    <div style="font-size:0.72rem;color:#aaa;text-align:center;margin-top:8px;">ההתראה תופיע בראש האתר עם שמך. ניתן לסגור אותה.</div>
+  </div>
+</div>
+
+
+<!-- 📷 Webcam Modal -->
+<div id="webcamModal" class="modal" onclick="if(event.target===this)closeM('webcamModal')">
+  <div class="modal-content" style="max-width:660px;max-height:94vh;overflow-y:auto;padding:24px 20px;">
+    <span class="close-btn" onclick="closeM('webcamModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;">📷 מצלמות חי — Cervinia</h3>
+    <p style="color:#888;font-size:0.8rem;margin:0 0 16px;">תמונות מתעדכנות כל מספר דקות מהאתר הרשמי</p>
+
+    <!-- Area filter tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+      <button id="wcam-tab-all"       onclick="filterCams('all')"       class="ttab-btn ttab-active" style="font-size:0.8rem;padding:6px 12px;">🌐 הכל</button>
+      <button id="wcam-tab-cervinia"  onclick="filterCams('cervinia')"  class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;">🇮🇹 צ'רוויניה</button>
+      <button id="wcam-tab-valt"      onclick="filterCams('valt')"      class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;">🏔️ ולטורנאנש</button>
+      <button id="wcam-tab-zermatt"   onclick="filterCams('zermatt')"   class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;">🇨🇭 צ'רמט</button>
+    </div>
+
+    <!-- Camera grid -->
+    <div id="webcam-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;">
+
+      <!-- CERVINIA cameras - live API images -->
+      <div class="wcam-card" data-area="cervinia">
+        <div class="wcam-label">🇮🇹 Plan Maison</div>
+        <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_PLANMAISON.jpg"
+             class="wcam-img" alt="Plan Maison" onclick="openCamFull(this)"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <div class="wcam-card" data-area="cervinia">
+        <div class="wcam-label">🇮🇹 Cretaz</div>
+        <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_CRETAZ.jpg"
+             class="wcam-img" alt="Cretaz" onclick="openCamFull(this)"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <div class="wcam-card" data-area="cervinia">
+        <div class="wcam-label">🇮🇹 Cime Bianche Laghi</div>
+        <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_CIMEBIANCHELAGHI.jpg"
+             class="wcam-img" alt="Cime Bianche Laghi" onclick="openCamFull(this)"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <div class="wcam-card" data-area="cervinia">
+        <div class="wcam-label">🇮🇹 Plateau Rosa</div>
+        <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_PLATEAUROSA.jpg"
+             class="wcam-img" alt="Plateau Rosa" onclick="openCamFull(this)"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <div class="wcam-card" data-area="cervinia">
+        <div class="wcam-label">🇮🇹 Pancheron</div>
+        <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_PANCHERON.jpg"
+             class="wcam-img" alt="Pancheron" onclick="openCamFull(this)"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <!-- VALTOURNENCHE cameras -->
+      <div class="wcam-card" data-area="valt">
+        <div class="wcam-label">🏔️ Salette</div>
+        <img src="https://cervinia-api.devtherocks.it/api/webcam/CBWC_AREA_SALETTE.jpg"
+             class="wcam-img" alt="Salette" onclick="openCamFull(this)"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <div class="wcam-card" data-area="valt">
+        <div class="wcam-label">🏔️ Seggiovia Motta</div>
+        <img src="https://cervinia-api.devtherocks.it/api/webcam/CBWC_AREA_MOTTA_M.jpg"
+             class="wcam-img" alt="Motta" onclick="openCamFull(this)"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <div class="wcam-card" data-area="valt">
+        <div class="wcam-label">🏔️ Du Col Monte</div>
+        <img src="https://cervinia-api.devtherocks.it/api/webcam/CBWC_AREA_DUCOL_M.jpg"
+             class="wcam-img" alt="Du Col" onclick="openCamFull(this)"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <div class="wcam-card" data-area="valt">
+        <div class="wcam-label">🏔️ Gran Sommetta</div>
+        <img src="https://cervinia-api.devtherocks.it/api/webcam/CBWC_AREA_SOMETTA.jpg"
+             class="wcam-img" alt="Sommetta" onclick="openCamFull(this)"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+
+      <!-- ZERMATT / external links -->
+      <div class="wcam-card" data-area="zermatt">
+        <div class="wcam-label">🇨🇭 Matterhorn Glacier Paradise</div>
+        <a href="https://zbag.roundshot.com/matterhornglacierparadise/#/" target="_blank"
+           style="display:block;background:#0a192f;border-radius:8px;padding:32px 16px;text-align:center;text-decoration:none;color:white;font-size:0.83rem;">
+          🔗 פתח מצלמה חיה<br><span style="font-size:0.72rem;opacity:0.7;">Roundshot 360°</span>
+        </a>
+      </div>
+
+      <div class="wcam-card" data-area="zermatt">
+        <div class="wcam-label">🇨🇭 Plateau Rosa — Panoramic</div>
+        <a href="https://cervinia.panomax.com/plateau-rosa" target="_blank"
+           style="display:block;background:#1a3a5c;border-radius:8px;padding:32px 16px;text-align:center;text-decoration:none;color:white;font-size:0.83rem;">
+          🔗 פתח Panomax<br><span style="font-size:0.72rem;opacity:0.7;">360° + היסטוריה</span>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Refresh + full site link -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:8px;">
+      <button onclick="refreshCams()" style="padding:8px 16px;background:#0a192f;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.83rem;">
+        🔄 רענן תמונות
+      </button>
+      <a href="https://www.cervinia.it/en/webcam" target="_blank"
+         style="font-size:0.8rem;color:#1a73e8;text-decoration:none;">
+        🌐 כל המצלמות באתר הרשמי ↗
+      </a>
+    </div>
+
+    <!-- Fullscreen overlay -->
+    <div id="cam-fullscreen" onclick="closeCamFull()"
+         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;">
+      <img id="cam-full-img" style="max-width:95vw;max-height:90vh;border-radius:8px;box-shadow:0 0 40px rgba(0,0,0,0.8);">
+      <div id="cam-full-label" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:white;font-size:0.9rem;background:rgba(0,0,0,0.5);padding:6px 16px;border-radius:20px;"></div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- 🅿️ Parking + 🚨 Emergency Modal -->
+<div id="parkingModal" class="modal" onclick="if(event.target===this)closeM('parkingModal')">
+  <div class="modal-content" style="max-width:540px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
+    <span class="close-btn" onclick="closeM('parkingModal')">×</span>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:18px;">
+      <button id="park-tab-parking"   onclick="switchParkTab('parking')"   class="ttab-btn ttab-active" style="flex:1;">🅿️ חניה וכביש</button>
+      <button id="park-tab-emergency" onclick="switchParkTab('emergency')" class="ttab-btn" style="flex:1;">🚨 חירום</button>
+    </div>
+
+    <!-- PARKING TAB -->
+    <div id="park-panel-parking">
+      <h3 style="margin:0 0 14px;font-size:1.05rem;">🅿️ חניה בצ'רוויניה</h3>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+
+        <!-- Paid parking -->
+        <div style="padding:12px 14px;border:2px solid #e74c3c;border-radius:10px;background:#fff5f5;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <div style="font-weight:bold;font-size:0.9rem;">🔴 Parcheggio Cervino Ski Paradise</div>
+            <span style="font-size:0.72rem;background:#e74c3c;color:white;padding:2px 8px;border-radius:10px;">💶 בתשלום</span>
+          </div>
+          <div style="font-size:0.8rem;color:#555;line-height:1.8;margin-bottom:7px;">
+            📍 צמוד לגונדולה הראשית — <b>הנוחה ביותר</b><br>
+            💶 €10 ליום (07:01–19:00) · €1.50/שעה בלילה · 30 דקות ראשונות חינם לפריקה<br>
+            ⚡ תחנות טעינה לרכב חשמלי · תשלום QR קוד בנייד
+          </div>
+          <a href="https://www.cervinia.it/en/parcheggio-cervino-ski-paradise" target="_blank"
+            style="font-size:0.78rem;color:#1a73e8;">🌐 מידע רשמי ↗</a>
+          &nbsp;·&nbsp;
+          <a href="https://maps.app.goo.gl/parking-cervinia-gondola" target="_blank"
+            style="font-size:0.78rem;color:#1a73e8;">🗺️ מפה</a>
+        </div>
+
+        <!-- Free parking 1 -->
+        <div style="padding:12px 14px;border:2px solid #27ae60;border-radius:10px;background:#f0fff4;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <div style="font-weight:bold;font-size:0.9rem;">🟢 חניון חינם — כניסה לכפר (Hotel Breithorn)</div>
+            <span style="font-size:0.72rem;background:#27ae60;color:white;padding:2px 8px;border-radius:10px;">✅ חינם</span>
+          </div>
+          <div style="font-size:0.8rem;color:#555;line-height:1.8;margin-bottom:7px;">
+            📍 מימין ביציאה מהמנהרה, מול Hotel Breithorn — בכניסה לכפר<br>
+            🚶 הליכה ~10 דקות למעליות · גדול ונוח<br>
+            ⚠️ בסופ"ש וחגים מתמלא מוקדם — הגיעו לפני 9:00
+          </div>
+          <a href="https://maps.app.goo.gl/Yj1FY5zCJusw74pS8" target="_blank"
+            style="font-size:0.78rem;color:#27ae60;font-weight:bold;">🗺️ מיקום בגוגל מפות ↗</a>
+        </div>
+
+        <!-- Free parking 2 -->
+        <div style="padding:12px 14px;border:2px solid #27ae60;border-radius:10px;background:#f0fff4;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <div style="font-weight:bold;font-size:0.9rem;">🟢 חניון חינם — Plan Maison (עליון)</div>
+            <span style="font-size:0.72rem;background:#27ae60;color:white;padding:2px 8px;border-radius:10px;">✅ חינם</span>
+          </div>
+          <div style="font-size:0.8rem;color:#555;line-height:1.8;margin-bottom:7px;">
+            📍 מאחורי תחנת הרכבל Plan Maison — בצד שמאל של המנהרה<br>
+            🚶 קצת יותר הליכה, אבל גדול ושקט<br>
+            💡 אפשרות טובה לשהות ארוכות
+          </div>
+          <a href="https://goo.gl/maps/2tsnV2w6nPwmbKjc8" target="_blank"
+            style="font-size:0.78rem;color:#27ae60;font-weight:bold;">🗺️ מיקום בגוגל מפות ↗</a>
+        </div>
+
+        <!-- Tips -->
+        <div style="padding:12px 14px;background:#fff8e1;border:1px solid #ffe082;border-radius:9px;font-size:0.8rem;color:#555;line-height:1.9;">
+          💡 <b>טיפים חשובים:</b><br>
+          🚗 <b>בסופ"ש וחגים</b> — כביש SR46 עמוס. צאו מוקדם!<br>
+          ⛓️ <b>שרשראות שלג</b> — חובה לפעמים בכביש העלייה<br>
+          🏨 <b>אורחי מלון</b> — בדקו אם החניה כלולה במחיר<br>
+          ⚡ יש תחנות טעינה לרכב חשמלי בחניון הראשי
+        </div>
+
+      </div>
+
+      <!-- Road status -->
+      <div style="border-top:1px solid #eee;padding-top:12px;">
+        <div style="font-size:0.85rem;font-weight:bold;margin-bottom:9px;">🛣️ מצב כביש SR46 — אאוסטה ← → צ'רוויניה</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <a href="https://www.viabilita.regione.vda.it/" target="_blank"
+            style="padding:10px 14px;background:#1a73e8;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;display:block;text-align:center;">
+            🔴 מצב כביש חי — Regione VDA
+          </a>
+          <a href="https://www.google.com/maps/dir/Milano/Breuil-Cervinia" target="_blank"
+            style="padding:10px 14px;background:#0a192f;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;display:block;text-align:center;">
+            🗺️ ניווט ל-Cervinia — Google Maps
+          </a>
+        </div>
+        <div style="margin-top:9px;font-size:0.76rem;color:#888;line-height:1.7;">
+          📻 רדיו VDA: FM 97.8 · חסימות דרכים: <a href="tel:800007772" style="color:#1a73e8;">800 007 772</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMERGENCY TAB --><!-- EMERGENCY TAB -->
+    <div id="park-panel-emergency" style="display:none;">
+      <h3 style="margin:0 0 14px;font-size:1.05rem;color:#c0392b;">🚨 מספרי חירום</h3>
+
+      <!-- Main emergency numbers -->
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+
+        <a href="tel:118" style="padding:14px 16px;background:#c0392b;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:1.8rem;">🚑</span>
+          <div><div style="font-weight:bold;font-size:1.1rem;">118 — אמבולנס / מדיקל</div><div style="font-size:0.78rem;opacity:0.85;">מוקד רפואי לאומי איטליה</div></div>
+        </a>
+
+        <a href="tel:112" style="padding:14px 16px;background:#1a237e;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:1.8rem;">🚓</span>
+          <div><div style="font-weight:bold;font-size:1.1rem;">112 — חירום כללי</div><div style="font-size:0.78rem;opacity:0.85;">משטרה, כיבוי אש, הצלה — אירופה</div></div>
+        </a>
+
+        <a href="tel:115" style="padding:14px 16px;background:#e65100;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:1.8rem;">🚒</span>
+          <div><div style="font-weight:bold;font-size:1.1rem;">115 — כיבוי אש</div><div style="font-size:0.78rem;opacity:0.85;">Vigili del Fuoco</div></div>
+        </a>
+
+        <a href="tel:+39016694016" style="padding:14px 16px;background:#2e7d32;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:1.8rem;">🏔️</span>
+          <div><div style="font-weight:bold;font-size:1.1rem;">Soccorso Alpino</div><div style="font-size:0.78rem;opacity:0.85;">חילוץ הרים — Cervinia: +39 0166 94 016</div></div>
+        </a>
+
+        <a href="tel:+390166941111" style="padding:14px 16px;background:#4a148c;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:1.8rem;">🏥</span>
+          <div><div style="font-weight:bold;font-size:1.1rem;">בית חולים — Aosta</div><div style="font-size:0.78rem;opacity:0.85;">Ospedale Regionale: +39 0165 543 111</div></div>
+        </a>
+
+      </div>
+
+      <!-- Additional info -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="padding:11px 14px;background:#fff8e1;border:1px solid #ffe082;border-radius:9px;font-size:0.8rem;color:#555;line-height:1.7;">
+          🏥 <b>תחנת עזרה ראשונה בכפר:</b><br>
+          Ambulatorio Medico — ברחוב הראשי של Breuil-Cervinia<br>
+          <span style="font-size:0.73rem;color:#888;">פתוח בעונה · בדוק שעות עדכניות</span>
+        </div>
+
+        <div style="padding:11px 14px;background:#e8f4fd;border:1px solid #c0d8f0;border-radius:9px;font-size:0.8rem;color:#1a5276;line-height:1.7;">
+          🇮🇱 <b>שגרירות ישראל ברומא:</b><br>
+          <a href="tel:+39065479441" style="color:#1a5276;">+39 06 5479 441</a><br>
+          <b>קונסוליה כללית במילאנו:</b><br>
+          <a href="tel:+390248013844" style="color:#1a5276;">+39 02 4801 3844</a>
+        </div>
+
+        <div style="padding:11px 14px;background:#fce4ec;border:1px solid #f48fb1;border-radius:9px;font-size:0.8rem;color:#880e4f;line-height:1.7;">
+          ⛷️ <b>תאונת סקי בשטח?</b><br>
+          1. עצור ושמור על הנפגע חמים<br>
+          2. הנח גלשניים X מעל לנפגע לסימון<br>
+          3. חייג 118 ומסור מיקום GPS מהטלפון
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- PWA Install Banner -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;
+  background:linear-gradient(135deg,#0a192f,#1a3a6c);color:white;
+  padding:14px 20px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);
+  display:none;align-items:center;gap:12px;flex-wrap:wrap;">
+  <span style="font-size:1.6rem;">🏔️</span>
+  <div style="flex:1;min-width:180px;">
+    <div style="font-weight:bold;font-size:0.95rem;">התקן את CerviniaLive</div>
+    <div style="font-size:0.78rem;opacity:0.8;">גישה מהירה · עבודה אופליין · כמו אפליקציה</div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button onclick="installPWA()" style="padding:9px 18px;background:#4cc9f0;color:#0a192f;border:none;border-radius:9px;font-weight:bold;cursor:pointer;font-size:0.88rem;">
+      📲 התקן
+    </button>
+    <button onclick="dismissPWA()" style="padding:9px 14px;background:rgba(255,255,255,0.15);color:white;border:none;border-radius:9px;cursor:pointer;font-size:0.88rem;">
+      ✕
+    </button>
+  </div>
+</div>
+
+
+
+
+
+
+
+<!-- 🔴 Community Alerts Button -->
+<div id="alert-fab" onclick="openAlertPanel()"
+  style="position:fixed;bottom:22px;left:22px;z-index:9000;
+         width:56px;height:56px;border-radius:50%;
+         background:linear-gradient(135deg,#e74c3c,#c0392b);
+         box-shadow:0 4px 16px rgba(231,76,60,0.5);
+         display:flex;align-items:center;justify-content:center;
+         cursor:pointer;user-select:none;">
+  <span style="font-size:1.5rem;">📢</span>
+  <!-- Unread badge -->
+  <div id="alert-badge" style="display:none;position:absolute;top:-2px;right:-2px;
+    width:18px;height:18px;border-radius:50%;background:#ff0;color:#c0392b;
+    font-size:0.65rem;font-weight:900;display:flex;align-items:center;justify-content:center;
+    border:2px solid white;"></div>
+</div>
+
+<!-- Alerts Panel Modal -->
+<div id="alertModal" class="modal" onclick="if(event.target===this)closeM('alertModal')" style="display:none;">
+  <div class="modal-content" style="max-width:480px;max-height:90vh;overflow-y:auto;padding:22px 20px;">
+    <span class="close-btn" onclick="closeM('alertModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.05rem;">📢 התראות שטח</h3>
+    <p style="color:#888;font-size:0.78rem;margin:0 0 14px;">עדכונים דחופים מגולשים — מסלולים, תנאים, אירועים</p>
+
+    <!-- Write alert (logged in only) -->
+    <div id="alert-write-area" style="margin-bottom:14px;"></div>
+
+    <!-- Alerts list -->
+    <div id="alerts-list" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="text-align:center;color:#aaa;font-size:0.82rem;padding:16px;">טוען...</div>
+    </div>
+  </div>
+</div>
+
+
+
+
 </body>
 </html>
