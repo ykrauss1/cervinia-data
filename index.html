@@ -127,6 +127,17 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         <circle cx="13" cy="13" r="1.5" fill="white"/>
       </svg>
       <div style="font-size:1.3rem;font-weight:bold;line-height:1;">Cervinia<span style="color:var(--accent)">Live</span></div>
+      <!-- חיפוש בנאב -->
+      <div id="global-search-bar" style="position:relative;margin-right:12px;">
+        <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:5px 12px;">
+          <span style="color:rgba(255,255,255,0.55);font-size:0.85rem;">🔍</span>
+          <input id="global-search-input" type="text" autocomplete="off" placeholder="חיפוש..."
+            oninput="globalSearch(this.value)"
+            style="background:none;border:none;outline:none;color:white;font-size:0.8rem;width:110px;direction:rtl;"
+            onfocus="this.style.width='170px'" onblur="if(!this.value)this.style.width='110px'">
+        </div>
+        <div id="global-search-results" style="display:none;position:absolute;z-index:9999;top:calc(100% + 6px);right:0;min-width:250px;background:white;border:1px solid #ddd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-height:320px;overflow-y:auto;"></div>
+      </div>
     </div>
 
     <div id="auth-area"></div>
@@ -139,11 +150,11 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 <div class="container">
 
   <!-- בר נתונים חי -->
-  <div id="live-data-bar" onclick="openM('forecastModal')" style="margin:14px 0;cursor:pointer;">
-    <div style="background:linear-gradient(135deg,#0a192f,#162d5a);border-radius:14px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 3px 14px rgba(0,0,0,0.2);transition:transform 0.15s,box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.28)'" onmouseout="this.style.transform='';this.style.boxShadow='0 3px 14px rgba(0,0,0,0.2)'">
+  <div id="live-data-bar" style="margin:14px 0;">
+    <div style="background:linear-gradient(135deg,#0a192f,#162d5a);border-radius:0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 3px 14px rgba(0,0,0,0.2);">
 
       <!-- Stats group -->
-      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
 
         <div style="text-align:center;">
           <div id="bar-temp" style="color:white;font-size:1.25rem;font-weight:800;line-height:1;">--°</div>
@@ -194,37 +205,46 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
       </div>
 
-      <!-- Right: zermatt + forecast hint -->
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-        <!-- Matterhorn SVG badge -->
-        <!-- Matterhorn + זרמט + תחזית — הכל ביחד -->
-        <div style="display:flex;flex-direction:row;align-items:center;gap:10px;">
-          <!-- הר גדול ובולט -->
-          <div id="bar-zermatt" style="cursor:default;position:relative;flex-shrink:0;">
-            <svg id="matterhorn-svg" width="60" height="54" viewBox="0 0 52 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
-                  <feGaussianBlur stdDeviation="3" result="blur"/>
-                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                </filter>
-              </defs>
-              <polygon points="24,6 2,46 46,46" fill="#1e2d40" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
-              <polygon points="24,6 16,21 32,21" fill="rgba(255,255,255,0.92)"/>
-              <line x1="24" y1="6" x2="32" y2="21" stroke="rgba(255,255,255,0.45)" stroke-width="1"/>
-              <circle id="matterhorn-dot" cx="36" cy="8" r="8" fill="#e74c3c" filter="url(#glow)"/>
-              <circle cx="36" cy="8" r="4.5" fill="white" opacity="0.95"/>
-            </svg>
-          </div>
-          <!-- טקסט: זרמט + תחזית -->
-          <div style="display:flex;flex-direction:column;gap:3px;">
-            <div style="display:flex;flex-direction:column;gap:1px;">
-              <div id="zermatt-label" style="font-size:0.68rem;font-weight:800;letter-spacing:0.3px;color:#e74c3c;">חיבור לצ'רמט</div>
-              <div id="zermatt-status" style="font-size:0.6rem;font-weight:600;color:rgba(255,255,255,0.35);">סגור</div>
-            </div>
-            <div id="forecast-tomorrow-text" style="color:rgba(255,255,255,0.55);font-size:0.68rem;">טוען תחזית...</div>
-            <div style="color:rgba(76,201,240,0.55);font-size:0.62rem;cursor:pointer;">לחץ לתחזית 4 ימים ▼</div>
-          </div>
+      <!-- Right: מטרהורן + זרמט + כפתור תחזית -->
+      <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
+
+        <!-- קו הפרדה -->
+        <div style="width:1px;height:52px;background:rgba(255,255,255,0.12);"></div>
+
+        <!-- הר מטרהורן גדול -->
+        <div id="bar-zermatt" style="cursor:default;position:relative;">
+          <svg id="matterhorn-svg" width="80" height="70" viewBox="0 0 56 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <!-- גוף ההר -->
+            <polygon points="26,6 2,50 50,50" fill="#1e2d40" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+            <!-- כיפת שלג -->
+            <polygon points="26,6 17,23 35,23" fill="rgba(255,255,255,0.95)"/>
+            <!-- קו שלוחה ימנית -->
+            <line x1="26" y1="6" x2="35" y2="23" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+            <!-- עיגול מעבר — צמוד לפסגה מימין -->
+            <circle id="matterhorn-dot" cx="39" cy="9" r="9" fill="#e74c3c" filter="url(#glow)"/>
+            <circle cx="39" cy="9" r="5" fill="white" opacity="0.95"/>
+          </svg>
         </div>
+
+        <!-- שם + סטטוס -->
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div>
+            <div id="zermatt-label" style="font-size:0.75rem;font-weight:800;color:#e74c3c;">חיבור לצ'רמט</div>
+            <div id="zermatt-status" style="font-size:0.62rem;color:rgba(255,255,255,0.4);">סגור</div>
+          </div>
+          <!-- כפתור תחזית נפרד -->
+          <button onclick="openM('forecastModal')" style="background:rgba(76,201,240,0.15);border:1px solid rgba(76,201,240,0.4);color:#4cc9f0;font-size:0.65rem;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">
+            📅 תחזית 4 ימים ▼
+          </button>
+          <div id="forecast-tomorrow-text" style="color:rgba(255,255,255,0.45);font-size:0.62rem;"></div>
+        </div>
+
       </div>
 
     </div>
@@ -245,36 +265,16 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   </div>
 
   <!-- Why Cervinia card -->
-  <div onclick="openM('whyModal')" style="margin-bottom:25px;border-radius:16px;overflow:hidden;cursor:pointer;position:relative;height:160px;background:linear-gradient(135deg,#0a192f,#1a3a6c);box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform=''">
-    <!-- Snow effect dots -->
-    <div style="position:absolute;inset:0;overflow:hidden;opacity:0.15;">
-      <div style="position:absolute;width:4px;height:4px;background:white;border-radius:50%;top:20%;left:15%;"></div>
-      <div style="position:absolute;width:3px;height:3px;background:white;border-radius:50%;top:40%;left:35%;"></div>
-      <div style="position:absolute;width:5px;height:5px;background:white;border-radius:50%;top:65%;left:60%;"></div>
-      <div style="position:absolute;width:3px;height:3px;background:white;border-radius:50%;top:25%;left:80%;"></div>
-      <div style="position:absolute;width:4px;height:4px;background:white;border-radius:50%;top:75%;left:25%;"></div>
-    </div>
-    <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px;">
-      <!-- Mountain SVG icon -->
-      <div style="margin-bottom:10px;">
-        <svg width="52" height="36" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="26,2 50,34 2,34" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>
-          <polygon points="26,2 38,18 14,18" fill="rgba(255,255,255,0.25)"/>
-          <!-- Skier -->
-          <circle cx="36" cy="12" r="2.5" fill="white"/>
-          <line x1="36" y1="14.5" x2="33" y2="20" stroke="white" stroke-width="1.5"/>
-          <line x1="34.5" y1="17" x2="38" y2="15" stroke="white" stroke-width="1.2"/>
-          <line x1="33" y1="20" x2="30" y2="23" stroke="white" stroke-width="1.5"/>
-          <line x1="33" y1="20" x2="36" y2="23" stroke="white" stroke-width="1.5"/>
-        </svg>
-      </div>
-      <div style="color:white;font-size:1.2rem;font-weight:bold;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,0.4);">למה צ'רוויניה?</div>
-      <div style="color:rgba(255,255,255,0.75);font-size:0.82rem;">לחץ לגלות יתרונות האתר ►</div>
+  <div onclick="openM('whyModal')" style="margin-bottom:25px;border-radius:12px;overflow:hidden;cursor:pointer;position:relative;height:72px;background:linear-gradient(135deg,#0a192f,#1a3a6c);box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 24px;">
+      <span style="font-size:1.4rem;">⛷️</span>
+      <div style="color:white;font-size:1rem;font-weight:bold;">למה צ'רוויניה?</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:0.82rem;">לחץ לגלות יתרונות האתר ←</div>
     </div>
   </div>
 
   <!-- פורום -->
-  <div class="card">
+  <div class="card" style="max-width:750px;margin-left:auto;margin-right:auto;">
     <!-- Forum / Reviews tabs -->
     <div style="display:flex;gap:8px;margin-bottom:14px;">
       <button id="forum-main-tab" onclick="switchForumTab('forum')"
@@ -289,18 +289,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
     <!-- Forum panel -->
     <div id="forum-panel">
-    <!-- Facebook Group Banner -->
-    <a href="https://www.facebook.com/groups/385880019907484/" target="_blank"
-      style="display:flex;align-items:center;gap:11px;padding:10px 13px;
-             background:linear-gradient(135deg,#e8f0fe,#dce8ff);
-             border:1.5px solid #c0d0f0;border-radius:10px;
-             text-decoration:none;color:inherit;margin-bottom:12px;">
-      <span style="font-size:1.5rem;">👥</span>
-      <div>
-        <div style="font-weight:bold;font-size:0.84rem;color:#1a3a8c;">קבוצת הפייסבוק הישראלית של צ'רוויניה</div>
-        <div style="font-size:0.72rem;color:#555;margin-top:1px;">שאלות, עצות וחוויות מהקהילה ←</div>
-      </div>
-    </a>
+
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <div style="font-size:0.88rem;color:#888;">שיחות, עדכונים ועצות מהשטח</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="filter-area"></div>
@@ -342,6 +331,57 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   </div>
 
 </div><!-- /container -->
+
+<!-- Footer -->
+<footer style="background:#0a192f;color:rgba(255,255,255,0.6);text-align:center;padding:24px 20px;margin-top:20px;font-size:0.82rem;">
+  <div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:12px;">
+    <span onclick="openM('aboutModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">עלינו</span>
+    <span style="color:rgba(255,255,255,0.2);">|</span>
+    <span onclick="openM('contactModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">צור קשר</span>
+    <span style="color:rgba(255,255,255,0.2);">|</span>
+    <span onclick="openM('helpModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">עזרה</span>
+    <span style="color:rgba(255,255,255,0.2);">|</span>
+    <a href="https://www.facebook.com/groups/385880019907484/" target="_blank" style="color:rgba(255,255,255,0.8);text-decoration:none;">קבוצת פייסבוק</a>
+  </div>
+  <div style="color:rgba(255,255,255,0.3);font-size:0.75rem;">CerviniaLive © 2026 · נתונים חיים מאתר Cervino Ski Paradise</div>
+</footer>
+
+<!-- Modal עלינו -->
+<div id="aboutModal" class="modal" onclick="if(event.target===this)closeM('aboutModal')">
+  <div class="modal-content" style="max-width:480px;">
+    <span class="close-btn" onclick="closeM('aboutModal')">×</span>
+    <h3 style="margin:0 0 16px;font-size:1.1rem;">🏔️ עלינו</h3>
+    <p style="color:#555;font-size:0.9rem;line-height:1.7;">CerviniaLive הוא אתר בלתי רשמי שנבנה על ידי גולשים ישראלים לגולשים ישראלים. המידע מתעדכן אוטומטית מהאתרים הרשמיים של צ'רוויניה מספר פעמים ביום.</p>
+    <p style="color:#555;font-size:0.9rem;line-height:1.7;">האתר אינו קשור רשמית ל-Cervino Ski Paradise או לכל גוף רשמי אחר. הנתונים מוצגים כשירות לקהילה.</p>
+  </div>
+</div>
+
+<!-- Modal צור קשר -->
+<div id="contactModal" class="modal" onclick="if(event.target===this)closeM('contactModal')">
+  <div class="modal-content" style="max-width:420px;">
+    <span class="close-btn" onclick="closeM('contactModal')">×</span>
+    <h3 style="margin:0 0 16px;font-size:1.1rem;">✉️ צור קשר</h3>
+    <p style="color:#555;font-size:0.9rem;">שאלות, הצעות לשיפור, או דיווח על בעיה?</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
+      <a href="mailto:cervinia.live@gmail.com" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f0f4ff;border-radius:10px;text-decoration:none;color:#1a3a8c;font-weight:bold;">📧 cervinia.live@gmail.com</a>
+      <a href="https://www.facebook.com/groups/385880019907484/" target="_blank" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#e8f0fe;border-radius:10px;text-decoration:none;color:#1a3a8c;font-weight:bold;">👥 קבוצת הפייסבוק</a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal עזרה -->
+<div id="helpModal" class="modal" onclick="if(event.target===this)closeM('helpModal')">
+  <div class="modal-content" style="max-width:480px;">
+    <span class="close-btn" onclick="closeM('helpModal')">×</span>
+    <h3 style="margin:0 0 16px;font-size:1.1rem;">❓ עזרה</h3>
+    <div style="color:#555;font-size:0.88rem;line-height:1.8;">
+      <p><b>הנתונים לא מתעדכנים?</b><br>הנתונים מתעדכנים אוטומטית כל שעה. נסה לרענן את הדף.</p>
+      <p><b>איך נרשמים?</b><br>לחץ על "כניסה" בפינה העליונה ובחר "הרשמה".</p>
+      <p><b>מה ההבדל בין מקומי לכללי?</b><br>מקומי = צ'רוויניה בלבד. כללי = כל המרחב (צ'רוויניה + ולטורננש + צ'מואה).</p>
+      <p><b>מה זה חיבור לצ'רמט?</b><br>מעבר בין מרחב הסקי של צ'רוויניה לצ'רמט (שוויץ) דרך הקרחון. פתוח בתנאי מזג אוויר טובים בחורף.</p>
+    </div>
+  </div>
+</div>
 
 <!-- ===== MODALS ===== -->
 
@@ -3318,6 +3358,69 @@ function zermattProb(f) {
   return { t: '&#1508;&#1514;&#1493;&#1495; &#9989;', c: 'var(--success)' };
 }
 
+
+
+// ── Global Search ──
+const SEARCH_INDEX = [
+  { text: 'סקי פס skipass', action: "openM('skipassModal')", icon: '🎫', label: 'סקי פס' },
+  { text: 'השכרת ציוד סקי סנובורד', action: "openM('rentalModal')", icon: '⛷️', label: 'השכרת ציוד' },
+  { text: 'הדרכת סקי שיעורים מורה', action: "openM('lessonsModal')", icon: '🏫', label: 'הדרכת סקי' },
+  { text: 'כשר מסעדה אוכל', action: "openM('kosherModal')", icon: '🍽️', label: 'אוכל כשר' },
+  { text: 'מצלמות webcam שידור חי', action: "openM('webcamModal')", icon: '📷', label: 'מצלמות חי' },
+  { text: 'חניה כביש נסיעה', action: "openM('parkingModal')", icon: '🅿️', label: 'חניה וכביש' },
+  { text: 'מפות מסלולים piste', action: "openM('mapModal')", icon: '🗺️', label: 'מפות' },
+  { text: 'מסלולים piste guide', action: "openM('pisteModal')", icon: '⛷️', label: 'מדריך מסלולים' },
+  { text: 'תכנון טיול מלון טיסה', action: "openM('hotelModal')", icon: '✈️', label: 'תכנון טיול' },
+  { text: 'תחזית מזג אוויר', action: "openM('forecastModal')", icon: '🌤️', label: 'תחזית 4 ימים' },
+  { text: 'עלינו אודות', action: "openM('aboutModal')", icon: 'ℹ️', label: 'עלינו' },
+  { text: 'צור קשר פנו אלינו', action: "openM('contactModal')", icon: '✉️', label: 'צור קשר' },
+  { text: 'עזרה שאלות תשובות', action: "openM('helpModal')", icon: '❓', label: 'עזרה' },
+  { text: "למה cervinia יתרונות", action: "openM('whyModal')", icon: "🏔️", label: "למה צ'רוויניה?" },
+];
+
+function closeGlobalSearch() {
+  var inp = document.getElementById('global-search-input');
+  var box = document.getElementById('global-search-results');
+  if (inp) inp.value = '';
+  if (box) box.style.display = 'none';
+}
+
+function globalSearch(q) {
+  const box = document.getElementById('global-search-results');
+  if (!q || q.length < 2) { box.style.display = 'none'; return; }
+  const ql = q.toLowerCase();
+  const indexResults = SEARCH_INDEX.filter(item =>
+    item.text.includes(ql) || item.label.includes(q)
+  );
+  const postResults = allPosts.filter(p =>
+    p.content.includes(q) || p.user.includes(q)
+  ).slice(0, 3).map(p => ({
+    icon: '💬',
+    label: p.user + ': ' + p.content.slice(0, 50) + (p.content.length > 50 ? '...' : ''),
+    action: "filterPosts('');document.getElementById('global-search-results').style.display='none';"
+  }));
+  const results = [...indexResults, ...postResults];
+  if (!results.length) {
+    box.innerHTML = '<div style="padding:12px 16px;color:#aaa;font-size:0.85rem;">אין תוצאות</div>';
+  } else {
+    box.innerHTML = results.map(function(r) {
+      return '<div onclick="' + r.action + ';closeGlobalSearch()"'
+        + ' style="display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.88rem;"'
+        + ' onmouseover="this.style.background=\'#f5f8ff\'" onmouseout="this.style.background=\'\'">'
+        + '<span style="font-size:1.1rem;">' + r.icon + '</span>'
+        + '<span>' + r.label + '</span>'
+        + '</div>';
+    }).join('');
+  }
+  box.style.display = 'block';
+}
+
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('global-search-bar') || !document.getElementById('global-search-bar').contains(e.target)) {
+    var box = document.getElementById('global-search-results');
+    if (box) box.style.display = 'none';
+  }
+});
 
 function timeAgo(ts) {
   const diff = (Date.now() - ts) / 1000;
