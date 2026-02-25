@@ -153,13 +153,19 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
 
         <div style="text-align:center;">
-          <div id="bar-slopes" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים</div>
+          <div style="line-height:1;">
+            <span id="bar-slopes-local" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;">--</span>
+            <span id="bar-slopes-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
+          </div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים <span style="opacity:0.6;">מקומי (כולל)</span></div>
         </div>
 
         <div style="text-align:center;">
-          <div id="bar-lifts" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות</div>
+          <div style="line-height:1;">
+            <span id="bar-lifts-local" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;">--</span>
+            <span id="bar-lifts-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
+          </div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות <span style="opacity:0.6;">מקומי (כולל)</span></div>
         </div>
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
@@ -3040,7 +3046,7 @@ function renderHeader() {
 async function loadLiveData() {
   if (SUPABASE_URL && SUPABASE_KEY) {
     try {
-      const url = SUPABASE_URL + '/rest/v1/ski_status_history?select=*&order=updated_at.desc&limit=1';
+      const url = SUPABASE_URL + '/rest/v1/ski_status_history?select=*&order=created_at.desc&limit=1';
       console.log('Fetching URL:', url);
       const res = await fetch(url, {
         headers: {
@@ -3080,10 +3086,11 @@ function showDataSourceBadge(mode) {
 }
 
 function renderLiveBar(d) {
-  // Parse forecast fields if they come as strings from Supabase
-  if (d && typeof d.forecast_today === 'string') { try { d.forecast_today = JSON.parse(d.forecast_today); } catch(e) {} }
-  if (d && typeof d.forecast_next_days === 'string') { try { d.forecast_next_days = JSON.parse(d.forecast_next_days); } catch(e) {} }
-  console.log('renderLiveBar: temp:', d && d.temperature, 'updated_at:', d && d.updated_at, 'forecast_next_days:', d && d.forecast_next_days ? JSON.stringify(d.forecast_next_days).slice(0,80) : 'null');
+  // Parse JSON string fields from Supabase
+  ['forecast_today','forecast_next_days','snow_points'].forEach(function(k) {
+    if (d && typeof d[k] === 'string') { try { d[k] = JSON.parse(d[k]); } catch(e) { console.warn('parse fail',k,e); } }
+  });
+  console.log('renderLiveBar: temp:', d && d.temperature, 'forecast_next_days length:', d && d.forecast_next_days ? d.forecast_next_days.length : 'null');
   const navSnow = document.getElementById('nav-snow-badge');
   if (navSnow && d.fresh_snow_cm) { navSnow.textContent = '❄️ ' + d.fresh_snow_cm + 'cm טרי'; navSnow.style.display = 'inline'; }
 
@@ -3095,10 +3102,12 @@ function renderLiveBar(d) {
   set('bar-temp', temp != null ? Math.round(temp) + '°C' : '--°');
   const sLocal = (d.slopes_open_local != null && d.slopes_total_local != null) ? d.slopes_open_local + '/' + d.slopes_total_local : null;
   const sGlobal = (d.slopes_open_global != null && d.slopes_total_global != null) ? d.slopes_open_global + '/' + d.slopes_total_global : null;
-  set('bar-slopes', sLocal && sGlobal ? sLocal + ' (' + sGlobal + ')' : sLocal || sGlobal || '--');
+  set('bar-slopes-local', sLocal || sGlobal || '--');
+  set('bar-slopes-global', sLocal && sGlobal ? ' (' + sGlobal + ')' : '');
   const lLocal = (d.lifts_open_local != null && d.lifts_total_local != null) ? d.lifts_open_local + '/' + d.lifts_total_local : null;
   const lGlobal = (d.lifts_open_global != null && d.lifts_total_global != null) ? d.lifts_open_global + '/' + d.lifts_total_global : null;
-  set('bar-lifts', lLocal && lGlobal ? lLocal + ' (' + lGlobal + ')' : lLocal || lGlobal || '--');
+  set('bar-lifts-local', lLocal || lGlobal || '--');
+  set('bar-lifts-global', lLocal && lGlobal ? ' (' + lGlobal + ')' : '');
   set('bar-wind', d.wind_speed != null ? Math.round(d.wind_speed) + ' km/h' : '--');
 
   // snow_depth — supports both string "140 cm" and number 140
