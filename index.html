@@ -3014,13 +3014,14 @@ async function loadLiveData() {
       const res = await fetch(url, {
         headers: {
           'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_KEY
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Accept': 'application/json'
         }
       });
       if (res.ok) {
         const rows = await res.json();
+        console.log('✅ Live data from Supabase:', rows && rows.length > 0 ? rows[0].updated_at : 'empty array', 'count:', rows ? rows.length : 0);
         if (rows && rows.length > 0) {
-          console.log('✅ Live data from Supabase:', rows[0].updated_at);
           renderLiveBar(rows[0]);
           showDataSourceBadge('live');
           return;
