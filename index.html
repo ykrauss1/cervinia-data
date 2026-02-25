@@ -197,26 +197,25 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <!-- Right: zermatt + forecast hint -->
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
         <!-- Matterhorn SVG badge -->
-        <div id="bar-zermatt" style="display:flex;flex-direction:column;align-items:center;cursor:default;padding:4px 10px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);">
-          <svg id="matterhorn-svg" width="60" height="48" viewBox="0 0 60 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div id="bar-zermatt" style="display:flex;flex-direction:row;align-items:center;gap:6px;cursor:default;padding:4px 10px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);">
+          <svg id="matterhorn-svg" width="36" height="32" viewBox="0 0 52 44" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
                 <feGaussianBlur stdDeviation="2.5" result="blur"/>
                 <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
               </filter>
             </defs>
-            <!-- Mountain body -->
-            <polygon points="26,8 4,44 48,44" fill="#1e2d40" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-            <!-- Snow cap -->
-            <polygon points="26,8 18,22 34,22" fill="rgba(255,255,255,0.9)"/>
-            <!-- Ridge line -->
-            <line x1="26" y1="8" x2="34" y2="22" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
-            <!-- Status dot - top right corner -->
-            <circle id="matterhorn-dot" cx="48" cy="8" r="7" fill="#e74c3c" filter="url(#glow)"/>
-            <circle cx="48" cy="8" r="4" fill="white" opacity="0.9"/>
+            <polygon points="24,10 4,42 44,42" fill="#1e2d40" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            <polygon points="24,10 17,22 31,22" fill="rgba(255,255,255,0.9)"/>
+            <line x1="24" y1="10" x2="31" y2="22" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+            <!-- עיגול צמוד לפסגה -->
+            <circle id="matterhorn-dot" cx="34" cy="10" r="7" fill="#e74c3c" filter="url(#glow)"/>
+            <circle cx="34" cy="10" r="4" fill="white" opacity="0.9"/>
           </svg>
-          <div id="zermatt-label" style="font-size:0.62rem;font-weight:700;letter-spacing:0.5px;margin-top:1px;color:#e74c3c;">חיבור לצ'רמט</div>
-          <div id="zermatt-status" style="font-size:0.58rem;font-weight:600;color:rgba(255,255,255,0.4);">סגור</div>
+          <div style="display:flex;flex-direction:column;gap:1px;">
+            <div id="zermatt-label" style="font-size:0.62rem;font-weight:700;letter-spacing:0.3px;color:#e74c3c;">חיבור לצ'רמט</div>
+            <div id="zermatt-status" style="font-size:0.58rem;font-weight:600;color:rgba(255,255,255,0.4);">סגור</div>
+          </div>
         </div>
         <div id="forecast-tomorrow-text" style="color:rgba(255,255,255,0.5);font-size:0.72rem;">טוען תחזית...</div>
         <div style="color:rgba(76,201,240,0.6);font-size:0.68rem;">לחץ לתחזית 4 ימים ▼</div>
