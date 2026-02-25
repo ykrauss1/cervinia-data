@@ -274,7 +274,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="filter-area"></div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
-      <input id="search-input" type="text" placeholder="חפש בפורום..." style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;">
+      <input id="search-input" type="text" autocomplete="off" placeholder="חפש בפורום..." style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;">
       <select id="forum-sort" onchange="filterPosts()" style="padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;color:#555;background:white;">
         <option value="newest">מיון: חדש</option>
         <option value="oldest">מיון: ישן</option>
@@ -1537,7 +1537,21 @@ function openWhyCervinia() { openM('whyCerviniaModal'); }
 
 // ── Reply box helper (openReplyBox used by forum) ──
 function openReplyBox(targetId, postId) {
-  if (!user) { openM('authModal'); return; }
+  if (!user) {
+    const box = document.getElementById('rbox-' + targetId);
+    if (box) {
+      document.querySelectorAll('[id^="rbox-"]').forEach(b => b.style.display = 'none');
+      box.style.display = 'block';
+      const ta = document.getElementById('rtxt-' + targetId);
+      if (ta) {
+        ta.placeholder = '💬 רוצה להגיב? התחבר או הירשם ←';
+        ta.style.color = '#888';
+        ta.readOnly = true;
+        ta.onclick = () => openM('authModal');
+      }
+    }
+    return;
+  }
   const box = document.getElementById('rbox-' + targetId);
   if (!box) return;
   const isOpen = box.style.display !== 'none';
@@ -1565,16 +1579,27 @@ function makeReplyBox(targetId, postId) {
     + '<button onclick="submitReply(' + targetId + ',' + postId + ')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'
     + '</div></div></div>';
 }
-function submitReply(targetId, postId) {
+async function submitReply(targetId, postId) {
   if (!user) return;
   const ta = document.getElementById('rtxt-' + targetId);
   const txt = ta?.value.trim();
   if (!txt) return;
-  const fileInput = document.getElementById('rfile-' + targetId);
-  const file = fileInput?.files[0];
-  let fileData = null;
-  if (file) fileData = { name: file.name, type: file.type, url: URL.createObjectURL(file) };
-  const newReply = { id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), reactions: {}, replies: [], file: fileData };
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/replies', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ post_id: postId, parent_id: targetId === postId ? null : targetId, user: user.name, content: txt })
+    });
+    if (res.ok) {
+      ta.value = '';
+      const currentQuery = document.getElementById('search-input')?.value || '';
+      await loadPostsFromSupabase();
+      renderPosts(currentQuery);
+      return;
+    }
+  }
+  // fallback local
+  const newReply = { id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), reactions: {}, replies: [] };
   const post = allPosts.find(p => p.id === postId);
   if (!post) return;
   if (targetId === postId) {
@@ -1590,7 +1615,8 @@ function submitReply(targetId, postId) {
     }
     addToReply(post.replies || []);
   }
-  renderPosts('');
+  const currentQuery = document.getElementById('search-input')?.value || '';
+  renderPosts(currentQuery);
 }
 function openImg(src) { window.open(src, '_blank'); }
 
@@ -2825,6 +2851,10 @@ window.onload = async function() {
   renderHeader();
   allPosts = DEMO_POSTS.map(p => ({...p}));
   renderPosts('');
+  // טעינת פוסטים אמיתיים מ-Supabase (ברקע)
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    loadPostsFromSupabase().then(ok => { if (ok) renderPosts(''); });
+  }
   renderFilterChips();
   renderPostBtn();
   loadLiveData();
@@ -3020,7 +3050,7 @@ async function loadLiveData() {
       });
       if (res.ok) {
         const rows = await res.json();
-        console.log('✅ Live data from Supabase:', rows && rows.length > 0 ? rows[0].updated_at : 'empty array', 'count:', rows ? rows.length : 0);
+        console.log('✅ Live data from Supabase:', rows && rows.length > 0 ? rows[0].updated_at : 'empty array', 'count:', rows ? rows.length : 0, 'keys:', rows && rows[0] ? Object.keys(rows[0]).join(',') : 'none', 'temp:', rows && rows[0] ? rows[0].temperature : 'N/A');
         if (rows && rows.length > 0) {
           renderLiveBar(rows[0]);
           showDataSourceBadge('live');
@@ -3289,11 +3319,61 @@ function showNewPost() {
   area.style.display = area.style.display === 'none' ? 'block' : 'none';
 }
 
-function submitPost() {
+// ── Forum Supabase REST ──
+async function sbFetch(path, opts) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Accept': 'application/json', 'Content-Type': 'application/json', ...(opts && opts.headers) },
+    ...opts
+  });
+  if (!res.ok) { console.warn('sbFetch error', res.status, path); return null; }
+  const ct = res.headers.get('content-type') || '';
+  return ct.includes('json') ? res.json() : null;
+}
+
+async function loadPostsFromSupabase() {
+  try {
+    const posts = await sbFetch('posts?select=*&order=created_at.desc');
+    const replies = await sbFetch('replies?select=*&order=created_at.asc');
+    if (!posts) return false;
+    // בנה עץ פוסטים
+    allPosts = posts.map(p => ({
+      id: p.id,
+      user: p.user,
+      content: p.content,
+      timestamp: new Date(p.created_at).getTime(),
+      file: p.file_url ? { url: p.file_url, name: p.file_url.split('/').pop(), type: 'image/' } : null,
+      reactions: {},
+      replies: (replies || []).filter(r => r.post_id === p.id && !r.parent_id).map(r => ({
+        id: r.id, user: r.user, content: r.content,
+        timestamp: new Date(r.created_at).getTime(),
+        file: r.file_url ? { url: r.file_url, name: r.file_url.split('/').pop(), type: 'image/' } : null,
+        reactions: {}, replies: []
+      }))
+    }));
+    return true;
+  } catch(e) { console.warn('loadPostsFromSupabase failed:', e.message); return false; }
+}
+
+async function submitPost() {
   if (!user) return;
   const ta = document.getElementById('new-post-text');
   const txt = ta?.value.trim();
   if (!txt) return;
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/posts', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ user: user.name, content: txt })
+    });
+    if (res.ok) {
+      ta.value = '';
+      document.getElementById('new-post-area').style.display = 'none';
+      await loadPostsFromSupabase();
+      renderPosts('');
+      return;
+    }
+  }
+  // fallback local
   allPosts.unshift({ id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), replies: [], reactions: {} });
   ta.value = '';
   document.getElementById('new-post-area').style.display = 'none';
@@ -3502,7 +3582,7 @@ function renderReplies(replies, postId, depth, query) {
         : '<div style="margin:4px 0;"><a href="' + r.file.url + '" target="_blank" style="color:var(--accent);font-size:0.82rem;">📎 ' + r.file.name + '</a></div>'
     ) : '';
     const actions = '<div style="display:flex;gap:8px;margin-top:5px;font-size:0.8rem;color:#888;align-items:center;flex-wrap:wrap;">'
-      + (user ? '<span style="color:var(--accent);cursor:pointer;" onclick="openReplyBox(' + r.id + ',' + postId + ')">↩ השב</span>' : '')
+      + '<span style="color:var(--accent);cursor:pointer;" onclick="openReplyBox(' + r.id + ',' + postId + ')">↩ השב</span>'
       + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;" onclick="editReply(' + postId + ',' + r.id + ')">✎ ערוך</span>' : '')
       + (canDel ? '<span style="cursor:pointer;color:#e74c3c;" onclick="delReply(' + postId + ',' + r.id + ')">✕ מחק</span>' : '')
       + '</div>';
@@ -3553,7 +3633,7 @@ function renderPosts(query, sort, chips) {
       + fileHtml
       + reactionsHtml(p, false)
       + '<div style="display:flex;gap:10px;margin-top:6px;font-size:0.85rem;color:#888;align-items:center;flex-wrap:wrap;">'
-      + (user ? '<span style="color:var(--accent);cursor:pointer;font-weight:bold;" onclick="openReplyBox(' + p.id + ',' + p.id + ')">↩ השב</span>' : '')
+      + '<span style="color:var(--accent);cursor:pointer;font-weight:bold;" onclick="openReplyBox(' + p.id + ',' + p.id + ')">↩ השב</span>'
       + ((p.replies||[]).length > 0 ? '<span>💬 ' + p.replies.length + '</span>' : '')
       + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;font-size:0.82rem;" onclick="editPost(' + p.id + ')">✎ ערוך</span>' : '')
       + '<span style="cursor:pointer;color:#888;font-size:0.82rem;" onclick="sharePost(' + p.id + ')" title="שתף">📤 שתף</span>'
