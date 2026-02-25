@@ -1,34 +1,29 @@
 {
-  "updated_at": "2026-02-25T11:44:10.392Z",
-  "temperature": 3.8,
-  "zermatt_link": "OPEN",
-  "lifts_open_global": 47,
+  "updated_at": "2026-02-25T15:07:19.177Z",
+  "temperature": 4.9,
+  "zermatt_link": "CLOSED",
+  "lifts_open_global": 30,
   "lifts_total_global": 47,
-  "slopes_open_global": 109,
+  "slopes_open_global": 80,
   "slopes_total_global": 109,
-  "lifts_open_local": 16,
+  "lifts_open_local": 10,
   "lifts_total_local": 16,
-  "slopes_open_local": 46,
+  "slopes_open_local": 39,
   "slopes_total_local": 46,
   "snow_depth": "135 cm",
   "last_snowfall": null,
-  "wind_speed": 8.6,
+  "wind_speed": 6.1,
   "wind_gust": 20.5,
-  "humidity": null,
+  "humidity": 45,
   "avalanche_level": "3",
   "avalanche_text": null,
   "weather_description": "Sereno",
   "opening_hours": "08:00 - 16:45",
   "snow_points": [
     {
-      "station": "top",
-      "altitude": 3480,
-      "depth": 150
-    },
-    {
-      "station": "top2",
-      "altitude": 2812,
-      "depth": 145
+      "station": "base",
+      "altitude": 2050,
+      "depth": 115
     },
     {
       "station": "mid",
@@ -36,9 +31,14 @@
       "depth": 135
     },
     {
-      "station": "base",
-      "altitude": 2050,
-      "depth": 115
+      "station": "top2",
+      "altitude": 2812,
+      "depth": 145
+    },
+    {
+      "station": "top",
+      "altitude": 3480,
+      "depth": 150
     },
     {
       "station": "midv",
@@ -95,6 +95,27 @@
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, February 28",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
           "icon": "partially-cloudy"
         },
         {
@@ -103,7 +124,28 @@
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, March 1",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
         }
       ]
     }
