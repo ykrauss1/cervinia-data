@@ -211,9 +211,9 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         <!-- קו הפרדה -->
         <div style="width:1px;height:52px;background:rgba(255,255,255,0.12);"></div>
 
-        <!-- הר מטרהורן גדול -->
-        <div id="bar-zermatt" style="cursor:default;position:relative;">
-          <svg id="matterhorn-svg" width="80" height="70" viewBox="0 0 56 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- הר מטרהורן + כיתוב בתוכו -->
+        <div id="bar-zermatt" style="cursor:default;position:relative;display:inline-block;">
+          <svg id="matterhorn-svg" width="90" height="80" viewBox="0 0 56 58" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
                 <feGaussianBlur stdDeviation="3" result="blur"/>
@@ -221,27 +221,35 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
               </filter>
             </defs>
             <!-- גוף ההר -->
-            <polygon points="26,6 2,50 50,50" fill="#1e2d40" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+            <polygon points="26,6 2,54 50,54" fill="#1e2d40" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
             <!-- כיפת שלג -->
             <polygon points="26,6 17,23 35,23" fill="rgba(255,255,255,0.95)"/>
             <!-- קו שלוחה ימנית -->
             <line x1="26" y1="6" x2="35" y2="23" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
-            <!-- עיגול מעבר — צמוד לפסגה מימין -->
+            <!-- כיתוב בתוך ההר -->
+            <text id="zermatt-label" x="26" y="37" text-anchor="middle" font-size="6.5" font-weight="bold" fill="#e74c3c" font-family="Arial,sans-serif">חיבור לצ'רמט</text>
+            <text id="zermatt-status" x="26" y="47" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,0.55)" font-family="Arial,sans-serif">סגור</text>
+            <!-- עיגול מעבר -->
             <circle id="matterhorn-dot" cx="39" cy="9" r="9" fill="#e74c3c" filter="url(#glow)"/>
             <circle cx="39" cy="9" r="5" fill="white" opacity="0.95"/>
           </svg>
         </div>
 
-        <!-- שם + סטטוס -->
+        <!-- כפתורות תחזית -->
         <div style="display:flex;flex-direction:column;gap:4px;">
-          <div>
-            <div id="zermatt-label" style="font-size:0.75rem;font-weight:800;color:#e74c3c;">חיבור לצ'רמט</div>
-            <div id="zermatt-status" style="font-size:0.62rem;color:rgba(255,255,255,0.4);">סגור</div>
+          <div style="display:none;">
+            <div id="zermatt-label-hidden"></div>
+            <div id="zermatt-status-hidden"></div>
           </div>
           <!-- כפתור תחזית נפרד -->
-          <button onclick="openM('forecastModal')" style="background:rgba(76,201,240,0.15);border:1px solid rgba(76,201,240,0.4);color:#4cc9f0;font-size:0.65rem;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">
-            📅 תחזית 4 ימים ▼
-          </button>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <button onclick="openM('forecastModal')" style="background:rgba(76,201,240,0.15);border:1px solid rgba(76,201,240,0.4);color:#4cc9f0;font-size:0.65rem;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">
+              📅 תחזית 4 ימים ▼
+            </button>
+            <button onclick="openZermattForecast()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);font-size:0.62rem;font-weight:600;padding:4px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">
+              🏔️ תחזית לינק צ'רמט
+            </button>
+          </div>
           <div id="forecast-tomorrow-text" style="color:rgba(255,255,255,0.45);font-size:0.62rem;"></div>
         </div>
 
@@ -256,7 +264,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     <div class="service-btn" onclick="openM('skipassModal')">🎫 סקי פס</div>
     <div class="service-btn" onclick="openM('rentalModal')">⛷️ השכרת ציוד</div>
     <div class="service-btn" onclick="openM('lessonsModal')">🏫 הדרכת סקי</div>
-    <div class="service-btn" onclick="openM('kosherModal')">🍽️ כשר</div>
+    <div class="service-btn" onclick="openM('kosherModal')">🍽️🕯️ כשרות ושבת</div>
     <div class="service-btn" onclick="openM('webcamModal')">📷 מצלמות</div>
     <div class="service-btn" onclick="openM('parkingModal')">🅿️ חניה וכביש</div>
     <div class="service-btn" onclick="openParkEmergency()">🚨 חירום</div>
@@ -386,6 +394,62 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 <!-- ===== MODALS ===== -->
 
 <!-- Forecast Modal -->
+<!-- Zermatt Link Forecast Modal -->
+<div id="zermattForecastModal" class="modal" onclick="if(event.target===this)closeM('zermattForecastModal')">
+  <div class="modal-content" style="max-width:500px;padding:0;border-radius:16px;overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#1a0a2e,#2d1b69);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="color:white;font-weight:bold;font-size:1rem;">🏔️ תחזית לינק צ'רמט</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;">Plateau Rosa (3480מ) · ניתוח תנאים</div>
+      </div>
+      <span class="close-btn" onclick="closeM('zermattForecastModal')" style="color:white;background:rgba(255,255,255,0.15);">×</span>
+    </div>
+    <div style="padding:16px;max-height:80vh;overflow-y:auto;">
+
+      <div style="background:#fff8e1;border:1.5px solid #ffe082;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.82rem;color:#555;line-height:1.7;">
+        <b>הלינק פתוח</b> כשמתקיימים כל התנאים:<br>
+        🌡️ טמפרטורה מתחת ל-0° בפלטאו רוזה<br>
+        💨 רוח מתחת ל-40 km/h<br>
+        👁️ ראות טובה (לא ערפל / סופת שלג)<br>
+        📋 אישור מפעיל הקרחון
+      </div>
+
+      <!-- נתוני פלטאו רוזה עכשיו -->
+      <div id="zermatt-plateau-now" style="background:linear-gradient(135deg,#0a192f,#1a3a6c);border-radius:12px;padding:14px;color:white;margin-bottom:14px;">
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:10px;">📍 פלטאו רוזה עכשיו (3480מ)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
+          <div>
+            <div id="plateau-temp" style="font-size:1.4rem;font-weight:bold;">--°</div>
+            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);">🌡️ טמפ'</div>
+          </div>
+          <div>
+            <div id="plateau-wind" style="font-size:1.4rem;font-weight:bold;">--</div>
+            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);">💨 רוח km/h</div>
+          </div>
+          <div>
+            <div id="plateau-snow" style="font-size:1.4rem;font-weight:bold;">--</div>
+            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);">❄️ שלג ס"מ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- הערכה -->
+      <div id="zermatt-crossing-assessment" style="border-radius:10px;padding:14px;text-align:center;background:#f0fff4;border:1.5px solid #66bb6a;margin-bottom:14px;">
+        <div style="font-size:1.6rem;margin-bottom:6px;" id="crossing-icon">⏳</div>
+        <div style="font-weight:bold;font-size:0.95rem;" id="crossing-verdict">בודק תנאים...</div>
+        <div style="font-size:0.75rem;color:#666;margin-top:4px;" id="crossing-reason"></div>
+      </div>
+
+      <!-- תחזית 4 ימים לצ'רמט -->
+      <div id="zermatt-4day" style="display:flex;flex-direction:column;gap:8px;"></div>
+
+      <div style="font-size:0.68rem;color:#aaa;text-align:center;margin-top:12px;">
+        ⚠️ הערכה אוטומטית בלבד · לא מחליפה אישור רשמי
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="forecastModal" class="modal" onclick="if(event.target===this)closeM('forecastModal')">
   <div class="modal-content" style="max-width:520px;padding:0;border-radius:16px;overflow:hidden;">
     <div style="background:linear-gradient(135deg,#0a192f,#1a3a6c);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
@@ -1096,21 +1160,38 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   </div>
 </div>
 <div id="kosherModal" class="modal" onclick="if(event.target===this)closeM('kosherModal')">
-  <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
+  <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:24px;">
     <span class="close-btn" onclick="closeM('kosherModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.15rem;">🍽️ מזון כשר — מדריך מלא</h3>
-    <p style="color:#888;font-size:0.82rem;margin:0 0 16px;">צ'רוויניה · משלוח לכפר · מילאנו · טורינו</p>
+    <h3 style="margin:0 0 16px;font-size:1.1rem;">🍽️🕯️ כשרות ושבת</h3>
 
-    <!-- Tabs -->
-    <div style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;">
-      <button id="kosh-tab-shabbat" onclick="switchKoshTab('shabbat')" class="ttab-btn" style="flex:1;font-size:0.82rem;">🕯️ שבת</button>
-      <button id="kosh-tab-cervinia" onclick="switchKoshTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;font-size:0.82rem;">🏔️ בכפר</button>
-      <button id="kosh-tab-delivery" onclick="switchKoshTab('delivery')" class="ttab-btn" style="flex:1;font-size:0.82rem;">📦 משלוח</button>
-      <button id="kosh-tab-milan"    onclick="switchKoshTab('milan')"    class="ttab-btn" style="flex:1;font-size:0.82rem;">🏙️ מילאנו</button>
-      <button id="kosh-tab-torino"   onclick="switchKoshTab('torino')"   class="ttab-btn" style="flex:1;font-size:0.82rem;">🏛️ טורינו</button>
+    <!-- שתי כרטיסיות גדולות -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <button onclick="switchKoshMain('shabbat')" id="kosh-main-shabbat"
+        style="flex:1;padding:16px 10px;border-radius:12px;border:2px solid #0a192f;background:#0a192f;color:white;cursor:pointer;font-size:0.88rem;font-weight:bold;transition:all 0.15s;">
+        🕯️ שבת וזמנים<br><span style="font-size:0.72rem;opacity:0.7;font-weight:normal;">זריחה · שקיעה · כניסת שבת</span>
+      </button>
+      <button onclick="switchKoshMain('kosher')" id="kosh-main-kosher"
+        style="flex:1;padding:16px 10px;border-radius:12px;border:2px solid #ddd;background:#f5f5f5;color:#555;cursor:pointer;font-size:0.88rem;font-weight:bold;transition:all 0.15s;">
+        🍽️ כשרות<br><span style="font-size:0.72rem;opacity:0.7;font-weight:normal;">בכפר · משלוח · מילאנו · טורינו</span>
+      </button>
     </div>
 
-    <!-- CERVINIA -->
+    <!-- פאנל שבת -->
+    <div id="kosh-main-panel-shabbat">
+      <div id="shabbat-times-widget">
+        <div style="text-align:center;color:#aaa;padding:20px;">טוען זמנים...</div>
+      </div>
+    </div>
+
+    <!-- פאנל כשרות -->
+    <div id="kosh-main-panel-kosher" style="display:none;">
+      <!-- תת-לשוניות כשרות -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+        <button id="kosh-tab-cervinia" onclick="switchKoshTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;font-size:0.8rem;">🏔️ בכפר</button>
+        <button id="kosh-tab-delivery" onclick="switchKoshTab('delivery')" class="ttab-btn" style="flex:1;font-size:0.8rem;">📦 משלוח</button>
+        <button id="kosh-tab-milan"    onclick="switchKoshTab('milan')"    class="ttab-btn" style="flex:1;font-size:0.8rem;">🏙️ מילאנו</button>
+        <button id="kosh-tab-torino"   onclick="switchKoshTab('torino')"   class="ttab-btn" style="flex:1;font-size:0.8rem;">🏛️ טורינו</button>
+      </div>    <!-- CERVINIA -->
     <!-- SHABBAT PANEL -->
     <div id="kosh-panel-shabbat" style="display:none;">
       <div id="shabbat-times-widget">
@@ -1125,7 +1206,8 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         <div style="font-size:0.84rem;color:#555;line-height:1.9;">
           בצ'רוויניה עצמה <b>אין מסעדות כשרות</b>.<br>
           בסופרמרקט המקומי ניתן למצוא:<br>
-          🍎 פירות וירקות · 🥚 ביצים · ☕ קפה ותה
+          🍎 פירות וירקות · 🥚 ביצים · ☕ קפה ותה · 🥤 משקאות קלים וחריפים וכדומה.<br>
+          <span style="font-size:0.8rem;color:#1a3a6c;">לגבי מוצרים נוספים — ראה <b>רשימת מוצרים כשרים</b> להלן.</span>
         </div>
       </div>
       <div style="padding:13px;background:#f0fff4;border:1.5px solid #a5d6a7;border-radius:11px;">
@@ -1153,7 +1235,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
           <a href="https://beitchabadmalpensa.com/food/5443/" target="_blank"
             style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
             <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">✡️ בית חב"ד מלפנסה — מדריך מזון</div>
-            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מה מותר לאכול — מאיפוס ועד פרטים</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מוצרים כשרים — מה מותר לאכול באיטליה</div>
           </a>
 
           <a href="https://metaylimbkipa.com/kosher-food-what-is-allowed-to-eat/" target="_blank"
@@ -1267,20 +1349,33 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       </div>
     </div>
 
+
+    </div><!-- /kosh-main-panel-kosher -->
+
   </div>
 </div>
 <div id="mapModal" class="modal" onclick="if(event.target===this)closeM('mapModal')">
-  <div class="modal-content" style="max-width:850px;height:80vh;">
-    <span class="close-btn" onclick="closeM('mapModal')">×</span>
-    <div style="display:flex;gap:10px;margin-bottom:15px;">
-      <button class="service-btn" style="flex:1" onclick="loadMap('piste')">⛷️ מסלולים PDF</button>
-      <button class="service-btn" style="flex:1" onclick="loadMap('town')">🏘️ הכפר</button>
-      <button class="service-btn" style="flex:1" onclick="loadMap('mymap')">📍 המפה שלי</button>
+  <div class="modal-content" style="max-width:900px;height:88vh;display:flex;flex-direction:column;padding:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;">
+      <h3 style="margin:0;font-size:1rem;">🗺️ מפות</h3>
+      <span class="close-btn" style="position:static;font-size:1.4rem;cursor:pointer;" onclick="closeM('mapModal')">×</span>
     </div>
-    <div style="height:80%;border:1px solid #eee;border-radius:10px;overflow:hidden;">
-      <img id="map-img" src="" style="width:100%;height:100%;object-fit:contain;display:none;">
-      <iframe id="map-frame" src="" width="100%" height="100%" style="border:none;display:none;"></iframe>
-      <div id="map-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f8f9fa;color:#999;flex-direction:column;gap:10px;">
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-shrink:0;flex-wrap:wrap;">
+      <button class="service-btn" style="flex:1;padding:10px 8px;font-size:0.82rem;" onclick="loadMap('mymap')">📍 נקודות ציון</button>
+      <button class="service-btn" style="flex:1;padding:10px 8px;font-size:0.82rem;" onclick="loadMap('piste')">⛷️ מפת מסלולים</button>
+      <button class="service-btn" style="flex:1;padding:10px 8px;font-size:0.82rem;" onclick="loadMap('town')">🏘️ מפת הכפר</button>
+    </div>
+    <!-- toolbar: zoom + download -->
+    <div id="map-toolbar" style="display:none;align-items:center;gap:8px;margin-bottom:8px;flex-shrink:0;">
+      <button onclick="mapZoom(1.2)" style="padding:5px 12px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:1rem;">＋</button>
+      <button onclick="mapZoom(0.8)" style="padding:5px 12px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:1rem;">－</button>
+      <button onclick="mapZoomReset()" style="padding:5px 12px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.78rem;">איפוס</button>
+      <a id="map-download-btn" href="" download style="padding:5px 14px;border-radius:7px;background:#27ae60;color:white;font-size:0.78rem;font-weight:bold;text-decoration:none;">📥 הורד</a>
+    </div>
+    <div style="flex:1;border:1px solid #eee;border-radius:10px;overflow:auto;position:relative;" id="map-container">
+      <img id="map-img" src="" style="transform-origin:top right;transition:transform 0.2s;display:none;max-width:100%;cursor:grab;">
+      <iframe id="map-frame" src="" width="100%" height="100%" style="border:none;display:none;min-height:400px;"></iframe>
+      <div id="map-placeholder" style="width:100%;height:300px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;color:#999;flex-direction:column;gap:10px;">
         <span style="font-size:3rem;">🗺️</span>
         <span>בחר מפה מלמעלה</span>
       </div>
@@ -1537,15 +1632,28 @@ let allCounts = { adults: 2, children: 0, rooms: 1 };
 const ADMIN_PASS = 'cervinia2025';
 const DEMO_LIVE = {
   temperature: -6,
-  slopes_open_local: 18,
-  slopes_total_local: 22,
-  lifts_open_local: 12,
-  lifts_total_local: 15,
-  snow_depth_top: 180,
-  wind_speed: 25,
-  avalanche_risk: 2,
+  slopes_open_local: 18, slopes_total_local: 22,
+  slopes_open_global: 28, slopes_total_global: 46,
+  lifts_open_local: 12,  lifts_total_local: 15,
+  lifts_open_global: 18, lifts_total_global: 24,
+  snow_depth_top: 180, wind_speed: 25, avalanche_risk: 2,
   zermatt_link: 'CLOSED',
-  updated_at: new Date().toISOString()
+  updated_at: new Date().toISOString(),
+  forecast_today: {
+    date: 'היום',
+    morning:   { icon: 'sun',              temp_min: -8, temp_max: -4, wind: 18, snow: 0,  desc: 'שמשי' },
+    afternoon: { icon: 'partially-cloudy', temp_min: -5, temp_max: -2, wind: 22, snow: 0,  desc: 'חלקית מעונן' }
+  },
+  forecast_next_days: [
+    { date: 'מחר',       periods: [{icon:'partially-cloudy',temp_min:-7,temp_max:-3,wind:20,snow:0},{icon:'sun',temp_min:-5,temp_max:-1,wind:15,snow:0}] },
+    { date: "יום ג",   periods: [{icon:'snow',temp_min:-9,temp_max:-5,wind:30,snow:12},{icon:'snow',temp_min:-8,temp_max:-4,wind:35,snow:8}] },
+    { date: "יום ד",   periods: [{icon:'sun',temp_min:-10,temp_max:-6,wind:12,snow:0},{icon:'sun',temp_min:-8,temp_max:-4,wind:10,snow:0}] },
+  ],
+  snow_points: [
+    { station: 'top',  alt: 3480, depth: 210 },
+    { station: 'mid',  alt: 2800, depth: 155 },
+    { station: 'base', alt: 2050, depth: 80  }
+  ]
 };
 const DEMO_POSTS = [
   { id: 1, user: 'דני', content: 'המסלולים היום מעולים! שלג טרי מהלילה 😻', timestamp: Date.now() - 3600000, replies: [
@@ -1557,13 +1665,86 @@ const DEMO_POSTS = [
 // ── Init ──
 
 
+
+// ── Zermatt Crossing Assessment ──
+function openZermattForecast() {
+  openM('zermattForecastModal');
+  var d = window._liveData;
+  if (!d) return;
+
+  // נתוני פלטאו רוזה עכשיו (מהסקרפר — snow_points top = 3480מ)
+  var topSnow = null;
+  if (d.snow_points && Array.isArray(d.snow_points)) {
+    var top = d.snow_points.find(function(p){ return p.station === 'top'; });
+    if (top) topSnow = top.depth;
+  }
+  var temp = d.temperature;
+  var wind = d.wind_speed;
+
+  var tempEl = document.getElementById('plateau-temp');
+  var windEl = document.getElementById('plateau-wind');
+  var snowEl = document.getElementById('plateau-snow');
+  if (tempEl) tempEl.textContent = temp != null ? Math.round(temp) + '°C' : '--';
+  if (windEl) windEl.textContent = wind != null ? Math.round(wind) : '--';
+  if (snowEl) snowEl.textContent = topSnow != null ? topSnow + ' ס"מ' : '--';
+
+  // ניתוח תנאים
+  var icon, verdict, reason, bg, border;
+  var problems = [];
+  if (temp != null && temp > 0) problems.push('טמפרטורה מעל 0° (' + Math.round(temp) + '°C)');
+  if (wind != null && wind > 40) problems.push('רוח חזקה (' + Math.round(wind) + ' km/h)');
+
+  var zVal = (d.zermatt_link || '').toUpperCase();
+  if (zVal === 'OPEN') {
+    icon = '✅'; verdict = 'הלינק פתוח!'; reason = 'לפי נתוני האתר הרשמי';
+    bg = '#f0fff4'; border = '#66bb6a';
+  } else if (zVal === 'WAITING') {
+    icon = '🕐'; verdict = 'ממתין לאישור'; reason = 'מפעיל הקרחון בודק תנאים';
+    bg = '#fff8e1'; border = '#ffb300';
+  } else if (problems.length === 0) {
+    icon = '🟡'; verdict = 'תנאים אפשריים'; reason = 'נתוני מזג האוויר נוחים — בדוק באתר הרשמי';
+    bg = '#fff8e1'; border = '#ffb300';
+  } else {
+    icon = '❌'; verdict = 'הלינק כנראה סגור'; reason = problems.join(' · ');
+    bg = '#fff5f5'; border = '#ef9a9a';
+  }
+
+  var el = document.getElementById('crossing-assessment') || document.getElementById('zermatt-crossing-assessment');
+  var iconEl = document.getElementById('crossing-icon');
+  var verdictEl = document.getElementById('crossing-verdict');
+  var reasonEl = document.getElementById('crossing-reason');
+  if (el) { el.style.background = bg; el.style.border = '1.5px solid ' + border; }
+  if (iconEl) iconEl.textContent = icon;
+  if (verdictEl) verdictEl.textContent = verdict;
+  if (reasonEl) reasonEl.textContent = reason;
+
+  // תחזית 4 ימים — מה-forecast_next_days
+  var grid = document.getElementById('zermatt-4day');
+  if (grid && d.forecast_next_days && d.forecast_next_days.length) {
+    var iconMap = { 'sun':'☀️', 'partially-cloudy':'⛅', 'cloudy':'☁️', 'snow':'🌨️', 'rain':'🌧️', 'storm':'⛈️', 'fog':'🌫️', 'wind':'💨' };
+    grid.innerHTML = '<div style="font-weight:bold;font-size:0.8rem;margin-bottom:6px;color:#0a192f;">📆 תחזית לינק — 4 ימים</div>'
+      + d.forecast_next_days.map(function(day) {
+        var morningIcon = day.periods && day.periods[0] ? (iconMap[day.periods[0].icon] || '🌤️') : '?';
+        var dayIcon = day.periods && day.periods[1] ? (iconMap[day.periods[1].icon] || '🌤️') : morningIcon;
+        var bad = day.periods && day.periods.some(function(p){ return p.icon === 'storm' || p.icon === 'snow' || p.icon === 'fog'; });
+        var dayBg = bad ? '#fff5f5' : '#f8fff8';
+        var assessment = bad ? '⚠️ תנאים קשים' : '✅ תנאים אפשריים';
+        return '<div style="background:' + dayBg + ';border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">'
+          + '<div style="font-size:0.82rem;font-weight:bold;">' + day.date + '</div>'
+          + '<div style="display:flex;gap:6px;font-size:1.1rem;">' + day.periods.map(function(p){ return iconMap[p.icon] || '🌤️'; }).join('') + '</div>'
+          + '<div style="font-size:0.72rem;color:#555;">' + assessment + '</div>'
+          + '</div>';
+      }).join('');
+  }
+}
+
 function openM(id) {
   const m = document.getElementById(id);
   if (m) m.style.display = 'flex';
   if (id === 'hotelModal') { setTimeout(initFlatpickr, 80); switchTripTab('all'); }
   if (id === 'profileModal') { setTimeout(populateProfileModal, 0); return; }
   if (id === 'parkingModal') switchParkTab('parking');
-  if (id === 'kosherModal') { switchKoshTab('cervinia'); }
+  if (id === 'kosherModal') { setTimeout(function(){ switchKoshMain('shabbat'); }, 30); }
   if (id === 'pisteModal') { setTimeout(renderPisteGuide, 30); }
   if (id === 'skipassModal') switchPassTab('cervinia');
   if (id === 'rentalModal') switchRentTab('ski');
@@ -1584,22 +1765,72 @@ function switchTab(tab) {
 
 
 
+var _mapZoomLevel = 1;
+
 function loadMap(type) {
   const frame = document.getElementById('map-frame');
   const img = document.getElementById('map-img');
   const ph = document.getElementById('map-placeholder');
-  if (ph) ph.style.display = 'none';
+  const toolbar = document.getElementById('map-toolbar');
+  const dlBtn = document.getElementById('map-download-btn');
+  _mapZoomLevel = 1;
+
+  // איפוס
+  if (img) { img.style.display = 'none'; img.style.transform = 'scale(1)'; }
+  if (frame) { frame.style.display = 'none'; frame.src = ''; }
+  if (ph) { ph.style.display = 'none'; ph.innerHTML = ''; }
+  if (toolbar) toolbar.style.display = 'none';
+
   if (type === 'mymap') {
-    if (frame) frame.style.display = 'none';
-    if (img) { img.style.display = 'block'; img.src = 'mymap.jpg'; }
-  } else if (type === 'town') {
-    if (img) img.style.display = 'none';
-    if (frame) { frame.style.display = 'block'; frame.src = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2777.6!2d7.626944!3d45.936461!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478869d400000001%3A0x1!2sBreuil-Cervinia!5e0!3m2!1siw!2sil!4v1'; }
+    // תמונה ישירה — עובדת תמיד
+    if (img) {
+      img.style.display = 'block';
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      img.src = 'https://ykrauss1.github.io/cervinia-data/mymap.jpg';
+    }
+    if (toolbar) toolbar.style.display = 'flex';
+    if (dlBtn) { dlBtn.href = 'https://ykrauss1.github.io/cervinia-data/mymap.jpg'; dlBtn.download = 'cervinia_map.jpg'; dlBtn.target = ''; }
+
+  } else if (type === 'piste') {
+    // PDF — iframe חסום בדפדפנים ניידים → כפתור פתיחה חיצוני
+    if (toolbar) toolbar.style.display = 'flex';
+    if (dlBtn) { dlBtn.href = 'https://ykrauss1.github.io/cervinia-data/slopesmap.pdf'; dlBtn.download = ''; dlBtn.target = '_blank'; }
+    if (ph) {
+      ph.style.display = 'flex';
+      ph.style.flexDirection = 'column';
+      ph.style.gap = '14px';
+      ph.innerHTML = '<span style="font-size:2.5rem;">⛷️</span>'
+        + '<span style="font-weight:bold;color:#333;font-size:0.95rem;">מפת מסלולים</span>'
+        + '<a href="https://ykrauss1.github.io/cervinia-data/slopesmap.pdf" target="_blank" '
+        + 'style="padding:12px 28px;background:#1a3a6c;color:white;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.9rem;">📄 פתח / הורד PDF</a>'
+        + '<span style="font-size:0.75rem;color:#aaa;">נפתח בלשונית חדשה</span>';
+    }
+
   } else {
-    if (img) img.style.display = 'none';
-    if (frame) { frame.style.display = 'block'; frame.src = 'https://raw.githubusercontent.com/ykrauss1/cervinia-data/main/slopesmap.pdf'; }
+    // מפת הכפר — Google Maps embed חסום → קישורים חיצוניים
+    if (ph) {
+      ph.style.display = 'flex';
+      ph.style.flexDirection = 'column';
+      ph.style.gap = '12px';
+      ph.innerHTML = '<span style="font-size:2.5rem;">🏘️</span>'
+        + '<span style="font-weight:bold;color:#333;font-size:0.95rem;">Breuil-Cervinia</span>'
+        + '<a href="https://www.google.com/maps/place/Breuil-Cervinia/@45.9364,7.6269,15z" target="_blank" '
+        + 'style="padding:12px 24px;background:#4285f4;color:white;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.88rem;">🗺️ Google Maps</a>'
+        + '<a href="https://maps.apple.com/?address=Breuil-Cervinia,Italy&ll=45.9364,7.6269&q=Breuil-Cervinia" target="_blank" '
+        + 'style="padding:12px 24px;background:#555;color:white;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.88rem;">🍎 Apple Maps</a>'
+        + '<a href="https://waze.com/ul?ll=45.9364,7.6269&navigate=yes" target="_blank" '
+        + 'style="padding:12px 24px;background:#33ccff;color:#1a1a1a;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.88rem;">🚗 Waze</a>';
+    }
   }
 }
+
+function mapZoom(factor) {
+  _mapZoomLevel = Math.min(4, Math.max(0.5, _mapZoomLevel * factor));
+  var img = document.getElementById('map-img');
+  if (img && img.style.display !== 'none') img.style.transform = 'scale(' + _mapZoomLevel + ')';
+}
+function mapZoomReset() { _mapZoomLevel = 1; var img = document.getElementById('map-img'); if (img) img.style.transform = 'scale(1)'; }
 
 // ── Service modals ──
 function openRentalModal() { openM('rentalModal'); }
@@ -1916,6 +2147,33 @@ function switchParkTab(tab) {
   });
 }
 
+function switchKoshMain(tab) {
+  var panels = ['shabbat','kosher'];
+  var btns = ['kosh-main-shabbat','kosh-main-kosher'];
+  panels.forEach(function(p, i) {
+    var panel = document.getElementById('kosh-main-panel-' + p);
+    var btn = document.getElementById(btns[i]);
+    if (panel) panel.style.display = p === tab ? 'block' : 'none';
+    if (btn) {
+      if (p === tab) {
+        btn.style.background = '#0a192f'; btn.style.color = 'white'; btn.style.border = '2px solid #0a192f';
+      } else {
+        btn.style.background = '#f5f5f5'; btn.style.color = '#555'; btn.style.border = '2px solid #ddd';
+      }
+    }
+  });
+  if (tab === 'shabbat' && window.renderShabbatTimes) renderShabbatTimes(0);
+  if (tab === 'kosher') switchKoshTab('cervinia');
+}
+
+function openKosherShabbat() {
+  openM('kosherModal');
+  setTimeout(function() {
+    switchKoshTab('shabbat');
+    if (window.renderShabbatTimes) renderShabbatTimes(0);
+  }, 50);
+}
+
 function switchKoshTab(tab) {
   ['cervinia','delivery','milan','torino'].forEach(t => {
     const btn   = document.getElementById('kosh-tab-' + t);
@@ -2032,11 +2290,63 @@ function sharePost(postId) {
   var ANCHOR_SAT = new Date(2025, 9, 18);  // Shabbat Bereshit 5786 = Oct 18 2025
   var ANCHOR_IDX = 0;
 
+  // ── ארבע פרשות — חישוב אוטומטי לכל שנה ──
+  // ד' פרשות: טבלת פורים לשנים 2025-2040
+  // פורים — תאריכים מדויקים מ-Hebcal
+  var PURIM_TABLE = {
+    2025: new Date(2025,2,13), 2026: new Date(2026,2,3),
+    2027: new Date(2027,2,22), 2028: new Date(2028,3,1),
+    2029: new Date(2029,2,20), 2030: new Date(2030,2,10),
+    2031: new Date(2031,2,30), 2032: new Date(2032,2,17),
+    2033: new Date(2033,2,6),  2034: new Date(2034,2,26),
+    2035: new Date(2035,2,15), 2036: new Date(2036,3,2),
+    2037: new Date(2037,2,22), 2038: new Date(2038,2,11),
+    2039: new Date(2039,2,1),  2040: new Date(2040,2,19)
+  };
+  function sat7before(d) { // שבת לפני d
+    var s = new Date(d); s.setHours(0,0,0,0);
+    s.setDate(s.getDate() - ((s.getDay() + 1) % 7 || 7));
+    return s;
+  }
+  function sat7after(d) { // שבת הקרובה אחרי d
+    var s = new Date(d); s.setHours(0,0,0,0);
+    var diff = (6 - s.getDay() + 7) % 7 || 7;
+    s.setDate(s.getDate() + diff);
+    return s;
+  }
+  function getSpecialShabbat(satDate) {
+    var y = satDate.getFullYear();
+    var purim = PURIM_TABLE[y] || PURIM_TABLE[y+1];
+    if (!purim) return null;
+    // אם עברנו את פורים + 90 יום — קח שנה הבאה
+    if (satDate.getTime() > purim.getTime() + 90*86400000)
+      purim = PURIM_TABLE[y+1];
+    if (!purim) return null;
+
+    var zakhor    = sat7before(purim);          // שבת שלפני פורים
+    var shekalim  = sat7before(zakhor);             // שבת לפני זכור = שקלים
+    var para      = sat7after(purim);           // שבת שאחרי פורים
+    // ר"ח ניסן — בד"כ 30 ימים אחרי פורים
+    var rNisan    = new Date(purim.getTime() + 17*86400000); // ר"ח ניסן = 1 ניסן, כ-17 ימים אחרי פורים
+    var hachodesh = sat7before(rNisan);
+    if (hachodesh.getTime() === para.getTime()) // אם חופף עם פרה
+      hachodesh = sat7after(para);
+
+    var s0 = new Date(satDate); s0.setHours(0,0,0,0);
+    if (s0.getTime() === shekalim.getTime())  return 'שקלים';
+    if (s0.getTime() === zakhor.getTime())    return 'זכור';
+    if (s0.getTime() === para.getTime())      return 'פרה';
+    if (s0.getTime() === hachodesh.getTime()) return 'החודש';
+    return null;
+  }
+
   function getParasha(saturdayDate) {
     var days = Math.round((saturdayDate - ANCHOR_SAT) / 86400000);
     var idx = (ANCHOR_IDX + Math.floor(days / 7)) % PARSHIOT.length;
     if (idx < 0) idx += PARSHIOT.length;
-    return PARSHIOT[idx];
+    var parasha = PARSHIOT[idx];
+    var special = getSpecialShabbat(saturdayDate);
+    return special ? parasha + ' — ' + special : parasha;
   }
 
   function nextFriday() {
@@ -2090,6 +2400,83 @@ function sharePost(postId) {
     return '';
   }
 
+  // ── Jewish Holidays & Fasts ──
+  // מחזיר אובייקט {name, type:'holiday'|'fast'|'erev', fastStart, fastEnd} עבור תאריך עברי
+  function getJewishHoliday(jsDate) {
+    // מחשב תאריך עברי פשוט מ-TISHRI_1_5786
+    var daysSince = Math.round((jsDate - TISHRI_1_5786) / 86400000);
+    if (daysSince < 0) return null;
+
+    // בניית לוח שנה עברי פשוט לשנת תשפ"ו (2025-2026)
+    // כל החגים מחושבים לפי ידיעת התאריכים הגרגוריאניים של תשפ"ו
+    var HOLIDAYS_5786 = [
+      // תשרי תשפ"ו
+      { date: new Date(2025, 8, 22), name: "ראש השנה א'", type: 'holiday' },
+      { date: new Date(2025, 8, 23), name: "ראש השנה ב'", type: 'holiday' },
+      { date: new Date(2025, 8, 24), name: 'צום גדליה', type: 'fast' },
+      { date: new Date(2025, 9, 1),  name: 'ערב יום כיפור', type: 'erev' },
+      { date: new Date(2025, 9, 2),  name: 'יום כיפור', type: 'fast' },
+      { date: new Date(2025, 9, 6),  name: 'ערב סוכות', type: 'erev' },
+      { date: new Date(2025, 9, 7),  name: 'סוכות', type: 'holiday' },
+      { date: new Date(2025, 9, 8),  name: "סוכות ב'", type: 'holiday' },
+      { date: new Date(2025, 9, 9),  name: 'חול המועד', type: 'holiday' },
+      { date: new Date(2025, 9, 10), name: 'חול המועד', type: 'holiday' },
+      { date: new Date(2025, 9, 11), name: 'חול המועד', type: 'holiday' },
+      { date: new Date(2025, 9, 12), name: 'חול המועד', type: 'holiday' },
+      { date: new Date(2025, 9, 13), name: 'הושענא רבה', type: 'holiday' },
+      { date: new Date(2025, 9, 14), name: 'שמיני עצרת', type: 'holiday' },
+      { date: new Date(2025, 9, 15), name: 'שמחת תורה', type: 'holiday' },
+      // כסלו — חנוכה (14-21 דצמ' 2025)
+      { date: new Date(2025, 11, 14), name: "חנוכה א'", type: 'holiday' },
+      { date: new Date(2025, 11, 15), name: "חנוכה ב'", type: 'holiday' },
+      { date: new Date(2025, 11, 16), name: "חנוכה ג'", type: 'holiday' },
+      { date: new Date(2025, 11, 17), name: "חנוכה ד'", type: 'holiday' },
+      { date: new Date(2025, 11, 18), name: "חנוכה ה'", type: 'holiday' },
+      { date: new Date(2025, 11, 19), name: "חנוכה ו'", type: 'holiday' },
+      { date: new Date(2025, 11, 20), name: "חנוכה ז'", type: 'holiday' },
+      { date: new Date(2025, 11, 21), name: "חנוכה ח'", type: 'holiday' },
+      // טבת
+      { date: new Date(2026, 0, 1),  name: 'עשרה בטבת', type: 'fast' },
+      // שבט
+      { date: new Date(2026, 1, 2),  name: 'ט"ו בשבט', type: 'holiday' },
+      // אדר — פורים 3 מרץ (Hebcal: Mon 2 March sunset - Tue 3 March nightfall)
+      { date: new Date(2026, 2, 2),  name: 'תענית אסתר', type: 'fast' },
+      { date: new Date(2026, 2, 3),  name: 'פורים', type: 'holiday' },
+      { date: new Date(2026, 2, 4),  name: 'שושן פורים', type: 'holiday' },
+      // ניסן — פסח (1-9 אפריל 2026)
+      { date: new Date(2026, 3, 1),  name: 'ערב פסח', type: 'erev' },
+      { date: new Date(2026, 3, 2),  name: 'פסח', type: 'holiday' },
+      { date: new Date(2026, 3, 3),  name: "פסח ב'", type: 'holiday' },
+      { date: new Date(2026, 3, 4),  name: 'חול המועד פסח', type: 'holiday' },
+      { date: new Date(2026, 3, 5),  name: 'חול המועד פסח', type: 'holiday' },
+      { date: new Date(2026, 3, 6),  name: 'חול המועד פסח', type: 'holiday' },
+      { date: new Date(2026, 3, 7),  name: 'חול המועד פסח', type: 'holiday' },
+      { date: new Date(2026, 3, 8),  name: 'שביעי של פסח', type: 'holiday' },
+      { date: new Date(2026, 3, 9),  name: 'אחרון של פסח', type: 'holiday' },
+      { date: new Date(2026, 3, 21), name: 'יום השואה', type: 'holiday' },
+      { date: new Date(2026, 3, 27), name: 'יום הזיכרון', type: 'holiday' },
+      { date: new Date(2026, 3, 28), name: 'יום העצמאות', type: 'holiday' },
+      // אייר
+      { date: new Date(2026, 3, 30), name: 'פסח שני', type: 'holiday' },
+      { date: new Date(2026, 4, 5),  name: '\u05dc\u0022\u05d2 \u05d1\u05e2\u05d5\u05de\u05e8', type: 'holiday' },
+      // סיוון — שבועות (21-23 מאי 2026)
+      { date: new Date(2026, 4, 21), name: 'ערב שבועות', type: 'erev' },
+      { date: new Date(2026, 4, 22), name: 'שבועות', type: 'holiday' },
+      { date: new Date(2026, 4, 23), name: "שבועות ב'", type: 'holiday' },
+      // תמוז
+      { date: new Date(2026, 6, 2),  name: 'י"ז בתמוז', type: 'fast' },
+      // אב
+      { date: new Date(2026, 6, 23), name: 'תשעה באב', type: 'fast' },
+    ];
+
+    var d0 = new Date(jsDate); d0.setHours(0,0,0,0);
+    for (var i = 0; i < HOLIDAYS_5786.length; i++) {
+      var hd = new Date(HOLIDAYS_5786[i].date); hd.setHours(0,0,0,0);
+      if (hd.getTime() === d0.getTime()) return HOLIDAYS_5786[i];
+    }
+    return null;
+  }
+
   window.renderShabbatTimes = function(locIdx) {
     if (locIdx !== undefined) { currentLocIdx = locIdx; LAT = LOCATIONS[locIdx].lat; LON = LOCATIONS[locIdx].lon; }
     var el = document.getElementById('shabbat-times-widget');
@@ -2117,10 +2504,8 @@ function sharePost(postId) {
 
     // Build 7-day sun table — start from nearest Sunday
     var tableRows = '';
-    var weekStart = new Date(today);
-    // Go back to the Sunday of this week (or stay if today is Sunday)
-    weekStart.setDate(today.getDate() - today.getDay());  // today.getDay(): 0=Sun
-    for (var i = 0; i < 7; i++) {
+    var weekStart = new Date(today);  // מתחיל מהיום
+    for (var i = 0; i < 14; i++) {
       var d = new Date(weekStart);
       d.setDate(weekStart.getDate() + i);
       var t = sunTimes(d, LAT, LON);
@@ -2129,18 +2514,31 @@ function sharePost(postId) {
       var hebDate = hebrewDateStr(d);
       var isShabbat = d.getDay() === 6;
       var isFriday  = d.getDay() === 5;
-      var rowStyle = isShabbat ? 'background:#fff8e1;' : isFriday ? 'background:#f0fff4;' : '';
+      var holiday   = getJewishHoliday(d);
+      var isHoliday = holiday && holiday.type === 'holiday';
+      var isFast    = holiday && holiday.type === 'fast';
+      var isErev    = holiday && holiday.type === 'erev';
+      var rowStyle  = isShabbat ? 'background:#fff8e1;' : isFriday ? 'background:#f0fff4;' : isHoliday ? 'background:#f3e5f5;' : isFast ? 'background:#fce4ec;' : isErev ? 'background:#e8f5e9;' : '';
+      var holidayBadge = holiday ? '<br><span style="font-size:0.73rem;font-weight:900;letter-spacing:0.3px;color:' + (isFast?'#c62828':isErev?'#2e7d32':'#5e35b1') + ';">' + holiday.name + '</span>' : '';
+      var fastEndTime = addMin(t.set, +18);
+      var prevTimes = isFast ? sunTimes(new Date(d.getTime() - 86400000), LAT, LON) : null;
+      var fastStartTime = prevTimes ? addMin(prevTimes.set, -18) : '';
+      var fastCell = isFast ? ('<td style="padding:5px 8px;font-size:0.72rem;color:#c62828;text-align:center;">'
+        + (fastStartTime ? '🌅→' + fastStartTime + '<br>' : '')
+        + '✡️ סיום הצום: ' + fastEndTime + '</td>') : '';
       tableRows += '<tr style="' + rowStyle + '">'
-        + '<td style="padding:5px 8px;font-size:0.79rem;font-weight:' + (isShabbat||isFriday?'bold':'normal') + ';line-height:1.3;">'
+        + '<td style="padding:5px 8px;font-size:0.79rem;font-weight:' + (isShabbat||isFriday||isHoliday||isFast?'bold':'normal') + ';line-height:1.3;">'
         + dayName
-        + '<br><span style="font-size:0.75rem;font-weight:bold;">' + hebDate + '</span>'
-        + '<br><span style="font-size:0.66rem;color:#aaa;">' + d.getDate() + '/' + (d.getMonth()+1) + '</span>'
+        + '<br><span style="font-size:0.75rem;font-weight:bold;color:#555;">' + hebDate + '</span>'
+        + '<br><span style="font-size:0.66rem;color:#bbb;">' + d.getDate() + '/' + (d.getMonth()+1) + '</span>'
+        + holidayBadge
         + '</td>'
         + '<td style="padding:5px 8px;font-size:0.8rem;text-align:center;">☀️ ' + fmtTime(t.rise) + '</td>'
         + '<td style="padding:5px 8px;font-size:0.8rem;text-align:center;">🌅 ' + fmtTime(t.set) + '</td>'
         + (isFriday ? '<td style="padding:5px 8px;font-size:0.78rem;color:#2e7d32;text-align:center;">🕯️ ' + candlelight + '</td>' : '')
         + (isShabbat ? '<td style="padding:5px 8px;font-size:0.76rem;color:#7b1fa2;text-align:center;">✨ ' + havdalahRegular + ' <span style="font-size:0.67rem;opacity:0.65;">/ ' + havdalah + ' ר"ת</span></td>' : '')
-        + ((!isFriday && !isShabbat) ? '<td></td>' : '')
+        + (isFast ? fastCell : '')
+        + ((!isFriday && !isShabbat && !isFast) ? '<td></td>' : '')
         + '</tr>';
     }
 
@@ -2162,7 +2560,7 @@ function sharePost(postId) {
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">'
       + '<div>'
       + '<div style="font-weight:bold;font-size:1rem;">🕯️ שבת ' + parasha + '</div>'
-      + '<div style="font-size:0.76rem;color:#888;margin-top:2px;">' + friStr + ' – ' + satStr + ' · ' + hebrewDateStr(fri) + ' – ' + hebrewDateStr(sat) + '</div>'
+      + '<div style="font-size:0.76rem;color:#888;margin-top:2px;">' + hebrewDateStr(fri) + ' – ' + hebrewDateStr(sat) + ' · ' + friStr + ' – ' + satStr + '</div>'
       + '</div>'
       + '<div style="text-align:left;font-size:0.72rem;color:#888;">⛰️ 2050m<br>45.94°N</div>'
       + '</div>'
@@ -2188,7 +2586,7 @@ function sharePost(postId) {
 
       // Weekly sun table
       + '<div style="border-radius:10px;overflow:hidden;border:1px solid #eee;">'
-      + '<div style="background:#0a192f;color:white;padding:7px 12px;font-size:0.8rem;font-weight:bold;">🌞 זמני זריחה ושקיעה — 7 ימים קרובים</div>'
+      + '<div style="background:#0a192f;color:white;padding:7px 12px;font-size:0.8rem;font-weight:bold;">🕯️ זמני השבוע, שבת ומועדים</div>'
       + '<table style="width:100%;border-collapse:collapse;">'
       + '<thead><tr style="background:#f5f5f5;">'
       + '<th style="padding:5px 8px;font-size:0.75rem;text-align:right;">יום</th>'
@@ -3293,11 +3691,9 @@ function renderLiveBar(d) {
     } else {
       zColor = '#e74c3c'; zText = 'סגור'; zBorder = 'rgba(231,76,60,0.3)';
     }
-    if (dot) { dot.setAttribute('fill', zColor); dot.style.filter = 'drop-shadow(0 0 4px ' + zColor + ')'; }
-    if (label) { label.style.color = zColor; }
+    if (dot) { dot.setAttribute('fill', zColor); }
+    if (label) { label.setAttribute('fill', zColor); }
     if (status) { status.textContent = zText; }
-    zBarEl.style.border = '1.5px solid ' + zBorder;
-    zBarEl.style.background = 'rgba(255,255,255,0.04)';
   }
 
   // Zermatt dot in nav
