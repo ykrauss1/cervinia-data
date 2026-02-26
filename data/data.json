@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-02-26T00:03:42.164Z",
-  "temperature": 0.4,
+  "updated_at": "2026-02-26T05:24:29.053Z",
+  "temperature": -0.8,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 2,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "135 cm",
   "last_snowfall": null,
-  "wind_speed": 21.2,
+  "wind_speed": 7.9,
   "wind_gust": 27.4,
-  "humidity": null,
+  "humidity": 41,
   "avalanche_level": "3",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -41,18 +41,13 @@
       "depth": 115
     },
     {
-      "station": "basev",
-      "altitude": 1524,
-      "depth": 45
-    },
-    {
       "station": "midv",
       "altitude": 2245,
       "depth": 95
     }
   ],
   "forecast_today": {
-    "date": "Wednesday, February 25",
+    "date": "Thursday, February 26",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -92,27 +87,6 @@
   },
   "forecast_next_days": [
     {
-      "date": "Friday, February 27",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
-    {
       "date": "Saturday, February 28",
       "periods": [
         {
@@ -135,6 +109,27 @@
     },
     {
       "date": "Sunday, March 1",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Monday, March 2",
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
