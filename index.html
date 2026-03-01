@@ -101,9 +101,17 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
-<div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;">
-  v14.8 · 01.03.2026 16:51
-</div>
+<div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
+<script>
+(function(){
+  var v='v14.9';
+  var now=new Date();
+  var d=now.getDate().toString().padStart(2,'0')+'.'+
+        (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
+  var t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('version-badge').textContent=v+' · '+d+' '+t;
+})();
+</script>
 
 <div class="preview-banner">
   🔍 <b>מצב תצוגה מקדימה</b> — מזג אוויר ופורום מוצגים עם נתונים לדוגמה
@@ -2229,7 +2237,7 @@ function searchAll() {
   const airDist = airOpt?.getAttribute('data-dist') || '175';
   const d1 = dr.ci.replace(/-/g,'').slice(2);
   const d2 = dr.co.replace(/-/g,'').slice(2);
-  const gfUrl = 'https://www.google.com/travel/flights?q=Flights+from+TLV+to+' + airCode + '+on+' + dr.ci + '+returning+' + dr.co + '&hl=he&curr=ILS';
+  const gfUrl = 'https://www.google.com/travel/flights?hl=he&curr=ILS#flt=TLV.' + airCode + '.' + dr.ci + '*' + airCode + '.TLV.' + dr.co + ';c:ILS;e:1;s:0*0;sd:1;t:f';
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
   const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
   let links = [
@@ -2257,34 +2265,22 @@ function searchAll() {
     links.push({ icon: '🚗', title: 'Discover Cars — ' + airCode, desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/' + dcCity2 + '?from=' + cci + 'T' + pickup + '&to=' + cco + 'T' + dropoff });
   }
 
-  // בנה HTML עם חלוקה לתיבות
-  const flightLinks = [
-    { icon: '✈️', title: 'Google Flights → Milan (MXP)', desc: 'מילאנו מלפנסה — הכי קל מישראל', url: 'https://www.google.com/travel/flights?q=Tel+Aviv+to+Milan+Malpensa&hl=he&curr=ILS' },
-    { icon: '✈️', title: 'Skyscanner → MXP', desc: 'השוואה מכל חברות התעופה', url: 'https://www.skyscanner.co.il/flights/tlv/mxp/' + dr.ci.replace(/-/g,'').slice(2) + '/' + dr.co.replace(/-/g,'').slice(2) + '/?adults=' + adults },
-    { icon: '✈️', title: 'Google Flights → Bergamo (BGY)', desc: 'Ryanair / מחירים זולים', url: 'https://www.google.com/travel/flights?q=Tel+Aviv+to+Milan+Bergamo&hl=he&curr=ILS' },
-  ];
-  const hotelLinks = !hasHotel ? [] : [
-    { icon: '🏨', title: 'Booking.com', desc: (accType==='apt'?'דירות':accType==='any'?'כל סוגי לינה':'מלונות') + ' — ' + dr.ci + ' עד ' + dr.co, url: 'https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=' + dr.ci + '&checkout=' + dr.co + '&group_adults=' + hAdults + '&group_children=' + hKids + '&no_rooms=' + hRooms },
-    { icon: '🏠', title: 'Airbnb', desc: 'דירות ובתי נופש', url: 'https://www.airbnb.com/s/Breuil-Cervinia--Italy/homes?checkin=' + dr.ci + '&checkout=' + dr.co + '&adults=' + hAdults },
-  ];
-  const carLinks = !hasCar ? [] : [
-    { icon: '🚗', title: 'Rentalcars.com', desc: 'קבלה בשדה + גיר אוטומטי', url: 'https://www.rentalcars.com/SearchResults.do?country=Italy&city=Cervinia&pickup=' + dr.ci + 'T' + pickup + '&dropoff=' + dr.co + 'T' + dropoff },
-    { icon: '🚗', title: 'Discover Cars', desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/cervinia?from=' + dr.ci + '&to=' + dr.co },
-  ];
-
-  function section(title, bg, border, links) {
-    if (!links.length) return '';
-    return '<div style="background:' + bg + ';border:1.5px solid ' + border + ';border-radius:11px;padding:12px 14px;margin-bottom:12px;">'
-      + '<div style="font-size:0.78rem;font-weight:bold;color:#333;margin-bottom:8px;">' + title + '</div>'
-      + makeResultLinks(links)
-      + '</div>';
+  // רנדר תוצאות בתיבות
+  function section(ttl, bg, brd, lnks) {
+    if (!lnks.length) return '';
+    return '<div style="background:' + bg + ';border:1.5px solid ' + brd + ';border-radius:11px;padding:12px 14px;margin-bottom:10px;">'
+      + '<div style="font-size:0.78rem;font-weight:bold;color:#333;margin-bottom:8px;">' + ttl + '</div>'
+      + makeResultLinks(lnks) + '</div>';
   }
+  const flightLinks2 = links.filter(l => l.icon === '✈️');
+  const hotelLinks2  = links.filter(l => l.icon === '🏨' || l.icon === '🏠');
+  const carLinks2    = links.filter(l => l.icon === '🚗');
 
   const res = document.getElementById('all-results');
   showResults(res);
-  res.innerHTML = section('✈️ טיסות', '#f0f7ff', '#bcd', flightLinks)
-               + section('🏨 לינה', '#f0fff8', '#ace', hotelLinks)
-               + section('🚗 השכרת רכב', '#fff8f0', '#dca', carLinks);
+  res.innerHTML = section('✈️ טיסות', '#f0f7ff', '#bcd', flightLinks2)
+               + section('🏨 לינה',   '#f0fff8', '#9dc', hotelLinks2)
+               + section('🚗 השכרת רכב', '#fff8f0', '#dca', carLinks2);
 }
 
 // ── initFlatpickr ──
