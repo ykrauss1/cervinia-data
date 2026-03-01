@@ -2128,8 +2128,10 @@ function searchFlight() {
   const isDirect = fCode !== 'TRN';
   const gfUrl = 'https://www.google.com/travel/flights?q=Tel+Aviv+to+' + fCity.replace(/ /g,'+') + '&hl=he&curr=ILS';
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
+  // Google Flights עם תאריכים
+  const gfWithDates = 'https://www.google.com/travel/flights?q=Flights+from+TLV+to+' + fCode + '+on+' + dr.ci + '+returning+' + dr.co + '&hl=he&curr=ILS';
   const links = [
-    { icon: '✈️', title: 'Google Flights → ' + fCode, desc: fCity + ' · ~' + fDist + ' ק"מ' + (isDirect ? '' : ' · ללא ישיר'), url: gfUrl },
+    { icon: '✈️', title: 'Google Flights → ' + fCode, desc: fCity + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner → ' + fCode, desc: 'השוואת מחירים', url: skUrl },
     { icon: '✈️', title: 'Kayak → ' + fCode, desc: 'השוואה כוללת', url: 'https://www.kayak.co.il/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
   ];
@@ -2152,10 +2154,14 @@ function searchCar() {
   const cOpt = cSel?.options[cSel.selectedIndex];
   const cCity = cOpt?.getAttribute('data-city') || 'Milan Malpensa';
   const carAirport = cCode==='MXP' ? 'Milan+Malpensa+Airport' : cCode==='BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
+  // Rentalcars URL נכון
+  const rcCity = cCode==='MXP' ? 'Milan+Malpensa+Airport' : cCode==='BGY' ? 'Bergamo+Airport' : 'Turin+Airport';
+  const rcUrl = 'https://www.rentalcars.com/search?cor=il&puPl=' + rcCity + '&puDt=' + dr.ci + '&puHr=' + pickup.replace(':','') + '&doPl=' + rcCity + '&doDt=' + dr.co + '&doHr=' + dropoff.replace(':','') + '&driverAge=30';
+  const dcCity = cCode==='MXP' ? 'milan-malpensa-airport' : cCode==='BGY' ? 'bergamo-airport' : 'turin-airport';
   const links = [
-    { icon: '🚗', title: 'Rentalcars — ' + cCode, desc: 'השוואת מחירים · איסוף מ-' + cCity, url: 'https://www.rentalcars.com/SearchResults.do?country=Italy&city=' + cCode + '&pickup=' + dr.ci + 'T' + pickup + '&dropoff=' + dr.co + 'T' + dropoff },
+    { icon: '🚗', title: 'Rentalcars — ' + cCode, desc: 'השוואת מחירים · ' + cCity, url: rcUrl },
     { icon: '🚗', title: 'Auto Europe — ' + cCode, desc: 'מומחה לרכב בחו"ל', url: 'https://www.autoeurope.co.il/?pickup_location=' + carAirport + '&return_location=' + carAirport + '&pickup_date=' + dr.ci + '&return_date=' + dr.co },
-    { icon: '🚗', title: 'Discover Cars', desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/cervinia?from=' + dr.ci + '&to=' + dr.co },
+    { icon: '🚗', title: 'Discover Cars — ' + cCode, desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/' + dcCity + '?from=' + dr.ci + '&to=' + dr.co },
   ];
   const res = document.getElementById('car-results');
   res.style.display = 'block';
@@ -2218,7 +2224,7 @@ function searchAll() {
   const airDist = airOpt?.getAttribute('data-dist') || '175';
   const d1 = dr.ci.replace(/-/g,'').slice(2);
   const d2 = dr.co.replace(/-/g,'').slice(2);
-  const gfUrl = 'https://www.google.com/travel/flights?q=Tel+Aviv+to+' + airCity.replace(/ /g,'+') + '&hl=he&curr=ILS';
+  const gfUrl = 'https://www.google.com/travel/flights?q=Flights+from+TLV+to+' + airCode + '+on+' + dr.ci + '+returning+' + dr.co + '&hl=he&curr=ILS';
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
   const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
   let links = [
@@ -2231,7 +2237,7 @@ function searchAll() {
     const hco = (document.getElementById('hotel-diff-dates')?.checked && allHtlEl2?.getAttribute('data-co')) ? allHtlEl2.getAttribute('data-co') : dr.co;
     const bkUrl = 'https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=' + hci + '&checkout=' + hco + '&group_adults=' + hAdults + '&group_children=' + hKids + '&no_rooms=' + hRooms;
     links.push({ icon: '🏨', title: 'Booking.com — לינה', desc: (accType==='apt'?'דירות':accType==='any'?'כל סוגי הלינה':'מלונות') + (hci!==dr.ci?' (תאריכים שונים)':''), url: bkUrl });
-    links.push({ icon: '🏠', title: 'Airbnb — דירות', desc: 'דירות ובתי נופש', url: 'https://www.airbnb.co.il/s/Breuil-Cervinia/homes?checkin=' + hci + '&checkout=' + hco + '&adults=' + hAdults + '&children=' + hKids });
+    links.push({ icon: '🏠', title: 'Airbnb — דירות', desc: 'דירות ובתי נופש', url: 'https://www.airbnb.com/s/Breuil-Cervinia--Italy/homes?checkin=' + hci + '&checkout=' + hco + '&adults=' + hAdults + '&children=' + hKids });
   }
   if (hasCar) {
   const allCarEl2 = document.getElementById('all-car-dates');
@@ -2239,8 +2245,11 @@ function searchAll() {
     const cco = (document.getElementById('car-diff-dates')?.checked && allCarEl2?.getAttribute('data-co')) ? allCarEl2.getAttribute('data-co') : dr.co;
     const carDesc = (airportPickup ? 'קבלה בשדה' : 'קבלה בעיר') + (automatic ? ' · אוטומטי' : '') + (cci!==dr.ci?' · תאריכים שונים':'');
   const carAirport = airCode === 'MXP' ? 'Milan+Malpensa+Airport' : airCode === 'BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
-    links.push({ icon: '🚗', title: 'Rentalcars — השכרת רכב', desc: carDesc + ' · ' + airCode, url: 'https://www.rentalcars.com/SearchResults.do?country=Italy&city=' + airCode + '&pickup=' + cci + 'T' + pickup + '&dropoff=' + cco + 'T' + dropoff });
-    links.push({ icon: '🚗', title: 'Auto Europe', desc: 'איסוף מ-' + airCode, url: 'https://www.autoeurope.co.il/?pickup_location=' + carAirport + '&return_location=' + carAirport + '&pickup_date=' + cci + '&return_date=' + cco });
+    const rcCity2 = airCode==='MXP' ? 'Milan+Malpensa+Airport' : airCode==='BGY' ? 'Bergamo+Airport' : 'Turin+Airport';
+    const dcCity2 = airCode==='MXP' ? 'milan-malpensa-airport' : airCode==='BGY' ? 'bergamo-airport' : 'turin-airport';
+    const rcUrl2 = 'https://www.rentalcars.com/search?cor=il&puPl=' + rcCity2 + '&puDt=' + cci + '&puHr=' + pickup.replace(':','') + '&doPl=' + rcCity2 + '&doDt=' + cco + '&doHr=' + dropoff.replace(':','') + '&driverAge=30';
+    links.push({ icon: '🚗', title: 'Rentalcars — ' + airCode, desc: carDesc, url: rcUrl2 });
+    links.push({ icon: '🚗', title: 'Discover Cars — ' + airCode, desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/' + dcCity2 + '?from=' + cci + '&to=' + cco });
   }
 
   // בנה HTML עם חלוקה לתיבות
@@ -2251,7 +2260,7 @@ function searchAll() {
   ];
   const hotelLinks = !hasHotel ? [] : [
     { icon: '🏨', title: 'Booking.com', desc: (accType==='apt'?'דירות':accType==='any'?'כל סוגי לינה':'מלונות') + ' — ' + dr.ci + ' עד ' + dr.co, url: 'https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=' + dr.ci + '&checkout=' + dr.co + '&group_adults=' + hAdults + '&group_children=' + hKids + '&no_rooms=' + hRooms },
-    { icon: '🏠', title: 'Airbnb', desc: 'דירות ובתי נופש', url: 'https://www.airbnb.co.il/s/Breuil-Cervinia/homes?checkin=' + dr.ci + '&checkout=' + dr.co + '&adults=' + hAdults },
+    { icon: '🏠', title: 'Airbnb', desc: 'דירות ובתי נופש', url: 'https://www.airbnb.com/s/Breuil-Cervinia--Italy/homes?checkin=' + dr.ci + '&checkout=' + dr.co + '&adults=' + hAdults },
   ];
   const carLinks = !hasCar ? [] : [
     { icon: '🚗', title: 'Rentalcars.com', desc: 'קבלה בשדה + גיר אוטומטי', url: 'https://www.rentalcars.com/SearchResults.do?country=Italy&city=Cervinia&pickup=' + dr.ci + 'T' + pickup + '&dropoff=' + dr.co + 'T' + dropoff },
