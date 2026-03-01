@@ -3747,15 +3747,15 @@ async function fetchWttrForecast() {
     if (ng && nextDays.length) {
       ng.innerHTML = nextDays.map(function(day) {
         const periodsHtml = day.periods.map(function(p) {
-          return '<div style="text-align:center;padding:0 8px;">'
-            + '<div style="font-size:1.3rem;">' + p.icon + '</div>'
-            + '<div style="font-size:0.62rem;color:#888;margin-top:2px;">' + p.label + '</div>'
-            + '<div style="font-size:0.7rem;font-weight:bold;color:#1a3a6c;">' + p.temp + '</div>'
+          return '<div style="text-align:center;min-width:54px;">'
+            + '<div style="font-size:1.5rem;">' + p.icon + '</div>'
+            + '<div style="font-size:0.63rem;color:#888;margin-top:3px;">' + p.label + '</div>'
+            + '<div style="font-size:0.74rem;font-weight:700;color:#1a3a6c;margin-top:1px;">' + p.temp + '</div>'
             + '</div>';
         }).join('');
-        return '<div style="background:#f0f8ff;border:1px solid #dce8f8;border-radius:9px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
-          + '<div style="font-size:0.82rem;font-weight:bold;color:#0a192f;">📅 ' + day.date + '</div>'
-          + '<div style="display:flex;">' + periodsHtml + '</div>'
+        return '<div style="background:#f0f8ff;border:1px solid #dce8f8;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,0.06);">'
+          + '<div style="font-size:0.84rem;font-weight:bold;color:#0a192f;min-width:52px;">📅 ' + day.date + '</div>'
+          + '<div style="display:flex;gap:6px;">' + periodsHtml + '</div>'
           + '</div>';
       }).join('');
     }
@@ -3793,8 +3793,8 @@ function renderLiveBar(d) {
   function fmtLifts(open, total) {
     if (open == null) return null;
     if (total == null || total === 0) return open + '';
-    // אם open > total — הנתון שגוי, מציג רק open
-    if (parseInt(open) > parseInt(total)) return open + '';
+    // אם open > total — הנתון שגוי, מציג open/open
+    if (parseInt(open) > parseInt(total)) return open + '/' + open;
     return open + '/' + total;
   }
   const lLocal  = (d.lifts_open_local  != null) ? fmtLifts(d.lifts_open_local,  d.lifts_total_local)  : null;
