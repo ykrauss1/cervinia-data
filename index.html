@@ -101,6 +101,9 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
+<div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;">
+  v14.8 · 01.03.2026 16:51
+</div>
 
 <div class="preview-banner">
   🔍 <b>מצב תצוגה מקדימה</b> — מזג אוויר ופורום מוצגים עם נתונים לדוגמה
@@ -3700,7 +3703,8 @@ async function fetchWttrForecast() {
   // Open-Meteo — API חופשי, CORS-friendly, מדויק
   const url = 'https://api.open-meteo.com/v1/forecast'
     + '?latitude=45.9364&longitude=7.6269'
-    + '&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum'
+    + '&current=temperature_2m,windspeed_10m,weathercode'
+    + '&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,windspeed_10m_max'
     + '&timezone=Europe%2FRome&forecast_days=4';
   try {
     const res = await fetch(url);
@@ -3708,6 +3712,19 @@ async function fetchWttrForecast() {
     const data = await res.json();
     const daily = data.daily;
     if (!daily || !daily.time || daily.time.length < 2) return;
+
+    // עדכן רוח נוכחית אם חסרה מ-Supabase
+    if (data.current && data.current.windspeed_10m != null) {
+      const windVal = Math.round(data.current.windspeed_10m);
+      if (!window._liveData) window._liveData = {};
+      if (window._liveData.wind_speed == null) {
+        window._liveData.wind_speed = windVal;
+        const bw = document.getElementById('bar-wind');
+        if (bw) bw.textContent = windVal + ' km/h';
+        const pw = document.getElementById('plateau-wind');
+        if (pw) pw.textContent = windVal;
+      }
+    }
 
     function omCode(code) {
       if (code === 0) return '☀️';
@@ -3730,11 +3747,12 @@ async function fetchWttrForecast() {
       const tMax = Math.round(daily.temperature_2m_max[j]);
       const tMin = Math.round(daily.temperature_2m_min[j]);
       const snow = daily.snowfall_sum[j] > 0 ? '❄️ ' + Math.round(daily.snowfall_sum[j]) + 'cm' : '';
+      const wind = daily.windspeed_10m_max ? Math.round(daily.windspeed_10m_max[j]) : null;
       return {
         date: label,
         periods: [
           { icon: omCode(code), label: 'בוקר', temp: tMin + '°' },
-          { icon: omCode(code), label: 'אחה"צ', temp: tMax + '°' + (snow ? ' ' + snow : '') }
+          { icon: omCode(code), label: 'אחה"צ', temp: tMax + '°' + (snow ? ' ' + snow : ''), wind: wind }
         ]
       };
     });
@@ -3753,8 +3771,11 @@ async function fetchWttrForecast() {
             + '<div style="font-size:0.74rem;font-weight:700;color:#1a3a6c;margin-top:1px;">' + p.temp + '</div>'
             + '</div>';
         }).join('');
+        const dayWind = day.periods[1] && day.periods[1].wind != null
+          ? '<span style="font-size:0.65rem;color:#777;margin-right:6px;">💨 ' + day.periods[1].wind + '</span>' : '';
         return '<div style="background:#f0f8ff;border:1px solid #dce8f8;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,0.06);">'
           + '<div style="font-size:0.84rem;font-weight:bold;color:#0a192f;min-width:52px;">📅 ' + day.date + '</div>'
+          + dayWind
           + '<div style="display:flex;gap:6px;">' + periodsHtml + '</div>'
           + '</div>';
       }).join('');
