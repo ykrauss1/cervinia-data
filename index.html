@@ -547,9 +547,15 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
     <!-- === TAB: כולל (ALL) === -->
     <div id="tpanel-all">
-      <div style="background:#f0f7ff;border-radius:10px;padding:14px;margin-bottom:14px;font-size:0.83rem;color:#555;line-height:1.7;">
-        <b>חיפוש כולל</b> — בלחיצה אחת תקבל קישורים לטיסה, רכב ולינה יחד.
+      <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
+        <select id="airport-select" style="flex:1;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
+          <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
+          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ · Ryanair</option>
+          <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
+        </select>
       </div>
+
       <!-- Include accommodation checkbox -->
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.86rem;margin-bottom:8px;padding:10px;background:#f8f9fa;border-radius:8px;">
         <input type="checkbox" id="all-hotel-check" onchange="toggleCarDetails('all-hotel-details',this.checked)" checked style="width:15px;height:15px;">
@@ -587,6 +593,17 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
           <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="apt"> דירה</label>
           <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="any"> הכל</label>
         </div>
+        <!-- תאריכי לינה נפרדים -->
+        <div style="margin-top:8px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:#555;">
+            <input type="checkbox" id="hotel-diff-dates" onchange="document.getElementById('hotel-dates-row').style.display=this.checked?'block':'none'" style="width:13px;height:13px;">
+            תאריכי לינה שונים מהטיסה
+          </label>
+          <div id="hotel-dates-row" style="display:none;margin-top:6px;">
+            <input type="text" id="all-hotel-dates" placeholder="בחר תאריכי צ'ק-אין / צ'ק-אאוט"
+              style="width:100%;padding:8px 12px;border:1.5px solid #acd;border-radius:8px;box-sizing:border-box;font-size:0.85rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;" readonly>
+          </div>
+        </div>
       </div>
 
       <!-- Include car checkbox -->
@@ -613,6 +630,17 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
             <input type="checkbox" id="all-automatic" checked style="width:14px;height:14px;"> 🔄 גיר אוטומטי
           </label>
         </div>
+        <!-- תאריכי רכב נפרדים -->
+        <div style="margin-top:8px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:#555;">
+            <input type="checkbox" id="car-diff-dates" onchange="document.getElementById('car-dates-row').style.display=this.checked?'block':'none'" style="width:13px;height:13px;">
+            תאריכי השכרה שונים מהטיסה
+          </label>
+          <div id="car-dates-row" style="display:none;margin-top:6px;">
+            <input type="text" id="all-car-dates" placeholder="בחר תאריכי איסוף / החזרה"
+              style="width:100%;padding:8px 12px;border:1.5px solid #aac;border-radius:8px;box-sizing:border-box;font-size:0.85rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;" readonly>
+          </div>
+        </div>
       </div>
 
       <button onclick="searchAll()" style="width:100%;padding:13px;background:var(--accent);color:var(--dark);border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;margin-top:4px;">
@@ -624,9 +652,13 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
     <!-- === TAB: טיסה === -->
     <div id="tpanel-flight" style="display:none;">
-      <div style="padding:12px;background:#f0f7ff;border-radius:9px;font-size:0.82rem;color:#444;line-height:1.7;margin-bottom:14px;">
-        ✈️ <b>שדות תעופה קרובים:</b><br>
-        • Turin (TRN) ~100 ק"מ &nbsp;|&nbsp; Milan Malpensa (MXP) ~175 ק"מ &nbsp;|&nbsp; Milan Bergamo (BGY) ~200 ק"מ
+      <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
+        <select id="airport-select-flight" style="flex:1;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
+          <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
+          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ · Ryanair</option>
+          <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
+        </select>
       </div>
       <div style="display:flex;justify-content:center;margin-bottom:14px;">
         <div style="background:#f8f9fa;padding:12px 30px;border-radius:10px;text-align:center;">
@@ -646,6 +678,17 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
     <!-- === TAB: רכב === -->
     <div id="tpanel-car" style="display:none;">
+      <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
+        <select id="airport-select-car" style="flex:1;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
+          <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
+          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ · Ryanair</option>
+          <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
+        </select>
+      </div>
+      <input type="text" id="car-dates"
+        placeholder="בחר תאריכי איסוף והחזרה"
+        style="width:100%;padding:10px 14px;border:1.5px solid #aac;border-radius:10px;box-sizing:border-box;font-size:0.88rem;cursor:pointer;background:#f0f7ff;font-family:inherit;direction:rtl;margin-bottom:12px;" readonly>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
         <div>
           <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">שעת איסוף</label>
@@ -674,6 +717,12 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
     <!-- === TAB: לינה === -->
     <div id="tpanel-hotel" style="display:none;">
+      <div style="background:#e8f8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;color:#1a5226;">
+        🏨 <b>תאריכי לינה</b> — ניתן לבחור לילות שונים מהטיסה
+      </div>
+      <input type="text" id="hotel-dates"
+        placeholder="בחר תאריכי צ'ק-אין וצ'ק-אאוט"
+        style="width:100%;padding:10px 14px;border:1.5px solid #acd;border-radius:10px;box-sizing:border-box;font-size:0.88rem;cursor:pointer;background:#f0fff8;font-family:inherit;direction:rtl;margin-bottom:12px;" readonly>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
         <div style="background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
           <div style="font-size:0.72rem;color:#888;margin-bottom:5px;">מבוגרים</div>
@@ -2050,6 +2099,8 @@ function switchTripTab(tab) {
     if (btn) { btn.classList.toggle('ttab-active', t === tab); }
     if (panel) panel.style.display = t === tab ? 'block' : 'none';
   });
+  // init flatpickr לשדות הנפרדים אחרי שהם גלויים
+  if (tab === 'car' || tab === 'hotel') setTimeout(initFlatpickr, 50);
 }
 
 function makeResultLinks(links) {
@@ -2067,29 +2118,44 @@ function searchFlight() {
   if (!dr) { needDates(); return; }
   const adults = document.getElementById('fl-adults')?.textContent || '2';
   const pax = parseInt(adults);
+  const d1 = dr.ci.replace(/-/g,'').slice(2);
+  const d2 = dr.co.replace(/-/g,'').slice(2);
+  const fSel = document.getElementById('airport-select-flight');
+  const fCode = fSel?.value || 'MXP';
+  const fOpt = fSel?.options[fSel.selectedIndex];
+  const fCity = fOpt?.getAttribute('data-city') || 'Milan Malpensa';
+  const fDist = fOpt?.getAttribute('data-dist') || '175';
+  const isDirect = fCode !== 'TRN';
+  const gfUrl = 'https://www.google.com/travel/flights?q=Tel+Aviv+to+' + fCity.replace(/ /g,'+') + '&hl=he&curr=ILS';
+  const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
   const links = [
-    { icon: '🔍', title: 'Google Flights → Milan Malpensa (MXP)', desc: '~175 ק"מ, הרבה טיסות ישירות', url: 'https://www.google.com/travel/flights?q=Tel+Aviv+to+Milan+Malpensa&hl=he&curr=ILS' },
-    { icon: '🔍', title: 'Google Flights → Turin (TRN)', desc: 'הקרוב ביותר לצ’רוויניה (~100 ק"מ)', url: 'https://www.google.com/travel/flights?q=Tel+Aviv+to+Turin&hl=he&curr=ILS' },
-    { icon: '🔍', title: 'Google Flights → Bergamo (BGY)', desc: '~200 ק"מ, Ryanair מתל אביב', url: 'https://www.google.com/travel/flights?q=Tel+Aviv+to+Milan+Bergamo&hl=he&curr=ILS' },
-    { icon: '✈', title: 'Skyscanner → MXP', desc: 'תל אביב → מילאנו מלפנסה', url: 'https://www.skyscanner.co.il/flights/tlv/mxp/' + dr.ci.replace(/-/g,'').slice(2).replace(/-/g,'') + '/' + dr.co.replace(/-/g,'').slice(2).replace(/-/g,'') + '/?adults=' + pax + '&adultsv2=' + pax + '&childrenv2=&infants=0&cabinclass=economy' },
-    { icon: '✈', title: 'Skyscanner → BGY', desc: 'תל אביב → ברגמו (Ryanair)', url: 'https://www.skyscanner.co.il/flights/tlv/bgy/' + dr.ci.replace(/-/g,'').slice(2).replace(/-/g,'') + '/' + dr.co.replace(/-/g,'').slice(2).replace(/-/g,'') + '/?adults=' + pax + '&adultsv2=' + pax + '&childrenv2=&infants=0&cabinclass=economy' },
-    { icon: '✈', title: 'Kayak', desc: 'חיפוש טיסות למחירים נמוכים', url: 'https://www.kayak.co.il/flights/TLV-MXP/' + dr.ci + '/' + dr.co + '?adults=' + pax },
+    { icon: '✈️', title: 'Google Flights → ' + fCode, desc: fCity + ' · ~' + fDist + ' ק"מ' + (isDirect ? '' : ' · ללא ישיר'), url: gfUrl },
+    { icon: '✈️', title: 'Skyscanner → ' + fCode, desc: 'השוואת מחירים', url: skUrl },
+    { icon: '✈️', title: 'Kayak → ' + fCode, desc: 'השוואה כוללת', url: 'https://www.kayak.co.il/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
   ];
   const res = document.getElementById('flight-results');
   res.style.display = 'block';
-  res.innerHTML = '<div style="font-size:0.8rem;color:#888;margin-bottom:8px;">לחץ על אתר לפתיחה:</div>' + makeResultLinks(links);
+  res.innerHTML = '<div style="background:#f0f7ff;border:1.5px solid #bcd;border-radius:11px;padding:12px 14px;">'
+    + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:8px;">✈️ טיסות — ברירת מחדל: מילאנו (MXP)</div>'
+    + makeResultLinks(links) + '</div>';
 }
 
 function searchCar() {
-  const dr = getDateRange();
+  const carEl = document.getElementById('car-dates');
+  const ci = carEl?.getAttribute('data-ci'); const co = carEl?.getAttribute('data-co');
+  const dr = (ci && co) ? {ci, co} : getDateRange();
   if (!dr) { needDates(); return; }
   const pickup = document.getElementById('car-pickup')?.value || '10:00';
   const dropoff = document.getElementById('car-dropoff')?.value || '18:00';
+  const cSel = document.getElementById('airport-select-car');
+  const cCode = cSel?.value || 'MXP';
+  const cOpt = cSel?.options[cSel.selectedIndex];
+  const cCity = cOpt?.getAttribute('data-city') || 'Milan Malpensa';
+  const carAirport = cCode==='MXP' ? 'Milan+Malpensa+Airport' : cCode==='BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
   const links = [
-    { icon: '🚗', title: 'Rentalcars.com', desc: 'השוואת מחירים — כל חברות ההשכרה', url: 'https://www.rentalcars.com/SearchResults.do?country=Italy&city=Cervinia&pickup=' + dr.ci + 'T' + pickup + '&dropoff=' + dr.co + 'T' + dropoff },
-    { icon: '🚗', title: 'Auto Europe', desc: 'מומחה להשכרת רכב בחו"ל', url: 'https://www.autoeurope.co.il/?pickup_location=Turin+Airport&return_location=Turin+Airport&pickup_date=' + dr.ci + '&return_date=' + dr.co },
-    { icon: '🚗', title: 'Kayak — השכרת רכב', desc: 'השוואה ממומחי הנסיעות', url: 'https://www.kayak.co.il/cars/Turin-c48494/' + dr.ci + 'T' + pickup + '/' + dr.co + 'T' + dropoff + '?adults=' + pax },
-    { icon: '🚗', title: 'Discover Cars', desc: 'כולל מחירים של חברות מקומיות', url: 'https://www.discovercars.com/italy/cervinia?from=' + dr.ci + '&to=' + dr.co },
+    { icon: '🚗', title: 'Rentalcars — ' + cCode, desc: 'השוואת מחירים · איסוף מ-' + cCity, url: 'https://www.rentalcars.com/SearchResults.do?country=Italy&city=' + cCode + '&pickup=' + dr.ci + 'T' + pickup + '&dropoff=' + dr.co + 'T' + dropoff },
+    { icon: '🚗', title: 'Auto Europe — ' + cCode, desc: 'מומחה לרכב בחו"ל', url: 'https://www.autoeurope.co.il/?pickup_location=' + carAirport + '&return_location=' + carAirport + '&pickup_date=' + dr.ci + '&return_date=' + dr.co },
+    { icon: '🚗', title: 'Discover Cars', desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/cervinia?from=' + dr.ci + '&to=' + dr.co },
   ];
   const res = document.getElementById('car-results');
   res.style.display = 'block';
@@ -2097,7 +2163,9 @@ function searchCar() {
 }
 
 function searchHotel() {
-  const dr = getDateRange();
+  const htlEl = document.getElementById('hotel-dates');
+  const ci = htlEl?.getAttribute('data-ci'); const co = htlEl?.getAttribute('data-co');
+  const dr = (ci && co) ? {ci, co} : getDateRange();
   if (!dr) { needDates(); return; }
   const adults = document.getElementById('h-adults')?.textContent || '2';
   const kids = document.getElementById('h-children')?.textContent || '0';
@@ -2125,6 +2193,8 @@ function searchHotel() {
   res.innerHTML = '<div style="font-size:0.8rem;color:#888;margin-bottom:8px;">לחץ על אתר לפתיחה:</div>' + makeResultLinks(links);
 }
 
+
+
 function searchAll() {
   const dr = getDateRange();
   if (!dr) { needDates(); return; }
@@ -2141,24 +2211,66 @@ function searchAll() {
   const hRooms = document.getElementById('all-h-rooms')?.textContent || '1';
   const accType = document.querySelector('input[name="all-acc"]:checked')?.value || 'hotel';
 
+  const airSel = document.getElementById('airport-select');
+  const airCode = airSel?.value || 'MXP';
+  const airOpt = airSel?.options[airSel.selectedIndex];
+  const airCity = airOpt?.getAttribute('data-city') || 'Milan Malpensa';
+  const airDist = airOpt?.getAttribute('data-dist') || '175';
+  const d1 = dr.ci.replace(/-/g,'').slice(2);
+  const d2 = dr.co.replace(/-/g,'').slice(2);
+  const gfUrl = 'https://www.google.com/travel/flights?q=Tel+Aviv+to+' + airCity.replace(/ /g,'+') + '&hl=he&curr=ILS';
+  const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
+  const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
   let links = [
-    { icon: '✈️', title: 'Skyscanner — טיסות', desc: 'השוואת מחירים מכל חברות התעופה', url: 'https://www.skyscanner.co.il/flights/tlv/tur/' + dr.ci.replace(/-/g,'').slice(0,6) + '/?adults=' + adults + '&infants=0' },
-    { icon: '✈️', title: 'Google Flights → Turin (TRN)', desc: 'הקרוב ביותר (~100 ק"מ)', url: 'https://www.google.com/travel/flights?q=Tel+Aviv+to+Turin&hl=he&curr=ILS' },
+    { icon: '✈️', title: 'Google Flights → ' + airCode, desc: airLabel + ' · ~' + airDist + ' ק"מ', url: gfUrl },
+    { icon: '✈️', title: 'Skyscanner → ' + airCode, desc: 'השוואת מחירים', url: skUrl },
   ];
   if (hasHotel) {
-    const bkUrl = 'https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=' + dr.ci + '&checkout=' + dr.co + '&group_adults=' + hAdults + '&group_children=' + hKids + '&no_rooms=' + hRooms;
-    links.push({ icon: '🏨', title: 'Booking.com — לינה', desc: (accType==='apt'?'דירות ואפרטמנטים':accType==='any'?'כל סוגי הלינה':'מלונות') + ' בצ’רוויניה', url: bkUrl });
-    links.push({ icon: '🏠', title: 'Airbnb — דירות', desc: 'דירות ובתי נופש', url: 'https://www.airbnb.co.il/s/Breuil-Cervinia/homes?checkin=' + dr.ci + '&checkout=' + dr.co + '&adults=' + hAdults + '&children=' + hKids });
+    const allHtlEl2 = document.getElementById('all-hotel-dates');
+    const hci = (document.getElementById('hotel-diff-dates')?.checked && allHtlEl2?.getAttribute('data-ci')) ? allHtlEl2.getAttribute('data-ci') : dr.ci;
+    const hco = (document.getElementById('hotel-diff-dates')?.checked && allHtlEl2?.getAttribute('data-co')) ? allHtlEl2.getAttribute('data-co') : dr.co;
+    const bkUrl = 'https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=' + hci + '&checkout=' + hco + '&group_adults=' + hAdults + '&group_children=' + hKids + '&no_rooms=' + hRooms;
+    links.push({ icon: '🏨', title: 'Booking.com — לינה', desc: (accType==='apt'?'דירות':accType==='any'?'כל סוגי הלינה':'מלונות') + (hci!==dr.ci?' (תאריכים שונים)':''), url: bkUrl });
+    links.push({ icon: '🏠', title: 'Airbnb — דירות', desc: 'דירות ובתי נופש', url: 'https://www.airbnb.co.il/s/Breuil-Cervinia/homes?checkin=' + hci + '&checkout=' + hco + '&adults=' + hAdults + '&children=' + hKids });
   }
   if (hasCar) {
-    const carDesc = (airportPickup ? 'קבלה בשדה התעופה' : 'קבלה בעיר') + (automatic ? ' · גיר אוטומטי' : '');
-    links.push({ icon: '🚗', title: 'Rentalcars — השכרת רכב', desc: carDesc, url: 'https://www.rentalcars.com/SearchResults.do?country=Italy&city=Cervinia&pickup=' + dr.ci + 'T' + pickup + '&dropoff=' + dr.co + 'T' + dropoff });
-    links.push({ icon: '🚗', title: 'Discover Cars', desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/cervinia?from=' + dr.ci + '&to=' + dr.co });
+  const allCarEl2 = document.getElementById('all-car-dates');
+    const cci = (document.getElementById('car-diff-dates')?.checked && allCarEl2?.getAttribute('data-ci')) ? allCarEl2.getAttribute('data-ci') : dr.ci;
+    const cco = (document.getElementById('car-diff-dates')?.checked && allCarEl2?.getAttribute('data-co')) ? allCarEl2.getAttribute('data-co') : dr.co;
+    const carDesc = (airportPickup ? 'קבלה בשדה' : 'קבלה בעיר') + (automatic ? ' · אוטומטי' : '') + (cci!==dr.ci?' · תאריכים שונים':'');
+  const carAirport = airCode === 'MXP' ? 'Milan+Malpensa+Airport' : airCode === 'BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
+    links.push({ icon: '🚗', title: 'Rentalcars — השכרת רכב', desc: carDesc + ' · ' + airCode, url: 'https://www.rentalcars.com/SearchResults.do?country=Italy&city=' + airCode + '&pickup=' + cci + 'T' + pickup + '&dropoff=' + cco + 'T' + dropoff });
+    links.push({ icon: '🚗', title: 'Auto Europe', desc: 'איסוף מ-' + airCode, url: 'https://www.autoeurope.co.il/?pickup_location=' + carAirport + '&return_location=' + carAirport + '&pickup_date=' + cci + '&return_date=' + cco });
+  }
+
+  // בנה HTML עם חלוקה לתיבות
+  const flightLinks = [
+    { icon: '✈️', title: 'Google Flights → Milan (MXP)', desc: 'מילאנו מלפנסה — הכי קל מישראל', url: 'https://www.google.com/travel/flights?q=Tel+Aviv+to+Milan+Malpensa&hl=he&curr=ILS' },
+    { icon: '✈️', title: 'Skyscanner → MXP', desc: 'השוואה מכל חברות התעופה', url: 'https://www.skyscanner.co.il/flights/tlv/mxp/' + dr.ci.replace(/-/g,'').slice(2) + '/' + dr.co.replace(/-/g,'').slice(2) + '/?adults=' + adults },
+    { icon: '✈️', title: 'Google Flights → Bergamo (BGY)', desc: 'Ryanair / מחירים זולים', url: 'https://www.google.com/travel/flights?q=Tel+Aviv+to+Milan+Bergamo&hl=he&curr=ILS' },
+  ];
+  const hotelLinks = !hasHotel ? [] : [
+    { icon: '🏨', title: 'Booking.com', desc: (accType==='apt'?'דירות':accType==='any'?'כל סוגי לינה':'מלונות') + ' — ' + dr.ci + ' עד ' + dr.co, url: 'https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia&checkin=' + dr.ci + '&checkout=' + dr.co + '&group_adults=' + hAdults + '&group_children=' + hKids + '&no_rooms=' + hRooms },
+    { icon: '🏠', title: 'Airbnb', desc: 'דירות ובתי נופש', url: 'https://www.airbnb.co.il/s/Breuil-Cervinia/homes?checkin=' + dr.ci + '&checkout=' + dr.co + '&adults=' + hAdults },
+  ];
+  const carLinks = !hasCar ? [] : [
+    { icon: '🚗', title: 'Rentalcars.com', desc: 'קבלה בשדה + גיר אוטומטי', url: 'https://www.rentalcars.com/SearchResults.do?country=Italy&city=Cervinia&pickup=' + dr.ci + 'T' + pickup + '&dropoff=' + dr.co + 'T' + dropoff },
+    { icon: '🚗', title: 'Discover Cars', desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/cervinia?from=' + dr.ci + '&to=' + dr.co },
+  ];
+
+  function section(title, bg, border, links) {
+    if (!links.length) return '';
+    return '<div style="background:' + bg + ';border:1.5px solid ' + border + ';border-radius:11px;padding:12px 14px;margin-bottom:12px;">'
+      + '<div style="font-size:0.78rem;font-weight:bold;color:#333;margin-bottom:8px;">' + title + '</div>'
+      + makeResultLinks(links)
+      + '</div>';
   }
 
   const res = document.getElementById('all-results');
   res.style.display = 'block';
-  res.innerHTML = '<div style="font-size:0.8rem;color:#888;margin-bottom:8px;">לחץ על אתר לפתיחה:</div>' + makeResultLinks(links);
+  res.innerHTML = section('✈️ טיסות', '#f0f7ff', '#bcd', flightLinks)
+               + section('🏨 לינה', '#f0fff8', '#ace', hotelLinks)
+               + section('🚗 השכרת רכב', '#fff8f0', '#dca', carLinks);
 }
 
 // ── initFlatpickr ──
@@ -2186,6 +2298,63 @@ function initFlatpickr() {
           if (summary) summary.style.display = 'flex';
         } else {
           if (summary) summary.style.display = 'none';
+        }
+      }
+    });
+  }
+  // Car dates picker
+  const carEl = document.getElementById('car-dates');
+  if (carEl && !carEl._flatpickr) {
+    flatpickr(carEl, {
+      mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
+      locale: { firstDayOfWeek: 0, rangeSeparator: ' to ' },
+      onChange: function(sel) {
+        if (sel.length === 2) {
+          const HE = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
+          carEl.setAttribute('data-ci', sel[0].toISOString().slice(0,10));
+          carEl.setAttribute('data-co', sel[1].toISOString().slice(0,10));
+        }
+      }
+    });
+  }
+  // Hotel dates picker (tab)
+  const htlEl = document.getElementById('hotel-dates');
+  if (htlEl && !htlEl._flatpickr) {
+    flatpickr(htlEl, {
+      mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
+      locale: { firstDayOfWeek: 0, rangeSeparator: ' to ' },
+      onChange: function(sel) {
+        if (sel.length === 2) {
+          htlEl.setAttribute('data-ci', sel[0].toISOString().slice(0,10));
+          htlEl.setAttribute('data-co', sel[1].toISOString().slice(0,10));
+        }
+      }
+    });
+  }
+  // all-hotel-dates (בתוך טאב הכל)
+  const allHtlEl = document.getElementById('all-hotel-dates');
+  if (allHtlEl && !allHtlEl._flatpickr) {
+    flatpickr(allHtlEl, {
+      mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
+      locale: { firstDayOfWeek: 0, rangeSeparator: ' to ' },
+      onChange: function(sel) {
+        if (sel.length === 2) {
+          allHtlEl.setAttribute('data-ci', sel[0].toISOString().slice(0,10));
+          allHtlEl.setAttribute('data-co', sel[1].toISOString().slice(0,10));
+        }
+      }
+    });
+  }
+  // all-car-dates (בתוך טאב הכל)
+  const allCarEl = document.getElementById('all-car-dates');
+  if (allCarEl && !allCarEl._flatpickr) {
+    flatpickr(allCarEl, {
+      mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
+      locale: { firstDayOfWeek: 0, rangeSeparator: ' to ' },
+      onChange: function(sel) {
+        if (sel.length === 2) {
+          allCarEl.setAttribute('data-ci', sel[0].toISOString().slice(0,10));
+          allCarEl.setAttribute('data-co', sel[1].toISOString().slice(0,10));
         }
       }
     });
@@ -3764,19 +3933,22 @@ async function fetchWttrForecast() {
     const ng = document.getElementById('forecast-next-grid');
     if (ng && nextDays.length) {
       ng.innerHTML = nextDays.map(function(day) {
-        const periodsHtml = day.periods.map(function(p) {
-          return '<div style="text-align:center;min-width:54px;">'
-            + '<div style="font-size:1.5rem;">' + p.icon + '</div>'
-            + '<div style="font-size:0.63rem;color:#888;margin-top:3px;">' + p.label + '</div>'
-            + '<div style="font-size:0.74rem;font-weight:700;color:#1a3a6c;margin-top:1px;">' + p.temp + '</div>'
-            + '</div>';
-        }).join('');
-        const dayWind = day.periods[1] && day.periods[1].wind != null
-          ? '<span style="font-size:0.65rem;color:#777;margin-right:6px;">💨 ' + day.periods[1].wind + '</span>' : '';
-        return '<div style="background:#f0f8ff;border:1px solid #dce8f8;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,0.06);">'
-          + '<div style="font-size:0.84rem;font-weight:bold;color:#0a192f;min-width:52px;">📅 ' + day.date + '</div>'
-          + dayWind
-          + '<div style="display:flex;gap:6px;">' + periodsHtml + '</div>'
+        const p0 = day.periods[0], p1 = day.periods[1] || p0;
+        const wind = p1.wind != null ? '💨 ' + p1.wind + ' km/h' : '';
+        const hasSnow = p1.temp && p1.temp.includes('❄️');
+        const snowTxt = hasSnow ? p1.temp.split(' ').slice(1).join(' ') : '';
+        const tMin = p0.temp.replace('°','');
+        const tMax = p1.temp.split(' ')[0].replace('°','');
+        return '<div style="background:#f0f8ff;border:1px solid #dce8f8;border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,0.06);">'
+          + '<div style="min-width:50px;"><div style="font-size:0.84rem;font-weight:bold;color:#0a192f;">📅 ' + day.date + '</div>'
+          + (wind ? '<div style="font-size:0.65rem;color:#777;margin-top:3px;">' + wind + '</div>' : '')
+          + (snowTxt ? '<div style="font-size:0.65rem;color:#4a90d9;margin-top:2px;">' + snowTxt + '</div>' : '')
+          + '</div>'
+          + '<div style="font-size:2rem;margin:0 12px;">' + p0.icon + '</div>'
+          + '<div style="text-align:center;min-width:64px;">'
+          + '<div style="font-size:0.68rem;color:#999;">מינ׳ / מקס׳</div>'
+          + '<div style="font-size:0.95rem;font-weight:800;color:#1a3a6c;">' + tMin + '° / ' + tMax + '°</div>'
+          + '</div>'
           + '</div>';
       }).join('');
     }
@@ -3784,7 +3956,13 @@ async function fetchWttrForecast() {
     // עדכן tomorrow hint
     if (nextDays[0]) {
       const tomorrowEl = document.getElementById('forecast-tomorrow-text');
-      if (tomorrowEl) tomorrowEl.textContent = nextDays[0].date + ': ' + nextDays[0].periods[0].icon;
+      if (tomorrowEl) {
+        const td = nextDays[0];
+        const tMin = td.periods[0].temp;
+        const tMax = (td.periods[1] || td.periods[0]).temp.split(' ')[0];
+        const wind = td.periods[1] && td.periods[1].wind ? ' · 💨' + td.periods[1].wind : '';
+        tomorrowEl.textContent = 'מחר: ' + td.periods[0].icon + '  ' + tMin + ' / ' + tMax + wind;
+      }
     }
   } catch(e) {
     console.warn('Open-Meteo fetch failed:', e.message);
