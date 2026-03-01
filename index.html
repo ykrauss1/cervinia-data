@@ -168,7 +168,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
             <span id="bar-slopes-local" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;">--</span>
             <span id="bar-slopes-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
           </div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים <span style="opacity:0.6;">מקומי (כולל)</span></div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים <span style="opacity:0.6;">כולל האיזור</span></div>
         </div>
 
         <div style="text-align:center;">
@@ -176,7 +176,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
             <span id="bar-lifts-local" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;">--</span>
             <span id="bar-lifts-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
           </div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות <span style="opacity:0.6;">מקומי (כולל)</span></div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות <span style="opacity:0.6;">כולל האיזור</span></div>
         </div>
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
@@ -728,7 +728,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     <span class="close-btn" onclick="closeM('authModal')">×</span>
 
     <!-- Tabs -->
-    <div style="display:flex;border-bottom:2px solid #eee;margin-bottom:20px;">
+    <div id="auth-tabs" style="display:flex;border-bottom:2px solid #eee;margin-bottom:20px;">
       <button id="auth-tab-login" onclick="switchAuthTab('login')"
         style="flex:1;padding:10px;border:none;background:none;font-size:0.95rem;font-weight:bold;cursor:pointer;color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px;">
         🔑 כניסה
@@ -748,14 +748,24 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       </div>
       <div style="margin-bottom:16px;">
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמא</label>
-        <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;"
-          onkeydown="if(event.key==='Enter') login()">
+        <div style="position:relative;">
+          <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"
+            style="width:100%;box-sizing:border-box;padding:10px 38px 10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;"
+            onkeydown="if(event.key==='Enter') login()">
+          <button type="button" onclick="togglePass('login-pass')" tabindex="-1"
+            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
+        </div>
       </div>
       <button onclick="login()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
         🔓 כניסה
       </button>
-      <div style="text-align:center;margin-top:10px;">
+      <div style="text-align:center;margin-top:12px;">
+        <a href="#" onclick="showForgotPassword();return false;"
+          style="font-size:0.82rem;color:#888;text-decoration:none;border-bottom:1px dashed #ccc;">
+          שכחתי סיסמא
+        </a>
+      </div>
+      <div style="text-align:center;margin-top:6px;">
         <span onclick="showAdminLogin()" style="font-size:0.68rem;color:#e0e0e0;cursor:pointer;user-select:none;">⚙</span>
       </div>
     </div>
@@ -773,11 +783,25 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
           style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;font-family:inherit;">
         <div style="font-size:0.7rem;color:#bbb;margin-top:3px;">לשחזור סיסמא בעתיד. לא יוצג לאחרים.</div>
       </div>
-      <div style="margin-bottom:16px;">
+      <div style="margin-bottom:10px;">
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמא</label>
-        <input id="reg-pass" type="password" placeholder="לפחות 6 תווים" autocomplete="new-password"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;"
-          onkeydown="if(event.key='Enter') register()">
+        <div style="position:relative;">
+          <input id="reg-pass" type="password" placeholder="לפחות 6 תווים" autocomplete="new-password"
+            style="width:100%;box-sizing:border-box;padding:10px 38px 10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;">
+          <button type="button" onclick="togglePass('reg-pass')" tabindex="-1"
+            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">אימות סיסמא</label>
+        <div style="position:relative;">
+          <input id="reg-pass2" type="password" placeholder="הכנס שוב" autocomplete="new-password"
+            style="width:100%;box-sizing:border-box;padding:10px 38px 10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;"
+            onkeydown="if(event.key==='Enter') register()" oninput="checkPassMatch()">
+          <button type="button" onclick="togglePass('reg-pass2')" tabindex="-1"
+            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
+        </div>
+        <div id="pass-match-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;"></div>
       </div>
       <button onclick="register()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
         ✅ הרשמה
@@ -797,6 +821,31 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       </button>
     </div>
 
+
+    <!-- FORGOT PASSWORD -->
+    <div id="auth-panel-forgot" style="display:none;">
+      <div style="text-align:center;margin-bottom:16px;">
+        <span style="font-size:2rem;">🔑</span>
+        <div style="font-weight:bold;font-size:0.95rem;margin-top:6px;">איפוס סיסמא</div>
+        <div style="font-size:0.78rem;color:#888;margin-top:4px;">נשלח אליך קישור לאיפוס במייל</div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">כתובת מייל</label>
+        <input id="forgot-email" type="email" placeholder="your@email.com" dir="ltr"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;font-family:inherit;"
+          onkeydown="if(event.key==='Enter') sendPasswordReset()">
+      </div>
+      <button onclick="sendPasswordReset()" id="forgot-btn"
+        style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+        📧 שלח קישור לאיפוס
+      </button>
+      <div id="forgot-msg" style="display:none;margin-top:12px;padding:10px 12px;border-radius:8px;font-size:0.84rem;text-align:center;"></div>
+      <div style="text-align:center;margin-top:14px;">
+        <a href="#" onclick="showAuthTab('login');return false;" style="font-size:0.82rem;color:#888;text-decoration:none;border-bottom:1px dashed #ccc;">
+          ← חזרה לכניסה
+        </a>
+      </div>
+    </div>
     <div id="auth-err" style="color:#e74c3c;font-size:0.85rem;margin-top:10px;display:none;text-align:center;padding:8px;background:#fff5f5;border-radius:8px;"></div>
   </div>
 </div>
@@ -1372,10 +1421,10 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <button onclick="mapZoomReset()" style="padding:5px 12px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.78rem;">איפוס</button>
       <a id="map-download-btn" href="" download style="padding:5px 14px;border-radius:7px;background:#27ae60;color:white;font-size:0.78rem;font-weight:bold;text-decoration:none;">📥 הורד</a>
     </div>
-    <div style="flex:1;border:1px solid #eee;border-radius:10px;overflow:auto;position:relative;" id="map-container">
-      <img id="map-img" src="" style="transform-origin:top right;transition:transform 0.2s;display:none;max-width:100%;cursor:grab;">
-      <iframe id="map-frame" src="" width="100%" height="100%" style="border:none;display:none;min-height:400px;"></iframe>
-      <div id="map-placeholder" style="width:100%;height:300px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;color:#999;flex-direction:column;gap:10px;">
+    <div style="flex:1;border:1px solid #eee;border-radius:10px;overflow:auto;display:flex;flex-direction:column;" id="map-container">
+      <img id="map-img" src="" style="transform-origin:top right;transition:transform 0.2s;display:none;width:100%;cursor:grab;">
+      <iframe id="map-frame" src="" width="100%" style="border:none;display:none;flex:1;min-height:440px;"></iframe>
+      <div id="map-placeholder" style="width:100%;min-height:260px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;color:#999;flex-direction:column;gap:10px;">
         <span style="font-size:3rem;">🗺️</span>
         <span>בחר מפה מלמעלה</span>
       </div>
@@ -1645,9 +1694,9 @@ const DEMO_LIVE = {
     afternoon: { icon: 'partially-cloudy', temp_min: -5, temp_max: -2, wind: 22, snow: 0,  desc: 'חלקית מעונן' }
   },
   forecast_next_days: [
-    { date: 'מחר',       periods: [{icon:'partially-cloudy',temp_min:-7,temp_max:-3,wind:20,snow:0},{icon:'sun',temp_min:-5,temp_max:-1,wind:15,snow:0}] },
-    { date: "יום ג",   periods: [{icon:'snow',temp_min:-9,temp_max:-5,wind:30,snow:12},{icon:'snow',temp_min:-8,temp_max:-4,wind:35,snow:8}] },
-    { date: "יום ד",   periods: [{icon:'sun',temp_min:-10,temp_max:-6,wind:12,snow:0},{icon:'sun',temp_min:-8,temp_max:-4,wind:10,snow:0}] },
+    { date: 'מחר',     periods: [{label:'בוקר', icon:'partially-cloudy',temp_min:-7,temp_max:-3},{label:'אחה"צ',icon:'sun',temp_min:-5,temp_max:-1}] },
+    { date: 'יום ג׳',  periods: [{label:'בוקר', icon:'snow',temp_min:-9,temp_max:-5},{label:'אחה"צ',icon:'snow',temp_min:-8,temp_max:-4}] },
+    { date: 'יום ד׳',  periods: [{label:'בוקר', icon:'sun',temp_min:-10,temp_max:-6},{label:'אחה"צ',icon:'sun',temp_min:-8,temp_max:-4}] },
   ],
   snow_points: [
     { station: 'top',  alt: 3480, depth: 210 },
@@ -1743,6 +1792,7 @@ function openM(id) {
   if (m) m.style.display = 'flex';
   if (id === 'hotelModal') { setTimeout(initFlatpickr, 80); switchTripTab('all'); }
   if (id === 'profileModal') { setTimeout(populateProfileModal, 0); return; }
+  if (id === 'forecastModal') { fetchWttrForecast(); }
   if (id === 'parkingModal') switchParkTab('parking');
   if (id === 'kosherModal') { setTimeout(function(){ switchKoshMain('shabbat'); }, 30); }
   if (id === 'pisteModal') { setTimeout(renderPisteGuide, 30); }
@@ -1769,58 +1819,78 @@ var _mapZoomLevel = 1;
 
 function loadMap(type) {
   const frame = document.getElementById('map-frame');
-  const img = document.getElementById('map-img');
-  const ph = document.getElementById('map-placeholder');
+  const img   = document.getElementById('map-img');
+  const ph    = document.getElementById('map-placeholder');
   const toolbar = document.getElementById('map-toolbar');
   const dlBtn = document.getElementById('map-download-btn');
   _mapZoomLevel = 1;
 
   // איפוס
-  if (img) { img.style.display = 'none'; img.style.transform = 'scale(1)'; }
+  if (img)   { img.style.display = 'none'; img.style.transform = 'scale(1)'; }
   if (frame) { frame.style.display = 'none'; frame.src = ''; }
-  if (ph) { ph.style.display = 'none'; ph.innerHTML = ''; }
+  if (ph)    { ph.style.display = 'none'; ph.innerHTML = ''; }
   if (toolbar) toolbar.style.display = 'none';
 
+  var extBtn = '<a href="{url}" target="_blank" style="display:inline-block;margin-top:8px;padding:7px 16px;background:#f0f4ff;border:1.5px solid #aac;border-radius:7px;text-decoration:none;color:#1a3a6c;font-size:0.78rem;font-weight:bold;">↗️ פתח בחלון נפרד</a>';
+
   if (type === 'mymap') {
-    // תמונה ישירה — עובדת תמיד
+    // תמונה ישירה
     if (img) {
       img.style.display = 'block';
-      img.style.width = '100%';
-      img.style.height = 'auto';
+      img.style.width   = '100%';
+      img.style.height  = 'auto';
       img.src = 'https://ykrauss1.github.io/cervinia-data/mymap.jpg';
     }
     if (toolbar) toolbar.style.display = 'flex';
     if (dlBtn) { dlBtn.href = 'https://ykrauss1.github.io/cervinia-data/mymap.jpg'; dlBtn.download = 'cervinia_map.jpg'; dlBtn.target = ''; }
 
   } else if (type === 'piste') {
-    // PDF — iframe חסום בדפדפנים ניידים → כפתור פתיחה חיצוני
+    // PDF — iframe עם fallback לנייד
+    var pdfUrl = 'https://ykrauss1.github.io/cervinia-data/slopesmap.pdf';
     if (toolbar) toolbar.style.display = 'flex';
-    if (dlBtn) { dlBtn.href = 'https://ykrauss1.github.io/cervinia-data/slopesmap.pdf'; dlBtn.download = ''; dlBtn.target = '_blank'; }
-    if (ph) {
-      ph.style.display = 'flex';
-      ph.style.flexDirection = 'column';
-      ph.style.gap = '14px';
-      ph.innerHTML = '<span style="font-size:2.5rem;">⛷️</span>'
-        + '<span style="font-weight:bold;color:#333;font-size:0.95rem;">מפת מסלולים</span>'
-        + '<a href="https://ykrauss1.github.io/cervinia-data/slopesmap.pdf" target="_blank" '
-        + 'style="padding:12px 28px;background:#1a3a6c;color:white;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.9rem;">📄 פתח / הורד PDF</a>'
-        + '<span style="font-size:0.75rem;color:#aaa;">נפתח בלשונית חדשה</span>';
+    if (dlBtn)  { dlBtn.href = pdfUrl; dlBtn.download = ''; dlBtn.target = '_blank'; }
+    var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    if (!isMobile && frame) {
+      // דסקטופ — iframe ישיר
+      frame.style.display    = 'block';
+      frame.style.minHeight  = '520px';
+      frame.src = pdfUrl;
+    } else {
+      // נייד — כפתור פתיחה
+      if (ph) {
+        ph.style.display       = 'flex';
+        ph.style.flexDirection = 'column';
+        ph.style.gap           = '14px';
+        ph.innerHTML = '<span style="font-size:2.5rem;">⛷️</span>'
+          + '<span style="font-weight:bold;color:#333;">מפת מסלולים (PDF)</span>'
+          + '<a href="' + pdfUrl + '" target="_blank" '
+          + 'style="padding:12px 28px;background:#1a3a6c;color:white;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.9rem;">📄 פתח / הורד</a>'
+          + '<span style="font-size:0.74rem;color:#aaa;">PDF — נפתח בלשונית חדשה</span>';
+      }
     }
 
   } else {
-    // מפת הכפר — Google Maps embed חסום → קישורים חיצוניים
+    // מפת הכפר — OpenStreetMap embed (חינמי, לא חוסם)
+    var osmUrl = 'https://www.openstreetmap.org/export/embed.html?bbox=7.610%2C45.925%2C7.645%2C45.950&layer=mapnik&marker=45.9364%2C7.6269';
+    var gmUrl  = 'https://www.google.com/maps/place/Breuil-Cervinia/@45.9364,7.6269,15z';
+    var wazeUrl = 'https://waze.com/ul?ll=45.9364,7.6269&navigate=yes';
+    if (frame) {
+      frame.style.display   = 'block';
+      frame.style.minHeight = '480px';
+      frame.src = osmUrl;
+    }
+    // כפתורי ניווט מתחת
     if (ph) {
-      ph.style.display = 'flex';
-      ph.style.flexDirection = 'column';
-      ph.style.gap = '12px';
-      ph.innerHTML = '<span style="font-size:2.5rem;">🏘️</span>'
-        + '<span style="font-weight:bold;color:#333;font-size:0.95rem;">Breuil-Cervinia</span>'
-        + '<a href="https://www.google.com/maps/place/Breuil-Cervinia/@45.9364,7.6269,15z" target="_blank" '
-        + 'style="padding:12px 24px;background:#4285f4;color:white;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.88rem;">🗺️ Google Maps</a>'
-        + '<a href="https://maps.apple.com/?address=Breuil-Cervinia,Italy&ll=45.9364,7.6269&q=Breuil-Cervinia" target="_blank" '
-        + 'style="padding:12px 24px;background:#555;color:white;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.88rem;">🍎 Apple Maps</a>'
-        + '<a href="https://waze.com/ul?ll=45.9364,7.6269&navigate=yes" target="_blank" '
-        + 'style="padding:12px 24px;background:#33ccff;color:#1a1a1a;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.88rem;">🚗 Waze</a>';
+      ph.style.display       = 'flex';
+      ph.style.flexDirection = 'row';
+      ph.style.gap           = '8px';
+      ph.style.flexWrap      = 'wrap';
+      ph.style.justifyContent = 'center';
+      ph.style.padding       = '10px 0 4px';
+      ph.innerHTML =
+        '<a href="' + gmUrl + '" target="_blank" style="padding:8px 16px;background:#4285f4;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🗺️ Google Maps</a>'
+        + '<a href="' + wazeUrl + '" target="_blank" style="padding:8px 16px;background:#09c;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🚗 Waze</a>'
+        + '<a href="https://maps.apple.com/?ll=45.9364,7.6269&q=Breuil-Cervinia" target="_blank" style="padding:8px 16px;background:#555;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🍎 Apple Maps</a>';
     }
   }
 }
@@ -3295,6 +3365,81 @@ async function supabaseUpdateProfile(userId, fields) {
   await sb.from('profiles').update(fields).eq('id', userId);
 }
 
+
+function togglePass(id) {
+  var inp = document.getElementById(id);
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function checkPassMatch() {
+  var p1  = document.getElementById('reg-pass')?.value  || '';
+  var p2  = document.getElementById('reg-pass2')?.value || '';
+  var msg = document.getElementById('pass-match-msg');
+  if (!msg || !p2) return;
+  if (p1 === p2) {
+    msg.textContent = '✅ הסיסמאות תואמות';
+    msg.style.color = '#2e7d32';
+  } else {
+    msg.textContent = '❌ הסיסמאות אינן תואמות';
+    msg.style.color = '#c62828';
+  }
+}
+
+async function sendPasswordReset() {
+  const email = (document.getElementById('forgot-email')?.value || '').trim();
+  const btn = document.getElementById('forgot-btn');
+  const msg = document.getElementById('forgot-msg');
+  if (!email) { showForgotMsg('אנא הכנס כתובת מייל', 'error'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = '...שולח'; }
+  const sb = getSB();
+  if (!sb) { showForgotMsg('שגיאת חיבור', 'error'); if(btn){btn.disabled=false;btn.textContent='📧 שלח קישור לאיפוס';} return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname + '?reset=1'
+  });
+  if (btn) { btn.disabled = false; btn.textContent = '📧 שלח קישור לאיפוס'; }
+  if (error) {
+    showForgotMsg('שגיאה: ' + error.message, 'error');
+  } else {
+    showForgotMsg('✅ קישור לאיפוס נשלח! בדוק את תיבת המייל שלך.', 'success');
+    if (btn) btn.disabled = true;
+  }
+}
+
+function showForgotMsg(text, type) {
+  const msg = document.getElementById('forgot-msg');
+  if (!msg) return;
+  msg.style.display = 'block';
+  msg.style.background = type === 'success' ? '#e8f5e9' : '#fdecea';
+  msg.style.color      = type === 'success' ? '#2e7d32' : '#c62828';
+  msg.style.border     = '1px solid ' + (type === 'success' ? '#a5d6a7' : '#ef9a9a');
+  msg.textContent = text;
+}
+
+function showForgotPassword() {
+  document.querySelectorAll('[id^="auth-panel-"]').forEach(p => p.style.display = 'none');
+  const fp = document.getElementById('auth-panel-forgot');
+  if (fp) fp.style.display = 'block';
+  // הסתר tabs
+  const tabs = document.getElementById('auth-tabs');
+  if (tabs) tabs.style.display = 'none';
+}
+
+function showAuthTab(tab) {
+  document.querySelectorAll('[id^="auth-panel-"]').forEach(p => p.style.display = 'none');
+  const panel = document.getElementById('auth-panel-' + tab);
+  if (panel) panel.style.display = 'block';
+  const tabs = document.getElementById('auth-tabs');
+  if (tabs) tabs.style.display = 'flex';
+  // עדכן tab active
+  ['login','register'].forEach(t => {
+    const tabBtn = document.getElementById('auth-tab-' + t);
+    if (!tabBtn) return;
+    tabBtn.style.color = t === tab ? 'var(--accent)' : '#aaa';
+    tabBtn.style.borderBottom = t === tab ? '2px solid var(--accent)' : '2px solid transparent';
+  });
+}
+
 async function supabaseLogout() {
   const sb = getSB(); if (!sb) return;
   await sb.auth.signOut();
@@ -3428,12 +3573,14 @@ async function login() {
 }
 
 async function register() {
-  const name = document.getElementById('reg-name')?.value.trim();
+  const name  = document.getElementById('reg-name')?.value.trim();
   const email = document.getElementById('reg-email')?.value.trim().toLowerCase();
-  const pass = document.getElementById('reg-pass')?.value;
+  const pass  = document.getElementById('reg-pass')?.value  || '';
+  const pass2 = document.getElementById('reg-pass2')?.value || '';
   if (!name) { showAuthErr('נא להזין שם משתמש'); return; }
   if (!email || !email.includes('@')) { showAuthErr('נא להזין כתובת מייל תקינה'); return; }
   if (!pass || pass.length < 6) { showAuthErr('הסיסמא חייבת להכיל לפחות 6 תווים'); return; }
+  if (pass !== pass2) { showAuthErr('הסיסמאות אינן תואמות'); return; }
 
   if (USE_SUPABASE) {
     const btn = document.querySelector('#auth-panel-register button[onclick="register()"]');
@@ -3549,6 +3696,81 @@ function showDataSourceBadge(mode) {
   }
 }
 
+async function fetchWttrForecast() {
+  // Open-Meteo — API חופשי, CORS-friendly, מדויק
+  const url = 'https://api.open-meteo.com/v1/forecast'
+    + '?latitude=45.9364&longitude=7.6269'
+    + '&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum'
+    + '&timezone=Europe%2FRome&forecast_days=4';
+  try {
+    const res = await fetch(url);
+    if (!res.ok) { console.warn('Open-Meteo error:', res.status); return; }
+    const data = await res.json();
+    const daily = data.daily;
+    if (!daily || !daily.time || daily.time.length < 2) return;
+
+    function omCode(code) {
+      if (code === 0) return '☀️';
+      if (code <= 2) return '⛅';
+      if (code <= 48) return '☁️';
+      if (code <= 67) return '🌧️';
+      if (code <= 77) return '🌨️';
+      if (code <= 82) return '🌧️';
+      if (code <= 86) return '🌨️';
+      if (code >= 95) return '⛈️';
+      return '🌤️';
+    }
+
+    // מדלג על היום (index 0)
+    const nextDays = daily.time.slice(1).map(function(dateStr, i) {
+      const j = i + 1;
+      const parts = dateStr.split('-');
+      const label = parts[2] + '.' + parts[1];
+      const code = daily.weathercode[j];
+      const tMax = Math.round(daily.temperature_2m_max[j]);
+      const tMin = Math.round(daily.temperature_2m_min[j]);
+      const snow = daily.snowfall_sum[j] > 0 ? '❄️ ' + Math.round(daily.snowfall_sum[j]) + 'cm' : '';
+      return {
+        date: label,
+        periods: [
+          { icon: omCode(code), label: 'בוקר', temp: tMin + '°' },
+          { icon: omCode(code), label: 'אחה"צ', temp: tMax + '°' + (snow ? ' ' + snow : '') }
+        ]
+      };
+    });
+
+    // שמור ב-_liveData לשימוש עתידי
+    if (window._liveData) window._liveData.forecast_next_days = nextDays;
+
+    // רנדר ישירות ל-grid
+    const ng = document.getElementById('forecast-next-grid');
+    if (ng && nextDays.length) {
+      ng.innerHTML = nextDays.map(function(day) {
+        const periodsHtml = day.periods.map(function(p) {
+          return '<div style="text-align:center;padding:0 8px;">'
+            + '<div style="font-size:1.3rem;">' + p.icon + '</div>'
+            + '<div style="font-size:0.62rem;color:#888;margin-top:2px;">' + p.label + '</div>'
+            + '<div style="font-size:0.7rem;font-weight:bold;color:#1a3a6c;">' + p.temp + '</div>'
+            + '</div>';
+        }).join('');
+        return '<div style="background:#f0f8ff;border:1px solid #dce8f8;border-radius:9px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'
+          + '<div style="font-size:0.82rem;font-weight:bold;color:#0a192f;">📅 ' + day.date + '</div>'
+          + '<div style="display:flex;">' + periodsHtml + '</div>'
+          + '</div>';
+      }).join('');
+    }
+
+    // עדכן tomorrow hint
+    if (nextDays[0]) {
+      const tomorrowEl = document.getElementById('forecast-tomorrow-text');
+      if (tomorrowEl) tomorrowEl.textContent = nextDays[0].date + ': ' + nextDays[0].periods[0].icon;
+    }
+  } catch(e) {
+    console.warn('Open-Meteo fetch failed:', e.message);
+  }
+}
+
+
 function renderLiveBar(d) {
   // Parse JSON string fields from Supabase
   ['forecast_today','forecast_next_days','snow_points'].forEach(function(k) {
@@ -3568,8 +3790,15 @@ function renderLiveBar(d) {
   const sGlobal = (d.slopes_open_global != null && d.slopes_total_global != null) ? d.slopes_open_global + '/' + d.slopes_total_global : null;
   set('bar-slopes-local', sLocal || sGlobal || '--');
   set('bar-slopes-global', sLocal && sGlobal ? ' (' + sGlobal + ')' : '');
-  const lLocal = (d.lifts_open_local != null && d.lifts_total_local != null) ? d.lifts_open_local + '/' + d.lifts_total_local : null;
-  const lGlobal = (d.lifts_open_global != null && d.lifts_total_global != null) ? d.lifts_open_global + '/' + d.lifts_total_global : null;
+  function fmtLifts(open, total) {
+    if (open == null) return null;
+    if (total == null || total === 0) return open + '';
+    // אם open > total — הנתון שגוי, מציג רק open
+    if (parseInt(open) > parseInt(total)) return open + '';
+    return open + '/' + total;
+  }
+  const lLocal  = (d.lifts_open_local  != null) ? fmtLifts(d.lifts_open_local,  d.lifts_total_local)  : null;
+  const lGlobal = (d.lifts_open_global != null) ? fmtLifts(d.lifts_open_global, d.lifts_total_global) : null;
   set('bar-lifts-local', lLocal || lGlobal || '--');
   set('bar-lifts-global', lLocal && lGlobal ? ' (' + lGlobal + ')' : '');
   set('bar-wind', d.wind_speed != null ? Math.round(d.wind_speed) + ' km/h' : '--');
@@ -3624,48 +3853,49 @@ function renderLiveBar(d) {
     if (ftDate && d.forecast_today.date) ftDate.textContent = '📅 ' + d.forecast_today.date;
     const ftGrid = document.getElementById('forecast-today-grid');
     if (ftGrid) {
-      const periods = [
-        { label:'בוקר 🌅', data: d.forecast_today.morning },
-        { label:'אחה"צ 🌞', data: d.forecast_today.afternoon }
-      ];
       const iconMap = { 'sun':'☀️', 'partially-cloudy':'⛅', 'cloudy':'☁️',
         'snow':'🌨️', 'rain':'🌧️', 'storm':'⛈️', 'fog':'🌫️', 'wind':'💨' };
-      ftGrid.innerHTML = periods.map(function(p) {
-        if (!p.data || !p.data.length) return '';
-        const icons = p.data.map(function(loc) {
-          return '<span title="'+loc.name+'">' + (iconMap[loc.icon] || '🌤️') + '</span>';
-        }).join(' ');
+      function renderPeriod(label, data) {
+        if (!data) return '';
+        // array of locations (scraper format)
+        if (Array.isArray(data)) {
+          if (!data.length) return '';
+          const icons = data.map(function(loc) {
+            return '<span title="'+(loc.name||'')+'">' + (iconMap[loc.icon] || '🌤️') + '</span>';
+          }).join(' ');
+          return '<div style="background:#f0f8ff;border-radius:9px;padding:9px 12px;">'
+            + '<div style="font-size:0.72rem;color:#888;margin-bottom:4px;">'+label+'</div>'
+            + '<div style="font-size:1.5rem;letter-spacing:3px;">'+icons+'</div>'
+            + '<div style="font-size:0.65rem;color:#aaa;margin-top:3px;">'
+            + data.map(function(l){return l.name||'';}).join(' · ')
+            + '</div></div>';
+        }
+        // single object (DEMO format): {icon, temp_min, temp_max, desc}
+        const icon = iconMap[data.icon] || '🌤️';
+        const temps = (data.temp_min != null && data.temp_max != null)
+          ? data.temp_min + '° – ' + data.temp_max + '°C' : '';
+        const desc  = data.desc || '';
         return '<div style="background:#f0f8ff;border-radius:9px;padding:9px 12px;">'
-          + '<div style="font-size:0.72rem;color:#888;margin-bottom:4px;">'+p.label+'</div>'
-          + '<div style="font-size:1.4rem;letter-spacing:2px;">'+icons+'</div>'
-          + '<div style="font-size:0.65rem;color:#aaa;margin-top:3px;">'
-          + p.data.map(function(l){return l.name;}).join(' · ')
-          + '</div></div>';
-      }).join('');
+          + '<div style="font-size:0.72rem;color:#888;margin-bottom:4px;">'+label+'</div>'
+          + '<div style="font-size:1.5rem;">'+icon+'</div>'
+          + (temps ? '<div style="font-size:0.72rem;font-weight:bold;color:#1a3a6c;margin-top:3px;">'+temps+'</div>' : '')
+          + (desc  ? '<div style="font-size:0.65rem;color:#888;margin-top:2px;">'+desc+'</div>'  : '')
+          + '</div>';
+      }
+      ftGrid.innerHTML = renderPeriod('בוקר 🌅', d.forecast_today.morning)
+                       + renderPeriod('אחה"צ 🌞', d.forecast_today.afternoon);
     }
   }
 
   // ── Forecast next days ──
-  if (d.forecast_next_days && Array.isArray(d.forecast_next_days)) {
-    const ng = document.getElementById('forecast-next-grid');
-    if (ng) {
-      const iconMap = { 'sun':'☀️', 'partially-cloudy':'⛅', 'cloudy':'☁️',
-        'snow':'🌨️', 'rain':'🌧️', 'storm':'⛈️', 'fog':'🌫️', 'wind':'💨' };
-      ng.innerHTML = d.forecast_next_days.map(function(day) {
-        const periodsHtml = (day.periods || []).map(function(p) {
-          const label = p.label.split('\n')[0];
-          return '<div style="text-align:center;">'
-            + '<div style="font-size:1.1rem;">' + (iconMap[p.icon] || '🌤️') + '</div>'
-            + '<div style="font-size:0.6rem;color:#888;margin-top:2px;">' + label + '</div>'
-            + '</div>';
-        }).join('');
-        return '<div style="background:#f8f9fa;border-radius:9px;padding:9px 12px;">'
-          + '<div style="font-size:0.78rem;font-weight:bold;color:#0a192f;margin-bottom:8px;">📅 '+day.date+'</div>'
-          + '<div style="display:flex;justify-content:space-around;">' + periodsHtml + '</div>'
-          + '</div>';
-      }).join('');
-    }
+  // ניסיון parse נוסף אם עדיין string
+  if (d.forecast_next_days && typeof d.forecast_next_days === 'string') {
+    try { d.forecast_next_days = JSON.parse(d.forecast_next_days); } catch(e) { d.forecast_next_days = null; }
   }
+  const ng0 = document.getElementById('forecast-next-grid');
+  // תמיד שולפים תחזית מ-Open-Meteo (ski_status_history אינה מכילה forecast_next_days)
+  if (ng0) ng0.innerHTML = '<div style="text-align:center;color:#aaa;padding:12px;font-size:0.8rem;">⏳ טוען תחזית...</div>';
+  fetchWttrForecast(); // Open-Meteo — async, כותב ל-grid בעצמו
 
   // ── Tomorrow hint in bar ──
   if (d.forecast_next_days && d.forecast_next_days[0]) {
