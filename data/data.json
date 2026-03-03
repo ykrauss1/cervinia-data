@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-02T23:53:54.844Z",
-  "temperature": -6.6,
+  "updated_at": "2026-03-03T05:07:23.636Z",
+  "temperature": -9.1,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "125 cm",
   "last_snowfall": null,
-  "wind_speed": 21.6,
-  "wind_gust": 23.8,
-  "humidity": null,
+  "wind_speed": 7.6,
+  "wind_gust": 25.6,
+  "humidity": 85,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
@@ -47,66 +47,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Monday, March 2",
+    "date": "Tuesday, March 3",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Wednesday, March 4",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Thursday, March 5",
       "periods": [
