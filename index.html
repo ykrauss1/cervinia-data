@@ -1494,10 +1494,18 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <h3 style="margin:0;font-size:1rem;">🗺️ מפות</h3>
       <span class="close-btn" style="position:static;font-size:1.4rem;cursor:pointer;" onclick="closeM('mapModal')">×</span>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:10px;flex-shrink:0;flex-wrap:wrap;">
-      <button class="service-btn" style="flex:1;padding:10px 8px;font-size:0.82rem;" onclick="loadMap('mymap')">📍 נקודות ציון</button>
-      <button class="service-btn" style="flex:1;padding:10px 8px;font-size:0.82rem;" onclick="loadMap('piste')">⛷️ מפת מסלולים</button>
-      <button class="service-btn" style="flex:1;padding:10px 8px;font-size:0.82rem;" onclick="loadMap('town')">🏘️ מפת הכפר</button>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;flex-shrink:0;">
+      <div style="display:flex;gap:6px;">
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('mymap')">📍 נקודות ציון</button>
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('town')">🏘️ מפת הכפר</button>
+      </div>
+      <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:2px 0;">⛷️ מפות מסלולים:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:100px;" onclick="loadMap('piste-all')">🌍 כל האזור</button>
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:100px;" onclick="loadMap('piste-cervinia')">🇮🇹 צ׳רוויניה</button>
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:100px;" onclick="loadMap('piste-valtournenche')">🏔️ ולטורננש</button>
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:100px;" onclick="loadMap('piste-swiss')">🇨🇭 שוויץ</button>
+      </div>
     </div>
     <!-- toolbar: zoom + download -->
     <div id="map-toolbar" style="display:none;align-items:center;gap:8px;margin-bottom:8px;flex-shrink:0;">
@@ -1929,9 +1937,11 @@ function loadMap(type) {
     if (toolbar) toolbar.style.display = 'flex';
     if (dlBtn) { dlBtn.href = 'https://ykrauss1.github.io/cervinia-data/mymap.jpg'; dlBtn.download = 'cervinia_map.jpg'; dlBtn.target = ''; }
 
-  } else if (type === 'piste') {
-    // PDF — iframe עם fallback לנייד
-    var pdfUrl = 'https://ykrauss1.github.io/cervinia-data/slopesmap.pdf';
+  } else if (type === 'piste-all' || type === 'piste-cervinia' || type === 'piste-valtournenche' || type === 'piste-swiss' || type === 'piste') {
+    var pdfNames = { 'piste-all':'slopesmap.pdf', 'piste':'slopesmap.pdf', 'piste-cervinia':'cerviniaslopesmap.pdf', 'piste-valtournenche':'valtournencheslopesmap.pdf', 'piste-swiss':'swissslopesmap.pdf' };
+    var pdfLabels = { 'piste-all':'מפת כל האזור', 'piste':'מפת כל האזור', 'piste-cervinia':'מפת צ\'רוויניה', 'piste-valtournenche':'מפת ולטורננש', 'piste-swiss':'מפת הצד השוויצרי' };
+    var pdfUrl = 'https://ykrauss1.github.io/cervinia-data/' + pdfNames[type];
+    var pdfLabel = pdfLabels[type] || 'מפת מסלולים';
     if (toolbar) toolbar.style.display = 'flex';
     if (dlBtn)  { dlBtn.href = pdfUrl; dlBtn.download = ''; dlBtn.target = '_blank'; }
     var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
@@ -1947,7 +1957,7 @@ function loadMap(type) {
         ph.style.flexDirection = 'column';
         ph.style.gap           = '14px';
         ph.innerHTML = '<span style="font-size:2.5rem;">⛷️</span>'
-          + '<span style="font-weight:bold;color:#333;">מפת מסלולים (PDF)</span>'
+          + '<span style="font-weight:bold;color:#333;">' + pdfLabel + ' (PDF)</span>'
           + '<a href="' + pdfUrl + '" target="_blank" '
           + 'style="padding:12px 28px;background:#1a3a6c;color:white;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.9rem;">📄 פתח / הורד</a>'
           + '<span style="font-size:0.74rem;color:#aaa;">PDF — נפתח בלשונית חדשה</span>';
