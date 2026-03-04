@@ -449,6 +449,19 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         <div style="font-size:1.6rem;margin-bottom:6px;" id="crossing-icon">⏳</div>
         <div style="font-weight:bold;font-size:0.95rem;" id="crossing-verdict">בודק תנאים...</div>
         <div style="font-size:0.75rem;color:#666;margin-top:4px;" id="crossing-reason"></div>
+        <div style="margin-top:6px;">
+          <span onclick="document.getElementById('crossing-explain').style.display=document.getElementById('crossing-explain').style.display==='none'?'block':'none'"
+            style="font-size:0.72rem;color:#1a73e8;cursor:pointer;text-decoration:underline;">
+            ℹ️ איך נקבעת ההערכה?
+          </span>
+          <div id="crossing-explain" style="display:none;margin-top:6px;padding:8px 10px;background:rgba(0,0,0,0.06);border-radius:7px;font-size:0.72rem;color:#444;line-height:1.7;text-align:right;">
+            ההערכה מבוססת על:<br>
+            □ טמפרטורה מתחת ל-0° בפלאטו רוצה<br>
+            ↩ רוח מתחת ל-40 km/h<br>
+            □ ראות טובה (לא ערפל / סופת שלג)<br>
+            🔑 אישור מפעיל הקרחון
+          </div>
+        </div>
       </div>
 
       <!-- תחזית 4 ימים לצ'רמט -->
@@ -1031,8 +1044,89 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       </div>
     </div>
 
-    <!-- Shops on the way from Milan -->
+    <!-- Local recommended shops — FIRST -->
     <div style="border-top:1px solid #eee;padding-top:14px;margin-bottom:14px;">
+      <div style="font-size:0.85rem;font-weight:bold;margin-bottom:10px;">🏪 חנויות השכרה בצ'רוויניה</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+
+        <!-- La Genzianella -->
+        <div style="padding:13px 15px;border:1.5px solid #d0e8f8;border-radius:11px;background:#f5fbff;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-weight:bold;font-size:0.92rem;">🎿 La Genzianella</div>
+          </div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
+            📍 <b>Piazzale Funivie 14</b><br>
+            ☎ <a href="tel:+390166550102" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 550102</a><br>
+            ממש ליד הגונדולה הראשית — נוח להחלפה לפני העלייה
+          </div>
+          <div style="display:flex;gap:8px;">
+            <a href="https://www.genzianellasport.it/it/" target="_blank"
+              style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
+            <a href="https://maps.app.goo.gl/TKUJSWwpcx5RKFzY9" target="_blank"
+              style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
+          </div>
+        </div>
+
+        <!-- Ski 2.0 -->
+        <div style="padding:13px 15px;border:1.5px solid #fde8c0;border-radius:11px;background:#fffbf5;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-weight:bold;font-size:0.92rem;">🎿 Ski 2.0</div>
+            <span style="background:#e67e22;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;">🎟️ קופון הנחה</span>
+          </div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
+            📍 <b>Via Carrel 2</b>, Breuil-Cervinia<br>
+            ☎ <a href="tel:+390166691210" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 691210</a>
+          </div>
+          <!-- Coupon box -->
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid #3dbfa0;border-radius:10px;margin-bottom:10px;background:#f0fffc;">
+            <img id="coupon-thumb" src="" alt="קופון הנחה 20%" onclick="openCouponModal()"
+              style="width:72px;height:auto;border-radius:7px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);"
+              title="לחץ להגדלה">
+            <div style="flex:1;">
+              <div style="font-weight:bold;font-size:0.88rem;color:#2a9d8f;margin-bottom:3px;">🎟️ קופון הנחה 20%</div>
+              <div style="font-size:0.73rem;color:#555;margin-bottom:8px;">על ציוד, ביגוד ולוקרים</div>
+              <div style="display:flex;gap:7px;">
+                <button onclick="openCouponModal()"
+                  style="padding:6px 12px;border:1.5px solid #3dbfa0;background:white;color:#2a9d8f;border-radius:7px;font-size:0.78rem;font-weight:bold;cursor:pointer;">
+                  🔍 הגדל
+                </button>
+                <a id="coupon-dl1" href="" download="קופון_Ski2.0_הנחה20.jpg"
+                  style="padding:6px 12px;background:#3dbfa0;color:white;border-radius:7px;font-size:0.78rem;font-weight:bold;text-decoration:none;">
+                  📥 הורד
+                </a>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <a href="https://nolski.it/20skirental" target="_blank"
+              style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
+            <a href="https://maps.app.goo.gl/M7SWb5vQ2xorhEVcA" target="_blank"
+              style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
+          </div>
+        </div>
+
+        <!-- Noleggio Ski Service -->
+        <div style="padding:13px 15px;border:1.5px solid #e0e0e0;border-radius:11px;background:#f9f9f9;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-weight:bold;font-size:0.92rem;">🎿 Noleggio Ski Service</div>
+            <span style="background:#2ecc71;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;">⭐ מומלץ</span>
+          </div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
+            📍 <b>Via Bich 7</b><br>
+            ☎ <a href="tel:+390166949484" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 949484</a><br>
+            מול כיסאות Campetto — מיקום נוח לאיסוף והחזרה
+          </div>
+          <div style="display:flex;gap:8px;">
+            <a href="https://maps.app.goo.gl/V8JvmEaKSd5ofSSy8" target="_blank"
+              style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Shops on the way from Milan — SECOND -->
+    <div style="border-top:1px solid #eee;padding-top:14px;">
       <div style="font-size:0.82rem;font-weight:bold;margin-bottom:6px;">🚗 חנויות ציוד בדרך ממילאנו</div>
       <div style="font-size:0.75rem;color:#888;margin-bottom:10px;">לכפפות, גוגלס, ביגוד תרמי, קסדה וכל השלמות — <b>הרבה יותר זול מהכפר</b></div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
@@ -1063,85 +1157,8 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         כפפות · גוגלס · גרביים תרמיות · Base Layer (בגד תחתון מנדף) · צוואריון · קרם הגנה לשמש+שלג · כדורי חימום ידיים
       </div>
     </div>
-
-    <!-- Local recommended shops -->
-    <div style="border-top:1px solid #eee;padding-top:14px;">
-      <div style="font-size:0.78rem;color:#888;margin-bottom:10px;">🏪 חנויות מומלצות בכפר:</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-
-        <!-- La Genzianella -->
-        <div style="padding:13px 15px;border:1.5px solid #d0e8f8;border-radius:11px;background:#f5fbff;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <div style="font-weight:bold;font-size:0.92rem;">🎿 La Genzianella</div>
-            
-          </div>
-          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">📍 📍 <b>Piazzale Funivie 14</b> · ☎ 0166 550102 · <a href="https://www.genzianellasport.it/" target="_blank" style="color:#1a73e8;font-size:0.75rem;">🌐 אתר</a> · <a href="https://maps.app.goo.gl/TKUJSWwpcx5RKFzY9" target="_blank" style="color:#1a73e8;font-size:0.75rem;">🗺️ מפה</a><br>ממש ליד הגונדולה הראשית — נוח להחלפה לפני העלייה</div>
-          <a href="https://www.genzianellasport.it/it/" target="_blank"
-            style="display:inline-block;padding:7px 14px;background:#1a73e8;color:white;border-radius:8px;text-decoration:none;font-size:0.82rem;font-weight:bold;">
-            🌐 אתר + הזמנה מראש
-          </a>
-        </div>
-
-        <!-- Ski 2.0 -->
-        <div style="padding:13px 15px;border:1.5px solid #fde8c0;border-radius:11px;background:#fffbf5;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <div style="font-weight:bold;font-size:0.92rem;">🎿 Ski 2.0</div>
-            <span style="background:#e67e22;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;">🎟️ קופון הנחה</span>
-          </div>
-          <div style="font-size:0.78rem;color:#555;margin-bottom:4px;">📍 📍 <b>Via Guido Rey</b>, Breuil-Cervinia</div>
-          <!-- Coupon box -->
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid #3dbfa0;border-radius:10px;margin-bottom:10px;background:#f0fffc;">
-            <img id="coupon-thumb" src="" alt="קופון הנחה 20%" onclick="openCouponModal()"
-              style="width:72px;height:auto;border-radius:7px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);"
-              title="לחץ להגדלה">
-            <div style="flex:1;">
-              <div style="font-weight:bold;font-size:0.88rem;color:#2a9d8f;margin-bottom:3px;">🎟️ קופון הנחה 20%</div>
-              <div style="font-size:0.73rem;color:#555;margin-bottom:8px;">על ציוד, ביגוד ולוקרים</div>
-              <div style="display:flex;gap:7px;">
-                <button onclick="openCouponModal()"
-                  style="padding:6px 12px;border:1.5px solid #3dbfa0;background:white;color:#2a9d8f;border-radius:7px;font-size:0.78rem;font-weight:bold;cursor:pointer;">
-                  🔍 הגדל
-                </button>
-                <a id="coupon-dl1" href="" download="קופון_Ski2.0_הנחה20.jpg" style="padding:6px 12px;background:#3dbfa0;color:white;border-radius:7px;font-size:0.78rem;font-weight:bold;text-decoration:none;">
-                  📥 הורד
-                </a>
-              </div>
-            </div>
-          </div>
-          <div id="coupon-modal" onclick="closeCouponModal()"
-            style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);
-                   align-items:center;justify-content:center;padding:20px;">
-            <div style="position:relative;max-width:480px;width:100%;" onclick="event.stopPropagation()">
-              <img id="coupon-full" src="" style="width:100%;border-radius:12px;display:block;">
-              <div style="display:flex;gap:10px;margin-top:12px;">
-                <a id="coupon-dl2" href="" download="קופון_Ski2.0_הנחה20.jpg" style="flex:1;padding:11px;background:#3dbfa0;color:white;border-radius:9px;
-                         text-decoration:none;font-weight:bold;font-size:0.88rem;text-align:center;">
-                  📥 הורד את הקופון
-                </a>
-                <button onclick="closeCouponModal()"
-                  style="padding:11px 16px;border:2px solid white;background:transparent;color:white;
-                         border-radius:9px;font-size:0.88rem;cursor:pointer;">
-                  ✕
-                </button>
-              </div>
-            </div>
-          </div></div>
-          <div style="font-size:0.75rem;color:#888;margin-top:8px;line-height:1.6;border-top:1px solid #f0e8d0;padding-top:8px;">
-            📞 <a href="tel:+390166691210" style="color:#1a73e8;text-decoration:none;">+39 0166 691210</a> &nbsp;|&nbsp;
-            <a href="https://maps.app.goo.gl/M7SWb5vQ2xorhEVcA" target="_blank" style="color:#1a73e8;text-decoration:none;">🗺️ מפה</a><br>
-            📍 Via Carrel 2, Breuil-Cervinia<br>
-            <a href="https://nolski.it/20skirental" target="_blank" style="color:#1a73e8;text-decoration:none;font-size:0.7rem;">🌐 nolski.it/20skirental</a>
-          </div>
-        </div>
-
-        <!-- Noleggio Ski Service -->
-        <div style="padding:13px 15px;border:1.5px solid #e0e0e0;border-radius:11px;background:#f9f9f9;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="font-weight:bold;font-size:0.92rem;">🎿 Noleggio Ski Service</div><span style="background:#2ecc71;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;">⭐ מומלץ</span></div>
-          <div style="font-size:0.78rem;color:#555;">📍 📍 <b>Via Bich 15</b> · ☎ 0166 949484 · <a href="https://maps.app.goo.gl/V8JvmEaKSd5ofSSy8" target="_blank" style="color:#1a73e8;font-size:0.75rem;">🗺️ מפה</a><br>מול כיסאות Campetto — מיקום נוח לאיסוף והחזרה</div>
-        </div>
-
-      </div>
-    </div>
+  </div>
+</div>
   </div>
 </div>
 <div id="lessonsModal" class="modal" onclick="if(event.target===this)closeM('lessonsModal')">
@@ -3971,7 +3988,8 @@ async function fetchWttrForecast() {
         const tMin = td.periods[0].temp;
         const tMax = (td.periods[1] || td.periods[0]).temp.split(' ')[0];
         const wind = td.periods[1] && td.periods[1].wind ? ' · 💨' + td.periods[1].wind : '';
-        tomorrowEl.textContent = 'מחר: ' + td.periods[0].icon + '  ' + tMin + ' / ' + tMax + wind;
+        const windStr = td.periods[1] && td.periods[1].wind ? ' · 💨 ' + td.periods[1].wind + ' km/h' : '';
+        tomorrowEl.textContent = 'מחר: ' + td.periods[0].icon + '  ' + tMin + ' / ' + tMax + windStr;
       }
     }
   } catch(e) {
@@ -4018,12 +4036,21 @@ function renderLiveBar(d) {
   set('bar-snow', snowNum != null ? snowNum + ' ס"מ' : '--');
 
   // weather_description (Hebrew-friendly icons)
-  const weatherIcons = { 'Sereno':'☀️ בהיר', 'Nuvoloso':'☁️ מעונן', 'Pioggia':'🌧️ גשם',
-    'Neve':'🌨️ שלג', 'Nebbia':'🌫️ ערפל', 'Coperto':'☁️ מכוסה',
-    'Parzialmente nuvoloso':'⛅ חלקית', 'Temporale':'⛈️ סופה' };
+  const weatherIcons = {
+    'Sereno':'☀️ בהיר', 'Clear':'☀️ בהיר', 'Sunny':'☀️ שמשי',
+    'Nuvoloso':'☁️ מעונן', 'Cloudy':'☁️ מעונן', 'Overcast':'☁️ מעונן',
+    'Coperto':'☁️ מכוסה',
+    'Parzialmente nuvoloso':'⛅ חלקית', 'Partly cloudy':'⛅ חלקית', 'Mostly Cloudy':'⛅ מעונן חלקית',
+    'Pioggia':'🌧️ גשם', 'Rain':'🌧️ גשם', 'Drizzle':'🌦️ טפטוף',
+    'Neve':'🌨️ שלג', 'Snow':'🌨️ שלג', 'Light snow':'🌨️ שלג קל', 'Heavy snow':'❄️ שלג כבד',
+    'Nebbia':'🌫️ ערפל', 'Fog':'🌫️ ערפל', 'Mist':'🌫️ ערפל קל',
+    'Temporale':'⛈️ סופה', 'Thunderstorm':'⛈️ סופה',
+    'Vento':'💨 רוח', 'Windy':'💨 רוח חזקה',
+    'Bello':'☀️ יפה', 'Variabile':'🌤️ משתנה'
+  };
   const desc = d.weather_description;
   if (desc) {
-    const heDesc = weatherIcons[desc] || desc;
+    const heDesc = weatherIcons[desc] || weatherIcons[desc.split(' ')[0]] || desc;
     set('bar-weather-desc', heDesc);
   }
 
@@ -5534,5 +5561,24 @@ if ('serviceWorker' in navigator) {
       </div>
     </div>
   </div>
+
+<!-- Coupon Modal (global portal) -->
+<div id="coupon-modal" onclick="closeCouponModal()"
+  style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);
+         align-items:center;justify-content:center;padding:20px;">
+  <div style="position:relative;max-width:480px;width:100%;" onclick="event.stopPropagation()">
+    <img id="coupon-full" src="" style="width:100%;border-radius:12px;display:block;">
+    <div style="display:flex;gap:10px;margin-top:12px;">
+      <a id="coupon-dl2" href="" download="קופון_Ski2.0_הנחה20.jpg"
+        style="flex:1;padding:11px;background:#3dbfa0;color:white;border-radius:9px;
+               text-decoration:none;font-weight:bold;font-size:0.88rem;text-align:center;">
+        📥 הורד את הקופון
+      </a>
+      <button onclick="closeCouponModal()"
+        style="padding:11px 16px;border:2px solid white;background:transparent;color:white;
+               border-radius:9px;font-size:0.88rem;cursor:pointer;">✕</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
