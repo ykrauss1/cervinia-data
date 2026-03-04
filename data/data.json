@@ -1,18 +1,18 @@
 {
-  "updated_at": "2026-03-04T07:29:36.942Z",
-  "temperature": -5.4,
-  "zermatt_link": "NEXT UPDATE",
-  "lifts_open_global": 3,
+  "updated_at": "2026-03-04T09:08:57.048Z",
+  "temperature": -2,
+  "zermatt_link": "OPEN",
+  "lifts_open_global": 48,
   "lifts_total_global": 47,
-  "slopes_open_global": 16,
+  "slopes_open_global": 109,
   "slopes_total_global": 109,
-  "lifts_open_local": 3,
+  "lifts_open_local": 16,
   "lifts_total_local": 16,
-  "slopes_open_local": 16,
+  "slopes_open_local": 46,
   "slopes_total_local": 46,
   "snow_depth": "140 cm",
   "last_snowfall": null,
-  "wind_speed": 10.4,
+  "wind_speed": 6.5,
   "wind_gust": 20.5,
   "humidity": null,
   "avalanche_level": "2",
@@ -24,6 +24,11 @@
       "station": "top",
       "altitude": 3480,
       "depth": 140
+    },
+    {
+      "station": "basev",
+      "altitude": 1524,
+      "depth": 30
     }
   ],
   "forecast_today": {
@@ -75,15 +80,57 @@
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "cloudy"
+          "icon": "partially-cloudy"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
-          "icon": "cloudy"
+          "icon": "partially-cloudy"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
-          "icon": "cloudy"
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, March 7",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, March 8",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
         }
       ]
     }
