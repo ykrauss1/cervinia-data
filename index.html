@@ -104,7 +104,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v14.9';
+  var v='v15.3';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -280,7 +280,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     <div class="service-btn" onclick="openM('parkingModal')">🅿️ חניה וכביש</div>
     <div class="service-btn" onclick="openParkEmergency()">🚨 חירום</div>
     <div class="service-btn" onclick="openM('mapModal')"><span style="font-size:1.3rem;">🗺️</span> מפות</div>
-  <div class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים</div>
+  <div class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים ובקתות</div>
   </div>
 
   <!-- Why Cervinia card -->
@@ -382,7 +382,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     <h3 style="margin:0 0 16px;font-size:1.1rem;">✉️ צור קשר</h3>
     <p style="color:#555;font-size:0.9rem;">שאלות, הצעות לשיפור, או דיווח על בעיה?</p>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
-      <a href="mailto:cervinia.live@gmail.com" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f0f4ff;border-radius:10px;text-decoration:none;color:#1a3a8c;font-weight:bold;">📧 cervinia.live@gmail.com</a>
+      <a href="/cdn-cgi/l/email-protection#94f7f1e6e2fdfafdf5baf8fde2f1d4f3f9f5fdf8baf7fbf9" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f0f4ff;border-radius:10px;text-decoration:none;color:#1a3a8c;font-weight:bold;">📧 <span class="__cf_email__" data-cfemail="a3c0c6d1d5cacdcac28dcfcad5c6e3c4cec2cacf8dc0ccce">[email&#160;protected]</span></a>
       <a href="https://www.facebook.com/groups/385880019907484/" target="_blank" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#e8f0fe;border-radius:10px;text-decoration:none;color:#1a3a8c;font-weight:bold;">👥 קבוצת הפייסבוק</a>
     </div>
   </div>
@@ -1761,7 +1761,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 "use strict";
 
@@ -2946,19 +2946,19 @@ var _pisteMapImg = "data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1
 var PISTES = {
   beginner: [
     { num:'5-6', name:'Plan Maison — כחולים',
-      area:'Plan Maison 2560מ', len:'1.5–2.5 ק"מ', diff:'🟢',
+      area:'Plan Maison 2560מ', len:'1.5–2.5 ק"מ', diff:'🔵',
       map:'https://www.cervinia.it/en/impianti',
       desc:'הכחולים של Plan Maison — רחבים, שטוחים ושטופי שמש. האזור הכי מתאים ליום הראשון ולילדים. מגוון מסלולי חזרה ומעלית Cretaz.',
       tip:'💡 Baby La Vieille drag lift — חינמי למתחילים גמורים',
       tags:['מתחילים','ילדים','בית ספר'] },
     { num:'1', name:'Campetto — חוצות הכפר',
-      area:'Cervinia 2050מ', len:'0.8 ק"מ', diff:'🟢',
+      area:'Cervinia 2050מ', len:'0.8 ק"מ', diff:'🔵',
       map:'https://www.cervinia.it/en/impianti',
       desc:'שיפועי חצר הכפר — הכי קרוב לכפר. לחימום בוקר ולילדים קטנים. אין צורך בסקי-פס מלא.',
       tip:'📍 Campetto chairlift ממש בכניסה לכפר',
       tags:['מתחילים','ילדים','כפר'] },
     { num:'26', name:'Indian Park Blue',
-      area:'Plan Maison', len:'1.5 ק"מ', diff:'🟢',
+      area:'Plan Maison', len:'1.5 ק"מ', diff:'🔵',
       map:'https://www.cervinia.it/en/impianti',
       desc:'כחול לצד ה-Snowpark. שטוח ונוח, מושלם לאלו שרוצים להתקרב לפארק בלי לחץ.',
       tip:'🎿 Indian Park נגיש מ-Pancheron chairlift',
@@ -2966,36 +2966,36 @@ var PISTES = {
   ],
   intermediate: [
     { num:'7-8', name:'Ventina — שלמה ⭐',
-      area:'Plateau Rosa → כפר', len:'11 ק"מ', diff:'🔵',
+      area:'Plateau Rosa → כפר', len:'11 ק"מ', diff:'🔴',
       map:'https://skimap.org/skiAreas/view/5789',
       desc:'המסלול המפורסם ביותר בצ\'רוויניה! 11 ק"מ מ-Plateau Rosa (3480מ) עד הכפר (2050מ), ירידה של 1430מ. נוף מהמטרהורן לאורך כל הדרך. מסלול 13 מתפצל מ-Ventina וממשיך לשכונת Cielo Alto.',
       tip:'⭐ חובה לכל מי שמגיע — אחד מהמסלולים הטובים באלפים',
       tags:['בינוני','הכי ארוך','Plateau Rosa','אייקוני','מומלץ'] },
     { num:'13', name:'Ventina → Cielo Alto',
-      area:'Ventina → שכונת Cielo Alto', len:'~3 ק"מ', diff:'🔵',
+      area:'Ventina → שכונת Cielo Alto', len:'~3 ק"מ', diff:'🔴',
       map:'https://skimap.org/skiAreas/view/5789',
       desc:'מתפצל משמאל ממסלול Ventina (מס\' 7) ויורד לשכונת Cielo Alto. זהו המסלול הראשי שמוביל לשכונה — אדום נוח. מהשכונה אפשר לעלות חזרה ב-Cielo Alto chairlift.',
       tip:'🏘️ לגרים בCielo Alto — זה המסלול "הביתה"',
       tags:['בינוני','Cielo Alto','לשכונה'] },
     { num:'16', name:'Cielo Alto → כפר',
-      area:'Cielo Alto → Cervinia', len:'~2.5 ק"מ', diff:'🔵',
+      area:'Cielo Alto → Cervinia', len:'~2.5 ק"מ', diff:'🔴',
       map:'https://skimap.org/skiAreas/view/5789',
       desc:'הירידה משכונת Cielo Alto לעיירה — מסלול 16 לאורך הכיסא. נוף נהדר על Grandes Murailles. מגיע לאזור תחנת הגונדולה. בתחתית: הליכה קצרה (~5 דק\') לגונדולה הראשית.',
       tip:'⚠️ בתחתית יש הליכה קצרה בסקי-בוטס לגונדולה — בוקר קר = קרח! היזהר',
       tags:['בינוני','Cielo Alto','מהשכונה','לכפר'] },
     { num:'20-21', name:'Pancheron reds',
-      area:'Plan Torrette → כפר', len:'2.5 ק"מ', diff:'🔵',
+      area:'Plan Torrette → כפר', len:'2.5 ק"מ', diff:'🔴',
       map:'https://www.cervinia.it/en/impianti',
       desc:'אדומים מ-Plan Torrette ישירות לכפר. שלג טוב, פחות עמוס מהמסלולים הראשיים.',
       tip:'🏁 מגיע ישירות ל-Plan Torrette chairlift בכניסה לכפר',
       tags:['בינוני','לכפר'] },
     { num:'22-23', name:'Colobasse',
-      area:'Cime Bianche', len:'3 ק"מ', diff:'🔵',
+      area:'Cime Bianche', len:'3 ק"מ', diff:'🔴',
       map:'https://www.cervinia.it/en/impianti',
       desc:'אדומים באזור Cime Bianche — לרוב פחות עמוסים מהמסלולים הראשיים. גיוון נחמד ליום.',
       tip:'', tags:['בינוני','Cime Bianche'] },
     { num:'Z-T', name:'Theodul Pass → Cervinia',
-      area:'גבול שווייץ → Plan Maison', len:'~8 ק"מ', diff:'🔵',
+      area:'גבול שווייץ → Plan Maison', len:'~8 ק"מ', diff:'🔴',
       map:'https://skimap.org/skiAreas/view/5789',
       desc:'הדרך הנוחה לזרמט וחזרה — דרך Testa Grigia, Colle Theodulo, Trockener Steg. ירידה מתמשכת ונוחה. מגיע ל-Plan Maison.',
       tip:'✅ הדרך המומלצת לבינוניים לזרמט ← וחזרה',
@@ -3023,43 +3023,73 @@ var PISTES = {
   ],
   zermatt: [
     { num:'Z1', name:'Klein Matterhorn → Zermatt 🏆',
-      area:'Klein Matterhorn 3883מ', len:'16 ק"מ', diff:'🔵',
+      area:'Klein Matterhorn 3883מ', len:'16 ק"מ', diff:'⚫',
       map:'https://skimap.org/skiAreas/view/5789',
       desc:'הירידה האגדית! מ-Klein Matterhorn (3883מ) עד Zermatt (1620מ) — ירידה של 2263מ! עוברת Theodul Glacier ← Trockener Steg ← Furgg ← Furi ← Zermatt. אחת מהירידות הארוכות בעולם.',
       tip:'⏰ יציאה מוקדמת! לחזור לצ\'רוויניה לפני 14:30',
       tags:['זרמט','ארוך','גלישיאר','אגדי'] },
     { num:'Z3', name:'Plateau Rosa → Valtournenche ⭐',
-      area:'Plateau Rosa → עמק', len:'21 ק"מ', diff:'🔵',
+      area:'Plateau Rosa → עמק', len:'21 ק"מ', diff:'⚫',
       map:'https://skimap.org/skiAreas/view/5789',
       desc:'המסלול הארוך ביותר באזור ואחד מהארוכים בעולם! 21 ק"מ מ-Plateau Rosa עד כפר Valtournenche.',
       tip:'🚌 צריך מונית/שאטל חזרה לצ\'רוויניה (~20 דק\')',
       tags:['Valtournenche','הכי ארוך','מומלץ'] },
   ],
   restaurants: [
-    { name:'Cielo Alto ⭐', piste:'גישה: מסלול 13 / כיסא Cielo Alto',
-      area:'שכונת Cielo Alto', len:'', diff:'🍽️',
+    { name:'Chalet Étoile ⭐⭐', piste:'על מסלול 7 Ventina — ~2750מ',
+      area:'~2750מ | על מסלול Ventina', len:'', diff:'🍽️',
+      map:'https://maps.app.goo.gl/chaletetoile',
+      desc:'אחת ממסעדות ההר הטובות בעולם לפי הביקורות. בקתה עם אח מרכזי, מרפסת שמש ענקית ומטבח שוודי-איטלקי מיוחד בניהול משפחת Frassy מ-1974. ריזוטו, פסטה, דגים, ויין אזורי מצוין.',
+      tip:'📍 על מסלול 7 Ventina · ☎ 335 7123533 · הזמן מקום מראש!',
+      tags:['מסעדה','מומלץ מאוד','Ventina','מרפסת שמש'] },
+    { name:'Cielo Alto ⭐', piste:'גישה: מסלול 13 / כיסא Cielo Alto — ~2955מ',
+      area:'שכונת Cielo Alto ~2955מ', len:'', diff:'🍽️',
       map:'https://maps.app.goo.gl/TKUJSWwpcx5RKFzY9',
-      desc:'מסעדת ההר הכי אהובה — נוף פנורמי על Grandes Murailles והמטרהורן. פסטה, פולנטה, בשר. אפרס-סקי עם מוזיקה. הגישה: מסלול 13 מ-Ventina, או כיסא Cielo Alto מהכפר.',
-      tip:'📸 הצילום הכי טוב בהר — לא לפספס!',
+      desc:'נוף פנורמי מדהים על Grandes Murailles והמטרהורן. פסטה, פולנטה, בשר. אפרס-סקי עם מוזיקה.',
+      tip:'📸 הצילום הכי טוב בהר — לא לפספס! גישה: מסלול 13 מ-Ventina',
       tags:['מסעדה','מומלץ','Cielo Alto','אפרס-סקי'] },
-    { name:'Chalet Etoile', piste:'מעל Plan Maison',
-      area:'~2600מ', len:'', diff:'🍽️',
-      map:'https://www.cervinia.it/en/impianti',
-      desc:'מרפסת שמש ענקית ותפריט מגוון. מאוד עמוסה — כדאי להגיע מוקדם.',
-      tip:'⏰ הגע לפני 12:30 להשיג מקום במרפסת',
-      tags:['מסעדה','Plan Maison','מרפסת שמש'] },
-    { name:'Bontadini', piste:'דרך לזרמט — Theodul Pass',
-      area:'גבול שווייץ-איטליה', len:'', diff:'🍽️',
+    { name:'Gran Sometta', piste:'על מסלול 7 Ventina — ~2800מ',
+      area:'~2800מ | על מסלול Ventina', len:'', diff:'🍽️',
+      map:'https://www.tripadvisor.com/Restaurant_Review-g187864-d19805477',
+      desc:'בקתה קטנה ואינטימית עם מרפסת שמש לצד מסלול 7. רחוק מהבלגן של Plan Maison. אוכל ביתי, קדירות אלומיניום, בשר צלוי. שירות ידידותי ומחירים הוגנים לצ\'רוויניה.',
+      tip:'💎 ה"מציאה" של ההר — פחות מוכרת, יותר טובה',
+      tags:['מסעדה','Ventina','שקט','מחיר טוב'] },
+    { name:'Igloo Restaurant', piste:'על מסלול 7 Ventina',
+      area:'מסלול Ventina', len:'', diff:'🍽️',
+      map:'https://maps.app.goo.gl/igloo-cervinia',
+      desc:'מסעדה על מסלול 7 Ventina — מפורסמת באיזון בין איכות גורמה למחיר הוגן. אוכל עם מרכיבים מקומיים מעמק אאוסטה. שירות חם ויעיל.',
+      tip:'📍 על מסלול Ventina · עצור בדרך ירידה',
+      tags:['מסעדה','Ventina','מחיר טוב','מומלץ'] },
+    { name:'Love Cervinia 🎵', piste:'Plan Torrette — ישירות על המדרון',
+      area:'Plan Torrette ~2900מ', len:'', diff:'🍺',
+      map:'https://maps.app.goo.gl/love-cervinia',
+      desc:'ה-Après-ski הכי טוב בצ\'רוויניה! בקתה עם DJ, המבורגרים ביתיים, קרבונרה, ברוסקטה. נוף מטורף. עמוס מ-14:30 לפני הירידה האחרונה לכפר.',
+      tip:'🎵 תעקוב אחרי שלט Love · ☎ lovecervinia.com · בוא עם סקיים!',
+      tags:['בר','אפרס-סקי','מומלץ מאוד','Plan Torrette','DJ'] },
+    { name:'Bontadini / Rifugio Guide', piste:'Plateau Rosa — גבול שווייץ-איטליה ~3480מ',
+      area:'Plateau Rosa ~3480מ', len:'', diff:'🍽️',
       map:'https://skimap.org/skiAreas/view/5789',
-      desc:'ממש על הגבול. Self-service ומסעדה ישיבה. נקודת עצירה אידיאלית בדרך לזרמט.',
-      tip:'🇨🇭 עצור כאן לפני שתחמיץ את הרכבל האחרון',
-      tags:['מסעדה','גבול','זרמט'] },
-    { name:'Dragon Bar', piste:'Plan Maison',
-      area:'Plan Maison', len:'', diff:'🍺',
+      desc:'ממש על הגבול בפסגה. Self-service ומסעדה. ארוחת בשר ופסטה לפני ירידה ל-Ventina או בדרך לזרמט. נקודת עצירה אידיאלית.',
+      tip:'🇨🇭 עצור כאן לפני שתחמיץ את הרכבל האחרון לזרמט',
+      tags:['מסעדה','Plateau Rosa','גבול','זרמט'] },
+    { name:'Dragon Bar', piste:'Plan Maison ~2500מ',
+      area:'Plan Maison ~2500מ', len:'', diff:'🍺',
       map:'https://www.cervinia.it/en/impianti',
       desc:'הבר הפופולרי לאפרס-סקי ב-Plan Maison. מוזיקה וקוקטיילים, עמוס מ-15:30.',
-      tip:'🎵 האפרס-סקי הטוב בהר',
+      tip:'🎵 האפרס-סקי הנגיש ב-Plan Maison',
       tags:['בר','אפרס-סקי','Plan Maison'] },
+    { name:'Alpage (Lago Blu)', piste:'ליד אגם Lago Blu — קצת מחוץ לכפר',
+      area:'Lago Blu ~2100מ', len:'', diff:'🍽️',
+      map:'https://maps.app.goo.gl/alpage-cervinia',
+      desc:'מסעדה ישירות על המדרון עם נוף למטרהורן. תפריט פשוט וטעים, מחירים סבירים לצ\'רוויניה. מרפסת שמש נהדרת.',
+      tip:'📍 Località Lago Blu 4 · ☎ 0166 949398 · קצת מחוץ למרכז הפעילות',
+      tags:['מסעדה','Lago Blu','מחיר טוב','שקט'] },
+    { name:'Baita Cretaz', piste:'ממש בכפר — Campetto',
+      area:'Cervinia ~2050מ | Campetto', len:'', diff:'🍽️',
+      map:'https://maps.app.goo.gl/baitacretaz',
+      desc:'מסעדת הוטל עם חדר קסמים — נוף ישיר למטרהורן, אווירה כפרית-יוקרתית. פונדו ולדאוסטן קלאסי, פסטה ביתית.',
+      tip:'📍 Località Campetto 1 · ☎ 0166 949914 · גם לארוחת ערב!',
+      tags:['מסעדה','כפר','פונדו','יוקרה'] },
   ]
 };
 
@@ -3072,14 +3102,14 @@ function renderPisteGuide() {
 
   var filterDefs = [
     {k:'all',          label:'🎿 הכל'},
-    {k:'beginner',     label:'🟢 מתחילים'},
-    {k:'intermediate', label:'🔵 בינוני'},
-    {k:'advanced',     label:'🔴 מתקדמים'},
+    {k:'beginner',     label:'🔵 מתחילים'},
+    {k:'intermediate', label:'🔴 בינוני'},
+    {k:'advanced',     label:'⚫ מתקדמים'},
     {k:'zermatt',      label:'🇨🇭 זרמט'},
-    {k:'restaurants',  label:'🍽️ מסעדות'},
+    {k:'restaurants',  label:'🍽️ בקתות ומסעדות'},
   ];
 
-  var catColors = {beginner:'#27ae60', intermediate:'#2980b9', advanced:'#c0392b', zermatt:'#8e44ad', restaurants:'#e67e22'};
+  var catColors = {beginner:'#2980b9', intermediate:'#c0392b', advanced:'#2c3e50', zermatt:'#2c3e50', restaurants:'#e67e22'};
 
   // Tab switcher
   var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:12px;">'
@@ -3111,12 +3141,15 @@ function renderPisteGuide() {
   } else {
     // Build list
     var keys = activeFilter === 'all' ? ['beginner','intermediate','advanced','zermatt','restaurants'] : [activeFilter];
-    var catTitles = {beginner:'🟢 מסלולים למתחילים', intermediate:'🔵 מסלולים לבינוניים', advanced:'🔴 מסלולים למתקדמים', zermatt:'🇨🇭 זרמט — חוויות מיוחדות', restaurants:'🍽️ מסעדות ובריונות'};
+    var catTitles = {beginner:'🔵 מסלולים למתחילים', intermediate:'🔴 מסלולים לבינוניים', advanced:'⚫ מסלולים למתקדמים', zermatt:'⚫🇨🇭 זרמט — מסלולים שוויצריים', restaurants:'🍽️ בקתות ומסעדות על המדרון'};
+    var kosherNotice = '<div style="margin-bottom:12px;padding:11px 14px;background:#fff8e1;border:1.5px solid #f39c12;border-radius:10px;font-size:0.8rem;color:#555;line-height:1.7;"><b>🕍 הערה לשומרי כשרות</b><br>האוכל בבקתות אינו כשר ואיננו מפרסמים המלצות על אוכל. עם זאת, ניתן בהחלט לשבת בבקתות ובמרפסות המשקיפות לנוף הנפלא, ליהנות מהשמש החורפית, לשתות בירה, משקאות קלים או חריף — ובכל הבקתות יש שירותים לשימוש הגולשים.</div>';
 
     bodyHtml = '<div style="display:flex;flex-direction:column;gap:8px;">';
+    if (activeFilter === 'restaurants') { bodyHtml += kosherNotice; }
     keys.forEach(function(k) {
       var items = PISTES[k];
       if (!items) return;
+      if (k === 'restaurants') { bodyHtml += kosherNotice; }
       if (activeFilter === 'all') {
         bodyHtml += '<div style="font-size:0.78rem;font-weight:bold;color:'+catColors[k]+';margin-top:6px;padding-right:2px;">'+catTitles[k]+'</div>';
       }
@@ -5592,11 +5625,4 @@ if ('serviceWorker' in navigator) {
                text-decoration:none;font-weight:bold;font-size:0.88rem;text-align:center;">
         📥 הורד את הקופון
       </a>
-      <button onclick="closeCouponModal()"
-        style="padding:11px 16px;border:2px solid white;background:transparent;color:white;
-               border-radius:9px;font-size:0.88rem;cursor:pointer;">✕</button>
-    </div>
-  </div>
-</div>
-</body>
-</html>
+      <button
