@@ -4146,23 +4146,36 @@ function renderLiveBar(d) {
   const snowNum = rawSnow != null ? parseInt(String(rawSnow)) : null;
   set('bar-snow', snowNum != null ? snowNum + ' ס"מ' : '--');
 
-  // weather_description (Hebrew-friendly icons)
+  // weather_description — Italian + English → Hebrew
   const weatherIcons = {
-    'Sereno':'☀️ בהיר', 'Clear':'☀️ בהיר', 'Sunny':'☀️ שמשי',
-    'Nuvoloso':'☁️ מעונן', 'Cloudy':'☁️ מעונן', 'Overcast':'☁️ מעונן',
-    'Coperto':'☁️ מכוסה',
-    'Parzialmente nuvoloso':'⛅ חלקית', 'Partly cloudy':'⛅ חלקית', 'Mostly Cloudy':'⛅ מעונן חלקית',
-    'Pioggia':'🌧️ גשם', 'Rain':'🌧️ גשם', 'Drizzle':'🌦️ טפטוף',
-    'Neve':'🌨️ שלג', 'Snow':'🌨️ שלג', 'Light snow':'🌨️ שלג קל', 'Heavy snow':'❄️ שלג כבד',
-    'Nebbia':'🌫️ ערפל', 'Fog':'🌫️ ערפל', 'Mist':'🌫️ ערפל קל',
-    'Temporale':'⛈️ סופה', 'Thunderstorm':'⛈️ סופה',
-    'Vento':'💨 רוח', 'Windy':'💨 רוח חזקה',
-    'Bello':'☀️ יפה', 'Variabile':'🌤️ משתנה'
+    // Italian
+    'Sereno':'☀️ בהיר', 'Bello':'☀️ יפה', 'Soleggiato':'☀️ שמשי',
+    'Poco nuvoloso':'⛅ מעונן חלקית',
+    'Parzialmente nuvoloso':'⛅ מעונן חלקית',
+    'Nuvoloso':'☁️ מעונן', 'Molto nuvoloso':'☁️ מעונן מאוד',
+    'Coperto':'☁️ מכוסה', 'Coperto/Nuvoloso':'☁️ מכוסה',
+    'Variabile':'🌤️ משתנה', 'Bello/Variabile':'🌤️ משתנה',
+    'Pioggia':'🌧️ גשם', 'Pioggia leggera':'🌦️ גשם קל', 'Pioggia forte':'🌧️ גשם חזק',
+    'Neve':'🌨️ שלג', 'Neve leggera':'🌨️ שלג קל', 'Neve forte':'❄️ שלג כבד', 'Nevicate':'🌨️ שלג',
+    'Nebbia':'🌫️ ערפל', 'Foschia':'🌫️ ערפל קל',
+    'Temporale':'⛈️ סופה', 'Vento':'💨 רוח', 'Vento forte':'💨 רוח חזקה',
+    // English
+    'Clear':'☀️ בהיר', 'Sunny':'☀️ שמשי', 'Fair':'☀️ נאה',
+    'Partly cloudy':'⛅ מעונן חלקית', 'Mostly Cloudy':'⛅ מעונן חלקית',
+    'Cloudy':'☁️ מעונן', 'Overcast':'☁️ מכוסה',
+    'Rain':'🌧️ גשם', 'Drizzle':'🌦️ טפטוף', 'Light rain':'🌦️ גשם קל',
+    'Snow':'🌨️ שלג', 'Light snow':'🌨️ שלג קל', 'Heavy snow':'❄️ שלג כבד',
+    'Fog':'🌫️ ערפל', 'Mist':'🌫️ ערפל קל',
+    'Thunderstorm':'⛈️ סופה', 'Windy':'💨 רוח חזקה'
   };
   const desc = d.weather_description;
   if (desc) {
-    const heDesc = weatherIcons[desc] || weatherIcons[desc.split(' ')[0]] || desc;
-    set('bar-weather-desc', heDesc);
+    const t = desc.trim();
+    // case-insensitive lookup
+    const key = Object.keys(weatherIcons).find(k => k.toLowerCase() === t.toLowerCase())
+             || Object.keys(weatherIcons).find(k => k.toLowerCase() === t.split(' ').slice(0,2).join(' ').toLowerCase())
+             || Object.keys(weatherIcons).find(k => k.toLowerCase() === t.split(' ')[0].toLowerCase());
+    set('bar-weather-desc', key ? weatherIcons[key] : t);
   }
 
   // opening_hours
