@@ -3990,6 +3990,19 @@ async function loadLiveData() {
         if (rows && rows.length > 0) {
           renderLiveBar(rows[0]);
           showDataSourceBadge('live');
+          // Show last updated time + warn if stale
+          const updatedAt = rows[0].updated_at || rows[0].created_at;
+          if (updatedAt) {
+            window._lastLiveUpdate = new Date(updatedAt).getTime();
+            const ageMin = Math.round((Date.now() - window._lastLiveUpdate) / 60000);
+            const ageStr = ageMin < 60 ? `לפני ${ageMin} דק'` : `לפני ${Math.round(ageMin/60)} שע'`;
+            const badge = document.getElementById('data-source-badge');
+            if (badge) {
+              badge.textContent = (ageMin > 90 ? '⚠️' : '🟢') + ' עדכון ' + ageStr;
+              badge.style.color = ageMin > 90 ? '#f39c12' : '#2ecc71';
+              badge.title = 'עדכון אחרון: ' + new Date(updatedAt).toLocaleString('he-IL');
+            }
+          }
           return;
         }
       } else {
@@ -4134,8 +4147,16 @@ function renderLiveBar(d) {
   set('bar-temp', temp != null ? Math.round(temp) + '°C' : '--°');
   const sLocal = (d.slopes_open_local != null && d.slopes_total_local != null) ? d.slopes_open_local + '/' + d.slopes_total_local : null;
   const sGlobal = (d.slopes_open_global != null && d.slopes_total_global != null) ? d.slopes_open_global + '/' + d.slopes_total_global : null;
-  set('bar-slopes-local', sLocal || sGlobal || '--');
-  set('bar-slopes-global', sLocal && sGlobal ? ' (' + sGlobal + ')' : '');
+  // Show 0/X clearly when closed (slopes)
+  const slopesLocal = sLocal || sGlobal || '--';
+  const slopesGlobal = sLocal && sGlobal ? ' (' + sGlobal + ')' : '';
+  const slopesEl = document.getElementById('bar-slopes-local');
+  if (slopesEl) {
+    slopesEl.textContent = slopesLocal;
+    const openCount = d.slopes_open_local != null ? parseInt(d.slopes_open_local) : null;
+    slopesEl.style.color = (openCount === 0) ? '#e74c3c' : '#4cc9f0';
+  }
+  set('bar-slopes-global', slopesGlobal);
   function fmtLifts(open, total) {
     if (open == null) return null;
     if (total == null || total === 0) return open + '';
@@ -4145,8 +4166,16 @@ function renderLiveBar(d) {
   }
   const lLocal  = (d.lifts_open_local  != null) ? fmtLifts(d.lifts_open_local,  d.lifts_total_local)  : null;
   const lGlobal = (d.lifts_open_global != null) ? fmtLifts(d.lifts_open_global, d.lifts_total_global) : null;
-  set('bar-lifts-local', lLocal || lGlobal || '--');
-  set('bar-lifts-global', lLocal && lGlobal ? ' (' + lGlobal + ')' : '');
+  // Show 0/X clearly when closed (lifts)
+  const liftsLocal = lLocal || lGlobal || '--';
+  const liftsGlobal = lLocal && lGlobal ? ' (' + lGlobal + ')' : '';
+  const liftsEl = document.getElementById('bar-lifts-local');
+  if (liftsEl) {
+    liftsEl.textContent = liftsLocal;
+    const openLifts = d.lifts_open_local != null ? parseInt(d.lifts_open_local) : null;
+    liftsEl.style.color = (openLifts === 0) ? '#e74c3c' : '#4cc9f0';
+  }
+  set('bar-lifts-global', liftsGlobal);
   set('bar-wind', d.wind_speed != null ? Math.round(d.wind_speed) + ' km/h' : '--');
 
   // snow_depth — supports both string "140 cm" and number 140
@@ -4156,20 +4185,34 @@ function renderLiveBar(d) {
 
   // weather_description (Hebrew-friendly icons)
   const weatherIcons = {
-    'Sereno':'☀️ בהיר', 'Clear':'☀️ בהיר', 'Sunny':'☀️ שמשי',
-    'Nuvoloso':'☁️ מעונן', 'Cloudy':'☁️ מעונן', 'Overcast':'☁️ מעונן',
-    'Coperto':'☁️ מכוסה',
-    'Parzialmente nuvoloso':'⛅ חלקית', 'Partly cloudy':'⛅ חלקית', 'Mostly Cloudy':'⛅ מעונן חלקית',
-    'Pioggia':'🌧️ גשם', 'Rain':'🌧️ גשם', 'Drizzle':'🌦️ טפטוף',
-    'Neve':'🌨️ שלג', 'Snow':'🌨️ שלג', 'Light snow':'🌨️ שלג קל', 'Heavy snow':'❄️ שלג כבד',
-    'Nebbia':'🌫️ ערפל', 'Fog':'🌫️ ערפל', 'Mist':'🌫️ ערפל קל',
-    'Temporale':'⛈️ סופה', 'Thunderstorm':'⛈️ סופה',
-    'Vento':'💨 רוח', 'Windy':'💨 רוח חזקה',
-    'Bello':'☀️ יפה', 'Variabile':'🌤️ משתנה'
+    // Italian exact
+    'Sereno':'☀️ בהיר', 'Bello':'☀️ יפה', 'Soleggiato':'☀️ שמשי',
+    'Poco nuvoloso':'⛅ מעונן חלקית', 'Parzialmente nuvoloso':'⛅ חלקית מעונן',
+    'Nuvoloso':'☁️ מעונן', 'Molto nuvoloso':'☁️ מעונן מאוד', 'Coperto':'☁️ מכוסה',
+    'Variabile':'🌤️ משתנה', 'Bello/Variabile':'🌤️ משתנה',
+    'Pioggia':'🌧️ גשם', 'Pioggia leggera':'🌦️ גשם קל', 'Pioggia forte':'🌧️ גשם חזק',
+    'Neve':'🌨️ שלג', 'Neve leggera':'🌨️ שלג קל', 'Neve forte':'❄️ שלג כבד',
+    'Nevicate':'🌨️ שלג', 'Nevischio':'🌨️ שלג קל',
+    'Nebbia':'🌫️ ערפל', 'Foschia':'🌫️ ערפל קל',
+    'Temporale':'⛈️ סופה', 'Vento':'💨 רוח', 'Vento forte':'💨 רוח חזקה',
+    // English
+    'Clear':'☀️ בהיר', 'Sunny':'☀️ שמשי', 'Fair':'☀️ נאה',
+    'Partly cloudy':'⛅ חלקית מעונן', 'Mostly Cloudy':'⛅ מעונן חלקית',
+    'Cloudy':'☁️ מעונן', 'Overcast':'☁️ מכוסה',
+    'Rain':'🌧️ גשם', 'Drizzle':'🌦️ טפטוף', 'Light rain':'🌦️ גשם קל',
+    'Snow':'🌨️ שלג', 'Light snow':'🌨️ שלג קל', 'Heavy snow':'❄️ שלג כבד',
+    'Fog':'🌫️ ערפל', 'Mist':'🌫️ ערפל קל',
+    'Thunderstorm':'⛈️ סופה', 'Windy':'💨 רוח חזקה'
   };
   const desc = d.weather_description;
   if (desc) {
-    const heDesc = weatherIcons[desc] || weatherIcons[desc.split(' ')[0]] || desc;
+    // Try exact match first, then first word, then case-insensitive
+    const descTrim = desc.trim();
+    const heDesc = weatherIcons[descTrim]
+      || weatherIcons[descTrim.split(' ').slice(0,2).join(' ')]
+      || weatherIcons[descTrim.split(' ')[0]]
+      || (Object.keys(weatherIcons).find(k => k.toLowerCase() === descTrim.toLowerCase()) ? weatherIcons[Object.keys(weatherIcons).find(k => k.toLowerCase() === descTrim.toLowerCase())] : null)
+      || descTrim;
     set('bar-weather-desc', heDesc);
   }
 
