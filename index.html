@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CerviniaLive - Preview</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <style>
 :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
@@ -275,7 +276,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     <div id="svc-skipass"   class="service-btn" onclick="openM('skipassModal')">🎫 סקי פס</div>
     <div id="svc-rental"    class="service-btn" onclick="openM('rentalModal')">⛷️ השכרת ציוד</div>
     <div id="svc-lessons"   class="service-btn" onclick="openM('lessonsModal')">🏫 הדרכת סקי</div>
-    <div id="svc-kosher"    class="service-btn" onclick="openM('kosherModal')">🍽️🕯️ כשרות ושבת</div>
+    <div id="svc-kosher"    class="service-btn" onclick="openM('kosherModal')">🍽️<span style="letter-spacing:-0.6em;">🕯️🕯️</span>&#8203; כשרות ושבת</div>
     <div id="svc-webcam"    class="service-btn" onclick="openM('webcamModal')">📷 מצלמות</div>
     <div id="svc-parking"   class="service-btn" onclick="openM('parkingModal')">🅿️ חניה וכביש</div>
     <div id="svc-emergency" class="service-btn" onclick="openParkEmergency()">🚨 חירום</div>
@@ -377,14 +378,52 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
 <!-- Modal צור קשר -->
 <div id="contactModal" class="modal" onclick="if(event.target===this)closeM('contactModal')">
-  <div class="modal-content" style="max-width:420px;">
+  <div class="modal-content" style="max-width:460px;">
     <span class="close-btn" onclick="closeM('contactModal')">×</span>
-    <h3 style="margin:0 0 16px;font-size:1.1rem;">✉️ צור קשר</h3>
-    <p style="color:#555;font-size:0.9rem;">שאלות, הצעות לשיפור, או דיווח על בעיה?</p>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
-      <a href="/cdn-cgi/l/email-protection#94f7f1e6e2fdfafdf5baf8fde2f1d4f3f9f5fdf8baf7fbf9" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f0f4ff;border-radius:10px;text-decoration:none;color:#1a3a8c;font-weight:bold;">📧 <span class="__cf_email__" data-cfemail="a3c0c6d1d5cacdcac28dcfcad5c6e3c4cec2cacf8dc0ccce">[email&#160;protected]</span></a>
-      <a href="https://www.facebook.com/groups/385880019907484/" target="_blank" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#e8f0fe;border-radius:10px;text-decoration:none;color:#1a3a8c;font-weight:bold;">👥 קבוצת הפייסבוק</a>
+    <h3 style="margin:0 0 4px;font-size:1.1rem;">✉️ צור קשר</h3>
+    <p style="color:#888;font-size:0.8rem;margin:0 0 16px;">שאלות, הצעות לשיפור או דיווח על בעיה — נשמח לשמוע</p>
+
+    <!-- Form -->
+    <div id="contact-form" style="display:flex;flex-direction:column;gap:11px;">
+      <div>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">שם מלא</label>
+        <input id="cf-name" type="text" placeholder="הכנס שם..." dir="rtl"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;">
+      </div>
+      <div>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">כתובת מייל</label>
+        <input id="cf-email" type="email" placeholder="your@email.com" dir="ltr"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;">
+      </div>
+      <div>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">נושא</label>
+        <select id="cf-subject" dir="rtl"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;background:white;color:#333;">
+          <option value="">-- בחר נושא --</option>
+          <option value="שאלה כללית">❓ שאלה כללית</option>
+          <option value="הצעה לשיפור">💡 הצעה לשיפור</option>
+          <option value="דיווח על בעיה">🐛 דיווח על בעיה</option>
+          <option value="נתונים שגויים">📊 נתונים שגויים</option>
+          <option value="אחר">💬 אחר</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">הודעה</label>
+        <textarea id="cf-message" placeholder="כתוב את הודעתך כאן..." dir="rtl" rows="4"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+      </div>
+      <button onclick="submitContactForm()"
+        style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;">
+        📤 שלח הודעה
+      </button>
+      <div id="cf-msg" style="display:none;padding:10px 12px;border-radius:8px;font-size:0.84rem;text-align:center;"></div>
     </div>
+
+    <!-- Facebook link -->
+    <a href="https://www.facebook.com/groups/385880019907484/" target="_blank"
+      style="display:flex;align-items:center;gap:10px;padding:11px 14px;margin-top:14px;background:#e8f0fe;border-radius:10px;text-decoration:none;color:#1a3a8c;font-weight:bold;font-size:0.87rem;">
+      👥 קבוצת הפייסבוק הישראלית
+    </a>
   </div>
 </div>
 
@@ -491,7 +530,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         </div>
         <div style="flex:1;background:#fff8e1;border-radius:10px;padding:10px;text-align:center;">
           <div style="font-size:1.3rem;font-weight:bold;color:#e67e22;" id="bar-avalanche-modal">--</div>
-          <div style="font-size:0.7rem;color:#555;">🏔️ סכנת שלגים</div>
+          <div style="font-size:0.7rem;color:#555;">🏔️ סכנת מפולות</div>
           <div style="font-size:0.65rem;color:#999;">רמה 1–5</div>
         </div>
       </div>
@@ -1288,13 +1327,13 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 <div id="kosherModal" class="modal" onclick="if(event.target===this)closeM('kosherModal')">
   <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:24px;">
     <span class="close-btn" onclick="closeM('kosherModal')">×</span>
-    <h3 id="kosher-modal-title" style="margin:0 0 16px;font-size:1.1rem;">🍽️🕯️ כשרות ושבת</h3>
+    <h3 id="kosher-modal-title" style="margin:0 0 16px;font-size:1.1rem;">🍽️<span style="letter-spacing:-0.6em;">🕯️🕯️</span>&#8203; כשרות ושבת</h3>
 
     <!-- שתי כרטיסיות גדולות -->
     <div style="display:flex;gap:10px;margin-bottom:16px;">
       <button onclick="switchKoshMain('shabbat')" id="kosh-main-shabbat"
         style="flex:1;padding:16px 10px;border-radius:12px;border:2px solid #0a192f;background:#0a192f;color:white;cursor:pointer;font-size:0.88rem;font-weight:bold;transition:all 0.15s;">
-        <span id="kosher-btn-shabbat-label">🕯️ שבת וזמנים</span><br><span id="kosher-btn-shabbat-sub" style="font-size:0.72rem;opacity:0.7;font-weight:normal;">זריחה · שקיעה · כניסת שבת</span>
+        <span id="kosher-btn-shabbat-label">🕯️🕯️ שבת וזמנים</span><br><span id="kosher-btn-shabbat-sub" style="font-size:0.72rem;opacity:0.7;font-weight:normal;">זריחה · שקיעה · כניסת שבת</span>
       </button>
       <button onclick="switchKoshMain('kosher')" id="kosh-main-kosher"
         style="flex:1;padding:16px 10px;border-radius:12px;border:2px solid #ddd;background:#f5f5f5;color:#555;cursor:pointer;font-size:0.88rem;font-weight:bold;transition:all 0.15s;">
@@ -2930,7 +2969,130 @@ var _pisteMapImg = "data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1
 
 // ── Piste Guide ──
 // PISTES נטענים מ-texts.json (ראה window._texts)
-var PISTES = {};
+var PISTES = {
+
+  // ─── מסלולים למתחילים ───
+  beginner: [
+    { num:'1', diff:'🔵', name:'Plan Maison — Cretaz', area:'Plan Maison 2050מ → כפר', len:'3.2 ק"מ',
+      desc:'המסלול המרכזי לחזרה לכפר צ\'רוויניה. רחב, נוח, עם שדות שלג פתוחים. הכי פופולרי בשעות הצהריים.',
+      tip:'💡 אחרי 15:00 עמוס מאוד — צא מוקדם או חכה לשעה 16:00', tags:['מתחילים','חזרה לכפר','רחב','פופולרי'], map:'' },
+    { num:'2', diff:'🔵', name:'Bontadini', area:'Plan Maison 2050מ', len:'1.8 ק"מ',
+      desc:'מסלול ירוק קצר ונוח — אידאלי לחימום בוקר ולתרגול פניות ראשונות עם ילדים.',
+      tip:'', tags:['מתחילים','ילדים','קצר','חימום'], map:'' },
+    { num:'3', diff:'🔵', name:'Cime Bianche Laghi', area:'Laghi Cime Bianche 2982מ', len:'2.6 ק"מ',
+      desc:'בגובה 3000מ — שלג טוב לאורך כל העונה. נוף פנורמי מרהיב. מסלול רחב עם שיפוע עדין.',
+      tip:'💡 מומלץ בשעות הצהריים כשהשלג למטה נהיה כבד', tags:['מתחילים','גובה','שלג טוב','נוף'], map:'' },
+    { num:'4', diff:'🔵', name:'Lunge', area:'Plan Torrette 2400מ', len:'2.1 ק"מ',
+      desc:'מסלול ירוק רגוע בגובה בינוני — מתאים לגולשים שרוצים להתקדם בהדרגה.',
+      tip:'', tags:['מתחילים','רגוע','בינוני'], map:'' },
+  ],
+
+  // ─── מסלולים לבינוניים ───
+  intermediate: [
+    { num:'5', diff:'🔴', name:'Ventina', area:'Plan Torrette 2400מ → Plan Maison 2050מ', len:'4.5 ק"מ',
+      desc:'המסלול האדום הקלאסי של צ\'רוויניה — רחב, זורם, עם ירידה מהנה. שדות שלג פתוחים עם נוף לכיוון הכפר.',
+      tip:'💡 בוקר מוקדם השלג קשה ומהיר — מעולה לקארב', tags:['בינוני','קלאסי','קארב','זורם'], map:'' },
+    { num:'6', diff:'🔴', name:'Fornet', area:'Plan Torrette 2400מ', len:'3.2 ק"מ',
+      desc:'מסלול אדום מגוון עם קטעים שטוחים ומורדות מהנים. טוב לתרגול ריתמוס גלישה.',
+      tip:'', tags:['בינוני','מגוון','ריתמוס'], map:'' },
+    { num:'7', diff:'🔴', name:'Bardoney', area:'Plateau Rosa 3480מ → Plan Maison', len:'6.1 ק"מ',
+      desc:'אחד המסלולים הארוכים והמרשימים — מתחיל בפלאטו רוזה עם נוף על הפסגות ויורד לכמעט הכפר. עובר דרך כל אזורי הגובה.',
+      tip:'💡 כדאי לעשות אותו פעם אחת בכל ביקור — חוויה מלאה', tags:['בינוני','ארוך','נוף','חוויה'], map:'' },
+    { num:'8', diff:'🔴', name:'Bontadini — Ventina', area:'Plan Maison 2050מ', len:'2.8 ק"מ',
+      desc:'שילוב מהנה של שני מסלולים — ירידה קצרה ממהירה למסלול הוונטינה הרחב.',
+      tip:'', tags:['בינוני','שילוב','מהיר'], map:'' },
+    { num:'9', diff:'🔴', name:'Plan Torrette — Salette', area:'Plan Torrette 2400מ → Salette', len:'3.8 ק"מ',
+      desc:'מסלול יפהפה עם מעבר בין שני צידי ההר — שקט יחסית, שלג טוב, נוף לעמק ולטורננש.',
+      tip:'💡 פחות עמוס מהמסלולים המרכזיים', tags:['בינוני','שקט','נוף','ולטורננש'], map:'' },
+    { num:'13', diff:'🔴', name:'Cielo Alto — Plan Maison', area:'Cielo Alto 2981מ → Plan Maison', len:'4.2 ק"מ',
+      desc:'מסלול 13 — הגישה המרכזית מציאלו אלטו. יורד בצורה מהנה עם שינויי שיפוע ומעברים מגוונים. מסתיים ליד הגונדולה — ניתן לחזור עם הגונדולה חזרה לתחנה.',
+      tip:'💡 ציאלו אלטו מגיע מרכבל נפרד — בדוק שפעיל. מספר מסלול הירידה לגונדולה עדיין לא מאומת', tags:['בינוני','ציאלו אלטו','מגוון','פחות עמוס'], map:'' },
+    { num:'11', diff:'🔴', name:'Gran Sometta — Cretaz', area:'Gran Sometta 3353מ → Plan Maison', len:'5.0 ק"מ',
+      desc:'ירידה ארוכה מגובה — מתחילה בגלאר גדול ומתגלגלת לאורך הצלע המזרחית של ההר.',
+      tip:'', tags:['בינוני','ארוך','גובה'], map:'' },
+  ],
+
+  // ─── מסלולים למתקדמים ───
+  advanced: [
+    { num:'14', diff:'⚫', name:'Gran Sometta — Discesa Diretta', area:'Gran Sometta 3353מ', len:'3.1 ק"מ',
+      desc:'ירידה ישירה וזקופה מגראן סומטה — השיפוע מגיע ל-45°. לגולשים בטוחים בלבד. מרתק בתנאי שלג טובים.',
+      tip:'⚠️ קשה מאוד בתנאי קרח — הכנס תחת רכבל בלבד', tags:['מתקדמים','תלול','אתגר','שיאן'], map:'' },
+    { num:'15', diff:'⚫', name:'Furggen', area:'Furggen 3492מ → Plan Maison', len:'3.5 ק"מ',
+      desc:'המסלול הקשה ביותר בצ\'רוויניה — זוויות קיצוניות, קטעים צרים ושלג לא מסודר. חוויה אדרנלינית מלאה.',
+      tip:'💡 מומלץ רק בתנאי שלג טוב — בקרח זה מסוכן', tags:['מתקדמים','קיצוני','אדרנלין','מומחים'], map:'' },
+    { num:'16', diff:'⚫', name:'Ventina Nera', area:'Plan Torrette 2400מ', len:'2.4 ק"מ',
+      desc:'הגרסה השחורה של הוונטינה — קו ישיר ותלול יותר עם קפיצות טבעיות קצרות.',
+      tip:'', tags:['מתקדמים','תלול','ישיר'], map:'' },
+    { num:'OB-1', diff:'🟡', name:'Freeride — Ventina Couloir', area:'Plan Torrette → Plan Maison', len:'—',
+      desc:'קולואר אוף-פיסט קלאסי ליד מסלול ונטינה — שלג פודרה מדהים לאחר ירידת שלג. אחד הספוטים הפופולריים ביותר.',
+      tip:'⚠️ אוף-פיסט — ציוד בטיחות (Airbag, Recco) חובה. ללא מדריך רק לגולשים מנוסים מאוד', tags:['אוף-פיסט','פודרה','מתקדמים','פריירייד'], map:'' },
+    { num:'OB-2', diff:'🟡', name:'Freeride — Gran Sometta East Face', area:'Gran Sometta 3353מ', len:'—',
+      desc:'הצלע המזרחית של גראן סומטה — קרן שלג פתוחה ורחבה עם תצוגה מושלמת לעמק. מחייב שלג טרי.',
+      tip:'⚠️ בדוק מפת סכנות שלגים לפני (Aineva) — רמה 3+ = סגור', tags:['אוף-פיסט','פריירייד','קרן','פנורמה'], map:'' },
+  ],
+
+  // ─── הצד השוויצרי ─── זרמט ───
+  zermatt: [
+    { num:'Z-1', diff:'🔵', name:'Theodul Glacier — Easy Run', area:'Plateau Rosa 3480מ → Trockener Steg 2939מ', len:'3.8 ק"מ',
+      desc:'הגלישה הראשונה לשוויץ — ירידה נוחה יחסית על הקרחון. נוף מדהים לאיטליה ולמטרהורן. מסלול ירוק-כחול.',
+      tip:'💡 פתוח רק כשחיבור צ\'רמט פעיל — בדוק בבר הנתונים', tags:['זרמט','קרחון','נוח','נוף'], map:'' },
+    { num:'Z-2', diff:'🔴', name:'Theodul — Furggsattel', area:'Furggsattel 3365מ → Trockener Steg', len:'4.2 ק"מ',
+      desc:'מסלול אדום על שפת הקרחון — ירידה לעבר Trockener Steg עם נוף ישיר למטרהורן. מרהיב.',
+      tip:'💡 בצד השוויצרי השלג בדרך כלל טוב יותר — שווה את ההמתנה לחיבור', tags:['זרמט','אדום','מטרהורן','קרחון'], map:'' },
+    { num:'Z-3', diff:'🔴', name:'Schwarzsee — Zermatt', area:'Schwarzsee 2583מ → Zermatt 1620מ', len:'7.5 ק"מ',
+      desc:'הגלישה כל הדרך לתוך צ\'רמט — ירידה של 960מ בגובה. נוף יפהפה לכפר ולמטרהורן. עושים מדי יום.',
+      tip:'💡 הרכבל אחורה לאיטליה עולה כסף נוסף — קנה סקי פס בינלאומי', tags:['זרמט','ארוך','לכפר','סקי פס בינלאומי'], map:'' },
+    { num:'Z-4', diff:'⚫', name:'Triftji — Black Run', area:'Hohtälli 3286מ → Zermatt', len:'5.8 ק"מ',
+      desc:'מסלול שחור מהמפורסמים בצ\'רמט — שיפוע קיצוני, חפירות ותנאים משתנים. לגולשים מנוסים בלבד.',
+      tip:'⚠️ רק לגולשים בטוחים — קשה גם בתנאים טובים', tags:['זרמט','שחור','מתקדמים','מפורסם'], map:'' },
+    { num:'Z-5', diff:'🔴', name:'Plateau Rosa — Matterhorn Glacier Paradise', area:'Klein Matterhorn 3883מ → Trockener Steg', len:'5.0 ק"מ',
+      desc:'מתחנת Klein Matterhorn — הנקודה הגבוהה ביותר בגוש הסקי (3883מ!). ירידה עם נוף ל-38 פסגות.',
+      tip:'💡 עולים ברכבל מ-Trockener Steg — כרטיס נפרד', tags:['זרמט','גובה','Klein Matterhorn','נוף 360°'], map:'' },
+  ],
+
+  // ─── בקתות ומסעדות על ההר ───
+  restaurants: [
+    { num:'R1', diff:'🍽️', name:'Chalet Etoile', area:'Plan Maison 2050מ', len:'—',
+      desc:'הבקתה החמה והמסבירת פנים בתחנת Plan Maison. מרפסת שמש ענקית עם כסאות נוחים ונוף לכפר. בירה קרה, קפה ומשקאות חמים.',
+      tip:'💡 המרפסת שלהם — הנוף הכי טוב על המדרון. הגיע מוקדם לתפוס מקום', tags:['בקתה','מרפסת','פסטה','פונדו','Plan Maison'], map:'' },
+    { num:'R2', diff:'🍽️', name:'Lo Stambecco', area:'Plan Maison 2050מ', len:'—',
+      desc:'בר פנימי חמים ועמוס ממש ליד עמדת הרכבל. בירה, ספרסו, אווירה איטלקית כייפית ורועשת.',
+      tip:'💡 עמוס בצהריים — קנה sandwiches ליד ואכול בחוץ', tags:['בקתה','פיצה','בר','Plan Maison'], map:'' },
+    { num:'R3', diff:'🍽️', name:'Rifugio Motta', area:'Plan Torrette 2400מ', len:'—',
+      desc:'בקתה קלאסית בגובה בינוני עם עיצוב כפרי-אלפיני חמים. קאנטינה עם בירה וספרסו.',
+      tip:'💡 מומלץ לצהריים מלאים — שב בפנים, חמים ונעים', tags:['בקתה','פולנטה','ריזוטו','Plan Torrette'], map:'' },
+    { num:'R4', diff:'🍽️', name:'Rifugio Guide della Val d\'Ayas', area:'Plan Torrette 2400מ', len:'—',
+      desc:'בקתה אינטימית ושקטה קצת מחוץ למסלול הראשי — נוף ישיר לעמק אאוסטה. כוס בירה עם הנוף — שווה.',
+      tip:'💡 צריך לגלוש קצת מהמסלול הרגיל — שווה', tags:['בקתה','שקטה','נוף','Val d\'Ayas'], map:'' },
+    { num:'R5', diff:'🍽️', name:'Bar Ristorante Ventina', area:'Plan Maison 2050מ', len:'—',
+      desc:'בר בשולי המסלול פתוח משעות הבוקר המוקדמות — קפה, שוקולד חם, תה, חם. מקום נעים לחימום לפני הגלישה.',
+      tip:'💡 מעולה לארוחת בוקר לפני עלייה ראשונה', tags:['בר','בוקר','קפה','Plan Maison'], map:'' },
+    { num:'R6', diff:'🍽️', name:'La Colonna — Cime Bianche', area:'Laghi Cime Bianche 2982מ', len:'—',
+      desc:'בקתה בגובה כמעט 3000מ עם נוף 360° לפסגות האלפים. עיצוב פשוט ואלפיני. מיקום ייחודי בין שתי המדינות — קפה וחם עם נוף לבלתי נשכח.',
+      tip:'💡 עצירה מושלמת בדרך לפלאטו רוזה', tags:['בקתה','גבוה','נוף 360°','Cime Bianche'], map:'' },
+    { num:'R7', diff:'🍽️', name:'Rifugio Teodulo — Plan Maison du Roi', area:'Plateau Rosa 3480מ', len:'—',
+      desc:'הבקתה הגבוהה ביותר — ממש על גבול שוויץ/איטליה ב-3480מ. נוף ישיר למטרהורן. קפה ומשקאות חמים עם הנוף הכי מרהיב בצ\'רוויניה.',
+      tip:'💡 קפה ב-Plateau Rosa = סיפור לספר. קר — תלבש טוב', tags:['בקתה','גבוהה ביותר','Plateau Rosa','גבול'], map:'' },
+    { num:'R8', diff:'🍽️', name:'Bar Ristorante Gran Sometta', area:'Gran Sometta 3353מ', len:'—',
+      desc:'בר קטן בתחנת Gran Sometta — ספרסו, משקאות חמים וקרים. נוף מדהים מכל הכיוונים, תורים קצרים.',
+      tip:'💡 תורים קצרים — תחנה פחות מרכזית', tags:['בר','מהיר','Gran Sometta','נוף'], map:'' },
+    { num:'R9', diff:'🍽️', name:'La Brenva — Valtournenche', area:'Salette 2250מ (צד ולטורננש)', len:'—',
+      desc:'בצד ולטורננש ליד מסלולי הירידה — בר אינטימי ושקט עם בירה מקומית. פחות תיירים, אווירה מקומית אמיתית.',
+      tip:'💡 אם אתה בצד ולטורננש — זה האוכל הכי טוב', tags:['מסעדה','ולטורננש','פסטה','טרופות','איכותי'], map:'' },
+    { num:'R10', diff:'🍽️', name:'Baita Cielo Alto', area:'Cielo Alto 2981מ', len:'—',
+      desc:'בקתה שקטה ואינטימית בתחנת ציאלו אלטו — עיצוב עץ ואבן חמים, פחות עמוסה ממרכז האזור. ספרסו ומשקאות, מרפסת עם נוף לצפון.',
+      tip:'💡 מגיעים ברכבל ציאלו אלטו — כדאי לשלב עם הגלישה משם', tags:['בקתה','שקטה','ציאלו אלטו','ראקלט'], map:'' },
+    { num:'R11', diff:'🍽️', name:'LOVE — Bar & Ristorante', area:'Plan Maison 2050מ', len:'—',
+      desc:'בקתה פופולרית ואופנתית ב-Plan Maison — מוזיקה, אווירה כייפית, קוקטיילים ובירה. הנקודה הכי סושיאלית על ההר ומוכרת כנקודת מפגש של הסקי-קראוד הישראלי.',
+      tip:'💡 הנקודה הכי "סושיאלית" על ההר — טוב לאפרה-סקי מוקדם', tags:['בקתה','אפרה-סקי','אווירה','Plan Maison','פופולרי'], map:'' },
+    { num:'R12', diff:'🍽️', name:'Bar Sport\'s Cafe\'', area:'Plan Maison 2050מ', len:'—',
+      desc:'בר מהיר ונגיש — קפה, תה, שוקו חם, כריכים, מאפים. שירות מהיר לגולשים שלא רוצים לבזבז זמן.',
+      tip:'💡 הכי מהיר ב-Plan Maison — אין ישיבה ארוכה', tags:['בר','מהיר','קפה','Plan Maison'], map:'' },
+    { num:'R13', diff:'🍽️', name:'Rifugio Armanaz', area:'Valtournenche — Salette 2250מ', len:'—',
+      desc:'בקתה בצד ולטורננש עם אווירה כפרית אמיתית ועיצוב אלפיני ישן. בירה. פחות תיירים, יותר איטלקים מקומיים — אותנטי לחלוטין.',
+      tip:'💡 חוויה איטלקית אותנטית — שווה את הגלישה לצד ולטורננש', tags:['בקתה','ולטורננש','אותנטי','פסטה'], map:'' },
+  ]
+};
 
 function renderPisteGuide() {
   var el = document.getElementById('piste-guide-content');
@@ -2945,7 +3107,7 @@ function renderPisteGuide() {
     {k:'intermediate', label:'🔴 בינוני'},
     {k:'advanced',     label:'⚫ מתקדמים'},
     {k:'zermatt',      label:'🇨🇭 זרמט'},
-    {k:'restaurants',  label:'🍽️ בקתות ומסעדות'},
+    {k:'restaurants',  label:'🏠 בקתות על ההר'},
   ];
 
   var catColors = {beginner:'#2980b9', intermediate:'#c0392b', advanced:'#2c3e50', zermatt:'#2c3e50', restaurants:'#e67e22'};
@@ -2961,7 +3123,12 @@ function renderPisteGuide() {
   var chipHtml = '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;">'
     + filterDefs.map(function(f){
         var on = f.k===activeFilter;
-        return '<button onclick="setPisteFilter(\''+f.k+'\')" style="padding:5px 10px;border-radius:14px;border:1.5px solid '+(on?'#1a3a6c':'#ddd')+';background:'+(on?'#1a3a6c':'white')+';color:'+(on?'white':'#555')+';font-size:0.76rem;cursor:pointer;">'+f.label+'</button>';
+        var isRest = f.k==='restaurants';
+        var bg     = on ? (isRest?'#e67e22':'#1a3a6c') : (isRest?'#fff3e0':'white');
+        var border = on ? (isRest?'#e67e22':'#1a3a6c') : (isRest?'#e67e22':'#ddd');
+        var color  = on ? 'white' : (isRest?'#c0530a':'#555');
+        var weight = isRest ? 'bold' : 'normal';
+        return '<button onclick="setPisteFilter(\''+f.k+'\')" style="padding:5px 11px;border-radius:14px;border:2px solid '+border+';background:'+bg+';color:'+color+';font-size:0.76rem;cursor:pointer;font-weight:'+weight+';">'+f.label+'</button>';
       }).join('') + '</div>';
 
   var bodyHtml = '';
@@ -2991,7 +3158,6 @@ function renderPisteGuide() {
     keys.forEach(function(k) {
       var items = PISTES[k];
       if (!items) return;
-      if (k === 'restaurants') { bodyHtml += kosherNotice; }
       if (activeFilter === 'all') {
         bodyHtml += '<div style="font-size:0.78rem;font-weight:bold;color:'+catColors[k]+';margin-top:6px;padding-right:2px;">'+catTitles[k]+'</div>';
       }
@@ -3770,6 +3936,87 @@ async function loadTexts() {
   }
 }
 
+// ── צור קשר — EmailJS ──
+// הוראות הגדרה:
+// 1. הירשם ב-emailjs.com (חינם עד 200 מיילים/חודש)
+// 2. צור Service (Gmail / Outlook) וקבל SERVICE_ID
+// 3. צור Template עם משתנים: {{from_name}}, {{from_email}}, {{subject}}, {{message}}
+//    ובתבנית reply_to: {{from_email}} — כך השולח מקבל CC
+// 4. החלף את הערכים למטה
+const EMAILJS_PUBLIC_KEY  = 'm1ROEZZ7XSLtH2Pb8';   // ← החלף
+const EMAILJS_SERVICE_ID  = 'service_5gwuzep';   // ← החלף
+const EMAILJS_TEMPLATE_ID = 'template_m32nf8s';  // ← החלף
+
+function showCfMsg(text, ok) {
+  const el = document.getElementById('cf-msg');
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.background = ok ? '#e8f5e9' : '#fdecea';
+  el.style.color      = ok ? '#2e7d32' : '#c62828';
+  el.style.border     = '1px solid ' + (ok ? '#a5d6a7' : '#ef9a9a');
+  el.textContent = text;
+}
+
+async function submitContactForm() {
+  const name    = (document.getElementById('cf-name')?.value || '').trim();
+  const email   = (document.getElementById('cf-email')?.value || '').trim();
+  const subject = (document.getElementById('cf-subject')?.value || '').trim();
+  const message = (document.getElementById('cf-message')?.value || '').trim();
+
+  if (!name)    { showCfMsg('נא להזין שם', false); return; }
+  if (!email || !email.includes('@')) { showCfMsg('נא להזין כתובת מייל תקינה', false); return; }
+  if (!subject) { showCfMsg('נא לבחור נושא', false); return; }
+  if (!message) { showCfMsg('נא לכתוב הודעה', false); return; }
+
+  const btn = document.querySelector('#contact-form button');
+  if (btn) { btn.textContent = '⏳ שולח...'; btn.disabled = true; }
+
+  // Save to Supabase as backup
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    try {
+      await fetch(SUPABASE_URL + '/rest/v1/contact_messages', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
+                   'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ name, email, subject, message, created_at: new Date().toISOString() })
+      });
+    } catch(e) { /* silently fail */ }
+  }
+
+  // Send via EmailJS
+  if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+    // Dev mode — simulate success
+    if (btn) { btn.textContent = '📤 שלח הודעה'; btn.disabled = false; }
+    showCfMsg('✅ ההודעה נשלחה! (מצב פיתוח — יש להגדיר EmailJS)', true);
+    return;
+  }
+
+  try {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      name:       name,
+      email:      email,
+      from_name:  name,
+      from_email: email,
+      title:      subject,
+      subject:    subject,
+      message:    message,
+      reply_to:   email
+    });
+    showCfMsg('✅ ההודעה נשלחה! אישור נשלח למייל שלך.', true);
+    // Clear form
+    ['cf-name','cf-email','cf-message'].forEach(function(id) {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('cf-subject').value = '';
+  } catch(e) {
+    console.error('EmailJS error:', e);
+    showCfMsg('שגיאה בשליחה — נסה שוב או פנה דרך הפייסבוק', false);
+  }
+
+  if (btn) { btn.textContent = '📤 שלח הודעה'; btn.disabled = false; }
+}
+
 window.onload = async function() {
   await loadTexts(); // ← טעינת טקסטים לפני הכל
   try { user = JSON.parse(localStorage.getItem('skiUser')) || null; } catch(e) {}
@@ -4184,12 +4431,13 @@ function renderLiveBar(d) {
   // ── Forecast modal: snow points ──
   if (d.snow_points && Array.isArray(d.snow_points)) {
     d.snow_points.forEach(function(sp) {
+      const alt = sp.altitude != null ? sp.altitude : sp.alt;
       if (sp.station === 'mid') {
-        set('snow-mid-depth', sp.depth + ' ס"מ');
-        set('snow-mid-alt', sp.altitude + "מ'");
+        if (sp.depth != null) set('snow-mid-depth', sp.depth + ' ס"מ');
+        if (alt != null) set('snow-mid-alt', alt + "מ'");
       } else if (sp.station === 'basev' || sp.station === 'base') {
-        set('snow-base-depth', sp.depth + ' ס"מ');
-        set('snow-base-alt', sp.altitude + "מ'");
+        if (sp.depth != null) set('snow-base-depth', sp.depth + ' ס"מ');
+        if (alt != null) set('snow-base-alt', alt + "מ'");
       }
     });
   }
