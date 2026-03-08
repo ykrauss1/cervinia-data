@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-08T01:47:06.080Z",
-  "temperature": -7.5,
+  "updated_at": "2026-03-08T04:08:19.942Z",
+  "temperature": -6.1,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "110 cm",
   "last_snowfall": null,
-  "wind_speed": 11.9,
+  "wind_speed": 12.6,
   "wind_gust": 22.3,
-  "humidity": null,
+  "humidity": 49,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -37,7 +37,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Saturday, March 7",
+    "date": "Sunday, March 8",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -77,27 +77,6 @@
   },
   "forecast_next_days": [
     {
-      "date": "Monday, March 9",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
-    {
       "date": "Tuesday, March 10",
       "periods": [
         {
@@ -136,6 +115,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Thursday, March 12",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
         }
       ]
     }
