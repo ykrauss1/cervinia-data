@@ -3958,17 +3958,30 @@ function showCfMsg(text, ok) {
 }
 
 function resetContactForm() {
-  ['cf-name','cf-email','cf-message'].forEach(function(id) {
-    var el = document.getElementById(id); if (el) el.value = '';
-  });
-  var subj = document.getElementById('cf-subject');
-  if (subj) subj.value = '';
-  var formEl = document.getElementById('contact-form');
-  if (formEl) formEl.style.display = 'flex';
-  var msgEl = document.getElementById('cf-msg');
-  if (msgEl) msgEl.style.display = 'none';
-  var btn = document.querySelector('#contact-form button');
-  if (btn) { btn.textContent = '📤 שלח הודעה'; btn.disabled = false; }
+  var modalContent = document.querySelector('#contactModal .modal-content');
+  if (!modalContent) return;
+  modalContent.innerHTML = ''
+    + '<span class="close-btn" onclick="closeM(\'contactModal\')">×</span>'
+    + '<h3 style="margin:0 0 4px;font-size:1.1rem;">✉️ צור קשר</h3>'
+    + '<p style="color:#888;font-size:0.8rem;margin:0 0 16px;">שאלות, הצעות לשיפור או דיווח על בעיה — נשמח לשמוע</p>'
+    + '<div id="contact-form" style="display:flex;flex-direction:column;gap:11px;">'
+    + '<div><label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">שם מלא</label>'
+    + '<input id="cf-name" type="text" placeholder="הכנס שם..." dir="rtl" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;"></div>'
+    + '<div><label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">כתובת מייל</label>'
+    + '<input id="cf-email" type="email" placeholder="your@email.com" dir="ltr" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;"></div>'
+    + '<div><label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">נושא</label>'
+    + '<select id="cf-subject" dir="rtl" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;background:white;color:#333;">'
+    + '<option value="">-- בחר נושא --</option>'
+    + '<option value="שאלה כללית">❓ שאלה כללית</option>'
+    + '<option value="הצעה לשיפור">💡 הצעה לשיפור</option>'
+    + '<option value="דיווח על בעיה">🐛 דיווח על בעיה</option>'
+    + '<option value="נתונים שגויים">📊 נתונים שגויים</option>'
+    + '<option value="אחר">💬 אחר</option>'
+    + '</select></div>'
+    + '<div><label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">הודעה</label>'
+    + '<textarea id="cf-message" placeholder="כתוב את הודעתך כאן..." dir="rtl" rows="4" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea></div>'
+    + '<button onclick="submitContactForm()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;">📤 שלח הודעה</button>'
+    + '</div>';
 }
 
 async function submitContactForm() {
@@ -4019,24 +4032,17 @@ async function submitContactForm() {
     };
     // Send notification to site owner
     await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-    // Send auto-reply confirmation to sender
-    await emailjs.send(EMAILJS_SERVICE_ID, 'template_9pc739l', templateParams);
-    // Hide form, show success screen
-    var formEl = document.getElementById('contact-form');
-    if (formEl) formEl.style.display = 'none';
-    var msgEl = document.getElementById('cf-msg');
-    if (msgEl) {
-      msgEl.style.display = 'block';
-      msgEl.style.background = '#e8f5e9';
-      msgEl.style.color = '#2e7d32';
-      msgEl.style.border = '1px solid #a5d6a7';
-      msgEl.style.padding = '20px 16px';
-      msgEl.style.textAlign = 'center';
-      msgEl.style.borderRadius = '10px';
-      msgEl.innerHTML = '<div style="font-size:2rem;margin-bottom:8px;">✅</div>'
-        + '<div style="font-weight:bold;font-size:1rem;margin-bottom:6px;">ההודעה נשלחה בהצלחה!</div>'
-        + '<div style="font-size:0.84rem;color:#555;margin-bottom:16px;">נחזור אליך בהקדם.</div>'
-        + '<button onclick="resetContactForm()" style="padding:9px 20px;background:#1a3a6c;color:white;border:none;border-radius:8px;font-size:0.88rem;cursor:pointer;">📤 שלח הודעה נוספת</button>';
+    // Replace modal content with success screen
+    var modalContent = document.querySelector('#contactModal .modal-content');
+    if (modalContent) {
+      modalContent.innerHTML = ''
+        + '<span class="close-btn" onclick="closeM(\'contactModal\')">×</span>'
+        + '<div style="text-align:center;padding:20px 0;">'
+        + '<div style="font-size:3rem;margin-bottom:12px;">✅</div>'
+        + '<div style="font-weight:bold;font-size:1.1rem;margin-bottom:8px;">ההודעה נשלחה בהצלחה!</div>'
+        + '<div style="font-size:0.88rem;color:#666;margin-bottom:24px;">נחזור אליך בהקדם.</div>'
+        + '<button onclick="resetContactForm()" style="padding:10px 24px;background:#1a3a6c;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-weight:bold;">📤 שלח הודעה נוספת</button>'
+        + '</div>';
     }
   } catch(e) {
     console.error('EmailJS error:', e);
@@ -5328,7 +5334,7 @@ function switchAdminTab(tab) {
           <div id="skipass-mobile-desc" style="font-size:0.75rem;color:#555;">ללא תור בקופות — קונים אונליין והשער נפתח דרך הטלפון</div>
         </div>
       </div>
-      <a href="https://www.cervinia.it/en/ski-area/ski-passes/" target="_blank"
+      <a href="https://cervino.skiperformance.com/en/winter/6696" target="_blank"
         style="display:inline-block;padding:7px 16px;background:#4cc9f0;color:white;border-radius:8px;text-decoration:none;font-size:0.83rem;font-weight:bold;">
         📱 רכישה ב-Skipas Mobile
       </a>
@@ -5353,11 +5359,11 @@ function switchAdminTab(tab) {
     <div style="border-top:1px solid #eee;padding-top:14px;">
       <div style="font-size:0.78rem;color:#888;margin-bottom:8px;">רכישה מראש אונליין:</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="https://www.cervinia.it/en/ski-area/ski-passes/" target="_blank"
+        <a href="https://cervino.skiperformance.com/en/winter/6696" target="_blank"
           style="padding:9px 16px;background:#0a192f;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;">
           🌐 אתר רשמי Cervinia
         </a>
-        <a href="https://www.matterhornski.it/en/ski-passes" target="_blank"
+        <a href="https://www.matterhornparadise.ch/en/book/tickets" target="_blank"
           style="padding:9px 16px;background:#e74c3c;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;">
           🇨🇭 Matterhorn Ski Paradise
         </a>
