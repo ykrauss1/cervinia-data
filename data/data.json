@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-09T01:48:51.001Z",
-  "temperature": -7.1,
+  "updated_at": "2026-03-09T04:13:52.305Z",
+  "temperature": -7.8,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 22,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "110 cm",
   "last_snowfall": null,
-  "wind_speed": 14.4,
+  "wind_speed": 15.5,
   "wind_gust": 20.5,
-  "humidity": 60,
+  "humidity": 66,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -37,66 +37,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Sunday, March 8",
+    "date": "Monday, March 9",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Tuesday, March 10",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Wednesday, March 11",
       "periods": [
