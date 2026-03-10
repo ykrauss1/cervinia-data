@@ -2176,6 +2176,7 @@ async function submitReply(targetId, postId) {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ post_id: postId, parent_id: targetId === postId ? null : targetId, user: user.name, content: txt })
     });
+    if (!res.ok) { try { const err = await res.json(); console.error('submitReply failed:', res.status, JSON.stringify(err)); } catch(e) { console.error('submitReply failed:', res.status); } }
     if (res.ok) {
       ta.value = '';
       const currentQuery = document.getElementById('search-input')?.value || '';
