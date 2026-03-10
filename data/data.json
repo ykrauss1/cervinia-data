@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-10T10:35:34.732Z",
-  "temperature": -2.8,
+  "updated_at": "2026-03-10T11:30:16.335Z",
+  "temperature": -4.4,
   "zermatt_link": "OPEN",
   "lifts_open_global": 48,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "105 cm",
   "last_snowfall": null,
-  "wind_speed": 0.7,
+  "wind_speed": 5.8,
   "wind_gust": 13.7,
-  "humidity": 87,
+  "humidity": null,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
@@ -41,37 +41,37 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "rain-snow"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "rain-snow"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Valtournenche",
-        "icon": "cloudy"
+        "icon": "rain-snow"
       },
       {
         "name": "Chamois",
-        "icon": "cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Torgnon",
-        "icon": "cloudy"
+        "icon": "rain-snow"
       }
     ]
   },
@@ -81,11 +81,11 @@
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun"
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
+          "icon": "partially-cloudy"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
@@ -94,6 +94,48 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Friday, March 13",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, March 14",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
         }
       ]
     }
