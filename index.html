@@ -4160,6 +4160,32 @@ window.onload = async function() {
   loadLiveData();
   loadForecast();
   initFlatpickr();
+  // Handle password reset token in URL
+  if (USE_SUPABASE && window.location.hash.includes('access_token')) {
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    const type = params.get('type');
+    if (access_token && type === 'recovery') {
+      const sb = getSB();
+      if (sb) {
+        await sb.auth.setSession({ access_token, refresh_token });
+        // Show password reset UI
+        openM('authModal');
+        setTimeout(() => {
+          switchAuthTab('login');
+          const loginPanel = document.getElementById('auth-panel-login');
+          if (loginPanel) {
+            loginPanel.innerHTML = '<div style="padding:20px;text-align:center;direction:rtl;">'
+              + '<h3>איפוס סיסמא</h3>'
+              + '<input id="new-password" type="password" placeholder="סיסמא חדשה" style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px;direction:rtl;">'
+              + '<button onclick="doResetPassword()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-size:1rem;margin-top:8px;">שמור סיסמא חדשה</button>'
+              + '</div>';
+          }
+        }, 300);
+      }
+    }
+  }
   if (USE_SUPABASE) await checkSupabaseSession();
   loadLatestAlert();
   renderReviews();
@@ -6092,6 +6118,18 @@ window.addEventListener('appinstalled', function() {
 });
 
 // Service Worker removed
+
+async function doResetPassword() {
+  const pwd = document.getElementById('new-password')?.value;
+  if (!pwd || pwd.length < 6) { alert('סיסמא חייבת להיות לפחות 6 תווים'); return; }
+  const sb = getSB();
+  const { error } = await sb.auth.updateUser({ password: pwd });
+  if (error) { alert('שגיאה: ' + error.message); return; }
+  alert('סיסמא עודכנה בהצלחה! כעת תוכל להתחבר.');
+  closeM('authModal');
+  window.location.hash = '';
+}
+
 </script>
 
 
