@@ -4998,7 +4998,7 @@ function reactItem(itemId, emojiIdx, isReplyInt) {
 }
 
 function editReply(postId, replyId) {
-  const replyEl = document.getElementById('reply-' + replyId);
+  const replyEl = document.getElementById('reply-' + safeId(replyId));
   if (!replyEl) return;
   if (replyEl.querySelector('.edit-area')) { replyEl.querySelector('.edit-area').remove(); return; }
   function findReply(list) {
@@ -5023,7 +5023,7 @@ function editReply(postId, replyId) {
   div.querySelector('textarea').focus();
 }
 async function saveEditReply(postId, replyId) {
-  const txt = document.getElementById('reply-' + replyId)?.querySelector('[data-edit-id]')?.value.trim();
+  const txt = document.getElementById('reply-' + safeId(replyId))?.querySelector('[data-edit-id]')?.value.trim();
   if (!txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
@@ -5048,7 +5048,7 @@ async function saveEditReply(postId, replyId) {
 }
 
 function delReply(postId, replyId) {
-  const replyEl = document.getElementById('reply-' + replyId);
+  const replyEl = document.getElementById('reply-' + safeId(replyId));
   if (!replyEl) return;
   if (replyEl.querySelector('.del-confirm')) { replyEl.querySelector('.del-confirm').remove(); return; }
   const div = document.createElement('div');
@@ -5083,7 +5083,7 @@ async function confirmDelReply(postId, replyId) {
 function editPost(id) {
   const p = allPosts.find(x => String(x.id) === String(id));
   if (!p) return;
-  const postEl = document.getElementById('post-' + id);
+  const postEl = document.getElementById('post-' + safeId(id));
   if (!postEl) return;
   if (postEl.querySelector('.edit-area')) { postEl.querySelector('.edit-area').remove(); return; }
   const contentEl = postEl.querySelector('div[style*="margin:6px"]');
@@ -5102,7 +5102,7 @@ function editPost(id) {
 }
 async function saveEditPost(id) {
   const p = allPosts.find(x => String(x.id) === String(id));
-  const txt = document.getElementById('post-' + id)?.querySelector('[data-edit-id]')?.value.trim();
+  const txt = document.getElementById('post-' + safeId(id))?.querySelector('[data-edit-id]')?.value.trim();
   if (!p || !txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
@@ -5120,7 +5120,7 @@ async function saveEditPost(id) {
 }
 
 function delPost(id) {
-    const postEl = document.getElementById('post-' + id);
+    const postEl = document.getElementById('post-' + safeId(id));
   if (!postEl) return;
   // Check if confirm UI already exists
   if (postEl.querySelector('.del-confirm')) { postEl.querySelector('.del-confirm').remove(); return; }
@@ -5167,7 +5167,7 @@ function renderReplies(replies, postId, depth, query) {
       + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;" onclick="editReply(\'' + postId + '\',\'' + r.id + '\')">✎ ערוך</span>' : '')
       + (canDel ? '<span style="cursor:pointer;color:#e74c3c;" onclick="delReply(\'' + postId + '\',\'' + r.id + '\')">✕ מחק</span>' : '')
       + '</div>';
-    return '<div class="reply-item" id="reply-' + r.id + '" style="margin-right:' + indent + 'px;">'
+    return '<div class="reply-item" id="reply-' + safeId(r.id) + '" style="margin-right:' + indent + 'px;">'
       + '<b>' + r.user + '</b> <span style="color:#bbb;font-size:0.72rem;">' + timeAgo(r.timestamp) + '</span>'
       + '<div style="margin:3px 0;">' + highlight(r.content, query) + '</div>'
       + fileHtml
@@ -5213,7 +5213,7 @@ function renderPosts(query, sort, chips) {
         fileHtml = '<div style="margin:6px 0;"><a href="' + p.file.url + '" target="_blank" style="color:var(--accent);">📎 ' + p.file.name + '</a></div>';
       }
     }
-    return '<div class="post" id="post-' + p.id + '">'
+    return '<div class="post" id="post-' + safeId(p.id) + '">'
       + '<b>' + highlight(p.user, query) + '</b> <span style="color:#bbb;font-size:0.75rem;">' + timeAgo(p.timestamp) + '</span>'
       + '<div style="margin:6px 0;">' + highlight(p.content, query) + '</div>'
       + fileHtml
