@@ -319,16 +319,20 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
       <input id="search-input" type="text" autocomplete="off" name="forum-search" placeholder="חפש בפורום..." style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;">
-      <select id="forum-sort" onchange="filterPosts()" style="padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;color:#555;background:white;">
-        <option value="newest">מיון: חדש</option>
-        <option value="oldest">מיון: ישן</option>
-        <option value="popular">מיון: פופולרי</option>
-      </select>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:0.82rem;color:#888;white-space:nowrap;">מיון לפי:</span>
+        <select id="forum-sort" onchange="filterPosts()" style="padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;color:#555;background:white;">
+          <option value="newest">חדש לישן</option>
+          <option value="oldest">ישן לחדש</option>
+          <option value="popular">הכי פעיל</option>
+          <option value="liked">הכי אהוב</option>
+        </select>
+      </div>
     </div>
 
     <div id="posts-list"></div>
     <div id="new-post-area" style="margin-top:15px;display:none;">
-      <textarea id="new-post-text" placeholder="שתף עדכון מהשלטונות..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;direction:rtl;resize:vertical;font-family:inherit;"></textarea>
+      <textarea id="new-post-text" placeholder="שאל שאלה, שתף עדכון או טיפ מהשטח..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;direction:rtl;resize:vertical;font-family:inherit;"></textarea>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
         <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="new-post-file" style="display:none;" onchange="document.getElementById('new-post-file-name').textContent=this.files[0]?.name||''"></label>
         <span id="new-post-file-name" style="font-size:0.78rem;color:#888;"></span>
@@ -961,8 +965,8 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     <div id="why-items-list" style="display:flex;flex-direction:column;gap:14px;">
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:2rem;">⛷️</span>
-        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">מסלולים לכל הרמות</div>
-        <div style="font-size:0.85rem;color:#444;line-height:1.6;">מעל 160 קמ מסלולים — ירוקים, כחולים, אדומים ושחורים. שלג מעולה לאורך כל העונה.</div></div>
+        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">מסלולים לכל הרמות — כולל בקיץ</div>
+        <div style="font-size:0.85rem;color:#444;line-height:1.6;">מעל 160 ק"מ מסלולים — ירוקים, כחולים, אדומים ושחורים. שלג מעולה לאורך כל העונה, והקרחון פתוח לגלישה גם בקיץ.</div></div>
       </div>
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:2rem;">🇨🇭</span>
@@ -970,14 +974,19 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         <div style="font-size:0.85rem;color:#444;line-height:1.6;">כשהתנאים מאפשרים, המעבר לצ'רמט השוויצרי פתוח. גולשים מה-Plateau Rosa לאיטליה ולשוויץ וחזרה — ביום אחד.</div></div>
       </div>
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
-        <span style="font-size:2rem;">🍽️</span>
-        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">אוכל כשר ואווירה יהודית</div>
-        <div style="font-size:0.85rem;color:#444;line-height:1.6;">מסעדות כשריות בכפר. גבינות ורכבלים אוסטה ולודיינים — אווירה איטלקית אמיתית.</div></div>
+        <span style="font-size:2rem;">🏘️</span>
+        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">כפר שקט ואותנטי</div>
+        <div style="font-size:0.85rem;color:#444;line-height:1.6;">כפר קטן וקסום ללא המולה, צפיפות או רעש. אווירה איטלקית אמיתית — מי שמחפש שקט ונוף, ימצא כאן בדיוק את זה.</div></div>
       </div>
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:2rem;">💲</span>
         <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">מחיר שדה תעופה + סקי פס</div>
         <div style="font-size:0.85rem;color:#444;line-height:1.6;">טיסות למילאנו זולות יחסית. סקי פס זול ב-20-40% מצ'רמט או קורטינה.</div></div>
+      </div>
+      <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
+        <span style="font-size:2rem;">🏔️</span>
+        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">המטרהורן — שני פנים של אייקון</div>
+        <div style="font-size:0.85rem;color:#444;line-height:1.6;">מהצד האיטלקי — פירמידה מושלמת ומרהיבה. מהצד השוויצרי — הצוק התלול שעל הטובלרון. שני מראות שונים לחלוטין של אותו הר אגדי, ביום גלישה אחד.</div></div>
       </div>
     </div>
     <!-- קישורים בעברית -->
@@ -2098,7 +2107,7 @@ async function submitReply(targetId, postId) {
   }
   // fallback local
   const newReply = { id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), reactions: {}, replies: [] };
-  const post = allPosts.find(p => p.id === postId);
+  const post = allPosts.find(p => String(p.id) === String(postId));
   if (!post) return;
   if (targetId === postId) {
     if (!post.replies) post.replies = [];
@@ -3204,7 +3213,7 @@ function openPisteMapFull() {
     ov = document.createElement('div');
     ov.id = 'piste-map-overlay';
     ov.style.cssText = 'position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:10px;';
-    ov.innerHTML = '<div style="position:relative;max-width:100%;max-height:100%;"><img src="'+window._pisteMapImg+'" style="max-width:90vw;max-height:90vh;border-radius:8px;display:block;"><button onclick="document.getElementById(\'piste-map-overlay\').remove()" style="position:absolute;top:-12px;right:-12px;width:32px;height:32px;border-radius:50%;border:none;background:white;font-size:1rem;cursor:pointer;font-weight:bold;">✕</button><a href="'+window._pisteMapImg+'" download="cervinia_piste_map.png" style="display:block;margin-top:10px;text-align:center;padding:9px;background:#27ae60;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.84rem;">📥 הורד מפה מלאה</a></div>';
+    ov.innerHTML = `<div style="position:relative;max-width:100%;max-height:100%;"><img src="${window._pisteMapImg}" style="max-width:90vw;max-height:90vh;border-radius:8px;display:block;"><button onclick="document.getElementById('piste-map-overlay').remove()" style="position:absolute;top:-12px;right:-12px;width:32px;height:32px;border-radius:50%;border:none;background:white;font-size:1rem;cursor:pointer;font-weight:bold;">✕</button><a href="${window._pisteMapImg}" download="cervinia_piste_map.png" style="display:block;margin-top:10px;text-align:center;padding:9px;background:#27ae60;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.84rem;">📥 הורד מפה מלאה</a></div>`;
     ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
     document.body.appendChild(ov);
   }
@@ -3265,7 +3274,7 @@ function renderReviewWriteArea() {
   const area = document.getElementById('review-write-area');
   if (!area) return;
   if (!user) {
-    area.innerHTML = '<div style="text-align:center;color:#aaa;font-size:0.83rem;padding:12px;">להוספת ביקורת — <a href="#" onclick="openM(&quot;authModal&quot;)" style="color:var(--accent);">כניסה</a></div>';
+    area.innerHTML = `<div style="text-align:center;color:#aaa;font-size:0.83rem;padding:12px;">להוספת ביקורת — <a href="#" onclick="openM('authModal')" style="color:var(--accent);">כניסה</a></div>`;
     return;
   }
   reviewDraft = { rating: 0, cat: '', text: '' };
@@ -4192,9 +4201,8 @@ async function register() {
 
   // Fallback: localStorage only
   const users = getUsers();
-  if (users[name]) { showAuthErr('שם משתמש תפוס — בחר שם אחר'); return; }
   const emailTaken = Object.values(users).some(u => u.email === email);
-  if (emailTaken) { showAuthErr('כתובת המייל כבר רשומה במערכת'); return; }
+  if (users[name] && emailTaken) { showAuthErr('משתמש עם שם ומייל זה כבר קיים במערכת'); return; }
   users[name] = { passHash: simpleHash(pass), email, level: null, discipline: 'ski', joined: new Date().toLocaleDateString('he-IL') };
   saveUsers(users);
   user = { name, level: null, discipline: 'ski' };
@@ -4738,9 +4746,9 @@ function renderPostBtn() {
   const area = document.getElementById('post-btn-area');
   if (!area) return;
   if (user) {
-    area.innerHTML = '<button onclick="showNewPost()" class="service-btn" style="padding:8px 18px;">+ פוסט חדש</button>';
+    area.innerHTML = `<button onclick="showNewPost()" style="padding:12px 28px;background:var(--accent);color:white;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-weight:bold;box-shadow:0 3px 10px rgba(76,201,240,0.35);transition:all 0.15s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">✏️ פוסט חדש</button>`;
   } else {
-    area.innerHTML = '<button onclick="openM(' + String.fromCharCode(39) + 'authModal' + String.fromCharCode(39) + ')" class="service-btn" style="padding:8px 18px;">כניסה</button>';
+    area.innerHTML = `<button onclick="openM('authModal')" class="service-btn" style="padding:8px 18px;">כניסה</button>`;
   }
 }
 
@@ -4960,7 +4968,7 @@ function confirmDelReply(postId, replyId) {
 }
 
 function editPost(id) {
-  const p = allPosts.find(x => x.id === id);
+  const p = allPosts.find(x => String(x.id) === String(id));
   if (!p) return;
   const postEl = document.getElementById('post-' + id);
   if (!postEl) return;
@@ -4978,7 +4986,7 @@ function editPost(id) {
   div.querySelector('textarea').focus();
 }
 function saveEditPost(id) {
-  const p = allPosts.find(x => x.id === id);
+  const p = allPosts.find(x => String(x.id) === String(id));
   const txt = document.getElementById('edit-txt-' + id)?.value.trim();
   if (p && txt) { p.content = txt; renderPosts(''); }
 }
@@ -4997,7 +5005,7 @@ function delPost(id) {
   postEl.appendChild(div);
 }
 function confirmDelPost(id) {
-  allPosts = allPosts.filter(p => p.id !== id);
+  allPosts = allPosts.filter(p => String(p.id) !== String(id));
   renderPosts('');
 }
 
@@ -5043,6 +5051,11 @@ function renderPosts(query, sort, chips) {
   if (sort === 'newest') filtered.sort(function(a,b){ return b.timestamp - a.timestamp; });
   else if (sort === 'oldest') filtered.sort(function(a,b){ return a.timestamp - b.timestamp; });
   else if (sort === 'popular') filtered.sort(function(a,b){ return (b.replies||[]).length - (a.replies||[]).length; });
+  else if (sort === 'liked') filtered.sort(function(a,b){ 
+    const likesA = Object.values(b._userReacts||{}).filter(r=>r==='👍').length;
+    const likesB = Object.values(a._userReacts||{}).filter(r=>r==='👍').length;
+    return likesA - likesB;
+  });
   if (!filtered.length) {
     list.innerHTML = '<div style="color:#aaa;text-align:center;padding:20px;">אין פוסטים</div>';
     return;
@@ -5801,7 +5814,7 @@ function renderAlertWriteArea() {
   var el = document.getElementById('alert-write-area');
   if (!el) return;
   if (!user) {
-    el.innerHTML = '<div style="padding:11px;background:#f8f9fa;border-radius:9px;font-size:0.8rem;color:#888;text-align:center;">🔒 <a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;">התחבר</a> כדי לפרסם התראה</div>';
+    el.innerHTML = `<div style="padding:11px;background:#f8f9fa;border-radius:9px;font-size:0.8rem;color:#888;text-align:center;">🔒 <a href="#" onclick="openM('authModal');return false;" style="color:#1a73e8;">התחבר</a> כדי לפרסם התראה</div>`;
     return;
   }
   el.innerHTML =
