@@ -1528,11 +1528,13 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   </div>
 </div>
 <div id="mapModal" class="modal" onclick="if(event.target===this)closeM('mapModal')">
-  <div class="modal-content" style="max-width:900px;height:88vh;display:flex;flex-direction:column;padding:16px;">
+  <div class="modal-content" style="max-width:960px;height:92vh;display:flex;flex-direction:column;padding:14px;gap:0;">
+    <!-- כותרת -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;">
       <h3 style="margin:0;font-size:1rem;">🗺️ מפות</h3>
       <span class="close-btn" style="position:static;font-size:1.4rem;cursor:pointer;" onclick="closeM('mapModal')">×</span>
     </div>
+    <!-- כפתורי בחירה -->
     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;flex-shrink:0;">
       <div style="display:flex;gap:6px;">
         <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('mymap')">📍 נקודות ציון</button>
@@ -1540,23 +1542,36 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       </div>
       <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:2px 0;">⛷️ מפות מסלולים:</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:100px;" onclick="loadMap('piste-all')">🌍 כל האזור</button>
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:100px;" onclick="loadMap('piste-cervinia')">🇮🇹 צ׳רוויניה</button>
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:100px;" onclick="loadMap('piste-valtournenche')">🏔️ ולטורננש</button>
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:100px;" onclick="loadMap('piste-swiss')">🇨🇭 שוויץ</button>
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-all')">🌍 כל האזור</button>
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-cervinia')">🇮🇹 צ׳רוויניה</button>
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-valtournenche')">🏔️ ולטורננש</button>
+        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-swiss')">🇨🇭 שוויץ</button>
       </div>
     </div>
-    <!-- toolbar: zoom + download -->
-    <div id="map-toolbar" style="display:none;align-items:center;gap:8px;margin-bottom:8px;flex-shrink:0;">
-      <button onclick="mapZoom(1.2)" style="padding:5px 12px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:1rem;">＋</button>
-      <button onclick="mapZoom(0.8)" style="padding:5px 12px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:1rem;">－</button>
-      <button onclick="mapZoomReset()" style="padding:5px 12px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.78rem;">איפוס</button>
-      <a id="map-download-btn" href="" download style="padding:5px 14px;border-radius:7px;background:#27ae60;color:white;font-size:0.78rem;font-weight:bold;text-decoration:none;">📥 הורד</a>
+    <!-- toolbar: zoom + fullscreen + download (מוצג רק כשיש תוכן) -->
+    <div id="map-toolbar" style="display:none;align-items:center;gap:6px;margin-bottom:8px;flex-shrink:0;flex-wrap:wrap;">
+      <button onclick="mapZoomIn()" style="padding:5px 13px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:1rem;background:white;">＋</button>
+      <button onclick="mapZoomOut()" style="padding:5px 13px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:1rem;background:white;">－</button>
+      <button onclick="mapZoomReset()" style="padding:5px 11px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.78rem;background:white;">100%</button>
+      <span id="map-zoom-label" style="font-size:0.78rem;color:#888;min-width:36px;text-align:center;">100%</span>
+      <button onclick="mapFullscreen()" style="padding:5px 11px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.82rem;background:white;">⛶ מסך מלא</button>
+      <a id="map-download-btn" href="" target="_blank" style="padding:5px 14px;border-radius:7px;background:#27ae60;color:white;font-size:0.78rem;font-weight:bold;text-decoration:none;margin-right:auto;">📥 הורד</a>
     </div>
-    <div style="flex:1;border:1px solid #eee;border-radius:10px;overflow:auto;display:flex;flex-direction:column;" id="map-container">
-      <img id="map-img" src="" style="transform-origin:top right;transition:transform 0.2s;display:none;width:100%;cursor:grab;">
-      <iframe id="map-frame" src="" width="100%" style="border:none;display:none;flex:1;min-height:440px;"></iframe>
-      <div id="map-placeholder" style="width:100%;min-height:260px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;color:#999;flex-direction:column;gap:10px;">
+    <!-- אזור תצוגה -->
+    <div id="map-container" style="flex:1;border:1px solid #eee;border-radius:10px;overflow:hidden;position:relative;background:#f0f0f0;display:flex;align-items:center;justify-content:center;">
+      <!-- תמונה (mymap) -->
+      <div id="map-img-wrap" style="display:none;width:100%;height:100%;overflow:auto;cursor:grab;">
+        <img id="map-img" src="" style="transform-origin:top right;transition:transform 0.18s;display:block;width:100%;">
+      </div>
+      <!-- PDF viewer (canvas) -->
+      <div id="map-pdf-wrap" style="display:none;width:100%;height:100%;overflow:auto;text-align:center;">
+        <canvas id="map-pdf-canvas" style="max-width:100%;display:block;margin:0 auto;cursor:grab;"></canvas>
+        <div id="map-pdf-pages" style="font-size:0.78rem;color:#888;padding:6px;display:none;"></div>
+      </div>
+      <!-- iframe (מפת הכפר) -->
+      <iframe id="map-frame" src="" width="100%" height="100%" style="border:none;display:none;position:absolute;inset:0;"></iframe>
+      <!-- placeholder -->
+      <div id="map-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:10px;color:#999;">
         <span style="font-size:3rem;">🗺️</span>
         <span>בחר מפה מלמעלה</span>
       </div>
@@ -1947,94 +1962,153 @@ function switchTab(tab) {
 
 
 
+// ── Map viewer ──
 var _mapZoomLevel = 1;
+var _mapCurrentPdf = null;
+var _mapCurrentPage = 1;
+
+// Load PDF.js lazily
+function _loadPdfJs(cb) {
+  if (window.pdfjsLib) { cb(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  s.onload = function() {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    cb();
+  };
+  document.head.appendChild(s);
+}
+
+function _mapReset() {
+  _mapZoomLevel = 1;
+  _mapCurrentPdf = null;
+  _mapCurrentPage = 1;
+  var imgWrap = document.getElementById('map-img-wrap');
+  var pdfWrap = document.getElementById('map-pdf-wrap');
+  var frame   = document.getElementById('map-frame');
+  var ph      = document.getElementById('map-placeholder');
+  var toolbar = document.getElementById('map-toolbar');
+  if (imgWrap) imgWrap.style.display = 'none';
+  if (pdfWrap) pdfWrap.style.display = 'none';
+  if (frame)  { frame.style.display = 'none'; frame.src = ''; }
+  if (ph)     { ph.style.display = 'flex'; ph.innerHTML = '<span style="font-size:2rem;">⏳</span><span>טוען...</span>'; }
+  if (toolbar) toolbar.style.display = 'none';
+  var zl = document.getElementById('map-zoom-label');
+  if (zl) zl.textContent = '100%';
+}
+
+function _mapShowToolbar(downloadUrl, downloadName) {
+  var toolbar = document.getElementById('map-toolbar');
+  var dlBtn   = document.getElementById('map-download-btn');
+  if (toolbar) toolbar.style.display = 'flex';
+  if (dlBtn)  { dlBtn.href = downloadUrl; dlBtn.download = downloadName || ''; }
+}
 
 function loadMap(type) {
-  const frame = document.getElementById('map-frame');
-  const img   = document.getElementById('map-img');
-  const ph    = document.getElementById('map-placeholder');
-  const toolbar = document.getElementById('map-toolbar');
-  const dlBtn = document.getElementById('map-download-btn');
-  _mapZoomLevel = 1;
-
-  // איפוס
-  if (img)   { img.style.display = 'none'; img.style.transform = 'scale(1)'; }
-  if (frame) { frame.style.display = 'none'; frame.src = ''; }
-  if (ph)    { ph.style.display = 'none'; ph.innerHTML = ''; }
-  if (toolbar) toolbar.style.display = 'none';
-
-  var extBtn = '<a href="{url}" target="_blank" style="display:inline-block;margin-top:8px;padding:7px 16px;background:#f0f4ff;border:1.5px solid #aac;border-radius:7px;text-decoration:none;color:#1a3a6c;font-size:0.78rem;font-weight:bold;">↗️ פתח בחלון נפרד</a>';
+  _mapReset();
+  var pdfFiles = { 'piste-all':'slopesmap.pdf', 'piste':'slopesmap.pdf', 'piste-cervinia':'cerviniaslopesmap.pdf', 'piste-valtournenche':'valtournencheslopesmap.pdf', 'piste-swiss':'swissslopesmap.pdf' };
+  var baseUrl  = 'https://ykrauss1.github.io/cervinia-data/';
 
   if (type === 'mymap') {
-    // תמונה ישירה
-    if (img) {
-      img.style.display = 'block';
-      img.style.width   = '100%';
-      img.style.height  = 'auto';
-      img.src = 'https://ykrauss1.github.io/cervinia-data/mymap.jpg';
-    }
-    if (toolbar) toolbar.style.display = 'flex';
-    if (dlBtn) { dlBtn.href = 'https://ykrauss1.github.io/cervinia-data/mymap.jpg'; dlBtn.download = 'cervinia_map.jpg'; dlBtn.target = ''; }
+    var imgWrap = document.getElementById('map-img-wrap');
+    var img     = document.getElementById('map-img');
+    var ph      = document.getElementById('map-placeholder');
+    img.onload  = function() { if (ph) ph.style.display = 'none'; if (imgWrap) imgWrap.style.display = 'block'; };
+    img.onerror = function() { if (ph) ph.innerHTML = '<span style="color:#e74c3c;">שגיאה בטעינת המפה</span>'; };
+    img.style.transform = 'scale(1)';
+    img.style.transformOrigin = 'top right';
+    img.src = baseUrl + 'mymap.jpg';
+    _mapShowToolbar(baseUrl + 'mymap.jpg', 'cervinia_map.jpg');
 
-  } else if (type === 'piste-all' || type === 'piste-cervinia' || type === 'piste-valtournenche' || type === 'piste-swiss' || type === 'piste') {
-    var pdfNames = { 'piste-all':'slopesmap.pdf', 'piste':'slopesmap.pdf', 'piste-cervinia':'cerviniaslopesmap.pdf', 'piste-valtournenche':'valtournencheslopesmap.pdf', 'piste-swiss':'swissslopesmap.pdf' };
-    var pdfLabels = { 'piste-all':'מפת כל האזור', 'piste':'מפת כל האזור', 'piste-cervinia':'מפת צ\'רוויניה', 'piste-valtournenche':'מפת ולטורננש', 'piste-swiss':'מפת הצד השוויצרי' };
-    var pdfUrl = 'https://ykrauss1.github.io/cervinia-data/' + pdfNames[type];
-    var pdfLabel = pdfLabels[type] || 'מפת מסלולים';
-    if (toolbar) toolbar.style.display = 'flex';
-    if (dlBtn)  { dlBtn.href = pdfUrl; dlBtn.download = ''; dlBtn.target = '_blank'; }
-    var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    if (!isMobile && frame) {
-      // דסקטופ — iframe ישיר
-      frame.style.display    = 'block';
-      frame.style.minHeight  = '520px';
-      frame.src = pdfUrl;
-    } else {
-      // נייד — כפתור פתיחה
-      if (ph) {
-        ph.style.display       = 'flex';
-        ph.style.flexDirection = 'column';
-        ph.style.gap           = '14px';
-        ph.innerHTML = '<span style="font-size:2.5rem;">⛷️</span>'
-          + '<span style="font-weight:bold;color:#333;">' + pdfLabel + ' (PDF)</span>'
-          + '<a href="' + pdfUrl + '" target="_blank" '
-          + 'style="padding:12px 28px;background:#1a3a6c;color:white;border-radius:9px;text-decoration:none;font-weight:bold;font-size:0.9rem;">📄 פתח / הורד</a>'
-          + '<span style="font-size:0.74rem;color:#aaa;">PDF — נפתח בלשונית חדשה</span>';
-      }
-    }
+  } else if (pdfFiles[type]) {
+    var pdfUrl = baseUrl + pdfFiles[type];
+    _mapShowToolbar(pdfUrl, pdfFiles[type]);
+    _loadPdfJs(function() {
+      pdfjsLib.getDocument({ url: pdfUrl, cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/', cMapPacked: true })
+        .promise.then(function(pdf) {
+          _mapCurrentPdf = pdf;
+          _mapCurrentPage = 1;
+          _mapZoomLevel = 1;
+          _renderPdfPage(1);
+        }).catch(function(e) {
+          var ph = document.getElementById('map-placeholder');
+          if (ph) ph.innerHTML = '<span style="color:#e74c3c;">שגיאה בטעינת ה-PDF</span><a href="' + pdfUrl + '" target="_blank" style="padding:10px 22px;background:#1a3a6c;color:white;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:8px;">📄 פתח ישירות</a>';
+        });
+    });
 
   } else {
-    // מפת הכפר — OpenStreetMap embed (חינמי, לא חוסם)
-    var osmUrl = 'https://www.openstreetmap.org/export/embed.html?bbox=7.610%2C45.925%2C7.645%2C45.950&layer=mapnik&marker=45.9364%2C7.6269';
-    var gmUrl  = 'https://www.google.com/maps/place/Breuil-Cervinia/@45.9364,7.6269,15z';
-    var wazeUrl = 'https://waze.com/ul?ll=45.9364,7.6269&navigate=yes';
-    if (frame) {
-      frame.style.display   = 'block';
-      frame.style.minHeight = '480px';
-      frame.src = osmUrl;
-    }
-    // כפתורי ניווט מתחת
-    if (ph) {
-      ph.style.display       = 'flex';
+    // מפת הכפר
+    var osmUrl  = 'https://www.openstreetmap.org/export/embed.html?bbox=7.610%2C45.925%2C7.645%2C45.950&layer=mapnik&marker=45.9364%2C7.6269';
+    var frame   = document.getElementById('map-frame');
+    var ph      = document.getElementById('map-placeholder');
+    if (frame)  { frame.style.display = 'block'; frame.src = osmUrl; }
+    if (ph)     {
+      ph.style.display = 'flex';
       ph.style.flexDirection = 'row';
-      ph.style.gap           = '8px';
-      ph.style.flexWrap      = 'wrap';
+      ph.style.gap = '8px';
+      ph.style.flexWrap = 'wrap';
       ph.style.justifyContent = 'center';
-      ph.style.padding       = '10px 0 4px';
+      ph.style.padding = '10px 0 4px';
+      ph.style.position = 'absolute';
+      ph.style.bottom = '0';
+      ph.style.width = '100%';
+      ph.style.background = 'transparent';
       ph.innerHTML =
-        '<a href="' + gmUrl + '" target="_blank" style="padding:8px 16px;background:#4285f4;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🗺️ Google Maps</a>'
-        + '<a href="' + wazeUrl + '" target="_blank" style="padding:8px 16px;background:#09c;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🚗 Waze</a>'
-        + '<a href="https://maps.apple.com/?ll=45.9364,7.6269&q=Breuil-Cervinia" target="_blank" style="padding:8px 16px;background:#555;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🍎 Apple Maps</a>';
+        '<a href="https://www.google.com/maps/place/Breuil-Cervinia/@45.9364,7.6269,15z" target="_blank" style="padding:7px 14px;background:#4285f4;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🗺️ Google Maps</a>'
+        + '<a href="https://waze.com/ul?ll=45.9364,7.6269&navigate=yes" target="_blank" style="padding:7px 14px;background:#09c;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🚗 Waze</a>'
+        + '<a href="https://maps.apple.com/?ll=45.9364,7.6269&q=Breuil-Cervinia" target="_blank" style="padding:7px 14px;background:#555;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🍎 Apple Maps</a>';
     }
   }
 }
 
-function mapZoom(factor) {
-  _mapZoomLevel = Math.min(4, Math.max(0.5, _mapZoomLevel * factor));
-  var img = document.getElementById('map-img');
-  if (img && img.style.display !== 'none') img.style.transform = 'scale(' + _mapZoomLevel + ')';
+function _renderPdfPage(pageNum) {
+  if (!_mapCurrentPdf) return;
+  var canvas  = document.getElementById('map-pdf-canvas');
+  var pdfWrap = document.getElementById('map-pdf-wrap');
+  var ph      = document.getElementById('map-placeholder');
+  if (!canvas) return;
+  _mapCurrentPdf.getPage(pageNum).then(function(page) {
+    var container = document.getElementById('map-container');
+    var containerW = container ? container.clientWidth - 20 : 800;
+    var viewport0 = page.getViewport({ scale: 1 });
+    var baseScale = containerW / viewport0.width;
+    var scale     = baseScale * _mapZoomLevel;
+    var viewport  = page.getViewport({ scale: scale });
+    canvas.width  = viewport.width;
+    canvas.height = viewport.height;
+    var ctx = canvas.getContext('2d');
+    page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
+      if (ph)      { ph.style.display = 'none'; ph.style.position = ''; }
+      if (pdfWrap) pdfWrap.style.display = 'block';
+      var zl = document.getElementById('map-zoom-label');
+      if (zl) zl.textContent = Math.round(_mapZoomLevel * 100) + '%';
+    });
+  });
 }
-function mapZoomReset() { _mapZoomLevel = 1; var img = document.getElementById('map-img'); if (img) img.style.transform = 'scale(1)'; }
+
+function mapZoomIn()  { _mapZoomLevel = Math.min(5, _mapZoomLevel * 1.3); _applyMapZoom(); }
+function mapZoomOut() { _mapZoomLevel = Math.max(0.3, _mapZoomLevel / 1.3); _applyMapZoom(); }
+function mapZoomReset() { _mapZoomLevel = 1; _applyMapZoom(); }
+
+function _applyMapZoom() {
+  var zl = document.getElementById('map-zoom-label');
+  if (zl) zl.textContent = Math.round(_mapZoomLevel * 100) + '%';
+  // PDF
+  if (_mapCurrentPdf) { _renderPdfPage(_mapCurrentPage); return; }
+  // Image
+  var img = document.getElementById('map-img');
+  if (img && img.src && img.style.display !== 'none') {
+    img.style.transform = 'scale(' + _mapZoomLevel + ')';
+    img.style.transformOrigin = 'top right';
+  }
+}
+
+function mapFullscreen() {
+  var el = document.getElementById('map-container');
+  if (!el) return;
+  var req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if (req) req.call(el);
+}
 
 // ── Service modals ──
 function openRentalModal() { openM('rentalModal'); }
@@ -4774,19 +4848,28 @@ async function loadPostsFromSupabase() {
     const posts = await sbFetch('posts?select=*&order=created_at.desc');
     const replies = await sbFetch('replies?select=*&order=created_at.asc');
     if (!posts) return false;
-    // בנה עץ פוסטים
+    function buildReplies(parentId, allReplies) {
+      return allReplies.filter(r => String(r.parent_id) === String(parentId)).map(r => ({
+        id: r.id, user: r.user, content: r.content,
+        timestamp: new Date(r.created_at).getTime(),
+        file: r.file_url ? { url: r.file_url, name: r.file_url.split('/').pop(), type: 'image/' } : null,
+        reactions: {}, _userReacts: {},
+        replies: buildReplies(r.id, allReplies)
+      }));
+    }
     allPosts = posts.map(p => ({
       id: p.id,
       user: p.user,
       content: p.content,
       timestamp: new Date(p.created_at).getTime(),
       file: p.file_url ? { url: p.file_url, name: p.file_url.split('/').pop(), type: 'image/' } : null,
-      reactions: {},
+      reactions: {}, _userReacts: {},
       replies: (replies || []).filter(r => r.post_id === p.id && !r.parent_id).map(r => ({
         id: r.id, user: r.user, content: r.content,
         timestamp: new Date(r.created_at).getTime(),
         file: r.file_url ? { url: r.file_url, name: r.file_url.split('/').pop(), type: 'image/' } : null,
-        reactions: {}, replies: []
+        reactions: {}, _userReacts: {},
+        replies: buildReplies(r.id, (replies || []).filter(x => x.post_id === p.id))
       }))
     }));
     return true;
@@ -4928,14 +5011,22 @@ function editReply(postId, replyId) {
   replyEl.appendChild(div);
   div.querySelector('textarea').focus();
 }
-function saveEditReply(postId, replyId) {
+async function saveEditReply(postId, replyId) {
+  const txt = document.getElementById('edit-reply-' + replyId)?.value.trim();
+  if (!txt) return;
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ content: txt })
+    });
+    await loadPostsFromSupabase();
+    renderPosts(document.getElementById('search-input')?.value || '');
+    return;
+  }
   function findAndSave(list) {
     for (const r of list) {
-      if (r.id === replyId) {
-        const txt = document.getElementById('edit-reply-' + replyId)?.value.trim();
-        if (txt) { r.content = txt; return true; }
-        return false;
-      }
+      if (r.id === replyId) { if (txt) { r.content = txt; return true; } return false; }
       if (r.replies && findAndSave(r.replies)) return true;
     }
     return false;
@@ -4956,7 +5047,16 @@ function delReply(postId, replyId) {
     + '<button onclick="removeDelConfirm(this)" style="padding:2px 10px;background:#eee;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">ביטול</button>';
   replyEl.appendChild(div);
 }
-function confirmDelReply(postId, replyId) {
+async function confirmDelReply(postId, replyId) {
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    await loadPostsFromSupabase();
+    renderPosts(document.getElementById('search-input')?.value || '');
+    return;
+  }
   function removeFrom(list) {
     const idx = list.findIndex(r => r.id === replyId);
     if (idx !== -1) { list.splice(idx, 1); return true; }
@@ -4985,10 +5085,22 @@ function editPost(id) {
   postEl.insertBefore(div, postEl.querySelector('.del-confirm') || null);
   div.querySelector('textarea').focus();
 }
-function saveEditPost(id) {
+async function saveEditPost(id) {
   const p = allPosts.find(x => String(x.id) === String(id));
   const txt = document.getElementById('edit-txt-' + id)?.value.trim();
-  if (p && txt) { p.content = txt; renderPosts(''); }
+  if (!p || !txt) return;
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ content: txt })
+    });
+    await loadPostsFromSupabase();
+    renderPosts(document.getElementById('search-input')?.value || '');
+    return;
+  }
+  p.content = txt;
+  renderPosts('');
 }
 
 function delPost(id) {
@@ -5004,7 +5116,20 @@ function delPost(id) {
     + '<button onclick="removeDelConfirm(this)" style="padding:3px 12px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>';
   postEl.appendChild(div);
 }
-function confirmDelPost(id) {
+async function confirmDelPost(id) {
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    await fetch(SUPABASE_URL + '/rest/v1/replies?post_id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    await loadPostsFromSupabase();
+    renderPosts(document.getElementById('search-input')?.value || '');
+    return;
+  }
   allPosts = allPosts.filter(p => String(p.id) !== String(id));
   renderPosts('');
 }
