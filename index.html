@@ -2127,7 +2127,7 @@ function openReplyBox(targetId, postId) {
     if (box) {
       document.querySelectorAll('[id^="rbox-"]').forEach(b => b.style.display = 'none');
       box.style.display = 'block';
-      const ta = document.getElementById('rtxt-' + targetId);
+      const ta = document.getElementById('rtxt-' + safeId(targetId));
       if (ta) {
         ta.placeholder = '💬 רוצה להגיב? התחבר או הירשם ←';
         ta.style.color = '#888';
@@ -2141,10 +2141,14 @@ function openReplyBox(targetId, postId) {
   if (!box) return;
   const isOpen = box.style.display !== 'none';
   document.querySelectorAll('[id^="rbox-"]').forEach(b => b.style.display = 'none');
-  if (!isOpen) { box.style.display = 'block'; document.getElementById('rtxt-' + targetId)?.focus(); }
+  if (!isOpen) { box.style.display = 'block'; document.getElementById('rtxt-' + safeId(targetId))?.focus(); }
+}
+
+function safeId(id) {
+  return String(id).replace(/[^a-zA-Z0-9_]/g, '_');
 }
 function closeReplyBox(targetId) {
-  const box = document.getElementById('rbox-' + targetId);
+  const box = document.getElementById('rbox-' + safeId(targetId));
   if (box) box.style.display = 'none';
 }
 function previewFile(targetId) {
@@ -2153,20 +2157,12 @@ function previewFile(targetId) {
   if (input && input.files[0] && nameEl) nameEl.textContent = input.files[0].name;
 }
 function makeReplyBox(targetId, postId) {
-  return '<div id="rbox-' + targetId + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'
-    + '<textarea id="rtxt-' + targetId + '" rows="2" placeholder="כתוב תגובה..." '
-    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;direction:rtl;font-family:inherit;font-size:0.87rem;"></textarea>'
-    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'
-    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + targetId + '" style="display:none;" onchange="previewFile(' + targetId + ')"></label>'
-    + '<span id="rfile-name-' + targetId + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'
-    + '<div style="margin-right:auto;display:flex;gap:6px;">'
-    + '<button onclick="closeReplyBox(' + targetId + ')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'
-    + '<button onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'
-    + '</div></div></div>';
+  const sid = safeId(targetId);
+  return '<div id="rbox-' + sid + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'    + '<textarea id="rtxt-' + sid + '" rows="2" placeholder="כתוב תגובה..." '    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;direction:rtl;font-family:inherit;font-size:0.87rem;"></textarea>'    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + sid + '" style="display:none;" onchange="previewFile(\'' + sid + '\')" accept="image/*,.pdf"></label>'    + '<span id="rfile-name-' + sid + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'    + '<div style="margin-right:auto;display:flex;gap:6px;">'    + '<button onclick="closeReplyBox(\'' + sid + '\')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'    + '<button onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'    + '</div></div></div>';
 }
 async function submitReply(targetId, postId) {
   if (!user) return;
-  const ta = document.getElementById('rtxt-' + targetId);
+  const ta = document.getElementById('rtxt-' + safeId(targetId));
   const txt = ta?.value.trim();
   if (!txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
@@ -5018,7 +5014,7 @@ function editReply(postId, replyId) {
   const div = document.createElement('div');
   div.className = 'edit-area';
   div.style.cssText = 'margin-top:6px;';
-  div.innerHTML = '<textarea id="edit-reply-' + replyId + '" rows="2" style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--accent);border-radius:6px;direction:rtl;font-family:inherit;font-size:0.87rem;resize:vertical;">' + r.content.replace(/</g,'&lt;') + '</textarea>'
+  div.innerHTML = '<textarea data-edit-id="reply" rows="2" style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--accent);border-radius:6px;direction:rtl;font-family:inherit;font-size:0.87rem;resize:vertical;text-align:right;">' + r.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">'
     + '<button onclick="removeEditArea(this)" style="padding:3px 10px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>'
     + '<button onclick="saveEditReply(\'' + postId + '\',\'' + replyId + '\')" style="padding:3px 10px;background:var(--accent);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-weight:bold;">שמור</button>'
@@ -5027,7 +5023,7 @@ function editReply(postId, replyId) {
   div.querySelector('textarea').focus();
 }
 async function saveEditReply(postId, replyId) {
-  const txt = document.getElementById('edit-reply-' + replyId)?.value.trim();
+  const txt = document.getElementById('reply-' + replyId)?.querySelector('[data-edit-id]')?.value.trim();
   if (!txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
@@ -5094,17 +5090,19 @@ function editPost(id) {
   const div = document.createElement('div');
   div.className = 'edit-area';
   div.style.cssText = 'margin-top:8px;';
-  div.innerHTML = '<textarea id="edit-txt-' + id + '" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--accent);border-radius:8px;direction:rtl;font-family:inherit;font-size:0.9rem;resize:vertical;">' + p.content.replace(/</g,'&lt;') + '</textarea>'
+  div.innerHTML = '<textarea data-edit-id="post" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--accent);border-radius:8px;direction:rtl;font-family:inherit;font-size:0.9rem;resize:vertical;text-align:right;">' + p.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end;">'
     + '<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">ביטול</button>'
     + '<button onclick="saveEditPost(\'' + id + '\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">שמור</button>'
     + '</div>';
-  postEl.insertBefore(div, postEl.querySelector('.del-confirm') || null);
+  // Insert after post content, before replies
+  const repliesEl = postEl.querySelector('.replies-container') || postEl.querySelector('.del-confirm') || null;
+  postEl.insertBefore(div, repliesEl);
   div.querySelector('textarea').focus();
 }
 async function saveEditPost(id) {
   const p = allPosts.find(x => String(x.id) === String(id));
-  const txt = document.getElementById('edit-txt-' + id)?.value.trim();
+  const txt = document.getElementById('post-' + id)?.querySelector('[data-edit-id]')?.value.trim();
   if (!p || !txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
