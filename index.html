@@ -2123,7 +2123,7 @@ function openWhyCervinia() { openM('whyCerviniaModal'); }
 // ── Reply box helper (openReplyBox used by forum) ──
 function openReplyBox(targetId, postId) {
   if (!user) {
-    const box = document.getElementById('rbox-' + targetId);
+    const box = document.getElementById('rbox-' + safeId(targetId));
     if (box) {
       document.querySelectorAll('[id^="rbox-"]').forEach(b => b.style.display = 'none');
       box.style.display = 'block';
@@ -2137,7 +2137,7 @@ function openReplyBox(targetId, postId) {
     }
     return;
   }
-  const box = document.getElementById('rbox-' + targetId);
+  const box = document.getElementById('rbox-' + safeId(targetId));
   if (!box) return;
   const isOpen = box.style.display !== 'none';
   document.querySelectorAll('[id^="rbox-"]').forEach(b => b.style.display = 'none');
@@ -3446,7 +3446,7 @@ function renderReviews() {
       + '<div style="font-size:0.85rem;color:#333;line-height:1.6;">' + r.text + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">'
       + '<span style="font-size:0.72rem;color:#bbb;">' + timeAgo(r.timestamp) + '</span>'
-      + (canDel ? '<span style="font-size:0.78rem;color:#e74c3c;cursor:pointer;" onclick="deleteReview(' + r.id + ')">🗑 מחק</span>' : '')
+      + (canDel ? '<span style="font-size:0.78rem;color:#e74c3c;cursor:pointer;" onclick="deleteReview(\'' + r.id + '\')">🗑 מחק</span>' : '')
       + '</div></div>';
   }).join('');
 }
@@ -5222,7 +5222,7 @@ function renderPosts(query, sort, chips) {
       + '<span style="color:var(--accent);cursor:pointer;font-weight:bold;" onclick="openReplyBox(\'' + p.id + '\',\'' + p.id + '\')">↩ השב</span>'
       + ((p.replies||[]).length > 0 ? '<span>💬 ' + p.replies.length + '</span>' : '')
       + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;font-size:0.82rem;" onclick="editPost(\'' + p.id + '\')">✎ ערוך</span>' : '')
-      + '<span style="cursor:pointer;color:#888;font-size:0.82rem;" onclick="sharePost(' + p.id + ')" title="שתף">📤 שתף</span>'
+      + '<span style="cursor:pointer;color:#888;font-size:0.82rem;" onclick="sharePost(\'' + p.id + '\')" title="שתף">📤 שתף</span>'
       + (canDel ? '<span style="cursor:pointer;color:#e74c3c;font-size:0.82rem;" onclick="delPost(\'' + p.id + '\')">✕ מחק</span>' : '')
       + '</div>'
       + makeReplyBox(p.id, p.id)
