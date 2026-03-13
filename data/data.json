@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-13T15:39:03.766Z",
-  "temperature": -1,
+  "updated_at": "2026-03-13T16:35:42.958Z",
+  "temperature": -2.6,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 21,
   "lifts_total_global": 47,
@@ -14,10 +14,10 @@
   "last_snowfall": null,
   "wind_speed": 2.5,
   "wind_gust": 22.3,
-  "humidity": 74,
+  "humidity": null,
   "avalanche_level": "2",
   "avalanche_text": null,
-  "weather_description": "Sereno",
+  "weather_description": "Poco nuvoloso",
   "opening_hours": "08:00 - 16:45",
   "snow_points": [
     {
@@ -81,7 +81,7 @@
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
+          "icon": "snow"
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
@@ -94,6 +94,48 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Monday, March 16",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Tuesday, March 17",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
         }
       ]
     }
