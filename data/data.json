@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-15T22:54:41.528Z",
-  "temperature": -5.8,
+  "updated_at": "2026-03-15T23:25:37.192Z",
+  "temperature": -6.7,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "160 cm",
   "last_snowfall": null,
-  "wind_speed": 3.6,
-  "wind_gust": 80.3,
-  "humidity": 94,
+  "wind_speed": 6.5,
+  "wind_gust": 8.6,
+  "humidity": null,
   "avalanche_level": "4",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
@@ -51,37 +51,37 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "snow"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "snow"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "snow"
+        "icon": null
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": null
       }
     ]
   },
@@ -116,7 +116,28 @@
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Thursday, March 19",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
