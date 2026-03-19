@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-19T10:36:18.761Z",
-  "temperature": -3.7,
+  "updated_at": "2026-03-19T11:33:08.319Z",
+  "temperature": -1.3,
   "zermatt_link": "OPEN",
   "lifts_open_global": 48,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "85 cm",
   "last_snowfall": null,
-  "wind_speed": 2.2,
+  "wind_speed": 2.9,
   "wind_gust": 20.5,
-  "humidity": 60,
+  "humidity": null,
   "avalanche_level": "3",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -81,6 +81,27 @@
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, March 22",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
           "icon": "snow"
         },
         {
@@ -93,7 +114,28 @@
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
-          "icon": "snow"
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Monday, March 23",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
         }
       ]
     }
