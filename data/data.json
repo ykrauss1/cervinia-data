@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-22T17:22:27.330Z",
-  "temperature": -7.9,
+  "updated_at": "2026-03-22T17:50:14.150Z",
+  "temperature": -8.3,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,7 +12,7 @@
   "slopes_total_local": 46,
   "snow_depth": "165 cm",
   "last_snowfall": null,
-  "wind_speed": 1.1,
+  "wind_speed": null,
   "wind_gust": 22.3,
   "humidity": 92,
   "avalanche_level": "2",
@@ -89,6 +89,48 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Wednesday, March 25",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "snow"
+        }
+      ]
+    },
+    {
+      "date": "Thursday, March 26",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "snow"
         }
       ]
     }
