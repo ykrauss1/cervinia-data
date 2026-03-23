@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-23T01:53:48.683Z",
-  "temperature": -13.4,
+  "updated_at": "2026-03-23T04:26:18.602Z",
+  "temperature": -11.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "85 cm",
   "last_snowfall": null,
-  "wind_speed": 6.5,
+  "wind_speed": 2.9,
   "wind_gust": 16.9,
-  "humidity": 89,
+  "humidity": 91,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Neve",
@@ -42,66 +42,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Sunday, March 22",
+    "date": "Monday, March 23",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "snow"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "snow"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "snow"
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Tuesday, March 24",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Wednesday, March 25",
       "periods": [
@@ -141,6 +120,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "snow"
+        }
+      ]
+    },
+    {
+      "date": "Friday, March 27",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
         }
       ]
     }
