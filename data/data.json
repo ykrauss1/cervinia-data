@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-24T22:58:33.002Z",
-  "temperature": -5.3,
+  "updated_at": "2026-03-24T23:36:08.165Z",
+  "temperature": -3.8,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -10,11 +10,11 @@
   "lifts_total_local": 16,
   "slopes_open_local": 0,
   "slopes_total_local": 46,
-  "snow_depth": "180 cm",
+  "snow_depth": "90 cm",
   "last_snowfall": null,
   "wind_speed": 11.2,
-  "wind_gust": 25.6,
-  "humidity": 62,
+  "wind_gust": 16.9,
+  "humidity": 45,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -24,6 +24,11 @@
       "station": "top",
       "altitude": 3480,
       "depth": 180
+    },
+    {
+      "station": "base",
+      "altitude": 2050,
+      "depth": 90
     },
     {
       "station": "basev",
@@ -36,37 +41,37 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": null
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": null
       }
     ]
   },
@@ -88,7 +93,7 @@
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
-          "icon": "snow"
+          "icon": "snow-low"
         }
       ]
     },
@@ -101,7 +106,7 @@
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
+          "icon": "partially-cloudy"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
@@ -110,6 +115,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, March 28",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
         }
       ]
     }
