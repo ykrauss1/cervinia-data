@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-27T23:54:01.569Z",
-  "temperature": -6.8,
+  "updated_at": "2026-03-28T01:49:36.412Z",
+  "temperature": -5,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "180 cm",
   "last_snowfall": null,
-  "wind_speed": 6.5,
-  "wind_gust": 18.7,
-  "humidity": null,
+  "wind_speed": 16.2,
+  "wind_gust": 36,
+  "humidity": 38,
   "avalanche_level": "3",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -32,7 +32,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Friday, March 27",
+    "date": "Saturday, March 28",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -40,63 +40,63 @@
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "snow-low"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "cloudy"
       }
     ]
   },
   "forecast_next_days": [
     {
-      "date": "Sunday, March 29",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
-    {
       "date": "Monday, March 30",
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
+          "icon": "snow-low"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "snow"
+        }
+      ]
+    },
+    {
+      "date": "Tuesday, March 31",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
           "icon": "sun"
         },
         {
@@ -105,11 +105,32 @@
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
+          "icon": "snow-low"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "snow-low"
+        }
+      ]
+    },
+    {
+      "date": "Wednesday, April 1",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
           "icon": "partially-cloudy"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
+          "icon": "partially-cloudy"
         }
       ]
     }
