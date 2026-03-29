@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-29T19:56:57.685Z",
-  "temperature": -6.8,
+  "updated_at": "2026-03-29T20:30:07.504Z",
+  "temperature": -8.6,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -10,11 +10,11 @@
   "lifts_total_local": 16,
   "slopes_open_local": 0,
   "slopes_total_local": 46,
-  "snow_depth": "75 cm",
+  "snow_depth": "170 cm",
   "last_snowfall": null,
-  "wind_speed": 24.8,
+  "wind_speed": 6.5,
   "wind_gust": 92.2,
-  "humidity": 61,
+  "humidity": 70,
   "avalanche_level": "3",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -26,14 +26,14 @@
       "depth": 170
     },
     {
-      "station": "base",
-      "altitude": 2050,
-      "depth": 75
-    },
-    {
       "station": "basev",
       "altitude": 1524,
       "depth": 30
+    },
+    {
+      "station": "midv",
+      "altitude": 2245,
+      "depth": 85
     }
   ],
   "forecast_today": {
