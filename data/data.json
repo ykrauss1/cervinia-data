@@ -1,44 +1,39 @@
 {
-  "updated_at": "2026-03-31T08:53:21.582Z",
-  "temperature": -10.4,
-  "zermatt_link": "NEXT UPDATE",
-  "lifts_open_global": 30,
+  "updated_at": "2026-03-31T10:02:19.170Z",
+  "temperature": -10.1,
+  "zermatt_link": "CLOSED",
+  "lifts_open_global": 33,
   "lifts_total_global": 47,
-  "slopes_open_global": 76,
+  "slopes_open_global": 77,
   "slopes_total_global": 109,
-  "lifts_open_local": 10,
+  "lifts_open_local": 13,
   "lifts_total_local": 16,
-  "slopes_open_local": 37,
+  "slopes_open_local": 38,
   "slopes_total_local": 46,
-  "snow_depth": "95 cm",
+  "snow_depth": "165 cm",
   "last_snowfall": null,
-  "wind_speed": 33.1,
+  "wind_speed": 20.9,
   "wind_gust": 87.1,
-  "humidity": 60,
+  "humidity": 56,
   "avalanche_level": "3",
   "avalanche_text": null,
-  "weather_description": "Tempo variabile",
+  "weather_description": "Nuvoloso",
   "opening_hours": "08:00 - 16:45",
   "snow_points": [
     {
       "station": "top",
       "altitude": 3480,
-      "depth": 160
+      "depth": 165
     },
     {
       "station": "top2",
       "altitude": 2812,
-      "depth": 120
+      "depth": 125
     },
     {
-      "station": "mid",
-      "altitude": 2555,
-      "depth": 95
-    },
-    {
-      "station": "base",
-      "altitude": 2050,
-      "depth": 70
+      "station": "midv",
+      "altitude": 2245,
+      "depth": 85
     }
   ],
   "forecast_today": {
