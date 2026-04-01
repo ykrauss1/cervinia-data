@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-04-01T00:00:50.920Z",
-  "temperature": -9.4,
+  "updated_at": "2026-04-01T03:35:55.720Z",
+  "temperature": -8.6,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 19,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "75 cm",
   "last_snowfall": null,
-  "wind_speed": 32,
+  "wind_speed": 29.9,
   "wind_gust": 73.4,
-  "humidity": 41,
+  "humidity": null,
   "avalanche_level": "3",
   "avalanche_text": null,
   "weather_description": "Nuvoloso con intervalli di sole",
@@ -47,66 +47,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Tuesday, March 31",
+    "date": "Wednesday, April 1",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Thursday, April 2",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Friday, April 3",
       "periods": [
@@ -142,6 +121,27 @@
         {
           "label": "Evening\n(18.00 - 24.00)",
           "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, April 5",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
