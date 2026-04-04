@@ -1,20 +1,20 @@
 {
-  "updated_at": "2026-04-04T13:50:55.367Z",
-  "temperature": 6.6,
-  "zermatt_link": "OPEN",
-  "lifts_open_global": 47,
+  "updated_at": "2026-04-04T14:30:23.235Z",
+  "temperature": 5.9,
+  "zermatt_link": "CLOSED",
+  "lifts_open_global": 24,
   "lifts_total_global": 47,
-  "slopes_open_global": 110,
+  "slopes_open_global": 51,
   "slopes_total_global": 109,
-  "lifts_open_local": 16,
+  "lifts_open_local": 6,
   "lifts_total_local": 16,
-  "slopes_open_local": 46,
+  "slopes_open_local": 14,
   "slopes_total_local": 46,
   "snow_depth": "110 cm",
   "last_snowfall": null,
-  "wind_speed": 4.3,
+  "wind_speed": 5.8,
   "wind_gust": 71.6,
-  "humidity": null,
+  "humidity": 55,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -90,11 +90,53 @@
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Tuesday, April 7",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Wednesday, April 8",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
