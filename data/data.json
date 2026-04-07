@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-04-07T01:59:49.929Z",
-  "temperature": 0.2,
+  "updated_at": "2026-04-07T04:38:12.133Z",
+  "temperature": 1.7,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 5,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 46,
   "snow_depth": "110 cm",
   "last_snowfall": null,
-  "wind_speed": 12.6,
-  "wind_gust": 16.9,
-  "humidity": 56,
+  "wind_speed": 15.5,
+  "wind_gust": 18.7,
+  "humidity": null,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -36,18 +36,13 @@
       "depth": 110
     },
     {
-      "station": "base",
-      "altitude": 2050,
-      "depth": 70
-    },
-    {
       "station": "basev",
       "altitude": 1524,
       "depth": 15
     }
   ],
   "forecast_today": {
-    "date": "Monday, April 6",
+    "date": "Tuesday, April 7",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -86,27 +81,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Wednesday, April 8",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Thursday, April 9",
       "periods": [
