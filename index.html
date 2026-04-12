@@ -288,7 +288,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     <div id="svc-parking"   class="service-btn" onclick="openM('parkingModal')">🅿️ חניה וכביש</div>
     <div id="svc-emergency" class="service-btn" onclick="openParkEmergency()">🚨 חירום</div>
     <div id="svc-maps"      class="service-btn" onclick="openM('mapModal')"><span style="font-size:1.3rem;">🗺️</span> מפות</div>
-  <div id="svc-piste"       class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים ובקתות</div>
+  <div id="svc-piste"       class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים, בקתות ואפרה סקי</div>
   </div>
 
   <!-- Why Cervinia card -->
@@ -1468,26 +1468,55 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🥩 Simonato Kosher</div>
-          <div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Washington 9, Milano — ממש במרכז הקהילה</div>
-          <div style="font-size:0.77rem;color:#777;margin-bottom:7px;">בשר, נקניקים, גבינות, מוצרי מזון כשר למהדרין · א׳–ה׳ 9:00–19:00</div>
+          <div id="kosher-milan-simonato-name" style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🥩 Simonato Kosher</div>
+          <div id="kosher-milan-simonato-addr" style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Washington 9, Milano — ממש במרכז הקהילה</div>
+          <div id="kosher-milan-simonato-desc" style="font-size:0.77rem;color:#777;margin-bottom:7px;">בשר, נקניקים, גבינות, מוצרי מזון כשר למהדרין · א׳–ה׳ 9:00–19:00</div>
           <a href="https://www.google.com/maps/search/kosher+milano+via+washington" target="_blank"
             style="font-size:0.77rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏪 Supermercato Kosher — Via Guastalla</div>
-          <div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Guastalla 19, Milano — ליד בית הכנסת הגדול</div>
-          <div style="font-size:0.77rem;color:#777;margin-bottom:7px;">סופר כשר מלא — שימורים, קפואים, יבש, חלבי ובשרי בנפרד</div>
+          <div id="kosher-milan-super-name" style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏪 Supermercato Kosher — Via Guastalla</div>
+          <div id="kosher-milan-super-addr" style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Guastalla 19, Milano — ליד בית הכנסת הגדול</div>
+          <div id="kosher-milan-super-desc" style="font-size:0.77rem;color:#777;margin-bottom:7px;">סופר כשר מלא — שימורים, קפואים, יבש, חלבי ובשרי בנפרד</div>
           <a href="https://www.google.com/maps/search/supermercato+kosher+via+guastalla+milano" target="_blank"
             style="font-size:0.77rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🍽️ מסעדות כשרות במילאנו</div>
-          <div style="font-size:0.77rem;color:#777;line-height:1.8;">
-            <a href="https://www.kosher.it/ristoranti/milano/" target="_blank" style="color:#1a73e8;">🔗 רשימה מלאה — Kosher.it</a><br>
-            מומלץ לאמת שעות פתיחה לפני הביקור
+          <div id="kosher-milan-restaurants-title" style="font-weight:bold;font-size:0.9rem;margin-bottom:6px;">🍽️ מסעדות כשרות במילאנו</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:0.77rem;color:#555;">
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-milan-baghetto-name" style="font-weight:bold;">🥩 Ba'Ghetto — בשרי</div>
+              <div id="kosher-milan-baghetto-addr" style="color:#777;">📍 Via Sardegna 45 · מטבח יהודי-רומי, רב המלצות</div>
+              <div id="kosher-milan-baghetto-hours" style="color:#777;">א׳–ה׳ 12:00–14:30 / 19:00–22:30 · ו׳ 12:00–14:00</div>
+              <a href="https://www.google.com/maps/search/Ba+Ghetto+Via+Sardegna+45+Milano" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-milan-denzel-name" style="font-weight:bold;">🥩 Denzel — בשרי</div>
+              <div id="kosher-milan-denzel-addr" style="color:#777;">📍 Via Washington 9 · המבורגרים כשרים, זכה בפרס הבורגר הטוב ביותר באיטליה</div>
+              <div id="kosher-milan-denzel-hours" style="color:#777;">א׳–ה׳ 12:00–14:30 / 19:00–22:30 · ו׳ 12:00–14:00</div>
+              <a href="https://www.google.com/maps/search/Denzel+kosher+Via+Washington+9+Milano" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-milan-mykafe-name" style="font-weight:bold;">🧀 MyKafe — חלבי</div>
+              <div id="kosher-milan-mykafe-addr" style="color:#777;">📍 Via Soderini 44 · קפה וארוחות קלות, גלידה כשרה · פתוח עד 19:30</div>
+              <a href="https://www.google.com/maps/search/MyKafe+kosher+Via+Soderini+44+Milano" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div>
+              <div id="kosher-milan-carmel-name" style="font-weight:bold;">🍕 Pizza Carmel — חלבי</div>
+              <div id="kosher-milan-carmel-addr" style="color:#777;">📍 Viale S. Gimignano 10 · פיצה, פסטה, מהדרין</div>
+              <div id="kosher-milan-carmel-hours" style="color:#777;">א׳–ה׳ 12:00–14:30 / 19:00–22:30 · ו׳ 12:00–14:00</div>
+              <a href="https://www.google.com/maps/search/Pizza+Carmel+kosher+Milano+Viale+Gimignano" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+          </div>
+          <div id="kosher-milan-restaurants-footer" style="margin-top:8px;font-size:0.73rem;color:#888;">
+            <a href="https://chabadhouseofmilan.com/food/" target="_blank" style="color:#1a73e8;">🔗 רשימה מלאה — Chabad Milano</a> · מומלץ לאמת שעות לפני הביקור
           </div>
         </div>
 
@@ -1506,17 +1535,37 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏛️ Comunità Ebraica di Torino</div>
-          <div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Piazzetta Primo Levi 12, Torino</div>
-          <div style="font-size:0.77rem;color:#777;margin-bottom:7px;">מרכז הקהילה — בית כנסת, חנות כשרה, ומידע על אפשרויות בעיר</div>
+          <div id="kosher-torino-community-name" style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏛️ Comunità Ebraica di Torino</div>
+          <div id="kosher-torino-community-addr" style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Piazzetta Primo Levi 12, Torino</div>
+          <div id="kosher-torino-community-desc" style="font-size:0.77rem;color:#777;margin-bottom:7px;">מרכז הקהילה — בית כנסת, חנות כשרה, ומידע על אפשרויות בעיר</div>
           <a href="https://www.torinoebraica.it/" target="_blank" style="font-size:0.77rem;color:#1a73e8;">🌐 אתר הקהילה</a>
         </div>
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🍽️ מסעדות ואוכל כשר בטורינו</div>
-          <div style="font-size:0.77rem;color:#777;line-height:1.8;">
-            <a href="https://www.kosher.it/ristoranti/torino/" target="_blank" style="color:#1a73e8;">🔗 רשימה מלאה — Kosher.it</a><br>
-            מומלץ לאמת שעות פתיחה לפני הביקור
+          <div id="kosher-torino-restaurants-title" style="font-weight:bold;font-size:0.9rem;margin-bottom:6px;">🍽️ אוכל כשר בטורינו</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:0.77rem;color:#555;">
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-torino-veg-name" style="font-weight:bold;">🥗 מסעדה צמחונית כשרה — Via Saluzzo 23 bis</div>
+              <div id="kosher-torino-veg-desc" style="color:#777;">כשר פרווה תחת רבנות טורינו · takeaway וקייטרינג</div>
+              <a href="https://www.google.com/maps/search/Via+Saluzzo+23+Torino" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-torino-bertino-name" style="font-weight:bold;">🥐 Bertino — מאפייה כשרה</div>
+              <div id="kosher-torino-bertino-addr" style="color:#777;">📍 Via B. Galliari 14 · לחם, מאפים, תחת רבנות טורינו · ☎ 011-669-9527</div>
+              <a href="https://www.google.com/maps/search/Via+Galliari+14+Torino" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div>
+              <div id="kosher-torino-chabad-name" style="font-weight:bold;">🏠 Chabad טורינו — אוכל להזמנה</div>
+              <div id="kosher-torino-chabad-addr" style="color:#777;">📍 Corso Marconi 26 · ארוחות לאכילה במקום / טייקאווי · בתיאום מראש</div>
+              <a href="https://www.google.com/maps/search/Chabad+Torino+Corso+Marconi+26" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+          </div>
+          <div id="kosher-torino-restaurants-footer" style="margin-top:8px;font-size:0.73rem;color:#888;">
+            ⚠️ טורינו עיר קטנה מבחינת כשרות — מומלץ לתאם מראש
           </div>
         </div>
 
@@ -2689,8 +2738,8 @@ function sharePost(postId) {
     'דברים','ואתחנן','עקב','ראה','שופטים','כי תצא','כי תבוא','נצבים','וילך','האזינו','וזאת הברכה'
   ];
   // Shabbat Bereshit 5785 = Oct 26, 2024
-  var ANCHOR_SAT = new Date(2025, 9, 18);  // Shabbat Bereshit 5786 = Oct 18 2025
-  var ANCHOR_IDX = 0;
+  var ANCHOR_SAT = new Date(2025, 9, 18);  // Shabbat Oct 18 2025
+  var ANCHOR_IDX = 1;  // Oct 18 = נח, Bereshit was Oct 11
 
   // ── ארבע פרשות — חישוב אוטומטי לכל שנה ──
   // ד' פרשות: טבלת פורים לשנים 2025-2040
@@ -2734,11 +2783,21 @@ function sharePost(postId) {
     if (hachodesh.getTime() === para.getTime()) // אם חופף עם פרה
       hachodesh = sat7after(para);
 
+    // שבת הגדול — השבת שלפני פסח
+    var PESACH_TABLE = {
+      2025: new Date(2025,3,12), 2026: new Date(2026,3,2),
+      2027: new Date(2027,3,21), 2028: new Date(2028,3,10),
+      2029: new Date(2029,3,28), 2030: new Date(2030,3,17)
+    };
+    var pesach = PESACH_TABLE[y] || PESACH_TABLE[y-1];
+    var hagadol = pesach ? sat7before(pesach) : null;
+
     var s0 = new Date(satDate); s0.setHours(0,0,0,0);
     if (s0.getTime() === shekalim.getTime())  return 'שקלים';
     if (s0.getTime() === zakhor.getTime())    return 'זכור';
     if (s0.getTime() === para.getTime())      return 'פרה';
     if (s0.getTime() === hachodesh.getTime()) return 'החודש';
+    if (hagadol && s0.getTime() === hagadol.getTime()) return 'הגדול';
     return null;
   }
 
@@ -3192,9 +3251,10 @@ function renderPisteGuide() {
     {k:'advanced',     label:'⚫ מתקדמים'},
     {k:'zermatt',      label:'🇨🇭 זרמט'},
     {k:'restaurants',  label:'🏠 בקתות על ההר'},
+    {k:'apres_ski',    label:'🎵 אפרה סקי'},
   ];
 
-  var catColors = {beginner:'#2980b9', intermediate:'#c0392b', advanced:'#2c3e50', zermatt:'#2c3e50', restaurants:'#e67e22'};
+  var catColors = {beginner:'#2980b9', intermediate:'#c0392b', advanced:'#2c3e50', zermatt:'#2c3e50', restaurants:'#e67e22', apres_ski:'#8e44ad'};
 
   // Tab switcher
   var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:12px;">'
@@ -3230,8 +3290,8 @@ function renderPisteGuide() {
       + '</div>';
   } else {
     // Build list
-    var keys = activeFilter === 'all' ? ['beginner','intermediate','advanced','zermatt','restaurants'] : [activeFilter];
-    var catTitles = {beginner:'🔵 מסלולים למתחילים', intermediate:'🔴 מסלולים לבינוניים', advanced:'⚫ מסלולים למתקדמים', zermatt:'⚫🇨🇭 זרמט — מסלולים שוויצריים', restaurants:'🍽️ בקתות ומסעדות על המדרון'};
+    var keys = activeFilter === 'all' ? ['beginner','intermediate','advanced','zermatt','restaurants','apres_ski'] : [activeFilter];
+    var catTitles = {beginner:'🔵 מסלולים למתחילים', intermediate:'🔴 מסלולים לבינוניים', advanced:'⚫ מסלולים למתקדמים', zermatt:'⚫🇨🇭 זרמט — מסלולים שוויצריים', restaurants:'🏠 בקתות ומסעדות על המדרון', apres_ski:'🎵 אפרה סקי'};
     var _kosherText = (window._texts && window._texts.modals && window._texts.modals.kosher_notice)
       ? window._texts.modals.kosher_notice
       : 'האוכל בבקתות אינו כשר ואיננו מפרסמים המלצות על אוכל. עם זאת, ניתן בהחלט לשבת בבקתות ובמרפסות המשקיפות לנוף הנפלא, ליהנות מהשמש החורפית, לשתות בירה, משקאות קלים או חריף — ובכל הבקתות יש שירותים לשימוש הגולשים.';
@@ -3931,10 +3991,40 @@ function _applyTexts(t) {
     _set('kosher-delivery-title',   ko.delivery_title);
     _set('kosher-delivery-desc',    ko.delivery_desc);
     _set('kosher-delivery-tip',     ko.delivery_tip);
-    _set('kosher-milan-note',       ko.milan_note);
-    _set('kosher-milan-shop-tip',   ko.milan_shopping_tip);
-    _set('kosher-torino-note',      ko.torino_note);
-    _set('kosher-torino-tip',       ko.torino_tip);
+    _set('kosher-milan-note',               ko.milan_note);
+    _set('kosher-milan-simonato-name',      ko.milan_simonato_name);
+    _set('kosher-milan-simonato-addr',      ko.milan_simonato_addr);
+    _set('kosher-milan-simonato-desc',      ko.milan_simonato_desc);
+    _set('kosher-milan-super-name',         ko.milan_super_name);
+    _set('kosher-milan-super-addr',         ko.milan_super_addr);
+    _set('kosher-milan-super-desc',         ko.milan_super_desc);
+    _set('kosher-milan-restaurants-title',  ko.milan_restaurants_title);
+    _set('kosher-milan-baghetto-name',      ko.milan_baghetto_name);
+    _set('kosher-milan-baghetto-addr',      ko.milan_baghetto_addr);
+    _set('kosher-milan-baghetto-hours',     ko.milan_baghetto_hours);
+    _set('kosher-milan-denzel-name',        ko.milan_denzel_name);
+    _set('kosher-milan-denzel-addr',        ko.milan_denzel_addr);
+    _set('kosher-milan-denzel-hours',       ko.milan_denzel_hours);
+    _set('kosher-milan-mykafe-name',        ko.milan_mykafe_name);
+    _set('kosher-milan-mykafe-addr',        ko.milan_mykafe_addr);
+    _set('kosher-milan-carmel-name',        ko.milan_carmel_name);
+    _set('kosher-milan-carmel-addr',        ko.milan_carmel_addr);
+    _set('kosher-milan-carmel-hours',       ko.milan_carmel_hours);
+    _set('kosher-milan-restaurants-footer', ko.milan_restaurants_footer);
+    _set('kosher-milan-shop-tip',           ko.milan_shopping_tip);
+    _set('kosher-torino-note',              ko.torino_note);
+    _set('kosher-torino-community-name',    ko.torino_community_name);
+    _set('kosher-torino-community-addr',    ko.torino_community_addr);
+    _set('kosher-torino-community-desc',    ko.torino_community_desc);
+    _set('kosher-torino-restaurants-title', ko.torino_restaurants_title);
+    _set('kosher-torino-veg-name',          ko.torino_veg_name);
+    _set('kosher-torino-veg-desc',          ko.torino_veg_desc);
+    _set('kosher-torino-bertino-name',      ko.torino_bertino_name);
+    _set('kosher-torino-bertino-addr',      ko.torino_bertino_addr);
+    _set('kosher-torino-chabad-name',       ko.torino_chabad_name);
+    _set('kosher-torino-chabad-addr',       ko.torino_chabad_addr);
+    _set('kosher-torino-restaurants-footer',ko.torino_restaurants_footer);
+    _set('kosher-torino-tip',               ko.torino_tip);
   }
 
   // ── השכרת ציוד: כותרות וטיפים ──
@@ -4020,6 +4110,7 @@ async function loadTexts() {
     window._texts = data;
     // מאכלס את PISTES ו-SKI_INSTRUCTORS מהקובץ
     if (data.pistes)          PISTES          = data.pistes;
+    if (data.pistes && data.apres_ski) PISTES.apres_ski = data.apres_ski;
     if (data.ski_instructors) SKI_INSTRUCTORS  = data.ski_instructors;
     console.log('✅ texts.json נטען בהצלחה');
     // עדכן טקסטים ב-DOM
@@ -4160,32 +4251,6 @@ window.onload = async function() {
   loadLiveData();
   loadForecast();
   initFlatpickr();
-  // Handle password reset token in URL
-  if (USE_SUPABASE && window.location.hash.includes('access_token')) {
-    const params = new URLSearchParams(window.location.hash.substring(1));
-    const access_token = params.get('access_token');
-    const refresh_token = params.get('refresh_token');
-    const type = params.get('type');
-    if (access_token && type === 'recovery') {
-      const sb = getSB();
-      if (sb) {
-        await sb.auth.setSession({ access_token, refresh_token });
-        // Show password reset UI
-        openM('authModal');
-        setTimeout(() => {
-          switchAuthTab('login');
-          const loginPanel = document.getElementById('auth-panel-login');
-          if (loginPanel) {
-            loginPanel.innerHTML = '<div style="padding:20px;text-align:center;direction:rtl;">'
-              + '<h3>איפוס סיסמא</h3>'
-              + '<input id="new-password" type="password" placeholder="סיסמא חדשה" style="width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px;direction:rtl;">'
-              + '<button onclick="doResetPassword()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-size:1rem;margin-top:8px;">שמור סיסמא חדשה</button>'
-              + '</div>';
-          }
-        }, 300);
-      }
-    }
-  }
   if (USE_SUPABASE) await checkSupabaseSession();
   loadLatestAlert();
   renderReviews();
@@ -5086,16 +5151,12 @@ function delReply(postId, replyId) {
   replyEl.appendChild(div);
 }
 async function confirmDelReply(postId, replyId) {
-  console.log('confirmDelReply called', postId, replyId);
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
-    console.log('token:', token.startsWith('eyJ') ? 'JWT OK' : 'ANON KEY - not logged in');
-    const res = await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
+    await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
-    console.log('delete reply status:', res.status);
-    if (!res.ok) { const e = await res.text(); console.log('error:', e); }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
@@ -5165,17 +5226,14 @@ function delPost(id) {
 async function confirmDelPost(id) {
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
-    console.log('token type:', token.startsWith('eyJ') ? 'JWT OK' : 'anon key - NOT logged in');
-    console.log('deleting post id:', id);
-    const r1 = await fetch(SUPABASE_URL + '/rest/v1/replies?post_id=eq.' + id, {
+    await fetch(SUPABASE_URL + '/rest/v1/replies?post_id=eq.' + id, {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
-    const r2 = await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
+    await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
-    console.log('delete post response:', r2.status, r2.statusText);
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
@@ -6117,19 +6175,16 @@ window.addEventListener('appinstalled', function() {
   deferredPrompt = null;
 });
 
-// Service Worker removed
-
-async function doResetPassword() {
-  const pwd = document.getElementById('new-password')?.value;
-  if (!pwd || pwd.length < 6) { alert('סיסמא חייבת להיות לפחות 6 תווים'); return; }
-  const sb = getSB();
-  const { error } = await sb.auth.updateUser({ password: pwd });
-  if (error) { alert('שגיאה: ' + error.message); return; }
-  alert('סיסמא עודכנה בהצלחה! כעת תוכל להתחבר.');
-  closeM('authModal');
-  window.location.hash = '';
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+      console.log('SW registered:', reg.scope);
+    }).catch(function(err) {
+      // Expected in file:// mode — works on HTTPS (GitHub Pages)
+    });
+  });
 }
-
 </script>
 
 
