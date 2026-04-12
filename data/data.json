@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-04-12T02:45:02.342Z",
-  "temperature": 1.8,
+  "updated_at": "2026-04-12T05:19:41.684Z",
+  "temperature": 2,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 44,
   "snow_depth": "150 cm",
   "last_snowfall": null,
-  "wind_speed": 4.7,
+  "wind_speed": 7.9,
   "wind_gust": 16.9,
-  "humidity": null,
+  "humidity": 71,
   "avalanche_level": "3",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -27,65 +27,43 @@
     }
   ],
   "forecast_today": {
-    "date": "Saturday, April 11",
+    "date": "Sunday, April 12",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "rain-snow"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "rain"
       }
     ]
   },
-  "forecast_next_days": [
-    {
-      "date": "Monday, April 13",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "snow-low"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "snow-low"
-        }
-      ]
-    }
-  ]
+  "forecast_next_days": []
 }
