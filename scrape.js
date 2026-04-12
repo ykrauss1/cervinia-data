@@ -50,7 +50,7 @@ async function extractForecastBlock(page, titleText) {
 
 async function scrape() {
   const browser = await puppeteerExtra.launch({
-    headless: 'new',   // תוקן — חייב להיות new בגיטהאב Actions
+    headless: 'new',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -104,8 +104,6 @@ async function scrape() {
     console.log('Global data:', { temperature_global, lifts_open_global, slopes_open_global });
   } catch (e) {
     console.log('GLOBAL DATA NOT FOUND:', e.message);
-
-    // fallback: try to find data with broader selectors
     try {
       const bodyText = await page.evaluate(() => document.body.innerText);
       console.log('Page body snippet:', bodyText.slice(0, 500));
@@ -141,7 +139,6 @@ async function scrape() {
     );
     console.log('Local blocks:', JSON.stringify(localBlocks));
 
-    // מסנן בלוקים ריקים ולוקח רק את אלה עם נתונים
     const validBlocks = localBlocks.filter(b => b.open !== null && b.total !== null);
     console.log('Valid local blocks:', JSON.stringify(validBlocks));
     if (validBlocks.length >= 2) {
@@ -156,7 +153,7 @@ async function scrape() {
   }
 
   // ============================================================
-  // 2) SNOW & WEATHER DATA — from __NUXT__ JSON embedded in page
+  // 2) SNOW & WEATHER DATA
   // ============================================================
   console.log('Fetching snow/weather data from neve page...');
 
@@ -171,7 +168,6 @@ async function scrape() {
   let opening_hours = null;
   let snow_points = [];
 
-  // נסה כמה URL אפשריים לדף השלג
   const snowUrls = [
     'https://www.cervinia.it/en/snow',
     'https://www.cervinia.it/en/neve',
@@ -187,7 +183,6 @@ async function scrape() {
       await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
       await sleep(1500);
 
-      // חלץ נתוני __NUXT__ מה-script
       nuxtData = await page.evaluate(() => {
         const scripts = [...document.querySelectorAll('script:not([src])')];
         for (const s of scripts) {
@@ -207,47 +202,14 @@ async function scrape() {
     }
   }
 
-  // נסה לחלץ נתוני שלג מה-DOM
-  try {
-    // נסה selector חדש לטבלת שלג
-    const tableSelectors = ['table.DD2Zg', 'table', '.snow-table', '[class*="snow"]'];
-    for (const sel of tableSelectors) {
-      const rows = await page.$$(sel + ' tr');
-      if (rows.length > 0) {
-        console.log('Found rows with selector:', sel, rows.length);
-        const rowData = await page.$$eval(sel + ' tr', rs =>
-          rs.map(r => [...r.querySelectorAll('td, th')].map(c => c.innerText.trim()))
-        );
-        console.log('Table rows:', JSON.stringify(rowData.slice(0, 5)));
-
-        // חפש שורה עם cm
-        for (const row of rowData) {
-          const snowCell = row.find(c => /\d+\s*cm/i.test(c));
-          if (snowCell) {
-            snow_depth = snowCell;
-            console.log('Snow depth found:', snow_depth);
-            break;
-          }
-        }
-        if (snow_depth) break;
-      }
-    }
-  } catch (e) {
-    console.log('Snow table error:', e.message);
-  }
-
-  // חלץ נתוני מזג אוויר מה-__NUXT__ JSON אם יש
   if (nuxtData) {
     try {
-      // חלץ לחות — humidity:{current:"75"
       const humidityMatch = nuxtData.match(/humidity:\{current:"(\d+\.?\d*)"/);
       if (humidityMatch) humidity = parseInt(humidityMatch[1]);
 
-      // חלץ מהירות רוח ממוצעת — avg_speed_kmh:{current:"11.2"
       const windMatch = nuxtData.match(/avg_speed_kmh:\{current:"(\d+\.?\d*)"/);
       if (windMatch) wind_speed = parseFloat(windMatch[1]);
 
-      // חלץ שיא רוח — gust_speed_kmh:{max:{value:"83.9"
       const gustMatch = nuxtData.match(/gust_speed_kmh:\{max:\{value:"(\d+\.?\d*)"/);
       if (gustMatch) wind_gust = parseFloat(gustMatch[1]);
 
@@ -257,21 +219,10 @@ async function scrape() {
     }
   }
 
-  // נסה לחלץ עומק שלג מה-__NUXT__ JSON
-  if (!snow_depth && nuxtData) {
-    const snowMatch = nuxtData.match(/"snow[_\s]?depth["\s]*:["\s]*(\d+)/i) ||
-                      nuxtData.match(/"neve["\s]*:["\s]*(\d+)/i) ||
-                      nuxtData.match(/(\d+)\s*cm/i);
-    if (snowMatch) {
-      snow_depth = snowMatch[1] + ' cm';
-      console.log('Snow depth from NUXT:', snow_depth);
-    }
-  }
-
   console.log('Snow/weather result:', { snow_depth, last_snowfall, wind_speed, wind_gust, humidity });
 
   // ============================================================
-  // 3) METEO PAGE
+  // 3) METEO PAGE — snow table + weather data
   // ============================================================
   console.log('Fetching meteo page...');
 
@@ -283,7 +234,7 @@ async function scrape() {
   await autoScroll(page);
   await sleep(2000);
 
-  // חלץ נתוני שלג ומפולות מה-NUXT JSON של דף המטאו
+  // חלץ נתוני NUXT למזג אוויר ומפולות
   try {
     const meteoNuxt = await page.evaluate(() => {
       const scripts = [...document.querySelectorAll('script:not([src])')];
@@ -298,19 +249,6 @@ async function scrape() {
     if (meteoNuxt) {
       console.log('METEO NUXT SAMPLE:', meteoNuxt.slice(4000, 10000));
 
-      // נסה לחלץ עומק שלג
-      const snowPatterns = [
-        /snow_depth[":]+\s*"?(\d+)"?/i,
-        /snowDepth[":]+\s*"?(\d+)"?/i,
-        /neve[":]+\s*"?(\d+)"?/i,
-        /altezza[_\s]?neve[":]+\s*"?(\d+)"?/i,
-      ];
-      for (const pat of snowPatterns) {
-        const m = meteoNuxt.match(pat);
-        if (m) { snow_depth = m[1] + ' cm'; break; }
-      }
-
-      // נסה לחלץ רמת מפולת
       const avalanchePatterns = [
         /avalanche[_\s]?level[":]+\s*"?(\d+)"?/i,
         /rischio[_\s]?valanghe[":]+\s*"?(\d+)"?/i,
@@ -321,41 +259,91 @@ async function scrape() {
         if (m) { avalanche_level = m[1]; break; }
       }
 
-      // חלץ רמת מפולת מהטקסט "avalanche risk:4"
       const avMatch = meteoNuxt.match(/avalanche risk:(\d+)/i);
       if (avMatch) avalanche_level = avMatch[1];
 
-      // חלץ תיאור מזג אוויר
       const weatherDescMatch = meteoNuxt.match(/weather:"([^"]+)"/);
       if (weatherDescMatch) weather_description = weatherDescMatch[1];
 
-      // חלץ שעות פתיחה
       const hoursMatch = meteoNuxt.match(/opening_hours:"([^"]+)"/);
       if (hoursMatch) opening_hours = hoursMatch[1];
-
-      // חלץ עומק שלג לפי גובה — כל התחנות עם מספר ישיר
-      const snowPoints = [];
-      const spRegex = /station:"([^"]+)"[^{]*?altitude:"(\d+)"[^{]*?snowdepth:"(\d+)"/g;
-      let sp;
-      while ((sp = spRegex.exec(meteoNuxt)) !== null) {
-        snowPoints.push({ station: sp[1], altitude: parseInt(sp[2]), depth: parseInt(sp[3]) });
-      }
-      if (snowPoints.length > 0) snow_points = snowPoints;
-
-      // עומק שלג ראשי — Plan Maison (mid) > base > הראשון הזמין
-      const planMaison = snowPoints.find(p => p.station === 'mid');
-      const baseStation = snowPoints.find(p => p.station === 'base');
-      if (planMaison) snow_depth = planMaison.depth + ' cm';
-      else if (baseStation) snow_depth = baseStation.depth + ' cm';
-      else if (snowPoints.length > 0) snow_depth = snowPoints[0].depth + ' cm';
-
-      console.log('From meteo NUXT:', { snow_depth, avalanche_level, weather_description, opening_hours, snow_points });
-    } else {
-      const pageText = await page.evaluate(() => document.body.innerText);
-      console.log('METEO PAGE TEXT:', pageText.slice(0, 2000));
     }
   } catch (e) {
     console.log('Meteo NUXT error:', e.message);
+  }
+
+  // ============================================================
+  // חילוץ טבלת שלג ישירות מה-DOM — הדרך האמינה!
+  // ============================================================
+  try {
+    const snowTableData = await page.$$eval('table tr', rows =>
+      rows.map(r => {
+        const cells = [...r.querySelectorAll('td')].map(c => c.innerText.trim());
+        return cells;
+      }).filter(cells => cells.length >= 2 && /\d+\s*cm/i.test(cells[1]))
+    );
+
+    console.log('Snow table rows:', JSON.stringify(snowTableData));
+
+    if (snowTableData.length > 0) {
+      const stationMap = {
+        'Plateau Rosa':       { station: 'top',  altitude: 3480 },
+        'Cime Bianche Laghi': { station: 'cime', altitude: 2814 },
+        'Plan Maison':        { station: 'mid',  altitude: 2600 },
+        'Breuil':             { station: 'base', altitude: 2050 },
+        'Valtournenche':      { station: 'valt', altitude: 1520 },
+        'La Salette':         { station: 'salette', altitude: 2289 },
+      };
+
+      snow_points = [];
+      for (const row of snowTableData) {
+        const name = row[0];
+        const depthMatch = row[1].match(/(\d+)/);
+        const dateCell = row[2] || null;
+        if (!depthMatch) continue;
+        const depth = parseInt(depthMatch[1]);
+        const meta = stationMap[name];
+        if (meta) {
+          snow_points.push({
+            station: meta.station,
+            altitude: meta.altitude,
+            depth,
+            name,
+            last_snowfall: dateCell
+          });
+        }
+      }
+      console.log('snow_points from table:', JSON.stringify(snow_points));
+
+      // snow_depth הראשי — Plan Maison אם יש, אחרת Plateau Rosa
+      const mid = snow_points.find(p => p.station === 'mid');
+      const top = snow_points.find(p => p.station === 'top');
+      if (mid) snow_depth = mid.depth + ' cm';
+      else if (top) snow_depth = top.depth + ' cm';
+
+      // last_snowfall — מ-Plateau Rosa
+      if (top && top.last_snowfall) last_snowfall = top.last_snowfall;
+    }
+  } catch (e) {
+    console.log('Snow table extraction error:', e.message);
+  }
+
+  // חלץ רמת מפולות מה-DOM אם לא נמצאה ב-NUXT
+  if (!avalanche_level) {
+    try {
+      const avText = await page.$eval(
+        '[class*="avalanche"], [class*="valang"], .avalanche-level',
+        el => el.innerText.trim()
+      ).catch(() => null);
+
+      if (avText) {
+        const avNum = avText.match(/(\d)/);
+        if (avNum) avalanche_level = avNum[1];
+        console.log('Avalanche from DOM:', avText);
+      }
+    } catch (e) {
+      console.log('Avalanche DOM error:', e.message);
+    }
   }
 
   let forecast_date = await page.$eval(
@@ -438,7 +426,6 @@ async function saveToSupabase(data) {
     console.log('Saved to Supabase successfully.');
   }
 
-  // עדכן גם את הרשומה "הנוכחית"
   const { error: upsertError } = await supabase
     .from('ski_status_current')
     .upsert([{ id: 1, ...data }]);
