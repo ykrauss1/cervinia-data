@@ -1993,6 +1993,7 @@ function openM(id) {
   if (id === 'hotelModal') { setTimeout(initFlatpickr, 80); switchTripTab('all'); }
   if (id === 'profileModal') { setTimeout(populateProfileModal, 0); return; }
   if (id === 'forecastModal') { fetchWttrForecast(); }
+  if (id === 'zermattForecastModal') { fetchZermattForecast(); }
   if (id === 'parkingModal') switchParkTab('parking');
   if (id === 'kosherModal') { setTimeout(function(){ switchKoshMain('shabbat'); }, 30); }
   if (id === 'pisteModal') { setTimeout(renderPisteGuide, 30); }
@@ -4469,13 +4470,86 @@ function showDataSourceBadge(mode) {
   }
 }
 
+async function fetchZermattForecast() {
+  // Open-Meteo — קואורדינטות Plateau Rosa (3480מ)
+  const url = 'https://api.open-meteo.com/v1/forecast'
+    + '?latitude=45.9763&longitude=7.6586'
+    + '&current=temperature_2m,windspeed_10m,weathercode'
+    + '&daily=weathercode,temperature_2m_max,temperature_2m_min,windspeed_10m_max,snowfall_sum'
+    + '&timezone=Europe%2FRome&forecast_days=5';
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+    const daily = data.daily;
+    if (!daily || !daily.time || daily.time.length < 2) return;
+
+    // עדכן נתוני פלטאו רוזה עכשיו
+    if (data.current) {
+      const t = document.getElementById('plateau-temp');
+      const w = document.getElementById('plateau-wind');
+      if (t) t.textContent = Math.round(data.current.temperature_2m) + '°';
+      if (w) w.textContent = Math.round(data.current.windspeed_10m);
+    }
+
+    function omCode(code) {
+      if (code === 0) return '☀️';
+      if (code <= 2) return '⛅';
+      if (code <= 48) return '☁️';
+      if (code <= 67) return '🌧️';
+      if (code <= 77) return '🌨️';
+      if (code <= 82) return '🌧️';
+      if (code <= 86) return '🌨️';
+      if (code >= 95) return '⛈️';
+      return '🌤️';
+    }
+
+    // מדלג על היום (index 0) — מציג 4 ימים קדימה
+    const grid = document.getElementById('zermatt-4day');
+    if (!grid) return;
+
+    const days = daily.time.slice(1).map(function(dateStr, i) {
+      const j = i + 1;
+      const parts = dateStr.split('-');
+      const label = parts[2] + '.' + parts[1];
+      const code = daily.weathercode[j];
+      const tMax = Math.round(daily.temperature_2m_max[j]);
+      const tMin = Math.round(daily.temperature_2m_min[j]);
+      const wind = daily.windspeed_10m_max ? Math.round(daily.windspeed_10m_max[j]) : null;
+      const snow = daily.snowfall_sum && daily.snowfall_sum[j] > 0 ? Math.round(daily.snowfall_sum[j]) : 0;
+      const bad = code >= 71 || (wind != null && wind > 40);
+      const dayBg = bad ? '#fff5f5' : '#f8fff8';
+      const assessment = bad ? '⚠️ תנאים קשים' : '✅ תנאים אפשריים';
+      return '<div style="background:' + dayBg + ';border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">'
+        + '<div style="min-width:50px;">'
+        + '<div style="font-size:0.82rem;font-weight:bold;color:#0a192f;">📅 ' + label + '</div>'
+        + (wind != null ? '<div style="font-size:0.65rem;color:#777;margin-top:2px;">💨 ' + wind + ' km/h</div>' : '')
+        + (snow > 0 ? '<div style="font-size:0.65rem;color:#4a90d9;margin-top:2px;">❄️ ' + snow + ' cm</div>' : '')
+        + '</div>'
+        + '<div style="font-size:2rem;margin:0 12px;">' + omCode(code) + '</div>'
+        + '<div style="text-align:center;">'
+        + '<div style="font-size:0.68rem;color:#999;">מינ׳ / מקס׳</div>'
+        + '<div style="font-size:0.95rem;font-weight:800;color:#1a3a6c;">' + tMin + '° / ' + tMax + '°</div>'
+        + '<div style="font-size:0.65rem;color:#555;margin-top:3px;">' + assessment + '</div>'
+        + '</div>'
+        + '</div>';
+    });
+
+    grid.innerHTML = '<div style="font-weight:bold;font-size:0.8rem;margin-bottom:6px;color:#0a192f;">📆 תחזית לינק — 4 ימים</div>'
+      + days.join('');
+
+  } catch(e) {
+    console.warn('Zermatt forecast fetch failed:', e.message);
+  }
+}
+
 async function fetchWttrForecast() {
   // Open-Meteo — API חופשי, CORS-friendly, מדויק
   const url = 'https://api.open-meteo.com/v1/forecast'
     + '?latitude=45.9364&longitude=7.6269'
     + '&current=temperature_2m,windspeed_10m,weathercode'
     + '&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,windspeed_10m_max'
-    + '&timezone=Europe%2FRome&forecast_days=4';
+    + '&timezone=Europe%2FRome&forecast_days=5';
   try {
     const res = await fetch(url);
     if (!res.ok) { console.warn('Open-Meteo error:', res.status); return; }
