@@ -3310,18 +3310,16 @@ function renderPisteGuide() {
         bodyHtml += '<div style="border:1.5px solid #eee;border-right:4px solid '+col+';border-radius:10px;padding:10px 12px;background:white;">'
           + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
           + '<div style="display:flex;align-items:center;gap:6px;">'
-          + '<span style="font-size:1rem;">'+p.diff+'</span>'
+          + (p.diff ? '<span style="font-size:1rem;">'+p.diff+'</span>' : '')
           + (p.num && !p.num.startsWith('OB') && !p.num.startsWith('Z-') ? '<span style="background:'+col+';color:white;border-radius:5px;padding:1px 7px;font-size:0.69rem;font-weight:bold;">'+p.num+'</span>' : '')
           + '<span style="font-weight:bold;font-size:0.88rem;">'+p.name+'</span>'
           + '</div>'
-          + '<span style="font-size:0.72rem;color:#2980b9;font-weight:bold;white-space:nowrap;">'+p.len+'</span>'
+          + (p.len ? '<span style="font-size:0.72rem;color:#2980b9;font-weight:bold;white-space:nowrap;">'+p.len+'</span>' : '')
           + '</div>'
           + '<div style="font-size:0.73rem;color:#999;margin-bottom:5px;">📍 '+p.area+'</div>'
           + '<div style="font-size:0.8rem;color:#333;line-height:1.55;margin-bottom:5px;">'+p.desc+'</div>'
           + (p.tip ? '<div style="font-size:0.74rem;color:#444;background:#fff8e1;padding:5px 8px;border-radius:6px;border-right:3px solid #f39c12;">'+p.tip+'</div>' : '')
-          + '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">'
-          + p.tags.map(function(t){ return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">'+t+'</span>'; }).join('')
-          + '</div>'
+          + (p.tags && p.tags.length ? '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">' + p.tags.map(function(t){ return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">'+t+'</span>'; }).join('') + '</div>' : '')
           + (p.map ? '<a href="'+p.map+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;color:#1a73e8;text-decoration:none;padding:4px 9px;border:1px solid #c0d4f0;border-radius:6px;background:#f0f7ff;">🗺️ הצג על מפה</a>' : '')
           + '</div>';
       });
