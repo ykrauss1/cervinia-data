@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-04-12T10:06:03.644Z",
-  "temperature": -0.3,
+  "updated_at": "2026-04-12T10:53:39.969Z",
+  "temperature": -0.8,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 26,
   "lifts_total_global": 47,
@@ -10,11 +10,11 @@
   "lifts_total_local": 16,
   "slopes_open_local": 44,
   "slopes_total_local": 44,
-  "snow_depth": "145 cm",
-  "last_snowfall": null,
-  "wind_speed": 4.3,
+  "snow_depth": "95 cm",
+  "last_snowfall": "31/03/2026",
+  "wind_speed": 9.7,
   "wind_gust": 16.9,
-  "humidity": 92,
+  "humidity": null,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
@@ -23,7 +23,44 @@
     {
       "station": "top",
       "altitude": 3480,
-      "depth": 145
+      "depth": 145,
+      "name": "Plateau Rosa",
+      "last_snowfall": "31/03/2026"
+    },
+    {
+      "station": "cime",
+      "altitude": 2814,
+      "depth": 75,
+      "name": "Cime Bianche Laghi",
+      "last_snowfall": "31/03/2026"
+    },
+    {
+      "station": "mid",
+      "altitude": 2600,
+      "depth": 95,
+      "name": "Plan Maison",
+      "last_snowfall": "31/03/2026"
+    },
+    {
+      "station": "base",
+      "altitude": 2050,
+      "depth": 35,
+      "name": "Breuil",
+      "last_snowfall": "31/03/2026"
+    },
+    {
+      "station": "valt",
+      "altitude": 1520,
+      "depth": 10,
+      "name": "Valtournenche",
+      "last_snowfall": "22/03/2026"
+    },
+    {
+      "station": "salette",
+      "altitude": 2289,
+      "depth": 35,
+      "name": "La Salette",
+      "last_snowfall": "31/03/2026"
     }
   ],
   "forecast_today": {
