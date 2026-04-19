@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-04-18T23:59:42.771Z",
-  "temperature": 0.7,
+  "updated_at": "2026-04-19T03:28:21.276Z",
+  "temperature": 1.1,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 43,
   "snow_depth": "100 cm",
   "last_snowfall": "14/04/2026",
-  "wind_speed": 14,
+  "wind_speed": 10.4,
   "wind_gust": 22.3,
-  "humidity": 64,
+  "humidity": 62,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -64,47 +64,47 @@
     }
   ],
   "forecast_today": {
-    "date": "Saturday, April 18",
+    "date": "Sunday, April 19",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ]
   },
   "forecast_next_days": [
     {
-      "date": "Monday, April 20",
+      "date": "Tuesday, April 21",
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
@@ -125,11 +125,11 @@
       ]
     },
     {
-      "date": "Tuesday, April 21",
+      "date": "Thursday, April 23",
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
+          "icon": "cloudy"
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
@@ -137,7 +137,7 @@
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
