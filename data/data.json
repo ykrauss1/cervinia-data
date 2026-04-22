@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-04-21T23:59:39.445Z",
-  "temperature": -3.1,
+  "updated_at": "2026-04-22T03:21:11.720Z",
+  "temperature": -5.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 4,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 40,
   "snow_depth": "90 cm",
   "last_snowfall": "14/04/2026",
-  "wind_speed": 10.1,
-  "wind_gust": 13.7,
-  "humidity": null,
+  "wind_speed": 7.6,
+  "wind_gust": 16.9,
+  "humidity": 82,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -64,66 +64,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Tuesday, April 21",
+    "date": "Wednesday, April 22",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": null
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": null
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Thursday, April 23",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Friday, April 24",
       "periods": [
