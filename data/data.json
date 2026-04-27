@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-04-27T00:03:20.728Z",
-  "temperature": 1.8,
+  "updated_at": "2026-04-27T04:06:14.576Z",
+  "temperature": 0.2,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 35,
   "snow_depth": "80 cm",
   "last_snowfall": "14/04/2026",
-  "wind_speed": 9.4,
-  "wind_gust": 13.7,
-  "humidity": 84,
+  "wind_speed": 11.9,
+  "wind_gust": 18.7,
+  "humidity": null,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -64,7 +64,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Sunday, April 26",
+    "date": "Monday, April 27",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -86,7 +86,7 @@
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
@@ -103,27 +103,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Tuesday, April 28",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "rain"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Wednesday, April 29",
       "periods": [
@@ -163,6 +142,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Friday, May 1",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
         }
       ]
     }
