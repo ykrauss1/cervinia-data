@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-04-28T02:32:06.508Z",
-  "temperature": 1.4,
-  "zermatt_link": "CLOSED",
+  "updated_at": "2026-04-28T05:55:54.566Z",
+  "temperature": 1.1,
+  "zermatt_link": "NEXT UPDATE",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
   "slopes_open_global": 0,
@@ -12,8 +12,8 @@
   "slopes_total_local": 31,
   "snow_depth": "80 cm",
   "last_snowfall": "14/04/2026",
-  "wind_speed": 11.2,
-  "wind_gust": 18.7,
+  "wind_speed": null,
+  "wind_gust": 22.3,
   "humidity": 79,
   "avalanche_level": "2",
   "avalanche_text": null,
@@ -50,66 +50,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Monday, April 27",
+    "date": "Tuesday, April 28",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "rain"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "rain"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Wednesday, April 29",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Thursday, April 30",
       "periods": [
