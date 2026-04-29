@@ -1,37 +1,30 @@
 {
-  "updated_at": "2026-04-29T14:06:04.946Z",
-  "temperature": 5.1,
-  "zermatt_link": "OPEN",
-  "lifts_open_global": 20,
+  "updated_at": "2026-04-29T16:12:03.647Z",
+  "temperature": 4,
+  "zermatt_link": "CLOSED",
+  "lifts_open_global": 0,
   "lifts_total_global": 47,
-  "slopes_open_global": 45,
+  "slopes_open_global": 0,
   "slopes_total_global": 109,
-  "lifts_open_local": 11,
+  "lifts_open_local": 0,
   "lifts_total_local": 12,
-  "slopes_open_local": 28,
+  "slopes_open_local": 0,
   "slopes_total_local": 28,
   "snow_depth": "65 cm",
   "last_snowfall": "14/04/2026",
-  "wind_speed": 2.9,
+  "wind_speed": 3.2,
   "wind_gust": 13.7,
-  "humidity": 78,
+  "humidity": 85,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
   "opening_hours": "08:00 - 16:45",
   "snow_points": [
     {
-      "station": "top",
-      "altitude": 3480,
-      "depth": 100,
-      "name": "Plateau Rosa",
-      "last_snowfall": "14/04/2026"
-    },
-    {
-      "station": "cime",
-      "altitude": 2814,
-      "depth": 65,
-      "name": "Cime Bianche Laghi",
+      "station": "base",
+      "altitude": 2050,
+      "depth": 15,
+      "name": "Breuil",
       "last_snowfall": "14/04/2026"
     },
     {
@@ -42,10 +35,17 @@
       "last_snowfall": "14/04/2026"
     },
     {
-      "station": "base",
-      "altitude": 2050,
-      "depth": 15,
-      "name": "Breuil",
+      "station": "cime",
+      "altitude": 2814,
+      "depth": 65,
+      "name": "Cime Bianche Laghi",
+      "last_snowfall": "14/04/2026"
+    },
+    {
+      "station": "top",
+      "altitude": 3480,
+      "depth": 100,
+      "name": "Plateau Rosa",
       "last_snowfall": "14/04/2026"
     }
   ],
@@ -94,11 +94,11 @@
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun"
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
+          "icon": "partially-cloudy"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
@@ -107,6 +107,48 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, May 2",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, May 3",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "rain"
         }
       ]
     }
