@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-04-30T02:33:32.803Z",
-  "temperature": 0.2,
+  "updated_at": "2026-04-30T05:55:00.975Z",
+  "temperature": 0.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 28,
   "snow_depth": "65 cm",
   "last_snowfall": "14/04/2026",
-  "wind_speed": 6.1,
-  "wind_gust": 10.1,
-  "humidity": 96,
+  "wind_speed": 8.3,
+  "wind_gust": 18.7,
+  "humidity": 86,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
@@ -50,23 +50,23 @@
     }
   ],
   "forecast_today": {
-    "date": "Wednesday, April 29",
+    "date": "Thursday, April 30",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       }
     ],
     "afternoon": [
@@ -89,27 +89,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Friday, May 1",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Saturday, May 2",
       "periods": [
@@ -149,6 +128,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "rain"
+        }
+      ]
+    },
+    {
+      "date": "Monday, May 4",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
         }
       ]
     }
