@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-05-01T02:38:45.404Z",
-  "temperature": -1.3,
-  "zermatt_link": "CLOSED",
+  "updated_at": "2026-05-01T06:12:47.542Z",
+  "temperature": -2.4,
+  "zermatt_link": "NEXT UPDATE",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
   "slopes_open_global": 0,
@@ -12,12 +12,12 @@
   "slopes_total_local": 28,
   "snow_depth": "65 cm",
   "last_snowfall": "29/04/2026",
-  "wind_speed": 0.4,
-  "wind_gust": 11.9,
-  "humidity": 94,
+  "wind_speed": 2.2,
+  "wind_gust": 13.7,
+  "humidity": null,
   "avalanche_level": "2",
   "avalanche_text": null,
-  "weather_description": "Nuvoloso",
+  "weather_description": "Sereno",
   "opening_hours": "08:00 - 16:45",
   "snow_points": [
     {
@@ -50,29 +50,29 @@
     }
   ],
   "forecast_today": {
-    "date": "Thursday, April 30",
+    "date": "Friday, May 1",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "cloudy"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "cloudy"
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
@@ -89,27 +89,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Saturday, May 2",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Sunday, May 3",
       "periods": [
