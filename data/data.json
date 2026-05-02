@@ -1,38 +1,31 @@
 {
-  "updated_at": "2026-05-02T03:58:37.573Z",
-  "temperature": -0.3,
-  "zermatt_link": "CLOSED",
-  "lifts_open_global": 0,
+  "updated_at": "2026-05-02T08:05:54.734Z",
+  "temperature": 6.1,
+  "zermatt_link": "OPEN",
+  "lifts_open_global": 19,
   "lifts_total_global": 47,
-  "slopes_open_global": 0,
+  "slopes_open_global": 42,
   "slopes_total_global": 109,
-  "lifts_open_local": 0,
+  "lifts_open_local": 10,
   "lifts_total_local": 12,
-  "slopes_open_local": 0,
+  "slopes_open_local": 28,
   "slopes_total_local": 28,
   "snow_depth": "65 cm",
   "last_snowfall": "29/04/2026",
-  "wind_speed": 11.9,
+  "wind_speed": 1.1,
   "wind_gust": 20.5,
-  "humidity": 66,
+  "humidity": 51,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Sereno",
   "opening_hours": "08:00 - 16:45",
   "snow_points": [
     {
-      "station": "base",
-      "altitude": 2050,
-      "depth": 15,
-      "name": "Breuil",
-      "last_snowfall": "14/04/2026"
-    },
-    {
-      "station": "mid",
-      "altitude": 2600,
-      "depth": 65,
-      "name": "Plan Maison",
-      "last_snowfall": "14/04/2026"
+      "station": "top",
+      "altitude": 3480,
+      "depth": 110,
+      "name": "Plateau Rosa",
+      "last_snowfall": "29/04/2026"
     },
     {
       "station": "cime",
@@ -42,11 +35,18 @@
       "last_snowfall": "29/04/2026"
     },
     {
-      "station": "top",
-      "altitude": 3480,
-      "depth": 110,
-      "name": "Plateau Rosa",
-      "last_snowfall": "29/04/2026"
+      "station": "mid",
+      "altitude": 2600,
+      "depth": 65,
+      "name": "Plan Maison",
+      "last_snowfall": "14/04/2026"
+    },
+    {
+      "station": "base",
+      "altitude": 2050,
+      "depth": 15,
+      "name": "Breuil",
+      "last_snowfall": "14/04/2026"
     }
   ],
   "forecast_today": {
