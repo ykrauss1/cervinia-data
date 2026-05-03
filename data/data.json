@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-05-03T02:30:41.244Z",
-  "temperature": 0.4,
+  "updated_at": "2026-05-03T05:44:24.865Z",
+  "temperature": 0.9,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 28,
   "snow_depth": "65 cm",
   "last_snowfall": "29/04/2026",
-  "wind_speed": 5,
+  "wind_speed": 4.3,
   "wind_gust": 16.9,
-  "humidity": 65,
+  "humidity": 56,
   "avalanche_level": "2",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -50,65 +50,43 @@
     }
   ],
   "forecast_today": {
-    "date": "Saturday, May 2",
+    "date": "Sunday, May 3",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       }
     ]
   },
-  "forecast_next_days": [
-    {
-      "date": "Monday, May 4",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    }
-  ]
+  "forecast_next_days": []
 }
