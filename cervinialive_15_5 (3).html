@@ -288,7 +288,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     <div id="svc-parking"   class="service-btn" onclick="openM('parkingModal')">🅿️ חניה וכביש</div>
     <div id="svc-emergency" class="service-btn" onclick="openParkEmergency()">🚨 חירום</div>
     <div id="svc-maps"      class="service-btn" onclick="openM('mapModal')"><span style="font-size:1.3rem;">🗺️</span> מפות</div>
-  <div id="svc-piste"       class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים ובקתות</div>
+  <div id="svc-piste"       class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים, בקתות ואפרה סקי</div>
   </div>
 
   <!-- Why Cervinia card -->
@@ -527,12 +527,12 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <div style="display:flex;gap:8px;margin-bottom:14px;" id="snow-points-row">
         <div style="flex:1;background:#e8f4ff;border-radius:10px;padding:10px;text-align:center;">
           <div style="font-size:1.3rem;font-weight:bold;color:#1a3a6c;" id="snow-mid-depth">--</div>
-          <div style="font-size:0.7rem;color:#555;">❄️ שלג — Mid</div>
+          <div style="font-size:0.7rem;color:#555;">❄️ שלג — Plan Maison</div>
           <div style="font-size:0.65rem;color:#999;" id="snow-mid-alt">--מ'</div>
         </div>
         <div style="flex:1;background:#f0faff;border-radius:10px;padding:10px;text-align:center;">
           <div style="font-size:1.3rem;font-weight:bold;color:#2980b9;" id="snow-base-depth">--</div>
-          <div style="font-size:0.7rem;color:#555;">❄️ שלג — בסיס</div>
+          <div style="font-size:0.7rem;color:#555;">❄️ שלג — עיירה</div>
           <div style="font-size:0.65rem;color:#999;" id="snow-base-alt">--מ'</div>
         </div>
         <div style="flex:1;background:#fff8e1;border-radius:10px;padding:10px;text-align:center;">
@@ -1468,26 +1468,55 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🥩 Simonato Kosher</div>
-          <div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Washington 9, Milano — ממש במרכז הקהילה</div>
-          <div style="font-size:0.77rem;color:#777;margin-bottom:7px;">בשר, נקניקים, גבינות, מוצרי מזון כשר למהדרין · א׳–ה׳ 9:00–19:00</div>
+          <div id="kosher-milan-simonato-name" style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🥩 Simonato Kosher</div>
+          <div id="kosher-milan-simonato-addr" style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Washington 9, Milano — ממש במרכז הקהילה</div>
+          <div id="kosher-milan-simonato-desc" style="font-size:0.77rem;color:#777;margin-bottom:7px;">בשר, נקניקים, גבינות, מוצרי מזון כשר למהדרין · א׳–ה׳ 9:00–19:00</div>
           <a href="https://www.google.com/maps/search/kosher+milano+via+washington" target="_blank"
             style="font-size:0.77rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏪 Supermercato Kosher — Via Guastalla</div>
-          <div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Guastalla 19, Milano — ליד בית הכנסת הגדול</div>
-          <div style="font-size:0.77rem;color:#777;margin-bottom:7px;">סופר כשר מלא — שימורים, קפואים, יבש, חלבי ובשרי בנפרד</div>
+          <div id="kosher-milan-super-name" style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏪 Supermercato Kosher — Via Guastalla</div>
+          <div id="kosher-milan-super-addr" style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Via Guastalla 19, Milano — ליד בית הכנסת הגדול</div>
+          <div id="kosher-milan-super-desc" style="font-size:0.77rem;color:#777;margin-bottom:7px;">סופר כשר מלא — שימורים, קפואים, יבש, חלבי ובשרי בנפרד</div>
           <a href="https://www.google.com/maps/search/supermercato+kosher+via+guastalla+milano" target="_blank"
             style="font-size:0.77rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🍽️ מסעדות כשרות במילאנו</div>
-          <div style="font-size:0.77rem;color:#777;line-height:1.8;">
-            <a href="https://www.kosher.it/ristoranti/milano/" target="_blank" style="color:#1a73e8;">🔗 רשימה מלאה — Kosher.it</a><br>
-            מומלץ לאמת שעות פתיחה לפני הביקור
+          <div id="kosher-milan-restaurants-title" style="font-weight:bold;font-size:0.9rem;margin-bottom:6px;">🍽️ מסעדות כשרות במילאנו</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:0.77rem;color:#555;">
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-milan-baghetto-name" style="font-weight:bold;">🥩 Ba'Ghetto — בשרי</div>
+              <div id="kosher-milan-baghetto-addr" style="color:#777;">📍 Via Sardegna 45 · מטבח יהודי-רומי, רב המלצות</div>
+              <div id="kosher-milan-baghetto-hours" style="color:#777;">א׳–ה׳ 12:00–14:30 / 19:00–22:30 · ו׳ 12:00–14:00</div>
+              <a href="https://www.google.com/maps/search/Ba+Ghetto+Via+Sardegna+45+Milano" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-milan-denzel-name" style="font-weight:bold;">🥩 Denzel — בשרי</div>
+              <div id="kosher-milan-denzel-addr" style="color:#777;">📍 Via Washington 9 · המבורגרים כשרים, זכה בפרס הבורגר הטוב ביותר באיטליה</div>
+              <div id="kosher-milan-denzel-hours" style="color:#777;">א׳–ה׳ 12:00–14:30 / 19:00–22:30 · ו׳ 12:00–14:00</div>
+              <a href="https://www.google.com/maps/search/Denzel+kosher+Via+Washington+9+Milano" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-milan-mykafe-name" style="font-weight:bold;">🧀 MyKafe — חלבי</div>
+              <div id="kosher-milan-mykafe-addr" style="color:#777;">📍 Via Soderini 44 · קפה וארוחות קלות, גלידה כשרה · פתוח עד 19:30</div>
+              <a href="https://www.google.com/maps/search/MyKafe+kosher+Via+Soderini+44+Milano" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div>
+              <div id="kosher-milan-carmel-name" style="font-weight:bold;">🍕 Pizza Carmel — חלבי</div>
+              <div id="kosher-milan-carmel-addr" style="color:#777;">📍 Viale S. Gimignano 10 · פיצה, פסטה, מהדרין</div>
+              <div id="kosher-milan-carmel-hours" style="color:#777;">א׳–ה׳ 12:00–14:30 / 19:00–22:30 · ו׳ 12:00–14:00</div>
+              <a href="https://www.google.com/maps/search/Pizza+Carmel+kosher+Milano+Viale+Gimignano" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+          </div>
+          <div id="kosher-milan-restaurants-footer" style="margin-top:8px;font-size:0.73rem;color:#888;">
+            <a href="https://chabadhouseofmilan.com/food/" target="_blank" style="color:#1a73e8;">🔗 רשימה מלאה — Chabad Milano</a> · מומלץ לאמת שעות לפני הביקור
           </div>
         </div>
 
@@ -1506,17 +1535,37 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏛️ Comunità Ebraica di Torino</div>
-          <div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Piazzetta Primo Levi 12, Torino</div>
-          <div style="font-size:0.77rem;color:#777;margin-bottom:7px;">מרכז הקהילה — בית כנסת, חנות כשרה, ומידע על אפשרויות בעיר</div>
+          <div id="kosher-torino-community-name" style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🏛️ Comunità Ebraica di Torino</div>
+          <div id="kosher-torino-community-addr" style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 Piazzetta Primo Levi 12, Torino</div>
+          <div id="kosher-torino-community-desc" style="font-size:0.77rem;color:#777;margin-bottom:7px;">מרכז הקהילה — בית כנסת, חנות כשרה, ומידע על אפשרויות בעיר</div>
           <a href="https://www.torinoebraica.it/" target="_blank" style="font-size:0.77rem;color:#1a73e8;">🌐 אתר הקהילה</a>
         </div>
 
         <div style="padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;">
-          <div style="font-weight:bold;font-size:0.9rem;margin-bottom:3px;">🍽️ מסעדות ואוכל כשר בטורינו</div>
-          <div style="font-size:0.77rem;color:#777;line-height:1.8;">
-            <a href="https://www.kosher.it/ristoranti/torino/" target="_blank" style="color:#1a73e8;">🔗 רשימה מלאה — Kosher.it</a><br>
-            מומלץ לאמת שעות פתיחה לפני הביקור
+          <div id="kosher-torino-restaurants-title" style="font-weight:bold;font-size:0.9rem;margin-bottom:6px;">🍽️ אוכל כשר בטורינו</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:0.77rem;color:#555;">
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-torino-veg-name" style="font-weight:bold;">🥗 מסעדה צמחונית כשרה — Via Saluzzo 23 bis</div>
+              <div id="kosher-torino-veg-desc" style="color:#777;">כשר פרווה תחת רבנות טורינו · takeaway וקייטרינג</div>
+              <a href="https://www.google.com/maps/search/Via+Saluzzo+23+Torino" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div style="border-bottom:1px solid #eee;padding-bottom:6px;">
+              <div id="kosher-torino-bertino-name" style="font-weight:bold;">🥐 Bertino — מאפייה כשרה</div>
+              <div id="kosher-torino-bertino-addr" style="color:#777;">📍 Via B. Galliari 14 · לחם, מאפים, תחת רבנות טורינו · ☎ 011-669-9527</div>
+              <a href="https://www.google.com/maps/search/Via+Galliari+14+Torino" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+            <div>
+              <div id="kosher-torino-chabad-name" style="font-weight:bold;">🏠 Chabad טורינו — אוכל להזמנה</div>
+              <div id="kosher-torino-chabad-addr" style="color:#777;">📍 Corso Marconi 26 · ארוחות לאכילה במקום / טייקאווי · בתיאום מראש</div>
+              <a href="https://www.google.com/maps/search/Chabad+Torino+Corso+Marconi+26" target="_blank" style="color:#1a73e8;">🗺️ מפה</a>
+            </div>
+
+          </div>
+          <div id="kosher-torino-restaurants-footer" style="margin-top:8px;font-size:0.73rem;color:#888;">
+            ⚠️ טורינו עיר קטנה מבחינת כשרות — מומלץ לתאם מראש
           </div>
         </div>
 
@@ -2689,8 +2738,8 @@ function sharePost(postId) {
     'דברים','ואתחנן','עקב','ראה','שופטים','כי תצא','כי תבוא','נצבים','וילך','האזינו','וזאת הברכה'
   ];
   // Shabbat Bereshit 5785 = Oct 26, 2024
-  var ANCHOR_SAT = new Date(2025, 9, 18);  // Shabbat Bereshit 5786 = Oct 18 2025
-  var ANCHOR_IDX = 0;
+  var ANCHOR_SAT = new Date(2025, 9, 18);  // Shabbat Oct 18 2025
+  var ANCHOR_IDX = 1;  // Oct 18 = נח, Bereshit was Oct 11
 
   // ── ארבע פרשות — חישוב אוטומטי לכל שנה ──
   // ד' פרשות: טבלת פורים לשנים 2025-2040
@@ -2734,11 +2783,21 @@ function sharePost(postId) {
     if (hachodesh.getTime() === para.getTime()) // אם חופף עם פרה
       hachodesh = sat7after(para);
 
+    // שבת הגדול — השבת שלפני פסח
+    var PESACH_TABLE = {
+      2025: new Date(2025,3,12), 2026: new Date(2026,3,2),
+      2027: new Date(2027,3,21), 2028: new Date(2028,3,10),
+      2029: new Date(2029,3,28), 2030: new Date(2030,3,17)
+    };
+    var pesach = PESACH_TABLE[y] || PESACH_TABLE[y-1];
+    var hagadol = pesach ? sat7before(pesach) : null;
+
     var s0 = new Date(satDate); s0.setHours(0,0,0,0);
     if (s0.getTime() === shekalim.getTime())  return 'שקלים';
     if (s0.getTime() === zakhor.getTime())    return 'זכור';
     if (s0.getTime() === para.getTime())      return 'פרה';
     if (s0.getTime() === hachodesh.getTime()) return 'החודש';
+    if (hagadol && s0.getTime() === hagadol.getTime()) return 'הגדול';
     return null;
   }
 
@@ -3192,9 +3251,10 @@ function renderPisteGuide() {
     {k:'advanced',     label:'⚫ מתקדמים'},
     {k:'zermatt',      label:'🇨🇭 זרמט'},
     {k:'restaurants',  label:'🏠 בקתות על ההר'},
+    {k:'apres_ski',    label:'🎵 אפרה סקי'},
   ];
 
-  var catColors = {beginner:'#2980b9', intermediate:'#c0392b', advanced:'#2c3e50', zermatt:'#2c3e50', restaurants:'#e67e22'};
+  var catColors = {beginner:'#2980b9', intermediate:'#c0392b', advanced:'#2c3e50', zermatt:'#2c3e50', restaurants:'#e67e22', apres_ski:'#8e44ad'};
 
   // Tab switcher
   var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:12px;">'
@@ -3230,8 +3290,8 @@ function renderPisteGuide() {
       + '</div>';
   } else {
     // Build list
-    var keys = activeFilter === 'all' ? ['beginner','intermediate','advanced','zermatt','restaurants'] : [activeFilter];
-    var catTitles = {beginner:'🔵 מסלולים למתחילים', intermediate:'🔴 מסלולים לבינוניים', advanced:'⚫ מסלולים למתקדמים', zermatt:'⚫🇨🇭 זרמט — מסלולים שוויצריים', restaurants:'🍽️ בקתות ומסעדות על המדרון'};
+    var keys = activeFilter === 'all' ? ['beginner','intermediate','advanced','zermatt','restaurants','apres_ski'] : [activeFilter];
+    var catTitles = {beginner:'🔵 מסלולים למתחילים', intermediate:'🔴 מסלולים לבינוניים', advanced:'⚫ מסלולים למתקדמים', zermatt:'⚫🇨🇭 זרמט — מסלולים שוויצריים', restaurants:'🏠 בקתות ומסעדות על המדרון', apres_ski:'🎵 אפרה סקי'};
     var _kosherText = (window._texts && window._texts.modals && window._texts.modals.kosher_notice)
       ? window._texts.modals.kosher_notice
       : 'האוכל בבקתות אינו כשר ואיננו מפרסמים המלצות על אוכל. עם זאת, ניתן בהחלט לשבת בבקתות ובמרפסות המשקיפות לנוף הנפלא, ליהנות מהשמש החורפית, לשתות בירה, משקאות קלים או חריף — ובכל הבקתות יש שירותים לשימוש הגולשים.';
@@ -3931,10 +3991,40 @@ function _applyTexts(t) {
     _set('kosher-delivery-title',   ko.delivery_title);
     _set('kosher-delivery-desc',    ko.delivery_desc);
     _set('kosher-delivery-tip',     ko.delivery_tip);
-    _set('kosher-milan-note',       ko.milan_note);
-    _set('kosher-milan-shop-tip',   ko.milan_shopping_tip);
-    _set('kosher-torino-note',      ko.torino_note);
-    _set('kosher-torino-tip',       ko.torino_tip);
+    _set('kosher-milan-note',               ko.milan_note);
+    _set('kosher-milan-simonato-name',      ko.milan_simonato_name);
+    _set('kosher-milan-simonato-addr',      ko.milan_simonato_addr);
+    _set('kosher-milan-simonato-desc',      ko.milan_simonato_desc);
+    _set('kosher-milan-super-name',         ko.milan_super_name);
+    _set('kosher-milan-super-addr',         ko.milan_super_addr);
+    _set('kosher-milan-super-desc',         ko.milan_super_desc);
+    _set('kosher-milan-restaurants-title',  ko.milan_restaurants_title);
+    _set('kosher-milan-baghetto-name',      ko.milan_baghetto_name);
+    _set('kosher-milan-baghetto-addr',      ko.milan_baghetto_addr);
+    _set('kosher-milan-baghetto-hours',     ko.milan_baghetto_hours);
+    _set('kosher-milan-denzel-name',        ko.milan_denzel_name);
+    _set('kosher-milan-denzel-addr',        ko.milan_denzel_addr);
+    _set('kosher-milan-denzel-hours',       ko.milan_denzel_hours);
+    _set('kosher-milan-mykafe-name',        ko.milan_mykafe_name);
+    _set('kosher-milan-mykafe-addr',        ko.milan_mykafe_addr);
+    _set('kosher-milan-carmel-name',        ko.milan_carmel_name);
+    _set('kosher-milan-carmel-addr',        ko.milan_carmel_addr);
+    _set('kosher-milan-carmel-hours',       ko.milan_carmel_hours);
+    _set('kosher-milan-restaurants-footer', ko.milan_restaurants_footer);
+    _set('kosher-milan-shop-tip',           ko.milan_shopping_tip);
+    _set('kosher-torino-note',              ko.torino_note);
+    _set('kosher-torino-community-name',    ko.torino_community_name);
+    _set('kosher-torino-community-addr',    ko.torino_community_addr);
+    _set('kosher-torino-community-desc',    ko.torino_community_desc);
+    _set('kosher-torino-restaurants-title', ko.torino_restaurants_title);
+    _set('kosher-torino-veg-name',          ko.torino_veg_name);
+    _set('kosher-torino-veg-desc',          ko.torino_veg_desc);
+    _set('kosher-torino-bertino-name',      ko.torino_bertino_name);
+    _set('kosher-torino-bertino-addr',      ko.torino_bertino_addr);
+    _set('kosher-torino-chabad-name',       ko.torino_chabad_name);
+    _set('kosher-torino-chabad-addr',       ko.torino_chabad_addr);
+    _set('kosher-torino-restaurants-footer',ko.torino_restaurants_footer);
+    _set('kosher-torino-tip',               ko.torino_tip);
   }
 
   // ── השכרת ציוד: כותרות וטיפים ──
@@ -4020,6 +4110,7 @@ async function loadTexts() {
     window._texts = data;
     // מאכלס את PISTES ו-SKI_INSTRUCTORS מהקובץ
     if (data.pistes)          PISTES          = data.pistes;
+    if (data.pistes && data.apres_ski) PISTES.apres_ski = data.apres_ski;
     if (data.ski_instructors) SKI_INSTRUCTORS  = data.ski_instructors;
     console.log('✅ texts.json נטען בהצלחה');
     // עדכן טקסטים ב-DOM
@@ -4163,7 +4254,352 @@ window.onload = async function() {
   if (USE_SUPABASE) await checkSupabaseSession();
   loadLatestAlert();
   renderReviews();
+  applySummerMode(); // ← מוד קיץ אוטומטי
 };
+
+function _countdownBox(id, label, size, bold) {
+  size = size || '1.4rem';
+  var bg = bold ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)';
+  return '<div style="background:' + bg + ';border-radius:8px;padding:6px 10px;text-align:center;min-width:52px;">'
+    + '<div id="' + id + '" style="font-size:' + size + ';font-weight:' + (bold ? '900' : 'bold') + ';line-height:1;">--</div>'
+    + '<div style="font-size:0.6rem;opacity:' + (bold ? '1' : '0.75') + ';margin-top:2px;">' + label + '</div>'
+    + '</div>';
+}
+
+function applySummerMode() {
+  var now = new Date();
+  var month = now.getMonth() + 1; // 1-12
+  var day = now.getDate();
+  var year = now.getFullYear();
+
+  // קביעת מצב עונה
+  // חורף:     25 אוקטובר — 3 מאי
+  // טרום עונה: 10 אוקטובר — 24 אוקטובר
+  // קיץ:      4 מאי — 9 אוקטובר
+
+  var isWinter = (month < 5) || (month === 5 && day <= 3) || (month === 10 && day >= 25) || (month > 10);
+  var isPreSeason = (month === 10 && day >= 10 && day <= 24);
+  var isSummer = !isWinter && !isPreSeason;
+
+  if (isWinter) return; // חורף — הכל כרגיל
+
+  // חישוב ספירה לאחור לעונה הבאה (25 אוקטובר)
+  var nextSeason = new Date(year, 9, 25, 8, 30, 0); // 25 אוק', 8:30 בוקר — פתיחת הרמות
+  if (now >= nextSeason) nextSeason = new Date(year + 1, 9, 25, 8, 30, 0);
+  var daysLeft = Math.ceil((nextSeason - now) / (1000 * 60 * 60 * 24));
+
+  var grid = document.querySelector('.services-grid');
+  if (!grid) return;
+
+  // ── מצב טרום עונה ──
+  if (isPreSeason) {
+    var banner = document.createElement('div');
+    banner.style.cssText = 'background:linear-gradient(135deg,#1a3a6c,#2563b0);color:white;text-align:center;padding:16px;border-radius:12px;margin:0 0 18px 0;';
+    banner.innerHTML = '<div style="font-size:1.2rem;font-weight:bold;margin-bottom:6px;">🏔️ מתחממים לעונה! · ' + daysLeft + ' ימים לפתיחה</div>'
+      + '<div style="font-size:0.85rem;opacity:0.9;margin-bottom:10px;">עונת חורף 26/27 נפתחת ב-25 באוקטובר · צ\'רוויניה מתכוננת!</div>'
+      + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">'
+      + '<button onclick="openM(\'hotelModal\')" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;">✈️ הזמן מלון</button>'
+      + '<button onclick="openM(\'skipassModal\')" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;">🎫 סקי פס</button>'
+      + '<button onclick="openM(\'mapModal\')" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;">🗺️ מפות</button>'
+      + '</div>';
+    grid.parentNode.insertBefore(banner, grid);
+
+    // הסתר כפתורי גלישה — עדיין לא פתוח
+    ['svc-piste','svc-rental','svc-lessons'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    return;
+  }
+
+  // ── מצב קיץ ──
+
+  // הסתר כפתורי חורף
+  ['svc-piste','svc-rental','svc-lessons','svc-skipass'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  // הסתר סמל חיבור לצ'רמט והחלף בנוף קייצי
+  var zermattBar = document.getElementById('bar-zermatt');
+  if (zermattBar) {
+    zermattBar.innerHTML = `
+      <svg width="90" height="80" viewBox="0 0 90 80" xmlns="http://www.w3.org/2000/svg">
+        <!-- שמש -->
+        <circle cx="68" cy="18" r="10" fill="#f9c74f" opacity="0.95"/>
+        <line x1="68" y1="4" x2="68" y2="0" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="68" y1="32" x2="68" y2="36" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="54" y1="18" x2="50" y2="18" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="82" y1="18" x2="86" y2="18" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="58" y1="8" x2="55" y2="5" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="78" y1="28" x2="81" y2="31" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <!-- הר ירוק -->
+        <polygon points="30,20 2,65 58,65" fill="#2e9e5a" opacity="0.9"/>
+        <polygon points="30,20 18,38 42,38" fill="rgba(255,255,255,0.7)"/>
+        <!-- פרח אלפיני -->
+        <circle cx="14" cy="62" r="4" fill="#f9c74f"/>
+        <circle cx="14" cy="55" r="3" fill="white" opacity="0.9"/>
+        <circle cx="20" cy="59" r="3" fill="white" opacity="0.9"/>
+        <circle cx="8"  cy="59" r="3" fill="white" opacity="0.9"/>
+        <!-- טקסט -->
+        <text x="30" y="75" text-anchor="middle" font-size="7" font-weight="bold" fill="rgba(255,255,255,0.85)" font-family="Arial,sans-serif">קיץ בצ'רוויניה</text>
+      </svg>`;
+    zermattBar.style.cursor = 'default';
+    zermattBar.onclick = null;
+  }
+
+  // הסתר כפתור תחזית לינק צ'רמט
+  var zermattBtn = document.querySelector('button[onclick="openZermattForecast()"]');
+  if (zermattBtn) zermattBtn.style.display = 'none';
+  // ונשנה את תיבת ה-snow-points-row להציג רק top + מידע קרחון
+  var snowRow = document.getElementById('snow-points-row');
+  if (snowRow) {
+    var midBox  = document.getElementById('snow-mid-depth');
+    var baseBox = document.getElementById('snow-base-depth');
+    if (midBox && midBox.parentElement) midBox.parentElement.style.display = 'none';
+    if (baseBox && baseBox.parentElement) baseBox.parentElement.style.display = 'none';
+  }
+
+  // הוסף כפתורי קיץ
+  var summerBtns = [
+    { id:'svc-summer-ski',    icon:'⛷️', label:'גלישת קיץ בקרחון',   onclick:"openM('summerSkiModal')" },
+    { id:'svc-summer-hike',   icon:'🥾', label:'טיולים ומסלולי הרים', onclick:"openM('summerHikeModal')" },
+    { id:'svc-summer-bike',   icon:'🚵', label:'Bike Park',            onclick:"openM('summerBikeModal')" },
+    { id:'svc-summer-cross',  icon:'🏔️', label:'Alpine Crossing',      onclick:"openM('summerCrossModal')" },
+  ];
+
+  summerBtns.forEach(function(b) {
+    var el = document.createElement('div');
+    el.id = b.id;
+    el.className = 'service-btn';
+    el.setAttribute('onclick', b.onclick);
+    el.innerHTML = '<span style="font-size:1.3rem;">' + b.icon + '</span> ' + b.label;
+    grid.appendChild(el);
+  });
+
+  // באנר קיץ עם ספירה לאחור חיה ופס התקדמות
+  var summerStart = new Date(year, 4, 4); // 4 מאי
+  if (summerStart > now) summerStart.setFullYear(year - 1);
+  var totalDays = Math.ceil((nextSeason - summerStart) / (1000 * 60 * 60 * 24));
+  var progressPct = Math.min(100, Math.round(((now - summerStart) / (nextSeason - summerStart)) * 100));
+
+  var summerBanner = document.createElement('div');
+  summerBanner.style.cssText = 'background:linear-gradient(135deg,#1a6c3a,#2e9e5a);color:white;padding:14px 16px;border-radius:12px;margin:0 0 18px 0;';
+  summerBanner.innerHTML = ''
+    + '<div style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:6px;">☀️ קיץ בצ\'רוויניה — הכפר חי גם בקיץ!</div>'
+    + '<div style="font-size:0.78rem;text-align:center;opacity:0.9;margin-bottom:10px;">גלישה בקרחון · טיולים · Bike Park · Alpine Crossing</div>'
+    + '<div style="font-size:0.72rem;text-align:center;opacity:0.8;margin-bottom:8px;">עונת חורף הבאה נפתחת ב-25 באוקטובר</div>'
+    // ספירה לאחור
+    + '<div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:10px;">'
+    + _countdownBox('cd-days',  'ימים',   '1.6rem', true)
+    + '<div style="font-size:1.4rem;opacity:0.5;margin:0 4px;">·</div>'
+    + _countdownBox('cd-secs',  'שניות', '1.6rem', false)
+    + _countdownBox('cd-mins',  'דקות',  '1.6rem', false)
+    + _countdownBox('cd-hours', 'שעות',  '1.6rem', false)
+    + '</div>'
+    // פס התקדמות
+    + '<div style="font-size:0.68rem;opacity:0.8;text-align:center;margin-bottom:4px;">התקדמות לעונה הבאה — ' + progressPct + '%</div>'
+    + '<div style="background:rgba(255,255,255,0.25);border-radius:20px;height:8px;overflow:hidden;">'
+    + '<div style="background:white;height:100%;border-radius:20px;width:' + progressPct + '%;transition:width 1s;"></div>'
+    + '</div>';
+
+  grid.parentNode.insertBefore(summerBanner, grid);
+
+  // הפעל ספירה לאחור חיה
+  function _updateCountdown() {
+    var diff = nextSeason - new Date();
+    if (diff <= 0) return;
+    var d = Math.floor(diff / 86400000);
+    var remaining = diff % 86400000;
+    var h = Math.floor(remaining / 3600000);
+    var m = Math.floor((remaining % 3600000) / 60000);
+    var s = Math.floor((remaining % 60000) / 1000);
+    function pad(n) { return n < 10 ? '0'+n : ''+n; }
+    var dEl = document.getElementById('cd-days');
+    var hEl = document.getElementById('cd-hours');
+    var mEl = document.getElementById('cd-mins');
+    var sEl = document.getElementById('cd-secs');
+    if (dEl) dEl.textContent = d;
+    if (hEl) hEl.textContent = pad(h);
+    if (mEl) mEl.textContent = pad(m);
+    if (sEl) sEl.textContent = pad(s);
+  }
+  _updateCountdown();
+  setInterval(_updateCountdown, 1000);
+
+  // הוסף modals קיץ אם לא קיימים
+  if (!document.getElementById('summerSkiModal')) {
+    document.body.insertAdjacentHTML('beforeend', _buildSummerModals());
+  }
+}
+
+function _buildSummerModals() {
+  return `
+  <div id="summerSkiModal" class="modal" onclick="if(event.target===this)closeM('summerSkiModal')">
+    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1a3a6c,#2563b0);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="color:white;margin:0;font-size:1.1rem;">⛷️ גלישת קיץ בקרחון</h2>
+        <button onclick="closeM('summerSkiModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
+
+        <div style="background:linear-gradient(135deg,#0a192f,#1a3a6c);border-radius:10px;padding:12px;margin-bottom:12px;color:white;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:bold;">Plateau Rosa — 3,480מ</div>
+          <div style="font-size:0.78rem;opacity:0.8;margin-top:4px;">הקרחון הגדול והגבוה ביותר לגלישת קיץ באירופה</div>
+          <div style="display:flex;justify-content:center;gap:20px;margin-top:10px;">
+            <div style="text-align:center;">
+              <div style="font-size:1.2rem;font-weight:bold;">26 ק"מ</div>
+              <div style="font-size:0.65rem;opacity:0.7;">מסלולים</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:1.2rem;font-weight:bold;">3,900מ</div>
+              <div style="font-size:0.65rem;opacity:0.7;">גובה מקסימלי</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:1.2rem;font-weight:bold;">יוני–ספט׳</div>
+              <div style="font-size:0.65rem;opacity:0.7;">עונת קיץ</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#fff3cd;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;border-right:4px solid #f39c12;">
+          💎 <b>נישה ייחודית שמעטים מכירים</b> — כמעט אף ישראלי לא יודע שאפשר לגלוש בצ'רוויניה בקיץ. הקרחון פתוח, המסלולים ריקים, והמחירים נמוכים יותר מהחורף.
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #2563b0;border-radius:10px;padding:12px;">
+            <b>🎿 מה יש בקרחון?</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">מסלולים לכל הרמות — כחול, אדום ושחור. נבחרות לאומיות מתאמנות כאן בקיץ על מסלולים שמורים. Snow Park ו-Gravity Park לרוכבי סנובורד. חיבור לזרמט.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #e74c3c;border-radius:10px;padding:12px;">
+            <b>⏰ שעות — זה קריטי!</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">הרמות נפתחות בבוקר ונסגרות בדרך כלל ב-<b>13:00–14:00</b> כשהשלג מתרכך. <b>חובה להגיע לכבלית לפני 9:00</b> — השלג הכי טוב בשעות הבוקר המוקדמות.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>🧥 לבוש — אל תתפתו!</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">חם בכפר (20°+), אבל ב-3,500מ קר מאוד גם באוגוסט — לפעמים מתחת לאפס. קרם שמש חובה — הקרינה בגובה חזקה מאוד.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #8e44ad;border-radius:10px;padding:12px;">
+            <b>🎫 סקי פס — טיפ חשוב</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">פס משולב צ'רוויניה+זרמט <b>זול יותר ב-100 יורו</b> כשקונים מהצד האיטלקי! תמיד קנו בצ'רוויניה ולא בזרמט.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #e67e22;border-radius:10px;padding:12px;">
+            <b>🚡 איך מגיעים לקרחון?</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">כבלית מהכפר → Cime Bianche Laghi → Plateau Rosa. כ-30 דקות. הכבלית החדשה מודרנית ומהירה.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #f39c12;border-radius:10px;padding:12px;">
+            <b>☀️ אחר הצהריים — מה עושים?</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">אחרי הגלישה הבוקר — הכפר מחכה! Bike Park, טיולים, Alpine Crossing לזרמט, קפה על מרפסת השמש, Lago Blu. יום מלא ועשיר.</span>
+          </div>
+
+        </div>
+
+        <a href="https://www.cervinia.it/en/cosa-fare/sci-estivo" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#2563b0;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 מידע רשמי — גלישת קיץ</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="summerHikeModal" class="modal" onclick="if(event.target===this)closeM('summerHikeModal')">
+    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1a6c3a,#2e9e5a);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="color:white;margin:0;font-size:1.1rem;">🥾 טיולים ומסלולי הרים</h2>
+        <button onclick="closeM('summerHikeModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>✝️ צלב Carrel — 2,800מ</b><br>
+            <span style="font-size:0.82rem;color:#555;">מסלול קלאסי ומרהיב מהכפר. נוף ישיר למטרהורן. כ-3 שעות הלוך-חזור.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>💙 Lago Blu — 2,090מ</b><br>
+            <span style="font-size:0.82rem;color:#555;">אגם כחול מרהיב ממש מחוץ לכפר. מסלול קל ומשפחתי. השתקפות המטרהורן במים.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>🏔️ Cime Bianche Laghi — 2,814מ</b><br>
+            <span style="font-size:0.82rem;color:#555;">אגמי הפסגה בגבול שווייץ-איטליה. ניתן להגיע בכבלית + קצת הליכה. נוף עוצר נשימה.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>🌸 מסלולי אחו פורח</b><br>
+            <span style="font-size:0.82rem;color:#555;">מסלולים קלים בין פרחי האלפים סביב הכפר. מתאים לכל הגילאים.</span>
+          </div>
+        </div>
+        <a href="https://www.cervinia.it/en/summer/hiking" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#2e9e5a;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 מסלולי הליכה רשמיים</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="summerBikeModal" class="modal" onclick="if(event.target===this)closeM('summerBikeModal')">
+    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#6c3a1a,#b05a20);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="color:white;margin:0;font-size:1.1rem;">🚵 Bike Park — אופני הרים</h2>
+        <button onclick="closeM('summerBikeModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
+        <div style="background:#fff3e8;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">
+          🚵 <b>Cervinia/Valtournenche Bike Park</b><br>
+          אחד הפארקים הציוריים ביותר באלפים — מסלולי Downhill ו-Cross Country עם נוף מטרהורן.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="border:1.5px solid #eee;border-right:4px solid #b05a20;border-radius:10px;padding:12px;">
+            <b>🎿 מסלולי Downhill</b><br>
+            <span style="font-size:0.82rem;color:#555;">עולים בכבלית, יורדים על אופניים. מסלולים לכל הרמות — מתחילים ועד מתקדמים.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #b05a20;border-radius:10px;padding:12px;">
+            <b>🌄 Cross Country</b><br>
+            <span style="font-size:0.82rem;color:#555;">מסלולי אנדורו ונוף מרהיב. גישה מהכפר בהליכה קצרה לכבלית.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #b05a20;border-radius:10px;padding:12px;">
+            <b>🛒 השכרת אופניים</b><br>
+            <span style="font-size:0.82rem;color:#555;">ניתן לשכור אופני הרים בכפר. שאלו במלון שלכם לגבי המלצות.</span>
+          </div>
+        </div>
+        <a href="https://www.cervinia.it/en/summer/bike" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#b05a20;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 מידע על Bike Park</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="summerCrossModal" class="modal" onclick="if(event.target===this)closeM('summerCrossModal')">
+    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#2c3e50,#4a6278);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="color:white;margin:0;font-size:1.1rem;">🏔️ Matterhorn Alpine Crossing</h2>
+        <button onclick="closeM('summerCrossModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
+        <div style="background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">
+          🇮🇹🇨🇭 <b>מעבר ייחודי מצ'רוויניה לזרמט — ברגל!</b><br>
+          ניסיון אלפיני בלתי נשכח מעל 3,800מ — ללא סקיים.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
+            <b>🚡 המסלול</b><br>
+            <span style="font-size:0.82rem;color:#555;">כבלית מצ'רוויניה → Plateau Rosa → מנהרת קרח → Matterhorn Glacier Paradise (3,883מ) → זרמט</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
+            <b>🧊 מערת הקרח</b><br>
+            <span style="font-size:0.82rem;color:#555;">מערת הקרח הגבוהה ביותר באירופה — פסלים ומנהרות חצובים ישירות בתוך הקרחון. פתוח יומי.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
+            <b>⚠️ חשוב לדעת</b><br>
+            <span style="font-size:0.82rem;color:#555;">כרטיס חד-כיווני · יש לתכנן חזרה מזרמט (רכבת/אוטובוס) · לבשו שכבות, קר מאוד</span>
+          </div>
+          <div style="border:1.5px solid #fff3cd;border-right:4px solid #f39c12;border-radius:10px;padding:12px;background:#fffbf0;">
+            <b>💡 טיפ</b><br>
+            <span style="font-size:0.82rem;color:#555;">הזמינו כרטיסים מראש באתר הרשמי. חזרה לצ'רוויניה: אוטובוס מזרמט → ויספ → אייאס → צ'רוויניה (~3 שעות)</span>
+          </div>
+        </div>
+        <a href="https://www.matterhornparadise.ch/en/experience/matterhorn-alpine-crossing" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#4a6278;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 הזמן כרטיסים — Alpine Crossing</a>
+      </div>
+    </div>
+  </div>
+  `;
+}
 
 // ── Auth ──
 function isAdmin() { return user && user.name === 'admin'; }
