@@ -1,23 +1,23 @@
 {
-  "updated_at": "2026-05-07T12:27:24.000Z",
-  "temperature": 2,
-  "zermatt_link": "OPEN",
-  "lifts_open_global": 14,
+  "updated_at": "2026-05-07T15:12:21.169Z",
+  "temperature": 3.8,
+  "zermatt_link": "CLOSED",
+  "lifts_open_global": 0,
   "lifts_total_global": 47,
-  "slopes_open_global": 17,
+  "slopes_open_global": 0,
   "slopes_total_global": 109,
-  "lifts_open_local": 5,
+  "lifts_open_local": 0,
   "lifts_total_local": 6,
-  "slopes_open_local": 7,
+  "slopes_open_local": 0,
   "slopes_total_local": 7,
   "snow_depth": "75 cm",
   "last_snowfall": "06/05/2026",
-  "wind_speed": 5,
+  "wind_speed": 2.5,
   "wind_gust": 27.4,
-  "humidity": 65,
+  "humidity": 63,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Poco nuvoloso",
+  "weather_description": "Nuvoloso con intervalli di sole",
   "opening_hours": "07:30 - 16:30",
   "snow_points": [
     {
@@ -35,18 +35,18 @@
       "last_snowfall": "07/05/2026"
     },
     {
-      "station": "base",
-      "altitude": 2050,
-      "depth": 0,
-      "name": "Breuil",
-      "last_snowfall": "14/04/2026"
-    },
-    {
       "station": "mid",
       "altitude": 2600,
       "depth": 75,
       "name": "Plan Maison",
       "last_snowfall": "6/05/2026"
+    },
+    {
+      "station": "base",
+      "altitude": 2050,
+      "depth": 0,
+      "name": "Breuil",
+      "last_snowfall": "14/04/2026"
     }
   ],
   "forecast_today": {
