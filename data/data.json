@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-05-08T21:56:42.838Z",
-  "temperature": 0.4,
+  "updated_at": "2026-05-08T22:54:16.749Z",
+  "temperature": 0.2,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 7,
   "snow_depth": "75 cm",
   "last_snowfall": "06/05/2026",
-  "wind_speed": null,
-  "wind_gust": 20.5,
-  "humidity": 90,
+  "wind_speed": 4.7,
+  "wind_gust": 10.1,
+  "humidity": 93,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso con intervalli di sole",
@@ -54,39 +54,103 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": null
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun-rain"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "sun-rain"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "sun-rain"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "sun-rain"
+        "icon": null
       }
     ]
   },
-  "forecast_next_days": []
+  "forecast_next_days": [
+    {
+      "date": "Sunday, May 10",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "rain-snow"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Monday, May 11",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "rain-snow"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "rain-snow"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Tuesday, May 12",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    }
+  ]
 }
