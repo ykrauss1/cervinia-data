@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-05-12T02:35:58.964Z",
-  "temperature": -3.1,
+  "updated_at": "2026-05-12T06:10:52.483Z",
+  "temperature": -4.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 7,
   "snow_depth": "70 cm",
   "last_snowfall": "06/05/2026",
-  "wind_speed": 11.2,
-  "wind_gust": 52.9,
-  "humidity": 95,
+  "wind_speed": 13,
+  "wind_gust": 85.3,
+  "humidity": 68,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
@@ -50,66 +50,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Monday, May 11",
+    "date": "Tuesday, May 12",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "rain"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "rain"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "rain"
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "rain-snow"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Wednesday, May 13",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Thursday, May 14",
       "periods": [
