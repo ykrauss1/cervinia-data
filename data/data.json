@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-05-15T01:21:36.783Z",
-  "temperature": -7.6,
+  "updated_at": "2026-05-15T05:09:54.256Z",
+  "temperature": -6.7,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 7,
   "snow_depth": "75 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 10.4,
+  "wind_speed": null,
   "wind_gust": 23.8,
-  "humidity": 69,
+  "humidity": null,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso con intervalli di sole",
@@ -50,66 +50,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Thursday, May 14",
+    "date": "Friday, May 15",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "snow"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun-rain"
+        "icon": "cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun-rain"
+        "icon": "rain-snow"
       },
       {
         "name": "Chamois",
-        "icon": "sun-rain"
+        "icon": "rain-snow"
       },
       {
         "name": "Torgnon",
-        "icon": "sun-rain"
+        "icon": "rain-snow"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Saturday, May 16",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Sunday, May 17",
       "periods": [
