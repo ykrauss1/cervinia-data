@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-05-23T00:02:39.479Z",
-  "temperature": 5.2,
+  "updated_at": "2026-05-23T04:14:21.567Z",
+  "temperature": 4.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 7,
   "snow_depth": "70 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 13.7,
+  "wind_speed": 15.5,
   "wind_gust": 20.5,
-  "humidity": 81,
+  "humidity": 74,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -50,7 +50,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Friday, May 22",
+    "date": "Saturday, May 23",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -88,27 +88,5 @@
       }
     ]
   },
-  "forecast_next_days": [
-    {
-      "date": "Sunday, May 24",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    }
-  ]
+  "forecast_next_days": []
 }
