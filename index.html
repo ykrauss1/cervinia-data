@@ -137,7 +137,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 <header id="sticky-header">
   <nav>
     <div style="display:flex;align-items:center;gap:8px;">
-      <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+      <svg onclick="_handleLogoTap()" viewBox="0 0 32 32" width="28" height="28" fill="none" style="cursor:pointer;">
         <path d="M2 26 L10 10 L16 18 L22 8 L30 26 Z" fill="rgba(76,201,240,0.25)" stroke="#4cc9f0" stroke-width="1.5" stroke-linejoin="round"/>
         <path d="M22 8 L19 14 L25 14 Z" fill="white" opacity="0.8"/>
         <circle cx="13" cy="13" r="1.5" fill="white"/>
@@ -1993,7 +1993,6 @@ function openM(id) {
   if (id === 'hotelModal') { setTimeout(initFlatpickr, 80); switchTripTab('all'); }
   if (id === 'profileModal') { setTimeout(populateProfileModal, 0); return; }
   if (id === 'forecastModal') { fetchWttrForecast(); }
-  if (id === 'zermattForecastModal') { fetchZermattForecast(); }
   if (id === 'parkingModal') switchParkTab('parking');
   if (id === 'kosherModal') { setTimeout(function(){ switchKoshMain('shabbat'); }, 30); }
   if (id === 'pisteModal') { setTimeout(renderPisteGuide, 30); }
@@ -3311,16 +3310,18 @@ function renderPisteGuide() {
         bodyHtml += '<div style="border:1.5px solid #eee;border-right:4px solid '+col+';border-radius:10px;padding:10px 12px;background:white;">'
           + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
           + '<div style="display:flex;align-items:center;gap:6px;">'
-          + (p.diff ? '<span style="font-size:1rem;">'+p.diff+'</span>' : '')
+          + '<span style="font-size:1rem;">'+p.diff+'</span>'
           + (p.num && !p.num.startsWith('OB') && !p.num.startsWith('Z-') ? '<span style="background:'+col+';color:white;border-radius:5px;padding:1px 7px;font-size:0.69rem;font-weight:bold;">'+p.num+'</span>' : '')
           + '<span style="font-weight:bold;font-size:0.88rem;">'+p.name+'</span>'
           + '</div>'
-          + (p.len ? '<span style="font-size:0.72rem;color:#2980b9;font-weight:bold;white-space:nowrap;">'+p.len+'</span>' : '')
+          + '<span style="font-size:0.72rem;color:#2980b9;font-weight:bold;white-space:nowrap;">'+p.len+'</span>'
           + '</div>'
           + '<div style="font-size:0.73rem;color:#999;margin-bottom:5px;">📍 '+p.area+'</div>'
           + '<div style="font-size:0.8rem;color:#333;line-height:1.55;margin-bottom:5px;">'+p.desc+'</div>'
           + (p.tip ? '<div style="font-size:0.74rem;color:#444;background:#fff8e1;padding:5px 8px;border-radius:6px;border-right:3px solid #f39c12;">'+p.tip+'</div>' : '')
-          + (p.tags && p.tags.length ? '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">' + p.tags.map(function(t){ return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">'+t+'</span>'; }).join('') + '</div>' : '')
+          + '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">'
+          + p.tags.map(function(t){ return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">'+t+'</span>'; }).join('')
+          + '</div>'
           + (p.map ? '<a href="'+p.map+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;color:#1a73e8;text-decoration:none;padding:4px 9px;border:1px solid #c0d4f0;border-radius:6px;background:#f0f7ff;">🗺️ הצג על מפה</a>' : '')
           + '</div>';
       });
@@ -4253,10 +4254,414 @@ window.onload = async function() {
   if (USE_SUPABASE) await checkSupabaseSession();
   loadLatestAlert();
   renderReviews();
+  await _loadSeasonMode(); // ← טעינת מצב עונה מ-Supabase
+  applySummerMode(); // ← מוד קיץ אוטומטי
 };
+
+function _countdownBox(id, label, size, bold) {
+  size = size || '1.4rem';
+  var bg = bold ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)';
+  return '<div style="background:' + bg + ';border-radius:8px;padding:6px 10px;text-align:center;min-width:52px;">'
+    + '<div id="' + id + '" style="font-size:' + size + ';font-weight:' + (bold ? '900' : 'bold') + ';line-height:1;">--</div>'
+    + '<div style="font-size:0.6rem;opacity:' + (bold ? '1' : '0.75') + ';margin-top:2px;">' + label + '</div>'
+    + '</div>';
+}
+
+function applySummerMode() {
+  var now = new Date();
+  var month = now.getMonth() + 1;
+  var day = now.getDate();
+  var year = now.getFullYear();
+
+  // מתג עונה ידני
+  var override = _seasonOverride || 'auto';
+  var isWinter, isPreSeason, isSummer;
+  if (override === 'summer') {
+    isWinter = false; isPreSeason = false; isSummer = true;
+  } else if (override === 'winter') {
+    isWinter = true; isPreSeason = false; isSummer = false;
+  } else {
+    // אוטומטי לפי תאריך
+    isWinter = (month < 5) || (month === 5 && day <= 3) || (month === 10 && day >= 25) || (month > 10);
+    isPreSeason = (month === 10 && day >= 10 && day <= 24);
+    isSummer = !isWinter && !isPreSeason;
+  }
+
+  if (isWinter) return;
+
+  // חישוב ספירה לאחור לעונה הבאה (25 אוקטובר)
+  var nextSeason = new Date(year, 9, 25, 8, 30, 0); // 25 אוק', 8:30 בוקר — פתיחת הרמות
+  if (now >= nextSeason) nextSeason = new Date(year + 1, 9, 25, 8, 30, 0);
+  var daysLeft = Math.ceil((nextSeason - now) / (1000 * 60 * 60 * 24));
+
+  var grid = document.querySelector('.services-grid');
+  if (!grid) return;
+
+  // ── מצב טרום עונה ──
+  if (isPreSeason) {
+    var banner = document.createElement('div');
+    banner.style.cssText = 'background:linear-gradient(135deg,#1a3a6c,#2563b0);color:white;text-align:center;padding:16px;border-radius:12px;margin:0 0 18px 0;';
+    banner.innerHTML = '<div style="font-size:1.2rem;font-weight:bold;margin-bottom:6px;">🏔️ מתחממים לעונה! · ' + daysLeft + ' ימים לפתיחה</div>'
+      + '<div style="font-size:0.85rem;opacity:0.9;margin-bottom:10px;">עונת חורף 26/27 נפתחת ב-25 באוקטובר · צ\'רוויניה מתכוננת!</div>'
+      + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">'
+      + '<button onclick="openM(\'hotelModal\')" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;">✈️ הזמן מלון</button>'
+      + '<button onclick="openM(\'skipassModal\')" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;">🎫 סקי פס</button>'
+      + '<button onclick="openM(\'mapModal\')" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;">🗺️ מפות</button>'
+      + '</div>';
+    grid.parentNode.insertBefore(banner, grid);
+
+    // הסתר כפתורי גלישה — עדיין לא פתוח
+    ['svc-piste','svc-rental','svc-lessons'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    return;
+  }
+
+  // ── מצב קיץ ──
+
+  // הסתר כפתורי חורף
+  ['svc-piste','svc-rental','svc-lessons','svc-skipass'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  // הסתר סמל חיבור לצ'רמט והחלף בנוף קייצי
+  var zermattBar = document.getElementById('bar-zermatt');
+  if (zermattBar) {
+    zermattBar.innerHTML = `
+      <svg width="90" height="80" viewBox="0 0 90 80" xmlns="http://www.w3.org/2000/svg">
+        <!-- שמש -->
+        <circle cx="68" cy="18" r="10" fill="#f9c74f" opacity="0.95"/>
+        <line x1="68" y1="4" x2="68" y2="0" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="68" y1="32" x2="68" y2="36" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="54" y1="18" x2="50" y2="18" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="82" y1="18" x2="86" y2="18" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="58" y1="8" x2="55" y2="5" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="78" y1="28" x2="81" y2="31" stroke="#f9c74f" stroke-width="2" stroke-linecap="round"/>
+        <!-- הר ירוק -->
+        <polygon points="30,20 2,65 58,65" fill="#2e9e5a" opacity="0.9"/>
+        <polygon points="30,20 18,38 42,38" fill="rgba(255,255,255,0.7)"/>
+        <!-- פרח אלפיני -->
+        <circle cx="14" cy="62" r="4" fill="#f9c74f"/>
+        <circle cx="14" cy="55" r="3" fill="white" opacity="0.9"/>
+        <circle cx="20" cy="59" r="3" fill="white" opacity="0.9"/>
+        <circle cx="8"  cy="59" r="3" fill="white" opacity="0.9"/>
+        <!-- טקסט -->
+        <text x="30" y="75" text-anchor="middle" font-size="7" font-weight="bold" fill="rgba(255,255,255,0.85)" font-family="Arial,sans-serif">קיץ בצ'רוויניה</text>
+      </svg>`;
+    zermattBar.style.cursor = 'default';
+    zermattBar.onclick = null;
+  }
+
+  // הסתר כפתור תחזית לינק צ'רמט
+  var zermattBtn = document.querySelector('button[onclick="openZermattForecast()"]');
+  if (zermattBtn) zermattBtn.style.display = 'none';
+  // ונשנה את תיבת ה-snow-points-row להציג רק top + מידע קרחון
+  var snowRow = document.getElementById('snow-points-row');
+  if (snowRow) {
+    var midBox  = document.getElementById('snow-mid-depth');
+    var baseBox = document.getElementById('snow-base-depth');
+    if (midBox && midBox.parentElement) midBox.parentElement.style.display = 'none';
+    if (baseBox && baseBox.parentElement) baseBox.parentElement.style.display = 'none';
+  }
+
+  // הוסף כפתורי קיץ
+  var summerBtns = [
+    { id:'svc-summer-ski',    icon:'⛷️', label:'גלישת קיץ בקרחון',   onclick:"openM('summerSkiModal')" },
+    { id:'svc-summer-hike',   icon:'🥾', label:'טיולים ומסלולי הרים', onclick:"openM('summerHikeModal')" },
+    { id:'svc-summer-bike',   icon:'🚵', label:'Bike Park',            onclick:"openM('summerBikeModal')" },
+    { id:'svc-summer-cross',  icon:'🏔️', label:'Alpine Crossing',      onclick:"openM('summerCrossModal')" },
+  ];
+
+  summerBtns.forEach(function(b) {
+    var el = document.createElement('div');
+    el.id = b.id;
+    el.className = 'service-btn';
+    el.setAttribute('onclick', b.onclick);
+    el.innerHTML = '<span style="font-size:1.3rem;">' + b.icon + '</span> ' + b.label;
+    grid.appendChild(el);
+  });
+
+  // באנר קיץ עם ספירה לאחור חיה ופס התקדמות
+  var summerStart = new Date(year, 4, 4); // 4 מאי
+  if (summerStart > now) summerStart.setFullYear(year - 1);
+  var totalDays = Math.ceil((nextSeason - summerStart) / (1000 * 60 * 60 * 24));
+  var progressPct = Math.min(100, Math.round(((now - summerStart) / (nextSeason - summerStart)) * 100));
+
+  var summerBanner = document.createElement('div');
+  summerBanner.style.cssText = 'background:linear-gradient(135deg,#1a6c3a,#2e9e5a);color:white;padding:14px 16px;border-radius:12px;margin:0 0 18px 0;';
+  summerBanner.innerHTML = ''
+    + '<div style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:6px;">☀️ קיץ בצ\'רוויניה — הכפר חי גם בקיץ!</div>'
+    + '<div style="font-size:0.78rem;text-align:center;opacity:0.9;margin-bottom:10px;">גלישה בקרחון · טיולים · Bike Park · Alpine Crossing</div>'
+    + '<div style="font-size:0.72rem;text-align:center;opacity:0.8;margin-bottom:8px;">עונת חורף הבאה נפתחת ב-25 באוקטובר</div>'
+    // ספירה לאחור
+    + '<div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:10px;">'
+    + _countdownBox('cd-days',  'ימים',   '1.6rem', true)
+    + '<div style="font-size:1.4rem;opacity:0.5;margin:0 4px;">·</div>'
+    + _countdownBox('cd-secs',  'שניות', '1.6rem', false)
+    + _countdownBox('cd-mins',  'דקות',  '1.6rem', false)
+    + _countdownBox('cd-hours', 'שעות',  '1.6rem', false)
+    + '</div>'
+    // פס התקדמות
+    + '<div style="font-size:0.68rem;opacity:0.8;text-align:center;margin-bottom:4px;">התקדמות לעונה הבאה — ' + progressPct + '%</div>'
+    + '<div style="background:rgba(255,255,255,0.25);border-radius:20px;height:8px;overflow:hidden;">'
+    + '<div style="background:white;height:100%;border-radius:20px;width:' + progressPct + '%;transition:width 1s;"></div>'
+    + '</div>';
+
+  grid.parentNode.insertBefore(summerBanner, grid);
+
+  // הפעל ספירה לאחור חיה
+  function _updateCountdown() {
+    var now2 = new Date();
+    var target = new Date(now2.getFullYear(), 9, 25, 8, 30, 0);
+    if (now2 >= target) target = new Date(now2.getFullYear() + 1, 9, 25, 8, 30, 0);
+    var diff = target - now2;
+    if (diff <= 0) return;
+    var d = Math.floor(diff / 86400000);
+    var remaining = diff - (d * 86400000);
+    var h = Math.floor(remaining / 3600000);
+    var m = Math.floor((remaining - h * 3600000) / 60000);
+    var s = Math.floor((remaining - h * 3600000 - m * 60000) / 1000);
+    function pad(n) { return n < 10 ? '0'+n : ''+n; }
+    var dEl = document.getElementById('cd-days');
+    var hEl = document.getElementById('cd-hours');
+    var mEl = document.getElementById('cd-mins');
+    var sEl = document.getElementById('cd-secs');
+    if (dEl) dEl.textContent = d;
+    if (hEl) hEl.textContent = pad(h);
+    if (mEl) mEl.textContent = pad(m);
+    if (sEl) sEl.textContent = pad(s);
+  }
+  _updateCountdown();
+  setInterval(_updateCountdown, 1000);
+
+  // הוסף modals קיץ אם לא קיימים
+  if (!document.getElementById('summerSkiModal')) {
+    document.body.insertAdjacentHTML('beforeend', _buildSummerModals());
+  }
+}
+
+function _buildSummerModals() {
+  return `
+  <div id="summerSkiModal" class="modal" onclick="if(event.target===this)closeM('summerSkiModal')">
+    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1a3a6c,#2563b0);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="color:white;margin:0;font-size:1.1rem;">⛷️ גלישת קיץ בקרחון</h2>
+        <button onclick="closeM('summerSkiModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
+
+        <div style="background:linear-gradient(135deg,#0a192f,#1a3a6c);border-radius:10px;padding:12px;margin-bottom:12px;color:white;text-align:center;">
+          <div style="font-size:1.3rem;font-weight:bold;">Plateau Rosa — 3,480מ</div>
+          <div style="font-size:0.78rem;opacity:0.8;margin-top:4px;">הקרחון הגדול והגבוה ביותר לגלישת קיץ באירופה</div>
+          <div style="display:flex;justify-content:center;gap:20px;margin-top:10px;">
+            <div style="text-align:center;">
+              <div style="font-size:1.2rem;font-weight:bold;">26 ק"מ</div>
+              <div style="font-size:0.65rem;opacity:0.7;">מסלולים</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:1.2rem;font-weight:bold;">3,900מ</div>
+              <div style="font-size:0.65rem;opacity:0.7;">גובה מקסימלי</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:1.2rem;font-weight:bold;">יוני–ספט׳</div>
+              <div style="font-size:0.65rem;opacity:0.7;">עונת קיץ</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#fff3cd;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;border-right:4px solid #f39c12;">
+          💎 <b>נישה ייחודית שמעטים מכירים</b> — כמעט אף ישראלי לא יודע שאפשר לגלוש בצ'רוויניה בקיץ. הקרחון פתוח, המסלולים ריקים, והמחירים נמוכים יותר מהחורף.
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #2563b0;border-radius:10px;padding:12px;">
+            <b>🎿 מה יש בקרחון?</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">מסלולים לכל הרמות — כחול, אדום ושחור. נבחרות לאומיות מתאמנות כאן בקיץ על מסלולים שמורים. Snow Park ו-Gravity Park לרוכבי סנובורד. חיבור לזרמט.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #e74c3c;border-radius:10px;padding:12px;">
+            <b>⏰ שעות — זה קריטי!</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">הרמות נפתחות בבוקר ונסגרות בדרך כלל ב-<b>13:00–14:00</b> כשהשלג מתרכך. <b>חובה להגיע לכבלית לפני 9:00</b> — השלג הכי טוב בשעות הבוקר המוקדמות.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>🧥 לבוש — אל תתפתו!</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">חם בכפר (20°+), אבל ב-3,500מ קר מאוד גם באוגוסט — לפעמים מתחת לאפס. קרם שמש חובה — הקרינה בגובה חזקה מאוד.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #8e44ad;border-radius:10px;padding:12px;">
+            <b>🎫 סקי פס — טיפ חשוב</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">פס משולב צ'רוויניה+זרמט <b>זול יותר ב-100 יורו</b> כשקונים מהצד האיטלקי! תמיד קנו בצ'רוויניה ולא בזרמט.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #e67e22;border-radius:10px;padding:12px;">
+            <b>🚡 איך מגיעים לקרחון?</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">כבלית מהכפר → Cime Bianche Laghi → Plateau Rosa. כ-30 דקות. הכבלית החדשה מודרנית ומהירה.</span>
+          </div>
+
+          <div style="border:1.5px solid #eee;border-right:4px solid #f39c12;border-radius:10px;padding:12px;">
+            <b>☀️ אחר הצהריים — מה עושים?</b><br>
+            <span style="font-size:0.82rem;color:#555;line-height:1.6;">אחרי הגלישה הבוקר — הכפר מחכה! Bike Park, טיולים, Alpine Crossing לזרמט, קפה על מרפסת השמש, Lago Blu. יום מלא ועשיר.</span>
+          </div>
+
+        </div>
+
+        <a href="https://www.cervinia.it/en/cosa-fare/sci-estivo" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#2563b0;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 מידע רשמי — גלישת קיץ</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="summerHikeModal" class="modal" onclick="if(event.target===this)closeM('summerHikeModal')">
+    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1a6c3a,#2e9e5a);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="color:white;margin:0;font-size:1.1rem;">🥾 טיולים ומסלולי הרים</h2>
+        <button onclick="closeM('summerHikeModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>✝️ צלב Carrel — 2,800מ</b><br>
+            <span style="font-size:0.82rem;color:#555;">מסלול קלאסי ומרהיב מהכפר. נוף ישיר למטרהורן. כ-3 שעות הלוך-חזור.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>💙 Lago Blu — 2,090מ</b><br>
+            <span style="font-size:0.82rem;color:#555;">אגם כחול מרהיב ממש מחוץ לכפר. מסלול קל ומשפחתי. השתקפות המטרהורן במים.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>🏔️ Cime Bianche Laghi — 2,814מ</b><br>
+            <span style="font-size:0.82rem;color:#555;">אגמי הפסגה בגבול שווייץ-איטליה. ניתן להגיע בכבלית + קצת הליכה. נוף עוצר נשימה.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+            <b>🌸 מסלולי אחו פורח</b><br>
+            <span style="font-size:0.82rem;color:#555;">מסלולים קלים בין פרחי האלפים סביב הכפר. מתאים לכל הגילאים.</span>
+          </div>
+        </div>
+        <a href="https://www.cervinia.it/en/summer/hiking" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#2e9e5a;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 מסלולי הליכה רשמיים</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="summerBikeModal" class="modal" onclick="if(event.target===this)closeM('summerBikeModal')">
+    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#6c3a1a,#b05a20);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="color:white;margin:0;font-size:1.1rem;">🚵 Bike Park — אופני הרים</h2>
+        <button onclick="closeM('summerBikeModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
+        <div style="background:#fff3e8;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">
+          🚵 <b>Cervinia/Valtournenche Bike Park</b><br>
+          אחד הפארקים הציוריים ביותר באלפים — מסלולי Downhill ו-Cross Country עם נוף מטרהורן.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="border:1.5px solid #eee;border-right:4px solid #b05a20;border-radius:10px;padding:12px;">
+            <b>🎿 מסלולי Downhill</b><br>
+            <span style="font-size:0.82rem;color:#555;">עולים בכבלית, יורדים על אופניים. מסלולים לכל הרמות — מתחילים ועד מתקדמים.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #b05a20;border-radius:10px;padding:12px;">
+            <b>🌄 Cross Country</b><br>
+            <span style="font-size:0.82rem;color:#555;">מסלולי אנדורו ונוף מרהיב. גישה מהכפר בהליכה קצרה לכבלית.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #b05a20;border-radius:10px;padding:12px;">
+            <b>🛒 השכרת אופניים</b><br>
+            <span style="font-size:0.82rem;color:#555;">ניתן לשכור אופני הרים בכפר. שאלו במלון שלכם לגבי המלצות.</span>
+          </div>
+        </div>
+        <a href="https://www.cervinia.it/en/summer/bike" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#b05a20;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 מידע על Bike Park</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="summerCrossModal" class="modal" onclick="if(event.target===this)closeM('summerCrossModal')">
+    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#2c3e50,#4a6278);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="color:white;margin:0;font-size:1.1rem;">🏔️ Matterhorn Alpine Crossing</h2>
+        <button onclick="closeM('summerCrossModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
+        <div style="background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">
+          🇮🇹🇨🇭 <b>מעבר ייחודי מצ'רוויניה לזרמט — ברגל!</b><br>
+          ניסיון אלפיני בלתי נשכח מעל 3,800מ — ללא סקיים.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
+            <b>🚡 המסלול</b><br>
+            <span style="font-size:0.82rem;color:#555;">כבלית מצ'רוויניה → Plateau Rosa → מנהרת קרח → Matterhorn Glacier Paradise (3,883מ) → זרמט</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
+            <b>🧊 מערת הקרח</b><br>
+            <span style="font-size:0.82rem;color:#555;">מערת הקרח הגבוהה ביותר באירופה — פסלים ומנהרות חצובים ישירות בתוך הקרחון. פתוח יומי.</span>
+          </div>
+          <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
+            <b>⚠️ חשוב לדעת</b><br>
+            <span style="font-size:0.82rem;color:#555;">כרטיס חד-כיווני · יש לתכנן חזרה מזרמט (רכבת/אוטובוס) · לבשו שכבות, קר מאוד</span>
+          </div>
+          <div style="border:1.5px solid #fff3cd;border-right:4px solid #f39c12;border-radius:10px;padding:12px;background:#fffbf0;">
+            <b>💡 טיפ</b><br>
+            <span style="font-size:0.82rem;color:#555;">הזמינו כרטיסים מראש באתר הרשמי. חזרה לצ'רוויניה: אוטובוס מזרמט → ויספ → אייאס → צ'רוויניה (~3 שעות)</span>
+          </div>
+        </div>
+        <a href="https://www.matterhornparadise.ch/en/experience/matterhorn-alpine-crossing" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#4a6278;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 הזמן כרטיסים — Alpine Crossing</a>
+      </div>
+    </div>
+  </div>
+  `;
+}
 
 // ── Auth ──
 function isAdmin() { return user && user.name === 'admin'; }
+
+// מתג עונה — לשימוש פנימי בלבד (לחץ 5 פעמים על הלוגו)
+var _seasonOverride = null; // נטען מ-Supabase בטעינה
+var _logoTapCount = 0;
+
+async function _loadSeasonMode() {
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/settings?select=season_mode&id=eq.1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    const data = await res.json();
+    if (data && data[0]) {
+      _seasonOverride = data[0].season_mode || 'auto';
+    }
+  } catch(e) {
+    console.warn('Could not load season mode:', e.message);
+    _seasonOverride = 'auto';
+  }
+}
+
+async function _saveSeasonMode(mode) {
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/settings?id=eq.1', {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ season_mode: mode, updated_at: new Date().toISOString() })
+    });
+  } catch(e) {
+    console.warn('Could not save season mode:', e.message);
+  }
+}
+
+async function _handleLogoTap() {
+  _logoTapCount++;
+  if (_logoTapCount >= 5) {
+    _logoTapCount = 0;
+    var cur = _seasonOverride || 'auto';
+    var next = cur === 'auto' ? 'summer' : cur === 'summer' ? 'winter' : 'auto';
+    var labels = { auto: 'אוטומטי 📅', summer: 'קיץ ☀️', winter: 'חורף ❄️' };
+    await _saveSeasonMode(next);
+    _seasonOverride = next;
+    alert('מצב עונה שונה ל: ' + labels[next] + '\nמרענן...');
+    location.reload();
+  }
+}
 
 function switchAuthTab(tab) {
   ['login','register'].forEach(t => {
@@ -4470,86 +4875,13 @@ function showDataSourceBadge(mode) {
   }
 }
 
-async function fetchZermattForecast() {
-  // Open-Meteo — קואורדינטות Plateau Rosa (3480מ)
-  const url = 'https://api.open-meteo.com/v1/forecast'
-    + '?latitude=45.9763&longitude=7.6586'
-    + '&current=temperature_2m,windspeed_10m,weathercode'
-    + '&daily=weathercode,temperature_2m_max,temperature_2m_min,windspeed_10m_max,snowfall_sum'
-    + '&timezone=Europe%2FRome&forecast_days=5';
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const data = await res.json();
-    const daily = data.daily;
-    if (!daily || !daily.time || daily.time.length < 2) return;
-
-    // עדכן נתוני פלטאו רוזה עכשיו
-    if (data.current) {
-      const t = document.getElementById('plateau-temp');
-      const w = document.getElementById('plateau-wind');
-      if (t) t.textContent = Math.round(data.current.temperature_2m) + '°';
-      if (w) w.textContent = Math.round(data.current.windspeed_10m);
-    }
-
-    function omCode(code) {
-      if (code === 0) return '☀️';
-      if (code <= 2) return '⛅';
-      if (code <= 48) return '☁️';
-      if (code <= 67) return '🌧️';
-      if (code <= 77) return '🌨️';
-      if (code <= 82) return '🌧️';
-      if (code <= 86) return '🌨️';
-      if (code >= 95) return '⛈️';
-      return '🌤️';
-    }
-
-    // מדלג על היום (index 0) — מציג 4 ימים קדימה
-    const grid = document.getElementById('zermatt-4day');
-    if (!grid) return;
-
-    const days = daily.time.slice(1).map(function(dateStr, i) {
-      const j = i + 1;
-      const parts = dateStr.split('-');
-      const label = parts[2] + '.' + parts[1];
-      const code = daily.weathercode[j];
-      const tMax = Math.round(daily.temperature_2m_max[j]);
-      const tMin = Math.round(daily.temperature_2m_min[j]);
-      const wind = daily.windspeed_10m_max ? Math.round(daily.windspeed_10m_max[j]) : null;
-      const snow = daily.snowfall_sum && daily.snowfall_sum[j] > 0 ? Math.round(daily.snowfall_sum[j]) : 0;
-      const bad = code >= 71 || (wind != null && wind > 40);
-      const dayBg = bad ? '#fff5f5' : '#f8fff8';
-      const assessment = bad ? '⚠️ תנאים קשים' : '✅ תנאים אפשריים';
-      return '<div style="background:' + dayBg + ';border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">'
-        + '<div style="min-width:50px;">'
-        + '<div style="font-size:0.82rem;font-weight:bold;color:#0a192f;">📅 ' + label + '</div>'
-        + (wind != null ? '<div style="font-size:0.65rem;color:#777;margin-top:2px;">💨 ' + wind + ' km/h</div>' : '')
-        + (snow > 0 ? '<div style="font-size:0.65rem;color:#4a90d9;margin-top:2px;">❄️ ' + snow + ' cm</div>' : '')
-        + '</div>'
-        + '<div style="font-size:2rem;margin:0 12px;">' + omCode(code) + '</div>'
-        + '<div style="text-align:center;">'
-        + '<div style="font-size:0.68rem;color:#999;">מינ׳ / מקס׳</div>'
-        + '<div style="font-size:0.95rem;font-weight:800;color:#1a3a6c;">' + tMin + '° / ' + tMax + '°</div>'
-        + '<div style="font-size:0.65rem;color:#555;margin-top:3px;">' + assessment + '</div>'
-        + '</div>'
-        + '</div>';
-    });
-
-    grid.innerHTML = '<div style="font-weight:bold;font-size:0.8rem;margin-bottom:6px;color:#0a192f;">📆 תחזית לינק — 4 ימים</div>'
-      + days.join('');
-
-  } catch(e) {
-    console.warn('Zermatt forecast fetch failed:', e.message);
-  }
-}
-
 async function fetchWttrForecast() {
   // Open-Meteo — API חופשי, CORS-friendly, מדויק
   const url = 'https://api.open-meteo.com/v1/forecast'
     + '?latitude=45.9364&longitude=7.6269'
     + '&current=temperature_2m,windspeed_10m,weathercode'
     + '&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,windspeed_10m_max'
-    + '&timezone=Europe%2FRome&forecast_days=5';
+    + '&timezone=Europe%2FRome&forecast_days=4';
   try {
     const res = await fetch(url);
     if (!res.ok) { console.warn('Open-Meteo error:', res.status); return; }
