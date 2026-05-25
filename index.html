@@ -3737,20 +3737,23 @@ async function supabaseRegister(username, email, password) {
   // בדוק שהשם לא תפוס
   const { data: existing } = await sb.from('profiles').select('id').eq('username', username).single();
   if (existing) return { error: 'שם משתמש זה כבר תפוס — בחר שם אחר' };
-  // צור מייל פנימי על בסיס שם המשתמש
-  const internalEmail = username.toLowerCase().replace(/[^a-z0-9]/g, '_') + '@cervinialive.app';
+  // צור מייל פנימי ייחודי
+  const rand = Math.floor(Math.random() * 900000) + 100000;
+  const base = username.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const internalEmail = base + '_' + rand + '@cervinialive.app';
   const { data, error } = await sb.auth.signUp({
     email: internalEmail,
     password,
     options: { data: { username } }
   });
   if (error) return { error: error.message };
-  // שמור מייל אמיתי בפרופיל
+  // שמור מייל אמיתי ומייל פנימי בפרופיל
   if (data.user) {
     await sb.from('profiles').upsert({
       id: data.user.id,
       username,
       email,
+      internal_email: internalEmail,
       created_at: new Date().toISOString()
     });
   }
@@ -3759,21 +3762,19 @@ async function supabaseRegister(username, email, password) {
 
 async function supabaseLogin(username, password) {
   const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
-  // מצא את המייל הפנימי לפי שם משתמש
-  const internalEmail = username.toLowerCase().replace(/[^a-z0-9]/g, '_') + '@cervinialive.app';
-  const { data, error } = await sb.auth.signInWithPassword({ email: internalEmail, password });
+  // מצא את המייל הפנימי מהפרופיל
+  const { data: prof } = await sb.from('profiles').select('internal_email').eq('username', username).single();
+  if (!prof || !prof.internal_email) return { error: 'שם משתמש לא קיים במערכת' };
+  const { data, error } = await sb.auth.signInWithPassword({ email: prof.internal_email, password });
   if (error) return { error: 'שם משתמש או סיסמא שגויים' };
   return { data };
 }
 
 async function supabaseSendPasswordReset(username) {
   const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
-  // מצא את המייל האמיתי מהפרופיל
-  const { data: prof } = await sb.from('profiles').select('email').eq('username', username).single();
-  if (!prof || !prof.email) return { error: 'שם משתמש לא קיים במערכת' };
-  // שלח איפוס למייל הפנימי (Supabase ידאג לזה)
-  const internalEmail = username.toLowerCase().replace(/[^a-z0-9]/g, '_') + '@cervinialive.app';
-  const { error } = await sb.auth.resetPasswordForEmail(internalEmail, {
+  const { data: prof } = await sb.from('profiles').select('email, internal_email').eq('username', username).single();
+  if (!prof) return { error: 'שם משתמש לא קיים במערכת' };
+  const { error } = await sb.auth.resetPasswordForEmail(prof.internal_email, {
     redirectTo: window.location.origin + window.location.pathname
   });
   if (error) return { error: error.message };
