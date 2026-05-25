@@ -1990,6 +1990,16 @@ function openZermattForecast() {
 function openM(id) {
   const m = document.getElementById(id);
   if (m) m.style.display = 'flex';
+  if (id === 'authModal') {
+    // נקה שדות בכל פתיחה
+    ['login-name','login-pass','reg-name','reg-email','reg-pass','reg-pass2','forgot-email'].forEach(function(f) {
+      var el = document.getElementById(f); if (el) el.value = '';
+    });
+    var err = document.getElementById('auth-err'); if (err) { err.style.display='none'; err.textContent=''; }
+    var msg = document.getElementById('forgot-msg'); if (msg) { msg.style.display='none'; }
+    var pmsg = document.getElementById('pass-match-msg'); if (pmsg) pmsg.textContent = '';
+    showAuthTab('login');
+  }
   if (id === 'hotelModal') { setTimeout(initFlatpickr, 80); switchTripTab('all'); }
   if (id === 'profileModal') { setTimeout(populateProfileModal, 0); return; }
   if (id === 'forecastModal') { fetchWttrForecast(); }
@@ -3725,11 +3735,20 @@ const USE_SUPABASE = true;
 // ── Supabase client ──
 let _sb = null;
 function getSB() {
-  if (!_sb && USE_SUPABASE && typeof supabase !== 'undefined') {
-    _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  if (!_sb) {
+    if (typeof supabase !== 'undefined') {
+      _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    } else if (typeof window.supabase !== 'undefined') {
+      _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
   }
   return _sb;
 }
+
+// אתחול מוקדם של הקליינט
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() { getSB(); }, 500);
+});
 
 // ── Supabase auth helpers ──
 async function supabaseRegister(username, email, password) {
