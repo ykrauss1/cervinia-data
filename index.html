@@ -854,7 +854,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
     <div id="auth-panel-login">
       <div style="margin-bottom:10px;">
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">שם משתמש או מייל</label>
-        <input id="login-name" type="text" placeholder="שם משתמש / מייל@דוגמה.com" autocomplete="username"
+        <input id="login-name" type="text" placeholder="שם משתמש" autocomplete="username"
           style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;">
       </div>
       <div style="margin-bottom:16px;">
@@ -938,11 +938,11 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <div style="text-align:center;margin-bottom:16px;">
         <span style="font-size:2rem;">🔑</span>
         <div style="font-weight:bold;font-size:0.95rem;margin-top:6px;">איפוס סיסמא</div>
-        <div style="font-size:0.78rem;color:#888;margin-top:4px;">נשלח אליך קישור לאיפוס במייל</div>
+        <div style="font-size:0.78rem;color:#888;margin-top:4px;">נשלח קישור לאיפוס למייל שרשמת בהרשמה</div>
       </div>
       <div style="margin-bottom:14px;">
-        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">כתובת מייל</label>
-        <input id="forgot-email" type="email" placeholder="מייל@דוגמה.com" dir="ltr"
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">שם משתמש</label>
+        <input id="forgot-email" type="text" placeholder="הכנס את שם המשתמש שלך" dir="rtl"
           style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;font-family:inherit;"
           onkeydown="if(event.key==='Enter') sendPasswordReset()">
       </div>
@@ -3732,28 +3732,52 @@ function getSB() {
 }
 
 // ── Supabase auth helpers ──
-async function supabaseRegister(email, password, username) {
+async function supabaseRegister(username, email, password) {
   const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
+  // בדוק שהשם לא תפוס
+  const { data: existing } = await sb.from('profiles').select('id').eq('username', username).single();
+  if (existing) return { error: 'שם משתמש זה כבר תפוס — בחר שם אחר' };
+  // צור מייל פנימי על בסיס שם המשתמש
+  const internalEmail = username.toLowerCase().replace(/[^a-z0-9]/g, '_') + '@cervinialive.app';
   const { data, error } = await sb.auth.signUp({
-    email, password,
+    email: internalEmail,
+    password,
     options: { data: { username } }
   });
-  return { data, error };
+  if (error) return { error: error.message };
+  // שמור מייל אמיתי בפרופיל
+  if (data.user) {
+    await sb.from('profiles').upsert({
+      id: data.user.id,
+      username,
+      email,
+      created_at: new Date().toISOString()
+    });
+  }
+  return { data };
 }
 
-async function supabaseLogin(emailOrName, password) {
+async function supabaseLogin(username, password) {
   const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
-  // Supabase auth requires email — if user typed username, look up email first
-  let email = emailOrName;
-  if (!emailOrName.includes('@')) {
-    const { data: prof } = await sb.from('profiles').select('id').eq('username', emailOrName).single();
-    if (!prof) return { error: 'משתמש לא קיים' };
-    // Get email from auth.users via RPC (we'll use stored email from our lookup)
-    // For now, require email login if username lookup fails
-    return { error: 'אנא הכנס כתובת מייל לכניסה' };
-  }
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  return { data, error };
+  // מצא את המייל הפנימי לפי שם משתמש
+  const internalEmail = username.toLowerCase().replace(/[^a-z0-9]/g, '_') + '@cervinialive.app';
+  const { data, error } = await sb.auth.signInWithPassword({ email: internalEmail, password });
+  if (error) return { error: 'שם משתמש או סיסמא שגויים' };
+  return { data };
+}
+
+async function supabaseSendPasswordReset(username) {
+  const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
+  // מצא את המייל האמיתי מהפרופיל
+  const { data: prof } = await sb.from('profiles').select('email').eq('username', username).single();
+  if (!prof || !prof.email) return { error: 'שם משתמש לא קיים במערכת' };
+  // שלח איפוס למייל הפנימי (Supabase ידאג לזה)
+  const internalEmail = username.toLowerCase().replace(/[^a-z0-9]/g, '_') + '@cervinialive.app';
+  const { error } = await sb.auth.resetPasswordForEmail(internalEmail, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  if (error) return { error: error.message };
+  return { realEmail: prof.email };
 }
 
 async function supabaseGetProfile(userId) {
@@ -3789,21 +3813,16 @@ function checkPassMatch() {
 }
 
 async function sendPasswordReset() {
-  const email = (document.getElementById('forgot-email')?.value || '').trim();
+  const username = (document.getElementById('forgot-email')?.value || '').trim();
   const btn = document.getElementById('forgot-btn');
-  const msg = document.getElementById('forgot-msg');
-  if (!email) { showForgotMsg('אנא הכנס כתובת מייל', 'error'); return; }
+  if (!username) { showForgotMsg('אנא הכנס שם משתמש', 'error'); return; }
   if (btn) { btn.disabled = true; btn.textContent = '...שולח'; }
-  const sb = getSB();
-  if (!sb) { showForgotMsg('שגיאת חיבור', 'error'); if(btn){btn.disabled=false;btn.textContent='📧 שלח קישור לאיפוס';} return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname + '?reset=1'
-  });
+  const { realEmail, error } = await supabaseSendPasswordReset(username);
   if (btn) { btn.disabled = false; btn.textContent = '📧 שלח קישור לאיפוס'; }
   if (error) {
-    showForgotMsg('שגיאה: ' + error.message, 'error');
+    showForgotMsg('שגיאה: ' + error, 'error');
   } else {
-    showForgotMsg('✅ קישור לאיפוס נשלח! בדוק את תיבת המייל שלך.', 'success');
+    showForgotMsg('✅ קישור לאיפוס נשלח למייל שלך (' + realEmail + ')', 'success');
     if (btn) btn.disabled = true;
   }
 }
@@ -4716,19 +4735,19 @@ function simpleHash(str) {
 }
 
 async function login() {
-  const nameOrEmail = document.getElementById('login-name')?.value.trim();
+  const username = document.getElementById('login-name')?.value.trim();
   const pass = document.getElementById('login-pass')?.value;
-  if (!nameOrEmail || !pass) { showAuthErr('יש למלא שם/מייל וסיסמא'); return; }
+  if (!username || !pass) { showAuthErr('יש למלא שם משתמש וסיסמא'); return; }
 
   if (USE_SUPABASE) {
     const btn = document.querySelector('#auth-panel-login button[onclick="login()"]');
     if (btn) { btn.textContent = '⏳ נכנס...'; btn.disabled = true; }
-    const { data, error } = await supabaseLogin(nameOrEmail, pass);
+    const { data, error } = await supabaseLogin(username, pass);
     if (btn) { btn.textContent = '🔓 כניסה'; btn.disabled = false; }
-    if (error) { showAuthErr(error.message || error || 'שם/מייל או סיסמא שגויים'); return; }
+    if (error) { showAuthErr(error); return; }
     const prof = await supabaseGetProfile(data.user.id);
     user = {
-      name: prof?.username || nameOrEmail,
+      name: prof?.username || username,
       level: prof?.level || null,
       discipline: prof?.discipline || 'ski',
       sbId: data.user.id
@@ -4739,16 +4758,9 @@ async function login() {
 
   // Fallback: localStorage
   const users = getUsers();
-  let foundName = null;
-  if (users[nameOrEmail]) {
-    foundName = nameOrEmail;
-  } else {
-    const lc = nameOrEmail.toLowerCase();
-    foundName = Object.keys(users).find(k => users[k].email === lc) || null;
-  }
-  if (!foundName) { showAuthErr('משתמש לא קיים — אולי צריך להירשם?'); return; }
-  if (users[foundName].passHash !== simpleHash(pass)) { showAuthErr('סיסמא שגויה'); return; }
-  user = { name: foundName, level: users[foundName].level, discipline: users[foundName].discipline };
+  if (!users[username]) { showAuthErr('משתמש לא קיים — אולי צריך להירשם?'); return; }
+  if (users[username].passHash !== simpleHash(pass)) { showAuthErr('סיסמא שגויה'); return; }
+  user = { name: username, level: users[username].level, discipline: users[username].discipline };
   saveAndClose();
 }
 
@@ -4765,24 +4777,17 @@ async function register() {
   if (USE_SUPABASE) {
     const btn = document.querySelector('#auth-panel-register button[onclick="register()"]');
     if (btn) { btn.textContent = '⏳ נרשם...'; btn.disabled = true; }
-    const { data, error } = await supabaseRegister(email, pass, name);
+    const { data, error } = await supabaseRegister(name, email, pass);
     if (btn) { btn.textContent = '✅ הרשמה'; btn.disabled = false; }
-    if (error) { showAuthErr(error.message || 'שגיאה בהרשמה'); return; }
+    if (error) { showAuthErr(error); return; }
     user = { name, level: null, discipline: 'ski', sbId: data.user?.id };
-    // Also save locally as fallback
-    const users = getUsers();
-    users[name] = { passHash: simpleHash(pass), email, level: null, discipline: 'ski', joined: new Date().toLocaleDateString('he-IL') };
-    saveUsers(users);
     saveAndClose();
-    // Supabase sends confirmation email — notify user
-    showAuthErr('✅ נשלח אימות למייל שלך. אפשר להתחבר לאחר האימות.');
     return;
   }
 
-  // Fallback: localStorage only
+  // Fallback: localStorage
   const users = getUsers();
-  const emailTaken = Object.values(users).some(u => u.email === email);
-  if (users[name] && emailTaken) { showAuthErr('משתמש עם שם ומייל זה כבר קיים במערכת'); return; }
+  if (users[name]) { showAuthErr('שם משתמש זה כבר תפוס — בחר שם אחר'); return; }
   users[name] = { passHash: simpleHash(pass), email, level: null, discipline: 'ski', joined: new Date().toLocaleDateString('he-IL') };
   saveUsers(users);
   user = { name, level: null, discipline: 'ski' };
