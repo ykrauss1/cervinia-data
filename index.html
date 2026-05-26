@@ -3732,23 +3732,9 @@ const SUPABASE_URL = 'https://cdgqodtbdhsqkvcgcdlm.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
 const USE_SUPABASE = true;
 
-// ── Supabase client ──
-let _sb = null;
-function getSB() {
-  if (!_sb) {
-    if (typeof supabase !== 'undefined') {
-      _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    } else if (typeof window.supabase !== 'undefined') {
-      _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    }
-  }
-  return _sb;
-}
-
-// אתחול מוקדם של הקליינט
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() { getSB(); }, 500);
-});
+// אתחול מיידי של קליינט Supabase
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+function getSB() { return _sb; }
 
 // ── Supabase auth helpers ──
 async function supabaseRegister(username, email, password) {
@@ -4443,7 +4429,7 @@ function applySummerMode() {
     + _countdownBox('cd-hours', 'שעות',  '1.6rem', false)
     + '</div>'
     // פס התקדמות
-    + '<div style="font-size:0.68rem;opacity:0.8;text-align:center;margin-bottom:4px;">התקדמות לעונה הבאה — ' + progressPct + '%</div>'
+    + '<div style="font-size:0.68rem;opacity:0.8;text-align:center;margin-bottom:4px;">מסגירת העונה (3 במאי) — עברו ' + progressPct + '% מהדרך לחורף הבא ❄️</div>'
     + '<div style="background:rgba(255,255,255,0.25);border-radius:20px;height:8px;overflow:hidden;">'
     + '<div style="background:white;height:100%;border-radius:20px;width:' + progressPct + '%;transition:width 1s;"></div>'
     + '</div>';
