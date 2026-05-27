@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-05-27T22:16:06.224Z",
-  "temperature": 7.7,
+  "updated_at": "2026-05-27T23:43:37.861Z",
+  "temperature": 7.2,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 3,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 1,
   "snow_depth": "40 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 13.7,
-  "wind_gust": 16.9,
-  "humidity": null,
+  "wind_speed": 16.9,
+  "wind_gust": 23.8,
+  "humidity": 67,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -54,37 +54,37 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": null
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": null
       }
     ]
   },
@@ -98,7 +98,7 @@
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun-rain"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
@@ -107,6 +107,48 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, May 30",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, May 31",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
         }
       ]
     }
