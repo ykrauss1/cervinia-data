@@ -104,6 +104,9 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   <link rel="manifest" href="manifest.json">
   <!-- Apple touch icons -->
   <link rel="apple-touch-icon" href="icon-192.png">
+  <!-- Cropper.js for avatar cropping -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 </head>
 <body>
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
@@ -1805,11 +1808,24 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
     <!-- Avatar + name row -->
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:14px;background:#f8f9fa;border-radius:11px;">
-      <div id="profile-avatar" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;"></div>
+      <div style="position:relative;flex-shrink:0;">
+        <div id="profile-avatar" onclick="openAvatarMenu()"
+             style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:1.7rem;color:white;font-weight:bold;cursor:pointer;overflow:hidden;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.15);"></div>
+        <div onclick="openAvatarMenu()" style="position:absolute;bottom:-2px;left:-2px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:0.75rem;cursor:pointer;border:2px solid white;">📷</div>
+      </div>
       <div>
         <div id="profile-name-display" style="font-weight:bold;font-size:1.05rem;"></div>
         <div id="profile-joined" style="font-size:0.75rem;color:#aaa;margin-top:2px;"></div>
       </div>
+    </div>
+
+    <!-- About me -->
+    <div style="margin-bottom:12px;">
+      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">קצת על עצמי</label>
+      <textarea id="prof-bio" maxlength="200" rows="3" placeholder="ספר קצת על עצמך..."
+        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;direction:rtl;resize:vertical;"
+        oninput="updateBioCounter()"></textarea>
+      <div style="text-align:left;font-size:0.7rem;color:#aaa;margin-top:2px;"><span id="bio-counter">0</span>/200</div>
     </div>
 
     <!-- Editable fields -->
@@ -1865,6 +1881,74 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
 
     <div id="profile-msg" style="display:none;text-align:center;font-size:0.85rem;margin-top:10px;padding:8px;border-radius:8px;"></div>
+  </div>
+</div>
+
+<!-- Hidden file input for avatar upload -->
+<input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="handleAvatarFile(event)">
+
+<!-- Avatar action menu -->
+<div id="avatarMenuModal" class="modal" onclick="if(event.target===this)closeM('avatarMenuModal')">
+  <div class="modal-content" style="max-width:320px;">
+    <span class="close-btn" onclick="closeM('avatarMenuModal')">×</span>
+    <h3 style="margin:0 0 16px;font-size:1.05rem;text-align:center;">תמונת פרופיל</h3>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="triggerAvatarUpload('camera')" style="padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
+        📷 צלם תמונה
+      </button>
+      <button onclick="triggerAvatarUpload('gallery')" style="padding:12px;background:#4cc9f0;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
+        🖼️ בחר מהגלריה
+      </button>
+      <button id="avatar-delete-btn" onclick="deleteAvatar()" style="display:none;padding:12px;background:#e74c3c;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
+        🗑️ מחק תמונה
+      </button>
+      <button onclick="closeM('avatarMenuModal')" style="padding:10px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+        ביטול
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Avatar cropper modal -->
+<div id="cropperModal" class="modal" onclick="if(event.target===this)cancelCrop()">
+  <div class="modal-content" style="max-width:420px;">
+    <span class="close-btn" onclick="cancelCrop()">×</span>
+    <h3 style="margin:0 0 14px;font-size:1.05rem;text-align:center;">חיתוך התמונה</h3>
+    <div style="background:#000;border-radius:10px;overflow:hidden;margin-bottom:14px;max-height:60vh;">
+      <img id="cropper-image" style="display:block;max-width:100%;max-height:60vh;">
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="confirmCrop()" id="crop-confirm-btn"
+        style="flex:1;min-width:100px;padding:12px;background:#27ae60;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
+        ✅ אישור
+      </button>
+      <button onclick="triggerAvatarUpload('retake')"
+        style="flex:1;min-width:100px;padding:12px;background:#4cc9f0;color:white;border:none;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+        🔄 צלם שוב
+      </button>
+      <button onclick="cancelCrop()"
+        style="flex:1;min-width:80px;padding:12px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+        ביטול
+      </button>
+    </div>
+    <div id="crop-progress" style="display:none;text-align:center;margin-top:10px;font-size:0.85rem;color:#888;">
+      ⏳ מעלה תמונה...
+    </div>
+  </div>
+</div>
+
+<!-- User info modal (clicked from forum) -->
+<div id="userInfoModal" class="modal" onclick="if(event.target===this)closeM('userInfoModal')">
+  <div class="modal-content" style="max-width:360px;">
+    <span class="close-btn" onclick="closeM('userInfoModal')">×</span>
+    <div style="text-align:center;margin-bottom:14px;">
+      <div id="user-info-avatar"
+           style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:2rem;color:white;font-weight:bold;margin:0 auto 10px;overflow:hidden;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,0.18);"></div>
+      <div id="user-info-name" style="font-weight:bold;font-size:1.15rem;"></div>
+      <div id="user-info-joined" style="font-size:0.75rem;color:#aaa;margin-top:2px;"></div>
+    </div>
+    <div id="user-info-bio" style="background:#f8f9fa;border-radius:9px;padding:11px;font-size:0.9rem;color:#444;line-height:1.5;margin-bottom:12px;direction:rtl;white-space:pre-wrap;word-break:break-word;display:none;"></div>
+    <div id="user-info-details" style="display:flex;flex-direction:column;gap:6px;font-size:0.85rem;color:#555;"></div>
   </div>
 </div>
 
@@ -3644,11 +3728,46 @@ function loadLatestAlert() {
 
 
 // ── Profile ──
+
+// Helper: get first letter of name for default avatar
+function getInitial(name) {
+  if (!name) return '?';
+  // Find first non-whitespace char
+  const trimmed = name.trim();
+  if (!trimmed) return '?';
+  return trimmed.charAt(0).toUpperCase();
+}
+
+// Helper: render avatar into a DOM element (image or initial letter)
+function renderAvatarInto(el, opts) {
+  if (!el) return;
+  opts = opts || {};
+  const name = opts.name || '';
+  const avatarUrl = opts.avatarUrl || '';
+  const fontSize = opts.fontSize || '1.7rem';
+  if (avatarUrl) {
+    el.innerHTML = '<img src="' + avatarUrl + '?t=' + Date.now() + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.innerHTML=\'' + getInitial(name).replace(/'/g,"\\'") + '\'">';
+    el.style.background = '#fff';
+  } else {
+    el.textContent = getInitial(name);
+    el.style.background = 'linear-gradient(135deg,#4cc9f0,#2a6cb5)';
+    el.style.color = 'white';
+    el.style.fontWeight = 'bold';
+    el.style.fontSize = fontSize;
+  }
+}
+
+function updateBioCounter() {
+  const ta = document.getElementById('prof-bio');
+  const ct = document.getElementById('bio-counter');
+  if (ta && ct) ct.textContent = ta.value.length;
+}
+
 function populateProfileModal() {
   if (!user) { openM('authModal'); return; }
-  // Populate avatar
+  // Populate avatar (image or initial letter)
   const av = document.getElementById('profile-avatar');
-  if (av) av.textContent = user.discipline === 'snowboard' ? '🏂' : '⛷️';
+  renderAvatarInto(av, { name: user.name, avatarUrl: user.avatar_url });
   const nd = document.getElementById('profile-name-display');
   if (nd) nd.textContent = user.name;
   const jd = document.getElementById('profile-joined');
@@ -3666,6 +3785,12 @@ function populateProfileModal() {
   const vis = document.getElementById('prof-visits');
   const users2 = getUsers();
   if (vis && users2[user.name]) vis.value = users2[user.name].visits || '';
+  // Set bio
+  const bio = document.getElementById('prof-bio');
+  if (bio) {
+    bio.value = user.bio || '';
+    updateBioCounter();
+  }
   // Clear password fields and message
   ['prof-pass-old','prof-pass-new'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const msg = document.getElementById('profile-msg');
@@ -3677,6 +3802,7 @@ function saveProfile() {
   const disc = document.querySelector('input[name="prof-disc"]:checked')?.value || user.discipline;
   const level = document.getElementById('prof-level')?.value || null;
   const visits = document.getElementById('prof-visits')?.value || null;
+  const bio = (document.getElementById('prof-bio')?.value || '').trim().slice(0, 200);
   const oldPass = document.getElementById('prof-pass-old')?.value;
   const newPass = document.getElementById('prof-pass-new')?.value;
 
@@ -3697,22 +3823,305 @@ function saveProfile() {
   users[user.name].level = level;
   users[user.name].discipline = disc;
   users[user.name].visits = visits;
+  users[user.name].bio = bio;
   saveUsers(users);
 
   user.level = level;
   user.discipline = disc;
+  user.bio = bio;
   try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
 
   // Sync to Supabase if connected
   if (USE_SUPABASE && user.sbId) {
-    supabaseUpdateProfile(user.sbId, { level, discipline: disc, visits });
+    supabaseUpdateProfile(user.sbId, { level, discipline: disc, visits, bio });
   }
 
-  // Update avatar
-  const av = document.getElementById('profile-avatar');
-  if (av) av.textContent = disc === 'snowboard' ? '🏂' : '⛷️';
   renderHeader();
   showProfileMsg('✅ הפרופיל עודכן!', 'success');
+}
+
+// ── Avatar upload / crop / save ──
+let _cropper = null;
+
+function openAvatarMenu() {
+  if (!user) return;
+  // Show delete button only if user has avatar
+  const delBtn = document.getElementById('avatar-delete-btn');
+  if (delBtn) delBtn.style.display = user.avatar_url ? 'block' : 'none';
+  openM('avatarMenuModal');
+}
+
+function triggerAvatarUpload(mode) {
+  const input = document.getElementById('avatar-file-input');
+  if (!input) return;
+  // 'camera' uses capture, 'gallery'/'retake' just file picker
+  if (mode === 'camera') {
+    input.setAttribute('capture', 'environment');
+  } else {
+    input.removeAttribute('capture');
+  }
+  input.value = ''; // allow re-selecting same file
+  closeM('avatarMenuModal');
+  // Close cropper if open (for retake)
+  if (mode === 'retake') {
+    destroyCropper();
+    closeM('cropperModal');
+  }
+  input.click();
+}
+
+function handleAvatarFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  // Validate
+  if (!file.type.startsWith('image/')) {
+    alert('אנא בחר קובץ תמונה');
+    return;
+  }
+  // Allow up to 10MB raw (will be compressed); reject larger
+  if (file.size > 10 * 1024 * 1024) {
+    alert('הקובץ גדול מדי. גודל מקסימלי: 10MB');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    showCropper(e.target.result);
+  };
+  reader.onerror = function() {
+    alert('שגיאה בקריאת הקובץ');
+  };
+  reader.readAsDataURL(file);
+}
+
+function showCropper(imageDataUrl) {
+  const img = document.getElementById('cropper-image');
+  if (!img) return;
+  destroyCropper();
+  img.src = imageDataUrl;
+  openM('cropperModal');
+  // Reset progress
+  const prog = document.getElementById('crop-progress');
+  if (prog) prog.style.display = 'none';
+  const confirmBtn = document.getElementById('crop-confirm-btn');
+  if (confirmBtn) confirmBtn.disabled = false;
+  // Init cropper after image is in DOM
+  setTimeout(() => {
+    if (typeof Cropper === 'undefined') {
+      alert('שגיאה: ספריית החיתוך לא נטענה');
+      return;
+    }
+    _cropper = new Cropper(img, {
+      aspectRatio: 1,
+      viewMode: 1,
+      autoCropArea: 0.9,
+      dragMode: 'move',
+      guides: false,
+      center: true,
+      background: false,
+      cropBoxResizable: true,
+      cropBoxMovable: true,
+      toggleDragModeOnDblclick: false
+    });
+  }, 100);
+}
+
+function destroyCropper() {
+  if (_cropper) {
+    try { _cropper.destroy(); } catch(e) {}
+    _cropper = null;
+  }
+}
+
+function cancelCrop() {
+  destroyCropper();
+  closeM('cropperModal');
+}
+
+async function confirmCrop() {
+  if (!_cropper || !user) return;
+  const confirmBtn = document.getElementById('crop-confirm-btn');
+  const prog = document.getElementById('crop-progress');
+  if (confirmBtn) confirmBtn.disabled = true;
+  if (prog) prog.style.display = 'block';
+
+  try {
+    // Get cropped canvas at 400x400
+    const canvas = _cropper.getCroppedCanvas({
+      width: 400,
+      height: 400,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
+    });
+    if (!canvas) throw new Error('שגיאה ביצירת תמונה');
+
+    // Convert to JPEG blob with quality compression
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob(b => {
+        if (b) resolve(b);
+        else reject(new Error('שגיאה בהמרת התמונה'));
+      }, 'image/jpeg', 0.85);
+    });
+
+    // Verify under 2MB
+    if (blob.size > 2 * 1024 * 1024) {
+      // Try lower quality
+      const blob2 = await new Promise((resolve) => {
+        canvas.toBlob(b => resolve(b), 'image/jpeg', 0.7);
+      });
+      if (blob2 && blob2.size <= 2 * 1024 * 1024) {
+        await uploadAvatarBlob(blob2);
+      } else {
+        throw new Error('התמונה גדולה מדי גם אחרי דחיסה');
+      }
+    } else {
+      await uploadAvatarBlob(blob);
+    }
+  } catch (e) {
+    console.error(e);
+    alert('שגיאה: ' + (e.message || e));
+    if (confirmBtn) confirmBtn.disabled = false;
+    if (prog) prog.style.display = 'none';
+  }
+}
+
+async function uploadAvatarBlob(blob) {
+  if (!USE_SUPABASE || !user || !user.sbId) {
+    alert('אינך מחובר למערכת');
+    return;
+  }
+  const path = user.sbId + '/avatar.jpg';
+  // Upload (upsert to replace existing)
+  const { error: upErr } = await _sb.storage
+    .from('avatars')
+    .upload(path, blob, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: 'image/jpeg'
+    });
+  if (upErr) {
+    throw new Error('שגיאת העלאה: ' + upErr.message);
+  }
+  // Get public URL
+  const { data: urlData } = _sb.storage.from('avatars').getPublicUrl(path);
+  const publicUrl = urlData?.publicUrl || '';
+  if (!publicUrl) throw new Error('לא התקבל URL לתמונה');
+
+  // Update profile in DB
+  await supabaseUpdateProfile(user.sbId, { avatar_url: publicUrl });
+
+  // Update local state
+  user.avatar_url = publicUrl;
+  try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
+  const users = getUsers();
+  if (users[user.name]) {
+    users[user.name].avatar_url = publicUrl;
+    saveUsers(users);
+  }
+
+  // Refresh UI
+  const av = document.getElementById('profile-avatar');
+  renderAvatarInto(av, { name: user.name, avatarUrl: publicUrl });
+  renderHeader();
+
+  destroyCropper();
+  closeM('cropperModal');
+  showProfileMsg('✅ תמונת הפרופיל עודכנה!', 'success');
+}
+
+async function deleteAvatar() {
+  if (!user || !user.avatar_url) { closeM('avatarMenuModal'); return; }
+  if (!confirm('האם למחוק את תמונת הפרופיל?')) return;
+  closeM('avatarMenuModal');
+  try {
+    if (USE_SUPABASE && user.sbId) {
+      const path = user.sbId + '/avatar.jpg';
+      await _sb.storage.from('avatars').remove([path]);
+      await supabaseUpdateProfile(user.sbId, { avatar_url: null });
+    }
+    user.avatar_url = null;
+    try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
+    const users = getUsers();
+    if (users[user.name]) {
+      users[user.name].avatar_url = null;
+      saveUsers(users);
+    }
+    const av = document.getElementById('profile-avatar');
+    renderAvatarInto(av, { name: user.name, avatarUrl: null });
+    renderHeader();
+    showProfileMsg('✅ התמונה נמחקה', 'success');
+  } catch (e) {
+    console.error(e);
+    alert('שגיאה במחיקת התמונה');
+  }
+}
+
+// ── Show user info modal (clicked from forum) ──
+async function showUserInfo(username) {
+  if (!username) return;
+  openM('userInfoModal');
+  const av = document.getElementById('user-info-avatar');
+  const nm = document.getElementById('user-info-name');
+  const jd = document.getElementById('user-info-joined');
+  const bioEl = document.getElementById('user-info-bio');
+  const details = document.getElementById('user-info-details');
+  if (nm) nm.textContent = username;
+  if (jd) jd.textContent = '';
+  if (bioEl) { bioEl.textContent = ''; bioEl.style.display = 'none'; }
+  if (details) details.innerHTML = '<div style="text-align:center;color:#aaa;">טוען...</div>';
+  // Render default avatar first
+  renderAvatarInto(av, { name: username, fontSize: '2rem' });
+
+  // Try local cache first
+  const users = getUsers();
+  const local = users[username];
+
+  // Then fetch from Supabase for fresh data
+  let profile = null;
+  if (USE_SUPABASE) {
+    try {
+      const { data } = await _sb.from('profiles')
+        .select('username, level, discipline, visits, bio, avatar_url, created_at')
+        .eq('username', username)
+        .single();
+      if (data) profile = data;
+    } catch(e) { /* ignore */ }
+  }
+
+  const p = profile || local || {};
+  // Avatar
+  renderAvatarInto(av, { name: username, avatarUrl: p.avatar_url, fontSize: '2rem' });
+  // Joined date
+  if (jd) {
+    if (p.created_at) {
+      const d = new Date(p.created_at);
+      jd.textContent = 'הצטרף ב-' + d.toLocaleDateString('he-IL');
+    } else if (local && local.joined) {
+      jd.textContent = 'הצטרף ב-' + local.joined;
+    }
+  }
+  // Bio
+  if (bioEl && p.bio) {
+    bioEl.textContent = p.bio;
+    bioEl.style.display = 'block';
+  }
+  // Details
+  if (details) {
+    const rows = [];
+    if (p.discipline) {
+      const lbl = p.discipline === 'snowboard' ? '🏂 סנובורד' : '⛷️ סקי';
+      rows.push('<div><span style="color:#888;">ענף:</span> ' + lbl + '</div>');
+    }
+    if (p.level) {
+      rows.push('<div><span style="color:#888;">רמה:</span> ' + p.level + '</div>');
+    }
+    if (p.visits) {
+      const v = p.visits === 'ראשון' ? 'פעם ראשונה (מתכנן)'
+              : p.visits === 'וותיק' ? 'וותיק מושבע'
+              : p.visits + ' פעמים';
+      rows.push('<div><span style="color:#888;">ביקורים בצ\'רוויניה:</span> ' + v + '</div>');
+    }
+    details.innerHTML = rows.length ? rows.join('') : '<div style="color:#aaa;text-align:center;font-size:0.85rem;">אין פרטים נוספים</div>';
+  }
 }
 
 function showProfileMsg(msg, type) {
@@ -3888,7 +4297,7 @@ async function checkSupabaseSession() {
   if (session?.user) {
     const prof = await supabaseGetProfile(session.user.id);
     if (prof) {
-      user = { name: prof.username, level: prof.level, discipline: prof.discipline || 'ski', sbId: session.user.id, isAdmin: prof.is_admin === true };
+      user = { name: prof.username, level: prof.level, discipline: prof.discipline || 'ski', sbId: session.user.id, isAdmin: prof.is_admin === true, bio: prof.bio || '', avatar_url: prof.avatar_url || null };
       try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
       renderHeader();
       renderPosts('');
@@ -4757,7 +5166,9 @@ async function login() {
       level: prof?.level || null,
       discipline: prof?.discipline || 'ski',
       sbId: data.user.id,
-      isAdmin: prof?.is_admin === true
+      isAdmin: prof?.is_admin === true,
+      bio: prof?.bio || '',
+      avatar_url: prof?.avatar_url || null
     };
     saveAndClose();
     return;
@@ -4836,7 +5247,14 @@ function renderHeader() {
   if (user) {
     const adminBadge = isAdmin() ? '<span class="admin-badge">ADMIN</span>' : '';
     const gear = isAdmin() ? `<span onclick="openAdminDashboard()" style="cursor:pointer;font-size:1.1rem;margin-left:2px;" title="ניהול">⚙️</span>` : '';
-    const avatar = `<div onclick="openM('profileModal')" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:0.9rem;cursor:pointer;border:2px solid rgba(255,255,255,0.3);">${user.discipline==='snowboard'?'&#127938;':'&#9975;&#65039;'}</div>`;
+    const initial = getInitial(user.name);
+    let avatarInner;
+    if (user.avatar_url) {
+      avatarInner = '<img src="' + user.avatar_url + '?t=' + Date.now() + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.innerHTML=\'' + initial.replace(/'/g, "\\'") + '\'">';
+    } else {
+      avatarInner = initial;
+    }
+    const avatar = `<div onclick="openM('profileModal')" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:0.95rem;color:white;font-weight:bold;cursor:pointer;border:2px solid rgba(255,255,255,0.3);overflow:hidden;">${avatarInner}</div>`;
     const lvEmoji = {'מתחיל':'🟢','בינוני':'🔵','מתקדם':'🔴','מקצועי':'⚫'}[user.level] || '';
     area.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">${adminBadge}${gear}${avatar}<div style="display:flex;flex-direction:column;line-height:1.2;cursor:pointer;" onclick="openM('profileModal')"><b style="color:white;font-size:0.9rem;">${user.name}</b>${user.level?`<span style="color:#4cc9f0;font-size:0.68rem;">${lvEmoji} ${user.level}</span>`:''}</div><button onclick="logout()" title="התנתקות" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:0.8rem;padding:4px 6px;border-radius:6px;transition:color 0.15s;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">⏏</button></div>`;
   } else {
@@ -5675,7 +6093,7 @@ function renderReplies(replies, postId, depth, query) {
       + (canDel ? '<span style="cursor:pointer;color:#e74c3c;" onclick="delReply(\'' + postId + '\',\'' + r.id + '\')">✕ מחק</span>' : '')
       + '</div>';
     return '<div class="reply-item" id="reply-' + safeId(r.id) + '" style="margin-right:' + indent + 'px;">'
-      + '<b>' + r.user + '</b> <span style="color:#bbb;font-size:0.72rem;">' + timeAgo(r.timestamp) + '</span>'
+      + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + (r.user||'').replace(/'/g, "\\'") + '\')">' + r.user + '</b> <span style="color:#bbb;font-size:0.72rem;">' + timeAgo(r.timestamp) + '</span>'
       + '<div style="margin:3px 0;">' + highlight(r.content, query) + '</div>'
       + fileHtml
       + reactionsHtml(r, true)
@@ -5721,7 +6139,7 @@ function renderPosts(query, sort, chips) {
       }
     }
     return '<div class="post" id="post-' + safeId(p.id) + '">'
-      + '<b>' + highlight(p.user, query) + '</b> <span style="color:#bbb;font-size:0.75rem;">' + timeAgo(p.timestamp) + '</span>'
+      + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + (p.user||'').replace(/'/g, "\\'") + '\')">' + highlight(p.user, query) + '</b> <span style="color:#bbb;font-size:0.75rem;">' + timeAgo(p.timestamp) + '</span>'
       + '<div style="margin:6px 0;">' + highlight(p.content, query) + '</div>'
       + fileHtml
       + reactionsHtml(p, false)
