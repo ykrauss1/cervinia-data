@@ -92,6 +92,145 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .wcam-img { width:100%;height:160px;object-fit:cover;display:block;transition:opacity 0.2s; }
 .wcam-img:hover { opacity:0.85; }
 
+/* ==========================================
+   CONTAINER & GLOBAL LAYOUT
+   ========================================== */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 16px; box-sizing: border-box; }
+* { -webkit-tap-highlight-color: transparent; }
+html, body { overflow-x: hidden; max-width: 100vw; }
+img, svg, video { max-width: 100%; }
+
+/* ==========================================
+   RESPONSIVE - TABLET & MOBILE (≤ 768px)
+   ========================================== */
+@media (max-width: 768px) {
+
+  /* Container padding tighter */
+  .container { padding: 0 10px; }
+
+  /* Header / Nav */
+  nav { padding: 8px 12px; gap: 6px; flex-wrap: nowrap; }
+  nav > div:first-child { flex: 1; min-width: 0; gap: 6px !important; }
+  nav > div:first-child > div:nth-child(2) { font-size: 1.05rem !important; }
+  #global-search-bar { margin-right: 4px !important; flex: 1; min-width: 0; }
+  #global-search-bar > div { padding: 4px 8px !important; }
+  #global-search-input { width: 100% !important; font-size: 0.78rem !important; }
+  #global-search-input:focus { width: 100% !important; }
+  #auth-area { flex-shrink: 0; }
+
+  /* Services grid - 2 columns on mobile */
+  .services-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; margin-bottom: 16px !important; }
+  .service-btn { padding: 14px 8px !important; font-size: 0.85rem !important; min-height: 56px; gap: 6px !important; }
+
+  /* Live Data Bar - vertical grid on mobile */
+  #live-data-bar { margin: 10px 0 !important; }
+  #live-data-bar > div {
+    padding: 12px 14px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  /* Stats: 3-column grid */
+  #live-data-bar > div > div:first-child {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+    width: 100%;
+  }
+  /* Hide vertical dividers in stats group */
+  #live-data-bar > div > div:first-child > div[style*="width:1px"] { display: none !important; }
+  /* Each stat tile */
+  #live-data-bar > div > div:first-child > div {
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 8px 6px;
+  }
+  #live-data-bar [id^="bar-"][id$="temp"],
+  #live-data-bar [id^="bar-"][id$="wind"],
+  #live-data-bar [id^="bar-"][id$="snow"],
+  #live-data-bar [id^="bar-slopes-local"],
+  #live-data-bar [id^="bar-lifts-local"],
+  #live-data-bar [id^="bar-weather-desc"] {
+    font-size: 1.05rem !important;
+  }
+  #live-data-bar [id^="bar-slopes-global"],
+  #live-data-bar [id^="bar-lifts-global"] {
+    font-size: 0.75rem !important;
+    display: block !important;
+    margin-top: 1px;
+  }
+  /* Right side: matterhorn + buttons - horizontal row */
+  #live-data-bar > div > div:nth-child(2) {
+    width: 100%;
+    justify-content: space-between !important;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 10px !important;
+    gap: 10px !important;
+  }
+  /* Hide the vertical divider before matterhorn */
+  #live-data-bar > div > div:nth-child(2) > div[style*="width:1px"] { display: none !important; }
+  /* Smaller matterhorn on mobile */
+  #matterhorn-svg { width: 60px !important; height: 54px !important; }
+  /* Stack forecast buttons */
+  #live-data-bar button[onclick*="forecastModal"],
+  #live-data-bar button[onclick*="ZermattForecast"] {
+    font-size: 0.7rem !important;
+    padding: 6px 10px !important;
+  }
+
+  /* Why card */
+  div[onclick="openM('whyModal')"] { height: 64px !important; }
+
+  /* Cards & posts */
+  .card { padding: 16px !important; margin-bottom: 16px !important; border-radius: 12px !important; }
+  .post { padding: 12px !important; }
+
+  /* Modals - more screen-friendly */
+  .modal-content {
+    width: 95% !important;
+    max-width: 95vw !important;
+    padding: 20px 16px !important;
+    max-height: 92vh;
+    overflow-y: auto;
+    border-radius: 14px !important;
+  }
+  .close-btn { left: 12px !important; top: 10px !important; font-size: 1.4rem !important; }
+
+  /* Tables on mobile - allow horizontal scroll */
+  table { font-size: 0.82rem; }
+  th, td { padding: 8px 6px !important; }
+
+  /* Hide alert strip's extra padding */
+  .alert-strip { font-size: 0.8rem !important; padding: 8px 40px 8px 12px !important; }
+
+  /* Webcam grid */
+  .wcam-img { height: 130px !important; }
+
+  /* Forum filter chips - smaller */
+  .filter-chip { font-size: 0.72rem !important; padding: 3px 7px !important; }
+
+  /* Forum search row */
+  #forum-panel input[type="text"] { font-size: 0.85rem !important; }
+
+  /* Tab buttons in modals */
+  .ttab-btn { font-size: 0.76rem !important; padding: 7px 3px !important; }
+}
+
+/* ==========================================
+   RESPONSIVE - SMALL PHONES (≤ 380px)
+   ========================================== */
+@media (max-width: 380px) {
+  .services-grid { gap: 6px !important; }
+  .service-btn { padding: 12px 6px !important; font-size: 0.78rem !important; }
+  nav > div:first-child > div:nth-child(2) { font-size: 0.95rem !important; }
+  #global-search-input { font-size: 0.72rem !important; }
+  /* Live bar: 2 columns instead of 3 */
+  #live-data-bar > div > div:first-child {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .modal-content { padding: 16px 12px !important; }
+}
+
 </style>
 
   <!-- PWA -->
@@ -3732,7 +3871,6 @@ function loadLatestAlert() {
 // Helper: get first letter of name for default avatar
 function getInitial(name) {
   if (!name) return '?';
-  // Find first non-whitespace char
   const trimmed = name.trim();
   if (!trimmed) return '?';
   return trimmed.charAt(0).toUpperCase();
@@ -3845,7 +3983,6 @@ let _cropper = null;
 
 function openAvatarMenu() {
   if (!user) return;
-  // Show delete button only if user has avatar
   const delBtn = document.getElementById('avatar-delete-btn');
   if (delBtn) delBtn.style.display = user.avatar_url ? 'block' : 'none';
   openM('avatarMenuModal');
@@ -3854,15 +3991,13 @@ function openAvatarMenu() {
 function triggerAvatarUpload(mode) {
   const input = document.getElementById('avatar-file-input');
   if (!input) return;
-  // 'camera' uses capture, 'gallery'/'retake' just file picker
   if (mode === 'camera') {
     input.setAttribute('capture', 'environment');
   } else {
     input.removeAttribute('capture');
   }
-  input.value = ''; // allow re-selecting same file
+  input.value = '';
   closeM('avatarMenuModal');
-  // Close cropper if open (for retake)
   if (mode === 'retake') {
     destroyCropper();
     closeM('cropperModal');
@@ -3873,12 +4008,10 @@ function triggerAvatarUpload(mode) {
 function handleAvatarFile(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
-  // Validate
   if (!file.type.startsWith('image/')) {
     alert('אנא בחר קובץ תמונה');
     return;
   }
-  // Allow up to 10MB raw (will be compressed); reject larger
   if (file.size > 10 * 1024 * 1024) {
     alert('הקובץ גדול מדי. גודל מקסימלי: 10MB');
     return;
@@ -3899,12 +4032,10 @@ function showCropper(imageDataUrl) {
   destroyCropper();
   img.src = imageDataUrl;
   openM('cropperModal');
-  // Reset progress
   const prog = document.getElementById('crop-progress');
   if (prog) prog.style.display = 'none';
   const confirmBtn = document.getElementById('crop-confirm-btn');
   if (confirmBtn) confirmBtn.disabled = false;
-  // Init cropper after image is in DOM
   setTimeout(() => {
     if (typeof Cropper === 'undefined') {
       alert('שגיאה: ספריית החיתוך לא נטענה');
@@ -3945,7 +4076,6 @@ async function confirmCrop() {
   if (prog) prog.style.display = 'block';
 
   try {
-    // Get cropped canvas at 400x400
     const canvas = _cropper.getCroppedCanvas({
       width: 400,
       height: 400,
@@ -3954,7 +4084,6 @@ async function confirmCrop() {
     });
     if (!canvas) throw new Error('שגיאה ביצירת תמונה');
 
-    // Convert to JPEG blob with quality compression
     const blob = await new Promise((resolve, reject) => {
       canvas.toBlob(b => {
         if (b) resolve(b);
@@ -3962,9 +4091,7 @@ async function confirmCrop() {
       }, 'image/jpeg', 0.85);
     });
 
-    // Verify under 2MB
     if (blob.size > 2 * 1024 * 1024) {
-      // Try lower quality
       const blob2 = await new Promise((resolve) => {
         canvas.toBlob(b => resolve(b), 'image/jpeg', 0.7);
       });
@@ -3990,7 +4117,6 @@ async function uploadAvatarBlob(blob) {
     return;
   }
   const path = user.sbId + '/avatar.jpg';
-  // Upload (upsert to replace existing)
   const { error: upErr } = await _sb.storage
     .from('avatars')
     .upload(path, blob, {
@@ -4001,15 +4127,12 @@ async function uploadAvatarBlob(blob) {
   if (upErr) {
     throw new Error('שגיאת העלאה: ' + upErr.message);
   }
-  // Get public URL
   const { data: urlData } = _sb.storage.from('avatars').getPublicUrl(path);
   const publicUrl = urlData?.publicUrl || '';
   if (!publicUrl) throw new Error('לא התקבל URL לתמונה');
 
-  // Update profile in DB
   await supabaseUpdateProfile(user.sbId, { avatar_url: publicUrl });
 
-  // Update local state
   user.avatar_url = publicUrl;
   try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
   const users = getUsers();
@@ -4018,7 +4141,6 @@ async function uploadAvatarBlob(blob) {
     saveUsers(users);
   }
 
-  // Refresh UI
   const av = document.getElementById('profile-avatar');
   renderAvatarInto(av, { name: user.name, avatarUrl: publicUrl });
   renderHeader();
@@ -4068,14 +4190,11 @@ async function showUserInfo(username) {
   if (jd) jd.textContent = '';
   if (bioEl) { bioEl.textContent = ''; bioEl.style.display = 'none'; }
   if (details) details.innerHTML = '<div style="text-align:center;color:#aaa;">טוען...</div>';
-  // Render default avatar first
   renderAvatarInto(av, { name: username, fontSize: '2rem' });
 
-  // Try local cache first
   const users = getUsers();
   const local = users[username];
 
-  // Then fetch from Supabase for fresh data
   let profile = null;
   if (USE_SUPABASE) {
     try {
@@ -4088,9 +4207,7 @@ async function showUserInfo(username) {
   }
 
   const p = profile || local || {};
-  // Avatar
   renderAvatarInto(av, { name: username, avatarUrl: p.avatar_url, fontSize: '2rem' });
-  // Joined date
   if (jd) {
     if (p.created_at) {
       const d = new Date(p.created_at);
@@ -4099,12 +4216,10 @@ async function showUserInfo(username) {
       jd.textContent = 'הצטרף ב-' + local.joined;
     }
   }
-  // Bio
   if (bioEl && p.bio) {
     bioEl.textContent = p.bio;
     bioEl.style.display = 'block';
   }
-  // Details
   if (details) {
     const rows = [];
     if (p.discipline) {
