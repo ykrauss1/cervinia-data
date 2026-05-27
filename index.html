@@ -322,7 +322,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="filter-area"></div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
-      <input id="search-input" type="text" autocomplete="off" name="forum-search" placeholder="חפש בפורום..." style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;">
+      <input id="search-input" type="text" autocomplete="off" name="forum-search-x" placeholder="חפש בפורום..." style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;">
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:0.82rem;color:#888;white-space:nowrap;">מיון לפי:</span>
         <select id="forum-sort" onchange="filterPosts()" style="padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;color:#555;background:white;">
@@ -2235,8 +2235,8 @@ async function submitReply(targetId, postId) {
     if (res.ok) {
       ta.value = '';
       const currentQuery = document.getElementById('search-input')?.value || '';
-      await loadPostsFromSupabase();
-      renderPosts(currentQuery);
+      const ok = await loadPostsFromSupabase();
+      if (ok) renderPosts(currentQuery);
       return;
     }
   }
@@ -3888,7 +3888,7 @@ async function checkSupabaseSession() {
   if (session?.user) {
     const prof = await supabaseGetProfile(session.user.id);
     if (prof) {
-      user = { name: prof.username, level: prof.level, discipline: prof.discipline || 'ski', sbId: session.user.id };
+      user = { name: prof.username, level: prof.level, discipline: prof.discipline || 'ski', sbId: session.user.id, isAdmin: prof.is_admin === true };
       try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
       renderHeader();
       renderPosts('');
@@ -4636,7 +4636,7 @@ function _buildSummerModals() {
 }
 
 // ── Auth ──
-function isAdmin() { return user && user.name === 'admin'; }
+function isAdmin() { return user && user.isAdmin === true; }
 
 // מתג עונה — לשימוש פנימי בלבד (לחץ 5 פעמים על הלוגו)
 var _seasonOverride = null; // נטען מ-Supabase בטעינה
@@ -4756,7 +4756,8 @@ async function login() {
       name: prof?.username || username,
       level: prof?.level || null,
       discipline: prof?.discipline || 'ski',
-      sbId: data.user.id
+      sbId: data.user.id,
+      isAdmin: prof?.is_admin === true
     };
     saveAndClose();
     return;
