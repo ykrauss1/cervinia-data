@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-06-02T00:17:47.015Z",
-  "temperature": 6.3,
+  "updated_at": "2026-06-02T05:09:58.358Z",
+  "temperature": 4.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 0,
   "snow_depth": "15 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 6.1,
+  "wind_speed": null,
   "wind_gust": 15.5,
-  "humidity": null,
+  "humidity": 97,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -50,41 +50,41 @@
     }
   ],
   "forecast_today": {
-    "date": "Monday, June 1",
+    "date": "Tuesday, June 2",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": null
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": null
       }
     ]
   },
