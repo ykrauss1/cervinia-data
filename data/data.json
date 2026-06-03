@@ -1,23 +1,23 @@
 {
-  "updated_at": "2026-06-03T02:06:44.590Z",
-  "temperature": 2.7,
-  "zermatt_link": "CLOSED",
-  "lifts_open_global": 0,
+  "updated_at": "2026-06-03T07:21:14.801Z",
+  "temperature": 4.2,
+  "zermatt_link": "NEXT UPDATE",
+  "lifts_open_global": 1,
   "lifts_total_global": 47,
   "slopes_open_global": 0,
   "slopes_total_global": 109,
-  "lifts_open_local": 0,
+  "lifts_open_local": 1,
   "lifts_total_local": 5,
   "slopes_open_local": 0,
   "slopes_total_local": 0,
-  "snow_depth": "15 cm",
+  "snow_depth": "10 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 27.4,
-  "wind_gust": 58,
-  "humidity": 59,
+  "wind_speed": 7.9,
+  "wind_gust": 77,
+  "humidity": 55,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Nuvoloso e pioggia",
+  "weather_description": "Sereno",
   "opening_hours": "08:15 - 16:45",
   "snow_points": [
     {
@@ -30,14 +30,14 @@
     {
       "station": "cime",
       "altitude": 2814,
-      "depth": 40,
+      "depth": 30,
       "name": "Cime Bianche Laghi",
       "last_snowfall": "12/05/2026"
     },
     {
       "station": "mid",
       "altitude": 2600,
-      "depth": 15,
+      "depth": 10,
       "name": "Plan Maison",
       "last_snowfall": "12/05/2026"
     },
@@ -50,66 +50,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Tuesday, June 2",
+    "date": "Wednesday, June 3",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "sun"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Thursday, June 4",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Friday, June 5",
       "periods": [
@@ -149,6 +128,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, June 7",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
         }
       ]
     }
