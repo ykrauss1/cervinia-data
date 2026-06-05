@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-06-05T00:02:32.887Z",
-  "temperature": 0.9,
+  "updated_at": "2026-06-05T04:55:26.759Z",
+  "temperature": 1.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 0,
   "snow_depth": "10 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": null,
-  "wind_gust": 10.1,
-  "humidity": null,
+  "wind_speed": 9,
+  "wind_gust": 42.8,
+  "humidity": 55,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
@@ -50,7 +50,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Thursday, June 4",
+    "date": "Friday, June 5",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -72,7 +72,7 @@
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
@@ -89,27 +89,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Saturday, June 6",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Sunday, June 7",
       "periods": [
