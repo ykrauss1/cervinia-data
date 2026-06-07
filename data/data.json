@@ -1,37 +1,30 @@
 {
-  "updated_at": "2026-06-07T01:36:45.688Z",
-  "temperature": 2.8,
-  "zermatt_link": "CLOSED",
-  "lifts_open_global": 0,
+  "updated_at": "2026-06-07T06:19:57.050Z",
+  "temperature": 5.7,
+  "zermatt_link": "NEXT UPDATE",
+  "lifts_open_global": 3,
   "lifts_total_global": 47,
   "slopes_open_global": 0,
   "slopes_total_global": 109,
-  "lifts_open_local": 0,
+  "lifts_open_local": 2,
   "lifts_total_local": 5,
   "slopes_open_local": 0,
   "slopes_total_local": 0,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 8.6,
-  "wind_gust": 15.5,
-  "humidity": 86,
+  "wind_speed": 5.4,
+  "wind_gust": 18.7,
+  "humidity": 72,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Poco nuvoloso",
+  "weather_description": "Cielo Sereno",
   "opening_hours": "08:15 - 16:45",
   "snow_points": [
     {
-      "station": "base",
-      "altitude": 2050,
-      "depth": 0,
-      "name": "Breuil",
-      "last_snowfall": "12/05/2026"
-    },
-    {
-      "station": "mid",
-      "altitude": 2600,
-      "depth": 0,
-      "name": "Plan Maison",
+      "station": "top",
+      "altitude": 3480,
+      "depth": 80,
+      "name": "Plateau Rosa",
       "last_snowfall": "12/05/2026"
     },
     {
@@ -42,37 +35,44 @@
       "last_snowfall": "12/05/2026"
     },
     {
-      "station": "top",
-      "altitude": 3480,
-      "depth": 90,
-      "name": "Plateau Rosa",
+      "station": "mid",
+      "altitude": 2600,
+      "depth": 0,
+      "name": "Plan Maison",
+      "last_snowfall": "12/05/2026"
+    },
+    {
+      "station": "base",
+      "altitude": 2050,
+      "depth": 0,
+      "name": "Breuil",
       "last_snowfall": "12/05/2026"
     }
   ],
   "forecast_today": {
-    "date": "Saturday, June 6",
+    "date": "Sunday, June 7",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
@@ -88,27 +88,5 @@
       }
     ]
   },
-  "forecast_next_days": [
-    {
-      "date": "Monday, June 8",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    }
-  ]
+  "forecast_next_days": []
 }
