@@ -4046,6 +4046,8 @@ async function saveProfile() {
 
   renderHeader();
   showProfileMsg('✅ הפרופיל עודכן!', 'success');
+  // סגירה אוטומטית אחרי הצגת הודעת ההצלחה
+  setTimeout(() => closeM('profileModal'), 1200);
 }
 
 // ── Avatar upload / crop / save ──
