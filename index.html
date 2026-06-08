@@ -4000,10 +4000,16 @@ async function saveProfile() {
   const newPass = document.getElementById('prof-pass-new')?.value;
 
   const users = getUsers();
-  if (!users[user.name]) return;
+  // Ensure local entry exists (Supabase-authenticated users may not have one)
+  if (!users[user.name]) {
+    users[user.name] = { joined: new Date().toLocaleDateString('he-IL') };
+  }
 
-  // Password change
+  // Password change (only relevant for local users with passHash)
   if (newPass) {
+    if (!users[user.name].passHash) {
+      showProfileMsg('שינוי סיסמא לא זמין למשתמש זה', 'error'); return;
+    }
     if (simpleHash(oldPass) !== users[user.name].passHash) {
       showProfileMsg('סיסמא נוכחית שגויה', 'error'); return;
     }
