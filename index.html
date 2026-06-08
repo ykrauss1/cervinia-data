@@ -2267,6 +2267,26 @@ function openM(id) {
 }
 function closeM(id) { const m = document.getElementById(id); if (m) m.style.display = 'none'; }
 
+// ESC key closes the topmost open modal
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape' && e.key !== 'Esc') return;
+  // Find all open modals (display !== 'none')
+  const openModals = Array.from(document.querySelectorAll('.modal'))
+    .filter(m => m.style.display && m.style.display !== 'none');
+  if (openModals.length === 0) return;
+  // Close the last opened (topmost) one
+  const top = openModals[openModals.length - 1];
+  // Special handlers
+  if (top.id === 'cropperModal') {
+    cancelCrop();
+  } else if (top.id === 'webcamModal') {
+    closeWebcam();
+  } else if (top.id) {
+    closeM(top.id);
+  }
+  e.preventDefault();
+});
+
 // ── Hotel modal tabs & search ──
 function switchTab(tab) {
   ['all','hotel','apt'].forEach(t => {
@@ -3951,10 +3971,12 @@ function populateProfileModal() {
   // Set level select
   const lvl = document.getElementById('prof-level');
   if (lvl) lvl.value = user.level || '';
-  // Set visits
+  // Set visits — prefer user object (Supabase), fallback to localStorage
   const vis = document.getElementById('prof-visits');
   const users2 = getUsers();
-  if (vis && users2[user.name]) vis.value = users2[user.name].visits || '';
+  if (vis) {
+    vis.value = (user.visits != null ? user.visits : (users2[user.name]?.visits || '')) || '';
+  }
   // Set bio
   const bio = document.getElementById('prof-bio');
   if (bio) {
@@ -3967,8 +3989,9 @@ function populateProfileModal() {
   if (msg) msg.style.display = 'none';
 }
 
-function saveProfile() {
+async function saveProfile() {
   if (!user) return;
+  const btn = document.querySelector('#profileModal button[onclick="saveProfile()"]');
   const disc = document.querySelector('input[name="prof-disc"]:checked')?.value || user.discipline;
   const level = document.getElementById('prof-level')?.value || null;
   const visits = document.getElementById('prof-visits')?.value || null;
@@ -3990,6 +4013,7 @@ function saveProfile() {
     users[user.name].passHash = simpleHash(newPass);
   }
 
+  // Update local cache
   users[user.name].level = level;
   users[user.name].discipline = disc;
   users[user.name].visits = visits;
@@ -3998,12 +4022,20 @@ function saveProfile() {
 
   user.level = level;
   user.discipline = disc;
+  user.visits = visits;
   user.bio = bio;
   try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
 
-  // Sync to Supabase if connected
+  // Sync to Supabase if connected — await to detect errors
   if (USE_SUPABASE && user.sbId) {
-    supabaseUpdateProfile(user.sbId, { level, discipline: disc, visits, bio });
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ שומר...'; }
+    const res = await supabaseUpdateProfile(user.sbId, { level, discipline: disc, visits, bio });
+    if (btn) { btn.disabled = false; btn.textContent = '💾 שמור שינויים'; }
+    if (res && res.error) {
+      showProfileMsg('⚠️ נשמר מקומית אך לא בענן: ' + res.error, 'error');
+      renderHeader();
+      return;
+    }
   }
 
   renderHeader();
@@ -4443,8 +4475,13 @@ async function supabaseGetProfile(userId) {
 }
 
 async function supabaseUpdateProfile(userId, fields) {
-  const sb = getSB(); if (!sb) return;
-  await sb.from('profiles').update(fields).eq('id', userId);
+  const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
+  const { error } = await sb.from('profiles').update(fields).eq('id', userId);
+  if (error) {
+    console.error('supabaseUpdateProfile error:', error, 'fields:', fields);
+    return { error: error.message || 'Update failed' };
+  }
+  return { ok: true };
 }
 
 
@@ -4538,7 +4575,7 @@ async function checkSupabaseSession() {
   if (session?.user) {
     const prof = await supabaseGetProfile(session.user.id);
     if (prof) {
-      user = { name: prof.username, level: prof.level, discipline: prof.discipline || 'ski', sbId: session.user.id, isAdmin: prof.is_admin === true, bio: prof.bio || '', avatar_url: prof.avatar_url || null };
+      user = { name: prof.username, level: prof.level, discipline: prof.discipline || 'ski', sbId: session.user.id, isAdmin: prof.is_admin === true, bio: prof.bio || '', avatar_url: prof.avatar_url || null, visits: prof.visits || null };
       try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
       renderHeader();
       renderPosts('');
@@ -5424,7 +5461,8 @@ async function login() {
       sbId: data.user.id,
       isAdmin: prof?.is_admin === true,
       bio: prof?.bio || '',
-      avatar_url: prof?.avatar_url || null
+      avatar_url: prof?.avatar_url || null,
+      visits: prof?.visits || null
     };
     saveAndClose();
     return;
