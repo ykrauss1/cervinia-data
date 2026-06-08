@@ -41,8 +41,13 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         .result-link .rl-desc { font-size:0.75rem; color:#888; margin-top:2px; }
         .result-link .rl-arrow { color:#ccc; font-size:1rem; }
         .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
-.modal-content { background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; position: relative; }
-.close-btn { position: absolute; left: 20px; top: 16px; cursor: pointer; font-size: 1.5rem; color: #888; z-index: 10; line-height: 1; }
+.modal-content { background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; position: relative; max-height: 95vh; overflow-y: auto; }
+.modal-content::-webkit-scrollbar { width: 8px; }
+.modal-content::-webkit-scrollbar-track { background: transparent; }
+.modal-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+.modal-content::-webkit-scrollbar-thumb:hover { background: #999; }
+.modal-content { scrollbar-width: thin; scrollbar-color: #ccc transparent; }
+.close-btn { position: absolute; left: 20px; top: 16px; cursor: pointer; font-size: 1.5rem; color: #888; z-index: 10; line-height: 1; background: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 .close-btn:hover { color: #333; }
 .counter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
 .c-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent); background: white; cursor: pointer; color: var(--accent); font-weight: bold; }
@@ -1941,85 +1946,86 @@ img, svg, video { max-width: 100%; }
 
 
 <div id="profileModal" class="modal" onclick="if(event.target===this)closeM('profileModal')">
-  <div class="modal-content" style="max-width:400px;">
+  <div class="modal-content" style="max-width:420px;padding:22px 24px;">
     <span class="close-btn" onclick="closeM('profileModal')">×</span>
-    <h3 style="margin:0 0 18px;font-size:1.1rem;">👤 הפרופיל שלי</h3>
+    <h3 style="margin:0 0 12px;font-size:1.05rem;">👤 הפרופיל שלי</h3>
 
     <!-- Avatar + name row -->
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:14px;background:#f8f9fa;border-radius:11px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:10px 12px;background:#f8f9fa;border-radius:10px;">
       <div style="position:relative;flex-shrink:0;">
         <div id="profile-avatar" onclick="openAvatarMenu()"
-             style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:1.7rem;color:white;font-weight:bold;cursor:pointer;overflow:hidden;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.15);"></div>
-        <div onclick="openAvatarMenu()" style="position:absolute;bottom:-2px;left:-2px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:0.75rem;cursor:pointer;border:2px solid white;">📷</div>
+             style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:1.55rem;color:white;font-weight:bold;cursor:pointer;overflow:hidden;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.15);"></div>
+        <div onclick="openAvatarMenu()" style="position:absolute;bottom:-2px;left:-2px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;cursor:pointer;border:2px solid white;">📷</div>
       </div>
       <div>
-        <div id="profile-name-display" style="font-weight:bold;font-size:1.05rem;"></div>
-        <div id="profile-joined" style="font-size:0.75rem;color:#aaa;margin-top:2px;"></div>
+        <div id="profile-name-display" style="font-weight:bold;font-size:1.02rem;"></div>
+        <div id="profile-joined" style="font-size:0.72rem;color:#aaa;margin-top:1px;"></div>
       </div>
     </div>
 
     <!-- About me -->
-    <div style="margin-bottom:12px;">
-      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">קצת על עצמי</label>
-      <textarea id="prof-bio" maxlength="200" rows="3" placeholder="ספר קצת על עצמך..."
-        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;direction:rtl;resize:vertical;"
+    <div style="margin-bottom:10px;">
+      <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;">קצת על עצמי</label>
+      <textarea id="prof-bio" maxlength="300" rows="2" placeholder="ספר קצת על עצמך..."
+        style="width:100%;box-sizing:border-box;padding:8px 11px;border:1.5px solid #ddd;border-radius:8px;font-size:0.88rem;font-family:inherit;direction:rtl;resize:vertical;min-height:50px;"
         oninput="updateBioCounter()"></textarea>
-      <div style="text-align:left;font-size:0.7rem;color:#aaa;margin-top:2px;"><span id="bio-counter">0</span>/200</div>
+      <div style="text-align:left;font-size:0.68rem;color:#aaa;margin-top:1px;"><span id="bio-counter">0</span>/300</div>
     </div>
 
-    <!-- Editable fields -->
-    <div style="margin-bottom:12px;">
-      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">ענף</label>
-      <div style="display:flex;gap:8px;">
-        <label id="prof-ski-lbl" style="display:flex;align-items:center;gap:6px;cursor:pointer;flex:1;padding:9px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;transition:all 0.15s;">
+    <!-- Discipline -->
+    <div style="margin-bottom:10px;">
+      <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;">ענף</label>
+      <div style="display:flex;gap:6px;">
+        <label id="prof-ski-lbl" style="display:flex;align-items:center;gap:5px;cursor:pointer;flex:1;padding:7px;border:1.5px solid #ddd;border-radius:8px;font-size:0.85rem;transition:all 0.15s;">
           <input type="radio" name="prof-disc" value="ski"> ⛷️ סקי
         </label>
-        <label id="prof-sb-lbl" style="display:flex;align-items:center;gap:6px;cursor:pointer;flex:1;padding:9px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;transition:all 0.15s;">
+        <label id="prof-sb-lbl" style="display:flex;align-items:center;gap:5px;cursor:pointer;flex:1;padding:7px;border:1.5px solid #ddd;border-radius:8px;font-size:0.85rem;transition:all 0.15s;">
           <input type="radio" name="prof-disc" value="snowboard"> 🏂 סנובורד
         </label>
       </div>
     </div>
 
-    <div style="margin-bottom:12px;">
-      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">רמת סקי</label>
-      <select id="prof-level" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;background:white;">
-        <option value="">לא צוין</option>
-        <option value="מתחיל">🟢 מתחיל</option>
-        <option value="בינוני">🟡 בינוני</option>
-        <option value="מתקדם">🔴 מתקדם</option>
-        <option value="מקצועי">⚫ מקצועי</option>
-      </select>
-    </div>
-
-    <div style="margin-bottom:12px;">
-      <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">כמה פעמים ביקרת בצ'רוויניה?</label>
-      <select id="prof-visits" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;background:white;">
-        <option value="">לא ציין</option>
-        <option value="ראשון">🆕 פעם ראשונה (מתכנן)</option>
-        <option value="1">1 פעם</option>
-        <option value="2-3">2-3 פעמים</option>
-        <option value="4+">4+ פעמים</option>
-        <option value="וותיק">🏔️ וותיק מושבע</option>
-      </select>
+    <!-- Level + Visits side by side -->
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <div style="flex:1;">
+        <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;">רמת סקי</label>
+        <select id="prof-level" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:0.87rem;font-family:inherit;background:white;">
+          <option value="">לא צוין</option>
+          <option value="מתחיל">🟢 מתחיל</option>
+          <option value="בינוני">🟡 בינוני</option>
+          <option value="מתקדם">🔴 מתקדם</option>
+          <option value="מקצועי">⚫ מקצועי</option>
+        </select>
+      </div>
+      <div style="flex:1;">
+        <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;">ביקורים בצ'רוויניה</label>
+        <select id="prof-visits" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:0.87rem;font-family:inherit;background:white;">
+          <option value="">לא צוין</option>
+          <option value="ראשון">🆕 פעם ראשונה</option>
+          <option value="1">1 פעם</option>
+          <option value="2-3">2-3 פעמים</option>
+          <option value="4+">4+ פעמים</option>
+          <option value="וותיק">🏔️ וותיק מושבע</option>
+        </select>
+      </div>
     </div>
 
     <!-- Change password -->
-    <details style="margin-bottom:16px;">
-      <summary style="font-size:0.82rem;color:#888;cursor:pointer;padding:8px 0;">🔑 שינוי סיסמא</summary>
-      <div style="padding:10px 0 0;">
+    <details style="margin-bottom:10px;">
+      <summary style="font-size:0.8rem;color:#888;cursor:pointer;padding:5px 0;">🔑 שינוי סיסמא</summary>
+      <div style="padding:7px 0 0;">
         <input id="prof-pass-old" type="password" placeholder="סיסמא נוכחית"
-          style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;margin-bottom:8px;font-size:0.9rem;direction:rtl;font-family:inherit;">
+          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;margin-bottom:6px;font-size:0.87rem;direction:rtl;font-family:inherit;">
         <input id="prof-pass-new" type="password" placeholder="סיסמא חדשה (לפחות 4 תווים)"
-          style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:0.9rem;direction:rtl;font-family:inherit;">
+          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;font-size:0.87rem;direction:rtl;font-family:inherit;">
       </div>
     </details>
 
-    <button onclick="saveProfile()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;margin-bottom:10px;">
+    <button onclick="saveProfile()" style="width:100%;padding:10px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
       💾 שמור שינויים
     </button>
 
-
-    <div id="profile-msg" style="display:none;text-align:center;font-size:0.85rem;margin-top:10px;padding:8px;border-radius:8px;"></div>
+    <div id="profile-msg" style="display:none;text-align:center;font-size:0.83rem;margin-top:8px;padding:7px;border-radius:7px;"></div>
   </div>
 </div>
 
@@ -2042,6 +2048,32 @@ img, svg, video { max-width: 100%; }
         🗑️ מחק תמונה
       </button>
       <button onclick="closeM('avatarMenuModal')" style="padding:10px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+        ביטול
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Webcam capture modal (desktop) -->
+<div id="webcamModal" class="modal" onclick="if(event.target===this)closeWebcam()">
+  <div class="modal-content" style="max-width:480px;padding:20px;">
+    <span class="close-btn" onclick="closeWebcam()">×</span>
+    <h3 style="margin:0 0 12px;font-size:1.05rem;text-align:center;">צילום תמונה</h3>
+    <div style="background:#000;border-radius:10px;overflow:hidden;margin-bottom:12px;position:relative;">
+      <video id="webcam-video" autoplay playsinline muted
+        style="display:block;width:100%;max-height:60vh;transform:scaleX(-1);"></video>
+      <div id="webcam-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:0.95rem;background:rgba(0,0,0,0.7);">
+        ⏳ מאתחל מצלמה...
+      </div>
+    </div>
+    <div id="webcam-error" style="display:none;background:#ffe0e0;border:1px solid #e74c3c;color:#c0392b;padding:10px;border-radius:8px;margin-bottom:12px;font-size:0.85rem;text-align:center;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="captureFromWebcam()" id="webcam-capture-btn" disabled
+        style="flex:2;padding:12px;background:#27ae60;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;opacity:0.5;">
+        📸 צלם
+      </button>
+      <button onclick="closeWebcam()"
+        style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;">
         ביטול
       </button>
     </div>
@@ -3940,7 +3972,7 @@ function saveProfile() {
   const disc = document.querySelector('input[name="prof-disc"]:checked')?.value || user.discipline;
   const level = document.getElementById('prof-level')?.value || null;
   const visits = document.getElementById('prof-visits')?.value || null;
-  const bio = (document.getElementById('prof-bio')?.value || '').trim().slice(0, 200);
+  const bio = (document.getElementById('prof-bio')?.value || '').trim().slice(0, 300);
   const oldPass = document.getElementById('prof-pass-old')?.value;
   const newPass = document.getElementById('prof-pass-new')?.value;
 
@@ -3980,6 +4012,7 @@ function saveProfile() {
 
 // ── Avatar upload / crop / save ──
 let _cropper = null;
+let _lastAvatarSource = null; // 'camera' | 'gallery' | null
 
 function openAvatarMenu() {
   if (!user) return;
@@ -3988,21 +4021,114 @@ function openAvatarMenu() {
   openM('avatarMenuModal');
 }
 
+// Detect mobile device (for camera capture API choice)
+function _isMobileDevice() {
+  return /android|iphone|ipad|ipod|mobile|webos|blackberry/i.test(navigator.userAgent || '');
+}
+
 function triggerAvatarUpload(mode) {
-  const input = document.getElementById('avatar-file-input');
-  if (!input) return;
-  if (mode === 'camera') {
-    input.setAttribute('capture', 'environment');
-  } else {
-    input.removeAttribute('capture');
-  }
-  input.value = '';
   closeM('avatarMenuModal');
+  // Retake: re-use last source
   if (mode === 'retake') {
     destroyCropper();
     closeM('cropperModal');
+    mode = _lastAvatarSource || 'gallery';
+  } else {
+    _lastAvatarSource = mode;
   }
-  input.click();
+  // Desktop + camera mode → use webcam API
+  if (mode === 'camera' && !_isMobileDevice()) {
+    openWebcam();
+    return;
+  }
+  // Mobile camera OR gallery on any device → file input
+  const oldInput = document.getElementById('avatar-file-input');
+  if (oldInput) oldInput.remove();
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.id = 'avatar-file-input';
+  input.accept = 'image/*';
+  input.style.display = 'none';
+  if (mode === 'camera') {
+    input.setAttribute('capture', 'environment');
+  }
+  input.onchange = handleAvatarFile;
+  document.body.appendChild(input);
+  setTimeout(() => input.click(), 50);
+}
+
+// ── Webcam capture (desktop) ──
+let _webcamStream = null;
+
+async function openWebcam() {
+  // Check support
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('הדפדפן לא תומך בגישה למצלמה. אנא בחר תמונה מהקובץ.');
+    return;
+  }
+  openM('webcamModal');
+  const video = document.getElementById('webcam-video');
+  const loading = document.getElementById('webcam-loading');
+  const errEl = document.getElementById('webcam-error');
+  const captureBtn = document.getElementById('webcam-capture-btn');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+  if (loading) loading.style.display = 'flex';
+  if (captureBtn) { captureBtn.disabled = true; captureBtn.style.opacity = '0.5'; }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+      audio: false
+    });
+    _webcamStream = stream;
+    if (video) {
+      video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        if (loading) loading.style.display = 'none';
+        if (captureBtn) { captureBtn.disabled = false; captureBtn.style.opacity = '1'; }
+      };
+    }
+  } catch (err) {
+    console.error('Webcam error:', err);
+    if (loading) loading.style.display = 'none';
+    let msg = 'לא ניתן לגשת למצלמה';
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      msg = 'הגישה למצלמה נדחתה. אנא אפשר גישה למצלמה בהגדרות הדפדפן.';
+    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+      msg = 'לא נמצאה מצלמה במחשב.';
+    } else if (err.name === 'NotReadableError') {
+      msg = 'המצלמה בשימוש על ידי תוכנה אחרת.';
+    }
+    if (errEl) { errEl.textContent = '⚠️ ' + msg; errEl.style.display = 'block'; }
+  }
+}
+
+function captureFromWebcam() {
+  const video = document.getElementById('webcam-video');
+  if (!video || !video.videoWidth) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  // Un-mirror the image when saving (video display is mirrored for UX)
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+  closeWebcam();
+  showCropper(dataUrl);
+}
+
+function closeWebcam() {
+  if (_webcamStream) {
+    try { _webcamStream.getTracks().forEach(t => t.stop()); } catch(e) {}
+    _webcamStream = null;
+  }
+  const video = document.getElementById('webcam-video');
+  if (video) {
+    try { video.srcObject = null; } catch(e) {}
+  }
+  closeM('webcamModal');
 }
 
 function handleAvatarFile(event) {
@@ -4803,8 +4929,23 @@ window.onload = async function() {
   if (USE_SUPABASE) await checkSupabaseSession();
   loadLatestAlert();
   renderReviews();
-  await _loadSeasonMode(); // ← טעינת מצב עונה מ-Supabase
-  applySummerMode(); // ← מוד קיץ אוטומטי
+  // הפעלת מצב קייץ מיד לפי תאריך אוטומטי - בלי להמתין ל-Supabase
+  applySummerMode();
+  // טעינת override מ-Supabase ברקע; אם שונה מ-auto, רענון
+  _loadSeasonMode().then(() => {
+    if (_seasonOverride && _seasonOverride !== 'auto') {
+      // יש override פעיל - יש להחיל מחדש (רק לטובת אדמין שמחליף ידנית)
+      // נטען מחדש כדי למנוע דובל banners/buttons
+      var month = new Date().getMonth() + 1;
+      var day = new Date().getDate();
+      var autoIsSummer = !((month < 5) || (month === 5 && day <= 3) || (month === 10 && day >= 25) || (month > 10)) && !(month === 10 && day >= 10 && day <= 24);
+      var overrideIsSummer = _seasonOverride === 'summer';
+      // רק אם ה-override מנוגד למה שהאוטומטי כבר הציג - רענון
+      if (autoIsSummer !== overrideIsSummer) {
+        location.reload();
+      }
+    }
+  });
 };
 
 function _countdownBox(id, label, size, bold) {
