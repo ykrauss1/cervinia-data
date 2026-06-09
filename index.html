@@ -1008,7 +1008,7 @@ img, svg, video { max-width: 100%; }
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמא</label>
         <div style="position:relative;">
           <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"
-            style="width:100%;box-sizing:border-box;padding:10px 38px 10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;"
+            style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
             onkeydown="if(event.key==='Enter') login()">
           <button type="button" onclick="togglePass('login-pass')" tabindex="-1"
             style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
@@ -1044,22 +1044,24 @@ img, svg, video { max-width: 100%; }
       <div style="margin-bottom:10px;">
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמא</label>
         <div style="position:relative;">
-          <input id="reg-pass" type="password" placeholder="לפחות 6 תווים" autocomplete="new-password"
-            style="width:100%;box-sizing:border-box;padding:10px 38px 10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;">
+          <input id="reg-pass" type="password" placeholder="לפחות 6 תווים באנגלית" autocomplete="new-password"
+            style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
+            oninput="checkPassValidity()">
           <button type="button" onclick="togglePass('reg-pass')" tabindex="-1"
             style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
+        <div id="pass-validity-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;direction:rtl;text-align:right;"></div>
       </div>
       <div style="margin-bottom:16px;">
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">אימות סיסמא</label>
         <div style="position:relative;">
           <input id="reg-pass2" type="password" placeholder="הכנס שוב" autocomplete="new-password"
-            style="width:100%;box-sizing:border-box;padding:10px 38px 10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;"
+            style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
             onkeydown="if(event.key==='Enter') register()" oninput="checkPassMatch()">
           <button type="button" onclick="togglePass('reg-pass2')" tabindex="-1"
             style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
-        <div id="pass-match-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;"></div>
+        <div id="pass-match-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;direction:rtl;text-align:right;"></div>
       </div>
       <button onclick="register()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
         ✅ הרשמה
@@ -1072,7 +1074,7 @@ img, svg, video { max-width: 100%; }
     <!-- ADMIN (hidden) -->
     <div id="auth-panel-admin" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed #eee;">
       <input id="auth-pass" type="password" placeholder="סיסמת אדמין"
-        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #fcc;border-radius:9px;margin-bottom:10px;font-size:0.93rem;direction:rtl;font-family:inherit;"
+        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #fcc;border-radius:9px;margin-bottom:10px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
         onkeydown="if(event.key==='Enter') loginAdmin()">
       <button onclick="loginAdmin()" style="width:100%;padding:10px;background:#c0392b;color:white;border:none;border-radius:9px;font-size:0.9rem;cursor:pointer;font-weight:bold;">
         🔐 כניסת אדמין
@@ -2015,9 +2017,9 @@ img, svg, video { max-width: 100%; }
       <summary style="font-size:0.8rem;color:#888;cursor:pointer;padding:5px 0;">🔑 שינוי סיסמא</summary>
       <div style="padding:7px 0 0;">
         <input id="prof-pass-old" type="password" placeholder="סיסמא נוכחית"
-          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;margin-bottom:6px;font-size:0.87rem;direction:rtl;font-family:inherit;">
-        <input id="prof-pass-new" type="password" placeholder="סיסמא חדשה (לפחות 4 תווים)"
-          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;font-size:0.87rem;direction:rtl;font-family:inherit;">
+          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;margin-bottom:6px;font-size:0.87rem;direction:ltr;text-align:left;font-family:inherit;">
+        <input id="prof-pass-new" type="password" placeholder="סיסמא חדשה (לפחות 6 תווים באנגלית)"
+          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;font-size:0.87rem;direction:ltr;text-align:left;font-family:inherit;">
       </div>
     </details>
 
@@ -4013,8 +4015,11 @@ async function saveProfile() {
     if (simpleHash(oldPass) !== users[user.name].passHash) {
       showProfileMsg('סיסמא נוכחית שגויה', 'error'); return;
     }
-    if (newPass.length < 4) {
-      showProfileMsg('סיסמא חדשה קצרה מדי', 'error'); return;
+    if (newPass.length < 6) {
+      showProfileMsg('הסיסמא חייבת להכיל לפחות 6 תווים', 'error'); return;
+    }
+    if (/[\u0590-\u05FF]/.test(newPass)) {
+      showProfileMsg('הסיסמא חייבת להיות באנגלית בלבד', 'error'); return;
     }
     users[user.name].passHash = simpleHash(newPass);
   }
@@ -4503,7 +4508,8 @@ function checkPassMatch() {
   var p1  = document.getElementById('reg-pass')?.value  || '';
   var p2  = document.getElementById('reg-pass2')?.value || '';
   var msg = document.getElementById('pass-match-msg');
-  if (!msg || !p2) return;
+  if (!msg) return;
+  if (!p2) { msg.textContent = ''; return; }
   if (p1 === p2) {
     msg.textContent = '✅ הסיסמאות תואמות';
     msg.style.color = '#2e7d32';
@@ -4511,6 +4517,31 @@ function checkPassMatch() {
     msg.textContent = '❌ הסיסמאות אינן תואמות';
     msg.style.color = '#c62828';
   }
+}
+
+// בדיקת תקינות הסיסמא בהרשמה (אורך + אנגלית)
+function checkPassValidity() {
+  var p1  = document.getElementById('reg-pass')?.value || '';
+  var msg = document.getElementById('pass-validity-msg');
+  if (!msg) return;
+  if (!p1) { msg.textContent = ''; return; }
+  // בדיקת תווים בעברית
+  if (/[\u0590-\u05FF]/.test(p1)) {
+    msg.textContent = '⚠️ הסיסמא חייבת להיות באנגלית (כיבוי מקש Caps Lock או החלפת שפה ל-EN)';
+    msg.style.color = '#c62828';
+    return;
+  }
+  // בדיקת אורך
+  if (p1.length < 6) {
+    msg.textContent = '⚠️ נדרשים לפחות 6 תווים (כרגע: ' + p1.length + ')';
+    msg.style.color = '#c62828';
+    return;
+  }
+  // הכל תקין
+  msg.textContent = '✅ הסיסמא תקינה';
+  msg.style.color = '#2e7d32';
+  // נבדוק שוב את ההתאמה אם כבר הקלידו אימות
+  checkPassMatch();
 }
 
 async function sendPasswordReset() {
@@ -5492,6 +5523,7 @@ async function register() {
   if (!name) { showAuthErr('נא להזין שם משתמש'); return; }
   if (!email || !email.includes('@')) { showAuthErr('נא להזין כתובת מייל תקינה'); return; }
   if (!pass || pass.length < 6) { showAuthErr('הסיסמא חייבת להכיל לפחות 6 תווים'); return; }
+  if (/[\u0590-\u05FF]/.test(pass)) { showAuthErr('הסיסמא חייבת להיות באנגלית בלבד'); return; }
   if (pass !== pass2) { showAuthErr('הסיסמאות אינן תואמות'); return; }
 
   if (USE_SUPABASE) {
