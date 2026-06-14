@@ -1,20 +1,20 @@
 {
-  "updated_at": "2026-06-14T01:42:43.301Z",
-  "temperature": 9.8,
-  "zermatt_link": "CLOSED",
-  "lifts_open_global": 0,
+  "updated_at": "2026-06-14T06:35:30.022Z",
+  "temperature": 10.2,
+  "zermatt_link": "NEXT UPDATE",
+  "lifts_open_global": 3,
   "lifts_total_global": 47,
   "slopes_open_global": 0,
   "slopes_total_global": 109,
-  "lifts_open_local": 0,
+  "lifts_open_local": 2,
   "lifts_total_local": 5,
   "slopes_open_local": 0,
   "slopes_total_local": 0,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 8.3,
-  "wind_gust": 27.4,
-  "humidity": 19,
+  "wind_speed": 13.3,
+  "wind_gust": 70.2,
+  "humidity": 17,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -30,7 +30,7 @@
     {
       "station": "cime",
       "altitude": 2814,
-      "depth": 10,
+      "depth": 0,
       "name": "Cime Bianche Laghi",
       "last_snowfall": "12/05/2026"
     },
@@ -50,66 +50,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Saturday, June 13",
+    "date": "Sunday, June 14",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "sun"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Monday, June 15",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Tuesday, June 16",
       "periods": [
@@ -145,6 +124,27 @@
         {
           "label": "Evening\n(18.00 - 24.00)",
           "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Thursday, June 18",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun-rain"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun-rain"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
