@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-14T23:45:40.385Z",
+  "updated_at": "2026-06-15T03:41:40.068Z",
   "temperature": 7.3,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
@@ -12,9 +12,9 @@
   "slopes_total_local": 0,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 25.2,
-  "wind_gust": 77,
-  "humidity": 44,
+  "wind_speed": 28.4,
+  "wind_gust": 85.3,
+  "humidity": 33,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -50,7 +50,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Sunday, June 14",
+    "date": "Monday, June 15",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -90,27 +90,6 @@
   },
   "forecast_next_days": [
     {
-      "date": "Tuesday, June 16",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
-    {
       "date": "Wednesday, June 17",
       "periods": [
         {
@@ -145,6 +124,27 @@
         {
           "label": "Evening\n(18.00 - 24.00)",
           "icon": "sun-rain"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Friday, June 19",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
