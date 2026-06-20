@@ -1,23 +1,23 @@
 {
-  "updated_at": "2026-06-20T02:53:05.857Z",
-  "temperature": 7.4,
-  "zermatt_link": "CLOSED",
-  "lifts_open_global": 0,
+  "updated_at": "2026-06-20T06:58:58.367Z",
+  "temperature": 12,
+  "zermatt_link": "OPEN",
+  "lifts_open_global": 11,
   "lifts_total_global": 47,
-  "slopes_open_global": 0,
+  "slopes_open_global": 6,
   "slopes_total_global": 109,
-  "lifts_open_local": 0,
+  "lifts_open_local": 4,
   "lifts_total_local": 5,
   "slopes_open_local": 0,
   "slopes_total_local": 1,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 6.8,
-  "wind_gust": 15.5,
-  "humidity": 77,
+  "wind_speed": 1.4,
+  "wind_gust": 16.9,
+  "humidity": null,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Nuvoloso con intervalli di sole",
+  "weather_description": "Sereno",
   "opening_hours": "08:15 - 16:45",
   "snow_points": [
     {
@@ -50,7 +50,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Friday, June 19",
+    "date": "Saturday, June 20",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -76,40 +76,19 @@
       },
       {
         "name": "Valtournenche",
-        "icon": "sun-rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun-rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun-rain"
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Sunday, June 21",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Monday, June 22",
       "periods": [
