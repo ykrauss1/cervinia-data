@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-06-26T02:52:41.929Z",
-  "temperature": 10.1,
+  "updated_at": "2026-06-26T06:52:30.433Z",
+  "temperature": 14.7,
   "zermatt_link": "CLOSED",
-  "lifts_open_global": 5,
+  "lifts_open_global": 6,
   "lifts_total_global": 47,
   "slopes_open_global": 1,
   "slopes_total_global": 109,
@@ -12,19 +12,26 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 11.5,
+  "wind_speed": 2.5,
   "wind_gust": 46.1,
-  "humidity": null,
+  "humidity": 61,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Cielo Sereno",
+  "weather_description": "Poco nuvoloso",
   "opening_hours": "08:15 - 16:45",
   "snow_points": [
     {
-      "station": "base",
-      "altitude": 2050,
+      "station": "top",
+      "altitude": 3480,
+      "depth": 60,
+      "name": "Plateau Rosa",
+      "last_snowfall": "12/05/2026"
+    },
+    {
+      "station": "cime",
+      "altitude": 2814,
       "depth": 0,
-      "name": "Breuil",
+      "name": "Cime Bianche Laghi",
       "last_snowfall": "12/05/2026"
     },
     {
@@ -35,22 +42,15 @@
       "last_snowfall": "12/05/2026"
     },
     {
-      "station": "top",
-      "altitude": 3480,
-      "depth": 65,
-      "name": "Plateau Rosa",
-      "last_snowfall": "12/05/2026"
-    },
-    {
-      "station": "cime",
-      "altitude": 2814,
+      "station": "base",
+      "altitude": 2050,
       "depth": 0,
-      "name": "Cime Bianche Laghi",
+      "name": "Breuil",
       "last_snowfall": "12/05/2026"
     }
   ],
   "forecast_today": {
-    "date": "Thursday, June 25",
+    "date": "Friday, June 26",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -89,27 +89,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Saturday, June 27",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Sunday, June 28",
       "periods": [
