@@ -1,37 +1,30 @@
 {
-  "updated_at": "2026-06-29T01:36:03.949Z",
-  "temperature": 10.2,
-  "zermatt_link": "CLOSED",
-  "lifts_open_global": 0,
+  "updated_at": "2026-06-29T06:42:06.563Z",
+  "temperature": 12.9,
+  "zermatt_link": "OPEN",
+  "lifts_open_global": 15,
   "lifts_total_global": 47,
-  "slopes_open_global": 0,
+  "slopes_open_global": 7,
   "slopes_total_global": 109,
-  "lifts_open_local": 0,
+  "lifts_open_local": 4,
   "lifts_total_local": 4,
-  "slopes_open_local": 0,
+  "slopes_open_local": 1,
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 9.4,
-  "wind_gust": 20.5,
-  "humidity": 71,
+  "wind_speed": 5,
+  "wind_gust": 46.1,
+  "humidity": 65,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Nuvoloso e pioggia",
+  "weather_description": "Cielo Sereno",
   "opening_hours": "07:15 - 16:30",
   "snow_points": [
     {
-      "station": "base",
-      "altitude": 2050,
-      "depth": 0,
-      "name": "Breuil",
-      "last_snowfall": "12/05/2026"
-    },
-    {
-      "station": "mid",
-      "altitude": 2600,
-      "depth": 0,
-      "name": "Plan Maison",
+      "station": "top",
+      "altitude": 3480,
+      "depth": 60,
+      "name": "Plateau Rosa",
       "last_snowfall": "12/05/2026"
     },
     {
@@ -42,10 +35,17 @@
       "last_snowfall": "12/05/2026"
     },
     {
-      "station": "top",
-      "altitude": 3480,
-      "depth": 60,
-      "name": "Plateau Rosa",
+      "station": "mid",
+      "altitude": 2600,
+      "depth": 0,
+      "name": "Plan Maison",
+      "last_snowfall": "12/05/2026"
+    },
+    {
+      "station": "base",
+      "altitude": 2050,
+      "depth": 0,
+      "name": "Breuil",
       "last_snowfall": "12/05/2026"
     },
     {
@@ -64,7 +64,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Sunday, June 28",
+    "date": "Monday, June 29",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -104,27 +104,6 @@
   },
   "forecast_next_days": [
     {
-      "date": "Tuesday, June 30",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
-    {
       "date": "Wednesday, July 1",
       "periods": [
         {
@@ -147,6 +126,27 @@
     },
     {
       "date": "Thursday, July 2",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Friday, July 3",
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
