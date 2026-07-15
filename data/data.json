@@ -1,10 +1,10 @@
 {
-  "updated_at": "2026-07-15T11:09:03.734Z",
-  "temperature": 15,
-  "zermatt_link": "OPEN",
-  "lifts_open_global": 23,
+  "updated_at": "2026-07-15T12:50:36.195Z",
+  "temperature": 11.8,
+  "zermatt_link": "CLOSED",
+  "lifts_open_global": 19,
   "lifts_total_global": 47,
-  "slopes_open_global": 8,
+  "slopes_open_global": 2,
   "slopes_total_global": 109,
   "lifts_open_local": 4,
   "lifts_total_local": 5,
@@ -12,26 +12,19 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 9.4,
+  "wind_speed": 25.6,
   "wind_gust": 66.6,
-  "humidity": 68,
+  "humidity": 74,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Poco nuvoloso",
+  "weather_description": "Nuvoloso",
   "opening_hours": "07:15 - 16:30",
   "snow_points": [
     {
-      "station": "top",
-      "altitude": 3480,
-      "depth": 45,
-      "name": "Plateau Rosa",
-      "last_snowfall": "12/05/2026"
-    },
-    {
-      "station": "cime",
-      "altitude": 2814,
+      "station": "base",
+      "altitude": 2050,
       "depth": 0,
-      "name": "Cime Bianche Laghi",
+      "name": "Breuil",
       "last_snowfall": "[]"
     },
     {
@@ -42,11 +35,18 @@
       "last_snowfall": "[]"
     },
     {
-      "station": "base",
-      "altitude": 2050,
+      "station": "cime",
+      "altitude": 2814,
       "depth": 0,
-      "name": "Breuil",
+      "name": "Cime Bianche Laghi",
       "last_snowfall": "[]"
+    },
+    {
+      "station": "top",
+      "altitude": 3480,
+      "depth": 45,
+      "name": "Plateau Rosa",
+      "last_snowfall": "12/05/2026"
     },
     {
       "station": "valt",
@@ -68,39 +68,103 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun-rain"
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": "sun-rain"
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
-        "icon": "sun-rain"
+        "icon": "rain"
       }
     ]
   },
-  "forecast_next_days": []
+  "forecast_next_days": [
+    {
+      "date": "Friday, July 17",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, July 18",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, July 19",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    }
+  ]
 }
