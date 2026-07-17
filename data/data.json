@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-17T00:58:37.723Z",
-  "temperature": 8.8,
+  "updated_at": "2026-07-17T04:08:30.490Z",
+  "temperature": 10.3,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 14.8,
+  "wind_speed": 18.7,
   "wind_gust": 42.8,
-  "humidity": 80,
+  "humidity": null,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso e pioggia",
@@ -64,23 +64,23 @@
     }
   ],
   "forecast_today": {
-    "date": "Thursday, July 16",
+    "date": "Friday, July 17",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
@@ -90,40 +90,19 @@
       },
       {
         "name": "Valtournenche",
-        "icon": "sun-rain"
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": "sun-rain"
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "rain"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Saturday, July 18",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Sunday, July 19",
       "periods": [
