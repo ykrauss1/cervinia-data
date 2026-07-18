@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-18T00:53:32.250Z",
-  "temperature": 10.7,
+  "updated_at": "2026-07-18T03:51:52.768Z",
+  "temperature": 9.7,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 21.2,
-  "wind_gust": 42.8,
-  "humidity": 54,
+  "wind_speed": 10.4,
+  "wind_gust": 47.9,
+  "humidity": 53,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -64,7 +64,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Friday, July 17",
+    "date": "Saturday, July 18",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -72,58 +72,37 @@
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Sunday, July 19",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Monday, July 20",
       "periods": [
