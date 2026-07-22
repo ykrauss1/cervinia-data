@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-22T17:30:05.063Z",
-  "temperature": 11.5,
+  "updated_at": "2026-07-22T17:57:03.255Z",
+  "temperature": 10.8,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 19,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 18.4,
+  "wind_speed": 25.2,
   "wind_gust": 47.9,
-  "humidity": 52,
+  "humidity": 53,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -102,5 +102,69 @@
       }
     ]
   },
-  "forecast_next_days": []
+  "forecast_next_days": [
+    {
+      "date": "Friday, July 24",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, July 25",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "rain"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, July 26",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    }
+  ]
 }
