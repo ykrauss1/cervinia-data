@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-25T01:34:41.165Z",
-  "temperature": 7.1,
+  "updated_at": "2026-07-25T03:03:18.774Z",
+  "temperature": 7.2,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,8 +12,8 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": null,
-  "wind_gust": 13.7,
+  "wind_speed": 5.4,
+  "wind_gust": 15.5,
   "humidity": 70,
   "avalanche_level": "1",
   "avalanche_text": null,
@@ -64,66 +64,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Friday, July 24",
+    "date": "Saturday, July 25",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "rain"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "rain"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Sunday, July 26",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "rain"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Monday, July 27",
       "periods": [
