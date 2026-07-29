@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-29T02:17:39.145Z",
-  "temperature": 10.8,
+  "updated_at": "2026-07-29T03:39:05.262Z",
+  "temperature": 10.2,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 1.1,
+  "wind_speed": 2.5,
   "wind_gust": 11.9,
-  "humidity": 96,
+  "humidity": 95,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -64,7 +64,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Tuesday, July 28",
+    "date": "Wednesday, July 29",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -104,27 +104,6 @@
   },
   "forecast_next_days": [
     {
-      "date": "Thursday, July 30",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
-    {
       "date": "Friday, July 31",
       "periods": [
         {
@@ -147,6 +126,27 @@
     },
     {
       "date": "Saturday, August 1",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun-rain"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, August 2",
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
