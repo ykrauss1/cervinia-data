@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-31T01:35:22.177Z",
-  "temperature": 11.8,
+  "updated_at": "2026-07-31T03:04:05.326Z",
+  "temperature": 11.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 6.1,
-  "wind_gust": 11.9,
-  "humidity": 83,
+  "wind_speed": 6.8,
+  "wind_gust": 16.9,
+  "humidity": 77,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -64,7 +64,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Thursday, July 30",
+    "date": "Friday, July 31",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -86,44 +86,23 @@
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun-rain"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun-rain"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun-rain"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Saturday, August 1",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Sunday, August 2",
       "periods": [
