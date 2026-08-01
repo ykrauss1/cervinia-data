@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-01T08:47:20.527Z",
-  "temperature": 14.7,
+  "updated_at": "2026-08-01T09:39:26.553Z",
+  "temperature": 14.6,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 21,
   "lifts_total_global": 47,
@@ -12,19 +12,26 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 5.8,
-  "wind_gust": 20.5,
+  "wind_speed": 11.9,
+  "wind_gust": 29.2,
   "humidity": 61,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Cielo Sereno",
+  "weather_description": "Nuvoloso con intervalli di sole",
   "opening_hours": "07:15 - 16:30",
   "snow_points": [
     {
-      "station": "base",
-      "altitude": 2050,
+      "station": "top",
+      "altitude": 3480,
+      "depth": 30,
+      "name": "Plateau Rosa",
+      "last_snowfall": "12/05/2026"
+    },
+    {
+      "station": "cime",
+      "altitude": 2814,
       "depth": 0,
-      "name": "Breuil",
+      "name": "Cime Bianche Laghi",
       "last_snowfall": "[]"
     },
     {
@@ -35,18 +42,11 @@
       "last_snowfall": "[]"
     },
     {
-      "station": "cime",
-      "altitude": 2814,
+      "station": "base",
+      "altitude": 2050,
       "depth": 0,
-      "name": "Cime Bianche Laghi",
+      "name": "Breuil",
       "last_snowfall": "[]"
-    },
-    {
-      "station": "top",
-      "altitude": 3480,
-      "depth": 30,
-      "name": "Plateau Rosa",
-      "last_snowfall": "12/05/2026"
     },
     {
       "station": "valt",
