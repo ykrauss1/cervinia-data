@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-12T01:33:10.258Z",
-  "temperature": 10.3,
+  "updated_at": "2026-08-12T02:53:20.598Z",
+  "temperature": 9.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 6.1,
-  "wind_gust": 15.5,
-  "humidity": 72,
+  "wind_speed": 4.3,
+  "wind_gust": 20.5,
+  "humidity": 74,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -64,66 +64,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Tuesday, August 11",
+    "date": "Wednesday, August 12",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "sun-rain"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "sun-rain"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "sun-rain"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Thursday, August 13",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Friday, August 14",
       "periods": [
@@ -163,6 +142,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, August 16",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
         }
       ]
     }
