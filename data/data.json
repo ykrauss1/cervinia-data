@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-15T11:04:21.526Z",
-  "temperature": 13.3,
+  "updated_at": "2026-08-15T11:36:53.359Z",
+  "temperature": 13.5,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 20,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 9,
+  "wind_speed": 6.5,
   "wind_gust": 20.5,
-  "humidity": 70,
+  "humidity": 63,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -112,11 +112,53 @@
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "rain"
+          "icon": "sun-rain"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
-          "icon": "rain"
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Tuesday, August 18",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Wednesday, August 19",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
