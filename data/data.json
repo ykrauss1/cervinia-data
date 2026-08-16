@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-16T01:30:42.853Z",
-  "temperature": 9.2,
+  "updated_at": "2026-08-16T02:07:25.565Z",
+  "temperature": 9.1,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 7.2,
+  "wind_speed": 7.9,
   "wind_gust": 15.5,
-  "humidity": 79,
+  "humidity": 78,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso con intervalli di sole",
@@ -64,7 +64,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Saturday, August 15",
+    "date": "Sunday, August 16",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -104,27 +104,6 @@
   },
   "forecast_next_days": [
     {
-      "date": "Monday, August 17",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
-    {
       "date": "Tuesday, August 18",
       "periods": [
         {
@@ -159,6 +138,27 @@
         {
           "label": "Evening\n(18.00 - 24.00)",
           "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Thursday, August 20",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "rain"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
