@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-17T01:30:59.408Z",
-  "temperature": 8,
+  "updated_at": "2026-08-17T02:06:36.807Z",
+  "temperature": 10.3,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "12/05/2026",
-  "wind_speed": 4,
-  "wind_gust": 11.9,
-  "humidity": 94,
+  "wind_speed": 8.3,
+  "wind_gust": 34.2,
+  "humidity": 72,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso con intervalli di sole",
@@ -64,23 +64,23 @@
     }
   ],
   "forecast_today": {
-    "date": "Sunday, August 16",
+    "date": "Monday, August 17",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
@@ -90,40 +90,19 @@
       },
       {
         "name": "Valtournenche",
-        "icon": "sun-rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun-rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun-rain"
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Tuesday, August 18",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Wednesday, August 19",
       "periods": [
