@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-25T22:05:55.728Z",
-  "temperature": 8.1,
+  "updated_at": "2026-08-25T22:41:26.706Z",
+  "temperature": 7.1,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 4.3,
-  "wind_gust": 58,
-  "humidity": 82,
+  "wind_speed": 8.3,
+  "wind_gust": 10.1,
+  "humidity": null,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -68,39 +68,103 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "cloudy"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": null
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": null
       }
     ]
   },
-  "forecast_next_days": []
+  "forecast_next_days": [
+    {
+      "date": "Thursday, August 27",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Friday, August 28",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "rain"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, August 29",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
+        }
+      ]
+    }
+  ]
 }
