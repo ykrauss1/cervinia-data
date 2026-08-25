@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-25T01:30:32.608Z",
-  "temperature": 5.5,
+  "updated_at": "2026-08-25T02:05:35.107Z",
+  "temperature": 5.4,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 7.2,
+  "wind_speed": 6.5,
   "wind_gust": 58,
-  "humidity": 92,
+  "humidity": 93,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso con intervalli di sole",
@@ -64,26 +64,8 @@
     }
   ],
   "forecast_today": {
-    "date": "Monday, August 24",
+    "date": "Tuesday, August 25",
     "morning": [
-      {
-        "name": "Breuil-Cervinia",
-        "icon": "sun"
-      },
-      {
-        "name": "Valtournenche",
-        "icon": "partially-cloudy"
-      },
-      {
-        "name": "Chamois",
-        "icon": "sun"
-      },
-      {
-        "name": "Torgnon",
-        "icon": "sun"
-      }
-    ],
-    "afternoon": [
       {
         "name": "Breuil-Cervinia",
         "icon": "cloudy"
@@ -100,29 +82,25 @@
         "name": "Torgnon",
         "icon": "partially-cloudy"
       }
+    ],
+    "afternoon": [
+      {
+        "name": "Breuil-Cervinia",
+        "icon": "partially-cloudy"
+      },
+      {
+        "name": "Valtournenche",
+        "icon": "partially-cloudy"
+      },
+      {
+        "name": "Chamois",
+        "icon": "partially-cloudy"
+      },
+      {
+        "name": "Torgnon",
+        "icon": "partially-cloudy"
+      }
     ]
   },
-  "forecast_next_days": [
-    {
-      "date": "Wednesday, August 26",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    }
-  ]
+  "forecast_next_days": []
 }
