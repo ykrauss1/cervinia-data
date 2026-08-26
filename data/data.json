@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-26T14:46:03.696Z",
-  "temperature": 12.5,
+  "updated_at": "2026-08-26T15:47:16.064Z",
+  "temperature": 11,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 11,
   "lifts_total_global": 47,
@@ -12,26 +12,19 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 4.7,
-  "wind_gust": 22.3,
-  "humidity": 87,
+  "wind_speed": null,
+  "wind_gust": 30.6,
+  "humidity": 93,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Poco nuvoloso",
+  "weather_description": "Nuvoloso con intervalli di sole",
   "opening_hours": "07:45 - 16:30",
   "snow_points": [
     {
-      "station": "base",
-      "altitude": 2050,
+      "station": "top",
+      "altitude": 3480,
       "depth": 0,
-      "name": "Breuil",
-      "last_snowfall": "[]"
-    },
-    {
-      "station": "mid",
-      "altitude": 2600,
-      "depth": 0,
-      "name": "Plan Maison",
+      "name": "Plateau Rosa",
       "last_snowfall": "[]"
     },
     {
@@ -42,10 +35,17 @@
       "last_snowfall": "[]"
     },
     {
-      "station": "top",
-      "altitude": 3480,
+      "station": "mid",
+      "altitude": 2600,
       "depth": 0,
-      "name": "Plateau Rosa",
+      "name": "Plan Maison",
+      "last_snowfall": "[]"
+    },
+    {
+      "station": "base",
+      "altitude": 2050,
+      "depth": 0,
+      "name": "Breuil",
       "last_snowfall": "[]"
     },
     {
