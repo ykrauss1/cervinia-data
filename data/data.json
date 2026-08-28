@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-28T22:03:00.583Z",
-  "temperature": 5,
+  "updated_at": "2026-08-28T22:33:30.514Z",
+  "temperature": 4.9,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 4,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 6.1,
-  "wind_gust": 68.4,
-  "humidity": 80,
+  "wind_speed": 3.6,
+  "wind_gust": 10.1,
+  "humidity": null,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso e pioggia",
@@ -68,37 +68,37 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "cloudy"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "cloudy"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "cloudy"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "cloudy"
+        "icon": null
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "rain"
+        "icon": null
       },
       {
         "name": "Valtournenche",
-        "icon": "rain"
+        "icon": null
       },
       {
         "name": "Chamois",
-        "icon": "rain"
+        "icon": null
       },
       {
         "name": "Torgnon",
-        "icon": "rain"
+        "icon": null
       }
     ]
   },
@@ -120,12 +120,33 @@
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun"
         }
       ]
     },
     {
       "date": "Monday, August 31",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Tuesday, September 1",
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
@@ -137,11 +158,11 @@
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
+          "icon": "sun-rain"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
+          "icon": "rain"
         }
       ]
     }
