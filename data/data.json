@@ -1,23 +1,23 @@
 {
-  "updated_at": "2026-08-28T04:41:00.290Z",
-  "temperature": 9.4,
+  "updated_at": "2026-08-28T07:35:04.285Z",
+  "temperature": 9.2,
   "zermatt_link": "CLOSED",
-  "lifts_open_global": 0,
+  "lifts_open_global": 6,
   "lifts_total_global": 47,
-  "slopes_open_global": 0,
+  "slopes_open_global": 1,
   "slopes_total_global": 109,
-  "lifts_open_local": 0,
+  "lifts_open_local": 2,
   "lifts_total_local": 5,
-  "slopes_open_local": 0,
+  "slopes_open_local": 1,
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 13.3,
-  "wind_gust": 47.9,
-  "humidity": null,
+  "wind_speed": 24.5,
+  "wind_gust": 51.1,
+  "humidity": 93,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Nuvoloso con intervalli di sole",
+  "weather_description": "Nuvoloso e pioggia",
   "opening_hours": "07:45 - 16:30",
   "snow_points": [
     {
@@ -53,6 +53,13 @@
       "altitude": 1520,
       "depth": 0,
       "name": "Valtournenche",
+      "last_snowfall": "[]"
+    },
+    {
+      "station": "salette",
+      "altitude": 2289,
+      "depth": 0,
+      "name": "La Salette",
       "last_snowfall": "[]"
     }
   ],
