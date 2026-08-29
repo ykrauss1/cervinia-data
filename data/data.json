@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-29T01:35:53.924Z",
-  "temperature": 3.7,
+  "updated_at": "2026-08-29T02:10:10.208Z",
+  "temperature": 3.5,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 4,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 3.2,
+  "wind_speed": 8.6,
   "wind_gust": 15.5,
-  "humidity": 83,
+  "humidity": null,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso e pioggia",
@@ -64,66 +64,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Friday, August 28",
+    "date": "Saturday, August 29",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "sun"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Sunday, August 30",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Monday, August 31",
       "periods": [
@@ -163,6 +142,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "rain"
+        }
+      ]
+    },
+    {
+      "date": "Wednesday, September 2",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
         }
       ]
     }
