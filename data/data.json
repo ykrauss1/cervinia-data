@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-30T01:42:50.718Z",
-  "temperature": 6.4,
+  "updated_at": "2026-08-30T02:11:43.537Z",
+  "temperature": 5.8,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": null,
+  "wind_speed": 4,
   "wind_gust": 11.9,
-  "humidity": 76,
+  "humidity": 79,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -64,7 +64,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Saturday, August 29",
+    "date": "Sunday, August 30",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -90,40 +90,19 @@
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Monday, August 31",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Tuesday, September 1",
       "periods": [
@@ -147,6 +126,27 @@
     },
     {
       "date": "Wednesday, September 2",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Thursday, September 3",
       "periods": [
         {
           "label": "Morning\n(08.00 - 12.00)",
