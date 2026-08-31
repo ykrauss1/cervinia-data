@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-31T01:47:44.755Z",
-  "temperature": 7.9,
+  "updated_at": "2026-08-31T02:12:34.946Z",
+  "temperature": 7.7,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 14.8,
-  "wind_gust": 25.6,
-  "humidity": 79,
+  "wind_speed": 6.8,
+  "wind_gust": 29.2,
+  "humidity": 80,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -64,23 +64,23 @@
     }
   ],
   "forecast_today": {
-    "date": "Sunday, August 30",
+    "date": "Monday, August 31",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
@@ -90,40 +90,19 @@
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Tuesday, September 1",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "rain"
-        }
-      ]
-    },
     {
       "date": "Wednesday, September 2",
       "periods": [
