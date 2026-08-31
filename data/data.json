@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-31T14:36:53.271Z",
+  "updated_at": "2026-08-31T15:08:35.693Z",
   "temperature": 12.6,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
@@ -12,12 +12,12 @@
   "slopes_total_local": 2,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 19.8,
+  "wind_speed": 9.4,
   "wind_gust": 37.4,
-  "humidity": 51,
+  "humidity": 48,
   "avalanche_level": "1",
   "avalanche_text": null,
-  "weather_description": "Nuvoloso",
+  "weather_description": "Nuvoloso con intervalli di sole",
   "opening_hours": "07:45 - 16:30",
   "snow_points": [
     {
@@ -112,7 +112,7 @@
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
@@ -133,7 +133,28 @@
         },
         {
           "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Friday, September 4",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
