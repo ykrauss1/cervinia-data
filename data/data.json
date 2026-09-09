@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-09-09T01:44:57.497Z",
-  "temperature": 6.9,
+  "updated_at": "2026-09-09T02:11:29.045Z",
+  "temperature": 7.6,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 0,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": null,
-  "wind_gust": 18.7,
-  "humidity": 84,
+  "wind_speed": 6.1,
+  "wind_gust": 20.5,
+  "humidity": null,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -64,66 +64,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Tuesday, September 8",
+    "date": "Wednesday, September 9",
     "morning": [
-      {
-        "name": "Breuil-Cervinia",
-        "icon": "sun"
-      },
-      {
-        "name": "Valtournenche",
-        "icon": "sun"
-      },
-      {
-        "name": "Chamois",
-        "icon": "sun"
-      },
-      {
-        "name": "Torgnon",
-        "icon": "sun"
-      }
-    ],
-    "afternoon": [
       {
         "name": "Breuil-Cervinia",
         "icon": "rain"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun-rain"
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": "sun-rain"
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
+        "icon": "rain"
+      }
+    ],
+    "afternoon": [
+      {
+        "name": "Breuil-Cervinia",
         "icon": "sun-rain"
+      },
+      {
+        "name": "Valtournenche",
+        "icon": "partially-cloudy"
+      },
+      {
+        "name": "Chamois",
+        "icon": "partially-cloudy"
+      },
+      {
+        "name": "Torgnon",
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Thursday, September 10",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Friday, September 11",
       "periods": [
