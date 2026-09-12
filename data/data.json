@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-09-12T01:39:17.908Z",
-  "temperature": 3.3,
+  "updated_at": "2026-09-12T02:11:37.716Z",
+  "temperature": 3.5,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,7 +12,7 @@
   "slopes_total_local": 0,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 7.2,
+  "wind_speed": 12.2,
   "wind_gust": 13.7,
   "humidity": 79,
   "avalanche_level": "1",
@@ -64,23 +64,23 @@
     }
   ],
   "forecast_today": {
-    "date": "Friday, September 11",
+    "date": "Saturday, September 12",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "sun"
       }
     ],
     "afternoon": [
@@ -90,40 +90,19 @@
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Sunday, September 13",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Monday, September 14",
       "periods": [
@@ -163,6 +142,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Wednesday, September 16",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "partially-cloudy"
         }
       ]
     }
