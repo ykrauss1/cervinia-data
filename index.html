@@ -481,15 +481,16 @@ img, svg, video { max-width: 100%; }
       </div>
     </div>
 
+    <div id="forum-msg" style="display:none;margin:8px 0;padding:9px 12px;border-radius:8px;font-size:0.85rem;"></div>
     <div id="posts-list"></div>
     <div id="new-post-area" style="margin-top:15px;display:none;">
       <textarea id="new-post-text" placeholder="שאל שאלה, שתף עדכון או טיפ מהשטח..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;direction:rtl;resize:vertical;font-family:inherit;"></textarea>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
-        <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="new-post-file" style="display:none;" onchange="document.getElementById('new-post-file-name').textContent=this.files[0]?.name||''"></label>
-        <span id="new-post-file-name" style="font-size:0.78rem;color:#888;"></span>
+        <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="new-post-file" style="display:none;" accept="image/*,.pdf" onchange="showPickedFile('new-post-file','new-post-file-name')"></label>
+        <span id="new-post-file-name" style="font-size:0.78rem;color:#888;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
         <div style="margin-right:auto;display:flex;gap:8px;">
           <button onclick="document.getElementById('new-post-area').style.display='none'" style="padding:8px 16px;background:#eee;border:none;border-radius:8px;cursor:pointer;">ביטול</button>
-          <button onclick="submitPost()" style="padding:8px 20px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">שלח</button>
+          <button id="new-post-send" onclick="submitPost()" style="padding:8px 20px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">שלח</button>
         </div>
       </div>
     </div>
@@ -2469,37 +2470,54 @@ function closeReplyBox(targetId) {
   const box = document.getElementById('rbox-' + safeId(targetId));
   if (box) box.style.display = 'none';
 }
-function previewFile(targetId) {
-  const input = document.getElementById('rfile-' + targetId);
-  const nameEl = document.getElementById('rfile-name-' + targetId);
-  if (input && input.files[0] && nameEl) nameEl.textContent = input.files[0].name;
-}
 function makeReplyBox(targetId, postId) {
   const sid = safeId(targetId);
-  return '<div id="rbox-' + sid + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'    + '<textarea id="rtxt-' + sid + '" rows="2" placeholder="כתוב תגובה..." '    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;direction:rtl;font-family:inherit;font-size:0.87rem;"></textarea>'    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + sid + '" style="display:none;" onchange="previewFile(\'' + sid + '\')" accept="image/*,.pdf"></label>'    + '<span id="rfile-name-' + sid + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'    + '<div style="margin-right:auto;display:flex;gap:6px;">'    + '<button onclick="closeReplyBox(\'' + sid + '\')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'    + '<button onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'    + '</div></div></div>';
+  return '<div id="rbox-' + sid + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'    + '<textarea id="rtxt-' + sid + '" rows="2" placeholder="כתוב תגובה..." '    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;direction:rtl;font-family:inherit;font-size:0.87rem;"></textarea>'    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + sid + '" style="display:none;" accept="image/*,.pdf" onchange="showPickedFile(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')"></label>'    + '<span id="rfile-name-' + sid + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'        + '<div style="margin-right:auto;display:flex;gap:6px;">'    + '<button onclick="closeReplyBox(\'' + sid + '\')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'    + '<button id="rsend-' + sid + '" onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'    + '</div></div></div>';
 }
 async function submitReply(targetId, postId) {
   if (!user) return;
-  const ta = document.getElementById('rtxt-' + safeId(targetId));
-  const txt = ta?.value.trim();
-  if (!txt) return;
+  const sid = safeId(targetId);
+  const ta  = document.getElementById('rtxt-' + sid);
+  const txt = (ta && ta.value.trim()) || '';
+  const fi   = document.getElementById('rfile-' + sid);
+  const file = fi && fi.files ? fi.files[0] : null;
+  if (!txt && !file) return;
+  const btn = document.getElementById('rsend-' + sid);
+  const setBusy = function(on, label) {
+    if (!btn) return;
+    btn.disabled = on;
+    btn.style.opacity = on ? '0.6' : '';
+    btn.textContent = on ? label : 'שלח';
+  };
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const token = await getAuthToken();
-    const res = await fetch(SUPABASE_URL + '/rest/v1/replies', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ post_id: postId, parent_id: targetId === postId ? null : targetId, user: user.name, content: txt })
-    });
-    if (!res.ok) { try { const err = await res.json(); console.error('submitReply failed:', res.status, JSON.stringify(err)); } catch(e) { console.error('submitReply failed:', res.status); } }
-    if (res.ok) {
-      ta.value = '';
+    try {
+      let fileUrl = null;
+      if (file) { setBusy(true, 'מעלה…'); fileUrl = await uploadForumFile(file); }
+      setBusy(true, 'שולח…');
+      const res = await sbInsert('replies', {
+        post_id: postId,
+        parent_id: String(targetId) === String(postId) ? null : targetId,
+        user: user.name, user_id: user.sbId || null, content: txt, file_url: fileUrl
+      });
+      if (!res.ok) {
+        forumMsg('התגובה לא נשמרה. נסה להתנתק ולהתחבר מחדש.', true);
+        return;
+      }
+      if (ta) ta.value = '';
+      closeReplyBox(sid);
+      forumMsg('');
       const currentQuery = document.getElementById('search-input')?.value || '';
       const ok = await loadPostsFromSupabase();
       if (ok) renderPosts(currentQuery);
       return;
+    } catch (e) {
+      forumMsg(e.message || 'שגיאה בשליחת התגובה', true);
+      return;
+    } finally {
+      setBusy(false);
     }
   }
-  // fallback local
+  // מצב מקומי בלבד
   const newReply = { id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), reactions: {}, replies: [] };
   const post = allPosts.find(p => String(p.id) === String(postId));
   if (!post) return;
@@ -2509,7 +2527,7 @@ async function submitReply(targetId, postId) {
   } else {
     function addToReply(replies) {
       for (const r of replies) {
-        if (r.id === targetId) { if (!r.replies) r.replies = []; r.replies.push(newReply); return true; }
+        if (String(r.id) === String(targetId)) { if (!r.replies) r.replies = []; r.replies.push(newReply); return true; }
         if (r.replies && addToReply(r.replies)) return true;
       }
       return false;
@@ -2933,7 +2951,7 @@ function switchLessonTab(tab) {
 
 
 function sharePost(postId) {
-  const p = allPosts.find(function(x){ return x.id === postId; });
+  const p = allPosts.find(function(x){ return String(x.id) === String(postId); });
   if (!p) return;
   const text = '📢 *CerviniaLive* — ' + p.user + ':\n' + p.content;
   const waUrl = 'https://wa.me/?text=' + encodeURIComponent(text);
@@ -4419,7 +4437,8 @@ async function supabaseSendPasswordReset(username) {
   const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
   const { data: prof } = await sb.from('profiles').select('email, internal_email').eq('username', username).single();
   if (!prof) return { error: 'שם משתמש לא קיים במערכת' };
-  const { error } = await sb.auth.resetPasswordForEmail(prof.internal_email, {
+  if (!prof.email) return { error: 'לחשבון זה לא רשום מייל אמיתי — פנה למנהל האתר' };
+  const { error } = await sb.auth.resetPasswordForEmail(prof.email, {
     redirectTo: window.location.origin + window.location.pathname
   });
   if (error) return { error: error.message };
@@ -4936,11 +4955,16 @@ window.onload = async function() {
   await loadTexts(); // ← טעינת טקסטים לפני הכל
   try { user = JSON.parse(localStorage.getItem('skiUser')) || null; } catch(e) {}
   renderHeader();
-  allPosts = DEMO_POSTS.map(p => ({...p}));
-  renderPosts('');
-  // טעינת פוסטים אמיתיים מ-Supabase (ברקע)
   if (SUPABASE_URL && SUPABASE_KEY) {
-    loadPostsFromSupabase().then(ok => { if (ok) renderPosts(''); });
+    allPosts = [];
+    renderPosts('');
+    loadPostsFromSupabase().then(ok => {
+      if (ok) renderPosts('');
+      else forumMsg('לא הצלחנו לטעון את הפורום. נסה לרענן את הדף.', true);
+    });
+  } else {
+    allPosts = DEMO_POSTS.map(p => ({...p}));
+    renderPosts('');
   }
   renderFilterChips();
   renderPostBtn();
@@ -4961,9 +4985,16 @@ window.onload = async function() {
       var day = new Date().getDate();
       var autoIsSummer = !((month < 5) || (month === 5 && day <= 3) || (month === 10 && day >= 25) || (month > 10)) && !(month === 10 && day >= 10 && day <= 24);
       var overrideIsSummer = _seasonOverride === 'summer';
-      // רק אם ה-override מנוגד למה שהאוטומטי כבר הציג - רענון
+      // רק אם ה-override מנוגד למה שהאוטומטי כבר הציג - רענון חד-פעמי
       if (autoIsSummer !== overrideIsSummer) {
-        location.reload();
+        var already = false;
+        try { already = sessionStorage.getItem('seasonReloaded') === '1'; } catch(e) {}
+        if (!already) {
+          try { sessionStorage.setItem('seasonReloaded', '1'); } catch(e) {}
+          location.reload();
+        }
+      } else {
+        try { sessionStorage.removeItem('seasonReloaded'); } catch(e) {}
       }
     }
   });
@@ -5345,16 +5376,18 @@ async function _loadSeasonMode() {
 
 async function _saveSeasonMode(mode) {
   try {
-    await fetch(SUPABASE_URL + '/rest/v1/settings?id=eq.1', {
+    const _tok = await getAuthToken();
+    const _r = await fetch(SUPABASE_URL + '/rest/v1/settings?id=eq.1', {
       method: 'PATCH',
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Authorization': 'Bearer ' + _tok,
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify({ season_mode: mode, updated_at: new Date().toISOString() })
     });
+    if (!_r.ok) alert('שמירת מצב העונה נכשלה (' + _r.status + ') — השינוי לא יישמר.');
   } catch(e) {
     console.warn('Could not save season mode:', e.message);
   }
@@ -6047,6 +6080,82 @@ function showNewPost() {
   area.style.display = area.style.display === 'none' ? 'block' : 'none';
 }
 
+// ── Forum attachments ──
+const FORUM_BUCKET  = 'forum';
+const FORUM_MAX_MB  = 8;
+const FORUM_ALLOWED = /\.(jpe?g|png|gif|webp|heic|pdf)$/i;
+
+function showPickedFile(inputId, labelId) {
+  const inp = document.getElementById(inputId);
+  const lab = document.getElementById(labelId);
+  if (!inp || !lab) return;
+  const f = inp.files && inp.files[0];
+  if (!f) { lab.textContent = ''; return; }
+  if (!FORUM_ALLOWED.test(f.name)) { lab.textContent = 'סוג קובץ לא נתמך'; inp.value = ''; return; }
+  if (f.size > FORUM_MAX_MB * 1024 * 1024) { lab.textContent = 'גדול מ-' + FORUM_MAX_MB + 'MB'; inp.value = ''; return; }
+  lab.textContent = f.name;
+}
+
+// פירוק כתובת קובץ לשם וסוג לתצוגה
+function fileMeta(url) {
+  if (!url) return null;
+  const raw  = String(url).split('?')[0].split('/').pop() || 'file';
+  let name;
+  try { name = decodeURIComponent(raw); } catch (e) { name = raw; }
+  name = name.replace(/^\d{10,}_/, '');
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const imgs = ['jpg','jpeg','png','gif','webp','heic'];
+  const type = imgs.indexOf(ext) !== -1 ? 'image/' + ext
+             : (ext === 'pdf' ? 'application/pdf' : 'application/octet-stream');
+  return { url: url, name: name, type: type };
+}
+
+async function uploadForumFile(file) {
+  if (!file) return null;
+  if (!USE_SUPABASE || !_sb || !user || !user.sbId) throw new Error('צריך להיות מחובר כדי לצרף קובץ');
+  if (!FORUM_ALLOWED.test(file.name)) throw new Error('אפשר לצרף תמונות או PDF בלבד');
+  if (file.size > FORUM_MAX_MB * 1024 * 1024) throw new Error('הקובץ גדול מדי (עד ' + FORUM_MAX_MB + 'MB)');
+  const safe = file.name.replace(/[^\w.\-]/g, '_').slice(-60);
+  const path = user.sbId + '/' + Date.now() + '_' + safe;
+  const up = await _sb.storage.from(FORUM_BUCKET).upload(path, file, {
+    cacheControl: '3600', upsert: false, contentType: file.type || undefined
+  });
+  if (up.error) throw new Error('שגיאת העלאה: ' + up.error.message);
+  const pub = _sb.storage.from(FORUM_BUCKET).getPublicUrl(path);
+  const url = pub && pub.data && pub.data.publicUrl;
+  if (!url) throw new Error('לא התקבלה כתובת לקובץ');
+  return url;
+}
+
+// הוספה עמידה: אם עמודה אופציונלית עדיין לא קיימת — נסה שוב בלעדיה
+async function sbInsert(table, body) {
+  const token = await getAuthToken();
+  const h = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+  const url = SUPABASE_URL + '/rest/v1/' + table;
+  let res = await fetch(url, { method: 'POST', headers: h, body: JSON.stringify(body) });
+  if (res.ok) return res;
+  const txt = await res.text().catch(function(){ return ''; });
+  const optional = ['user_id', 'file_url'];
+  const drop = optional.filter(function(k){ return (k in body) && txt.indexOf(k) !== -1; });
+  if (drop.length) {
+    console.warn('sbInsert: עמודות חסרות בבסיס הנתונים:', drop.join(', '));
+    const slim = Object.assign({}, body);
+    drop.forEach(function(k){ delete slim[k]; });
+    res = await fetch(url, { method: 'POST', headers: h, body: JSON.stringify(slim) });
+    if (res.ok) return res;
+  }
+  console.error('sbInsert failed:', table, res.status, txt);
+  return res;
+}
+
+// בעלות לפי user_id כשהוא קיים, אחרת לפי שם (תוכן ישן)
+function isMine(item) {
+  if (!user || !item) return false;
+  if (item.user_id && user.sbId) return String(item.user_id) === String(user.sbId);
+  return user.name === item.user;
+}
+
 // ── Forum Supabase REST ──
 async function sbFetch(path, opts) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
@@ -6065,9 +6174,9 @@ async function loadPostsFromSupabase() {
     if (!posts) return false;
     function buildReplies(parentId, allReplies) {
       return allReplies.filter(r => String(r.parent_id) === String(parentId)).map(r => ({
-        id: r.id, user: r.user, content: r.content,
+        id: r.id, user: r.user, user_id: r.user_id || null, content: r.content,
         timestamp: new Date(r.created_at).getTime(),
-        file: r.file_url ? { url: r.file_url, name: r.file_url.split('/').pop(), type: 'image/' } : null,
+        file: fileMeta(r.file_url),
         reactions: {}, _userReacts: {},
         replies: buildReplies(r.id, allReplies)
       }));
@@ -6075,52 +6184,109 @@ async function loadPostsFromSupabase() {
     allPosts = posts.map(p => ({
       id: p.id,
       user: p.user,
+      user_id: p.user_id || null,
       content: p.content,
       timestamp: new Date(p.created_at).getTime(),
-      file: p.file_url ? { url: p.file_url, name: p.file_url.split('/').pop(), type: 'image/' } : null,
+      file: fileMeta(p.file_url),
       reactions: {}, _userReacts: {},
-      replies: (replies || []).filter(r => r.post_id === p.id && !r.parent_id).map(r => ({
-        id: r.id, user: r.user, content: r.content,
+      replies: (replies || []).filter(r => String(r.post_id) === String(p.id) && !r.parent_id).map(r => ({
+        id: r.id, user: r.user, user_id: r.user_id || null, content: r.content,
         timestamp: new Date(r.created_at).getTime(),
-        file: r.file_url ? { url: r.file_url, name: r.file_url.split('/').pop(), type: 'image/' } : null,
+        file: fileMeta(r.file_url),
         reactions: {}, _userReacts: {},
-        replies: buildReplies(r.id, (replies || []).filter(x => x.post_id === p.id))
+        replies: buildReplies(r.id, (replies || []).filter(x => String(x.post_id) === String(p.id)))
       }))
     }));
+    const reacts = await sbFetch('reactions?select=*');
+    if (reacts && reacts.length) {
+      const byId = {};
+      reacts.forEach(function(r) {
+        const k = String(r.item_id);
+        if (!byId[k]) byId[k] = { reactions: {}, _userReacts: {} };
+        byId[k].reactions[r.emoji] = (byId[k].reactions[r.emoji] || 0) + 1;
+        byId[k]._userReacts[r.user] = r.emoji;
+      });
+      applyReactions(allPosts, byId);
+    }
     return true;
   } catch(e) { console.warn('loadPostsFromSupabase failed:', e.message); return false; }
 }
 
+function clearNewPost() {
+  const ta = document.getElementById('new-post-text');      if (ta) ta.value = '';
+  const fi = document.getElementById('new-post-file');      if (fi) fi.value = '';
+  const fn = document.getElementById('new-post-file-name'); if (fn) fn.textContent = '';
+  const ar = document.getElementById('new-post-area');      if (ar) ar.style.display = 'none';
+}
+
 async function submitPost() {
   if (!user) return;
-  const ta = document.getElementById('new-post-text');
-  const txt = ta?.value.trim();
-  if (!txt) return;
-  if (SUPABASE_URL && SUPABASE_KEY) {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/posts', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ user: user.name, content: txt })
-    });
-    if (res.ok) {
-      ta.value = '';
-      document.getElementById('new-post-area').style.display = 'none';
+  const ta   = document.getElementById('new-post-text');
+  const txt  = (ta && ta.value.trim()) || '';
+  const fi   = document.getElementById('new-post-file');
+  const file = fi && fi.files ? fi.files[0] : null;
+  if (!txt && !file) return;
+  const btn = document.getElementById('new-post-send');
+  const setBusy = function(on, label) {
+    if (!btn) return;
+    btn.disabled = on;
+    btn.style.opacity = on ? '0.6' : '';
+    btn.textContent = on ? label : 'שלח';
+  };
+  try {
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      let fileUrl = null;
+      if (file) { setBusy(true, 'מעלה קובץ…'); fileUrl = await uploadForumFile(file); }
+      setBusy(true, 'שולח…');
+      const res = await sbInsert('posts', {
+        user: user.name, user_id: user.sbId || null, content: txt, file_url: fileUrl
+      });
+      if (!res.ok) {
+        forumMsg('לא הצלחנו לשמור את הפוסט. נסה להתנתק ולהתחבר מחדש.', true);
+        return;
+      }
+      clearNewPost();
+      forumMsg('');
       await loadPostsFromSupabase();
       renderPosts('');
       return;
     }
+    // מצב מקומי בלבד (ללא Supabase)
+    allPosts.unshift({ id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), replies: [], reactions: {} });
+    clearNewPost();
+    renderPosts('');
+  } catch (e) {
+    forumMsg(e.message || 'שגיאה בשליחת הפוסט', true);
+  } finally {
+    setBusy(false);
   }
-  // fallback local
-  allPosts.unshift({ id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), replies: [], reactions: {} });
-  ta.value = '';
-  document.getElementById('new-post-area').style.display = 'none';
-  renderPosts('');
 }
 
+function forumMsg(text, isError) {
+  const el = document.getElementById('forum-msg');
+  if (!el) { if (text) alert(text); return; }
+  if (!text) { el.style.display = 'none'; el.textContent = ''; return; }
+  el.textContent = text;
+  el.style.background = isError ? '#fff3f3' : '#eefaf0';
+  el.style.border = '1px solid ' + (isError ? '#e74c3c' : '#3dbfa0');
+  el.style.color = isError ? '#c0392b' : '#1d7a63';
+  el.style.display = 'block';
+  setTimeout(function(){ if (el.textContent === text) { el.style.display = 'none'; } }, 6000);
+}
+
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function escJs(v) { return esc(v).replace(/'/g, "\\'"); }
+function safeUrl(u) { return (typeof u === 'string' && /^https?:\/\//i.test(u)) ? u : ''; }
+
 function highlight(text, q) {
-  if (!q) return text;
-  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return text.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark>$1</mark>');
+  const safe = esc(text);
+  if (!q) return safe;
+  const escaped = esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return safe.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark>$1</mark>');
 }
 
 // ── Forum ──
@@ -6157,9 +6323,9 @@ function reactionsHtml(item, isReply) {
           ? 'background:#f3f4f6;border-color:#e5e7eb;'
           : 'background:transparent;border-color:transparent;opacity:0.5;',
     ].join(';');
-    return '<span onclick="reactItem(' + item.id + ',' + i + ',' + (isReply ? 1 : 0) + ')"'
+    return '<span onclick="reactItem(\'' + escJs(item.id) + '\',' + i + ',' + (isReply ? 1 : 0) + ')"'
       + ' style="' + style + '"'
-      + (tooltip ? ' title="' + tooltip.replace(/"/g,'&quot;') + '"' : '')
+      + (tooltip ? ' title="' + esc(tooltip) + '"' : '')
       + '>' + e
       + (count > 0 ? '<span style="font-size:0.7rem;vertical-align:super;margin-right:1px;">' + count + '</span>' : '')
       + '</span>';
@@ -6171,16 +6337,17 @@ function reactionsHtml(item, isReply) {
 function reactItem(itemId, emojiIdx, isReplyInt) {
   const emoji = EMOJIS[emojiIdx];
   if (!user) { openM('authModal'); return; }
+  const key = String(itemId);
   function findItem(list) {
     for (const r of list) {
-      if (r.id === itemId) return r;
+      if (String(r.id) === key) return r;
       if (r.replies) { const f = findItem(r.replies); if (f) return f; }
     }
     return null;
   }
   let item = null;
   for (const p of allPosts) {
-    if (p.id === itemId) { item = p; break; }
+    if (String(p.id) === key) { item = p; break; }
     const f = findItem(p.replies || []);
     if (f) { item = f; break; }
   }
@@ -6198,7 +6365,36 @@ function reactItem(itemId, emojiIdx, isReplyInt) {
     item.reactions[emoji] = (item.reactions[emoji] || 0) + 1;
     item._userReacts[user.name] = emoji;
   }
-  renderPosts('');
+  const mine = item._userReacts[user.name] || null;
+  renderPosts(document.getElementById('search-input')?.value || '');
+  persistReaction(key, mine);
+}
+
+// שמירת ריאקציה — נכשל בשקט אם טבלת reactions עדיין לא קיימת
+async function persistReaction(itemId, emoji) {
+  if (!(SUPABASE_URL && SUPABASE_KEY) || !user) return;
+  try {
+    const token = await getAuthToken();
+    const h = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+    await fetch(SUPABASE_URL + '/rest/v1/reactions?item_id=eq.' + encodeURIComponent(itemId)
+      + '&user=eq.' + encodeURIComponent(user.name), { method: 'DELETE', headers: h });
+    if (emoji) {
+      await fetch(SUPABASE_URL + '/rest/v1/reactions', {
+        method: 'POST',
+        headers: Object.assign({}, h, { 'Prefer': 'return=minimal' }),
+        body: JSON.stringify({ item_id: String(itemId), user: user.name, emoji: emoji })
+      });
+    }
+  } catch (e) { console.warn('persistReaction failed:', e.message); }
+}
+
+// פריסת הריאקציות על עץ הפוסטים
+function applyReactions(list, byId) {
+  (list || []).forEach(function(it) {
+    const bucket = byId[String(it.id)];
+    if (bucket) { it.reactions = bucket.reactions; it._userReacts = bucket._userReacts; }
+    applyReactions(it.replies, byId);
+  });
 }
 
 function editReply(postId, replyId) {
@@ -6207,12 +6403,12 @@ function editReply(postId, replyId) {
   if (replyEl.querySelector('.edit-area')) { replyEl.querySelector('.edit-area').remove(); return; }
   function findReply(list) {
     for (const r of list) {
-      if (r.id === replyId) return r;
+      if (String(r.id) === String(replyId)) return r;
       if (r.replies) { const f = findReply(r.replies); if (f) return f; }
     }
     return null;
   }
-  const p = allPosts.find(x => x.id === postId);
+  const p = allPosts.find(x => String(x.id) === String(postId));
   const r = p ? findReply(p.replies || []) : null;
   if (!r) return;
   const div = document.createElement('div');
@@ -6231,18 +6427,19 @@ async function saveEditReply(postId, replyId) {
   if (!txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
-    await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
       method: 'PATCH',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
       body: JSON.stringify({ content: txt })
     });
+    if (!res.ok) { forumMsg('העריכה לא נשמרה — אין לך הרשאה או שהחיבור נכשל.', true); return; }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
   }
   function findAndSave(list) {
     for (const r of list) {
-      if (r.id === replyId) { if (txt) { r.content = txt; return true; } return false; }
+      if (String(r.id) === String(replyId)) { if (txt) { r.content = txt; return true; } return false; }
       if (r.replies && findAndSave(r.replies)) return true;
     }
     return false;
@@ -6266,21 +6463,22 @@ function delReply(postId, replyId) {
 async function confirmDelReply(postId, replyId) {
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
-    await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
+    if (!res.ok) { forumMsg('המחיקה נכשלה — אין לך הרשאה.', true); return; }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
   }
   function removeFrom(list) {
-    const idx = list.findIndex(r => r.id === replyId);
+    const idx = list.findIndex(r => String(r.id) === String(replyId));
     if (idx !== -1) { list.splice(idx, 1); return true; }
     for (const r of list) { if (r.replies && removeFrom(r.replies)) return true; }
     return false;
   }
-  const p = allPosts.find(x => x.id === postId);
+  const p = allPosts.find(x => String(x.id) === String(postId));
   if (p) { removeFrom(p.replies || []); renderPosts(''); }
 }
 
@@ -6310,11 +6508,12 @@ async function saveEditPost(id) {
   if (!p || !txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
-    await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
       method: 'PATCH',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
       body: JSON.stringify({ content: txt })
     });
+    if (!res.ok) { forumMsg('העריכה לא נשמרה — אין לך הרשאה או שהחיבור נכשל.', true); return; }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
@@ -6343,10 +6542,11 @@ async function confirmDelPost(id) {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
-    await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
+    if (!res.ok) { forumMsg('מחיקת הפוסט נכשלה — אין לך הרשאה.', true); return; }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
@@ -6359,12 +6559,12 @@ function renderReplies(replies, postId, depth, query) {
   if (!replies || !replies.length) return '';
   const indent = Math.min(depth, 4) * 14;
   return replies.map(function(r) {
-    const isOwner = user && user.name === r.user;
+    const isOwner = isMine(r);
     const canDel = user && (isOwner || isAdmin());
     const fileHtml = r.file ? (
       r.file.type && r.file.type.startsWith('image/')
-        ? '<div style="margin:4px 0;"><img src="' + r.file.url + '" style="max-width:100%;max-height:130px;border-radius:6px;cursor:pointer;" onclick="openImg(this.src)"></div>'
-        : '<div style="margin:4px 0;"><a href="' + r.file.url + '" target="_blank" style="color:var(--accent);font-size:0.82rem;">📎 ' + r.file.name + '</a></div>'
+        ? '<div style="margin:4px 0;"><img src="' + esc(safeUrl(r.file.url)) + '" style="max-width:100%;max-height:130px;border-radius:6px;cursor:pointer;" onclick="openImg(this.src)"></div>'
+        : '<div style="margin:4px 0;"><a href="' + esc(safeUrl(r.file.url)) + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:0.82rem;">📎 ' + esc(r.file.name) + '</a></div>'
     ) : '';
     const actions = '<div style="display:flex;gap:8px;margin-top:5px;font-size:0.8rem;color:#888;align-items:center;flex-wrap:wrap;">'
       + '<span style="color:var(--accent);cursor:pointer;" onclick="openReplyBox(\'' + r.id + '\',\'' + postId + '\')">↩ השב</span>'
@@ -6372,7 +6572,7 @@ function renderReplies(replies, postId, depth, query) {
       + (canDel ? '<span style="cursor:pointer;color:#e74c3c;" onclick="delReply(\'' + postId + '\',\'' + r.id + '\')">✕ מחק</span>' : '')
       + '</div>';
     return '<div class="reply-item" id="reply-' + safeId(r.id) + '" style="margin-right:' + indent + 'px;">'
-      + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + (r.user||'').replace(/'/g, "\\'") + '\')">' + r.user + '</b> <span style="color:#bbb;font-size:0.72rem;">' + timeAgo(r.timestamp) + '</span>'
+      + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + escJs(r.user) + '\')">' + esc(r.user) + '</b> <span style="color:#bbb;font-size:0.72rem;">' + timeAgo(r.timestamp) + '</span>'
       + '<div style="margin:3px 0;">' + highlight(r.content, query) + '</div>'
       + fileHtml
       + reactionsHtml(r, true)
@@ -6383,20 +6583,27 @@ function renderReplies(replies, postId, depth, query) {
   }).join('');
 }
 
+function countReplies(item) {
+  return (item.replies || []).reduce(function(acc, r){ return acc + 1 + countReplies(r); }, 0);
+}
+
 function renderPosts(query, sort, chips) {
   if (sort === undefined) sort = document.getElementById('forum-sort')?.value || 'newest';
   if (chips === undefined) chips = [];
   if (query === undefined) query = '';
   const list = document.getElementById('posts-list');
   if (!list) return;
+  const nq = String(query || '').toLowerCase();
   let filtered = allPosts.filter(function(p) {
-    const matchQ = !query || p.content.includes(query) || p.user.includes(query);
-    const matchC = chips.length === 0 || chips.some(function(c){ return p.content.includes(c); });
+    const c = String(p.content || '').toLowerCase();
+    const u = String(p.user || '').toLowerCase();
+    const matchQ = !nq || c.indexOf(nq) !== -1 || u.indexOf(nq) !== -1;
+    const matchC = chips.length === 0 || chips.some(function(k){ return c.indexOf(String(k).toLowerCase()) !== -1; });
     return matchQ && matchC;
   });
   if (sort === 'newest') filtered.sort(function(a,b){ return b.timestamp - a.timestamp; });
   else if (sort === 'oldest') filtered.sort(function(a,b){ return a.timestamp - b.timestamp; });
-  else if (sort === 'popular') filtered.sort(function(a,b){ return (b.replies||[]).length - (a.replies||[]).length; });
+  else if (sort === 'popular') filtered.sort(function(a,b){ return countReplies(b) - countReplies(a); });
   else if (sort === 'liked') filtered.sort(function(a,b){ 
     const likesA = Object.values(b._userReacts||{}).filter(r=>r==='👍').length;
     const likesB = Object.values(a._userReacts||{}).filter(r=>r==='👍').length;
@@ -6407,18 +6614,18 @@ function renderPosts(query, sort, chips) {
     return;
   }
   list.innerHTML = filtered.map(function(p) {
-    const isOwner = user && user.name === p.user;
+    const isOwner = isMine(p);
     const canDel = user && (isOwner || isAdmin());
     let fileHtml = '';
     if (p.file) {
       if (p.file.type && p.file.type.startsWith('image/')) {
-        fileHtml = '<div style="margin:6px 0;"><img src="' + p.file.url + '" style="max-width:100%;max-height:200px;border-radius:8px;cursor:pointer;" onclick="openImg(this.src)"></div>';
+        fileHtml = '<div style="margin:6px 0;"><img src="' + esc(safeUrl(p.file.url)) + '" style="max-width:100%;max-height:200px;border-radius:8px;cursor:pointer;" onclick="openImg(this.src)"></div>';
       } else {
-        fileHtml = '<div style="margin:6px 0;"><a href="' + p.file.url + '" target="_blank" style="color:var(--accent);">📎 ' + p.file.name + '</a></div>';
+        fileHtml = '<div style="margin:6px 0;"><a href="' + esc(safeUrl(p.file.url)) + '" target="_blank" rel="noopener" style="color:var(--accent);">📎 ' + esc(p.file.name) + '</a></div>';
       }
     }
     return '<div class="post" id="post-' + safeId(p.id) + '">'
-      + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + (p.user||'').replace(/'/g, "\\'") + '\')">' + highlight(p.user, query) + '</b> <span style="color:#bbb;font-size:0.75rem;">' + timeAgo(p.timestamp) + '</span>'
+      + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + escJs(p.user) + '\')">' + highlight(p.user, query) + '</b> <span style="color:#bbb;font-size:0.75rem;">' + timeAgo(p.timestamp) + '</span>'
       + '<div style="margin:6px 0;">' + highlight(p.content, query) + '</div>'
       + fileHtml
       + reactionsHtml(p, false)
