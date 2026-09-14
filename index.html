@@ -488,8 +488,9 @@ img, svg, video { max-width: 100%; }
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
         <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="new-post-file" style="display:none;" accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,.heic,.heif,.bmp,.avif,.pdf" onchange="showPickedFile('new-post-file','new-post-file-name')"></label>
         <span id="new-post-file-name" style="font-size:0.78rem;color:#888;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <button id="new-post-file-name-clr" onclick="clearAttachment('new-post-file','new-post-file-name')" title="הסר את הקובץ" style="display:none;padding:2px 7px;background:#fff;border:1px solid #d9a; color:#c0392b;border-radius:5px;cursor:pointer;font-size:0.76rem;line-height:1.4;">✕</button>
         <div style="margin-right:auto;display:flex;gap:8px;">
-          <button onclick="document.getElementById('new-post-area').style.display='none'" style="padding:8px 16px;background:#eee;border:none;border-radius:8px;cursor:pointer;">ביטול</button>
+          <button onclick="clearNewPost()" style="padding:8px 16px;background:#eee;border:none;border-radius:8px;cursor:pointer;">ביטול</button>
           <button id="new-post-send" onclick="submitPost()" style="padding:8px 20px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">שלח</button>
         </div>
       </div>
@@ -2490,12 +2491,17 @@ function insertAboveReplies(container, node) {
   container.appendChild(node);
 }
 function closeReplyBox(targetId) {
-  const box = document.getElementById('rbox-' + safeId(targetId));
+  const sid = safeId(targetId);
+  const box = document.getElementById('rbox-' + sid);
   if (box) box.style.display = 'none';
+  const ta = document.getElementById('rtxt-' + sid);
+  if (ta && !ta.readOnly) ta.value = '';
+  clearAttachment('rfile-' + sid, 'rfile-name-' + sid);
+  forumMsg('');
 }
 function makeReplyBox(targetId, postId) {
   const sid = safeId(targetId);
-  return '<div id="rbox-' + sid + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'    + '<textarea id="rtxt-' + sid + '" rows="2" placeholder="כתוב תגובה..." '    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;direction:rtl;font-family:inherit;font-size:0.87rem;"></textarea>'    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + sid + '" style="display:none;" accept="' + FORUM_ACCEPT + '" onchange="showPickedFile(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')"></label>'    + '<span id="rfile-name-' + sid + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'        + '<div style="margin-right:auto;display:flex;gap:6px;">'    + '<button onclick="closeReplyBox(\'' + sid + '\')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'    + '<button id="rsend-' + sid + '" onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'    + '</div></div></div>';
+  return '<div id="rbox-' + sid + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'    + '<textarea id="rtxt-' + sid + '" rows="2" placeholder="כתוב תגובה..." '    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;direction:rtl;font-family:inherit;font-size:0.87rem;"></textarea>'    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + sid + '" style="display:none;" accept="' + FORUM_ACCEPT + '" onchange="showPickedFile(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')"></label>'    + '<span id="rfile-name-' + sid + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'    + '<button id="rfile-name-' + sid + '-clr" onclick="clearAttachment(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')" title="הסר את הקובץ" style="display:none;padding:2px 7px;background:#fff;border:1px solid #d9a;color:#c0392b;border-radius:5px;cursor:pointer;font-size:0.76rem;line-height:1.4;">✕</button>'        + '<div style="margin-right:auto;display:flex;gap:6px;">'    + '<button onclick="closeReplyBox(\'' + sid + '\')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'    + '<button id="rsend-' + sid + '" onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'    + '</div></div></div>';
 }
 async function submitReply(targetId, postId) {
   if (!user) return;
@@ -6122,26 +6128,37 @@ const FORUM_MAX_MB  = 8;
 const FORUM_ALLOWED = /\.(jpe?g|jfif|png|gif|webp|heic|heif|bmp|avif|pdf)$/i;
 const FORUM_ACCEPT  = '.jpg,.jpeg,.jfif,.png,.gif,.webp,.heic,.heif,.bmp,.avif,.pdf';
 
+// הסרת קובץ שצורף — מנקה גם את שדה הקלט עצמו
+function clearAttachment(inputId, labelId) {
+  const inp = document.getElementById(inputId);
+  const lab = document.getElementById(labelId);
+  const clr = document.getElementById(labelId + '-clr');
+  if (inp) inp.value = '';
+  if (lab) lab.textContent = '';
+  if (clr) clr.style.display = 'none';
+}
+
 function showPickedFile(inputId, labelId) {
   const inp = document.getElementById(inputId);
   const lab = document.getElementById(labelId);
+  const clr = document.getElementById(labelId + '-clr');
   if (!inp || !lab) return;
+  const show = function(on) { if (clr) clr.style.display = on ? 'inline-block' : 'none'; };
   const f = inp.files && inp.files[0];
-  if (!f) { lab.textContent = ''; return; }
+  if (!f) { lab.textContent = ''; show(false); return; }
   if (!FORUM_ALLOWED.test(f.name)) {
-    lab.textContent = '';
-    inp.value = '';
+    lab.textContent = ''; inp.value = ''; show(false);
     forumMsg('סוג הקובץ אינו נתמך. אפשר לצרף תמונה (JPG, PNG, GIF, WEBP, HEIC, BMP) או PDF.', true);
     return;
   }
   if (f.size > FORUM_MAX_MB * 1024 * 1024) {
-    lab.textContent = '';
-    inp.value = '';
+    lab.textContent = ''; inp.value = ''; show(false);
     forumMsg('הקובץ גדול מדי — עד ' + FORUM_MAX_MB + 'MB.', true);
     return;
   }
   forumMsg('');
   lab.textContent = f.name;
+  show(true);
 }
 
 // פירוק כתובת קובץ לשם וסוג לתצוגה
@@ -6261,10 +6278,10 @@ async function loadPostsFromSupabase() {
 }
 
 function clearNewPost() {
-  const ta = document.getElementById('new-post-text');      if (ta) ta.value = '';
-  const fi = document.getElementById('new-post-file');      if (fi) fi.value = '';
-  const fn = document.getElementById('new-post-file-name'); if (fn) fn.textContent = '';
-  const ar = document.getElementById('new-post-area');      if (ar) ar.style.display = 'none';
+  const ta = document.getElementById('new-post-text'); if (ta) ta.value = '';
+  clearAttachment('new-post-file', 'new-post-file-name');
+  const ar = document.getElementById('new-post-area');  if (ar) ar.style.display = 'none';
+  forumMsg('');
 }
 
 async function submitPost() {
