@@ -2466,6 +2466,28 @@ function openReplyBox(targetId, postId) {
 function safeId(id) {
   return String(id).replace(/[^a-zA-Z0-9_]/g, '_');
 }
+
+// בן ישיר עם המחלקה המבוקשת — לא צאצא של תגובה מקוננת
+function ownChild(container, cls) {
+  if (!container) return null;
+  const kids = container.children;
+  for (let i = 0; i < kids.length; i++) {
+    if (kids[i].classList && kids[i].classList.contains(cls)) return kids[i];
+  }
+  return null;
+}
+
+// שתילה מיד אחרי שורת הפעולות, לפני התגובות
+function insertAboveReplies(container, node) {
+  const kids = container.children;
+  for (let i = 0; i < kids.length; i++) {
+    if (kids[i].classList && kids[i].classList.contains('reply-item')) {
+      container.insertBefore(node, kids[i]);
+      return;
+    }
+  }
+  container.appendChild(node);
+}
 function closeReplyBox(targetId) {
   const box = document.getElementById('rbox-' + safeId(targetId));
   if (box) box.style.display = 'none';
@@ -6061,7 +6083,11 @@ function renderFilterChips() {
     + f.label + '</label>'
   ).join('');
   const si = document.getElementById('search-input');
-  if (si) si.addEventListener('input', function(e){ filterPosts(e.target.value); });
+  if (si) {
+    si.value = '';   // הדפדפן משחזר ערכים ברענון — ללא זה נוצר סינון נסתר
+    si.addEventListener('input', function(e){ filterPosts(e.target.value); });
+  }
+  document.querySelectorAll('.filter-chip input:checked').forEach(function(el){ el.checked = false; });
 }
 
 function renderPostBtn() {
@@ -6400,7 +6426,8 @@ function applyReactions(list, byId) {
 function editReply(postId, replyId) {
   const replyEl = document.getElementById('reply-' + safeId(replyId));
   if (!replyEl) return;
-  if (replyEl.querySelector('.edit-area')) { replyEl.querySelector('.edit-area').remove(); return; }
+  const existingEdit = ownChild(replyEl, 'edit-area');
+  if (existingEdit) { existingEdit.remove(); return; }
   function findReply(list) {
     for (const r of list) {
       if (String(r.id) === String(replyId)) return r;
@@ -6413,17 +6440,18 @@ function editReply(postId, replyId) {
   if (!r) return;
   const div = document.createElement('div');
   div.className = 'edit-area';
+  div.setAttribute('data-edit-for', safeId(replyId));
   div.style.cssText = 'margin-top:6px;';
   div.innerHTML = '<textarea data-edit-id="reply" rows="2" style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--accent);border-radius:6px;direction:rtl;font-family:inherit;font-size:0.87rem;resize:vertical;text-align:right;">' + r.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">'
     + '<button onclick="removeEditArea(this)" style="padding:3px 10px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>'
     + '<button onclick="saveEditReply(\'' + postId + '\',\'' + replyId + '\')" style="padding:3px 10px;background:var(--accent);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-weight:bold;">שמור</button>'
     + '</div>';
-  replyEl.appendChild(div);
+  insertAboveReplies(replyEl, div);
   div.querySelector('textarea').focus();
 }
 async function saveEditReply(postId, replyId) {
-  const txt = document.getElementById('reply-' + safeId(replyId))?.querySelector('[data-edit-id]')?.value.trim();
+  const txt = document.querySelector('.edit-area[data-edit-for="' + safeId(replyId) + '"] textarea')?.value.trim();
   if (!txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
@@ -6451,14 +6479,16 @@ async function saveEditReply(postId, replyId) {
 function delReply(postId, replyId) {
   const replyEl = document.getElementById('reply-' + safeId(replyId));
   if (!replyEl) return;
-  if (replyEl.querySelector('.del-confirm')) { replyEl.querySelector('.del-confirm').remove(); return; }
+  const existingDel = ownChild(replyEl, 'del-confirm');
+  if (existingDel) { existingDel.remove(); return; }
   const div = document.createElement('div');
   div.className = 'del-confirm';
   div.style.cssText = 'background:#fff3f3;border:1px solid #e74c3c;border-radius:6px;padding:6px 10px;margin-top:6px;display:flex;gap:8px;align-items:center;font-size:0.82rem;';
   div.innerHTML = '<span>למחוק?</span>'
     + '<button onclick="confirmDelReply(\'' + postId + '\',\'' + replyId + '\')" style="padding:2px 10px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">מחק</button>'
     + '<button onclick="removeDelConfirm(this)" style="padding:2px 10px;background:#eee;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">ביטול</button>';
-  replyEl.appendChild(div);
+  insertAboveReplies(replyEl, div);
+  div.scrollIntoView({ block: 'nearest' });
 }
 async function confirmDelReply(postId, replyId) {
   if (SUPABASE_URL && SUPABASE_KEY) {
@@ -6487,24 +6517,24 @@ function editPost(id) {
   if (!p) return;
   const postEl = document.getElementById('post-' + safeId(id));
   if (!postEl) return;
-  if (postEl.querySelector('.edit-area')) { postEl.querySelector('.edit-area').remove(); return; }
+  const existingPostEdit = ownChild(postEl, 'edit-area');
+  if (existingPostEdit) { existingPostEdit.remove(); return; }
   const contentEl = postEl.querySelector('div[style*="margin:6px"]');
   const div = document.createElement('div');
   div.className = 'edit-area';
+  div.setAttribute('data-edit-for', safeId(id));
   div.style.cssText = 'margin-top:8px;';
   div.innerHTML = '<textarea data-edit-id="post" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--accent);border-radius:8px;direction:rtl;font-family:inherit;font-size:0.9rem;resize:vertical;text-align:right;">' + p.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end;">'
     + '<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">ביטול</button>'
     + '<button onclick="saveEditPost(\'' + id + '\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">שמור</button>'
     + '</div>';
-  // Insert after post content, before replies
-  const repliesEl = postEl.querySelector('.replies-container') || postEl.querySelector('.del-confirm') || null;
-  postEl.insertBefore(div, repliesEl);
+  insertAboveReplies(postEl, div);
   div.querySelector('textarea').focus();
 }
 async function saveEditPost(id) {
   const p = allPosts.find(x => String(x.id) === String(id));
-  const txt = document.getElementById('post-' + safeId(id))?.querySelector('[data-edit-id]')?.value.trim();
+  const txt = document.querySelector('.edit-area[data-edit-for="' + safeId(id) + '"] textarea')?.value.trim();
   if (!p || !txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await getAuthToken();
@@ -6526,14 +6556,16 @@ function delPost(id) {
     const postEl = document.getElementById('post-' + safeId(id));
   if (!postEl) return;
   // Check if confirm UI already exists
-  if (postEl.querySelector('.del-confirm')) { postEl.querySelector('.del-confirm').remove(); return; }
+  const existing = ownChild(postEl, 'del-confirm');
+  if (existing) { existing.remove(); return; }
   const div = document.createElement('div');
   div.className = 'del-confirm';
   div.style.cssText = 'background:#fff3f3;border:1px solid #e74c3c;border-radius:8px;padding:8px 12px;margin-top:8px;display:flex;gap:10px;align-items:center;font-size:0.85rem;';
   div.innerHTML = '<span>למחוק את הפוסט?</span>'
     + '<button onclick="confirmDelPost(\'' + id + '\')" style="padding:3px 12px;background:#e74c3c;color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">מחק</button>'
     + '<button onclick="removeDelConfirm(this)" style="padding:3px 12px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>';
-  postEl.appendChild(div);
+  insertAboveReplies(postEl, div);
+  div.scrollIntoView({ block: 'nearest' });
 }
 async function confirmDelPost(id) {
   if (SUPABASE_URL && SUPABASE_KEY) {
@@ -6609,11 +6641,24 @@ function renderPosts(query, sort, chips) {
     const likesB = Object.values(a._userReacts||{}).filter(r=>r==='👍').length;
     return likesA - likesB;
   });
+  const filtering = !!nq || chips.length > 0;
+  const banner = filtering
+    ? '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;'
+      + 'background:#eef4ff;border:1px solid #d0d8f0;border-radius:8px;padding:7px 11px;margin-bottom:9px;font-size:0.82rem;color:#456;">'
+      + '<span>סינון פעיל — מוצגים ' + filtered.length + ' מתוך ' + allPosts.length + '</span>'
+      + '<button onclick="clearForumFilter()" style="padding:3px 11px;background:white;border:1px solid #9ab;'
+      + 'border-radius:6px;cursor:pointer;font-size:0.8rem;color:#456;">✕ נקה סינון</button>'
+      + '</div>'
+    : '';
+
   if (!filtered.length) {
-    list.innerHTML = '<div style="color:#aaa;text-align:center;padding:20px;">אין פוסטים</div>';
+    list.innerHTML = banner
+      + '<div style="color:#aaa;text-align:center;padding:20px;">'
+      + (filtering ? 'אין תוצאות לסינון הנוכחי' : 'אין פוסטים עדיין')
+      + '</div>';
     return;
   }
-  list.innerHTML = filtered.map(function(p) {
+  list.innerHTML = banner + filtered.map(function(p) {
     const isOwner = isMine(p);
     const canDel = user && (isOwner || isAdmin());
     let fileHtml = '';
@@ -6642,6 +6687,13 @@ function renderPosts(query, sort, chips) {
   }).join('');
 }
 
+
+function clearForumFilter() {
+  const si = document.getElementById('search-input');
+  if (si) si.value = '';
+  document.querySelectorAll('.filter-chip input:checked').forEach(function(el){ el.checked = false; });
+  renderPosts('', undefined, []);
+}
 
 function filterPosts(query) {
   if (query === undefined) query = document.getElementById('search-input')?.value || '';
