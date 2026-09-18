@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-09-18T15:08:17.236Z",
-  "temperature": 7.5,
+  "updated_at": "2026-09-18T15:35:41.369Z",
+  "temperature": 7.1,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 0,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 6.5,
+  "wind_speed": 5.8,
   "wind_gust": 23.8,
-  "humidity": 88,
+  "humidity": 92,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -68,39 +68,103 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "partially-cloudy"
       }
     ]
   },
-  "forecast_next_days": []
+  "forecast_next_days": [
+    {
+      "date": "Sunday, September 20",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Monday, September 21",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Tuesday, September 22",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    }
+  ]
 }
