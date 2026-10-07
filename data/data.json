@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-10-07T01:56:36.378Z",
-  "temperature": 2.6,
+  "updated_at": "2026-10-07T02:24:45.515Z",
+  "temperature": 2.1,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 0,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 3.2,
+  "wind_speed": 1.8,
   "wind_gust": 11.9,
-  "humidity": null,
+  "humidity": 96,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -64,66 +64,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Tuesday, October 6",
+    "date": "Wednesday, October 7",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "rain"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "rain"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Thursday, October 8",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "rain"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun-rain"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "rain"
-        }
-      ]
-    },
     {
       "date": "Friday, October 9",
       "periods": [
@@ -155,6 +134,27 @@
         {
           "label": "Afternoon\n(13.00 - 17.00)",
           "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    },
+    {
+      "date": "Sunday, October 11",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "sun"
         },
         {
           "label": "Evening\n(18.00 - 24.00)",
