@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-10-09T01:59:24.742Z",
-  "temperature": 2.2,
+  "updated_at": "2026-10-09T02:36:16.185Z",
+  "temperature": 1.7,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,9 +12,9 @@
   "slopes_total_local": 0,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 13.3,
+  "wind_speed": 0.4,
   "wind_gust": 44.3,
-  "humidity": 80,
+  "humidity": 81,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -64,29 +64,29 @@
     }
   ],
   "forecast_today": {
-    "date": "Thursday, October 8",
+    "date": "Friday, October 9",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "rain"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "rain"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "rain"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "rain"
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun-rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
@@ -103,27 +103,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Saturday, October 10",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Sunday, October 11",
       "periods": [
