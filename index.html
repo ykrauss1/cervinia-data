@@ -482,8 +482,10 @@ img, svg, video { max-width: 100%; }
     </div>
 
     <div id="forum-msg" style="display:none;margin:8px 0;padding:9px 12px;border-radius:8px;font-size:0.85rem;"></div>
-    <div id="posts-list"></div>
-    <div id="new-post-area" style="margin-top:15px;display:none;">
+    <div id="forum-footer" class="forum-footer" style="margin-bottom:14px;">
+      <div id="post-btn-area"></div>
+    </div>
+    <div id="new-post-area" style="margin-bottom:15px;display:none;">
       <textarea id="new-post-text" placeholder="שאל שאלה, שתף עדכון או טיפ מהשטח..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;direction:rtl;resize:vertical;font-family:inherit;"></textarea>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
         <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="new-post-file" style="display:none;" accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,.heic,.heif,.bmp,.avif,.pdf" onchange="showPickedFile('new-post-file','new-post-file-name')"></label>
@@ -496,9 +498,7 @@ img, svg, video { max-width: 100%; }
       </div>
       <div id="forum-msg2" style="display:none;margin-top:8px;padding:9px 12px;border-radius:8px;font-size:0.85rem;"></div>
     </div>
-    <div id="forum-footer" class="forum-footer" style="margin-top:12px;">
-      <div id="post-btn-area"></div>
-    </div>
+    <div id="posts-list"></div>
     </div><!-- /forum-panel -->
 
     <!-- Reviews panel -->
@@ -2567,6 +2567,13 @@ async function submitReply(targetId, postId) {
   renderPosts(currentQuery);
 }
 function openImg(src) { window.open(src, '_blank'); }
+
+// תמונה שלא נטענה (הרשאה או קישור שבור) — מוצגת כקישור במקום להיעלם
+function imgFallback(el) {
+  el.style.display = 'none';
+  var a = el.nextElementSibling;
+  if (a && a.tagName === 'A') a.style.display = 'inline-block';
+}
 
 // ממקם את הסמן בסוף הטקסט ולא בתחילתו
 function focusAtEnd(el) {
@@ -6648,7 +6655,11 @@ function renderReplies(replies, postId, depth, query) {
     const canDel = user && (isOwner || isAdmin());
     const fileHtml = r.file ? (
       r.file.type && r.file.type.startsWith('image/')
-        ? '<div style="margin:4px 0;"><img src="' + esc(safeUrl(r.file.url)) + '" style="max-width:100%;max-height:130px;border-radius:6px;cursor:pointer;" onclick="openImg(this.src)"></div>'
+        ? '<div style="margin:4px 0;">'
+          + '<img src="' + esc(safeUrl(r.file.url)) + '" style="max-width:100%;max-height:130px;border-radius:6px;cursor:pointer;" onclick="openImg(this.src)"'
+          + ' onerror="imgFallback(this)">'
+          + '<a href="' + esc(safeUrl(r.file.url)) + '" target="_blank" rel="noopener" style="display:none;color:var(--accent);font-size:0.82rem;">\u{1F4CE} ' + esc(r.file.name) + '</a>'
+          + '</div>'
         : '<div style="margin:4px 0;"><a href="' + esc(safeUrl(r.file.url)) + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:0.82rem;">📎 ' + esc(r.file.name) + '</a></div>'
     ) : '';
     const actions = '<div style="display:flex;gap:8px;margin-top:5px;font-size:0.8rem;color:#888;align-items:center;flex-wrap:wrap;">'
@@ -6717,7 +6728,11 @@ function renderPosts(query, sort, chips) {
     let fileHtml = '';
     if (p.file) {
       if (p.file.type && p.file.type.startsWith('image/')) {
-        fileHtml = '<div style="margin:6px 0;"><img src="' + esc(safeUrl(p.file.url)) + '" style="max-width:100%;max-height:200px;border-radius:8px;cursor:pointer;" onclick="openImg(this.src)"></div>';
+        fileHtml = '<div style="margin:6px 0;">'
+          + '<img src="' + esc(safeUrl(p.file.url)) + '" style="max-width:100%;max-height:200px;border-radius:8px;cursor:pointer;" onclick="openImg(this.src)"'
+          + ' onerror="imgFallback(this)">'
+          + '<a href="' + esc(safeUrl(p.file.url)) + '" target="_blank" rel="noopener" style="display:none;color:var(--accent);font-size:0.85rem;">\u{1F4CE} ' + esc(p.file.name) + '</a>'
+          + '</div>';
       } else {
         fileHtml = '<div style="margin:6px 0;"><a href="' + esc(safeUrl(p.file.url)) + '" target="_blank" rel="noopener" style="color:var(--accent);">📎 ' + esc(p.file.name) + '</a></div>';
       }
