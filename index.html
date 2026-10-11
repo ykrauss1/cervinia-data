@@ -104,6 +104,10 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 * { -webkit-tap-highlight-color: transparent; }
 html, body { overflow-x: hidden; max-width: 100vw; }
 img, svg, video { max-width: 100%; }
+/* מסגרת לתמונות בפורום — כך גם תמונה לבנה או שקופה נראית */
+.fileframe { display: inline-block; max-width: 100%; padding: 4px; border: 1px solid #d8e2ec;
+             border-radius: 10px; background: #f1f5f9 repeating-conic-gradient(#eef2f6 0% 25%, #f8fafc 0% 50%) 50%/16px 16px; }
+.fileframe img { display: block; border-radius: 6px; }
 
 /* ==========================================
    RESPONSIVE - TABLET & MOBILE (≤ 768px)
@@ -2568,8 +2572,20 @@ async function submitReply(targetId, postId) {
 }
 function openImg(src) { window.open(src, '_blank'); }
 
-// תמונה שלא נטענה (הרשאה או קישור שבור) — מוצגת כקישור במקום להיעלם
+// תמונה שלא נטענה — נסיון נוסף אחד (ה-CDN של האחסון איטי מיד אחרי העלאה),
+// ורק אם גם הוא נכשל — מעבר לקישור
+function imgRetry(el) {
+  if (el.dataset.retried === '1') { imgFallback(el); return; }
+  el.dataset.retried = '1';
+  var src = el.src.split('#')[0];
+  setTimeout(function() {
+    el.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'r=' + Date.now();
+  }, 2000);
+}
+
 function imgFallback(el) {
+  var frame = el.parentElement;
+  if (frame && frame.classList) frame.classList.remove('fileframe');
   el.style.display = 'none';
   var a = el.nextElementSibling;
   if (a && a.tagName === 'A') a.style.display = 'inline-block';
@@ -6655,9 +6671,9 @@ function renderReplies(replies, postId, depth, query) {
     const canDel = user && (isOwner || isAdmin());
     const fileHtml = r.file ? (
       r.file.type && r.file.type.startsWith('image/')
-        ? '<div style="margin:4px 0;">'
-          + '<img src="' + esc(safeUrl(r.file.url)) + '" style="max-width:100%;max-height:130px;border-radius:6px;cursor:pointer;" onclick="openImg(this.src)"'
-          + ' onerror="imgFallback(this)">'
+        ? '<div class="fileframe" style="margin:4px 0;">'
+          + '<img src="' + esc(safeUrl(r.file.url)) + '" style="max-width:100%;max-height:130px;cursor:pointer;" onclick="openImg(this.src)"'
+          + ' onerror="imgRetry(this)">'
           + '<a href="' + esc(safeUrl(r.file.url)) + '" target="_blank" rel="noopener" style="display:none;color:var(--accent);font-size:0.82rem;">\u{1F4CE} ' + esc(r.file.name) + '</a>'
           + '</div>'
         : '<div style="margin:4px 0;"><a href="' + esc(safeUrl(r.file.url)) + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:0.82rem;">📎 ' + esc(r.file.name) + '</a></div>'
@@ -6728,9 +6744,9 @@ function renderPosts(query, sort, chips) {
     let fileHtml = '';
     if (p.file) {
       if (p.file.type && p.file.type.startsWith('image/')) {
-        fileHtml = '<div style="margin:6px 0;">'
-          + '<img src="' + esc(safeUrl(p.file.url)) + '" style="max-width:100%;max-height:200px;border-radius:8px;cursor:pointer;" onclick="openImg(this.src)"'
-          + ' onerror="imgFallback(this)">'
+        fileHtml = '<div class="fileframe" style="margin:6px 0;">'
+          + '<img src="' + esc(safeUrl(p.file.url)) + '" style="max-width:100%;max-height:200px;cursor:pointer;" onclick="openImg(this.src)"'
+          + ' onerror="imgRetry(this)">'
           + '<a href="' + esc(safeUrl(p.file.url)) + '" target="_blank" rel="noopener" style="display:none;color:var(--accent);font-size:0.85rem;">\u{1F4CE} ' + esc(p.file.name) + '</a>'
           + '</div>';
       } else {
