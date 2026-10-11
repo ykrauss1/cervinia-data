@@ -2583,6 +2583,12 @@ function imgRetry(el) {
   }, 2000);
 }
 
+// תמונה שנטענה אך היא פיקסל בודד — כמעט תמיד חוסם פרסומות
+// או מסנן רשת שהחליף אותה. עדיף להציג קישור מנקודה בלתי נראית.
+function imgCheck(el) {
+  if (el.naturalWidth <= 2 || el.naturalHeight <= 2) imgFallback(el);
+}
+
 function imgFallback(el) {
   var frame = el.parentElement;
   if (frame && frame.classList) frame.classList.remove('fileframe');
@@ -6673,7 +6679,7 @@ function renderReplies(replies, postId, depth, query) {
       r.file.type && r.file.type.startsWith('image/')
         ? '<div class="fileframe" style="margin:4px 0;">'
           + '<img src="' + esc(safeUrl(r.file.url)) + '" style="max-width:100%;max-height:130px;cursor:pointer;" onclick="openImg(this.src)"'
-          + ' onerror="imgRetry(this)">'
+          + ' onerror="imgRetry(this)" onload="imgCheck(this)">'
           + '<a href="' + esc(safeUrl(r.file.url)) + '" target="_blank" rel="noopener" style="display:none;color:var(--accent);font-size:0.82rem;">\u{1F4CE} ' + esc(r.file.name) + '</a>'
           + '</div>'
         : '<div style="margin:4px 0;"><a href="' + esc(safeUrl(r.file.url)) + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:0.82rem;">📎 ' + esc(r.file.name) + '</a></div>'
@@ -6746,7 +6752,7 @@ function renderPosts(query, sort, chips) {
       if (p.file.type && p.file.type.startsWith('image/')) {
         fileHtml = '<div class="fileframe" style="margin:6px 0;">'
           + '<img src="' + esc(safeUrl(p.file.url)) + '" style="max-width:100%;max-height:200px;cursor:pointer;" onclick="openImg(this.src)"'
-          + ' onerror="imgRetry(this)">'
+          + ' onerror="imgRetry(this)" onload="imgCheck(this)">'
           + '<a href="' + esc(safeUrl(p.file.url)) + '" target="_blank" rel="noopener" style="display:none;color:var(--accent);font-size:0.85rem;">\u{1F4CE} ' + esc(p.file.name) + '</a>'
           + '</div>';
       } else {
