@@ -1029,9 +1029,6 @@ img, svg, video { max-width: 100%; }
           שכחתי סיסמא
         </a>
       </div>
-      <div style="text-align:center;margin-top:6px;">
-        <span onclick="showAdminLogin()" style="font-size:0.68rem;color:#e0e0e0;cursor:pointer;user-select:none;">⚙</span>
-      </div>
     </div>
 
     <!-- REGISTER -->
@@ -1075,16 +1072,6 @@ img, svg, video { max-width: 100%; }
       <div style="font-size:0.75rem;color:#aaa;text-align:center;margin-top:10px;line-height:1.5;">
         פרטים נוספים (רמת סקי, ענף) אפשר להשלים דרך הפרופיל.
       </div>
-    </div>
-
-    <!-- ADMIN (hidden) -->
-    <div id="auth-panel-admin" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed #eee;">
-      <input id="auth-pass" type="password" placeholder="סיסמת אדמין"
-        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #fcc;border-radius:9px;margin-bottom:10px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
-        onkeydown="if(event.key==='Enter') loginAdmin()">
-      <button onclick="loginAdmin()" style="width:100%;padding:10px;background:#c0392b;color:white;border:none;border-radius:9px;font-size:0.9rem;cursor:pointer;font-weight:bold;">
-        🔐 כניסת אדמין
-      </button>
     </div>
 
 
@@ -2132,7 +2119,6 @@ let allPosts = [];
 let hCounts = { adults: 2, children: 0, rooms: 1 };
 let allCounts = { adults: 2, children: 0, rooms: 1 };
 
-const ADMIN_PASS = 'cervinia2025';
 const DEMO_LIVE = {
   temperature: -6,
   slopes_open_local: 18, slopes_total_local: 22,
@@ -5489,26 +5475,12 @@ function switchAuthTab(tab) {
     }
     if (panel) panel.style.display = t === tab ? 'block' : 'none';
   });
-  const adminPanel = document.getElementById('auth-panel-admin');
-  if (adminPanel) adminPanel.style.display = 'none';
   const err = document.getElementById('auth-err');
   if (err) err.style.display = 'none';
 }
 
-function showAdminLogin() {
-  const p = document.getElementById('auth-panel-admin');
-  if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
-}
-
-function loginAdmin() {
-  const pass = document.getElementById('auth-pass')?.value.trim();
-  if (pass !== ADMIN_PASS) {
-    showAuthErr('סיסמת אדמין שגויה');
-    return;
-  }
-  user = { name: 'admin', level: 'מקצועי', discipline: 'ski', isAdmin: true };
-  saveAndClose();
-}
+// הכניסה הישנה עם סיסמה קבועה בקוד הוסרה — הרשאות אדמין
+// מגיעות כעת אחד ובלבד מעמודת is_admin בטבלת profiles
 
 function showAuthErr(msg) {
   const err = document.getElementById('auth-err');
