@@ -96,6 +96,19 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .wcam-label { font-size:0.78rem;font-weight:bold;padding:6px 10px;background:#0a192f;color:white; }
 .wcam-img { width:100%;height:160px;object-fit:cover;display:block;transition:opacity 0.2s; }
 .wcam-img:hover { opacity:0.85; }
+/* כרטיס פנורמה — ל-Roundshot ו-Panomax אין זרם תמונה סטטי, אז הכרטיס
+   מעוצב כסוג אחר של מצלמה ולא כתמונה שלא נטענה */
+.wcam-pano { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+             height:160px; text-decoration:none; color:#fff; overflow:hidden; transition:filter 0.2s;
+             background:linear-gradient(180deg,#0d2546 0%,#14406c 55%,#1b5886 100%); }
+.wcam-pano:hover { filter:brightness(1.18); }
+.wcam-pano .pano-peaks { position:absolute; left:0; bottom:0; width:100%; height:58px; display:block; opacity:0.5; }
+.wcam-pano .pano-badge { position:absolute; top:8px; inset-inline-end:8px; background:rgba(255,255,255,0.18);
+             border:1px solid rgba(255,255,255,0.4); border-radius:20px; padding:2px 9px;
+             font-size:0.64rem; font-weight:bold; letter-spacing:0.4px; }
+.wcam-pano .pano-icon { font-size:1.55rem; line-height:1; position:relative; }
+.wcam-pano .pano-main { font-size:0.86rem; font-weight:bold; position:relative; margin-top:6px; }
+.wcam-pano .pano-sub  { font-size:0.7rem; opacity:0.78; position:relative; margin-top:3px; }
 
 /* ==========================================
    CONTAINER & GLOBAL LAYOUT
@@ -215,6 +228,7 @@ img, svg, video { max-width: 100%; }
 
   /* Webcam grid */
   .wcam-img { height: 130px !important; }
+  .wcam-pano { height: 130px !important; }
 
   /* Forum filter chips - smaller */
   .filter-chip { font-size: 0.72rem !important; padding: 3px 7px !important; }
@@ -7165,17 +7179,23 @@ function switchAdminTab(tab) {
       <!-- ZERMATT / external links -->
       <div class="wcam-card" data-area="zermatt">
         <div class="wcam-label">🇨🇭 Matterhorn Glacier Paradise</div>
-        <a href="https://zbag.roundshot.com/matterhornglacierparadise/#/" target="_blank"
-           style="display:block;background:#0a192f;border-radius:8px;padding:32px 16px;text-align:center;text-decoration:none;color:white;font-size:0.83rem;">
-          🔗 פתח מצלמה חיה<br><span style="font-size:0.72rem;opacity:0.7;">Roundshot 360°</span>
+        <a class="wcam-pano" href="https://zbag.roundshot.com/matterhornglacierparadise/#/" target="_blank" rel="noopener">
+          <svg class="pano-peaks" viewBox="0 0 300 58" preserveAspectRatio="none" aria-hidden="true"><path d="M0 58 L42 22 L70 40 L108 10 L150 44 L188 18 L224 38 L262 14 L300 58 Z" fill="#0a192f"/><path d="M108 10 L96 22 L120 22 Z" fill="#ffffff" opacity="0.85"/><path d="M262 14 L252 25 L272 25 Z" fill="#ffffff" opacity="0.85"/></svg>
+          <span class="pano-badge">360°</span>
+          <span class="pano-icon">🏔️</span>
+          <span class="pano-main">לחץ לצפייה חיה</span>
+          <span class="pano-sub">פנורמה מסתובבת · Roundshot</span>
         </a>
       </div>
 
       <div class="wcam-card" data-area="zermatt">
         <div class="wcam-label">🇨🇭 Plateau Rosa — Panoramic</div>
-        <a href="https://cervinia.panomax.com/plateau-rosa" target="_blank"
-           style="display:block;background:#1a3a5c;border-radius:8px;padding:32px 16px;text-align:center;text-decoration:none;color:white;font-size:0.83rem;">
-          🔗 פתח Panomax<br><span style="font-size:0.72rem;opacity:0.7;">360° + היסטוריה</span>
+        <a class="wcam-pano" href="https://cervinia.panomax.com/plateau-rosa" target="_blank" rel="noopener">
+          <svg class="pano-peaks" viewBox="0 0 300 58" preserveAspectRatio="none" aria-hidden="true"><path d="M0 58 L42 22 L70 40 L108 10 L150 44 L188 18 L224 38 L262 14 L300 58 Z" fill="#0a192f"/><path d="M108 10 L96 22 L120 22 Z" fill="#ffffff" opacity="0.85"/><path d="M262 14 L252 25 L272 25 Z" fill="#ffffff" opacity="0.85"/></svg>
+          <span class="pano-badge">360°</span>
+          <span class="pano-icon">🏔️</span>
+          <span class="pano-main">לחץ לצפייה חיה</span>
+          <span class="pano-sub">פנורמה וארכיון · Panomax</span>
         </a>
       </div>
 
