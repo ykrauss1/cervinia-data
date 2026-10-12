@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <!-- version: 15.5 -->
-<title>CerviniaLive - Preview</title>
+<title>CerviniaLive</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -15,7 +15,8 @@
 :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
 body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; direction: rtl; }
 input[type=file] { display: none !important; }
-#sticky-header { position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
+/* הכותרת ושורת ההתראה נדבקות יחד — ההתראה מתחת לכותרת ונשארת גלויה בגלילה */
+#topstick { position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
         nav { background: var(--dark); color: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .admin-badge { background: var(--error); color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-left: 10px; }
 .services-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 25px; }
@@ -284,22 +285,8 @@ img, svg, video { max-width: 100%; }
 })();
 </script>
 
-<div class="preview-banner">
-  🔍 <b>מצב תצוגה מקדימה</b> — מזג אוויר ופורום מוצגים עם נתונים לדוגמה
-</div>
-<div style="background:#e8f4fd;border-bottom:1px solid #b8d9f0;padding:8px 20px;text-align:center;font-size:0.82rem;color:#444;display:flex;justify-content:center;gap:12px;align-items:center;flex-wrap:wrap;">
-  <span>🧪 כניסה מהירה לבדיקה:</span>
-  <button onclick="quickLogin('admin')" style="background:#e74c3c;color:white;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;font-weight:bold;">admin</button>
-  <button onclick="quickLogin('דני')" style="background:#4cc9f0;color:white;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;">משתמש רגיל</button>
-  <button onclick="logout()" style="background:#aaa;color:white;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;">התנתק</button>
-</div>
 
-<!-- 🚨 Alert Strip -->
-<div id="alert-strip" class="alert-strip severity-danger">
-  <span id="alert-strip-text"></span>
-  <button class="alert-close" onclick="dismissAlert()" title="סגור">✕</button>
-</div>
-
+<div id="topstick">
 <header id="sticky-header">
   <nav>
     <div style="display:flex;align-items:center;gap:8px;">
@@ -325,6 +312,12 @@ img, svg, video { max-width: 100%; }
     <div id="auth-area"></div>
   </nav>
 </header>
+<!-- 🚨 Alert Strip -->
+<div id="alert-strip" class="alert-strip severity-danger">
+  <span id="alert-strip-text"></span>
+  <button class="alert-close" onclick="dismissAlert()" title="סגור">✕</button>
+</div>
+</div><!-- /topstick -->
 
 
 
@@ -3958,7 +3951,7 @@ function loadLatestAlert() {
   var latest = alerts[0];
   showActiveAlert({
     text: latest.text,
-    severity: latest.severity || 'warning',
+    severity: latest.severity || 'danger',   // התראות קהילתיות באדום
     author: latest.user,
     time: alertTimeAgo(latest.ts)
   });
