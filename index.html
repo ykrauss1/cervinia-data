@@ -868,7 +868,7 @@ img, svg, video { max-width: 100%; }
             <input type="checkbox" id="all-airport-pickup" style="width:14px;height:14px;"> ✈️ קבלה בשדה התעופה
           </label>
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;background:white;flex:1;">
-            <input type="checkbox" id="all-automatic" checked style="width:14px;height:14px;"> 🔄 גיר אוטומטי
+            <input type="checkbox" id="all-automatic" checked title="סימון לעצמך — את סינון הגיר יש לבצע באתר ההשכרה" style="width:14px;height:14px;"> 🔄 גיר אוטומטי
           </label>
         </div>
         <!-- תאריכי רכב נפרדים -->
@@ -2956,6 +2956,9 @@ function cvBuildPrompt(text){
     + '- airport: "MXP" (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5/\u05de\u05dc\u05e4\u05e0\u05e1\u05d4), "BGY" (\u05d1\u05e8\u05d2\u05de\u05d5), "TRN" (\u05d8\u05d5\u05e8\u05d9\u05e0\u05d5), \u05d0\u05d5 null \u05d0\u05dd \u05dc\u05d0 \u05e6\u05d5\u05d9\u05df\n'
     + '- checkin / checkout: "YYYY-MM-DD" \u05d0\u05d5 null. \u05d0\u05dd \u05e6\u05d5\u05d9\u05df \u05d7\u05d5\u05d3\u05e9 \u05d1\u05dc\u05d1\u05d3 \u2014 \u05e7\u05d7 \u05d0\u05ea \u05d4-1 \u05d1\u05d7\u05d5\u05d3\u05e9\n'
     + '- nights: \u05de\u05e1\u05e4\u05e8 \u05dc\u05d9\u05dc\u05d5\u05ea ("\u05e9\u05d1\u05d5\u05e2"=7, "\u05e1\u05d5\u05e4\u05e9"=2, "\u05e9\u05d1\u05d5\u05e2\u05d9\u05d9\u05dd"=14) \u05d0\u05d5 null\n'
+    + '\u05d0\u05dd \u05e6\u05d5\u05d9\u05e0\u05d5 \u05d9\u05de\u05d9 \u05e9\u05d1\u05d5\u05e2 ("\u05de\u05e8\u05d0\u05e9\u05d5\u05df \u05e2\u05d3 \u05e9\u05d9\u05e9\u05d9") \u2014 \u05d7\u05e9\u05d1 \u05d1\u05e2\u05e6\u05de\u05da \u05d0\u05ea \u05d4\u05ea\u05d0\u05e8\u05d9\u05db\u05d9\u05dd \u05d1\u05e4\u05d5\u05e2\u05dc: '
+    + 'checkin = \u05d9\u05d5\u05dd \u05d4\u05e9\u05d1\u05d5\u05e2 \u05d4\u05de\u05d1\u05d5\u05e7\u05e9 \u05d4\u05e8\u05d0\u05e9\u05d5\u05df \u05d1\u05ea\u05d0\u05e8\u05d9\u05da \u05e9\u05e6\u05d5\u05d9\u05df \u05d0\u05d5 \u05d0\u05d7\u05e8\u05d9\u05d5, '
+    + 'checkout = \u05d9\u05d5\u05dd \u05d4\u05d7\u05d6\u05e8\u05d4 \u05d4\u05de\u05d1\u05d5\u05e7\u05e9 \u05d4\u05e8\u05d0\u05e9\u05d5\u05df \u05d0\u05d7\u05e8\u05d9 checkin. \u05d0\u05dc \u05ea\u05e9\u05d0\u05d9\u05e8 \u05ea\u05d0\u05e8\u05d9\u05db\u05d9\u05dd \u05e8\u05d9\u05e7\u05d9\u05dd \u05db\u05e9\u05d0\u05e4\u05e9\u05e8 \u05dc\u05d7\u05e9\u05d1 \u05d0\u05d5\u05ea\u05dd.\n'
     + '- adults / children: \u05de\u05e1\u05e4\u05e8\u05d9\u05dd \u05d0\u05d5 null. "\u05d6\u05d5\u05d2"=2 \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd, "\u05de\u05e9\u05e4\u05d7\u05d4"=2 \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd \u05d5-2 \u05d9\u05dc\u05d3\u05d9\u05dd\n'
     + '- car: true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05e8\u05db\u05d1, \u05d0\u05d7\u05e8\u05ea null\n'
     + '- hotel: false \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d1\u05dc\u05d9 \u05dc\u05d9\u05e0\u05d4, true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05dc\u05d9\u05e0\u05d4, \u05d0\u05d7\u05e8\u05ea null\n'
@@ -3012,9 +3015,20 @@ async function applyTripText(){
   if(!box || !box.value.trim()) return;
   out.innerHTML='<span style="color:#90a4ae;">\u05de\u05e0\u05ea\u05d7\u2026</span>';
 
-  var r=null, local=false;
-  try{ r=cvNormalize(await cvTranslateLive(box.value)); }catch(e){ r=null; }
-  if(!r || (!r.airport && !r.ci)){ r=window.parseTripText(box.value); local=true; }
+  // המודל הוא המפענח — המקומי הוא רשת ביטחון בלבד.
+  // קודם נפלתי למקומי גם כשהמודל החזיר תשובה חלקית תקפה — למשל נוסעים
+  // ורכב בלי תאריך — וזרקתי הבנה אמיתית לטובת החלש. עכשיו המקומי נכנס
+  // רק כשהקריאה נכשלה, או כשהמודל החזיר כלום באמת.
+  var r=null, local=false, failed=false;
+  try{ r=cvNormalize(await cvTranslateLive(box.value)); }catch(e){ r=null; failed=true; }
+  var _empty=function(x){ return !x || (!x.airport && !x.ci && x.adults==null && x.children==null
+                                        && x.car==null && x.hotel==null && !x.accType
+                                        && x.airportPickup==null && x.automatic==null); };
+  if(_empty(r)){
+    var lc=window.parseTripText(box.value);
+    if(!_empty(lc)){ r=lc; local=true; }
+    else if(!r){ r=lc; local=failed; }
+  }
 
   var got=[];
   if(r.airport){
@@ -3159,7 +3173,7 @@ function searchFlight() {
     { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג · התאריכים עוברים אוטומטית', url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
     { icon: '✈️', title: 'Google Flights → ' + fCode, desc: fCity + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner → ' + fCode, desc: 'השוואת מחירים', url: skUrl },
-    { icon: '✈️', title: 'Kayak → ' + fCode, desc: 'השוואה כוללת · ניתן להתחבר לחשבון', url: 'https://www.kayak.co.il/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
+    { icon: '✈️', title: 'Kayak → ' + fCode, desc: 'השוואה כוללת · ניתן להתחבר לחשבון', url: 'https://www.kayak.com/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
   ];
   const res = document.getElementById('flight-results');
   showResults(res);
@@ -3181,7 +3195,7 @@ function searchCar() {
   const cCity = cOpt?.getAttribute('data-city') || 'Milan Malpensa';
   const carAirport = cCode==='MXP' ? 'Milan+Malpensa+Airport' : cCode==='BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
   const links = [
-    { icon: '🚗', title: 'Skyscanner — ' + cCode, desc: 'השוואה רחבה · התאריכים עוברים אוטומטית', url: skyCarUrl(cCode, dr.ci, dr.co) },
+    { icon: '🚗', title: 'Skyscanner — ' + cCode, desc: 'התאריכים והשדה עוברים · גיר וסוג רכב: לסמן באתר', url: skyCarUrl(cCode, dr.ci, dr.co) },
     { icon: '🚗', title: 'Discover Cars — ' + cCode, desc: 'כולל חברות מקומיות · בחרו תאריכים בדף', url: discoverCarsUrl(cCode) },
   ];
   const res = document.getElementById('car-results');
@@ -3252,7 +3266,7 @@ function searchAll() {
     { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג · התאריכים עוברים אוטומטית', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
     { icon: '✈️', title: 'Google Flights → ' + airCode, desc: airLabel + ' · ~' + airDist + ' ק"מ', url: gfUrl },
     { icon: '✈️', title: 'Skyscanner → ' + airCode, desc: 'השוואת מחירים', url: skUrl },
-    { icon: '✈️', title: 'Kayak → ' + airCode, desc: 'השוואה כוללת · ניתן להתחבר לחשבון', url: 'https://www.kayak.co.il/flights/TLV-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
+    { icon: '✈️', title: 'Kayak → ' + airCode, desc: 'השוואה כוללת · ניתן להתחבר לחשבון', url: 'https://www.kayak.com/flights/TLV-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
   ];
   if (hasHotel) {
     const allHtlEl2 = document.getElementById('all-hotel-dates');
@@ -3266,7 +3280,12 @@ function searchAll() {
   const allCarEl2 = document.getElementById('all-car-dates');
     const cci = (document.getElementById('car-diff-dates')?.checked && allCarEl2?.getAttribute('data-ci')) ? allCarEl2.getAttribute('data-ci') : dr.ci;
     const cco = (document.getElementById('car-diff-dates')?.checked && allCarEl2?.getAttribute('data-co')) ? allCarEl2.getAttribute('data-co') : dr.co;
-    const carDesc = (airportPickup ? 'קבלה בשדה' : 'קבלה בעיר') + (automatic ? ' · אוטומטי' : '') + (cci!==dr.ci?' · תאריכים שונים':'');
+    // מה שהקישור באמת נושא: תאריכים ושדה התעופה (קוד השדה הוא מיקום האיסוף).
+    // גיר אוטומטי הוא מסנן שאי אפשר להעביר בכתובת — אז אומרים את זה במפורש
+    // במקום להציג את בחירת המשתמש כאילו היא יושמה.
+    const carDesc = 'התאריכים והשדה עוברים'
+      + (automatic ? ' · גיר אוטומטי: לסמן באתר' : '')
+      + (cci!==dr.ci ? ' · תאריכים שונים' : '');
   const carAirport = airCode === 'MXP' ? 'Milan+Malpensa+Airport' : airCode === 'BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
     links.push({ icon: '🚗', title: 'Skyscanner — ' + airCode, desc: carDesc, url: skyCarUrl(airCode, cci, cco) });
     links.push({ icon: '🚗', title: 'Discover Cars — ' + airCode, desc: 'כולל חברות מקומיות · בחרו תאריכים בדף', url: discoverCarsUrl(airCode) });
