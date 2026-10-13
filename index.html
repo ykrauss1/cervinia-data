@@ -732,8 +732,8 @@ img, svg, video { max-width: 100%; }
     <!-- חיפוש בשפה חופשית -->
     <div style="background:linear-gradient(135deg,#eef6ff,#f6fbff);border:1.5px solid #cfe2f5;border-radius:12px;padding:12px 13px;margin-bottom:16px;">
       <div style="display:flex;gap:7px;align-items:stretch;">
-        <input type="text" id="trip-free" placeholder="מילאנו בחנוכה לשבוע, שני מבוגרים ושני ילדים"
-          style="flex:1;padding:10px 12px;border:1.5px solid #bcd;border-radius:9px;font-size:0.86rem;font-family:inherit;box-sizing:border-box;">
+        <textarea id="trip-free" rows="2" oninput="growTripFree(this)" placeholder="מילאנו מראשון עד שישי החל 10 בינואר, 5 מבוגרים, כולל דירה ורכב אוטומטי בקבלה מהשדה"
+          style="flex:1;padding:10px 12px;border:1.5px solid #bcd;border-radius:9px;font-size:0.86rem;font-family:inherit;box-sizing:border-box;resize:vertical;min-height:52px;max-height:160px;line-height:1.5;overflow-y:auto;"></textarea>
         <button onclick="applyTripText()" style="padding:10px 16px;background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;white-space:nowrap;">💬 הבן</button>
       </div>
       <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
@@ -2706,9 +2706,17 @@ function switchTripTab(tab) {
   if (tab === 'car' || tab === 'hotel') setTimeout(initFlatpickr, 50);
 }
 
+var _skipResultScroll = false;   // החיפוש החופשי מדליק אותו לפעם אחת
 function showResults(el) {
   el.style.display = 'block';
+  // אחרי "הבן" המסך קפץ לתוצאות והסתיר את שורת "הבנתי" — ואז אי אפשר לוודא שההבנה נכונה.
+  // התוצאות מופיעות מתחת וממתינות.
+  if (_skipResultScroll) { _skipResultScroll = false; return; }
   setTimeout(function() { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+}
+function growTripFree(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(160, el.scrollHeight) + 'px';
 }
 
 // ── חיפוש בשפה חופשית ──
@@ -2792,7 +2800,7 @@ function showResults(el) {
   function parseTripText(raw) {
     var txt = String(raw || '').replace(/[׳״'"]/g, '').trim();
     var o = { airport: null, ci: null, co: null, nights: null, adults: null, children: null,
-              car: null, hotel: null, said: [] };
+              car: null, hotel: null, accType: null, airportPickup: null, automatic: null, said: [] };
     if (!txt) return o;
 
     // ── יעד ──
@@ -2856,6 +2864,25 @@ function showResults(el) {
       }
       }
     }
+    // "10 \u05d1\u05d9\u05e0\u05d5\u05d0\u05e8" / "\u05d4\u05d7\u05dc 3 \u05d1\u05de\u05e8\u05e5" \u2014 \u05d9\u05d5\u05dd \u05d5\u05e9\u05dd \u05d7\u05d5\u05d3\u05e9, \u05d4\u05e6\u05d5\u05e8\u05d4 \u05d4\u05e0\u05e4\u05d5\u05e6\u05d4 \u05d1\u05e2\u05d1\u05e8\u05d9\u05ea.
+    // \u05d1\u05dc\u05e2\u05d3\u05d9\u05d4 "\u05d4\u05d7\u05dc 10 \u05d1\u05d9\u05e0\u05d5\u05d0\u05e8" \u05e0\u05e7\u05e8\u05d0 \u05db-"\u05d9\u05e0\u05d5\u05d0\u05e8" \u05d5\u05d4\u05ea\u05d0\u05e8\u05d9\u05da \u05e0\u05e7\u05d1\u05e2 \u05dc-1 \u05d1\u05d7\u05d5\u05d3\u05e9.
+    if (!start) {
+      for (var dm = 0; dm < MONTHS.length; dm++) {
+        var reDM = new RegExp('(\\d{1,2})\\s*\u05d1?' + MONTHS[dm]);
+        var hit = txt.match(reDM);
+        if (hit) {
+          var day = +hit[1];
+          if (day >= 1 && day <= 31) {
+            var yM = txt.match(/20\d{2}/);
+            var yy2 = yM ? +yM[0] : today().getFullYear();
+            var cd = new Date(yy2, dm, day); cd.setHours(0, 0, 0, 0);
+            if (!yM && cd < today()) cd = new Date(yy2 + 1, dm, day);
+            if (!isNaN(cd.getTime())) { start = cd; o.said.push(day + ' ' + MONTHS[dm]); }
+          }
+          break;
+        }
+      }
+    }
     if (!start) {
       for (var m = 0; m < MONTHS.length; m++) {
         if (txt.indexOf(MONTHS[m]) >= 0) {
@@ -2877,6 +2904,11 @@ function showResults(el) {
 
     // ── תוספות ──
     if (/רכב|מכונית|השכרת/.test(txt)) o.car = true;
+    if (/קבלה בשדה|בשדה התעופה|מהשדה|איסוף בשדה/.test(txt)) o.airportPickup = true;
+    if (/אוטומט/.test(txt)) o.automatic = true;
+    else if (/גיר ידני|ידני/.test(txt)) o.automatic = false;
+    if (/דירה|אפרטמנט|צימר/.test(txt)) o.accType = 'apt';
+    else if (/מלון/.test(txt)) o.accType = 'hotel';
     if (/בלי לינה|ללא לינה|בלי מלון/.test(txt)) o.hotel = false;
     else if (/לינה|מלון|דירה/.test(txt)) o.hotel = true;
     return o;
@@ -2927,8 +2959,11 @@ function cvBuildPrompt(text){
     + '- adults / children: \u05de\u05e1\u05e4\u05e8\u05d9\u05dd \u05d0\u05d5 null. "\u05d6\u05d5\u05d2"=2 \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd, "\u05de\u05e9\u05e4\u05d7\u05d4"=2 \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd \u05d5-2 \u05d9\u05dc\u05d3\u05d9\u05dd\n'
     + '- car: true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05e8\u05db\u05d1, \u05d0\u05d7\u05e8\u05ea null\n'
     + '- hotel: false \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d1\u05dc\u05d9 \u05dc\u05d9\u05e0\u05d4, true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05dc\u05d9\u05e0\u05d4, \u05d0\u05d7\u05e8\u05ea null\n'
+    + '- accType: "apt" \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d3\u05d9\u05e8\u05d4/\u05d0\u05e4\u05e8\u05d8\u05de\u05e0\u05d8, "hotel" \u05d0\u05dd \u05de\u05dc\u05d5\u05df, "any" \u05d0\u05dd \u05db\u05dc \u05e1\u05d5\u05d2 \u05dc\u05d9\u05e0\u05d4, \u05d0\u05d7\u05e8\u05ea null\n'
+    + '- airportPickup: true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05dc\u05e7\u05d1\u05dc \u05d0\u05ea \u05d4\u05e8\u05db\u05d1 \u05d1\u05e9\u05d3\u05d4 \u05d4\u05ea\u05e2\u05d5\u05e4\u05d4, \u05d0\u05d7\u05e8\u05ea null\n'
+    + '- automatic: true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d2\u05d9\u05e8 \u05d0\u05d5\u05d8\u05d5\u05de\u05d8\u05d9, false \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d9\u05d3\u05e0\u05d9, \u05d0\u05d7\u05e8\u05ea null\n'
     + '- summary: \u05ea\u05e7\u05e6\u05d9\u05e8 \u05e2\u05d1\u05e8\u05d9 \u05e7\u05e6\u05e8 \u05e9\u05dc \u05de\u05d4 \u05e9\u05d4\u05d5\u05d1\u05df\n'
-    + '\u05d0\u05dc \u05ea\u05de\u05e6\u05d9\u05d0 \u05e2\u05e8\u05da \u05e9\u05dc\u05d0 \u05e0\u05db\u05ea\u05d1. \u05e4\u05dc\u05d8: {"airport":null,"checkin":null,"checkout":null,"nights":null,"adults":null,"children":null,"car":null,"hotel":null,"summary":""}\n'
+    + '\u05d0\u05dc \u05ea\u05de\u05e6\u05d9\u05d0 \u05e2\u05e8\u05da \u05e9\u05dc\u05d0 \u05e0\u05db\u05ea\u05d1. \u05e4\u05dc\u05d8: {"airport":null,"checkin":null,"checkout":null,"nights":null,"adults":null,"children":null,"car":null,"hotel":null,"accType":null,"airportPickup":null,"automatic":null,"summary":""}\n'
     + '\u05d4\u05d1\u05e7\u05e9\u05d4: "' + String(text).slice(0,400) + '"';
 }
 
@@ -2946,7 +2981,8 @@ async function cvTranslateLive(text){
 /* פלט מודל הוא קלט מבחוץ — כל שדה עובר אימות לפני שהוא נוגע בטופס */
 function cvNormalize(I){
   var ISO=/^\d{4}-\d{2}-\d{2}$/, ok={MXP:1,BGY:1,TRN:1};
-  var o={airport:null,ci:null,co:null,nights:null,adults:null,children:null,car:null,hotel:null,said:[]};
+  var o={airport:null,ci:null,co:null,nights:null,adults:null,children:null,car:null,hotel:null,
+         accType:null,airportPickup:null,automatic:null,said:[]};
   if(!I || typeof I!=='object') return o;
   var ap=String(I.airport||'').toUpperCase();
   if(ok[ap]) o.airport=ap;
@@ -2963,6 +2999,9 @@ function cvNormalize(I){
   var c=parseInt(I.children,10); if(c>=0 && c<=9) o.children=c;
   if(I.car===true) o.car=true;
   if(I.hotel===false) o.hotel=false; else if(I.hotel===true) o.hotel=true;
+  if(I.accType==='apt'||I.accType==='hotel'||I.accType==='any') o.accType=I.accType;
+  if(I.airportPickup===true) o.airportPickup=true;
+  if(I.automatic===true) o.automatic=true; else if(I.automatic===false) o.automatic=false;
   return o;
 }
 
@@ -3004,7 +3043,7 @@ async function applyTripText(){
     var c=document.getElementById('all-h-children'); if(c) c.textContent=r.children;
     if(r.children) got.push(r.children+' \u05d9\u05dc\u05d3\u05d9\u05dd');
   }
-  if(r.car===true){
+  if(r.car===true || r.airportPickup===true || r.automatic!=null){
     var cc=document.getElementById('all-car-check');
     if(cc && !cc.checked){ cc.checked=true; if(typeof toggleCarDetails==='function') toggleCarDetails('all-car-details',true); }
     got.push('\u05e2\u05dd \u05e8\u05db\u05d1');
@@ -3014,6 +3053,18 @@ async function applyTripText(){
     if(hc && hc.checked){ hc.checked=false; if(typeof toggleCarDetails==='function') toggleCarDetails('all-hotel-details',false); }
     got.push('\u05d1\u05dc\u05d9 \u05dc\u05d9\u05e0\u05d4');
   }
+  if(r.accType){
+    var rb=document.querySelector('input[name="all-acc"][value="'+r.accType+'"]');
+    if(rb){ rb.checked=true; got.push({apt:'\u05d3\u05d9\u05e8\u05d4',hotel:'\u05de\u05dc\u05d5\u05df',any:'\u05db\u05dc \u05e1\u05d5\u05d2\u05d9 \u05d4\u05dc\u05d9\u05e0\u05d4'}[r.accType]); }
+  }
+  if(r.airportPickup===true){
+    var ap=document.getElementById('all-airport-pickup');
+    if(ap){ ap.checked=true; got.push('\u05e7\u05d1\u05dc\u05d4 \u05d1\u05e9\u05d3\u05d4'); }
+  }
+  if(r.automatic!=null){
+    var au=document.getElementById('all-automatic');
+    if(au){ au.checked=!!r.automatic; got.push(r.automatic?'\u05d2\u05d9\u05e8 \u05d0\u05d5\u05d8\u05d5\u05de\u05d8\u05d9':'\u05d2\u05d9\u05e8 \u05d9\u05d3\u05e0\u05d9'); }
+  }
 
   if(!got.length){
     out.innerHTML='<span style="color:#ef6c00;">\u05dc\u05d0 \u05d6\u05d9\u05d4\u05d9\u05ea\u05d9 \u05d9\u05e2\u05d3 \u05d0\u05d5 \u05ea\u05d0\u05e8\u05d9\u05da. \u05e0\u05e1\u05d5 \u05dc\u05d4\u05d6\u05db\u05d9\u05e8 \u05e2\u05d9\u05e8 (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5 / \u05d1\u05e8\u05d2\u05de\u05d5 / \u05d8\u05d5\u05e8\u05d9\u05e0\u05d5) \u05d5\u05de\u05ea\u05d9 \u2014 \u05d7\u05d5\u05d3\u05e9, \u05ea\u05d0\u05e8\u05d9\u05da \u05d0\u05d5 \u05d7\u05d2.</span>';
@@ -3021,7 +3072,7 @@ async function applyTripText(){
   }
   out.innerHTML = (local ? '<span style="color:#ef6c00;">\u26a0 \u05ea\u05e8\u05d2\u05d5\u05dd \u05de\u05e7\u05d5\u05de\u05d9 (\u05de\u05d5\u05d2\u05d1\u05dc) \u00b7 </span>' : '')
     + '<span style="color:#2e7d32;">\u2713 \u05d4\u05d1\u05e0\u05ea\u05d9: '+got.join(' \u00b7 ')+'</span>';
-  if(r.ci && r.co && typeof searchAll==='function') searchAll();
+  if(r.ci && r.co && typeof searchAll==='function'){ _skipResultScroll = true; searchAll(); }
 }
 
 document.addEventListener('keydown',function(e){
