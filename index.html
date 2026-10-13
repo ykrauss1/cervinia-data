@@ -2693,6 +2693,16 @@ function gFlightsUrl(from, to, ci, co, pax) {
   if (n > 1) q += ' for ' + n + ' adults';
   return 'https://www.google.com/travel/flights?hl=he&curr=ILS&q=' + encodeURIComponent(q);
 }
+// Kosher Fly — מנוע החיפוש שלנו. הפרמטרים נקראים שם וממלאים את הטופס,
+// ו-run=1 מריץ את החיפוש מיד — המטייל נוחת על תוצאות, לא על טופס ריק.
+function kosherFlyUrl(code, ci, co, pax) {
+  var he = code === 'MXP' ? '\u05de\u05d9\u05dc\u05d0\u05e0\u05d5' : code === 'BGY' ? '\u05d1\u05e8\u05d2\u05de\u05d5' : '\u05d8\u05d5\u05e8\u05d9\u05e0\u05d5';
+  var n = Math.max(1, Math.min(9, parseInt(pax, 10) || 2));
+  return 'https://ykrauss1.github.io/trip-finder/'
+    + '?to=' + encodeURIComponent(code)
+    + '&from=TLV&dep=' + encodeURIComponent(ci) + '&ret=' + encodeURIComponent(co)
+    + '&adults=' + n + '&label=' + encodeURIComponent(he) + '&run=1';
+}
 // Skyscanner השכרת רכב: /carhire/results/{איסוף}/{החזרה}/{תאריך}/{תאריך}/{גיל}
 function skyCarUrl(code, ci, co) {
   return 'https://www.skyscanner.co.il/carhire/results/' + code + '/' + code + '/' + ci + '/' + co + '/30';
@@ -2733,6 +2743,7 @@ function searchFlight() {
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
   const gfWithDates = gFlightsUrl('TLV', fCode, dr.ci, dr.co, pax);
   const links = [
+    { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג · התאריכים עוברים אוטומטית', url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
     { icon: '✈️', title: 'Google Flights → ' + fCode, desc: fCity + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner → ' + fCode, desc: 'השוואת מחירים', url: skUrl },
     { icon: '✈️', title: 'Kayak → ' + fCode, desc: 'השוואה כוללת', url: 'https://www.kayak.co.il/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
@@ -2827,6 +2838,7 @@ function searchAll() {
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
   const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
   let links = [
+    { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג · התאריכים עוברים אוטומטית', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
     { icon: '✈️', title: 'Google Flights → ' + airCode, desc: airLabel + ' · ~' + airDist + ' ק"מ', url: gfUrl },
     { icon: '✈️', title: 'Skyscanner → ' + airCode, desc: 'השוואת מחירים', url: skUrl },
   ];
@@ -2856,7 +2868,7 @@ function searchAll() {
       + '<div style="font-size:0.78rem;font-weight:bold;color:#333;margin-bottom:8px;">' + ttl + '</div>'
       + makeResultLinks(lnks) + '</div>';
   }
-  const flightLinks2 = links.filter(l => l.icon === '✈️');
+  const flightLinks2 = links.filter(l => l.icon === '✈️' || l.icon === '🕯️');
   const hotelLinks2  = links.filter(l => l.icon === '🏨' || l.icon === '🏠');
   const carLinks2    = links.filter(l => l.icon === '🚗');
 
