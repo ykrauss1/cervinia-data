@@ -256,6 +256,9 @@ img, svg, video { max-width: 100%; }
   .modal-content { padding: 16px 12px !important; }
 }
 
+
+.ftx{font-size:0.71rem;background:white;border:1px solid #cfe2f5;border-radius:20px;padding:3px 10px;cursor:pointer;color:#37474f;}
+.ftx:hover{background:#0a192f;color:white;border-color:#0a192f;}
 </style>
 
   <!-- PWA -->
@@ -726,6 +729,23 @@ img, svg, video { max-width: 100%; }
     <span class="close-btn" onclick="closeM('hotelModal')">×</span>
     <h3 style="margin:0 0 18px;font-size:1.15rem;">✈️ תכנון טיול לצ’רוויניה</h3>
 
+    <!-- חיפוש בשפה חופשית -->
+    <div style="background:linear-gradient(135deg,#eef6ff,#f6fbff);border:1.5px solid #cfe2f5;border-radius:12px;padding:12px 13px;margin-bottom:16px;">
+      <div style="display:flex;gap:7px;align-items:stretch;">
+        <input type="text" id="trip-free" placeholder="מילאנו בחנוכה לשבוע, שני מבוגרים ושני ילדים"
+          style="flex:1;padding:10px 12px;border:1.5px solid #bcd;border-radius:9px;font-size:0.86rem;font-family:inherit;box-sizing:border-box;">
+        <button onclick="applyTripText()" style="padding:10px 16px;background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;white-space:nowrap;">💬 הבן</button>
+      </div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
+        <span style="font-size:0.7rem;color:#90a4ae;align-self:center;">לדוגמה:</span>
+        <span class="ftx" onclick="fillTripText(this)">מילאנו בחנוכה לשבוע</span>
+        <span class="ftx" onclick="fillTripText(this)">משפחה לטורינו בפברואר</span>
+        <span class="ftx" onclick="fillTripText(this)">סופש בברגמו בעוד שבועיים עם רכב</span>
+        <span class="ftx" onclick="fillTripText(this)">מילאנו בחול המועד פסח ל-4 לילות</span>
+      </div>
+      <div id="trip-free-said" style="margin-top:7px;font-size:0.75rem;"></div>
+    </div>
+
     <!-- Date + passengers row -->
     <div style="margin-bottom:18px;">
       <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;">
@@ -840,7 +860,7 @@ img, svg, video { max-width: 100%; }
           </div>
           <div>
             <label style="font-size:0.73rem;color:#777;">שעת החזרה</label>
-            <input type="time" id="all-car-dropoff" value="18:00" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;margin-top:3px;box-sizing:border-box;">
+            <input type="time" id="all-car-dropoff" value="10:00" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;margin-top:3px;box-sizing:border-box;">
           </div>
         </div>
         <div style="display:flex;gap:10px;">
@@ -908,7 +928,7 @@ img, svg, video { max-width: 100%; }
         </div>
         <div>
           <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">שעת החזרה</label>
-          <input type="time" id="car-dropoff" value="18:00" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:7px;box-sizing:border-box;">
+          <input type="time" id="car-dropoff" value="10:00" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:7px;box-sizing:border-box;">
         </div>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:14px;">
@@ -2636,8 +2656,14 @@ function doFlightSearch(airport) {
 
 // ── Trip Planner ──
 function getDateRange() {
-  const fp = document.getElementById('trip-dates')?._flatpickr;
-  if (!fp || fp.selectedDates.length < 2) return null;
+  const el = document.getElementById('trip-dates');
+  const fp = el?._flatpickr;
+  if (!fp || fp.selectedDates.length < 2) {
+    // רשת ביטחון: תאריכים שנקבעו בדרך אחרת (חיפוש חופשי),
+    // כדי שהתכנון לא יישבר אם flatpickr מה-CDN מאחר או נחסם
+    const ci = el?.getAttribute('data-ci'), co = el?.getAttribute('data-co');
+    return (ci && co) ? { ci, co } : null;
+  }
   const fmtISO = d => {
     const y = d.getFullYear();
     const m = String(d.getMonth()+1).padStart(2,'0');
@@ -2685,13 +2711,353 @@ function showResults(el) {
   setTimeout(function() { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
 }
 
+// ── חיפוש בשפה חופשית ──
+// פענוח מקומי בדפדפן, בלי שרת ובלי מודל שפה. אוצר המילים כאן צר ומוגדר —
+// יעד, תאריכים, משך ונוסעים — ולוח hebcal כבר טעון בדף ממילא, אז "בחנוכה"
+// מתורגם לתאריכים אמיתיים ולא לניחוש.
+(function () {
+  var AIRPORTS = [
+    { re: /מלפנסה|מילאנו|מילאן|milano|milan|mxp/i, code: 'MXP' },
+    { re: /ברגמו|ברגאמו|bergamo|bgy/i,            code: 'BGY' },
+    { re: /טורינו|טורין|torino|turin|trn/i,        code: 'TRN' }
+  ];
+  var MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  var HE_NUM = { 'אחד':1,'אחת':1,'שני':2,'שתי':2,'שניים':2,'שתיים':2,'זוג':2,'שלוש':3,'שלושה':3,'ארבע':4,'ארבעה':4,
+                 'חמש':5,'חמישה':5,'שש':6,'שישה':6,'שבע':7,'שבעה':7,'שמונה':8,'תשע':9,'תשעה':9,'עשר':10,'עשרה':10 };
+  // המפתח הוא מה שהמשתמש כותב; הערך הוא תחילת ה-desc האנגלי שה-hebcal מחזיר,
+  // שיציב יותר מהשם המנוקד בעברית
+  var CHAGIM = [
+    { re: /חנוכה/,                      desc: 'Chanukah: 1 Candle' },
+    { re: /חוה.?מ.?\s*פסח|חול המועד פסח/, desc: /^Pesach III/ },
+    { re: /פסח/,                        desc: 'Pesach I' },
+    { re: /חוה.?מ.?\s*סוכות|חול המועד סוכות/, desc: /^Sukkot III/ },
+    { re: /סוכות/,                      desc: 'Sukkot I' },
+    { re: /שבועות/,                     desc: 'Shavuot I' },
+    { re: /פורים/,                      desc: 'Purim' },
+    { re: /ט.?ו בשבט/,                  desc: 'Tu BiShvat' },
+    { re: /ל.?ג בעומר/,                 desc: 'Lag BaOmer' },
+    { re: /ראש השנה/,                   desc: /^Rosh Hashana \d{4}$/ },
+    { re: /יום כיפור|כיפור/,            desc: 'Yom Kippur' }
+  ];
+
+  // "ושני", "לחמישה" — התחיליות בולעות את המספר, מקלפים אותן לפני החיפוש
+  function _num(w) {
+    if (w == null) return null;
+    var d = parseInt(w, 10);
+    if (!isNaN(d)) return d;
+    var str = String(w);
+    if (HE_NUM[str] != null) return HE_NUM[str];
+    var stripped = str.slice(1);
+    return HE_NUM[stripped] != null ? HE_NUM[stripped] : null;
+  }
+  function iso(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); x.setHours(0, 0, 0, 0); return x; }
+  function today() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+
+  // התאריך הקרוב שבו מתחיל החג המבוקש, לפי הלוח האמיתי
+  // התאמה מדויקת, לא לפי תחילית המחרוזת: "Yom Kippur" כתחילית תופס
+  // גם את "Yom Kippur Katan Kislev" — צום חודשי קטן — והחזיר תאריך מופרך לגמרי.
+  // אותה תקלה בדיוק עם "Purim" מול "Purim Katan".
+  function nextChag(spec) {
+    if (!window.hebcal || !window.hebcal.HDate) return null;
+    var isRe = spec instanceof RegExp;
+    var d = today();
+    for (var i = 0; i < 420; i++) {
+      var day = addDays(d, i);
+      var evs = window.hebcal.getHolidaysOnDate(new window.hebcal.HDate(day), false) || [];
+      for (var j = 0; j < evs.length; j++) {
+        var desc = evs[j].getDesc();
+        if (isRe ? spec.test(desc) : desc === spec) return day;
+      }
+    }
+    return null;
+  }
+  // בין הזמנים דקיץ אינו אירוע בלוח — הוא טווח, י׳ באב עד סוף החודש
+  function nextBeinHazmanim() {
+    if (!window.hebcal || !window.hebcal.HDate) return null;
+    var H = window.hebcal, t = today();
+    var yy = new H.HDate(t).getFullYear();
+    for (var k = 0; k < 2; k++) {
+      try {
+        var start = new H.HDate(10, 'Av', yy + k).greg();
+        start.setHours(0, 0, 0, 0);
+        if (start >= t) return start;
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  function parseTripText(raw) {
+    var txt = String(raw || '').replace(/[׳״'"]/g, '').trim();
+    var o = { airport: null, ci: null, co: null, nights: null, adults: null, children: null,
+              car: null, hotel: null, said: [] };
+    if (!txt) return o;
+
+    // ── יעד ──
+    for (var i = 0; i < AIRPORTS.length; i++) {
+      if (AIRPORTS[i].re.test(txt)) { o.airport = AIRPORTS[i].code; break; }
+    }
+
+    // ── נוסעים ──
+    var mAd = txt.match(/(\d+|[֐-׿]+)\s*מבוגרים?/);
+    if (mAd) o.adults = _num(mAd[1]);
+    var mCh = txt.match(/(\d+|[֐-׿]+)\s*ילדים?/);
+    if (mCh) o.children = _num(mCh[1]);
+    if (o.adults == null && /זוג/.test(txt)) o.adults = 2;
+    if (o.adults == null && /משפחה/.test(txt)) { o.adults = 2; if (o.children == null) o.children = 2; }
+
+    // ── משך ──
+    if (/סופ.?ש|סוף שבוע/.test(txt)) o.nights = 2;
+    else if (/שבועיים/.test(txt) && !/בעוד\s*שבועיים/.test(txt)) o.nights = 14;
+    else if (/לשבוע|שבוע אחד|\bשבוע\b/.test(txt)) o.nights = 7;
+    var mN = txt.match(/(\d+)\s*(לילות|לילה|ימים|יום)/);
+    if (mN) o.nights = parseInt(mN[1], 10);
+    else {
+      var mHe = txt.match(/([֐-׿]+)\s*(לילות|ימים)/);
+      if (mHe && _num(mHe[1]) != null) o.nights = _num(mHe[1]);
+    }
+
+    // ── תאריכים ──
+    var start = null;
+    var mDate = txt.match(/(\d{1,2})[.\/](\d{1,2})(?:[.\/](\d{2,4}))?/);
+    if (mDate) {
+      var dd = +mDate[1], mm = +mDate[2] - 1;
+      var yr = mDate[3] ? (+mDate[3] < 100 ? 2000 + +mDate[3] : +mDate[3]) : today().getFullYear();
+      var cand = new Date(yr, mm, dd); cand.setHours(0, 0, 0, 0);
+      if (!mDate[3] && cand < today()) cand = new Date(yr + 1, mm, dd);
+      if (!isNaN(cand.getTime())) { start = cand; o.said.push(dd + '.' + (mm + 1)); }
+    }
+    if (!start) {
+      for (var c = 0; c < CHAGIM.length; c++) {
+        if (CHAGIM[c].re.test(txt)) {
+          var ch = nextChag(CHAGIM[c].desc);
+          if (ch) { start = ch; o.said.push(txt.match(CHAGIM[c].re)[0]); }
+          break;
+        }
+      }
+    }
+    if (!start && /בין הזמנים/.test(txt)) {
+      var bh = nextBeinHazmanim();
+      if (bh) { start = bh; o.said.push('בין הזמנים'); }
+    }
+    if (!start) {
+      var mDual = txt.match(/בעוד\s*(שבועיים|יומיים|חודשיים)/);
+      if (mDual) {
+        var dm = mDual[1] === 'שבועיים' ? 14 : (mDual[1] === 'חודשיים' ? 60 : 2);
+        start = addDays(today(), dm); o.said.push(mDual[0]);
+      } else {
+      var mRel = txt.match(/בעוד\s*(\d+|[֐-׿]+)\s*(ימים|יום|שבועות|שבוע|חודשים|חודש)/);
+      if (mRel) {
+        var n = _num(mRel[1]) || 1;
+        var mult = /שבוע/.test(mRel[2]) ? 7 : (/חודש/.test(mRel[2]) ? 30 : 1);
+        start = addDays(today(), n * mult); o.said.push(mRel[0]);
+      }
+      }
+    }
+    if (!start) {
+      for (var m = 0; m < MONTHS.length; m++) {
+        if (txt.indexOf(MONTHS[m]) >= 0) {
+          var yMatch = txt.match(/20\d{2}/);
+          var y = yMatch ? +yMatch[0] : today().getFullYear();
+          var first = new Date(y, m, 1); first.setHours(0, 0, 0, 0);
+          if (!yMatch && first < today()) first = new Date(y + 1, m, 1);
+          start = first; o.said.push(MONTHS[m] + (yMatch ? ' ' + y : ''));
+          break;
+        }
+      }
+    }
+
+    if (start) {
+      if (o.nights == null) o.nights = 7;
+      o.ci = iso(start);
+      o.co = iso(addDays(start, o.nights));
+    }
+
+    // ── תוספות ──
+    if (/רכב|מכונית|השכרת/.test(txt)) o.car = true;
+    if (/בלי לינה|ללא לינה|בלי מלון/.test(txt)) o.hotel = false;
+    else if (/לינה|מלון|דירה/.test(txt)) o.hotel = true;
+    return o;
+  }
+
+  window.parseTripText = parseTripText;
+  window.cvNextChag   = nextChag;   // משמש את בונה הפרומפט כדי לתת למודל תאריכי חגים אמיתיים
+})();
+
+function fillTripText(el){ var i=document.getElementById('trip-free'); if(i){ i.value=el.textContent; i.focus(); } }
+
+/* ===== תרגום אמיתי =====
+   אותה פונקציית edge שמשמשת את טריפ פיינדר (tf-translate), שמחזיקה את המפתח
+   בצד השרת. היא מקבלת {prompt} ומחזירה {intent}, אז כאן שולחים פרומפט משלנו
+   עם סכמה של צ'רוויניה — בלי שום שינוי בצד השרת.
+   התוספת שלנו: טבלת תאריכי החגים מחושבת מ-hebcal ונכנסת לפרומפט,
+   כך שהמודל לא צריך לזכור מתי חנוכה — הלוח אומר לו. */
+var CV_TRANSLATE_URL = 'https://cdgqodtbdhsqkvcgcdlm.functions.supabase.co/tf-translate';
+
+function cvChagTable(){
+  var want = [['\u05d7\u05e0\u05d5\u05db\u05d4','Chanukah: 1 Candle'], ['\u05e4\u05d5\u05e8\u05d9\u05dd','Purim'],
+              ['\u05e4\u05e1\u05d7','Pesach I'], ['\u05d7\u05d5\u05dc \u05d4\u05de\u05d5\u05e2\u05d3 \u05e4\u05e1\u05d7',/^Pesach III/],
+              ['\u05e9\u05d1\u05d5\u05e2\u05d5\u05ea','Shavuot I'], ['\u05e8\u05d0\u05e9 \u05d4\u05e9\u05e0\u05d4',/^Rosh Hashana \d{4}$/],
+              ['\u05d9\u05d5\u05dd \u05db\u05d9\u05e4\u05d5\u05e8','Yom Kippur'], ['\u05e1\u05d5\u05db\u05d5\u05ea','Sukkot I'],
+              ['\u05d7\u05d5\u05dc \u05d4\u05de\u05d5\u05e2\u05d3 \u05e1\u05d5\u05db\u05d5\u05ea',/^Sukkot III/],
+              ['\u05d8\u05f4\u05d5 \u05d1\u05e9\u05d1\u05d8','Tu BiShvat'], ['\u05dc\u05f4\u05d2 \u05d1\u05e2\u05d5\u05de\u05e8','Lag BaOmer']];
+  var iso=function(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+  var out=[];
+  for(var i=0;i<want.length;i++){
+    try{
+      var d=window.cvNextChag(want[i][1]);
+      if(d) out.push(want[i][0]+' '+iso(d));
+    }catch(e){}
+  }
+  return out.join(' \u00b7 ');
+}
+
+function cvBuildPrompt(text){
+  var today=new Date().toISOString().slice(0,10);
+  var chagim=cvChagTable();
+  return '\u05ea\u05e8\u05d2\u05dd \u05d1\u05e7\u05e9\u05ea \u05ea\u05db\u05e0\u05d5\u05df \u05d8\u05d9\u05d5\u05dc \u05dc\u05e6\u2019\u05e8\u05d5\u05d5\u05d9\u05e0\u05d9\u05d4 (\u05d0\u05d9\u05d8\u05dc\u05d9\u05d4) \u05dc-JSON. \u05d4\u05d7\u05d6\u05e8 \u05d0\u05da \u05d5\u05e8\u05e7 JSON \u05ea\u05e7\u05d9\u05df \u2014 \u05d1\u05dc\u05d9 \u05d8\u05e7\u05e1\u05d8 \u05d5\u05d1\u05dc\u05d9 markdown.\n'
+    + '\u05d4\u05ea\u05d0\u05e8\u05d9\u05da \u05d4\u05d9\u05d5\u05dd: ' + today + '. \u05db\u05e9\u05d7\u05d5\u05d3\u05e9 \u05d0\u05d5 \u05d7\u05d2 \u05e0\u05d6\u05db\u05e8 \u05d1\u05dc\u05d9 \u05e9\u05e0\u05d4 \u2014 \u05d1\u05d7\u05e8 \u05d0\u05ea \u05d4\u05de\u05d5\u05e4\u05e2 \u05d4\u05e2\u05ea\u05d9\u05d3\u05d9 \u05d4\u05e7\u05e8\u05d5\u05d1.\n'
+    + '\u05ea\u05d0\u05e8\u05d9\u05db\u05d9 \u05d4\u05d7\u05d2\u05d9\u05dd \u05d4\u05d0\u05de\u05d9\u05ea\u05d9\u05d9\u05dd (\u05d4\u05e9\u05ea\u05de\u05e9 \u05d1\u05d4\u05dd, \u05d0\u05dc \u05ea\u05d7\u05e9\u05d1 \u05d1\u05e2\u05e6\u05de\u05da): ' + chagim + '\n'
+    + '\u05e9\u05d3\u05d5\u05ea:\n'
+    + '- airport: "MXP" (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5/\u05de\u05dc\u05e4\u05e0\u05e1\u05d4), "BGY" (\u05d1\u05e8\u05d2\u05de\u05d5), "TRN" (\u05d8\u05d5\u05e8\u05d9\u05e0\u05d5), \u05d0\u05d5 null \u05d0\u05dd \u05dc\u05d0 \u05e6\u05d5\u05d9\u05df\n'
+    + '- checkin / checkout: "YYYY-MM-DD" \u05d0\u05d5 null. \u05d0\u05dd \u05e6\u05d5\u05d9\u05df \u05d7\u05d5\u05d3\u05e9 \u05d1\u05dc\u05d1\u05d3 \u2014 \u05e7\u05d7 \u05d0\u05ea \u05d4-1 \u05d1\u05d7\u05d5\u05d3\u05e9\n'
+    + '- nights: \u05de\u05e1\u05e4\u05e8 \u05dc\u05d9\u05dc\u05d5\u05ea ("\u05e9\u05d1\u05d5\u05e2"=7, "\u05e1\u05d5\u05e4\u05e9"=2, "\u05e9\u05d1\u05d5\u05e2\u05d9\u05d9\u05dd"=14) \u05d0\u05d5 null\n'
+    + '- adults / children: \u05de\u05e1\u05e4\u05e8\u05d9\u05dd \u05d0\u05d5 null. "\u05d6\u05d5\u05d2"=2 \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd, "\u05de\u05e9\u05e4\u05d7\u05d4"=2 \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd \u05d5-2 \u05d9\u05dc\u05d3\u05d9\u05dd\n'
+    + '- car: true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05e8\u05db\u05d1, \u05d0\u05d7\u05e8\u05ea null\n'
+    + '- hotel: false \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d1\u05dc\u05d9 \u05dc\u05d9\u05e0\u05d4, true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05dc\u05d9\u05e0\u05d4, \u05d0\u05d7\u05e8\u05ea null\n'
+    + '- summary: \u05ea\u05e7\u05e6\u05d9\u05e8 \u05e2\u05d1\u05e8\u05d9 \u05e7\u05e6\u05e8 \u05e9\u05dc \u05de\u05d4 \u05e9\u05d4\u05d5\u05d1\u05df\n'
+    + '\u05d0\u05dc \u05ea\u05de\u05e6\u05d9\u05d0 \u05e2\u05e8\u05da \u05e9\u05dc\u05d0 \u05e0\u05db\u05ea\u05d1. \u05e4\u05dc\u05d8: {"airport":null,"checkin":null,"checkout":null,"nights":null,"adults":null,"children":null,"car":null,"hotel":null,"summary":""}\n'
+    + '\u05d4\u05d1\u05e7\u05e9\u05d4: "' + String(text).slice(0,400) + '"';
+}
+
+async function cvTranslateLive(text){
+  var ctrl=new AbortController(), to=setTimeout(function(){ ctrl.abort(); }, 20000);
+  try{
+    var r=await fetch(CV_TRANSLATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt:cvBuildPrompt(text)}),signal:ctrl.signal});
+    var d=await r.json().catch(function(){ return null; });
+    if(!r.ok || !d || !d.ok || !d.intent) throw new Error('translate failed');
+    return d.intent;
+  } finally { clearTimeout(to); }
+}
+
+/* פלט מודל הוא קלט מבחוץ — כל שדה עובר אימות לפני שהוא נוגע בטופס */
+function cvNormalize(I){
+  var ISO=/^\d{4}-\d{2}-\d{2}$/, ok={MXP:1,BGY:1,TRN:1};
+  var o={airport:null,ci:null,co:null,nights:null,adults:null,children:null,car:null,hotel:null,said:[]};
+  if(!I || typeof I!=='object') return o;
+  var ap=String(I.airport||'').toUpperCase();
+  if(ok[ap]) o.airport=ap;
+  var n=parseInt(I.nights,10); if(n>=1 && n<=60) o.nights=n;
+  if(ISO.test(I.checkin||'')) o.ci=I.checkin;
+  if(ISO.test(I.checkout||'')) o.co=I.checkout;
+  if(o.ci && !o.co){
+    var d=new Date(o.ci+'T12:00:00Z'); d.setUTCDate(d.getUTCDate()+(o.nights||7));
+    o.co=d.toISOString().slice(0,10); if(!o.nights) o.nights=7;
+  }
+  if(o.ci && o.co && !o.nights) o.nights=Math.max(1,Math.round((Date.parse(o.co)-Date.parse(o.ci))/864e5));
+  if(o.ci && o.co && o.co<=o.ci){ o.ci=null; o.co=null; o.nights=null; }
+  var a=parseInt(I.adults,10);   if(a>=1 && a<=9) o.adults=a;
+  var c=parseInt(I.children,10); if(c>=0 && c<=9) o.children=c;
+  if(I.car===true) o.car=true;
+  if(I.hotel===false) o.hotel=false; else if(I.hotel===true) o.hotel=true;
+  return o;
+}
+
+/* מפענח, ממלא את הטופס, אומר מה הבין — ורץ.
+   קודם תרגום אמיתי; רק אם הוא נכשל — מפענח מקומי, ואז אומרים את זה בקול. */
+async function applyTripText(){
+  var box=document.getElementById('trip-free'), out=document.getElementById('trip-free-said');
+  if(!box || !box.value.trim()) return;
+  out.innerHTML='<span style="color:#90a4ae;">\u05de\u05e0\u05ea\u05d7\u2026</span>';
+
+  var r=null, local=false;
+  try{ r=cvNormalize(await cvTranslateLive(box.value)); }catch(e){ r=null; }
+  if(!r || (!r.airport && !r.ci)){ r=window.parseTripText(box.value); local=true; }
+
+  var got=[];
+  if(r.airport){
+    var sel=document.getElementById('airport-select'); if(sel) sel.value=r.airport;
+    var sel2=document.getElementById('airport-select-flight'); if(sel2) sel2.value=r.airport;
+    var sel3=document.getElementById('airport-select-car'); if(sel3) sel3.value=r.airport;
+    got.push({MXP:'\u05de\u05d9\u05dc\u05d0\u05e0\u05d5',BGY:'\u05d1\u05e8\u05d2\u05de\u05d5',TRN:'\u05d8\u05d5\u05e8\u05d9\u05e0\u05d5'}[r.airport]);
+  }
+  if(r.ci && r.co){
+    if(typeof initFlatpickr==='function') initFlatpickr();
+    var el=document.getElementById('trip-dates');
+    if(el){
+      el.setAttribute('data-ci', r.ci); el.setAttribute('data-co', r.co);
+      if(el._flatpickr) el._flatpickr.setDate([r.ci, r.co], true);
+      else el.value = r.ci + ' \u2014 ' + r.co;
+    }
+    var f=function(iso){ return (+iso.slice(8,10))+'.'+(+iso.slice(5,7)); };
+    got.push(f(r.ci)+'\u2013'+f(r.co)+' ('+r.nights+' \u05dc\u05d9\u05dc\u05d5\u05ea)');
+  }
+  if(r.adults!=null){
+    var a=document.getElementById('fl-adults'); if(a) a.textContent=r.adults;
+    var a2=document.getElementById('all-h-adults'); if(a2) a2.textContent=r.adults;
+    got.push(r.adults+' \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd');
+  }
+  if(r.children!=null){
+    var c=document.getElementById('all-h-children'); if(c) c.textContent=r.children;
+    if(r.children) got.push(r.children+' \u05d9\u05dc\u05d3\u05d9\u05dd');
+  }
+  if(r.car===true){
+    var cc=document.getElementById('all-car-check');
+    if(cc && !cc.checked){ cc.checked=true; if(typeof toggleCarDetails==='function') toggleCarDetails('all-car-details',true); }
+    got.push('\u05e2\u05dd \u05e8\u05db\u05d1');
+  }
+  if(r.hotel===false){
+    var hc=document.getElementById('all-hotel-check');
+    if(hc && hc.checked){ hc.checked=false; if(typeof toggleCarDetails==='function') toggleCarDetails('all-hotel-details',false); }
+    got.push('\u05d1\u05dc\u05d9 \u05dc\u05d9\u05e0\u05d4');
+  }
+
+  if(!got.length){
+    out.innerHTML='<span style="color:#ef6c00;">\u05dc\u05d0 \u05d6\u05d9\u05d4\u05d9\u05ea\u05d9 \u05d9\u05e2\u05d3 \u05d0\u05d5 \u05ea\u05d0\u05e8\u05d9\u05da. \u05e0\u05e1\u05d5 \u05dc\u05d4\u05d6\u05db\u05d9\u05e8 \u05e2\u05d9\u05e8 (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5 / \u05d1\u05e8\u05d2\u05de\u05d5 / \u05d8\u05d5\u05e8\u05d9\u05e0\u05d5) \u05d5\u05de\u05ea\u05d9 \u2014 \u05d7\u05d5\u05d3\u05e9, \u05ea\u05d0\u05e8\u05d9\u05da \u05d0\u05d5 \u05d7\u05d2.</span>';
+    return;
+  }
+  out.innerHTML = (local ? '<span style="color:#ef6c00;">\u26a0 \u05ea\u05e8\u05d2\u05d5\u05dd \u05de\u05e7\u05d5\u05de\u05d9 (\u05de\u05d5\u05d2\u05d1\u05dc) \u00b7 </span>' : '')
+    + '<span style="color:#2e7d32;">\u2713 \u05d4\u05d1\u05e0\u05ea\u05d9: '+got.join(' \u00b7 ')+'</span>';
+  if(r.ci && r.co && typeof searchAll==='function') searchAll();
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter' && e.target && e.target.id==='trip-free'){ e.preventDefault(); applyTripText(); }
+});
+
 // ── בוני כתובות לאתרי הנסיעות ──
-// Google Flights: פורמט ה-#flt הישן בוטל. חיפוש בשפה חופשית (q=) הוא הנתמך היום.
+// Google Flights: גם ה-#flt הישן וגם ה-q= בשפה חופשית לא מפענחים חיפוש.
+// מה שכן עובד הוא ?tfs= — מבנה protobuf מקודד ב-base64url:
+//   Airport    { 2: קוד }
+//   FlightData { 2: תאריך, 13: מאין, 14: לאין }
+//   Info       { 3: רגליים, 8: נוסע מבוגר (חוזר פעם לכל אחד), 9: תיירים, 19: 1=הלוך-חזור }
+function _pbVarint(n) { var o = []; while (n > 127) { o.push((n & 0x7f) | 0x80); n >>>= 7; } o.push(n); return o; }
+function _pbKey(f, w) { return _pbVarint((f << 3) | w); }
+function _pbStr(f, str) {
+  var b = []; for (var i = 0; i < str.length; i++) b.push(str.charCodeAt(i));
+  return [].concat(_pbKey(f, 2), _pbVarint(b.length), b);
+}
+function _pbMsg(f, body) { return [].concat(_pbKey(f, 2), _pbVarint(body.length), body); }
+function _pbInt(f, n) { return [].concat(_pbKey(f, 0), _pbVarint(n)); }
+function _pbLeg(date, from, to) {
+  return [].concat(_pbStr(2, date), _pbMsg(13, _pbStr(2, from)), _pbMsg(14, _pbStr(2, to)));
+}
 function gFlightsUrl(from, to, ci, co, pax) {
-  var q = 'Flights from ' + from + ' to ' + to + ' on ' + ci + ' through ' + co;
-  var n = parseInt(pax, 10);
-  if (n > 1) q += ' for ' + n + ' adults';
-  return 'https://www.google.com/travel/flights?hl=he&curr=ILS&q=' + encodeURIComponent(q);
+  try {
+    var body = [].concat(_pbMsg(3, _pbLeg(ci, from, to)));
+    if (co) body = body.concat(_pbMsg(3, _pbLeg(co, to, from)));
+    var n = Math.max(1, Math.min(9, parseInt(pax, 10) || 1));
+    for (var i = 0; i < n; i++) body = body.concat(_pbInt(8, 1));
+    body = body.concat(_pbInt(9, 1), _pbInt(19, co ? 1 : 2));
+    var raw = ''; for (var j = 0; j < body.length; j++) raw += String.fromCharCode(body[j]);
+    var tfs = btoa(raw).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return 'https://www.google.com/travel/flights?tfs=' + tfs + '&hl=he&curr=ILS';
+  } catch (e) {
+    return 'https://www.google.com/travel/flights';
+  }
 }
 // Kosher Fly — מנוע החיפוש שלנו. הפרמטרים נקראים שם וממלאים את הטופס,
 // ו-run=1 מריץ את החיפוש מיד — המטייל נוחת על תוצאות, לא על טופס ריק.
@@ -2706,10 +3072,6 @@ function kosherFlyUrl(code, ci, co, pax) {
 // Skyscanner השכרת רכב: /carhire/results/{איסוף}/{החזרה}/{תאריך}/{תאריך}/{גיל}
 function skyCarUrl(code, ci, co) {
   return 'https://www.skyscanner.co.il/carhire/results/' + code + '/' + code + '/' + ci + '/' + co + '/30';
-}
-// Rentalcars: דף נחיתה לפי קוד שדה. ה-/search הישן דורש מזהי מיקום פנימיים ולא שם חופשי.
-function rentalcarsUrl(code) {
-  return 'https://www.rentalcars.com/en/airport/it/' + code.toLowerCase() + '/';
 }
 // Discover Cars: /italy-mainland/{עיר}/{קוד} — אצלם אין "italy" לבדו
 function discoverCarsUrl(code) {
@@ -2746,7 +3108,7 @@ function searchFlight() {
     { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג · התאריכים עוברים אוטומטית', url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
     { icon: '✈️', title: 'Google Flights → ' + fCode, desc: fCity + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner → ' + fCode, desc: 'השוואת מחירים', url: skUrl },
-    { icon: '✈️', title: 'Kayak → ' + fCode, desc: 'השוואה כוללת', url: 'https://www.kayak.co.il/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
+    { icon: '✈️', title: 'Kayak → ' + fCode, desc: 'השוואה כוללת · ניתן להתחבר לחשבון', url: 'https://www.kayak.co.il/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
   ];
   const res = document.getElementById('flight-results');
   showResults(res);
@@ -2761,17 +3123,15 @@ function searchCar() {
   const dr = (ci && co) ? {ci, co} : getDateRange();
   if (!dr) { needDates(); return; }
   const pickup = document.getElementById('car-pickup')?.value || '10:00';
-  const dropoff = document.getElementById('car-dropoff')?.value || '18:00';
+  const dropoff = document.getElementById('car-dropoff')?.value || '10:00';
   const cSel = document.getElementById('airport-select-car');
   const cCode = cSel?.value || 'MXP';
   const cOpt = cSel?.options[cSel.selectedIndex];
   const cCity = cOpt?.getAttribute('data-city') || 'Milan Malpensa';
   const carAirport = cCode==='MXP' ? 'Milan+Malpensa+Airport' : cCode==='BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
   const links = [
-    { icon: '🚗', title: 'Skyscanner — ' + cCode, desc: 'השוואה רחבה · עם תאריכים', url: skyCarUrl(cCode, dr.ci, dr.co) },
-    { icon: '🚗', title: 'Rentalcars — ' + cCode, desc: 'השוואת מחירים · ' + cCity, url: rentalcarsUrl(cCode) },
-    { icon: '🚗', title: 'Discover Cars — ' + cCode, desc: 'כולל חברות מקומיות', url: discoverCarsUrl(cCode) },
-    { icon: '🚗', title: 'Auto Europe — ' + cCode, desc: 'מומחה לרכב בחו"ל', url: 'https://www.autoeurope.co.il/?pickup_location=' + carAirport + '&return_location=' + carAirport + '&pickup_date=' + dr.ci + '&return_date=' + dr.co },
+    { icon: '🚗', title: 'Skyscanner — ' + cCode, desc: 'השוואה רחבה · התאריכים עוברים אוטומטית', url: skyCarUrl(cCode, dr.ci, dr.co) },
+    { icon: '🚗', title: 'Discover Cars — ' + cCode, desc: 'כולל חברות מקומיות · בחרו תאריכים בדף', url: discoverCarsUrl(cCode) },
   ];
   const res = document.getElementById('car-results');
   showResults(res);
@@ -2819,7 +3179,7 @@ function searchAll() {
   const hasCar = document.getElementById('all-car-check')?.checked;
   const hasHotel = document.getElementById('all-hotel-check')?.checked !== false;
   const pickup = document.getElementById('all-car-pickup')?.value || '10:00';
-  const dropoff = document.getElementById('all-car-dropoff')?.value || '18:00';
+  const dropoff = document.getElementById('all-car-dropoff')?.value || '10:00';
   const airportPickup = document.getElementById('all-airport-pickup')?.checked;
   const automatic = document.getElementById('all-automatic')?.checked;
   const hAdults = document.getElementById('all-h-adults')?.textContent || adults;
@@ -2841,6 +3201,7 @@ function searchAll() {
     { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג · התאריכים עוברים אוטומטית', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
     { icon: '✈️', title: 'Google Flights → ' + airCode, desc: airLabel + ' · ~' + airDist + ' ק"מ', url: gfUrl },
     { icon: '✈️', title: 'Skyscanner → ' + airCode, desc: 'השוואת מחירים', url: skUrl },
+    { icon: '✈️', title: 'Kayak → ' + airCode, desc: 'השוואה כוללת · ניתן להתחבר לחשבון', url: 'https://www.kayak.co.il/flights/TLV-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
   ];
   if (hasHotel) {
     const allHtlEl2 = document.getElementById('all-hotel-dates');
@@ -2857,8 +3218,7 @@ function searchAll() {
     const carDesc = (airportPickup ? 'קבלה בשדה' : 'קבלה בעיר') + (automatic ? ' · אוטומטי' : '') + (cci!==dr.ci?' · תאריכים שונים':'');
   const carAirport = airCode === 'MXP' ? 'Milan+Malpensa+Airport' : airCode === 'BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
     links.push({ icon: '🚗', title: 'Skyscanner — ' + airCode, desc: carDesc, url: skyCarUrl(airCode, cci, cco) });
-    links.push({ icon: '🚗', title: 'Rentalcars — ' + airCode, desc: carDesc, url: rentalcarsUrl(airCode) });
-    links.push({ icon: '🚗', title: 'Discover Cars — ' + airCode, desc: 'כולל חברות מקומיות', url: discoverCarsUrl(airCode) });
+    links.push({ icon: '🚗', title: 'Discover Cars — ' + airCode, desc: 'כולל חברות מקומיות · בחרו תאריכים בדף', url: discoverCarsUrl(airCode) });
   }
 
   // רנדר תוצאות בתיבות
