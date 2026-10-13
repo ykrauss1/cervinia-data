@@ -2685,6 +2685,28 @@ function showResults(el) {
   setTimeout(function() { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
 }
 
+// ── בוני כתובות לאתרי הנסיעות ──
+// Google Flights: פורמט ה-#flt הישן בוטל. חיפוש בשפה חופשית (q=) הוא הנתמך היום.
+function gFlightsUrl(from, to, ci, co, pax) {
+  var q = 'Flights from ' + from + ' to ' + to + ' on ' + ci + ' through ' + co;
+  var n = parseInt(pax, 10);
+  if (n > 1) q += ' for ' + n + ' adults';
+  return 'https://www.google.com/travel/flights?hl=he&curr=ILS&q=' + encodeURIComponent(q);
+}
+// Skyscanner השכרת רכב: /carhire/results/{איסוף}/{החזרה}/{תאריך}/{תאריך}/{גיל}
+function skyCarUrl(code, ci, co) {
+  return 'https://www.skyscanner.co.il/carhire/results/' + code + '/' + code + '/' + ci + '/' + co + '/30';
+}
+// Rentalcars: דף נחיתה לפי קוד שדה. ה-/search הישן דורש מזהי מיקום פנימיים ולא שם חופשי.
+function rentalcarsUrl(code) {
+  return 'https://www.rentalcars.com/en/airport/it/' + code.toLowerCase() + '/';
+}
+// Discover Cars: /italy-mainland/{עיר}/{קוד} — אצלם אין "italy" לבדו
+function discoverCarsUrl(code) {
+  var city = code === 'MXP' ? 'milan' : code === 'BGY' ? 'bergamo' : 'turin';
+  return 'https://www.discovercars.com/italy-mainland/' + city + '/' + code.toLowerCase();
+}
+
 function makeResultLinks(links) {
   return '<div style="margin-top:4px;">' + links.map(l =>
     '<a href="' + l.url + '" target="_blank" class="result-link">'
@@ -2708,10 +2730,8 @@ function searchFlight() {
   const fCity = fOpt?.getAttribute('data-city') || 'Milan Malpensa';
   const fDist = fOpt?.getAttribute('data-dist') || '175';
   const isDirect = fCode !== 'TRN';
-  const gfUrl = 'https://www.google.com/travel/flights?hl=he&curr=ILS#flt=TLV.' + airCode + '.' + dr.ci + '*' + airCode + '.TLV.' + dr.co + ';c:ILS;e:1;s:0*0;sd:1;t:f';
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
-  // Google Flights עם תאריכים
-  const gfWithDates = 'https://www.google.com/travel/flights?hl=he&curr=ILS#flt=TLV.' + fCode + '.' + dr.ci + '*' + fCode + '.TLV.' + dr.co + ';c:ILS;e:1;s:0*0;sd:1;t:f';
+  const gfWithDates = gFlightsUrl('TLV', fCode, dr.ci, dr.co, pax);
   const links = [
     { icon: '✈️', title: 'Google Flights → ' + fCode, desc: fCity + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner → ' + fCode, desc: 'השוואת מחירים', url: skUrl },
@@ -2736,14 +2756,11 @@ function searchCar() {
   const cOpt = cSel?.options[cSel.selectedIndex];
   const cCity = cOpt?.getAttribute('data-city') || 'Milan Malpensa';
   const carAirport = cCode==='MXP' ? 'Milan+Malpensa+Airport' : cCode==='BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
-  // Rentalcars URL נכון
-  const rcCity = cCode==='MXP' ? 'Milan+Malpensa+Airport' : cCode==='BGY' ? 'Bergamo+Airport' : 'Turin+Airport';
-  const rcUrl = 'https://www.rentalcars.com/search?cor=il&puPl=' + rcCity + '&puDt=' + dr.ci + '&puHr=' + pickup.replace(':','') + '&doPl=' + rcCity + '&doDt=' + dr.co + '&doHr=' + dropoff.replace(':','') + '&driverAge=30';
-  const dcCity = cCode==='MXP' ? 'milan-malpensa-airport' : cCode==='BGY' ? 'bergamo-airport' : 'turin-airport';
   const links = [
-    { icon: '🚗', title: 'Rentalcars — ' + cCode, desc: 'השוואת מחירים · ' + cCity, url: rcUrl },
+    { icon: '🚗', title: 'Skyscanner — ' + cCode, desc: 'השוואה רחבה · עם תאריכים', url: skyCarUrl(cCode, dr.ci, dr.co) },
+    { icon: '🚗', title: 'Rentalcars — ' + cCode, desc: 'השוואת מחירים · ' + cCity, url: rentalcarsUrl(cCode) },
+    { icon: '🚗', title: 'Discover Cars — ' + cCode, desc: 'כולל חברות מקומיות', url: discoverCarsUrl(cCode) },
     { icon: '🚗', title: 'Auto Europe — ' + cCode, desc: 'מומחה לרכב בחו"ל', url: 'https://www.autoeurope.co.il/?pickup_location=' + carAirport + '&return_location=' + carAirport + '&pickup_date=' + dr.ci + '&return_date=' + dr.co },
-    { icon: '🚗', title: 'Discover Cars — ' + cCode, desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/' + dcCity + '?from=' + dr.ci + 'T' + pickup + '&to=' + dr.co + 'T' + dropoff },
   ];
   const res = document.getElementById('car-results');
   showResults(res);
@@ -2806,7 +2823,7 @@ function searchAll() {
   const airDist = airOpt?.getAttribute('data-dist') || '175';
   const d1 = dr.ci.replace(/-/g,'').slice(2);
   const d2 = dr.co.replace(/-/g,'').slice(2);
-  const gfUrl = 'https://www.google.com/travel/flights?hl=he&curr=ILS#flt=TLV.' + airCode + '.' + dr.ci + '*' + airCode + '.TLV.' + dr.co + ';c:ILS;e:1;s:0*0;sd:1;t:f';
+  const gfUrl = gFlightsUrl('TLV', airCode, dr.ci, dr.co, adults);
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
   const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
   let links = [
@@ -2827,11 +2844,9 @@ function searchAll() {
     const cco = (document.getElementById('car-diff-dates')?.checked && allCarEl2?.getAttribute('data-co')) ? allCarEl2.getAttribute('data-co') : dr.co;
     const carDesc = (airportPickup ? 'קבלה בשדה' : 'קבלה בעיר') + (automatic ? ' · אוטומטי' : '') + (cci!==dr.ci?' · תאריכים שונים':'');
   const carAirport = airCode === 'MXP' ? 'Milan+Malpensa+Airport' : airCode === 'BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
-    const rcCity2 = airCode==='MXP' ? 'Milan+Malpensa+Airport' : airCode==='BGY' ? 'Bergamo+Airport' : 'Turin+Airport';
-    const dcCity2 = airCode==='MXP' ? 'milan-malpensa-airport' : airCode==='BGY' ? 'bergamo-airport' : 'turin-airport';
-    const rcUrl2 = 'https://www.rentalcars.com/search?cor=il&puPl=' + rcCity2 + '&puDt=' + cci + '&puHr=' + pickup.replace(':','') + '&doPl=' + rcCity2 + '&doDt=' + cco + '&doHr=' + dropoff.replace(':','') + '&driverAge=30';
-    links.push({ icon: '🚗', title: 'Rentalcars — ' + airCode, desc: carDesc, url: rcUrl2 });
-    links.push({ icon: '🚗', title: 'Discover Cars — ' + airCode, desc: 'כולל חברות מקומיות', url: 'https://www.discovercars.com/italy/' + dcCity2 + '?from=' + cci + 'T' + pickup + '&to=' + cco + 'T' + dropoff });
+    links.push({ icon: '🚗', title: 'Skyscanner — ' + airCode, desc: carDesc, url: skyCarUrl(airCode, cci, cco) });
+    links.push({ icon: '🚗', title: 'Rentalcars — ' + airCode, desc: carDesc, url: rentalcarsUrl(airCode) });
+    links.push({ icon: '🚗', title: 'Discover Cars — ' + airCode, desc: 'כולל חברות מקומיות', url: discoverCarsUrl(airCode) });
   }
 
   // רנדר תוצאות בתיבות
@@ -3211,17 +3226,23 @@ function sharePost(postId) {
   function todayZmanim(locIdx) {
     var h = hc(), L = LOCATIONS[locIdx], now = midnight(new Date());
     var z = new h.Zmanim(hcLoc(locIdx), now, true);
+    // שתי שיטות לסוף זמן קריאת שמע ותפילה:
+    // מג״א — היום מעלות השחר (72 דק') ועד צאת הכוכבים (72 דק')
+    // גר״א — היום מהנץ עד השקיעה
     return [
-      ['עלות השחר',     fmt(z.alotHaShachar(), L.tz, 'down')],
-      ['זריחה',          fmt(z.sunrise(), L.tz, 'near')],
-      ['סוף זמן ק"ש',   fmt(z.sofZmanShma(), L.tz, 'down')],
-      ['סוף זמן תפילה', fmt(z.sofZmanTfilla(), L.tz, 'down')],
-      ['חצות היום',      fmt(z.chatzot(), L.tz, 'near')],
-      ['מנחה גדולה',     fmt(z.minchaGedola(), L.tz, 'up')],
-      ['פלג המנחה',      fmt(z.plagHaMincha(), L.tz, 'near')],
-      ['שקיעה',          fmt(z.sunset(), L.tz, 'near')],
-      ['צאת הכוכבים',   fmt(z.tzeit(TZEIT_DEG), L.tz, 'up')],
-      ['ר"ת',            fmt(z.sunsetOffset(RT_MIN, false), L.tz, 'up')]
+      { t: 'עלות השחר',     v: fmt(z.alotHaShachar(), L.tz, 'down') },
+      { t: 'זריחה',          v: fmt(z.sunrise(), L.tz, 'near') },
+      { t: 'סוף זמן ק״ש',   pair: [
+          ['מג״א', fmt(z.sofZmanShmaMGA(), L.tz, 'down')],
+          ['גר״א', fmt(z.sofZmanShma(),    L.tz, 'down')] ] },
+      { t: 'סוף זמן תפילה', pair: [
+          ['מג״א', fmt(z.sofZmanTfillaMGA(), L.tz, 'down')],
+          ['גר״א', fmt(z.sofZmanTfilla(),    L.tz, 'down')] ] },
+      { t: 'חצות היום',      v: fmt(z.chatzot(), L.tz, 'near') },
+      { t: 'מנחה גדולה',     v: fmt(z.minchaGedola(), L.tz, 'up') },
+      { t: 'פלג המנחה',      v: fmt(z.plagHaMincha(), L.tz, 'near') },
+      { t: 'שקיעה',          v: fmt(z.sunset(), L.tz, 'near') },
+      { t: 'צאת הכוכבים',   v: fmt(z.tzeit(TZEIT_DEG), L.tz, 'up') }
     ];
   }
 
@@ -3318,12 +3339,21 @@ function sharePost(postId) {
 
       // ── זמני היום ──
       var zm = todayZmanim(currentLocIdx);
-      var zmGrid = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:6px;">'
+      var zmGrid = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:6px;align-items:stretch;">'
         + zm.map(function(p) {
+            var body;
+            if (p.pair) {
+              body = p.pair.map(function(q) {
+                return '<div style="font-size:0.8rem;font-weight:bold;color:#0a192f;line-height:1.3;">'
+                  + '<span style="font-size:0.58rem;color:#90a4ae;font-weight:normal;">' + esc(q[0]) + '</span> '
+                  + q[1] + '</div>';
+              }).join('');
+            } else {
+              body = '<div style="font-size:0.88rem;font-weight:bold;color:#0a192f;">' + p.v + '</div>';
+            }
             return '<div style="background:white;border-radius:7px;padding:6px 4px;text-align:center;">'
-              + '<div style="font-size:0.63rem;color:#90a4ae;white-space:nowrap;">' + esc(p[0]) + '</div>'
-              + '<div style="font-size:0.88rem;font-weight:bold;color:#0a192f;">' + p[1] + '</div>'
-              + '</div>';
+              + '<div style="font-size:0.63rem;color:#90a4ae;white-space:nowrap;margin-bottom:1px;">' + esc(p.t) + '</div>'
+              + body + '</div>';
           }).join('')
         + '</div>';
 
@@ -3404,8 +3434,10 @@ function renderInstructors() {
   var targets = document.querySelectorAll('.instructors-list');
   if (!targets.length) return;
   var html = SKI_INSTRUCTORS.map(function(ins) {
+    // הפניה באנגלית — המדריכים איטלקים
     var msg = encodeURIComponent(
-      'שלום ' + ins.name + ', הגעתי אליך דרך Yossi Krauss / CerviniaLive \u2014 אשמח לשמוע פרטים על שיעורי סקי פרטיים בצ\'רוויניה 🎿'
+      'Hello ' + ins.name + ', I found you through CerviniaLive (Yossi Krauss). '
+      + 'I would like to ask about private ski lessons in Cervinia 🎿 Thank you!'
     );
     var waUrl = 'https://wa.me/' + ins.phone + '?text=' + msg;
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1.5px solid #e8f5e9;border-radius:10px;background:#f9fffe;">'
