@@ -4165,14 +4165,59 @@ function openPisteMapFull() {
 }
 
 // ── Reviews ──
-const REVIEWS_KEY = 'skiReviews';
+// Reviews live in Supabase (public.reviews). They were localStorage-only,
+// which meant every visitor saw an empty list and their own words back.
+const REVIEWS_KEY = 'skiReviews';          // offline mirror only
 const REVIEW_CATS = ['🏨 לינה','⛷️ מסלולים','🍽️ מסעדות','🚡 רכבלים','👶 ילדים','🌤️ תנאים'];
 
-function getReviews() {
-  try { return JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]'); } catch(e) { return []; }
+var _reviews = [];
+var _reviewsOnline = false;
+var _reviewsFetching = false;
+
+function _reviewsReadMirror() {
+  try {
+    var a = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]');
+    return Array.isArray(a) ? a : [];
+  } catch (e) { return []; }
 }
-function saveReviews(reviews) {
-  try { localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews)); } catch(e) {}
+function _reviewsWriteMirror(a) {
+  try { localStorage.setItem(REVIEWS_KEY, JSON.stringify(a.slice(0, 200))); } catch (e) {}
+}
+
+// Renderers stay synchronous and read this.
+function getReviews() { return _reviews; }
+
+async function fetchReviews(quiet) {
+  if (_reviewsFetching) return;
+  _reviewsFetching = true;
+  try {
+    var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+    if (!sb) throw new Error('no supabase');
+    var res = await sb.from('reviews')
+      .select('id,author_id,author_name,cat,rating,text,created_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (res.error) throw res.error;
+    _reviews = (res.data || []).map(function (r) {
+      return {
+        id: String(r.id),
+        user: r.author_name || 'משתמש',
+        cat: r.cat || '',
+        rating: r.rating || 0,
+        text: r.text || '',
+        timestamp: new Date(r.created_at).getTime(),
+        authorId: r.author_id || ''
+      };
+    });
+    _reviewsOnline = true;
+    _reviewsWriteMirror(_reviews);
+  } catch (e) {
+    _reviews = _reviewsReadMirror();
+    _reviewsOnline = false;
+  }
+  _reviewsFetching = false;
+  var panel = document.getElementById('reviews-panel');
+  if (panel && panel.style.display !== 'none') renderReviews();
 }
 
 function switchForumTab(tab) {
@@ -4193,6 +4238,7 @@ function switchForumTab(tab) {
     reviewBtn.style.background = 'var(--accent)'; reviewBtn.style.color = 'white'; reviewBtn.style.border = 'none';
     renderReviews();
     renderReviewWriteArea();
+    fetchReviews(true);
   }
 }
 
@@ -4250,23 +4296,31 @@ function renderCatChips() {
   });
 }
 
-function submitReview() {
+async function submitReview() {
   const text = (document.getElementById('review-text')?.value || '').trim();
   if (!reviewDraft.rating) { alert('בחר דירוג בכוכבים'); return; }
   if (!reviewDraft.cat)    { alert('בחר קטגוריה'); return; }
-  if (!text)               { alert('כתוב ביקורת קצרה'); return; }
-  const reviews = getReviews();
-  reviews.unshift({
-    id: Date.now(),
-    user: user.name,
-    cat: reviewDraft.cat,
-    rating: reviewDraft.rating,
-    text: text,
-    timestamp: Date.now()
-  });
-  saveReviews(reviews);
-  renderReviews();
-  renderReviewWriteArea();
+  if (text.length < 2)     { alert('כתוב ביקורת קצרה'); return; }
+  if (text.length > 1000)  { alert('הביקורת ארוכה מדי (עד 1000 תווים)'); return; }
+
+  const sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+  if (!sb || !user || !user.sbId) { alert('צריך להיות מחובר כדי לפרסם ביקורת'); return; }
+
+  try {
+    const res = await sb.from('reviews').insert({
+      author_id: user.sbId,
+      author_name: user.name,
+      cat: reviewDraft.cat,
+      rating: reviewDraft.rating,
+      text: text
+    });
+    if (res.error) throw res.error;
+    await fetchReviews(true);
+    renderReviews();
+    renderReviewWriteArea();
+  } catch (e) {
+    alert('הפרסום נכשל. בדוק חיבור ונסה שוב.');
+  }
 }
 
 function renderReviews() {
@@ -4299,23 +4353,27 @@ function renderReviews() {
       }).join('')
     + '</div>';
 
+  const offlineNote = _reviewsOnline ? '' :
+    '<div style="padding:8px 10px;margin-bottom:10px;border-radius:8px;background:#fff8e1;border:1px solid #ffe08a;font-size:0.76rem;color:#8a6d3b;text-align:center;">'
+    + '📡 אין חיבור — מוצגות הביקורות שנשמרו במכשיר</div>';
+
   if (!filtered.length) {
-    list.innerHTML = headerHtml + filterBtns + '<div style="color:#aaa;text-align:center;padding:20px;">אין ביקורות עדיין בקטגוריה זו</div>';
+    list.innerHTML = offlineNote + headerHtml + filterBtns + '<div style="color:#aaa;text-align:center;padding:20px;">אין ביקורות עדיין בקטגוריה זו</div>';
     return;
   }
 
-  list.innerHTML = headerHtml + filterBtns + filtered.map(function(r) {
-    const canDel = user && (user.name === r.user || isAdmin());
+  list.innerHTML = offlineNote + headerHtml + filterBtns + filtered.map(function(r) {
+    const canDel = !!(user && (user.isAdmin || (user.sbId && user.sbId === r.authorId)));
     return '<div style="padding:12px 14px;border:1px solid #eee;border-radius:10px;background:white;">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
-      + '<span style="font-weight:bold;font-size:0.88rem;">' + r.user + '</span>'
-      + '<span style="font-size:0.7rem;background:#f0f4ff;padding:2px 8px;border-radius:10px;">' + r.cat + '</span>'
+      + '<span style="font-weight:bold;font-size:0.88rem;">' + escHtml(r.user) + '</span>'
+      + '<span style="font-size:0.7rem;background:#f0f4ff;padding:2px 8px;border-radius:10px;">' + escHtml(r.cat) + '</span>'
       + '</div>'
       + '<div style="margin-bottom:5px;">' + starsHtml(r.rating, false, '') + '</div>'
-      + '<div style="font-size:0.85rem;color:#333;line-height:1.6;">' + r.text + '</div>'
+      + '<div style="font-size:0.85rem;color:#333;line-height:1.6;white-space:pre-wrap;">' + escHtml(r.text) + '</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">'
       + '<span style="font-size:0.72rem;color:#bbb;">' + timeAgo(r.timestamp) + '</span>'
-      + (canDel ? '<span style="font-size:0.78rem;color:#e74c3c;cursor:pointer;" onclick="deleteReview(\'' + r.id + '\')">🗑 מחק</span>' : '')
+      + (canDel ? '<span style="font-size:0.78rem;color:#e74c3c;cursor:pointer;" onclick="deleteReview(\'' + escHtml(r.id) + '\')">🗑 מחק</span>' : '')
       + '</div></div>';
   }).join('');
 }
@@ -4327,10 +4385,15 @@ function setRevFilter(btn) {
   renderReviews();
 }
 
-function deleteReview(id) {
+async function deleteReview(id) {
   if (!confirm('למחוק ביקורת זו?')) return;
-  const reviews = getReviews().filter(function(r){ return r.id !== id; });
-  saveReviews(reviews);
+  const sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+  if (!sb) return;
+  try {
+    const res = await sb.from('reviews').delete().eq('id', String(id));
+    if (res.error) throw res.error;
+  } catch (e) { /* the refresh shows the truth either way */ }
+  await fetchReviews(true);
   renderReviews();
 }
 
@@ -4374,34 +4437,86 @@ let camRefreshTimer = null;
 const _origOpenM = window.openM;
 
 // ── Alerts ──
-// מערכת ההתראות עצמה מוגדרת בבלוק "Community Alerts" בתחתית הקובץ.
-// כאן נשארות רק פונקציות סרגל ההתראה העליון.
+// The alert system itself is in the "Community Alerts" block at the bottom of
+// the file. What follows is only the strip under the header.
+//
+// It used to be loaded once at startup and never again, so it kept showing an
+// alert that had already expired, with a timestamp frozen at page load. It now
+// rebuilds itself from the live list on a timer.
 
-function showActiveAlert(alert) {
-  const strip = document.getElementById('alert-strip');
-  const textEl = document.getElementById('alert-strip-text');
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Dismissing is per alert, and remembered. Closing one does not make the next
+// one invisible, which is what the old display:none did until a reload.
+function _dismissedIds() {
+  try {
+    var o = JSON.parse(localStorage.getItem(ALERTS_DISMISS_KEY) || '{}');
+    return (o && typeof o === 'object') ? o : {};
+  } catch (e) { return {}; }
+}
+function _saveDismissed(o) {
+  try { localStorage.setItem(ALERTS_DISMISS_KEY, JSON.stringify(o)); } catch (e) {}
+}
+
+function dismissAlert(ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  var strip = document.getElementById('alert-strip');
+  var id = strip ? strip.getAttribute('data-alert-id') : '';
+  if (id) {
+    var d = _dismissedIds();
+    d[id] = Date.now();
+    // keep the list from growing for ever: an id older than the expiry window
+    // can never match a live alert again
+    var cutoff = Date.now() - ALERTS_EXPIRY_MS;
+    Object.keys(d).forEach(function (k) { if (d[k] < cutoff) delete d[k]; });
+    _saveDismissed(d);
+  }
+  refreshAlertStrip();
+}
+
+function refreshAlertStrip() {
+  var strip  = document.getElementById('alert-strip');
+  var textEl = document.getElementById('alert-strip-text');
   if (!strip || !textEl) return;
-  strip.className = 'alert-strip severity-' + alert.severity;
-  textEl.innerHTML = alert.text + ' <span style="font-size:0.72rem;opacity:0.7;font-weight:normal;">— ' + alert.author + ', ' + alert.time + '</span>';
+
+  var dismissed = _dismissedIds();
+  var live = getAlerts().filter(function (a) { return !dismissed[a.id]; });
+
+  if (!live.length) { strip.style.display = 'none'; strip.removeAttribute('data-alert-id'); return; }
+
+  var a   = live[0];
+  var sev = a.severity || 'warning';
+  var more = live.length - 1;
+
+  strip.className = 'alert-strip severity-' + sev;
+  strip.setAttribute('data-alert-id', a.id);
+  strip.style.cursor = 'pointer';
+  strip.onclick = function (ev) {
+    if (ev && ev.target && ev.target.classList && ev.target.classList.contains('alert-close')) return;
+    openAlertPanel();
+  };
+
+  textEl.innerHTML = escHtml(a.text)
+    + ' <span style="font-size:0.72rem;opacity:0.7;font-weight:normal;">— '
+    + escHtml(a.user) + ', ' + alertTimeAgo(a.ts) + '</span>'
+    + (more > 0
+        ? ' <span style="font-size:0.72rem;font-weight:bold;background:rgba(0,0,0,0.12);padding:2px 8px;border-radius:10px;margin-right:6px;">'
+          + 'ועוד ' + more + '</span>'
+        : '');
+
   strip.style.display = 'block';
 }
 
-function dismissAlert() {
-  const strip = document.getElementById('alert-strip');
-  if (strip) strip.style.display = 'none';
-}
-
-function loadLatestAlert() {
-  var alerts = getAlerts();          // מערכת ההתראות הקהילתית
-  if (!alerts.length) return;
-  var latest = alerts[0];
-  showActiveAlert({
-    text: latest.text,
-    severity: latest.severity || 'danger',   // התראות קהילתיות באדום
-    author: latest.user,
-    time: alertTimeAgo(latest.ts)
-  });
-}
+// kept for anything that still calls the old name
+function loadLatestAlert() { refreshAlertStrip(); }
+function showActiveAlert() { refreshAlertStrip(); }
 
 
 // ── Profile ──
@@ -5494,6 +5609,7 @@ window.onload = async function() {
   initFlatpickr();
   if (USE_SUPABASE) await checkSupabaseSession();
   loadLatestAlert();
+  fetchReviews(true);
   renderReviews();
   // הפעלת מצב קייץ מיד לפי תאריך אוטומטי - בלי להמתין ל-Supabase
   applySummerMode();
@@ -7848,42 +7964,103 @@ function switchAdminTab(tab) {
 <script>
 
 // ── Community Alerts ──
-var COMMUNITY_ALERTS_KEY = 'communityAlerts';
-var ALERTS_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+// The alerts live in Supabase (public.alerts), so a warning posted on one
+// phone reaches every other phone. localStorage keeps a mirror only, so the
+// strip still has something to show when the app opens with no network - it
+// is a PWA and that happens on the mountain more than anywhere.
+var ALERTS_MIRROR_KEY    = 'communityAlerts';
+var ALERTS_DISMISS_KEY   = 'alertsDismissed';
+var ALERTS_EXPIRY_MS     = 24 * 60 * 60 * 1000; // matches expires_at in the table
+var ALERT_TEXT_MAX       = 280;                 // matches the CHECK constraint
+
+var _alerts       = [];     // live list, newest first
+var _alertsOnline = false;  // did the last read actually reach Supabase
 
 var ALERT_PRESETS = [
-  { icon: '⛷️', text: 'מסלול סגור' },
-  { icon: '🌨️', text: 'סופת שלג — ראות מוגבלת' },
-  { icon: '🧊', text: 'קרח על המסלול — מסוכן' },
-  { icon: '🚡', text: 'עצירת רכבל זמנית' },
-  { icon: '🏥', text: 'אירוע רפואי בשטח' },
-  { icon: '👥', text: 'עומס רב על המסלולים' },
+  { icon: '⛷️', text: 'מסלול סגור',                severity: 'danger'  },
+  { icon: '🌨️', text: 'סופת שלג — ראות מוגבלת',    severity: 'danger'  },
+  { icon: '🧊', text: 'קרח על המסלול — מסוכן',      severity: 'danger'  },
+  { icon: '🚡', text: 'עצירת רכבל זמנית',          severity: 'warning' },
+  { icon: '🏥', text: 'אירוע רפואי בשטח',          severity: 'danger'  },
+  { icon: '👥', text: 'עומס רב על המסלולים',        severity: 'info'    }
 ];
 
-function getAlerts() {
+var SEVERITY_LABEL = { danger: '🔴 מסוכן', warning: '🟡 שימו לב', info: '🔵 לידיעה' };
+
+var _alertDraft = { severity: 'warning' };
+
+// ---- the mirror ----
+function _alertsReadMirror() {
   try {
-    var arr = JSON.parse(localStorage.getItem(COMMUNITY_ALERTS_KEY) || '[]');
+    var arr = JSON.parse(localStorage.getItem(ALERTS_MIRROR_KEY) || '[]');
+    if (!Array.isArray(arr)) return [];
     var now = Date.now();
-    // Auto-delete alerts older than 24h
-    arr = arr.filter(function(a) { return now - a.ts < ALERTS_EXPIRY_MS; });
-    localStorage.setItem(COMMUNITY_ALERTS_KEY, JSON.stringify(arr));
-    return arr;
-  } catch(e) { return []; }
+    return arr.filter(function (a) { return a && a.ts && (now - a.ts) < ALERTS_EXPIRY_MS; });
+  } catch (e) { return []; }
+}
+function _alertsWriteMirror(arr) {
+  try { localStorage.setItem(ALERTS_MIRROR_KEY, JSON.stringify(arr.slice(0, 50))); } catch (e) {}
 }
 
-function saveAlerts(arr) {
-  localStorage.setItem(COMMUNITY_ALERTS_KEY, JSON.stringify(arr));
+// Renderers stay synchronous - they read this, never the network.
+function getAlerts() {
+  var now = Date.now();
+  return _alerts.filter(function (a) { return (now - a.ts) < ALERTS_EXPIRY_MS; });
 }
 
+function _rowToAlert(r) {
+  return {
+    id:       String(r.id),
+    user:     r.author_name || 'משתמש',
+    text:     r.text || '',
+    severity: (r.severity === 'danger' || r.severity === 'info') ? r.severity : 'warning',
+    ts:       new Date(r.created_at).getTime(),
+    authorId: r.author_id || ''
+  };
+}
+
+// ---- reading ----
+var _alertsFetching = false;
+async function fetchAlerts(quiet) {
+  if (_alertsFetching) return;
+  _alertsFetching = true;
+  try {
+    var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+    if (sb) {
+      var res = await sb.from('alerts')
+        .select('id,author_id,author_name,text,severity,created_at')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (res.error) throw res.error;
+      _alerts = (res.data || []).map(_rowToAlert);
+      _alertsOnline = true;
+      _alertsWriteMirror(_alerts);
+    } else {
+      _alerts = _alertsReadMirror();
+      _alertsOnline = false;
+    }
+  } catch (e) {
+    // offline, or Supabase unreachable: show the last thing we knew, and say so
+    _alerts = _alertsReadMirror();
+    _alertsOnline = false;
+  }
+  _alertsFetching = false;
+  updateAlertBadge();
+  refreshAlertStrip();
+  var modal = document.getElementById('alertModal');
+  if (modal && modal.style.display !== 'none' && modal.style.display !== '') renderAlerts();
+  if (!quiet) { /* nothing else */ }
+}
+
+// ---- the badge ----
 function updateAlertBadge() {
-  var alerts = getAlerts();
   var badge = document.getElementById('alert-badge');
   if (!badge) return;
-  var lastSeen = parseInt(localStorage.getItem('alertsLastSeen') || '0');
-  var unseen = alerts.filter(function(a) { return a.ts > lastSeen; }).length;
+  var lastSeen = parseInt(localStorage.getItem('alertsLastSeen') || '0', 10);
+  var unseen = getAlerts().filter(function (a) { return a.ts > lastSeen; }).length;
   if (unseen > 0) {
     badge.style.display = 'flex';
-    badge.textContent = unseen > 9 ? '9+' : unseen;
+    badge.textContent = unseen > 9 ? '9+' : String(unseen);
   } else {
     badge.style.display = 'none';
   }
@@ -7891,64 +8068,146 @@ function updateAlertBadge() {
 
 function openAlertPanel() {
   openM('alertModal');
-  localStorage.setItem('alertsLastSeen', Date.now());
+  localStorage.setItem('alertsLastSeen', String(Date.now()));
   updateAlertBadge();
   renderAlertWriteArea();
   renderAlerts();
+  fetchAlerts(true);
 }
 
+// ---- writing ----
 function renderAlertWriteArea() {
   var el = document.getElementById('alert-write-area');
   if (!el) return;
   if (!user) {
-    el.innerHTML = `<div style="padding:11px;background:#f8f9fa;border-radius:9px;font-size:0.8rem;color:#888;text-align:center;">🔒 <a href="#" onclick="openM('authModal');return false;" style="color:#1a73e8;">התחבר</a> כדי לפרסם התראה</div>`;
+    el.innerHTML = '<div style="padding:11px;background:#f8f9fa;border-radius:9px;font-size:0.8rem;color:#888;text-align:center;">'
+      + '🔒 <a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;">התחבר</a> כדי לפרסם התראה</div>';
     return;
   }
+  _alertDraft = { severity: 'warning' };
   el.innerHTML =
     '<div style="background:#fff5f5;border:1.5px solid #f5b5b5;border-radius:10px;padding:12px;">'
     + '<div style="font-size:0.78rem;font-weight:bold;margin-bottom:8px;color:#c0392b;">⚠️ פרסם התראה</div>'
     + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;">'
-    + ALERT_PRESETS.map(function(p, i) {
-        return '<button onclick="selectAlertPreset(' + i + ')" '
+    + ALERT_PRESETS.map(function (p, i) {
+        return '<button type="button" onclick="selectAlertPreset(' + i + ')" '
           + 'style="padding:5px 10px;border:1.5px solid #e0b0b0;border-radius:20px;background:white;font-size:0.76rem;cursor:pointer;">'
-          + p.icon + ' ' + p.text + '</button>';
+          + escHtml(p.icon + ' ' + p.text) + '</button>';
       }).join('')
     + '</div>'
-    + '<textarea id="alert-text" placeholder="תאר את ההתראה (מסלול, מיקום, פרטים)..." '
+    + '<textarea id="alert-text" maxlength="' + ALERT_TEXT_MAX + '" oninput="updateAlertCount()" '
+    + 'placeholder="תאר את ההתראה (מסלול, מיקום, פרטים)..." '
     + 'style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.82rem;height:62px;resize:none;font-family:inherit;direction:rtl;"></textarea>'
-    + '<button onclick="submitAlert()" '
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;">'
+    + '<div style="display:flex;gap:5px;" id="alert-sev-row">'
+    + ['danger', 'warning', 'info'].map(function (s) {
+        return '<button type="button" id="asev-' + s + '" onclick="setAlertSeverity(\'' + s + '\')" '
+          + 'style="padding:4px 9px;border-radius:14px;font-size:0.72rem;cursor:pointer;border:1.5px solid #ddd;background:white;color:#666;">'
+          + SEVERITY_LABEL[s] + '</button>';
+      }).join('')
+    + '</div>'
+    + '<span id="alert-count" style="font-size:0.7rem;color:#bbb;">0/' + ALERT_TEXT_MAX + '</span>'
+    + '</div>'
+    + '<div id="alert-err" style="display:none;margin-top:7px;font-size:0.78rem;color:#c0392b;"></div>'
+    + '<button id="alert-send" type="button" onclick="submitAlert()" '
     + 'style="margin-top:7px;width:100%;padding:9px;background:#e74c3c;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.86rem;">'
-    + '📢 פרסם התראה'
-    + '</button>'
+    + '📢 פרסם התראה</button>'
     + '</div>';
+  setAlertSeverity('warning');
+}
+
+function setAlertSeverity(s) {
+  _alertDraft.severity = s;
+  ['danger', 'warning', 'info'].forEach(function (k) {
+    var b = document.getElementById('asev-' + k);
+    if (!b) return;
+    var on = (k === s);
+    var col = k === 'danger' ? '#e74c3c' : (k === 'warning' ? '#d39e00' : '#0d87a0');
+    b.style.background  = on ? col : 'white';
+    b.style.color       = on ? 'white' : '#666';
+    b.style.borderColor = on ? col : '#ddd';
+  });
+}
+
+function updateAlertCount() {
+  var ta = document.getElementById('alert-text');
+  var c  = document.getElementById('alert-count');
+  if (ta && c) {
+    var n = ta.value.length;
+    c.textContent = n + '/' + ALERT_TEXT_MAX;
+    c.style.color = n > ALERT_TEXT_MAX - 30 ? '#c0392b' : '#bbb';
+  }
 }
 
 function selectAlertPreset(i) {
+  var p = ALERT_PRESETS[i];
+  if (!p) return;
   var ta = document.getElementById('alert-text');
-  if (ta) ta.value = ALERT_PRESETS[i].icon + ' ' + ALERT_PRESETS[i].text;
+  if (ta) { ta.value = p.icon + ' ' + p.text; updateAlertCount(); }
+  setAlertSeverity(p.severity);
 }
 
-function submitAlert() {
+function _alertError(msg) {
+  var e = document.getElementById('alert-err');
+  if (!e) return;
+  e.textContent = msg;
+  e.style.display = msg ? 'block' : 'none';
+}
+
+async function submitAlert() {
   if (!user) return;
-  var ta = document.getElementById('alert-text');
+  var ta   = document.getElementById('alert-text');
+  var btn  = document.getElementById('alert-send');
   var text = ta ? ta.value.trim() : '';
-  if (!text) { ta.style.border = '1.5px solid red'; return; }
-  var alerts = getAlerts();
-  alerts.unshift({ id: Date.now(), user: user.name, text: text, ts: Date.now() });
-  saveAlerts(alerts);
-  updateAlertBadge();
-  renderAlerts();
-  loadLatestAlert();      // עדכון סרגל ההתראה העליון
-  renderAlertWriteArea(); // reset form
+  _alertError('');
+
+  if (text.length < 2) { _alertError('כתוב לפחות שתי אותיות'); if (ta) ta.focus(); return; }
+  if (text.length > ALERT_TEXT_MAX) { _alertError('ההתראה ארוכה מדי'); return; }
+
+  var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+  if (!sb || !user.sbId) {
+    _alertError('צריך להיות מחובר כדי לפרסם התראה');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'מפרסם...'; }
+  try {
+    var res = await sb.from('alerts').insert({
+      author_id:   user.sbId,
+      author_name: user.name,
+      text:        text,
+      severity:    _alertDraft.severity || 'warning'
+    });
+    if (res.error) throw res.error;
+    await fetchAlerts(true);
+    renderAlertWriteArea();
+    renderAlerts();
+  } catch (e) {
+    var msg = (e && e.message) ? e.message : '';
+    // the rate limit and the ownership rule both come back as a policy error
+    if (/row-level security|policy/i.test(msg)) {
+      _alertError('פרסמת כבר שלוש התראות בעשר הדקות האחרונות. נסה שוב בעוד כמה דקות.');
+    } else if (/check constraint/i.test(msg)) {
+      _alertError('הטקסט קצר או ארוך מדי');
+    } else {
+      _alertError('הפרסום נכשל. בדוק חיבור ונסה שוב.');
+    }
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '📢 פרסם התראה'; }
 }
 
-function deleteAlert(id) {
-  var alerts = getAlerts().filter(function(a) { return a.id !== id; });
-  saveAlerts(alerts);
+async function deleteAlert(id) {
+  var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+  if (!sb) return;
+  try {
+    var res = await sb.from('alerts').delete().eq('id', String(id));
+    if (res.error) throw res.error;
+  } catch (e) { /* the refresh below will show the truth either way */ }
+  await fetchAlerts(true);
   renderAlerts();
-  updateAlertBadge();
 }
 
+// ---- time ----
 function alertTimeAgo(ts) {
   var diff = Math.floor((Date.now() - ts) / 60000);
   if (diff < 1) return 'כרגע';
@@ -7959,38 +8218,75 @@ function alertTimeAgo(ts) {
 
 function timeLeft(ts) {
   var left = Math.floor((ALERTS_EXPIRY_MS - (Date.now() - ts)) / 60000);
+  if (left <= 0) return 'נמחק כעת';
   if (left < 60) return 'נמחק בעוד ' + left + ' דק\'';
-  return 'נמחק בעוד ' + Math.floor(left/60) + ' שע\'';
+  return 'נמחק בעוד ' + Math.floor(left / 60) + ' שע\'';
 }
 
+// ---- the list in the panel ----
 function renderAlerts() {
   var el = document.getElementById('alerts-list');
   if (!el) return;
   var alerts = getAlerts();
+
+  var offline = !_alertsOnline
+    ? '<div style="padding:8px 10px;margin-bottom:10px;border-radius:8px;background:#fff8e1;border:1px solid #ffe08a;font-size:0.76rem;color:#8a6d3b;text-align:center;">'
+      + '📡 אין חיבור — מוצגות ההתראות שנשמרו במכשיר</div>'
+    : '';
+
   if (alerts.length === 0) {
-    el.innerHTML = '<div style="text-align:center;color:#aaa;font-size:0.82rem;padding:20px;">אין התראות פעילות כרגע 👍</div>';
+    el.innerHTML = offline + '<div style="text-align:center;color:#aaa;font-size:0.82rem;padding:20px;">אין התראות פעילות כרגע 👍</div>';
     return;
   }
-  el.innerHTML = alerts.map(function(a) {
-    var isOwner = user && user.name === a.user;
-    var isAdmin = user && user.isAdmin;
-    return '<div style="padding:11px 13px;border:1.5px solid #fde;border-radius:10px;background:#fff9f9;">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
-      + '<div style="font-size:0.88rem;font-weight:bold;line-height:1.4;flex:1;">' + a.text + '</div>'
-      + ((isOwner || isAdmin) ? '<button onclick="deleteAlert(' + a.id + ')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1rem;padding:0 0 0 6px;">🗑️</button>' : '')
+
+  var border = { danger: '#fde', warning: '#ffe9b0', info: '#cfeef5' };
+  var bg     = { danger: '#fff9f9', warning: '#fffdf5', info: '#f7fdff' };
+
+  el.innerHTML = offline + alerts.map(function (a) {
+    // decided here, not at fetch time: signing in must light up your own
+    // delete buttons without waiting for the next read
+    var canDel = !!(user && (user.isAdmin || (user.sbId && user.sbId === a.authorId)));
+    var sev = a.severity || 'warning';
+    return '<div style="padding:11px 13px;border:1.5px solid ' + border[sev] + ';border-radius:10px;background:' + bg[sev] + ';margin-bottom:8px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+      + '<div style="font-size:0.88rem;font-weight:bold;line-height:1.4;flex:1;">'
+      + '<span style="font-size:0.7rem;font-weight:normal;opacity:0.8;">' + SEVERITY_LABEL[sev] + '</span><br>'
+      + escHtml(a.text) + '</div>'
+      + (canDel ? '<button type="button" onclick="deleteAlert(\'' + escHtml(a.id) + '\')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1rem;padding:0 0 0 6px;">🗑️</button>' : '')
       + '</div>'
       + '<div style="display:flex;justify-content:space-between;margin-top:5px;">'
-      + '<span style="font-size:0.7rem;color:#888;">👤 ' + a.user + ' · ' + alertTimeAgo(a.ts) + '</span>'
+      + '<span style="font-size:0.7rem;color:#888;">👤 ' + escHtml(a.user) + ' · ' + alertTimeAgo(a.ts) + '</span>'
       + '<span style="font-size:0.67rem;color:#bbb;">' + timeLeft(a.ts) + '</span>'
-      + '</div>'
-      + '</div>';
+      + '</div></div>';
   }).join('');
 }
 
-// Init badge on load
-window.addEventListener('load', function() { setTimeout(updateAlertBadge, 500); });
-// Refresh badge every minute
-setInterval(function() { updateAlertBadge(); if(document.getElementById('alertModal').style.display!=='none') renderAlerts(); }, 60000);
+// ---- live updates ----
+function subscribeAlerts() {
+  try {
+    var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+    if (!sb || !sb.channel) return;
+    sb.channel('alerts-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, function () {
+        fetchAlerts(true);
+      })
+      .subscribe();
+  } catch (e) { /* the 60 second re-read still covers it */ }
+}
+
+window.addEventListener('load', function () {
+  setTimeout(function () { fetchAlerts(true); subscribeAlerts(); }, 400);
+});
+
+// Re-read every minute (the safety net under realtime), and retick the strip
+// every 20 seconds so its clock is honest and an expired alert leaves by itself.
+setInterval(function () { fetchAlerts(true); }, 60000);
+setInterval(function () { refreshAlertStrip(); }, 20000);
+
+// Coming back to the app after it was in the background: refresh at once.
+document.addEventListener('visibilitychange', function () {
+  if (!document.hidden) fetchAlerts(true);
+});
 
 // ── PWA ──
 let deferredPrompt = null;
