@@ -85,13 +85,32 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .snow-points-row { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 .snow-pt { background: rgba(76,201,240,0.12); border: 1px solid rgba(76,201,240,0.2); border-radius: 6px; padding: 3px 8px; font-size: 0.7rem; color: white; }
 @keyframes fadeOut { 0%{opacity:1;transform:translateX(50%) translateY(0)} 70%{opacity:1} 100%{opacity:0;transform:translateX(50%) translateY(-10px)} }
-.alert-strip { display:none; position:relative; z-index:200; padding:10px 50px 10px 16px; font-size:0.88rem; font-weight:bold; text-align:center; line-height:1.4; animation: alertPulse 2s ease-in-out infinite; }
+.alert-strip { display:none; position:relative; z-index:200; padding:10px 50px 10px 16px; font-size:0.88rem; font-weight:bold; text-align:center; line-height:1.4; }
+/* The pulse used to run on every strip at 0.85 opacity - so faint that nobody
+   saw it. It now runs only on a real danger, and deep enough to notice. */
+.alert-strip.severity-danger { animation: alertPulse 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .alert-strip.severity-danger { animation:none; } }
 .alert-strip.severity-warning { background:#fff3cd; color:#856404; border-bottom:2px solid #ffc107; }
 .alert-strip.severity-danger  { background:#f8d7da; color:#842029; border-bottom:2px solid #e74c3c; }
 .alert-strip.severity-info    { background:#cff4fc; color:#055160; border-bottom:2px solid #0dcaf0; }
+/* A standing notice is not an emergency: no pulsing, calmer colours. */
+.alert-strip.severity-notice  { background:#e7f0fd; color:#0a3d7a; border-bottom:2px solid #0d6efd; }
 .alert-close { position:absolute; left:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.1rem; opacity:0.6; background:none; border:none; color:inherit; }
 .alert-close:hover { opacity:1; }
-@keyframes alertPulse { 0%,100%{opacity:1} 50%{opacity:0.85} }
+@keyframes alertPulse { 0%,100%{opacity:1} 50%{opacity:0.68} }
+
+/* the rest of the alerts, folded under the strip */
+#alert-more { display:none; position:relative; z-index:199; background:#fff; border-bottom:2px solid rgba(0,0,0,0.08); box-shadow:0 4px 8px rgba(0,0,0,0.06); padding:6px 10px 8px; }
+#alert-more .amore-row { display:flex; align-items:flex-start; gap:8px; padding:7px 9px; border-radius:8px; margin-top:4px; font-size:0.82rem; font-weight:bold; line-height:1.4; text-align:right; }
+#alert-more .amore-meta { font-size:0.68rem; font-weight:normal; opacity:0.65; white-space:nowrap; }
+.amore-danger  { background:#f8d7da; color:#842029; }
+.amore-warning { background:#fff3cd; color:#856404; }
+.amore-info    { background:#cff4fc; color:#055160; }
+.amore-notice  { background:#e7f0fd; color:#0a3d7a; }
+.alert-more-btn { font-size:0.72rem; font-weight:bold; background:rgba(0,0,0,0.12); padding:2px 8px; border-radius:10px; margin-right:6px; border:none; color:inherit; cursor:pointer; font-family:inherit; }
+.alert-more-btn:hover { background:rgba(0,0,0,0.2); }
+.amore-chev { display:inline-block; transition:transform 0.18s; }
+.amore-open .amore-chev { transform:rotate(180deg); }
 
 .wcam-card { border-radius:10px;overflow:hidden;background:#f5f5f5;border:1px solid #e0e0e0;cursor:pointer; }
 .wcam-label { font-size:0.78rem;font-weight:bold;padding:6px 10px;background:#0a192f;color:white; }
@@ -318,8 +337,9 @@ img, svg, video { max-width: 100%; }
 <!-- 🚨 Alert Strip -->
 <div id="alert-strip" class="alert-strip severity-danger">
   <span id="alert-strip-text"></span>
-  <button class="alert-close" onclick="dismissAlert()" title="סגור">✕</button>
+  <button class="alert-close" onclick="dismissAlert(event)" title="סגור">✕</button>
 </div>
+<div id="alert-more"></div>
 </div><!-- /topstick -->
 
 
@@ -2864,8 +2884,8 @@ function growTripFree(el) {
       }
       }
     }
-    // "10 \u05d1\u05d9\u05e0\u05d5\u05d0\u05e8" / "\u05d4\u05d7\u05dc 3 \u05d1\u05de\u05e8\u05e5" \u2014 \u05d9\u05d5\u05dd \u05d5\u05e9\u05dd \u05d7\u05d5\u05d3\u05e9, \u05d4\u05e6\u05d5\u05e8\u05d4 \u05d4\u05e0\u05e4\u05d5\u05e6\u05d4 \u05d1\u05e2\u05d1\u05e8\u05d9\u05ea.
-    // \u05d1\u05dc\u05e2\u05d3\u05d9\u05d4 "\u05d4\u05d7\u05dc 10 \u05d1\u05d9\u05e0\u05d5\u05d0\u05e8" \u05e0\u05e7\u05e8\u05d0 \u05db-"\u05d9\u05e0\u05d5\u05d0\u05e8" \u05d5\u05d4\u05ea\u05d0\u05e8\u05d9\u05da \u05e0\u05e7\u05d1\u05e2 \u05dc-1 \u05d1\u05d7\u05d5\u05d3\u05e9.
+    // "10 בינואר" / "החל 3 במרץ" — יום ושם חודש, הצורה הנפוצה בעברית.
+    // בלעדיה "החל 10 בינואר" נקרא כ-"ינואר" והתאריך נקבע ל-1 בחודש.
     if (!start) {
       for (var dm = 0; dm < MONTHS.length; dm++) {
         var reDM = new RegExp('(\\d{1,2})\\s*\u05d1?' + MONTHS[dm]);
@@ -4481,37 +4501,80 @@ function dismissAlert(ev) {
   refreshAlertStrip();
 }
 
+var _alertMoreOpen = false;
+
+function toggleAlertMore(ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  _alertMoreOpen = !_alertMoreOpen;
+  refreshAlertStrip();
+}
+
 function refreshAlertStrip() {
   var strip  = document.getElementById('alert-strip');
   var textEl = document.getElementById('alert-strip-text');
+  var moreEl = document.getElementById('alert-more');
   if (!strip || !textEl) return;
 
   var dismissed = _dismissedIds();
-  var live = getAlerts().filter(function (a) { return !dismissed[a.id]; });
+  var keep = function (a) { return !dismissed[a.id]; };
+  var liveAlerts  = getLiveAlerts().filter(keep);
+  var liveNotices = getLiveNotices().filter(keep);
+  // Danger first. A standing notice must never push a live warning off the
+  // strip, however recently it was posted.
+  var live = liveAlerts.concat(liveNotices);
 
-  if (!live.length) { strip.style.display = 'none'; strip.removeAttribute('data-alert-id'); return; }
+  if (!live.length) {
+    strip.style.display = 'none';
+    strip.removeAttribute('data-alert-id');
+    if (moreEl) { moreEl.style.display = 'none'; moreEl.innerHTML = ''; }
+    _alertMoreOpen = false;
+    return;
+  }
 
-  var a   = live[0];
-  var sev = a.severity || 'warning';
-  var more = live.length - 1;
+  var a    = live[0];
+  var sev  = (a.kind === 'notice') ? 'notice' : (a.severity || 'warning');
+  var rest = live.slice(1);
+  if (!rest.length) _alertMoreOpen = false;
 
-  strip.className = 'alert-strip severity-' + sev;
+  strip.className = 'alert-strip severity-' + sev + (_alertMoreOpen ? ' amore-open' : '');
   strip.setAttribute('data-alert-id', a.id);
   strip.style.cursor = 'pointer';
+  // Tapping the text still opens the full panel, where you can also post.
   strip.onclick = function (ev) {
-    if (ev && ev.target && ev.target.classList && ev.target.classList.contains('alert-close')) return;
+    var tgt = ev && ev.target;
+    if (tgt && tgt.classList &&
+        (tgt.classList.contains('alert-close') || tgt.classList.contains('alert-more-btn') ||
+         tgt.classList.contains('amore-chev'))) return;
     openAlertPanel();
   };
 
-  textEl.innerHTML = escHtml(a.text)
+  textEl.innerHTML = (a.kind === 'notice' ? '📌 ' : '') + escHtml(a.text)
     + ' <span style="font-size:0.72rem;opacity:0.7;font-weight:normal;">— '
     + escHtml(a.user) + ', ' + alertTimeAgo(a.ts) + '</span>'
-    + (more > 0
-        ? ' <span style="font-size:0.72rem;font-weight:bold;background:rgba(0,0,0,0.12);padding:2px 8px;border-radius:10px;margin-right:6px;">'
-          + 'ועוד ' + more + '</span>'
+    + (rest.length
+        ? ' <button type="button" class="alert-more-btn" onclick="toggleAlertMore(event)">'
+          + 'ועוד ' + rest.length + ' <span class="amore-chev">▾</span></button>'
         : '');
 
   strip.style.display = 'block';
+
+  // The rest unfold in place, right under the strip. Opening them should not
+  // throw you into a modal and lose your place on the page.
+  if (moreEl) {
+    if (_alertMoreOpen && rest.length) {
+      moreEl.innerHTML = rest.map(function (x) {
+        var s = (x.kind === 'notice') ? 'notice' : (x.severity || 'warning');
+        return '<div class="amore-row amore-' + s + '">'
+          + '<span style="flex:1;">' + (x.kind === 'notice' ? '📌 ' : '') + escHtml(x.text) + '</span>'
+          + '<span class="amore-meta">' + escHtml(x.user) + ' · ' + alertTimeAgo(x.ts) + '</span>'
+          + '</div>';
+      }).join('');
+      moreEl.style.display = 'block';
+    } else {
+      moreEl.style.display = 'none';
+      moreEl.innerHTML = '';
+    }
+  }
 }
 
 // kept for anything that still calls the old name
@@ -7995,7 +8058,11 @@ function _alertsReadMirror() {
     var arr = JSON.parse(localStorage.getItem(ALERTS_MIRROR_KEY) || '[]');
     if (!Array.isArray(arr)) return [];
     var now = Date.now();
-    return arr.filter(function (a) { return a && a.ts && (now - a.ts) < ALERTS_EXPIRY_MS; });
+    return arr.filter(function (a) {
+      if (!a || !a.ts) return false;
+      var until = a.until || (a.ts + ALERTS_EXPIRY_MS);
+      return until > now;
+    });
   } catch (e) { return []; }
 }
 function _alertsWriteMirror(arr) {
@@ -8005,8 +8072,11 @@ function _alertsWriteMirror(arr) {
 // Renderers stay synchronous - they read this, never the network.
 function getAlerts() {
   var now = Date.now();
-  return _alerts.filter(function (a) { return (now - a.ts) < ALERTS_EXPIRY_MS; });
+  return _alerts.filter(function (a) { return a.until > now; });
 }
+// the two kinds, newest first
+function getLiveAlerts()  { return getAlerts().filter(function (a) { return a.kind !== 'notice'; }); }
+function getLiveNotices() { return getAlerts().filter(function (a) { return a.kind === 'notice'; }); }
 
 function _rowToAlert(r) {
   return {
@@ -8015,7 +8085,11 @@ function _rowToAlert(r) {
     text:     r.text || '',
     severity: (r.severity === 'danger' || r.severity === 'info') ? r.severity : 'warning',
     ts:       new Date(r.created_at).getTime(),
-    authorId: r.author_id || ''
+    authorId: r.author_id || '',
+    kind:     r.kind === 'notice' ? 'notice' : 'alert',
+    // a notice sets its own lifetime, so trust the row rather than the
+    // 24 hour rule that governs alerts
+    until:    r.expires_at ? new Date(r.expires_at).getTime() : (new Date(r.created_at).getTime() + ALERTS_EXPIRY_MS)
   };
 }
 
@@ -8028,7 +8102,7 @@ async function fetchAlerts(quiet) {
     var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
     if (sb) {
       var res = await sb.from('alerts')
-        .select('id,author_id,author_name,text,severity,created_at')
+        .select('id,author_id,author_name,text,severity,kind,created_at,expires_at')
         .order('created_at', { ascending: false })
         .limit(50);
       if (res.error) throw res.error;
@@ -8048,16 +8122,23 @@ async function fetchAlerts(quiet) {
   updateAlertBadge();
   refreshAlertStrip();
   var modal = document.getElementById('alertModal');
-  if (modal && modal.style.display !== 'none' && modal.style.display !== '') renderAlerts();
+  if (modal && modal.style.display !== 'none' && modal.style.display !== '') { renderAlerts(); markAlertsSeen(); }
   if (!quiet) { /* nothing else */ }
 }
 
 // ---- the badge ----
+// How many live items were published since the last time this device opened
+// the panel. Your own postings never count - being told you have 1 unread
+// message that you just wrote yourself is silly.
 function updateAlertBadge() {
   var badge = document.getElementById('alert-badge');
   if (!badge) return;
   var lastSeen = parseInt(localStorage.getItem('alertsLastSeen') || '0', 10);
-  var unseen = getAlerts().filter(function (a) { return a.ts > lastSeen; }).length;
+  var unseen = getAlerts().filter(function (a) {
+    if (a.ts <= lastSeen) return false;
+    if (user && user.sbId && a.authorId === user.sbId) return false;
+    return true;
+  }).length;
   if (unseen > 0) {
     badge.style.display = 'flex';
     badge.textContent = unseen > 9 ? '9+' : String(unseen);
@@ -8066,10 +8147,16 @@ function updateAlertBadge() {
   }
 }
 
-function openAlertPanel() {
-  openM('alertModal');
+// Called whenever the panel is open: anything arriving while you are reading
+// counts as read, so closing the panel does not resurrect the number.
+function markAlertsSeen() {
   localStorage.setItem('alertsLastSeen', String(Date.now()));
   updateAlertBadge();
+}
+
+function openAlertPanel() {
+  openM('alertModal');
+  markAlertsSeen();
   renderAlertWriteArea();
   renderAlerts();
   fetchAlerts(true);
@@ -8084,11 +8171,18 @@ function renderAlertWriteArea() {
       + '🔒 <a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;">התחבר</a> כדי לפרסם התראה</div>';
     return;
   }
-  _alertDraft = { severity: 'warning' };
+  _alertDraft = { severity: 'warning', kind: 'alert', days: 7 };
+  var canNotice = !!(user && user.isAdmin);
   el.innerHTML =
-    '<div style="background:#fff5f5;border:1.5px solid #f5b5b5;border-radius:10px;padding:12px;">'
-    + '<div style="font-size:0.78rem;font-weight:bold;margin-bottom:8px;color:#c0392b;">⚠️ פרסם התראה</div>'
-    + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;">'
+    '<div id="alert-box" style="background:#fff5f5;border:1.5px solid #f5b5b5;border-radius:10px;padding:12px;">'
+    + (canNotice
+        ? '<div style="display:flex;gap:6px;margin-bottom:10px;">'
+          + '<button type="button" id="akind-alert"  onclick="setAlertKind(\'alert\')"  style="flex:1;padding:6px;border-radius:8px;font-size:0.78rem;cursor:pointer;border:1.5px solid #ddd;background:white;">⚠️ התראה</button>'
+          + '<button type="button" id="akind-notice" onclick="setAlertKind(\'notice\')" style="flex:1;padding:6px;border-radius:8px;font-size:0.78rem;cursor:pointer;border:1.5px solid #ddd;background:white;">📌 הודעה</button>'
+          + '</div>'
+        : '')
+    + '<div id="alert-title" style="font-size:0.78rem;font-weight:bold;margin-bottom:8px;color:#c0392b;">⚠️ פרסם התראה</div>'
+    + '<div id="alert-presets" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;">'
     + ALERT_PRESETS.map(function (p, i) {
         return '<button type="button" onclick="selectAlertPreset(' + i + ')" '
           + 'style="padding:5px 10px;border:1.5px solid #e0b0b0;border-radius:20px;background:white;font-size:0.76rem;cursor:pointer;">'
@@ -8108,12 +8202,69 @@ function renderAlertWriteArea() {
     + '</div>'
     + '<span id="alert-count" style="font-size:0.7rem;color:#bbb;">0/' + ALERT_TEXT_MAX + '</span>'
     + '</div>'
+    + '<div id="alert-days" style="display:none;margin-top:8px;align-items:center;gap:6px;">'
+    + '<span style="font-size:0.72rem;color:#777;">להציג למשך:</span>'
+    + [[1,'יום'],[7,'שבוע'],[30,'חודש'],[180,'כל העונה']].map(function (d) {
+        return '<button type="button" id="adays-' + d[0] + '" onclick="setAlertDays(' + d[0] + ')" '
+          + 'style="padding:4px 9px;border-radius:14px;font-size:0.72rem;cursor:pointer;border:1.5px solid #ddd;background:white;color:#666;">' + d[1] + '</button>';
+      }).join('')
+    + '</div>'
     + '<div id="alert-err" style="display:none;margin-top:7px;font-size:0.78rem;color:#c0392b;"></div>'
     + '<button id="alert-send" type="button" onclick="submitAlert()" '
     + 'style="margin-top:7px;width:100%;padding:9px;background:#e74c3c;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.86rem;">'
     + '📢 פרסם התראה</button>'
     + '</div>';
   setAlertSeverity('warning');
+  if (canNotice) setAlertKind('alert');
+}
+
+// An alert is a warning that expires by itself. A notice is an announcement
+// in the app's own voice - admin only, calm colours, and it stays as long as
+// it is told to.
+function setAlertKind(k) {
+  _alertDraft.kind = (k === 'notice') ? 'notice' : 'alert';
+  var isNotice = _alertDraft.kind === 'notice';
+  var box   = document.getElementById('alert-box');
+  var title = document.getElementById('alert-title');
+  var pres  = document.getElementById('alert-presets');
+  var sev   = document.getElementById('alert-sev-row');
+  var days  = document.getElementById('alert-days');
+  var send  = document.getElementById('alert-send');
+  var ta    = document.getElementById('alert-text');
+  ['alert','notice'].forEach(function (x) {
+    var b = document.getElementById('akind-' + x);
+    if (!b) return;
+    var on = (x === _alertDraft.kind);
+    var col = x === 'notice' ? '#0d6efd' : '#e74c3c';
+    b.style.background = on ? col : 'white';
+    b.style.color = on ? 'white' : '#666';
+    b.style.borderColor = on ? col : '#ddd';
+  });
+  if (box)   { box.style.background = isNotice ? '#f3f8ff' : '#fff5f5';
+               box.style.borderColor = isNotice ? '#b9d4f5' : '#f5b5b5'; }
+  if (title) { title.textContent = isNotice ? '📌 פרסם הודעה' : '⚠️ פרסם התראה';
+               title.style.color = isNotice ? '#0a58ca' : '#c0392b'; }
+  if (pres)  pres.style.display = isNotice ? 'none' : 'flex';
+  if (sev)   sev.style.display  = isNotice ? 'none' : 'flex';
+  if (days)  days.style.display = isNotice ? 'flex' : 'none';
+  if (send)  { send.textContent = isNotice ? '📌 פרסם הודעה' : '📢 פרסם התראה';
+               send.style.background = isNotice ? '#0d6efd' : '#e74c3c'; }
+  if (ta)    ta.placeholder = isNotice
+               ? 'לדוגמה: מנין שחרית כל יום ב-06:45 בלובי של מלון אדלווייס'
+               : 'תאר את ההתראה (מסלול, מיקום, פרטים)...';
+  if (isNotice) setAlertDays(_alertDraft.days || 7);
+}
+
+function setAlertDays(d) {
+  _alertDraft.days = d;
+  [1,7,30,180].forEach(function (x) {
+    var b = document.getElementById('adays-' + x);
+    if (!b) return;
+    var on = (x === d);
+    b.style.background  = on ? '#0d6efd' : 'white';
+    b.style.color       = on ? 'white' : '#666';
+    b.style.borderColor = on ? '#0d6efd' : '#ddd';
+  });
 }
 
 function setAlertSeverity(s) {
@@ -8172,12 +8323,19 @@ async function submitAlert() {
 
   if (btn) { btn.disabled = true; btn.textContent = 'מפרסם...'; }
   try {
-    var res = await sb.from('alerts').insert({
+    var isNotice = (_alertDraft.kind === 'notice');
+    var row = {
       author_id:   user.sbId,
       author_name: user.name,
       text:        text,
-      severity:    _alertDraft.severity || 'warning'
-    });
+      kind:        isNotice ? 'notice' : 'alert',
+      severity:    isNotice ? 'info' : (_alertDraft.severity || 'warning')
+    };
+    if (isNotice) {
+      var days = _alertDraft.days || 7;
+      row.expires_at = new Date(Date.now() + days * 86400000).toISOString();
+    }
+    var res = await sb.from('alerts').insert(row);
     if (res.error) throw res.error;
     await fetchAlerts(true);
     renderAlertWriteArea();
@@ -8186,7 +8344,9 @@ async function submitAlert() {
     var msg = (e && e.message) ? e.message : '';
     // the rate limit and the ownership rule both come back as a policy error
     if (/row-level security|policy/i.test(msg)) {
-      _alertError('פרסמת כבר שלוש התראות בעשר הדקות האחרונות. נסה שוב בעוד כמה דקות.');
+      _alertError(_alertDraft.kind === 'notice'
+        ? 'רק מנהל יכול לפרסם הודעה'
+        : 'פרסמת כבר שלוש התראות בעשר הדקות האחרונות. נסה שוב בעוד כמה דקות.');
     } else if (/check constraint/i.test(msg)) {
       _alertError('הטקסט קצר או ארוך מדי');
     } else {
@@ -8216,49 +8376,62 @@ function alertTimeAgo(ts) {
   return 'לפני ' + h + ' שע\'';
 }
 
-function timeLeft(ts) {
-  var left = Math.floor((ALERTS_EXPIRY_MS - (Date.now() - ts)) / 60000);
-  if (left <= 0) return 'נמחק כעת';
-  if (left < 60) return 'נמחק בעוד ' + left + ' דק\'';
-  return 'נמחק בעוד ' + Math.floor(left / 60) + ' שע\'';
+function timeLeft(a) {
+  var until = (a && a.until) ? a.until : (a + ALERTS_EXPIRY_MS);
+  var left = Math.floor((until - Date.now()) / 60000);
+  if (left <= 0)   return 'מסתיים כעת';
+  if (left < 60)   return 'עוד ' + left + ' דק\'';
+  if (left < 1440) return 'עוד ' + Math.floor(left / 60) + ' שע\'';
+  return 'עוד ' + Math.floor(left / 1440) + ' ימים';
 }
 
 // ---- the list in the panel ----
+function _alertCardHtml(a) {
+  var isNotice = a.kind === 'notice';
+  var sev = isNotice ? 'notice' : (a.severity || 'warning');
+  var border = { danger: '#fde', warning: '#ffe9b0', info: '#cfeef5', notice: '#c9ddf7' };
+  var bg     = { danger: '#fff9f9', warning: '#fffdf5', info: '#f7fdff', notice: '#f5f9ff' };
+  var canDel = !!(user && (user.isAdmin || (user.sbId && user.sbId === a.authorId)));
+  var tag = isNotice ? '📌 הודעה' : SEVERITY_LABEL[sev];
+  return '<div style="padding:11px 13px;border:1.5px solid ' + border[sev] + ';border-radius:10px;background:' + bg[sev] + ';margin-bottom:8px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+    + '<div style="font-size:0.88rem;font-weight:bold;line-height:1.5;flex:1;">'
+    + '<span style="font-size:0.7rem;font-weight:normal;opacity:0.8;">' + tag + '</span><br>'
+    + '<span style="white-space:pre-wrap;">' + escHtml(a.text) + '</span></div>'
+    + (canDel ? '<button type="button" onclick="deleteAlert(\'' + escHtml(a.id) + '\')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1rem;padding:0 0 0 6px;">🗑️</button>' : '')
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;margin-top:5px;">'
+    + '<span style="font-size:0.7rem;color:#888;">👤 ' + escHtml(a.user) + ' · ' + alertTimeAgo(a.ts) + '</span>'
+    + '<span style="font-size:0.67rem;color:#bbb;">' + timeLeft(a) + '</span>'
+    + '</div></div>';
+}
+
 function renderAlerts() {
   var el = document.getElementById('alerts-list');
   if (!el) return;
-  var alerts = getAlerts();
+
+  var notices = getLiveNotices();
+  var alerts  = getLiveAlerts();
 
   var offline = !_alertsOnline
     ? '<div style="padding:8px 10px;margin-bottom:10px;border-radius:8px;background:#fff8e1;border:1px solid #ffe08a;font-size:0.76rem;color:#8a6d3b;text-align:center;">'
-      + '📡 אין חיבור — מוצגות ההתראות שנשמרו במכשיר</div>'
+      + '📡 אין חיבור — מוצג מה שנשמר במכשיר</div>'
     : '';
 
-  if (alerts.length === 0) {
+  if (!notices.length && !alerts.length) {
     el.innerHTML = offline + '<div style="text-align:center;color:#aaa;font-size:0.82rem;padding:20px;">אין התראות פעילות כרגע 👍</div>';
     return;
   }
 
-  var border = { danger: '#fde', warning: '#ffe9b0', info: '#cfeef5' };
-  var bg     = { danger: '#fff9f9', warning: '#fffdf5', info: '#f7fdff' };
+  // Notices first and visibly apart: they are the standing information, and a
+  // reader scanning for danger should not have to sort them out from it.
+  var head = function (txt) {
+    return '<div style="font-size:0.72rem;color:#999;font-weight:bold;margin:4px 2px 7px;">' + txt + '</div>';
+  };
 
-  el.innerHTML = offline + alerts.map(function (a) {
-    // decided here, not at fetch time: signing in must light up your own
-    // delete buttons without waiting for the next read
-    var canDel = !!(user && (user.isAdmin || (user.sbId && user.sbId === a.authorId)));
-    var sev = a.severity || 'warning';
-    return '<div style="padding:11px 13px;border:1.5px solid ' + border[sev] + ';border-radius:10px;background:' + bg[sev] + ';margin-bottom:8px;">'
-      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
-      + '<div style="font-size:0.88rem;font-weight:bold;line-height:1.4;flex:1;">'
-      + '<span style="font-size:0.7rem;font-weight:normal;opacity:0.8;">' + SEVERITY_LABEL[sev] + '</span><br>'
-      + escHtml(a.text) + '</div>'
-      + (canDel ? '<button type="button" onclick="deleteAlert(\'' + escHtml(a.id) + '\')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1rem;padding:0 0 0 6px;">🗑️</button>' : '')
-      + '</div>'
-      + '<div style="display:flex;justify-content:space-between;margin-top:5px;">'
-      + '<span style="font-size:0.7rem;color:#888;">👤 ' + escHtml(a.user) + ' · ' + alertTimeAgo(a.ts) + '</span>'
-      + '<span style="font-size:0.67rem;color:#bbb;">' + timeLeft(a.ts) + '</span>'
-      + '</div></div>';
-  }).join('');
+  el.innerHTML = offline
+    + (notices.length ? head('📌 הודעות') + notices.map(_alertCardHtml).join('') : '')
+    + (alerts.length  ? head('⚠️ התראות שטח') + alerts.map(_alertCardHtml).join('') : '');
 }
 
 // ---- live updates ----
@@ -8362,8 +8535,8 @@ if ('serviceWorker' in navigator) {
 <div id="alertModal" class="modal" onclick="if(event.target===this)closeM('alertModal')" style="display:none;">
   <div class="modal-content" style="max-width:480px;max-height:90vh;overflow-y:auto;padding:22px 20px;">
     <span class="close-btn" onclick="closeM('alertModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.05rem;">📢 התראות שטח</h3>
-    <p style="color:#888;font-size:0.78rem;margin:0 0 14px;">עדכונים דחופים מגולשים — מסלולים, תנאים, אירועים</p>
+    <h3 style="margin:0 0 4px;font-size:1.05rem;">📢 התראות והודעות</h3>
+    <p style="color:#888;font-size:0.78rem;margin:0 0 14px;">הודעות קבועות, ועדכונים דחופים מגולשים — מסלולים, תנאים, אירועים</p>
 
     <!-- Write alert (logged in only) -->
     <div id="alert-write-area" style="margin-bottom:14px;"></div>
