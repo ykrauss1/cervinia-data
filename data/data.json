@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-10-15T01:43:49.539Z",
-  "temperature": 7.9,
+  "updated_at": "2026-10-15T02:11:24.113Z",
+  "temperature": 8.6,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -14,7 +14,7 @@
   "last_snowfall": "[]",
   "wind_speed": 0.7,
   "wind_gust": 27.4,
-  "humidity": 33,
+  "humidity": null,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Cielo Sereno",
@@ -64,7 +64,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Wednesday, October 14",
+    "date": "Thursday, October 15",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -103,27 +103,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Friday, October 16",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Saturday, October 17",
       "periods": [
