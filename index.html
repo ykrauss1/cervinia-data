@@ -8086,7 +8086,7 @@ function _rowToAlert(r) {
     severity: (r.severity === 'danger' || r.severity === 'info') ? r.severity : 'warning',
     ts:       new Date(r.created_at).getTime(),
     authorId: r.author_id || '',
-    kind:     r.kind === 'notice' ? 'notice' : 'alert',
+    kind:     (r.kind === 'notice') ? 'notice' : 'alert',
     // a notice sets its own lifetime, so trust the row rather than the
     // 24 hour rule that governs alerts
     until:    r.expires_at ? new Date(r.expires_at).getTime() : (new Date(r.created_at).getTime() + ALERTS_EXPIRY_MS)
@@ -8095,26 +8095,48 @@ function _rowToAlert(r) {
 
 // ---- reading ----
 var _alertsFetching = false;
+var _alertsProblem = '';   // '' | 'offline' | 'server'
+var _alertsHasKind = true; // set to false once the server tells us otherwise
+
 async function fetchAlerts(quiet) {
   if (_alertsFetching) return;
   _alertsFetching = true;
   try {
     var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
     if (sb) {
+      var cols = _alertsHasKind
+        ? 'id,author_id,author_name,text,severity,kind,created_at,expires_at'
+        : 'id,author_id,author_name,text,severity,created_at,expires_at';
       var res = await sb.from('alerts')
-        .select('id,author_id,author_name,text,severity,kind,created_at,expires_at')
+        .select(cols)
         .order('created_at', { ascending: false })
         .limit(50);
-      if (res.error) throw res.error;
+
+      // The notices migration may not have been run on this project yet. Rather
+      // than go dark over one missing column, drop it and read everything else:
+      // every row is then simply an alert, which is what it was before notices.
+      if (res.error && /kind/i.test(res.error.message || '') && _alertsHasKind) {
+        _alertsHasKind = false;
+        res = await sb.from('alerts')
+          .select('id,author_id,author_name,text,severity,created_at,expires_at')
+          .order('created_at', { ascending: false })
+          .limit(50);
+      }
+      if (res.error) { _alertsProblem = 'server'; throw res.error; }
+
       _alerts = (res.data || []).map(_rowToAlert);
       _alertsOnline = true;
+      _alertsProblem = '';
       _alertsWriteMirror(_alerts);
     } else {
       _alerts = _alertsReadMirror();
       _alertsOnline = false;
+      _alertsProblem = 'offline';
     }
   } catch (e) {
-    // offline, or Supabase unreachable: show the last thing we knew, and say so
+    // Tell these two apart. Saying "no connection" when the server answered
+    // with an error sends everyone hunting for a signal problem that is not there.
+    if (_alertsProblem !== 'server') _alertsProblem = 'offline';
     _alerts = _alertsReadMirror();
     _alertsOnline = false;
   }
@@ -8172,7 +8194,8 @@ function renderAlertWriteArea() {
     return;
   }
   _alertDraft = { severity: 'warning', kind: 'alert', days: 7 };
-  var canNotice = !!(user && user.isAdmin);
+  // no notices until the migration that adds the column has been run
+  var canNotice = !!(user && user.isAdmin) && _alertsHasKind;
   el.innerHTML =
     '<div id="alert-box" style="background:#fff5f5;border:1.5px solid #f5b5b5;border-radius:10px;padding:12px;">'
     + (canNotice
@@ -8415,7 +8438,10 @@ function renderAlerts() {
 
   var offline = !_alertsOnline
     ? '<div style="padding:8px 10px;margin-bottom:10px;border-radius:8px;background:#fff8e1;border:1px solid #ffe08a;font-size:0.76rem;color:#8a6d3b;text-align:center;">'
-      + '📡 אין חיבור — מוצג מה שנשמר במכשיר</div>'
+      + (_alertsProblem === 'server'
+          ? '⚠️ השרת לא מגיב כרגע — מוצג מה שנשמר במכשיר'
+          : '📡 אין חיבור — מוצג מה שנשמר במכשיר')
+      + '</div>'
     : '';
 
   if (!notices.length && !alerts.length) {
