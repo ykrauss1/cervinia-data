@@ -898,10 +898,10 @@ img, svg, video { max-width: 100%; }
         </div>
         <div style="display:flex;gap:10px;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;background:white;flex:1;">
-            <input type="checkbox" id="all-airport-pickup" style="width:14px;height:14px;"> ✈️ קבלה בשדה התעופה
+            <input type="checkbox" id="all-terminal" checked style="width:14px;height:14px;"> 🛄 קבלה בטרמינל
           </label>
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;background:white;flex:1;">
-            <input type="checkbox" id="all-automatic" checked title="סימון לעצמך — את סינון הגיר יש לבצע באתר ההשכרה" style="width:14px;height:14px;"> 🔄 גיר אוטומטי
+            <input type="checkbox" id="all-automatic" checked style="width:14px;height:14px;"> 🔄 גיר אוטומטי
           </label>
         </div>
         <!-- תאריכי רכב נפרדים -->
@@ -964,15 +964,18 @@ img, svg, video { max-width: 100%; }
           <input type="time" id="car-dropoff" value="10:00" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:7px;box-sizing:border-box;">
         </div>
       </div>
-      <div style="display:flex;gap:10px;margin-bottom:14px;">
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.85rem;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;background:#f9f9f9;flex:1;transition:border-color 0.15s;">
-          <input type="checkbox" id="car-airport" checked style="width:15px;height:15px;accent-color:var(--accent);">
-          <div><div style="font-weight:bold;">✈️ קבלה בשדה</div><div style="font-size:0.72rem;color:#888;">Turin Airport</div></div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.85rem;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;background:#f9f9f9;flex:1;">
+          <input type="checkbox" id="car-terminal" checked style="width:15px;height:15px;accent-color:var(--accent);">
+          <div><div style="font-weight:bold;">🛄 קבלה בטרמינל</div></div>
         </label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.85rem;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;background:#f9f9f9;flex:1;transition:border-color 0.15s;">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.85rem;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;background:#f9f9f9;flex:1;">
           <input type="checkbox" id="car-automatic" checked style="width:15px;height:15px;accent-color:var(--accent);">
-          <div><div style="font-weight:bold;">🔄 אוטומטי</div><div style="font-size:0.72rem;color:#888;">גיר אוטומטי בלבד</div></div>
+          <div><div style="font-weight:bold;">🔄 אוטומטי</div></div>
         </label>
+      </div>
+      <div style="font-size:0.73rem;color:#888;margin-bottom:12px;line-height:1.6;">
+        שתי הבחירות עוברות בקישור לקייאק.
       </div>
       <button onclick="searchCar()" style="width:100%;padding:12px;background:#2c3e50;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
         🔍 חפש רכב
@@ -3075,7 +3078,8 @@ async function applyTripText(){
     var el=document.getElementById('trip-dates');
     if(el){
       el.setAttribute('data-ci', r.ci); el.setAttribute('data-co', r.co);
-      if(el._flatpickr) el._flatpickr.setDate([r.ci, r.co], true);
+      if(el._flatpickr) el._flatpickr.setDate(
+        [new Date(r.ci + 'T00:00:00'), new Date(r.co + 'T00:00:00')], true);
       else el.value = r.ci + ' \u2014 ' + r.co;
     }
     var f=function(iso){ return (+iso.slice(8,10))+'.'+(+iso.slice(5,7)); };
@@ -3105,8 +3109,8 @@ async function applyTripText(){
     if(rb){ rb.checked=true; got.push({apt:'\u05d3\u05d9\u05e8\u05d4',hotel:'\u05de\u05dc\u05d5\u05df',any:'\u05db\u05dc \u05e1\u05d5\u05d2\u05d9 \u05d4\u05dc\u05d9\u05e0\u05d4'}[r.accType]); }
   }
   if(r.airportPickup===true){
-    var ap=document.getElementById('all-airport-pickup');
-    if(ap){ ap.checked=true; got.push('\u05e7\u05d1\u05dc\u05d4 \u05d1\u05e9\u05d3\u05d4'); }
+    var tm=document.getElementById('all-terminal');
+    if(tm){ tm.checked=true; got.push('\u05e7\u05d1\u05dc\u05d4 \u05d1\u05d8\u05e8\u05de\u05d9\u05e0\u05dc'); }
   }
   if(r.automatic!=null){
     var au=document.getElementById('all-automatic');
@@ -3172,6 +3176,21 @@ function skyCarUrl(code, ci, co) {
   return 'https://www.skyscanner.co.il/carhire/results/' + code + '/' + code + '/' + ci + '/' + co + '/30';
 }
 // Discover Cars: /italy-mainland/{עיר}/{קוד} — אצלם אין "italy" לבדו
+// Kayak car hire, with the two filters that actually survive a cold URL load.
+// Verified in a browser: both go into fs=, joined by a semicolon, and a fresh
+// load of the finished link comes up already filtered.
+//   /cars/MXP/2027-01-10/2027-01-15?fs=transmission=Automatic;pickupairportloctype=MXP_T
+// "At terminal" is NOT the same as the airport code. The code is the AREA, and
+// it includes off-site depots reached by shuttle - which is a different desk,
+// a different walk and a different price.
+function kayakCarUrl(code, ci, co, automatic, atTerminal) {
+  var fs = [];
+  if (automatic)  fs.push('transmission=Automatic');
+  if (atTerminal) fs.push('pickupairportloctype=' + code + '_T');
+  var u = 'https://www.kayak.com/cars/' + code + '/' + ci + '/' + co;
+  return fs.length ? u + '?fs=' + fs.join(';') : u;
+}
+
 function discoverCarsUrl(code) {
   var city = code === 'MXP' ? 'milan' : code === 'BGY' ? 'bergamo' : 'turin';
   return 'https://www.discovercars.com/italy-mainland/' + city + '/' + code.toLowerCase();
@@ -3227,9 +3246,19 @@ function searchCar() {
   const cOpt = cSel?.options[cSel.selectedIndex];
   const cCity = cOpt?.getAttribute('data-city') || 'Milan Malpensa';
   const carAirport = cCode==='MXP' ? 'Milan+Malpensa+Airport' : cCode==='BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
+  const automatic  = document.getElementById('car-automatic')?.checked;
+  const atTerminal = document.getElementById('car-terminal')?.checked;
+  const picked = [];
+  if (automatic)  picked.push('גיר אוטומטי');
+  if (atTerminal) picked.push('קבלה בטרמינל');
   const links = [
-    { icon: '🚗', title: 'Skyscanner — ' + cCode, desc: 'התאריכים והשדה עוברים · גיר וסוג רכב: לסמן באתר', url: skyCarUrl(cCode, dr.ci, dr.co) },
-    { icon: '🚗', title: 'Discover Cars — ' + cCode, desc: 'כולל חברות מקומיות · בחרו תאריכים בדף', url: discoverCarsUrl(cCode) },
+    { icon: '🚗', title: 'Kayak — ' + cCode,
+      desc: picked.length ? picked.join(' · ') + ' — עוברים בקישור'
+                          : 'התאריכים והשדה עוברים',
+      url: kayakCarUrl(cCode, dr.ci, dr.co, automatic, atTerminal) },
+    { icon: '🚗', title: 'Skyscanner — ' + cCode,
+      desc: picked.length ? picked.join(' ו') + ' — לסמן בדף' : 'השוואת מחירים',
+      url: skyCarUrl(cCode, dr.ci, dr.co) },
   ];
   const res = document.getElementById('car-results');
   showResults(res);
@@ -3278,8 +3307,8 @@ function searchAll() {
   const hasHotel = document.getElementById('all-hotel-check')?.checked !== false;
   const pickup = document.getElementById('all-car-pickup')?.value || '10:00';
   const dropoff = document.getElementById('all-car-dropoff')?.value || '10:00';
-  const airportPickup = document.getElementById('all-airport-pickup')?.checked;
-  const automatic = document.getElementById('all-automatic')?.checked;
+  const automatic  = document.getElementById('all-automatic')?.checked;
+  const atTerminal = document.getElementById('all-terminal')?.checked;
   const hAdults = document.getElementById('all-h-adults')?.textContent || adults;
   const hKids = document.getElementById('all-h-children')?.textContent || kids;
   const hRooms = document.getElementById('all-h-rooms')?.textContent || '1';
@@ -3316,12 +3345,23 @@ function searchAll() {
     // מה שהקישור באמת נושא: תאריכים ושדה התעופה (קוד השדה הוא מיקום האיסוף).
     // גיר אוטומטי הוא מסנן שאי אפשר להעביר בכתובת — אז אומרים את זה במפורש
     // במקום להציג את בחירת המשתמש כאילו היא יושמה.
-    const carDesc = 'התאריכים והשדה עוברים'
-      + (automatic ? ' · גיר אוטומטי: לסמן באתר' : '')
+    // What each engine can actually be told in a URL differs, so each card says
+    // its own truth rather than one hopeful sentence for all of them.
+    const picked = [];
+    if (automatic)  picked.push('גיר אוטומטי');
+    if (atTerminal) picked.push('קבלה בטרמינל');
+    const kayakDesc = (picked.length ? picked.join(' · ') + ' — עוברים בקישור'
+                                     : 'התאריכים והשדה עוברים')
+      + (cci!==dr.ci ? ' · תאריכים שונים' : '');
+    // Only what you still have to do by hand. Saying "the dates transfer" is
+    // noise: a link that did not carry them would not be worth offering.
+    const carDesc = (picked.length ? picked.join(' ו') + ' — לסמן בדף'
+                                   : 'השוואת מחירים')
       + (cci!==dr.ci ? ' · תאריכים שונים' : '');
   const carAirport = airCode === 'MXP' ? 'Milan+Malpensa+Airport' : airCode === 'BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
+    links.push({ icon: '🚗', title: 'Kayak — ' + airCode, desc: kayakDesc,
+                 url: kayakCarUrl(airCode, cci, cco, automatic, atTerminal) });
     links.push({ icon: '🚗', title: 'Skyscanner — ' + airCode, desc: carDesc, url: skyCarUrl(airCode, cci, cco) });
-    links.push({ icon: '🚗', title: 'Discover Cars — ' + airCode, desc: 'כולל חברות מקומיות · בחרו תאריכים בדף', url: discoverCarsUrl(airCode) });
   }
 
   // רנדר תוצאות בתיבות
@@ -3342,31 +3382,84 @@ function searchAll() {
                + section('🚗 השכרת רכב', '#fff8f0', '#dca', carLinks2);
 }
 
+// One Hebrew locale for every picker on the page.
+var HE_FP = {
+  firstDayOfWeek: 0,
+  rangeSeparator: ' — ',
+  weekdays: {
+    shorthand: ['א','ב','ג','ד','ה','ו','ש'],
+    longhand: ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת']
+  },
+  months: {
+    shorthand: ['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'],
+    longhand: ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
+  }
+};
+
+// Lodging and the car happen inside the trip, not somewhere else in the year.
+// Once the flight dates are set, every other picker is bounded by them - so
+// the calendar cannot even offer October for a January trip - and anything
+// already chosen outside that window is dropped rather than quietly kept.
+function clampTripDependents(from, to) {
+  ['hotel-dates', 'car-dates', 'all-hotel-dates', 'all-car-dates'].forEach(function (id) {
+    var el = document.getElementById(id);
+    var fp = el && el._flatpickr;
+    if (!fp) return;
+    if (!from || !to) {
+      fp.set('minDate', 'today');
+      fp.set('maxDate', null);
+      return;
+    }
+    var sel = fp.selectedDates.slice();
+    fp.set('minDate', from);
+    fp.set('maxDate', to);
+    var outside = sel.some(function (d) { return d < from || d > to; });
+    if (sel.length && outside) {
+      fp.clear();
+      el.removeAttribute('data-ci');
+      el.removeAttribute('data-co');
+    }
+    // nothing chosen yet: start it on the trip itself
+    if (!fp.selectedDates.length) {
+      fp.setDate([from, to], false);
+      el.setAttribute('data-ci', _isoDay(from));
+      el.setAttribute('data-co', _isoDay(to));
+    }
+  });
+}
+
+function _isoDay(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
 // ── initFlatpickr ──
 function initFlatpickr() {
   if (typeof flatpickr === 'undefined') return;
   const el = document.getElementById('trip-dates');
   if (el && !el._flatpickr) {
-    const HE_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-    const fmt = d => d.getDate() + ' ' + HE_MONTHS[d.getMonth()];
     flatpickr(el, {
       mode: 'range',
       minDate: 'today',
-      dateFormat: 'Y-m-d',
-      locale: { firstDayOfWeek: 0, rangeSeparator: ' to ' },
+      // Hebrew in the field itself. It used to read "2027-01-10 to 2027-01-15",
+      // which in an RTL line renders with the "to" in the wrong place and the
+      // dates looking swapped - and then said the same thing again underneath.
+      dateFormat: 'j בF',
+      locale: HE_FP,
       onChange: function(selectedDates) {
         const summary = document.getElementById('trip-summary');
         const summDates = document.getElementById('trip-summary-dates');
         const summNights = document.getElementById('trip-summary-nights');
         if (selectedDates.length === 2) {
           const nights = Math.round((selectedDates[1]-selectedDates[0])/86400000);
-          const HE = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-          const fmtHe = d => d.getDate() + ' ' + HE[d.getMonth()];
-          if (summDates) summDates.textContent = fmtHe(selectedDates[0]) + ' — ' + fmtHe(selectedDates[1]);
+          // the field above already says the dates - this line adds only what
+          // it does not: how many nights that is, and a way to start over
+          if (summDates) summDates.textContent = '';
           if (summNights) summNights.textContent = nights + ' לילות';
           if (summary) summary.style.display = 'flex';
+          clampTripDependents(selectedDates[0], selectedDates[1]);
         } else {
           if (summary) summary.style.display = 'none';
+          if (selectedDates.length === 0) clampTripDependents(null, null);
         }
       }
     });
@@ -3375,13 +3468,18 @@ function initFlatpickr() {
   const carEl = document.getElementById('car-dates');
   if (carEl && !carEl._flatpickr) {
     flatpickr(carEl, {
-      mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
-      locale: { firstDayOfWeek: 0, rangeSeparator: ' to ' },
+      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
       onChange: function(sel) {
         if (sel.length === 2) {
-          const HE = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
-          carEl.setAttribute('data-ci', sel[0].toISOString().slice(0,10));
-          carEl.setAttribute('data-co', sel[1].toISOString().slice(0,10));
+          // toISOString() shifts by the timezone and can land on the day
+          // before - build the date from its own local parts instead
+          carEl.setAttribute('data-ci', _isoDay(sel[0]));
+          carEl.setAttribute('data-co', _isoDay(sel[1]));
+        } else {
+          // a date outside the trip is refused and the field goes blank;
+          // the old value must not stay behind in the attributes
+          carEl.removeAttribute('data-ci');
+          carEl.removeAttribute('data-co');
         }
       }
     });
@@ -3390,12 +3488,18 @@ function initFlatpickr() {
   const htlEl = document.getElementById('hotel-dates');
   if (htlEl && !htlEl._flatpickr) {
     flatpickr(htlEl, {
-      mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
-      locale: { firstDayOfWeek: 0, rangeSeparator: ' to ' },
+      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
       onChange: function(sel) {
         if (sel.length === 2) {
-          htlEl.setAttribute('data-ci', sel[0].toISOString().slice(0,10));
-          htlEl.setAttribute('data-co', sel[1].toISOString().slice(0,10));
+          // toISOString() shifts by the timezone and can land on the day
+          // before - build the date from its own local parts instead
+          htlEl.setAttribute('data-ci', _isoDay(sel[0]));
+          htlEl.setAttribute('data-co', _isoDay(sel[1]));
+        } else {
+          // a date outside the trip is refused and the field goes blank;
+          // the old value must not stay behind in the attributes
+          htlEl.removeAttribute('data-ci');
+          htlEl.removeAttribute('data-co');
         }
       }
     });
@@ -3404,12 +3508,18 @@ function initFlatpickr() {
   const allHtlEl = document.getElementById('all-hotel-dates');
   if (allHtlEl && !allHtlEl._flatpickr) {
     flatpickr(allHtlEl, {
-      mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
-      locale: { firstDayOfWeek: 0, rangeSeparator: ' to ' },
+      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
       onChange: function(sel) {
         if (sel.length === 2) {
-          allHtlEl.setAttribute('data-ci', sel[0].toISOString().slice(0,10));
-          allHtlEl.setAttribute('data-co', sel[1].toISOString().slice(0,10));
+          // toISOString() shifts by the timezone and can land on the day
+          // before - build the date from its own local parts instead
+          allHtlEl.setAttribute('data-ci', _isoDay(sel[0]));
+          allHtlEl.setAttribute('data-co', _isoDay(sel[1]));
+        } else {
+          // a date outside the trip is refused and the field goes blank;
+          // the old value must not stay behind in the attributes
+          allHtlEl.removeAttribute('data-ci');
+          allHtlEl.removeAttribute('data-co');
         }
       }
     });
@@ -3418,12 +3528,18 @@ function initFlatpickr() {
   const allCarEl = document.getElementById('all-car-dates');
   if (allCarEl && !allCarEl._flatpickr) {
     flatpickr(allCarEl, {
-      mode: 'range', minDate: 'today', dateFormat: 'Y-m-d',
-      locale: { firstDayOfWeek: 0, rangeSeparator: ' to ' },
+      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
       onChange: function(sel) {
         if (sel.length === 2) {
-          allCarEl.setAttribute('data-ci', sel[0].toISOString().slice(0,10));
-          allCarEl.setAttribute('data-co', sel[1].toISOString().slice(0,10));
+          // toISOString() shifts by the timezone and can land on the day
+          // before - build the date from its own local parts instead
+          allCarEl.setAttribute('data-ci', _isoDay(sel[0]));
+          allCarEl.setAttribute('data-co', _isoDay(sel[1]));
+        } else {
+          // a date outside the trip is refused and the field goes blank;
+          // the old value must not stay behind in the attributes
+          allCarEl.removeAttribute('data-ci');
+          allCarEl.removeAttribute('data-co');
         }
       }
     });
