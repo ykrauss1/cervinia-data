@@ -8226,6 +8226,7 @@ function _rowToAlert(r) {
 var _alertsFetching = false;
 var _alertsProblem = '';   // '' | 'offline' | 'server'
 var _alertsHasKind = true; // set to false once the server tells us otherwise
+var _alertsHasPush = true; // likewise for push_requested, added in the push migration
 
 async function fetchAlerts(quiet) {
   if (_alertsFetching) return;
@@ -8311,6 +8312,8 @@ function openAlertPanel() {
   renderAlertWriteArea();
   renderAlerts();
   fetchAlerts(true);
+  renderPushRow('');
+  _healPush();
 }
 
 // ---- writing ----
@@ -8361,6 +8364,12 @@ function renderAlertWriteArea() {
           + 'style="padding:4px 9px;border-radius:14px;font-size:0.72rem;cursor:pointer;border:1.5px solid #ddd;background:white;color:#666;">' + d[1] + '</button>';
       }).join('')
     + '</div>'
+    + (_alertsHasPush
+        ? '<div id="alert-pushrow" style="display:none;align-items:center;gap:7px;margin-top:9px;">'
+          + '<input type="checkbox" id="alert-push" style="width:15px;height:15px;cursor:pointer;flex:none;">'
+          + '<label for="alert-push" style="font-size:0.74rem;color:#555;cursor:pointer;line-height:1.4;">'
+          + 'שלח גם כהתראה לטלפונים שנרשמו</label></div>'
+        : '')
     + '<div id="alert-err" style="display:none;margin-top:7px;font-size:0.78rem;color:#c0392b;"></div>'
     + '<button id="alert-send" type="button" onclick="submitAlert()" '
     + 'style="margin-top:7px;width:100%;padding:9px;background:#e74c3c;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.86rem;">'
@@ -8399,6 +8408,8 @@ function setAlertKind(k) {
   if (pres)  pres.style.display = isNotice ? 'none' : 'flex';
   if (sev)   sev.style.display  = isNotice ? 'none' : 'flex';
   if (days)  days.style.display = isNotice ? 'flex' : 'none';
+  var prow = document.getElementById('alert-pushrow');
+  if (prow) prow.style.display = isNotice ? 'flex' : 'none';
   if (send)  { send.textContent = isNotice ? '📌 פרסם הודעה' : '📢 פרסם התראה';
                send.style.background = isNotice ? '#0d6efd' : '#e74c3c'; }
   if (ta)    ta.placeholder = isNotice
@@ -8486,8 +8497,17 @@ async function submitAlert() {
     if (isNotice) {
       var days = _alertDraft.days || 7;
       row.expires_at = new Date(Date.now() + days * 86400000).toISOString();
+      var pc = document.getElementById('alert-push');
+      if (_alertsHasPush && pc && pc.checked) row.push_requested = true;
     }
     var res = await sb.from('alerts').insert(row);
+    // The push migration may not have been run yet. Posting the notice
+    // matters more than pushing it, so degrade rather than refuse.
+    if (res.error && /push_requested/i.test(res.error.message || '') && _alertsHasPush) {
+      _alertsHasPush = false;
+      delete row.push_requested;
+      res = await sb.from('alerts').insert(row);
+    }
     if (res.error) throw res.error;
     await fetchAlerts(true);
     renderAlertWriteArea();
@@ -8517,6 +8537,206 @@ async function deleteAlert(id) {
   } catch (e) { /* the refresh below will show the truth either way */ }
   await fetchAlerts(true);
   renderAlerts();
+}
+
+// ====================================================================
+//  Push notifications - the bell
+//
+//  A subscription belongs to one browser on one device, not to an account.
+//  The same person on a phone and a laptop subscribes twice, and clearing
+//  site data unsubscribes without telling anyone. That is how the standard
+//  works, so the UI says "this device" rather than "you".
+// ====================================================================
+
+var PUSH_VAPID_PUBLIC = 'BIgW_6w90E4bsfvinCVKcbpbh7LLYAbt_sV8DARwctKDqP7h07rpYoRF4jLUSoULv3cp1uzCIecMfzSXEJxyxPM';
+
+var _pushBusy = false;
+var _pushHealed = false;
+
+// navigator.serviceWorker.ready never resolves if the worker fails to
+// activate - over plain http, from file://, or when registration threw. An
+// unguarded await on it would leave the bell row blank for ever, with nothing
+// on screen to say why. Give it a few seconds, then carry on without it.
+function _swReady(ms) {
+  if (!('serviceWorker' in navigator)) return Promise.resolve(null);
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise(function (res) { setTimeout(function () { res(null); }, ms || 4000); })
+  ]);
+}
+
+function _u8FromB64url(s) {
+  var p = (s + '='.repeat((4 - s.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+  var raw = atob(p);
+  var out = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+var _isIOS = /iP(hone|ad|od)/.test(navigator.userAgent)
+          || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+function _isInstalled() {
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || navigator.standalone === true;
+}
+
+// 'ios-install' | 'unsupported' | 'blocked' | 'on' | 'off'
+async function pushState() {
+  // Check this before the generic support test: on iPhone, Safari hides
+  // PushManager until the site is on the home screen, and telling someone
+  // their phone cannot do it would simply be wrong.
+  if (_isIOS && !_isInstalled()) return 'ios-install';
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+    return 'unsupported';
+  }
+  if (Notification.permission === 'denied') return 'blocked';
+  try {
+    var reg = await _swReady();
+    if (!reg) return 'off';   // not ready yet: offer the button, not a blank
+    var sub = await reg.pushManager.getSubscription();
+    return sub ? 'on' : 'off';
+  } catch (e) { return 'off'; }
+}
+
+async function _pushSb() {
+  return (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+}
+
+async function enablePush() {
+  var sb = await _pushSb();
+  if (!sb) throw new Error('offline');
+
+  // Must happen inside the click. Asking later, from a timer or after an
+  // await that yields to the network, is refused by some browsers.
+  var perm = await Notification.requestPermission();
+  if (perm !== 'granted') throw new Error(perm === 'denied' ? 'blocked' : 'dismissed');
+
+  var reg = await _swReady(10000);
+  if (!reg) throw new Error('nosw');
+  var sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: _u8FromB64url(PUSH_VAPID_PUBLIC)
+    });
+  }
+  var j = sub.toJSON();
+  var res = await sb.rpc('cl_push_subscribe', {
+    p_endpoint: sub.endpoint,
+    p_p256dh:   j.keys && j.keys.p256dh,
+    p_auth:     j.keys && j.keys.auth,
+    p_ua:       navigator.userAgent
+  });
+  if (res.error) {
+    // Do not leave the browser holding a subscription the server knows
+    // nothing about - it would look on, and never ring.
+    try { await sub.unsubscribe(); } catch (e2) {}
+    throw res.error;
+  }
+}
+
+async function disablePush() {
+  var sb = await _pushSb();
+  var reg = await _swReady();
+  if (!reg) return;
+  var sub = await reg.pushManager.getSubscription();
+  if (!sub) return;
+  // Server first. If the browser forgot the subscription but the row stayed,
+  // every future alert would be sent into the void until the push service
+  // finally answered 410.
+  if (sb) { try { await sb.rpc('cl_push_unsubscribe', { p_endpoint: sub.endpoint }); } catch (e) {} }
+  try { await sub.unsubscribe(); } catch (e) {}
+}
+
+// If the browser still holds a subscription but our row was lost - a database
+// restore, a cleared table - re-registering costs one call and fixes a bell
+// that looks on and stays silent. Once per visit is enough.
+async function _healPush() {
+  if (_pushHealed) return;
+  _pushHealed = true;
+  try {
+    if (await pushState() !== 'on') return;
+    var sb = await _pushSb();
+    if (!sb) return;
+    var reg = await _swReady();
+    if (!reg) return;
+    var sub = await reg.pushManager.getSubscription();
+    if (!sub) return;
+    var j = sub.toJSON();
+    await sb.rpc('cl_push_subscribe', {
+      p_endpoint: sub.endpoint,
+      p_p256dh:   j.keys && j.keys.p256dh,
+      p_auth:     j.keys && j.keys.auth,
+      p_ua:       navigator.userAgent
+    });
+  } catch (e) {}
+}
+
+async function togglePush() {
+  if (_pushBusy) return;
+  _pushBusy = true;
+  var btn = document.getElementById('push-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  var err = '';
+  try {
+    var st = await pushState();
+    if (st === 'on') await disablePush();
+    else             await enablePush();
+  } catch (e) {
+    var m = (e && e.message) ? e.message : '';
+    if (m === 'blocked')        err = 'הדפדפן חוסם התראות. אפשר להחזיר דרך הגדרות האתר.';
+    else if (m === 'dismissed') err = 'לא אישרת. אפשר לנסות שוב.';
+    else if (m === 'offline')   err = 'אין חיבור לשרת כרגע.';
+    else if (m === 'nosw')      err = 'האתר עדיין נטען. נסה שוב בעוד רגע.';
+    else                        err = 'ההרשמה נכשלה. נסה שוב.';
+  }
+  _pushBusy = false;
+  await renderPushRow(err);
+}
+
+async function renderPushRow(err) {
+  var el = document.getElementById('push-row');
+  if (!el) return;
+  var st = await pushState();
+
+  var on   = (st === 'on');
+  var tint = on ? '#eaf7ee' : '#f7f8fa';
+  var edge = on ? '#bfe3c9' : '#e3e5e9';
+
+  var body, action = '';
+  if (st === 'ios-install') {
+    body = '<b>כדי לקבל התראות באייפון</b><br>'
+         + '<span style="color:#777;">שתף <span style="font-size:0.95em;">⬆️</span> ← הוסף למסך הבית. '
+         + 'אחר כך פתח את האתר מהמסך הראשי והפעל כאן.</span>';
+  } else if (st === 'unsupported') {
+    body = '<b>הדפדפן הזה לא תומך בהתראות</b><br>'
+         + '<span style="color:#777;">נסה מכרום או מאדג\', או מהטלפון.</span>';
+  } else if (st === 'blocked') {
+    body = '<b>התראות חסומות</b><br>'
+         + '<span style="color:#777;">לחץ על סמל המנעול שליד כתובת האתר ואפשר התראות.</span>';
+  } else if (on) {
+    body = '<b>התראות פעילות במכשיר הזה</b><br>'
+         + '<span style="color:#777;">תקבל הודעה על התראות דחופות, גם כשהאתר סגור.</span>';
+    action = '<button type="button" id="push-btn" onclick="togglePush()" '
+           + 'style="padding:6px 14px;border-radius:16px;border:1.5px solid #cfd4da;background:white;'
+           + 'color:#666;font-size:0.76rem;cursor:pointer;white-space:nowrap;">בטל</button>';
+  } else {
+    body = '<b>קבל התראות דחופות לטלפון</b><br>'
+         + '<span style="color:#777;">מסלול שנסגר, רכבל שנעצר - גם כשהאתר סגור.</span>';
+    action = '<button type="button" id="push-btn" onclick="togglePush()" '
+           + 'style="padding:6px 14px;border-radius:16px;border:none;background:#0d6efd;'
+           + 'color:white;font-size:0.76rem;font-weight:bold;cursor:pointer;white-space:nowrap;">הפעל</button>';
+  }
+
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid '
+      + edge + ';border-radius:10px;background:' + tint + ';margin-bottom:12px;">'
+    + '<span style="font-size:1.25rem;line-height:1;">' + (on ? '🔔' : '🔕') + '</span>'
+    + '<div style="flex:1;font-size:0.78rem;line-height:1.45;">' + body + '</div>'
+    + action
+    + '</div>'
+    + (err ? '<div style="margin:-6px 0 12px;font-size:0.76rem;color:#c0392b;">' + escHtml(err) + '</div>' : '');
 }
 
 // ---- time ----
@@ -8680,6 +8900,26 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+// Tapping a notification opens the app at ?open=alerts; if a tab is already
+// open the worker pings it instead. Both arrive here.
+function _maybeOpenAlerts() {
+  try {
+    if (!/[?&]open=alerts(\b|$)/.test(location.search)) return;
+    // Clean the address bar, so a refresh later does not reopen the panel.
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.hash);
+    setTimeout(function () { try { openAlertPanel(); } catch (e) {} }, 400);
+  } catch (e) {}
+}
+window.addEventListener('load', _maybeOpenAlerts);
+
+if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
+  navigator.serviceWorker.addEventListener('message', function (e) {
+    if (e && e.data && e.data.type === 'open-alerts') {
+      try { openAlertPanel(); } catch (err) {}
+    }
+  });
+}
 </script>
 
 
@@ -8708,6 +8948,9 @@ if ('serviceWorker' in navigator) {
     <span class="close-btn" onclick="closeM('alertModal')">×</span>
     <h3 style="margin:0 0 4px;font-size:1.05rem;">📢 התראות והודעות</h3>
     <p style="color:#888;font-size:0.78rem;margin:0 0 14px;">הודעות קבועות, ועדכונים דחופים מגולשים — מסלולים, תנאים, אירועים</p>
+
+    <!-- Notifications for this device -->
+    <div id="push-row"></div>
 
     <!-- Write alert (logged in only) -->
     <div id="alert-write-area" style="margin-bottom:14px;"></div>
