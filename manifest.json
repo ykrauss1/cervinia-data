@@ -1,0 +1,19 @@
+{
+  "name": "CerviniaLive · צ'רוויניה לייב",
+  "short_name": "CerviniaLive",
+  "description": "הכל לחופשת סקי מושלמת בצ'רוויניה — מידע, קהילה ועדכונים",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#152238",
+  "theme_color": "#152238",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
