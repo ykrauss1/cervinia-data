@@ -4276,32 +4276,41 @@ function renderPisteGuide() {
           + p.tags.map(function(t){ return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">'+t+'</span>'; }).join('')
           + '</div>'
           + (function () {
-              if (!p.map && !p.trail) return '';
-              // huts and apres-ski keep a plain URL in "map" - a real map link
-              // on the huts, the venue's own website on the apres-ski entries
-              if (p.map && /^https?:\/\//.test(p.map)) {
-                var isMap = /google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map);
-                return '<a href="' + p.map + '" target="_blank" rel="noopener" '
-                  + 'style="display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;color:#1a73e8;'
-                  + 'text-decoration:none;padding:4px 9px;border:1px solid #c0d4f0;border-radius:6px;background:#f0f7ff;">'
-                  + (isMap ? '\ud83d\uddfa\ufe0f הצג על מפה' : '\ud83c\udf10 אתר') + '</a>';
-              }
-              // Mapy holds each run as a named trail and highlights it;
-              // Google does not draw pistes at all but does know the lift
-              // station. Two links, two different questions.
-              var btn = 'display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;text-decoration:none;padding:4px 9px;border-radius:6px;';
+              if (!p.map && !p.trail && !p.geo) return '';
+              var btn = 'display:inline-flex;align-items:center;gap:4px;font-size:0.74rem;text-decoration:none;padding:4px 9px;border-radius:6px;';
               var L = [];
+              var mapIsUrl = p.map && /^https?:\/\//.test(p.map);
+
               if (p.trail) {
-                L.push('<a href="https://mapy.com/fnc/v1/search?mapset=winter&zoom=15&query='
-                  + encodeURIComponent(p.trail) + '" target="_blank" rel="noopener" '
-                  + 'style="' + btn + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">\u26f7\ufe0f המסלול על המפה</a>');
+                // the same name also belongs to a lift and a footpath, so the
+                // query carries the type word Mapy itself shows
+                var u = 'https://mapy.com/en/zimni?q=' + encodeURIComponent(p.trail + ' trail');
+                if (p.osm) u += '&source=osm&id=' + encodeURIComponent(p.osm) + '&ds=2';
+                if (p.xy) {
+                  var c = String(p.xy).split(',');
+                  u += '&x=' + encodeURIComponent(c[0].trim()) + '&y=' + encodeURIComponent(c[1].trim()) + '&z=15';
+                }
+                L.push('<a href="' + u + '" target="_blank" rel="noopener" style="' + btn
+                  + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">\u26f7\ufe0f המסלול על המפה</a>');
               }
-              if (p.map) {
+
+              // a hut or a bar already pinned by hand keeps its exact link
+              if (mapIsUrl && /google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
+                L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
+                  + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">\ud83d\udccd במפה</a>');
+              } else if (p.geo || (p.map && !mapIsUrl)) {
                 L.push('<a href="https://www.google.com/maps/search/?api=1&query='
-                  + encodeURIComponent(p.map) + '" target="_blank" rel="noopener" '
-                  + 'style="' + btn + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">\ud83d\udccd נקודת היציאה</a>');
+                  + encodeURIComponent(p.geo || p.map) + '" target="_blank" rel="noopener" style="' + btn
+                  + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">'
+                  + (p.trail ? '\ud83d\udccd נקודת היציאה' : '\ud83d\udccd במפה') + '</a>');
               }
-              return L.length ? '<div style="display:flex;gap:6px;flex-wrap:wrap;">' + L.join('') + '</div>' : '';
+
+              // the apres-ski entries keep their own website
+              if (mapIsUrl && !/google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
+                L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
+                  + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">\ud83c\udf10 אתר</a>');
+              }
+              return L.length ? '<div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;">' + L.join('') + '</div>' : '';
             })()
           + '</div>';
       });
