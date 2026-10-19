@@ -250,7 +250,7 @@ img, svg, video { max-width: 100%; }
   }
 
   /* Why card - sizes to its content now, so only a floor is set */
-  div[onclick="openM('whyModal')"] { min-height: 64px; }
+  #why-banner { min-height: 64px; }
 
   /* Cards & posts */
   .card { padding: 16px !important; margin-bottom: 16px !important; border-radius: 12px !important; }
@@ -498,7 +498,7 @@ img, svg, video { max-width: 100%; }
   </div>
 
   <!-- Why Cervinia card -->
-  <div onclick="openM('whyModal')" style="margin-bottom:25px;border-radius:14px;overflow:hidden;cursor:pointer;position:relative;background:linear-gradient(135deg,#0a192f 0%,#15365f 55%,#1a4376 100%);box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+  <div id="why-banner" onclick="openWhyOnce()" style="margin-bottom:25px;border-radius:14px;overflow:hidden;cursor:pointer;position:relative;background:linear-gradient(135deg,#0a192f 0%,#15365f 55%,#1a4376 100%);box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
 
     <!-- the Matterhorn, as a backdrop rather than a picture: no network
          request, no licence, and a fixed width so it never stretches -->
@@ -1396,37 +1396,8 @@ img, svg, video { max-width: 100%; }
     <div style="border-top:1px solid #eee;padding-top:14px;">
       <div id="rental-shops-way-title" style="font-size:0.82rem;font-weight:bold;margin-bottom:6px;">🚗 חנויות ציוד בדרך ממילאנו</div>
       <div id="rental-shops-way-sub" style="font-size:0.75rem;color:#888;margin-bottom:10px;">לכפפות, גוגלס, ביגוד תרמי, קסדה וכל השלמות — <b>הרבה יותר זול מהכפר</b></div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+      <div id="rental-shops-way-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
 
-        <div style="padding:10px 13px;border:1.5px solid #dce9f8;border-radius:10px;background:#f5f9ff;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
-            <div style="font-weight:bold;font-size:0.88rem;">🔵 Decathlon — Aosta</div>
-            <span style="font-size:0.68rem;background:#1565c0;color:white;padding:2px 8px;border-radius:10px;">📍 ממש בדרך</span>
-          </div>
-          <div style="font-size:0.75rem;color:#555;margin-bottom:6px;">הכל תחת קורת גג: בגדי סקי, כפפות, גוגלס, קסדות, גרביים, ביגוד תרמי — במחירים נגישים</div>
-          <div style="display:flex;gap:8px;">
-            <a href="https://www.decathlon.it" target="_blank"
-              style="padding:5px 12px;background:#1565c0;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
-            <a href="https://www.google.com/maps/search/Decathlon+Saint-Christophe+Aosta" target="_blank"
-              style="padding:5px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
-          </div>
-        </div>
-
-        <div style="padding:10px 13px;border:1.5px solid #ffe0cc;border-radius:10px;background:#fff8f5;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
-            <div style="font-weight:bold;font-size:0.88rem;">🟠 Cisalfa Sport — Aosta</div>
-            <span style="font-size:0.68rem;background:#e65100;color:white;padding:2px 8px;border-radius:10px;">📍 אאוסטה</span>
-          </div>
-          <div style="font-size:0.75rem;color:#555;margin-bottom:6px;">📍 <b>Saint-Christophe, Aosta</b><br>מותגים: Salomon, Rossignol, Head · ביגוד טכני ומקצועי</div>
-          <div style="display:flex;gap:8px;">
-            <a href="https://www.cisalfasport.it/it-it/storelocator/italia/val-d-aosta/aosta/saint-christophe" target="_blank"
-              style="padding:5px 12px;background:#e65100;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
-            <a href="https://www.google.com/maps/search/Cisalfa+Sport+Saint-Christophe+Aosta" target="_blank"
-              style="padding:5px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
-          </div>
-        </div>
-
-      </div>
       <div id="rental-buy-on-way-tip" style="padding:10px 13px;background:#fffbf0;border:1px solid #fde8a0;border-radius:9px;font-size:0.79rem;color:#555;line-height:1.8;">
         🛒 <b>מה כדאי לקנות בדרך (ולא בכפר):</b><br>
         כפפות · גוגלס · גרביים תרמיות · Base Layer (בגד תחתון מנדף) · צוואריון · קרם הגנה לשמש+שלג · כדורי חימום ידיים
@@ -4292,7 +4263,28 @@ function renderPisteGuide() {
           + '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">'
           + p.tags.map(function(t){ return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">'+t+'</span>'; }).join('')
           + '</div>'
-          + (p.map ? '<a href="'+p.map+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;color:#1a73e8;text-decoration:none;padding:4px 9px;border:1px solid #c0d4f0;border-radius:6px;background:#f0f7ff;">🗺️ הצג על מפה</a>' : '')
+          + (function () {
+              if (!p.map) return '';
+              var href, label;
+              if (/^https?:\/\//.test(p.map)) {
+                href = p.map;
+                label = /google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map) ? '\ud83d\uddfa\ufe0f הצג על מפה' : '\ud83c\udf10 אתר';
+              } else {
+                // Google knows the lift station but draws no pistes; Mapy's
+                // winter layer draws the runs themselves, colour-coded by
+                // difficulty. Offer both - they answer different questions.
+                var btn = 'display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;text-decoration:none;padding:4px 9px;border-radius:6px;';
+                return '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+                  + '<a href="https://mapy.com/fnc/v1/search?mapset=winter&zoom=15&query='
+                  +   encodeURIComponent(p.map) + '" target="_blank" rel="noopener" '
+                  +   'style="' + btn + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">\u26f7\ufe0f מפת המסלולים</a>'
+                  + '<a href="https://www.google.com/maps/search/?api=1&query='
+                  +   encodeURIComponent(p.map) + '" target="_blank" rel="noopener" '
+                  +   'style="' + btn + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">\ud83d\udccd נקודת היציאה</a>'
+                  + '</div>';
+              }
+              return '<a href="' + href + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;color:#1a73e8;text-decoration:none;padding:4px 9px;border:1px solid #c0d4f0;border-radius:6px;background:#f0f7ff;">' + label + '</a>';
+            })()
           + '</div>';
       });
     });
@@ -4318,7 +4310,7 @@ function renderPisteGuide() {
 // Turin community publishes hours for any of these businesses, so every hour
 // that was on this page came from aggregators that contradicted each other.
 // A phone number the reader can call is worth more than a time that is wrong.
-function renderKosherList(id, places) {
+function renderKosherList(id, places, city) {
   var el = document.getElementById(id);
   if (!el || !places) return;
   el.innerHTML = places.map(function (p) {
@@ -4333,7 +4325,19 @@ function renderKosherList(id, places) {
       + (p.kashrut ? '<div style="font-size:0.74rem;color:#2d6a4f;margin-bottom:5px;">✔️ ' + p.kashrut + '</div>' : '')
       + (p.phone ? '<div style="font-size:0.77rem;margin-bottom:4px;">☎ <a href="tel:'
           + p.phone.replace(/[^0-9+]/g, '') + '" style="color:#1a73e8;">' + p.phone + '</a></div>' : '')
-      + (p.url ? '<a href="' + p.url + '" target="_blank" style="font-size:0.77rem;color:#1a73e8;">🌐 אתר</a>' : '')
+      + (function () {
+          var L = [];
+          if (p.url) L.push('<a href="' + p.url + '" target="_blank" rel="noopener" style="font-size:0.77rem;color:#1a73e8;">🌐 אתר</a>');
+          if (p.addr || city) {
+            // strip the leading emoji from the name so the query is searchable
+            var q = String(p.name || '').replace(/^[^A-Za-z\u0590-\u05FF]+/, '')
+                  + (p.addr ? ', ' + p.addr : '') + (city ? ', ' + city : '');
+            L.push('<a href="https://www.google.com/maps/search/?api=1&query='
+              + encodeURIComponent(q) + '" target="_blank" rel="noopener" '
+              + 'style="font-size:0.77rem;color:#1a73e8;">\ud83d\udccd במפה</a>');
+          }
+          return L.length ? '<div style="display:flex;gap:14px;margin-top:2px;">' + L.join('') + '</div>' : '';
+        })()
       + warn
       + '</div>';
   }).join('');
@@ -5773,6 +5777,7 @@ function _applyTexts(t) {
     _set('why-modal-title', wc.title);
     _set('why-fb-title',    wc.facebook_title);
     _set('why-fb-sub',      wc.facebook_sub);
+    if (_whySeen()) hideWhyBanner();
     if (wc.banner_stats) {
       var bs = document.getElementById('why-banner-stats');
       if (bs) bs.innerHTML = wc.banner_stats.map(function (p) {
@@ -5868,13 +5873,13 @@ function _applyTexts(t) {
     _set('kosher-milan-note',   ko.milan_note);
     _set('kosher-milan-shop-tip', ko.milan_shopping_tip);
     _set('kosher-torino-note',  ko.torino_note);
-    renderKosherList('kosher-milan-list',  ko.milan_places);
+    renderKosherList('kosher-milan-list',  ko.milan_places, 'Milano');
     _set('kosher-milan-shuls-title',  ko.milan_shuls_title);
     _set('kosher-milan-stays-title',  ko.milan_stays_title);
     _set('kosher-milan-stays-note',   ko.milan_stays_note);
-    renderKosherList('kosher-milan-shuls', ko.milan_shuls);
-    renderKosherList('kosher-milan-stays', ko.milan_stays);
-    renderKosherList('kosher-torino-list', ko.torino_places);
+    renderKosherList('kosher-milan-shuls', ko.milan_shuls, 'Milano');
+    renderKosherList('kosher-milan-stays', ko.milan_stays, 'Milano');
+    renderKosherList('kosher-torino-list', ko.torino_places, 'Torino');
     _set('kosher-torino-tip',               ko.torino_tip);
   }
 
@@ -5910,6 +5915,24 @@ function _applyTexts(t) {
     _set('rental-shops-village-title', r.shops_in_village_title);
     _set('rental-shops-way-title',     r.shops_on_way_title);
     _set('rental-shops-way-sub',       r.shops_on_way_sub);
+    if (r.shops_on_way) {
+      var swl = document.getElementById('rental-shops-way-list');
+      if (swl) swl.innerHTML = r.shops_on_way.map(function (sh) {
+        var h = '<div style="padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:10px;background:#f8fafc;">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px;flex-wrap:wrap;">'
+          +   '<div style="font-weight:bold;font-size:0.88rem;color:' + sh.color + ';">' + sh.name + '</div>'
+          +   '<span style="font-size:0.68rem;background:' + sh.color + ';color:#fff;padding:2px 8px;border-radius:10px;white-space:nowrap;">' + sh.badge + '</span>'
+          + '</div>';
+        if (sh.where) h += '<div style="font-size:0.73rem;color:#1a4b8c;margin-bottom:4px;">\ud83d\udccd ' + sh.where + '</div>';
+        h += '<div style="font-size:0.75rem;color:#555;line-height:1.7;margin-bottom:5px;">' + _aEsc(sh.desc) + '</div>';
+        if (sh.open) h += '<div style="font-size:0.73rem;color:#666;margin-bottom:6px;">\ud83d\udd51 ' + sh.open + '</div>';
+        var L = [];
+        if (sh.url) L.push('<a href="' + sh.url + '" target="_blank" rel="noopener" style="padding:5px 12px;background:' + sh.color + ';color:#fff;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83c\udf10 אתר</a>');
+        if (sh.map) L.push('<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(sh.map) + '" target="_blank" rel="noopener" style="padding:5px 12px;background:#34a853;color:#fff;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f מפה</a>');
+        if (L.length) h += '<div style="display:flex;gap:8px;">' + L.join('') + '</div>';
+        return h + '</div>';
+      }).join('');
+    }
     _set('rental-buy-on-way-tip',      r.buy_on_way_tip);
   }
 
@@ -8382,7 +8405,7 @@ function switchAdminTab(tab) {
   <span style="font-size:1.6rem;">🏔️</span>
   <div style="flex:1;min-width:180px;">
     <div style="font-weight:bold;font-size:0.95rem;">התקן את CerviniaLive</div>
-    <div style="font-size:0.78rem;opacity:0.8;">גישה מהירה · עבודה אופליין · כמו אפליקציה</div>
+    <div style="font-size:0.78rem;opacity:0.8;">גישה מהירה מהמסך הראשי · עובד גם בלי אינטרנט</div>
   </div>
   <div style="display:flex;gap:8px;">
     <button onclick="installPWA()" style="padding:9px 18px;background:#4cc9f0;color:#0a192f;border:none;border-radius:9px;font-weight:bold;cursor:pointer;font-size:0.88rem;">
@@ -9093,8 +9116,33 @@ document.addEventListener('visibilitychange', function () {
   onScroll();
 })();
 
+// ── "why Cervinia" banner ──
+// It answers a first-time question. Once it has been opened the answer is
+// known, so the banner stops taking up the top of the screen. It stays
+// reachable from the search box ("למה", "יתרונות").
+function _whySeen() {
+  try { return localStorage.getItem('whySeen') === '1'; } catch (e) { return false; }
+}
+function hideWhyBanner() {
+  var el = document.getElementById('why-banner');
+  if (el) el.style.display = 'none';
+}
+function openWhyOnce() {
+  try { localStorage.setItem('whySeen', '1'); } catch (e) {}
+  hideWhyBanner();
+  openM('whyModal');
+}
+
 // ── PWA ──
 let deferredPrompt = null;
+
+// The install bar is fixed to the bottom of the window, so while it is up it
+// sits on top of the footer - "about", "contact" and the rest. Push the page
+// down by exactly its height instead of letting it swallow them.
+function _padForPwaBar(on) {
+  var bar = document.getElementById('pwa-banner');
+  document.body.style.paddingBottom = (on && bar) ? (bar.offsetHeight + 8) + 'px' : '';
+}
 
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
@@ -9102,13 +9150,14 @@ window.addEventListener('beforeinstallprompt', function(e) {
   // Show banner only if not dismissed before
   if (!localStorage.getItem('pwaDismissed')) {
     const banner = document.getElementById('pwa-banner');
-    if (banner) banner.style.display = 'flex';
+    if (banner) { banner.style.display = 'flex'; _padForPwaBar(true); }
   }
 });
 
 function installPWA() {
   const banner = document.getElementById('pwa-banner');
   if (banner) banner.style.display = 'none';
+  _padForPwaBar(false);
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
   deferredPrompt.userChoice.then(function(result) {
@@ -9122,12 +9171,14 @@ function installPWA() {
 function dismissPWA() {
   const banner = document.getElementById('pwa-banner');
   if (banner) banner.style.display = 'none';
+  _padForPwaBar(false);
   localStorage.setItem('pwaDismissed', '1');
 }
 
 window.addEventListener('appinstalled', function() {
   const banner = document.getElementById('pwa-banner');
   if (banner) banner.style.display = 'none';
+  _padForPwaBar(false);
   deferredPrompt = null;
 });
 
