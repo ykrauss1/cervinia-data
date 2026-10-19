@@ -5523,6 +5523,16 @@ async function checkSupabaseSession() {
 // ── החלת טקסטים מ-texts.json ל-DOM ──
 var _aroundData = null, _aroundCat = 'close';
 
+// A notice may carry a "warn_until" / "until" date in dd/mm/yyyy. Past that
+// day it stops being true, so it stops being shown - no edit needed. An
+// unparseable date keeps the notice visible: failing loud beats going quiet.
+function _aLive(until) {
+  if (!until) return true;
+  var m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(until));
+  if (!m) return true;
+  return new Date() <= new Date(+m[3], +m[2] - 1, +m[1], 23, 59, 59);
+}
+
 function _aEsc(v) {
   if (v === undefined || v === null) return '';
   // the texts file writes emphasis as **this**; inline HTML in the same
@@ -5580,7 +5590,7 @@ function renderAroundList() {
     h += row('💶', _aEsc(pl.price));
     h += row('👨‍👩‍👧', _aEsc(pl.kids), '#1a4b8c');
 
-    if (pl.warn) {
+    if (pl.warn && _aLive(pl.warn_until)) {
       h += '<div style="font-size:0.78rem;color:#8a5a00;background:#fffaf0;border-right:3px solid #f0c674;'
          + 'border-radius:6px;padding:7px 9px;margin-top:8px;line-height:1.8;">' + _aEsc(pl.warn) + '</div>';
     }
@@ -5622,8 +5632,11 @@ function renderAround(a) {
     }).join(''));
   }
   if (a.closed) {
-    put('around-closed', a.closed.map(function (c) {
-      return '<div style="margin-bottom:7px;">• ' + c + '</div>';
+    put('around-closed', a.closed.filter(function (c) {
+      return (typeof c === 'string') || _aLive(c.until);
+    }).map(function (c) {
+      var txt = (typeof c === 'string') ? c : c.text;
+      return '<div style="margin-bottom:7px;">• ' + txt + '</div>';
     }).join(''));
   }
 
