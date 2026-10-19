@@ -67,6 +67,17 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .modal-content { scrollbar-width: thin; scrollbar-color: #ccc transparent; }
 .close-btn { position: absolute; left: 20px; top: 16px; cursor: pointer; font-size: 1.5rem; color: #888; z-index: 10; line-height: 1; background: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 .close-btn:hover { color: #333; }
+/* "what to do in the area": the category row stays pinned while the list
+   scrolls under it. The container's top padding has to go, or a 20px strip
+   of card shows above the bar; the header puts that padding back. */
+#aroundModal .modal-content { padding-top: 0 !important; }
+#around-head { padding-top: 24px; }
+#around-sticky { position: sticky; top: 0; z-index: 5; background: #fff;
+  margin: 0 -24px 12px; padding: 11px 24px 9px; border-bottom: 1px solid #eaeef3; }
+@media (max-width: 420px) {
+  #around-head { padding-top: 20px; }
+  #around-sticky { margin: 0 -16px 12px; padding: 11px 16px 9px; }
+}
 .counter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
 .c-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent); background: white; cursor: pointer; color: var(--accent); font-weight: bold; }
 .preview-banner { background: #fff3cd; border: 1px solid #ffc107; padding: 10px 20px; text-align: center; font-size: 0.85rem; color: #856404; }
@@ -238,8 +249,8 @@ img, svg, video { max-width: 100%; }
     padding: 6px 10px !important;
   }
 
-  /* Why card */
-  div[onclick="openM('whyModal')"] { height: 64px !important; }
+  /* Why card - sizes to its content now, so only a floor is set */
+  div[onclick="openM('whyModal')"] { min-height: 64px; }
 
   /* Cards & posts */
   .card { padding: 16px !important; margin-bottom: 16px !important; border-radius: 12px !important; }
@@ -480,19 +491,33 @@ img, svg, video { max-width: 100%; }
     <div id="svc-lessons"   class="service-btn" onclick="openM('lessonsModal')">🏫 הדרכת סקי</div>
     <div id="svc-kosher"    class="service-btn" onclick="openM('kosherModal')">🍽️<span style="letter-spacing:-0.6em;">🕯️🕯️</span>&#8203; כשרות ושבת</div>
     <div id="svc-webcam"    class="service-btn" onclick="openM('webcamModal')">📷 מצלמות</div>
-    <div id="svc-parking"   class="service-btn" onclick="openM('parkingModal')">🅿️ חניה וכביש</div>
-    <div id="svc-emergency" class="service-btn" onclick="openParkEmergency()">🚨 חירום</div>
+    <div id="svc-parking"   class="service-btn" onclick="openM('parkingModal')">🅿️🚨 כביש, חניה וחירום</div>
     <div id="svc-maps"      class="service-btn" onclick="openM('mapModal')"><span style="font-size:1.3rem;">🗺️</span> מפות</div>
   <div id="svc-piste"       class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים, בקתות ואפרה סקי</div>
   <div id="svc-around"      class="service-btn" onclick="openM('aroundModal')"><span style="font-size:1.3rem;">🏔️</span> מה לעשות באזור</div>
   </div>
 
   <!-- Why Cervinia card -->
-  <div onclick="openM('whyModal')" style="margin-bottom:25px;border-radius:12px;overflow:hidden;cursor:pointer;position:relative;height:72px;background:linear-gradient(135deg,#0a192f,#1a3a6c);box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 24px;">
-      <span style="font-size:1.4rem;">⛷️</span>
-      <div id="why-banner-title" style="color:white;font-size:1rem;font-weight:bold;">למה צ'רוויניה?</div>
-      <div id="why-banner-sub" style="color:rgba(255,255,255,0.6);font-size:0.82rem;">לחץ לגלות יתרונות האתר ←</div>
+  <div onclick="openM('whyModal')" style="margin-bottom:25px;border-radius:14px;overflow:hidden;cursor:pointer;position:relative;background:linear-gradient(135deg,#0a192f 0%,#15365f 55%,#1a4376 100%);box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+
+    <!-- the Matterhorn, as a backdrop rather than a picture: no network
+         request, no licence, and a fixed width so it never stretches -->
+    <svg viewBox="0 0 170 80" preserveAspectRatio="xMinYMax meet" aria-hidden="true"
+         style="position:absolute;left:0;bottom:0;height:100%;width:170px;max-width:55%;opacity:0.2;pointer-events:none;">
+      <polygon points="0,80 28,50 52,80" fill="#ffffff" opacity="0.35"/>
+      <polygon points="104,80 136,38 170,80" fill="#ffffff" opacity="0.5"/>
+      <polygon points="22,80 78,12 87,21 110,80" fill="#ffffff"/>
+      <polygon points="78,12 87,21 81,30 71,25 75,19" fill="#cfe2fa"/>
+    </svg>
+
+    <div style="position:relative;z-index:1;padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <span style="font-size:1.25rem;line-height:1;">🏔️</span>
+        <div id="why-banner-title" style="color:white;font-size:1.02rem;font-weight:bold;line-height:1.3;min-width:0;">למה צ'רוויניה?</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:1.1rem;line-height:1;margin-right:2px;">←</div>
+        <div id="why-banner-sub" style="display:none;"></div>
+      </div>
+      <div id="why-banner-stats" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
     </div>
   </div>
 
@@ -1534,32 +1559,47 @@ img, svg, video { max-width: 100%; }
   </div>
 </div>
 <div id="aroundModal" class="modal" onclick="if(event.target===this)closeM('aroundModal')">
-  <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;padding:24px;">
+  <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;padding:0 24px 24px;">
     <span class="close-btn" onclick="closeM('aroundModal')">×</span>
-    <h3 id="around-title" style="margin:0 0 4px;font-size:1.1rem;"></h3>
-    <div id="around-sub" style="font-size:0.8rem;color:#888;margin-bottom:12px;"></div>
-    <div id="around-intro" style="font-size:0.84rem;color:#555;line-height:1.85;margin-bottom:14px;"></div>
 
-    <div style="padding:13px;background:#eef4fb;border:1.5px solid #c5d8ee;border-radius:11px;margin-bottom:14px;">
-      <div id="around-rules-title" style="font-weight:bold;font-size:0.9rem;margin-bottom:9px;"></div>
-      <div id="around-rules" style="font-size:0.81rem;color:#44536b;line-height:1.85;"></div>
+    <div id="around-head">
+      <h3 id="around-title" style="margin:0 0 4px;font-size:1.1rem;"></h3>
+      <div id="around-sub" style="font-size:0.8rem;color:#888;margin-bottom:12px;"></div>
+      <div id="around-intro" style="font-size:0.84rem;color:#555;line-height:1.85;margin-bottom:13px;"></div>
+
+      <!-- the two reference panels are folded away: useful once, not on every scroll -->
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button id="around-rules-btn" onclick="toggleAroundBox('rules')" aria-expanded="false" style="flex:1;min-width:0;padding:11px 8px;border-radius:10px;border:1.5px solid #d8e0ea;background:#f6f9fc;color:#33455c;cursor:pointer;font-size:0.8rem;font-weight:bold;text-align:center;line-height:1.4;font-family:inherit;">
+          <span id="around-rules-title"></span> <span id="around-rules-caret" style="font-size:0.7rem;color:#8a97a8;">▼</span>
+        </button>
+        <button id="around-closed-btn" onclick="toggleAroundBox('closed')" aria-expanded="false" style="flex:1;min-width:0;padding:11px 8px;border-radius:10px;border:1.5px solid #d8e0ea;background:#f6f9fc;color:#33455c;cursor:pointer;font-size:0.8rem;font-weight:bold;text-align:center;line-height:1.4;font-family:inherit;">
+          <span id="around-closed-title"></span> <span id="around-closed-caret" style="font-size:0.7rem;color:#8a97a8;">▼</span>
+        </button>
+      </div>
+
+      <div id="around-rules-box" style="display:none;padding:13px;background:#eef4fb;border:1.5px solid #c5d8ee;border-radius:11px;margin-bottom:10px;">
+        <div id="around-rules" style="font-size:0.81rem;color:#44536b;line-height:1.85;"></div>
+      </div>
+      <div id="around-closed-box" style="display:none;padding:13px;background:#fff4f4;border:1.5px solid #f3c9c9;border-radius:11px;margin-bottom:10px;">
+        <div id="around-closed" style="font-size:0.81rem;color:#6b4444;line-height:1.85;"></div>
+      </div>
+
       <a id="around-status" href="#" target="_blank" rel="noopener"
-         style="display:block;margin-top:11px;padding:9px;text-align:center;background:#0a192f;color:#fff;border-radius:9px;font-size:0.82rem;font-weight:bold;text-decoration:none;"></a>
+         style="display:block;margin-bottom:4px;padding:10px;text-align:center;background:#0a192f;color:#fff;border-radius:10px;font-size:0.82rem;font-weight:bold;text-decoration:none;"></a>
     </div>
 
-    <div id="around-tabs" style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;"></div>
-    <label id="around-storm-row" style="display:flex;align-items:center;gap:7px;margin-bottom:13px;font-size:0.81rem;color:#555;cursor:pointer;">
-      <input type="checkbox" id="around-storm" onchange="renderAroundList()" style="width:16px;height:16px;cursor:pointer;">
-      <span id="around-storm-label"></span>
-    </label>
+    <!-- the category row stays put while the list scrolls under it -->
+    <div id="around-sticky">
+      <div id="around-tabs" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
+      <label id="around-storm-row" style="display:flex;align-items:center;gap:7px;margin-top:9px;font-size:0.81rem;color:#555;cursor:pointer;">
+        <input type="checkbox" id="around-storm" onchange="renderAroundList()" style="width:16px;height:16px;cursor:pointer;">
+        <span id="around-storm-label"></span>
+      </label>
+    </div>
 
     <div id="around-list"></div>
 
-    <div style="padding:13px;background:#fff4f4;border:1.5px solid #f3c9c9;border-radius:11px;margin:16px 0 12px;">
-      <div id="around-closed-title" style="font-weight:bold;font-size:0.9rem;margin-bottom:9px;"></div>
-      <div id="around-closed" style="font-size:0.81rem;color:#6b4444;line-height:1.85;"></div>
-    </div>
-    <div id="around-footer" style="font-size:0.76rem;color:#999;line-height:1.8;"></div>
+    <div id="around-footer" style="font-size:0.76rem;color:#999;line-height:1.8;margin-top:16px;"></div>
   </div>
 </div>
 
@@ -5594,13 +5634,38 @@ function renderAroundList() {
       h += '<div style="font-size:0.78rem;color:#8a5a00;background:#fffaf0;border-right:3px solid #f0c674;'
          + 'border-radius:6px;padding:7px 9px;margin-top:8px;line-height:1.8;">' + _aEsc(pl.warn) + '</div>';
     }
+    var links = [];
     if (pl.url) {
-      h += '<a href="' + _aEsc(pl.url) + '" target="_blank" rel="noopener" '
-         + 'style="display:inline-block;margin-top:9px;font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">'
-         + 'לדף הרשמי ←</a>';
+      links.push('<a href="' + pl.url + '" target="_blank" rel="noopener" '
+        + 'style="font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">לדף הרשמי ←</a>');
+    }
+    if (pl.map) {
+      // built here rather than stored, so the texts file keeps readable
+      // search phrases instead of long encoded URLs
+      links.push('<a href="https://www.google.com/maps/search/?api=1&query='
+        + encodeURIComponent(pl.map) + '" target="_blank" rel="noopener" '
+        + 'style="font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">📍 במפה</a>');
+    }
+    if (links.length) {
+      h += '<div style="margin-top:9px;display:flex;gap:14px;flex-wrap:wrap;">' + links.join('') + '</div>';
     }
     return h + '</div>';
   }).join('');
+}
+
+function toggleAroundBox(which) {
+  var box = document.getElementById('around-' + which + '-box');
+  if (!box) return;
+  var opening = (box.style.display !== 'block');
+  box.style.display = opening ? 'block' : 'none';
+  var btn = document.getElementById('around-' + which + '-btn');
+  if (btn) {
+    btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    btn.style.background  = opening ? '#e6eef8' : '#f6f9fc';
+    btn.style.borderColor = opening ? '#9ebbdd' : '#d8e0ea';
+  }
+  var caret = document.getElementById('around-' + which + '-caret');
+  if (caret) caret.textContent = opening ? '▲' : '▼';
 }
 
 function switchAroundTab(id) {
@@ -5642,6 +5707,11 @@ function renderAround(a) {
 
   var st = document.getElementById('around-status');
   if (st && a.status_url) { st.href = a.status_url; st.innerHTML = a.status_label || a.status_url; }
+
+  ['rules', 'closed'].forEach(function (w) {
+    var box = document.getElementById('around-' + w + '-box');
+    if (box && box.style.display === 'block') toggleAroundBox(w);
+  });
 
   var tb = document.getElementById('around-tabs');
   if (tb && a.cats) {
@@ -5703,6 +5773,14 @@ function _applyTexts(t) {
     _set('why-modal-title', wc.title);
     _set('why-fb-title',    wc.facebook_title);
     _set('why-fb-sub',      wc.facebook_sub);
+    if (wc.banner_stats) {
+      var bs = document.getElementById('why-banner-stats');
+      if (bs) bs.innerHTML = wc.banner_stats.map(function (p) {
+        return '<span style="background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.2);'
+             + 'color:#dde8f6;font-size:0.72rem;padding:3px 9px;border-radius:20px;white-space:nowrap;">'
+             + p + '</span>';
+      }).join('');
+    }
     if (wc.items) {
       var whyList = document.getElementById('why-items-list');
       if (whyList) {
@@ -5710,7 +5788,7 @@ function _applyTexts(t) {
           return '<div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">' +
             '<span style="font-size:2rem;">' + item.icon + '</span>' +
             '<div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">' + item.title + '</div>' +
-            '<div style="font-size:0.85rem;color:#444;line-height:1.6;">' + item.text + '</div></div></div>';
+            '<div style="font-size:0.85rem;color:#444;line-height:1.6;">' + _aEsc(item.text) + '</div></div></div>';
         }).join('');
       }
     }
@@ -7023,6 +7101,7 @@ const SEARCH_INDEX = [
   { text: 'כשר מסעדה אוכל', action: "openM('kosherModal')", icon: '🍽️', label: 'אוכל כשר' },
   { text: 'מצלמות webcam שידור חי', action: "openM('webcamModal')", icon: '📷', label: 'מצלמות חי' },
   { text: 'חניה כביש נסיעה', action: "openM('parkingModal')", icon: '🅿️', label: 'חניה וכביש' },
+  { text: 'חירום מוקד משטרה הצלה אמבולנס מד"א', action: "openParkEmergency()", icon: '🚨', label: 'מספרי חירום' },
   { text: 'מפות מסלולים piste', action: "openM('mapModal')", icon: '🗺️', label: 'מפות' },
   { text: 'מסלולים piste guide', action: "openM('pisteModal')", icon: '⛷️', label: 'מדריך מסלולים' },
   { text: 'תכנון טיול מלון טיסה', action: "openM('hotelModal')", icon: '✈️', label: 'תכנון טיול' },
