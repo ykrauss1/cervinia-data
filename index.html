@@ -4178,6 +4178,18 @@ var PISTES = {
   ]
 };
 
+// Hebrew text with Latin names and numbers in it gets reordered by the bidi
+// algorithm: "Campetto 2,008 \u2190 2,111\u05de" came out as
+// "2,111 \u2190 2,008 Campetto\u05de". Pinning every number left-to-right and
+// detaching the glued meter suffix fixes it, here rather than in the data,
+// so any string added later is handled too.
+function _fixNums(s) {
+  if (s === undefined || s === null) return '';
+  return String(s)
+    .replace(/(\d)\s*\u05de\u05f3?(?=[\s,.\u2190\u2013)\]]|$)/g, '$1 \u05de\u05f3')
+    .replace(/\d[\d,.]*\d|\d/g, function (m) { return '<span dir="ltr">' + m + '</span>'; });
+}
+
 function renderPisteGuide() {
   var el = document.getElementById('piste-guide-content');
   if (!el) return;
@@ -4252,38 +4264,44 @@ function renderPisteGuide() {
           + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
           + '<div style="display:flex;align-items:center;gap:6px;">'
           + '<span style="font-size:1rem;">'+p.diff+'</span>'
-          + (p.num && !p.num.startsWith('OB') && !p.num.startsWith('Z-') ? '<span style="background:'+col+';color:white;border-radius:5px;padding:1px 7px;font-size:0.69rem;font-weight:bold;">'+p.num+'</span>' : '')
+          + (p.num && !p.num.startsWith('OB') && !p.num.startsWith('Z-') ? '<span dir="ltr" style="background:'+col+';color:white;border-radius:5px;padding:1px 7px;font-size:0.69rem;font-weight:bold;">'+p.num+'</span>' : '')
           + '<span style="font-weight:bold;font-size:0.88rem;">'+p.name+'</span>'
           + '</div>'
           + '<span style="font-size:0.72rem;color:#2980b9;font-weight:bold;white-space:nowrap;">'+p.len+'</span>'
           + '</div>'
-          + '<div style="font-size:0.73rem;color:#999;margin-bottom:5px;">📍 '+p.area+'</div>'
+          + '<div style="font-size:0.73rem;color:#999;margin-bottom:5px;">📍 '+_fixNums(p.area)+'</div>'
           + '<div style="font-size:0.8rem;color:#333;line-height:1.55;margin-bottom:5px;">'+p.desc+'</div>'
           + (p.tip ? '<div style="font-size:0.74rem;color:#444;background:#fff8e1;padding:5px 8px;border-radius:6px;border-right:3px solid #f39c12;">'+p.tip+'</div>' : '')
           + '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">'
           + p.tags.map(function(t){ return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">'+t+'</span>'; }).join('')
           + '</div>'
           + (function () {
-              if (!p.map) return '';
-              var href, label;
-              if (/^https?:\/\//.test(p.map)) {
-                href = p.map;
-                label = /google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map) ? '\ud83d\uddfa\ufe0f הצג על מפה' : '\ud83c\udf10 אתר';
-              } else {
-                // Google knows the lift station but draws no pistes; Mapy's
-                // winter layer draws the runs themselves, colour-coded by
-                // difficulty. Offer both - they answer different questions.
-                var btn = 'display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;text-decoration:none;padding:4px 9px;border-radius:6px;';
-                return '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
-                  + '<a href="https://mapy.com/fnc/v1/search?mapset=winter&zoom=15&query='
-                  +   encodeURIComponent(p.map) + '" target="_blank" rel="noopener" '
-                  +   'style="' + btn + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">\u26f7\ufe0f מפת המסלולים</a>'
-                  + '<a href="https://www.google.com/maps/search/?api=1&query='
-                  +   encodeURIComponent(p.map) + '" target="_blank" rel="noopener" '
-                  +   'style="' + btn + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">\ud83d\udccd נקודת היציאה</a>'
-                  + '</div>';
+              if (!p.map && !p.trail) return '';
+              // huts and apres-ski keep a plain URL in "map" - a real map link
+              // on the huts, the venue's own website on the apres-ski entries
+              if (p.map && /^https?:\/\//.test(p.map)) {
+                var isMap = /google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map);
+                return '<a href="' + p.map + '" target="_blank" rel="noopener" '
+                  + 'style="display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;color:#1a73e8;'
+                  + 'text-decoration:none;padding:4px 9px;border:1px solid #c0d4f0;border-radius:6px;background:#f0f7ff;">'
+                  + (isMap ? '\ud83d\uddfa\ufe0f הצג על מפה' : '\ud83c\udf10 אתר') + '</a>';
               }
-              return '<a href="' + href + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;color:#1a73e8;text-decoration:none;padding:4px 9px;border:1px solid #c0d4f0;border-radius:6px;background:#f0f7ff;">' + label + '</a>';
+              // Mapy holds each run as a named trail and highlights it;
+              // Google does not draw pistes at all but does know the lift
+              // station. Two links, two different questions.
+              var btn = 'display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-size:0.74rem;text-decoration:none;padding:4px 9px;border-radius:6px;';
+              var L = [];
+              if (p.trail) {
+                L.push('<a href="https://mapy.com/fnc/v1/search?mapset=winter&zoom=15&query='
+                  + encodeURIComponent(p.trail) + '" target="_blank" rel="noopener" '
+                  + 'style="' + btn + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">\u26f7\ufe0f המסלול על המפה</a>');
+              }
+              if (p.map) {
+                L.push('<a href="https://www.google.com/maps/search/?api=1&query='
+                  + encodeURIComponent(p.map) + '" target="_blank" rel="noopener" '
+                  + 'style="' + btn + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">\ud83d\udccd נקודת היציאה</a>');
+              }
+              return L.length ? '<div style="display:flex;gap:6px;flex-wrap:wrap;">' + L.join('') + '</div>' : '';
             })()
           + '</div>';
       });
