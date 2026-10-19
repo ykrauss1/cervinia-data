@@ -17,7 +17,9 @@
           "חזרה לכפר",
           "Plan Maison"
         ],
-        "trail": "Plan Maison - Cervinia"
+        "trail": "Plan Maison - Cervinia",
+        "osm": "1002634775",
+        "xy": "7.6448536,45.9458234"
       },
       {
         "num": "2",
@@ -233,6 +235,22 @@
           "חיבור"
         ],
         "trail": "Colle Cime Bianche"
+      },
+      {
+        "num": "1",
+        "name": "Reine Blanche ⭐",
+        "area": "הקולה התחתון של Cime Bianche ← ולטורננש (Valtournenche) 1,562מ",
+        "len": "",
+        "diff": "🔴",
+        "map": "Colle Superiore delle Cime Bianche",
+        "desc": "ה-Gran Pista של ולטורננש (Valtournenche), מסלול מס' 1 — ואדום, לא שחור. יש לו הישלגה מאז 2008, ומאז הוא אמין מדצמבר עד אפריל. מחובר לקטעים שמעליו מ-Plateau Rosà הוא יוצר ירידה רצופה שמשווקת ככ-22 ק\"מ.",
+        "tip": "🚌 הירידה מסתיימת בוולטורננש, לא בצ'רוויניה — תצטרך מונית או שאטל חזרה",
+        "tags": [
+          "Valtournenche",
+          "ארוך",
+          "מומלץ"
+        ],
+        "trail": "Reine Blanche"
       }
     ],
     "advanced": [
@@ -398,22 +416,6 @@
           "תלול"
         ],
         "trail": "Furgg - Furi"
-      },
-      {
-        "num": "1",
-        "name": "Reine Blanche ⭐",
-        "area": "הקולה התחתון של Cime Bianche ← ולטורננש (Valtournenche) 1,562מ",
-        "len": "",
-        "diff": "🔴",
-        "map": "Colle Superiore delle Cime Bianche",
-        "desc": "ה-Gran Pista של ולטורננש (Valtournenche), מסלול מס' 1 — ואדום, לא שחור. יש לו הישלגה מאז 2008, ומאז הוא אמין מדצמבר עד אפריל. מחובר לקטעים שמעליו מ-Plateau Rosà הוא יוצר ירידה רצופה שמשווקת ככ-22 ק\"מ.",
-        "tip": "🚌 הירידה מסתיימת בוולטורננש, לא בצ'רוויניה — תצטרך מונית או שאטל חזרה",
-        "tags": [
-          "Valtournenche",
-          "ארוך",
-          "מומלץ"
-        ],
-        "trail": "Reine Blanche"
       }
     ],
     "restaurants": [
@@ -446,7 +448,8 @@
           "בקתה",
           "גבול",
           "גובה"
-        ]
+        ],
+        "geo": "Rifugio Teodulo, Breuil-Cervinia"
       },
       {
         "name": "Bontadini",
@@ -461,7 +464,8 @@
           "בקתה",
           "Plateau Rosa",
           "מרפסת גדולה"
-        ]
+        ],
+        "geo": "Rifugio Bontadini, Breuil-Cervinia"
       },
       {
         "name": "Ventina — self-service",
@@ -476,7 +480,8 @@
           "בקתה",
           "Ventina",
           "self-service"
-        ]
+        ],
+        "geo": "Ristorante Ventina, Breuil-Cervinia"
       },
       {
         "name": "Gran Sometta",
@@ -492,7 +497,8 @@
           "Ventina",
           "Valtournenche",
           "שקט"
-        ]
+        ],
+        "geo": "Rifugio Gran Sometta, Valtournenche"
       },
       {
         "name": "Chalet Etoile",
@@ -508,7 +514,8 @@
           "מומלץ מאוד",
           "Plan Maison",
           "מרפסת שמש"
-        ]
+        ],
+        "geo": "Chalet Etoile, Breuil-Cervinia"
       },
       {
         "name": "Rocce Nere",
@@ -524,7 +531,8 @@
           "Plan Maison",
           "בלי סקיים",
           "גריל"
-        ]
+        ],
+        "geo": "Rifugio Rocce Nere, Breuil-Cervinia"
       },
       {
         "name": "Cime Bianche Laghi",
@@ -539,7 +547,8 @@
           "בקתה",
           "Cime Bianche",
           "מרפסת"
-        ]
+        ],
+        "geo": "Rifugio Cime Bianche Laghi, Valtournenche"
       },
       {
         "name": "Igloo",
@@ -569,7 +578,8 @@
           "בקתה",
           "Bardoney",
           "סוף היום"
-        ]
+        ],
+        "geo": "Les Skieurs d'Antan, Bardoney, Breuil-Cervinia"
       },
       {
         "name": "Baita Cretaz",
@@ -599,7 +609,8 @@
           "לא על ההר",
           "Lago Blu",
           "בערב"
-        ]
+        ],
+        "geo": "Ristorante Alpage, Lago Blu, Breuil-Cervinia"
       }
     ],
     "apres_ski": [
@@ -616,7 +627,8 @@
           "DJ",
           "Plan Torrette",
           "מומלץ מאוד"
-        ]
+        ],
+        "geo": "Love Cervinia, Plan Torrette, Breuil-Cervinia"
       },
       {
         "name": "Super G 🎶",
@@ -631,7 +643,8 @@
           "DJ",
           "Plan Torrette",
           "חדש"
-        ]
+        ],
+        "geo": "Super G, Plan Torrette, Breuil-Cervinia"
       },
       {
         "name": "Après Ski Bar — Principe delle Nevi",
@@ -645,7 +658,8 @@
           "אפרס-סקי",
           "על המסלול",
           "Giomein"
-        ]
+        ],
+        "geo": "Principe delle Nevi, Alpe Giomein, Breuil-Cervinia"
       },
       {
         "name": "Yeti Bar 🍻",
@@ -660,7 +674,8 @@
           "כפר",
           "בירה",
           "ותיק"
-        ]
+        ],
+        "geo": "Yeti Bar, Via Bich 10, Breuil-Cervinia"
       },
       {
         "name": "Dragon Bar 🍺",
@@ -674,7 +689,8 @@
           "בר",
           "כפר",
           "פאב"
-        ]
+        ],
+        "geo": "Dragon Bar, Via J.B. Bich 3, Breuil-Cervinia"
       },
       {
         "name": "Lo Copa Pan",
@@ -688,7 +704,8 @@
           "בר",
           "כפר",
           "מוזיקה חיה"
-        ]
+        ],
+        "geo": "Lo Copa Pan, Via Carrel 47, Breuil-Cervinia"
       },
       {
         "name": "Ymeletrob",
@@ -702,7 +719,8 @@
           "בר",
           "כפר",
           "קוקטיילים"
-        ]
+        ],
+        "geo": "Ymeletrob, Piazza Guide Maquignaz 4, Breuil-Cervinia"
       }
     ]
   },
