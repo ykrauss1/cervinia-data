@@ -484,6 +484,7 @@ img, svg, video { max-width: 100%; }
     <div id="svc-emergency" class="service-btn" onclick="openParkEmergency()">🚨 חירום</div>
     <div id="svc-maps"      class="service-btn" onclick="openM('mapModal')"><span style="font-size:1.3rem;">🗺️</span> מפות</div>
   <div id="svc-piste"       class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים, בקתות ואפרה סקי</div>
+  <div id="svc-around"      class="service-btn" onclick="openM('aroundModal')"><span style="font-size:1.3rem;">🏔️</span> מה לעשות באזור</div>
   </div>
 
   <!-- Why Cervinia card -->
@@ -1532,6 +1533,36 @@ img, svg, video { max-width: 100%; }
     </div>
   </div>
 </div>
+<div id="aroundModal" class="modal" onclick="if(event.target===this)closeM('aroundModal')">
+  <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;padding:24px;">
+    <span class="close-btn" onclick="closeM('aroundModal')">×</span>
+    <h3 id="around-title" style="margin:0 0 4px;font-size:1.1rem;"></h3>
+    <div id="around-sub" style="font-size:0.8rem;color:#888;margin-bottom:12px;"></div>
+    <div id="around-intro" style="font-size:0.84rem;color:#555;line-height:1.85;margin-bottom:14px;"></div>
+
+    <div style="padding:13px;background:#eef4fb;border:1.5px solid #c5d8ee;border-radius:11px;margin-bottom:14px;">
+      <div id="around-rules-title" style="font-weight:bold;font-size:0.9rem;margin-bottom:9px;"></div>
+      <div id="around-rules" style="font-size:0.81rem;color:#44536b;line-height:1.85;"></div>
+      <a id="around-status" href="#" target="_blank" rel="noopener"
+         style="display:block;margin-top:11px;padding:9px;text-align:center;background:#0a192f;color:#fff;border-radius:9px;font-size:0.82rem;font-weight:bold;text-decoration:none;"></a>
+    </div>
+
+    <div id="around-tabs" style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;"></div>
+    <label id="around-storm-row" style="display:flex;align-items:center;gap:7px;margin-bottom:13px;font-size:0.81rem;color:#555;cursor:pointer;">
+      <input type="checkbox" id="around-storm" onchange="renderAroundList()" style="width:16px;height:16px;cursor:pointer;">
+      <span id="around-storm-label"></span>
+    </label>
+
+    <div id="around-list"></div>
+
+    <div style="padding:13px;background:#fff4f4;border:1.5px solid #f3c9c9;border-radius:11px;margin:16px 0 12px;">
+      <div id="around-closed-title" style="font-weight:bold;font-size:0.9rem;margin-bottom:9px;"></div>
+      <div id="around-closed" style="font-size:0.81rem;color:#6b4444;line-height:1.85;"></div>
+    </div>
+    <div id="around-footer" style="font-size:0.76rem;color:#999;line-height:1.8;"></div>
+  </div>
+</div>
+
 <div id="kosherModal" class="modal" onclick="if(event.target===this)closeM('kosherModal')">
   <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:24px;">
     <span class="close-btn" onclick="closeM('kosherModal')">×</span>
@@ -5490,6 +5521,127 @@ async function checkSupabaseSession() {
 
 
 // ── החלת טקסטים מ-texts.json ל-DOM ──
+var _aroundData = null, _aroundCat = 'close';
+
+function _aEsc(v) {
+  if (v === undefined || v === null) return '';
+  // the texts file writes emphasis as **this**; inline HTML in the same
+  // string is intentional and is left alone
+  return String(v).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+}
+
+function renderAroundList() {
+  var box = document.getElementById('around-list');
+  if (!box || !_aroundData) return;
+  var stormEl  = document.getElementById('around-storm');
+  var stormOnly = !!(stormEl && stormEl.checked);
+
+  var items = (_aroundData.places || []).filter(function (pl) {
+    if (pl.cat !== _aroundCat) return false;
+    if (stormOnly && !pl.storm) return false;
+    return true;
+  });
+
+  if (!items.length) {
+    box.innerHTML = '<div style="padding:22px;text-align:center;color:#aaa;font-size:0.84rem;">'
+      + 'אין פריטים בקטגוריה הזו שעובדים ביום סוער. הסירו את הסינון כדי לראות את כולם.</div>';
+    return;
+  }
+
+  box.innerHTML = items.map(function (pl) {
+    var h = '<div style="border:1.5px solid #e3e8ef;border-radius:12px;padding:13px;margin-bottom:11px;background:#fff;">';
+
+    h += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;">'
+       +   '<span style="font-size:1.15rem;line-height:1.3;">' + _aEsc(pl.icon) + '</span>'
+       +   '<div style="flex:1;min-width:0;">'
+       +     '<div style="font-weight:bold;font-size:0.93rem;line-height:1.4;">' + _aEsc(pl.he) + '</div>'
+       +     '<div dir="ltr" style="font-size:0.78rem;color:#7b8798;text-align:right;">' + _aEsc(pl.name) + '</div>'
+       +   '</div>'
+       + '</div>';
+
+    if (pl.storm) {
+      h += '<span style="display:inline-block;font-size:0.7rem;background:#e6f4ea;color:#1a7a3a;'
+         + 'border-radius:20px;padding:2px 9px;margin-bottom:6px;">☔ עובד ביום סוער</span> ';
+    }
+    if (pl.lifts) {
+      h += '<span style="display:inline-block;font-size:0.7rem;background:#fff3e0;color:#9a6200;'
+         + 'border-radius:20px;padding:2px 9px;margin-bottom:6px;">🚡 דורש מעליות</span> ';
+    }
+
+    h += '<div style="font-size:0.83rem;color:#495466;line-height:1.85;margin:5px 0 8px;">' + _aEsc(pl.what) + '</div>';
+
+    function row(icon, val, color) {
+      if (!val) return '';
+      return '<div style="font-size:0.79rem;color:' + (color || '#5a6676') + ';line-height:1.8;">'
+           + icon + ' ' + val + '</div>';
+    }
+    h += row('🚗', _aEsc(pl.drive));
+    h += row('🕑', _aEsc(pl.open));
+    h += row('💶', _aEsc(pl.price));
+    h += row('👨‍👩‍👧', _aEsc(pl.kids), '#1a4b8c');
+
+    if (pl.warn) {
+      h += '<div style="font-size:0.78rem;color:#8a5a00;background:#fffaf0;border-right:3px solid #f0c674;'
+         + 'border-radius:6px;padding:7px 9px;margin-top:8px;line-height:1.8;">' + _aEsc(pl.warn) + '</div>';
+    }
+    if (pl.url) {
+      h += '<a href="' + _aEsc(pl.url) + '" target="_blank" rel="noopener" '
+         + 'style="display:inline-block;margin-top:9px;font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">'
+         + 'לדף הרשמי ←</a>';
+    }
+    return h + '</div>';
+  }).join('');
+}
+
+function switchAroundTab(id) {
+  _aroundCat = id;
+  var tabs = document.querySelectorAll('#around-tabs .ttab-btn');
+  for (var i = 0; i < tabs.length; i++) {
+    var on = tabs[i].getAttribute('data-acat') === id;
+    tabs[i].className = 'ttab-btn' + (on ? ' ttab-active' : '');
+  }
+  renderAroundList();
+}
+
+function renderAround(a) {
+  if (!a) return;
+  _aroundData = a;
+
+  function put(id, v) { var e = document.getElementById(id); if (e && v !== undefined) e.innerHTML = v; }
+  put('around-title',        a.title);
+  put('around-sub',          a.sub);
+  put('around-intro',        a.intro);
+  put('around-rules-title',  a.rules_title);
+  put('around-storm-label',  a.storm_label);
+  put('around-closed-title', a.closed_title);
+  put('around-footer',       a.footer);
+
+  if (a.rules) {
+    put('around-rules', a.rules.map(function (r) {
+      return '<div style="margin-bottom:10px;">' + r + '</div>';
+    }).join(''));
+  }
+  if (a.closed) {
+    put('around-closed', a.closed.map(function (c) {
+      return '<div style="margin-bottom:7px;">• ' + c + '</div>';
+    }).join(''));
+  }
+
+  var st = document.getElementById('around-status');
+  if (st && a.status_url) { st.href = a.status_url; st.innerHTML = a.status_label || a.status_url; }
+
+  var tb = document.getElementById('around-tabs');
+  if (tb && a.cats) {
+    tb.innerHTML = a.cats.map(function (c, i) {
+      return '<button data-acat="' + c.id + '" onclick="switchAroundTab(\'' + c.id + '\')" '
+           + 'class="ttab-btn' + (i === 0 ? ' ttab-active' : '') + '" '
+           + 'style="font-size:0.78rem;padding:7px 10px;">' + c.label + '</button>';
+    }).join('');
+    _aroundCat = a.cats[0].id;
+  }
+  renderAroundList();
+}
+
 function _applyTexts(t) {
   if (!t) return;
   function _set(id, val) { var e=document.getElementById(id); if(e&&val!==undefined) e.innerHTML=val; }
@@ -5587,6 +5739,9 @@ function _applyTexts(t) {
       }
     }
   }
+
+  // ── מה לעשות באזור ──
+  if (t.around) renderAround(t.around);
 
   // ── כשרות ושבת: כותרות וטיפים ──
   if (t.kosher) {
