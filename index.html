@@ -379,7 +379,7 @@ img, svg, video { max-width: 100%; }
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
 
         <div style="text-align:center;">
-          <div id="bar-temp" style="color:white;font-size:1.25rem;font-weight:800;line-height:1;">--°</div>
+          <div id="bar-temp" dir="ltr" style="color:white;font-size:1.25rem;font-weight:800;line-height:1;">--°</div>
           <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🌡️ מזג אויר</div>
         </div>
 
@@ -404,8 +404,17 @@ img, svg, video { max-width: 100%; }
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
 
         <div style="text-align:center;">
-          <div id="bar-wind" style="color:white;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">💨 רוח km/h</div>
+          <div id="bar-wind" dir="ltr" style="color:white;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">💨 רוח בכפר</div>
+        </div>
+
+        <!-- Gusts up at Plateau Rosa. This is the number that decides whether
+             the crossing to Zermatt runs, and it has nothing to do with the
+             wind in the village beside it - 15 km/h down here can be 77 up
+             there. Tapping it opens the full crossing panel. -->
+        <div id="bar-gust-wrap" style="text-align:center;cursor:pointer;" onclick="openZermattForecast()" title="משבי רוח בפלטאו רוזה — פותח את תחזית לינק צ'רמט">
+          <div id="bar-gust" dir="ltr" style="color:rgba(255,255,255,0.5);font-size:1.25rem;font-weight:800;line-height:1;">--</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🌬️ משבים ברכס</div>
         </div>
 
         <div style="text-align:center;">
@@ -690,20 +699,25 @@ img, svg, video { max-width: 100%; }
       <!-- נתוני פלטאו רוזה עכשיו -->
       <div id="zermatt-plateau-now" style="background:linear-gradient(135deg,#0a192f,#1a3a6c);border-radius:12px;padding:14px;color:white;margin-bottom:14px;">
         <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:10px;">📍 פלטאו רוזה עכשיו (3480מ)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;text-align:center;">
           <div>
-            <div id="plateau-temp" style="font-size:1.4rem;font-weight:bold;">--°</div>
-            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);">🌡️ טמפ'</div>
+            <div id="plateau-temp" dir="ltr" style="font-size:1.25rem;font-weight:bold;">--°</div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);">🌡️ טמפ'</div>
           </div>
           <div>
-            <div id="plateau-wind" style="font-size:1.4rem;font-weight:bold;">--</div>
-            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);">💨 רוח km/h</div>
+            <div id="plateau-wind" dir="ltr" style="font-size:1.25rem;font-weight:bold;">--</div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);">💨 רוח</div>
           </div>
           <div>
-            <div id="plateau-snow" style="font-size:1.4rem;font-weight:bold;">--</div>
-            <div style="font-size:0.65rem;color:rgba(255,255,255,0.5);">❄️ שלג ס"מ</div>
+            <div id="plateau-gust" dir="ltr" style="font-size:1.25rem;font-weight:bold;color:#ffd166;">--</div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);">🌬️ משבים</div>
+          </div>
+          <div>
+            <div id="plateau-snow" dir="ltr" style="font-size:1.25rem;font-weight:bold;">--</div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);">❄️ שלג</div>
           </div>
         </div>
+        <div id="plateau-src" style="font-size:0.62rem;color:rgba(255,255,255,0.45);margin-top:8px;text-align:center;"></div>
       </div>
 
       <!-- הערכה -->
@@ -716,21 +730,40 @@ img, svg, video { max-width: 100%; }
             style="font-size:0.72rem;color:#1a73e8;cursor:pointer;text-decoration:underline;">
             ℹ️ איך נקבעת ההערכה?
           </span>
-          <div id="crossing-explain" style="display:none;margin-top:6px;padding:8px 10px;background:rgba(0,0,0,0.06);border-radius:7px;font-size:0.72rem;color:#444;line-height:1.7;text-align:right;">
-            ההערכה מבוססת על:<br>
-            □ טמפרטורה מתחת ל-0° בפלאטו רוצה<br>
-            ↩ רוח מתחת ל-40 km/h<br>
-            □ ראות טובה (לא ערפל / סופת שלג)<br>
-            🔑 אישור מפעיל הקרחון
+          <div id="crossing-explain" style="display:none;margin-top:6px;padding:9px 11px;background:rgba(0,0,0,0.06);border-radius:7px;font-size:0.72rem;color:#444;line-height:1.75;text-align:right;">
+            <b>מה שבאמת סוגר את המעבר זו הרוח</b>, לא הקור. הרכבלים הגבוהים
+            נעצרים במשבי רוח, ולפעמים סוגרים את החיבור מראש מחשש שייעצרו.<br><br>
+            לכן התחזית כאן נמדדת <b>בפלטאו רוזה עצמו</b> (כ-3,440 מ') ולא בכפר —
+            ההפרש עצום, ובכפר אפשר לראות יום רגוע בזמן שברכס יש משבים של
+            <span dir="ltr">80 km/h</span>.<br><br>
+            חלוקת המשבים שאנחנו משתמשים בה היא <b>הערכה שלנו</b>, לא נתון של
+            מפעילת הרכבלים: מתחת ל-<span dir="ltr">40</span> הרוח אינה מגבלה ·
+            <span dir="ltr">40–60</span> ייתכנו האטות ·
+            <span dir="ltr">60–80</span> סיכוי ממשי לסגירה ·
+            מעל <span dir="ltr">80</span> סביר שסגור.<br><br>
+            אין שום מקור שמפרסם מראש אם המעבר ייפתח. <b>ההחלטה נופלת בבוקר
+            עצמו</b>, ולכן הכפתורים למטה — לסטטוס החי של שני הצדדים — הם
+            הדבר הקובע.
           </div>
         </div>
       </div>
 
+      <!-- הסטטוס הרשמי של שני הצדדים -->
+      <div style="display:flex;gap:7px;margin-bottom:14px;">
+        <a href="https://www.cervinia.it/en/impianti" target="_blank" rel="noopener"
+           style="flex:1;text-align:center;padding:9px 6px;background:#1a3a6c;color:#fff;border-radius:9px;text-decoration:none;font-size:0.76rem;font-weight:bold;">🇮🇹 סטטוס צ'רוויניה</a>
+        <a href="https://www.matterhornparadise.ch/en/information/lifts-and-pistes" target="_blank" rel="noopener"
+           style="flex:1;text-align:center;padding:9px 6px;background:#b02a2a;color:#fff;border-radius:9px;text-decoration:none;font-size:0.76rem;font-weight:bold;">🇨🇭 סטטוס צרמט</a>
+      </div>
+
+      <!-- העלייה האחרונה חזרה -->
+      <div id="zermatt-last-lift" style="margin-bottom:14px;"></div>
+
       <!-- תחזית 4 ימים לצ'רמט -->
       <div id="zermatt-4day" style="display:flex;flex-direction:column;gap:8px;"></div>
 
-      <div style="font-size:0.68rem;color:#aaa;text-align:center;margin-top:12px;">
-        ⚠️ הערכה אוטומטית בלבד · לא מחליפה אישור רשמי
+      <div style="font-size:0.68rem;color:#aaa;text-align:center;margin-top:12px;line-height:1.7;">
+        ⚠️ הערכת מזג אוויר בלבד · ההחלטה אם לפתוח היא של מפעילת הרכבלים
       </div>
     </div>
   </div>
@@ -742,6 +775,7 @@ img, svg, video { max-width: 100%; }
       <div>
         <div style="color:white;font-weight:bold;font-size:1rem;">🌤️ תחזית מזג אוויר</div>
         <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;">Cervinia · Valtournenche · Chamois</div>
+        <div style="color:rgba(255,255,255,0.38);font-size:0.66rem;margin-top:1px;">תחזית לגובה הכפר (<span dir="ltr">~2,010 מ׳</span>) · לרכס ולמעבר לצרמט — ראו תחזית לינק צ'רמט</div>
       </div>
       <span class="close-btn" onclick="closeM('forecastModal')" style="color:white;background:rgba(255,255,255,0.15);">×</span>
     </div>
@@ -1498,25 +1532,25 @@ img, svg, video { max-width: 100%; }
         <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
           <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Scuola Sci del Cervino <span style="font-size:0.68rem;background:#1a3a6c;color:white;padding:1px 7px;border-radius:8px;">מאז 1936</span></div>
           <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Piazzale Funivie + Chalet Cretaz</b> · ☎ +39 0166 948744</div>
-          <a href="https://scuolacervino.com/en/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuolacervino.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola+Sci+Cervino+Cervinia" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+          <a href="https://scuolacervino.com/en/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuolacervino.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola%20Sci%20Cervino/@45.9356162,7.6304743,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
         <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
           <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Ride'em / New Ski School</div>
           <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Via Meynet 3</b>, Breuil-Cervinia · ☎ +39 0166 948532</div>
-          <a href="https://www.ride-em.com/?lang=en" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 ride-em.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Via+Meynet+3+Breuil-Cervinia" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+          <a href="https://www.ride-em.com/?lang=en" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 ride-em.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Ride%27Em%2C%20Via%20Meynet%203/@45.9355155,7.6301735,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
         <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
           <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Scuola Sci Breuil</div>
           <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Piazzale Funivie</b>, Breuil-Cervinia · מאז 1999</div>
-          <a href="https://scuoladiscibreuil.com/en/homepage-english/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuoladiscibreuil.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola+Sci+Breuil+Cervinia" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+          <a href="https://scuoladiscibreuil.com/en/homepage-english/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuoladiscibreuil.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola%20Di%20Sci%20Del%20Breuil/@45.9373184,7.6306225,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
         <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
           <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ GR Mountain Cervinia</div>
           <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Località Cielo Alto</b>, Cervinia · שיעורים + השכרה</div>
-          <a href="https://www.gr-mountain.com/cervinia/?lang=en" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 gr-mountain.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/GR+Mountain+Cervinia" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+          <a href="https://www.gr-mountain.com/cervinia/?lang=en" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 gr-mountain.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Matterhorn%20ski%20school%20Cervinia/@45.9359303,7.6304483,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
       </div>
@@ -2191,75 +2225,198 @@ const DEMO_POSTS = [
 
 
 // ── Zermatt Crossing Assessment ──
-function openZermattForecast() {
-  openM('zermattForecastModal');
-  var d = window._liveData;
-  if (!d) return;
+// The crossing is at Plateau Rosa, about 3,440 m. The app's general weather
+// call asks Open-Meteo about the village at 2,011 m, and the two are not
+// comparable: checked on 20/10/2026 the village had 8.8 km/h of wind and
+// gusts of 15.8, while Plateau Rosa at the same moment had 33.8 and gusts of
+// 77.4. Judging the crossing by village weather is why this panel used to say
+// conditions were fine on days the link was shut, so it gets its own call.
+//
+// It also asks for WIND GUSTS. A lift stops on a gust, not on an average, and
+// the research is consistent that wind - not cold - is what closes the link;
+// the old code treated "warmer than 0 C" as the problem, which is the wrong
+// driver entirely.
+var CROSS_PT = { lat: 45.9336, lon: 7.7145, name: 'Plateau Rosa' };
+var _crossWx = null, _crossWxAt = 0;
 
-  // נתוני פלטאו רוזה עכשיו (מהסקרפר — snow_points top = 3480מ)
+async function _fetchCrossingWx() {
+  // 20 minutes is plenty; the panel is opened repeatedly in one session
+  if (_crossWx && Date.now() - _crossWxAt < 20 * 60 * 1000) return _crossWx;
+  var url = 'https://api.open-meteo.com/v1/forecast'
+    + '?latitude=' + CROSS_PT.lat + '&longitude=' + CROSS_PT.lon
+    + '&current=temperature_2m,windspeed_10m,windgusts_10m,weathercode'
+    + '&daily=weathercode,temperature_2m_max,temperature_2m_min,snowfall_sum,'
+    + 'windspeed_10m_max,windgusts_10m_max'
+    + '&timezone=Europe%2FRome&forecast_days=5';
+  try {
+    var res = await fetch(url);
+    if (!res.ok) return null;
+    _crossWx = await res.json();
+    _crossWxAt = Date.now();
+    return _crossWx;
+  } catch (e) { return null; }
+}
+
+// Our own banding, deliberately not presented as an operator figure - no
+// operator publishes one. Gusts in km/h.
+function _gustBand(g) {
+  if (g == null)  return { k: 'unknown', txt: 'אין נתון רוח' };
+  if (g < 40)     return { k: 'ok',   txt: 'הרוח אינה מגבלה' };
+  if (g < 60)     return { k: 'mild', txt: 'ייתכנו האטות במעליות הגבוהות' };
+  if (g < 80)     return { k: 'risk', txt: 'סיכוי ממשי לסגירה' };
+  return            { k: 'bad',  txt: 'סביר שהמעבר סגור' };
+}
+
+// Open-Meteo WMO codes: 71+ is snowfall, 95+ thunderstorm, 45/48 fog.
+function _visFlag(code) {
+  if (code === 45 || code === 48) return 'ערפל';
+  if (code >= 95) return 'סופת רעמים';
+  if (code >= 71 && code <= 86) return 'שלג';
+  return null;
+}
+
+// Fills the ridge-gust tile in the top bar. Same cached call the crossing
+// panel uses, so opening the panel afterwards costs nothing.
+var _barGustSeq = 0;
+async function paintBarGust() {
+  var el = document.getElementById('bar-gust');
+  if (!el) return;
+  // renderLiveBar can run more than once; a slow first call must not land on
+  // top of a newer one and blank the tile again
+  var seq = ++_barGustSeq;
+  var wx = await _fetchCrossingWx();
+  if (seq !== _barGustSeq) return;
+  var g = wx && wx.current ? wx.current.windgusts_10m : null;
+  if (g == null) { el.textContent = '--'; el.style.color = 'rgba(255,255,255,0.5)'; return; }
+  var k = _gustBand(g).k;
+  el.textContent = Math.round(g);
+  el.style.color = { ok: '#8fe3a8', mild: '#ffe066', risk: '#ffa94d', bad: '#ff6b6b' }[k]
+                   || 'rgba(255,255,255,0.8)';
+  var wrap = document.getElementById('bar-gust-wrap');
+  if (wrap) wrap.title = 'משבי רוח בפלטאו רוזה: ' + Math.round(g)
+    + ' km/h · ' + _gustBand(g).txt;
+}
+
+async function openZermattForecast() {
+  openM('zermattForecastModal');
+  var d = window._liveData || {};
+  var wx = await _fetchCrossingWx();
+
+  // ── the numbers, measured at the pass ──
+  var temp = wx && wx.current ? wx.current.temperature_2m : null;
+  var wind = wx && wx.current ? wx.current.windspeed_10m : null;
+  var gust = wx && wx.current ? wx.current.windgusts_10m : null;
+  var code = wx && wx.current ? wx.current.weathercode : null;
+
   var topSnow = null;
   if (d.snow_points && Array.isArray(d.snow_points)) {
-    var top = d.snow_points.find(function(p){ return p.station === 'top'; });
+    var top = d.snow_points.find(function (p) { return p.station === 'top'; });
     if (top) topSnow = top.depth;
   }
-  var temp = d.temperature;
-  var wind = d.wind_speed;
+  function _set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+  _set('plateau-temp', temp != null ? Math.round(temp) + '°' : '--');
+  _set('plateau-wind', wind != null ? Math.round(wind) : '--');
+  _set('plateau-gust', gust != null ? Math.round(gust) : '--');
+  _set('plateau-snow', topSnow != null ? topSnow + ' ס"מ' : '--');
+  // deliberately not printing the model's grid elevation next to the 3,480 m in
+  // the header: the two differ by a few dozen metres and look like a mistake
+  _set('plateau-src', wx
+    ? 'נמדד בפלטאו רוזה ולא בכפר · רוח ומשבים ב-km/h'
+    : 'לא התקבלו נתוני מזג אוויר מהרכס');
 
-  var tempEl = document.getElementById('plateau-temp');
-  var windEl = document.getElementById('plateau-wind');
-  var snowEl = document.getElementById('plateau-snow');
-  if (tempEl) tempEl.textContent = temp != null ? Math.round(temp) + '°C' : '--';
-  if (windEl) windEl.textContent = wind != null ? Math.round(wind) : '--';
-  if (snowEl) snowEl.textContent = topSnow != null ? topSnow + ' ס"מ' : '--';
-
-  // ניתוח תנאים
-  var icon, verdict, reason, bg, border;
-  var problems = [];
-  if (temp != null && temp > 0) problems.push('טמפרטורה מעל 0° (' + Math.round(temp) + '°C)');
-  if (wind != null && wind > 40) problems.push('רוח חזקה (' + Math.round(wind) + ' km/h)');
-
+  // ── the verdict: the operator's own status wins over any forecast ──
+  var band = _gustBand(gust);
+  var vis  = _visFlag(code);
   var zVal = (d.zermatt_link || '').toUpperCase();
+  var icon, verdict, reason, bg, border;
+
   if (zVal === 'OPEN') {
-    icon = '✅'; verdict = 'הלינק פתוח!'; reason = 'לפי נתוני האתר הרשמי';
+    icon = '✅'; verdict = 'הלינק פתוח';
+    reason = 'לפי הסטטוס הרשמי' + (band.k === 'risk' || band.k === 'bad'
+      ? ' — אבל ברכס משבים של ' + Math.round(gust) + ' km/h, וייתכן שייסגר במהלך היום' : '');
     bg = '#f0fff4'; border = '#66bb6a';
-  } else if (zVal === 'WAITING') {
-    icon = '🕐'; verdict = 'ממתין לאישור'; reason = 'מפעיל הקרחון בודק תנאים';
-    bg = '#fff8e1'; border = '#ffb300';
-  } else if (problems.length === 0) {
-    icon = '🟡'; verdict = 'תנאים אפשריים'; reason = 'נתוני מזג האוויר נוחים — בדוק באתר הרשמי';
-    bg = '#fff8e1'; border = '#ffb300';
-  } else {
-    icon = '❌'; verdict = 'הלינק כנראה סגור'; reason = problems.join(' · ');
+  } else if (zVal === 'CLOSED') {
+    // this case used to fall through to amber "conditions possible" whenever
+    // the weather looked fine, which contradicted the official status
+    icon = '❌'; verdict = 'הלינק סגור';
+    reason = 'לפי הסטטוס הרשמי' + (band.k === 'ok' ? ' — למרות שהרוח רגועה' : '');
     bg = '#fff5f5'; border = '#ef9a9a';
+  } else if (zVal === 'WAITING') {
+    icon = '🕐'; verdict = 'ממתין להחלטה';
+    reason = 'מפעילת הרכבלים בודקת תנאים · ' + band.txt;
+    bg = '#fff8e1'; border = '#ffb300';
+  } else if (band.k === 'bad' || band.k === 'risk') {
+    icon = band.k === 'bad' ? '❌' : '⚠️';
+    verdict = band.txt;
+    reason = 'משבים של ' + Math.round(gust) + ' km/h ברכס' + (vis ? ' · ' + vis : '');
+    bg = band.k === 'bad' ? '#fff5f5' : '#fff8e1';
+    border = band.k === 'bad' ? '#ef9a9a' : '#ffb300';
+  } else if (band.k === 'unknown') {
+    icon = '❔'; verdict = 'אין מספיק נתונים';
+    reason = 'בדקו את הסטטוס הרשמי של שני הצדדים';
+    bg = '#f7f7f7'; border = '#ccc';
+  } else {
+    icon = '🟡'; verdict = 'מזג האוויר מאפשר';
+    reason = band.txt + (vis ? ' · ' + vis : '')
+      + ' — ההחלטה עצמה נופלת בבוקר אצל מפעילת הרכבלים';
+    bg = '#fff8e1'; border = '#ffb300';
   }
 
-  var el = document.getElementById('crossing-assessment') || document.getElementById('zermatt-crossing-assessment');
-  var iconEl = document.getElementById('crossing-icon');
-  var verdictEl = document.getElementById('crossing-verdict');
-  var reasonEl = document.getElementById('crossing-reason');
+  var el = document.getElementById('zermatt-crossing-assessment');
   if (el) { el.style.background = bg; el.style.border = '1.5px solid ' + border; }
-  if (iconEl) iconEl.textContent = icon;
-  if (verdictEl) verdictEl.textContent = verdict;
-  if (reasonEl) reasonEl.textContent = reason;
+  _set('crossing-icon', icon);
+  _set('crossing-verdict', verdict);
+  _set('crossing-reason', reason);
 
-  // תחזית 4 ימים — מה-forecast_next_days
+  // ── the deadline home, from the Zermatt briefing ──
+  var ll = window._texts && window._texts.swiss && window._texts.swiss.last_lift;
+  var w  = ll ? _swissLastLift(ll) : null;
+  var llEl = document.getElementById('zermatt-last-lift');
+  if (llEl && w) {
+    llEl.innerHTML = '<div style="background:#fff;border:1.5px solid #d33;border-radius:10px;'
+      + 'padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;">'
+      + '<div style="font-size:0.76rem;color:#555;line-height:1.6;">⏰ ' + ll.label
+      + '<br><span style="font-size:0.68rem;color:#999;">מי שמאחר חוזר בכביש, ‎3.5–5 שעות</span></div>'
+      + '<div dir="ltr" style="font-size:1.3rem;font-weight:bold;color:#d33;">' + w.time + '</div>'
+      + '</div>';
+  } else if (llEl) { llEl.innerHTML = ''; }
+
+  // ── 4 days ahead, by gusts at the pass ──
+  // The old version read day.periods[].icon and compared it with keys like
+  // 'snow'. The live feed stores an emoji there, so nothing ever matched and
+  // every day was labelled "conditions possible". It now uses the daily gust
+  // maximum from the call above, which is the figure that actually decides.
   var grid = document.getElementById('zermatt-4day');
-  if (grid && d.forecast_next_days && d.forecast_next_days.length) {
-    var iconMap = { 'sun':'☀️', 'partially-cloudy':'⛅', 'cloudy':'☁️', 'snow':'🌨️', 'rain':'🌧️', 'storm':'⛈️', 'fog':'🌫️', 'wind':'💨' };
-    grid.innerHTML = '<div style="font-weight:bold;font-size:0.8rem;margin-bottom:6px;color:#0a192f;">📆 תחזית לינק — 4 ימים</div>'
-      + d.forecast_next_days.map(function(day) {
-        var morningIcon = day.periods && day.periods[0] ? (iconMap[day.periods[0].icon] || '🌤️') : '?';
-        var dayIcon = day.periods && day.periods[1] ? (iconMap[day.periods[1].icon] || '🌤️') : morningIcon;
-        var bad = day.periods && day.periods.some(function(p){ return p.icon === 'storm' || p.icon === 'snow' || p.icon === 'fog'; });
-        var dayBg = bad ? '#fff5f5' : '#f8fff8';
-        var assessment = bad ? '⚠️ תנאים קשים' : '✅ תנאים אפשריים';
-        return '<div style="background:' + dayBg + ';border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">'
-          + '<div style="font-size:0.82rem;font-weight:bold;">' + day.date + '</div>'
-          + '<div style="display:flex;gap:6px;font-size:1.1rem;">' + day.periods.map(function(p){ return iconMap[p.icon] || '🌤️'; }).join('') + '</div>'
-          + '<div style="font-size:0.72rem;color:#555;">' + assessment + '</div>'
-          + '</div>';
-      }).join('');
+  if (!grid) return;
+  if (!wx || !wx.daily || !wx.daily.time) {
+    grid.innerHTML = '<div style="font-size:0.75rem;color:#888;text-align:center;">'
+      + 'לא התקבלה תחזית לרכס. בדקו את הסטטוס הרשמי.</div>';
+    return;
   }
+  var dayBg = { ok: '#f3fbf5', mild: '#fffdf2', risk: '#fff8e1', bad: '#fff5f5', unknown: '#f7f7f7' };
+  var dayFg = { ok: '#1e7e45', mild: '#9a7b12', risk: '#b26a00', bad: '#b02a2a', unknown: '#888' };
+  var dayIc = { ok: '✅', mild: '🟡', risk: '⚠️', bad: '❌', unknown: '❔' };
+  var rows = '';
+  for (var i = 0; i < wx.daily.time.length && i < 5; i++) {
+    var g = wx.daily.windgusts_10m_max ? wx.daily.windgusts_10m_max[i] : null;
+    var b = _gustBand(g);
+    var v = _visFlag(wx.daily.weathercode ? wx.daily.weathercode[i] : null);
+    var parts = wx.daily.time[i].split('-');
+    var label = i === 0 ? 'היום' : parts[2] + '.' + parts[1];
+    rows += '<div style="background:' + dayBg[b.k] + ';border-radius:9px;padding:9px 11px;'
+      + 'display:flex;align-items:center;justify-content:space-between;gap:8px;">'
+      + '<div style="font-size:0.8rem;font-weight:bold;min-width:52px;">' + label + '</div>'
+      + '<div dir="ltr" style="font-size:0.74rem;color:#555;white-space:nowrap;">🌬️ '
+      + (g != null ? Math.round(g) + ' km/h' : '--') + '</div>'
+      + '<div style="font-size:0.72rem;color:' + dayFg[b.k] + ';text-align:left;">'
+      + dayIc[b.k] + ' ' + b.txt + (v ? ' · ' + v : '') + '</div>'
+      + '</div>';
+  }
+  grid.innerHTML = '<div style="font-weight:bold;font-size:0.8rem;margin-bottom:6px;color:#0a192f;">'
+    + '📆 משבי רוח ברכס — 5 ימים</div>' + rows
+    + '<div style="font-size:0.66rem;color:#aaa;margin-top:6px;line-height:1.6;">'
+    + 'התחזית היא למשבים בפלטאו רוזה. היא אומרת מתי הרוח מסכנת את המעבר — '
+    + 'לא אם הוא ייפתח.</div>';
 }
 
 function openM(id) {
@@ -4187,7 +4344,19 @@ function _fixNums(s) {
   if (s === undefined || s === null) return '';
   return String(s)
     .replace(/(\d)\s*\u05de\u05f3?(?=[\s,.\u2190\u2013)\]]|$)/g, '$1 \u05de\u05f3')
-    .replace(/\d[\d,.]*\d|\d/g, function (m) { return '<span dir="ltr">' + m + '</span>'; });
+    // a clock time and a date are single units: split across spans they come
+    // out as 50:14 and 2027/01/07 on a Hebrew line
+    .replace(/\b\d{1,2}\/\d{1,2}\/\d{4}\b|\b\d{1,2}:\d{2}\b/g,
+             function (m) { return '\u0001' + m + '\u0002'; })
+    .replace(/\d[\d,.\u2013-]*\d|\d/g, function (m) { return '<span dir="ltr">' + m + '</span>'; })
+    .replace(/\u0001([^\u0002]*)\u0002/g, function (m, g) {
+      return '<span dir="ltr">' + g.replace(/<\/?span[^>]*>/g, '') + '</span>';
+    })
+    // A currency mark left outside the LTR run flips to the wrong side of the
+    // number in a Hebrew line: "\u20ac88" came out as "88\u20ac" and "CHF 104" as
+    // "104 CHF". Pulling the mark inside the span keeps the pair together.
+    .replace(/([\u20ac$\u20aa\u00a3])\s?(<span dir="ltr">)/g, '$2$1')
+    .replace(/\b(CHF|EUR|USD|ILS)\s?(<span dir="ltr">)/g, '$2$1\u00a0');
 }
 
 function renderPisteGuide() {
@@ -4203,11 +4372,14 @@ function renderPisteGuide() {
     {k:'intermediate', label:'🔴 בינוני'},
     {k:'advanced',     label:'⚫ מתקדמים'},
     {k:'zermatt',      label:'🇨🇭 זרמט'},
+    {k:'valtournenche',label:'🏘️ ולטורננש'},
+    {k:'nearby',       label:'🚡 טורגנון ושמואה'},
     {k:'restaurants',  label:'🏠 בקתות על ההר'},
     {k:'apres_ski',    label:'🎵 אפרה סקי'},
   ];
 
-  var catColors = {beginner:'#2980b9', intermediate:'#c0392b', advanced:'#2c3e50', zermatt:'#2c3e50', restaurants:'#e67e22', apres_ski:'#8e44ad'};
+  var catColors = {beginner:'#2980b9', intermediate:'#c0392b', advanced:'#2c3e50', zermatt:'#2c3e50',
+                   valtournenche:'#1e7e45', nearby:'#6b4fa0', restaurants:'#e67e22', apres_ski:'#8e44ad'};
 
   // Tab switcher
   var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:12px;">'
@@ -4243,8 +4415,10 @@ function renderPisteGuide() {
       + '</div>';
   } else {
     // Build list
-    var keys = activeFilter === 'all' ? ['beginner','intermediate','advanced','zermatt','restaurants','apres_ski'] : [activeFilter];
-    var catTitles = {beginner:'🔵 מסלולים למתחילים', intermediate:'🔴 מסלולים לבינוניים', advanced:'⚫ מסלולים למתקדמים', zermatt:'⚫🇨🇭 זרמט — מסלולים שוויצריים', restaurants:'🏠 בקתות ומסעדות על המדרון', apres_ski:'🎵 אפרה סקי'};
+    var keys = activeFilter === 'all'
+      ? ['beginner','intermediate','advanced','zermatt','valtournenche','nearby','restaurants','apres_ski']
+      : [activeFilter];
+    var catTitles = {beginner:'🔵 מסלולים למתחילים', intermediate:'🔴 מסלולים לבינוניים', advanced:'⚫ מסלולים למתקדמים', zermatt:'⚫🇨🇭 זרמט — מסלולים שוויצריים', valtournenche:'🏘️ ולטורננש — אותה רשת מעליות', nearby:'🚡 טורגנון ושמואה — אתרים נפרדים', restaurants:'🏠 בקתות ומסעדות על המדרון', apres_ski:'🎵 אפרה סקי'};
     var _kosherText = (window._texts && window._texts.modals && window._texts.modals.kosher_notice)
       ? window._texts.modals.kosher_notice
       : 'האוכל בבקתות אינו כשר ואיננו מפרסמים המלצות על אוכל. עם זאת, ניתן בהחלט לשבת בבקתות ובמרפסות המשקיפות לנוף הנפלא, ליהנות מהשמש החורפית, לשתות בירה, משקאות קלים או חריף — ובכל הבקתות יש שירותים לשימוש הגולשים.';
@@ -4258,6 +4432,9 @@ function renderPisteGuide() {
       if (activeFilter === 'all') {
         bodyHtml += '<div style="font-size:0.78rem;font-weight:bold;color:'+catColors[k]+';margin-top:6px;padding-right:2px;">'+catTitles[k]+'</div>';
       }
+      // the crossing briefing belongs above the Swiss runs, in either view
+      if (k === 'zermatt') { bodyHtml += renderSwissBox(); }
+      if (k === 'valtournenche' || k === 'nearby') { bodyHtml += renderAreaNote(k); }
       items.forEach(function(p) {
         var col = catColors[k];
         bodyHtml += '<div style="border:1.5px solid #eee;border-right:4px solid '+col+';border-radius:10px;padding:10px 12px;background:white;">'
@@ -4282,16 +4459,20 @@ function renderPisteGuide() {
               var mapIsUrl = p.map && /^https?:\/\//.test(p.map);
 
               if (p.trail) {
-                // the same name also belongs to a lift and a footpath, so the
-                // query carries the type word Mapy itself shows
-                var u = 'https://mapy.com/en/zimni?q=' + encodeURIComponent(p.trail + ' trail');
-                if (p.osm) u += '&source=osm&id=' + encodeURIComponent(p.osm) + '&ds=2';
-                if (p.xy) {
-                  var c = String(p.xy).split(',');
-                  u += '&x=' + encodeURIComponent(c[0].trim()) + '&y=' + encodeURIComponent(c[1].trim()) + '&z=15';
+                // Every run carries Mapy's own object id, so the link opens the
+                // run itself. Searching by name alone is not enough: the same
+                // name belongs to a lift, a footpath and sometimes a hamlet,
+                // and the search picked whichever it ranked first.
+                var u = 'https://mapy.com/en/zimni?q=' + encodeURIComponent(p.trail);
+                if (p.mapy) u += '&source=osm&id=' + encodeURIComponent(p.mapy) + '&ds=2';
+                if (p.latlon) {
+                  var c = String(p.latlon).split(',');
+                  u += '&x=' + encodeURIComponent(c[0].trim())
+                     + '&y=' + encodeURIComponent(c[1].trim()) + '&z=16';
                 }
                 L.push('<a href="' + u + '" target="_blank" rel="noopener" style="' + btn
-                  + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">\u26f7\ufe0f המסלול על המפה</a>');
+                  + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">'
+                  + '\u26f7\ufe0f המסלול על המפה</a>');
               }
 
               // a hut or a bar already pinned by hand keeps its exact link
@@ -4299,10 +4480,10 @@ function renderPisteGuide() {
                 L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
                   + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">\ud83d\udccd במפה</a>');
               } else if (p.geo || (p.map && !mapIsUrl)) {
-                L.push('<a href="https://www.google.com/maps/search/?api=1&query='
-                  + encodeURIComponent(p.geo || p.map) + '" target="_blank" rel="noopener" style="' + btn
+                L.push('<a href="' + _gUrl(p.geo || p.map, p.latlon || p.start_latlon)
+                  + '" target="_blank" rel="noopener" style="' + btn
                   + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">'
-                  + (p.trail ? '\ud83d\udccd נקודת היציאה' : '\ud83d\udccd במפה') + '</a>');
+                  + (p.trail ? '\ud83d\udccd נקודת היציאה' : _gLabel(p.xy_approx)) + '</a>');
               }
 
               // the apres-ski entries keep their own website
@@ -4355,13 +4536,13 @@ function renderKosherList(id, places, city) {
       + (function () {
           var L = [];
           if (p.url) L.push('<a href="' + p.url + '" target="_blank" rel="noopener" style="font-size:0.77rem;color:#1a73e8;">🌐 אתר</a>');
-          if (p.addr || city) {
-            // strip the leading emoji from the name so the query is searchable
-            var q = String(p.name || '').replace(/^[^A-Za-z\u0590-\u05FF]+/, '')
-                  + (p.addr ? ', ' + p.addr : '') + (city ? ', ' + city : '');
-            L.push('<a href="https://www.google.com/maps/search/?api=1&query='
-              + encodeURIComponent(q) + '" target="_blank" rel="noopener" '
-              + 'style="font-size:0.77rem;color:#1a73e8;">\ud83d\udccd במפה</a>');
+          if (p.map || p.addr || city) {
+            // p.map holds the name Google itself returned when the entry was
+            // checked; p.xy holds where it put it
+            var q = p.map || (String(p.name || '').replace(/^[^A-Za-z\u0590-\u05FF]+/, '')
+                  + (p.addr ? ', ' + p.addr : '') + (city ? ', ' + city : ''));
+            L.push('<a href="' + _gUrl(q, p.latlon) + '" target="_blank" rel="noopener" '
+              + 'style="font-size:0.77rem;color:#1a73e8;">' + _gLabel(p.xy_approx) + '</a>');
           }
           return L.length ? '<div style="display:flex;gap:14px;margin-top:2px;">' + L.join('') + '</div>' : '';
         })()
@@ -5604,6 +5785,109 @@ function _aLive(until) {
   return new Date() <= new Date(+m[3], +m[2] - 1, +m[1], 23, 59, 59);
 }
 
+// Google Maps links are built name-first with the coordinates appended:
+//   /maps/search/<name>/@<lat>,<lon>,16z
+// The name on its own is not safe. Checked in a browser against Google:
+// "Pancheron, Breuil-Cervinia" and "Piazza Emile Chanoux, Aosta" both landed
+// on a point in ISRAEL, "Castello di Saint-Pierre" opened a different castle,
+// and "Plan Maison" opened the 2,050 m valley station instead of the 2,555 m
+// one. With the coordinates appended the map always opens on the right spot,
+// and Google still shows the place card whenever it recognises the name.
+function _gUrl(name, xy) {
+  var n = String(name || '').replace(/^[^A-Za-z0-9\u0590-\u05FF]+/, '');
+  if (!xy) return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(n);
+  var c = String(xy).split(',');
+  return 'https://www.google.com/maps/search/' + encodeURIComponent(n)
+       + '/@' + encodeURIComponent(c[0].trim()) + ',' + encodeURIComponent(c[1].trim()) + ',16z';
+}
+
+// an approximate pin says so, rather than claiming a precision we do not have
+function _gLabel(approx) {
+  return approx ? '\ud83d\udccd האזור במפה' : '\ud83d\udccd במפה';
+}
+
+// The Zermatt briefing. The one field that matters is the last ascent back
+// to Italy: it is 14:50 until 29/01/2027 and 15:20 after that, so the box
+// picks the window today falls in rather than printing a single number.
+// Cervino S.p.A.'s own regulation says a skier who misses it gets no refund
+// and no help, which is why this sits at the top of the Zermatt tab.
+function _swissLastLift(ll) {
+  if (!ll || !ll.windows || !ll.windows.length) return null;
+  for (var i = 0; i < ll.windows.length; i++) {
+    if (_aLive(ll.windows[i].to)) return ll.windows[i];
+  }
+  return ll.windows[ll.windows.length - 1];
+}
+
+// A short note above the Valtournenche and Torgnon/Chamois lists. The point
+// readers need is not the pistes but whether their pass works there and
+// whether they can ski across, so it is kept to those two facts.
+function renderAreaNote(k) {
+  var n = window._texts && window._texts.area_notes && window._texts.area_notes[k];
+  if (!n) return '';
+  return '<div style="border:1.5px solid #dbe4f0;border-right:4px solid '
+    + (k === 'nearby' ? '#6b4fa0' : '#1e7e45')
+    + ';border-radius:10px;background:#f8fbff;padding:10px 13px;margin-bottom:10px;">'
+    + '<div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;margin-bottom:3px;">'
+    + _aEsc(n.title) + '</div>'
+    + '<div style="font-size:0.78rem;color:#444;line-height:1.75;">'
+    + _fixNums(_aEsc(n.text)) + '</div>'
+    + (n.warn ? '<div style="font-size:0.75rem;color:#8a4b00;background:#fff8e1;'
+        + 'border-radius:7px;padding:7px 9px;margin-top:7px;line-height:1.7;">'
+        + _fixNums(_aEsc(n.warn)) + '</div>' : '')
+    // the season line stops showing itself once the season it describes is over
+    + ((n.season && _aLive(n.season_until))
+        ? '<div style="font-size:0.74rem;color:#666;margin-top:7px;line-height:1.7;">'
+          + _fixNums(_aEsc(n.season)) + '</div>' : '')
+    + '</div>';
+}
+
+function renderSwissBox() {
+  var sw = window._texts && window._texts.swiss;
+  if (!sw) return '';
+  var h = '<div style="border:2px solid #d33;border-radius:12px;background:#fff6f6;'
+        + 'padding:13px 15px;margin-bottom:12px;">';
+  h += '<div style="font-weight:bold;font-size:0.92rem;color:#1a3a6c;margin-bottom:3px;">'
+     + _aEsc(sw.title) + '</div>';
+  if (sw.sub) h += '<div style="font-size:0.74rem;color:#888;margin-bottom:7px;">'
+     + _fixNums(sw.sub) + '</div>';
+  if (sw.intro) h += '<div style="font-size:0.8rem;color:#444;line-height:1.7;margin-bottom:10px;">'
+     + _aEsc(sw.intro) + '</div>';
+
+  var ll = sw.last_lift, w = _swissLastLift(ll);
+  if (w) {
+    h += '<div style="background:#fff;border:1.5px solid #d33;border-radius:9px;'
+       + 'padding:9px 11px;margin-bottom:10px;">'
+       + '<div style="font-size:0.76rem;color:#666;">\u23f0 ' + _aEsc(ll.label) + '</div>'
+       + '<div dir="ltr" style="font-size:1.5rem;font-weight:bold;color:#d33;'
+       + 'letter-spacing:1px;margin:2px 0;">' + w.time + '</div>'
+       + (ll.note ? '<div style="font-size:0.72rem;color:#777;line-height:1.6;">'
+            + _fixNums(ll.note) + '</div>' : '')
+       + (ll.live_url ? '<a href="' + ll.live_url + '" target="_blank" rel="noopener" '
+            + 'style="display:inline-block;margin-top:6px;font-size:0.76rem;font-weight:bold;'
+            + 'color:#1a73e8;">' + _aEsc(ll.live_label || '') + '</a>' : '')
+       + '</div>';
+  }
+
+  (sw.notes || []).forEach(function (n) {
+    if (!_aLive(n.until)) return;
+    h += '<div style="font-size:0.78rem;color:#444;line-height:1.75;margin-bottom:7px;">'
+       + _fixNums(_aEsc(n.text)) + '</div>';
+  });
+
+  if (sw.facts && sw.facts.length) {
+    h += '<div style="border-top:1px solid #f0d0d0;margin-top:4px;padding-top:7px;'
+       + 'font-size:0.73rem;color:#777;line-height:1.8;">'
+       + sw.facts.map(function (f) { return _fixNums(f); }).join('<br>') + '</div>';
+  }
+  if (sw.source_url) {
+    h += '<div style="margin-top:7px;"><a href="' + sw.source_url + '" target="_blank" '
+       + 'rel="noopener" style="font-size:0.72rem;color:#888;">'
+       + _aEsc(sw.source_label || '') + '</a></div>';
+  }
+  return h + '</div>';
+}
+
 function _aEsc(v) {
   if (v === undefined || v === null) return '';
   // the texts file writes emphasis as **this**; inline HTML in the same
@@ -5673,9 +5957,9 @@ function renderAroundList() {
     if (pl.map) {
       // built here rather than stored, so the texts file keeps readable
       // search phrases instead of long encoded URLs
-      links.push('<a href="https://www.google.com/maps/search/?api=1&query='
-        + encodeURIComponent(pl.map) + '" target="_blank" rel="noopener" '
-        + 'style="font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">📍 במפה</a>');
+      links.push('<a href="' + _gUrl(pl.map, pl.latlon) + '" target="_blank" rel="noopener" '
+        + 'style="font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">'
+        + _gLabel(pl.xy_approx) + '</a>');
     }
     if (links.length) {
       h += '<div style="margin-top:9px;display:flex;gap:14px;flex-wrap:wrap;">' + links.join('') + '</div>';
@@ -5854,6 +6138,7 @@ function _applyTexts(t) {
           var btns = '';
           if (lot.info_url) btns += '<a href="' + lot.info_url + '" target="_blank" style="padding:5px 11px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 מידע</a> ';
           if (lot.map_url)  btns += '<a href="' + lot.map_url  + '" target="_blank" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>';
+          else if (lot.map)  btns += '<a href="' + _gUrl(lot.map, lot.latlon) + '" target="_blank" rel="noopener" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f ' + (lot.xy_approx ? 'האזור במפה' : 'מפה') + '</a>';
           return '<div style="padding:12px 14px;border:1.5px solid ' + (lot.paid?'#ffd0d0':'#c8f0d0') + ';border-radius:10px;background:' + (lot.paid?'#fff5f5':'#f5fff8') + ';margin-bottom:10px;">' +
             '<div style="font-weight:bold;font-size:0.9rem;margin-bottom:6px;">' + lot.name + '</div>' +
             '<div style="font-size:0.8rem;color:#555;line-height:1.8;margin-bottom:8px;">' + lot.desc + '</div>' +
@@ -5955,7 +6240,7 @@ function _applyTexts(t) {
         if (sh.open) h += '<div style="font-size:0.73rem;color:#666;margin-bottom:6px;">\ud83d\udd51 ' + sh.open + '</div>';
         var L = [];
         if (sh.url) L.push('<a href="' + sh.url + '" target="_blank" rel="noopener" style="padding:5px 12px;background:' + sh.color + ';color:#fff;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83c\udf10 אתר</a>');
-        if (sh.map) L.push('<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(sh.map) + '" target="_blank" rel="noopener" style="padding:5px 12px;background:#34a853;color:#fff;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f מפה</a>');
+        if (sh.map) L.push('<a href="' + _gUrl(sh.map, sh.latlon) + '" target="_blank" rel="noopener" style="padding:5px 12px;background:#34a853;color:#fff;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f מפה</a>');
         if (L.length) h += '<div style="display:flex;gap:8px;">' + L.join('') + '</div>';
         return h + '</div>';
       }).join('');
@@ -6809,14 +7094,16 @@ async function fetchWttrForecast() {
         window._liveData.wind_speed = windVal;
         const bw = document.getElementById('bar-wind');
         if (bw) bw.textContent = windVal + ' km/h';
-        const pw = document.getElementById('plateau-wind');
-        if (pw) pw.textContent = windVal;
+        // NOT into #plateau-wind: this call is for the village at ~2,010 m and
+        // that tile shows Plateau Rosa at ~3,440 m. Writing it there was the
+        // reason the crossing panel reported calm air on windy ridge days.
       }
     }
 
     function omCode(code) {
       if (code === 0) return '☀️';
       if (code <= 2) return '⛅';
+      if (code === 45 || code === 48) return '🌫️';
       if (code <= 48) return '☁️';
       if (code <= 67) return '🌧️';
       if (code <= 77) return '🌨️';
@@ -7053,6 +7340,7 @@ function renderLiveBar(d) {
   // תמיד שולפים תחזית מ-Open-Meteo (ski_status_history אינה מכילה forecast_next_days)
   if (ng0) ng0.innerHTML = '<div style="text-align:center;color:#aaa;padding:12px;font-size:0.8rem;">⏳ טוען תחזית...</div>';
   fetchWttrForecast(); // Open-Meteo — async, כותב ל-grid בעצמו
+  paintBarGust();      // משבי הרכס לשורה העליונה — קריאה נפרדת לפלטאו רוזה
 
   // ── Tomorrow hint in bar ──
   if (d.forecast_next_days && d.forecast_next_days[0]) {
