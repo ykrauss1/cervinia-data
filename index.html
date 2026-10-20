@@ -4481,6 +4481,121 @@ function _pisteCard(p, col) {
 // only makes sense read top to bottom, so it gets a timeline rather than a
 // card in the grid. The numbers are the operator's own; the leg text says
 // where each one starts and ends so a skier can match it to a signpost.
+// No navigation service will chain ski pistes into one route, so the map is
+// drawn here: the polylines come from OpenStreetMap and live in texts.json,
+// and this projects them into an inline SVG. No tiles, no library, no
+// network - it works in the PWA with the phone in flight mode on the lift.
+function _routeMapSvg(r) {
+  var G = (PISTES && PISTES.route_geom) || {};
+  var PL = (PISTES && PISTES.route_places) || {};
+  var legs = r.legs || [];
+
+  // gather every point so the view can be framed around the whole route
+  var pts = [];
+  legs.forEach(function (g) {
+    (g.geo || []).forEach(function (k) {
+      (G[k] || []).forEach(function (p) { pts.push(p); });
+    });
+  });
+  (r.places || []).forEach(function (k) { if (PL[k]) pts.push(PL[k]); });
+  if (pts.length < 2) return '';
+
+  var W = 420, H = 300, PAD = 26;
+  var lo0 = Math.min.apply(null, pts.map(function (p) { return p[0]; }));
+  var lo1 = Math.max.apply(null, pts.map(function (p) { return p[0]; }));
+  var la0 = Math.min.apply(null, pts.map(function (p) { return p[1]; }));
+  var la1 = Math.max.apply(null, pts.map(function (p) { return p[1]; }));
+  var latMid = (la0 + la1) / 2;
+  var kx = Math.cos(latMid * Math.PI / 180);          // keep the aspect honest
+  var w = (lo1 - lo0) * kx || 1e-6, h = (la1 - la0) || 1e-6;
+  var s = Math.min((W - 2 * PAD) / w, (H - 2 * PAD) / h);
+  var ox = (W - w * s) / 2, oy = (H - h * s) / 2;
+  function X(p) { return ox + (p[0] - lo0) * kx * s; }
+  function Y(p) { return oy + (la1 - p[1]) * s; }     // north is up
+  function path(a) { return a.map(function (p, i) { return (i ? 'L' : 'M') + X(p).toFixed(1) + ' ' + Y(p).toFixed(1); }).join(' '); }
+
+  var COL = {'🔵': '#2d8fd5', '🔴': '#d9453f', '⚫': '#333'};
+  var lifts = '', runs = '', marks = '', gaps = '', first = null, last = null;
+
+  function metres(a, b) {
+    var dy = (b[1] - a[1]) * 111320, dx = (b[0] - a[0]) * 111320 * kx;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  // Walk the legs in order, flipping each line so it runs the way the skier
+  // does. Where two consecutive legs do not actually touch - OSM maps some
+  // runs only in part - a dotted grey line bridges the gap, so the route
+  // reads as one line without pretending the missing bit is surveyed.
+  var cursor = null;
+  legs.forEach(function (g) {
+    var keys = g.geo || [];
+    keys.forEach(function (k, idx) {
+      var a = G[k]; if (!a || a.length < 2) return;
+      if (idx === 0) {
+        var h = a[0], t = a[a.length - 1];
+        if (cursor && metres(cursor, t) < metres(cursor, h)) a = a.slice().reverse();
+        else if (!cursor && keys.length) { /* first line keeps its own order */ }
+        if (cursor && metres(cursor, a[0]) > 150) {
+          gaps += '<path d="M' + X(cursor).toFixed(1) + ' ' + Y(cursor).toFixed(1)
+                + ' L' + X(a[0]).toFixed(1) + ' ' + Y(a[0]).toFixed(1)
+                + '" fill="none" stroke="#c3ccd8" stroke-width="1.6" stroke-dasharray="2 4" stroke-linecap="round"/>';
+        }
+        cursor = a[a.length - 1];
+      }
+      if (g.type === 'lift') {
+        lifts += '<path d="' + path(a) + '" fill="none" stroke="#9fb0c4" stroke-width="1.6" stroke-dasharray="5 4" stroke-linecap="round"/>';
+      } else {
+        var c = COL[g.diff] || '#666';
+        // an alternative line (the second key on a leg) is drawn thinner
+        runs += '<path d="' + path(a) + '" fill="none" stroke="white" stroke-width="' + (idx ? 4.5 : 6) + '" stroke-linecap="round" stroke-linejoin="round"/>'
+             +  '<path d="' + path(a) + '" fill="none" stroke="' + c + '" stroke-width="' + (idx ? 2 : 3.2) + '" stroke-linecap="round" stroke-linejoin="round"'
+             +  (idx ? ' stroke-dasharray="7 4"' : '') + '/>';
+        if (!first) first = a[0];
+        if (!idx) last = a[a.length - 1];
+      }
+    });
+  });
+
+  (r.places || []).forEach(function (k) {
+    var p = PL[k]; if (!p) return;
+    var x = X(p), y = Y(p);
+    marks += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.4" fill="#1a3a6c" stroke="white" stroke-width="1.4"/>'
+          +  '<text x="' + (x).toFixed(1) + '" y="' + (y - 7).toFixed(1) + '" text-anchor="middle" font-size="9.5" fill="#1a3a6c" '
+          +  'stroke="white" stroke-width="2.6" paint-order="stroke" style="font-weight:bold;">' + p[2] + '</text>';
+  });
+
+  var ends = '';
+  if (first) ends += '<circle cx="' + X(first).toFixed(1) + '" cy="' + Y(first).toFixed(1) + '" r="5" fill="#27ae60" stroke="white" stroke-width="2"/>';
+  if (last)  ends += '<circle cx="' + X(last).toFixed(1)  + '" cy="' + Y(last).toFixed(1)  + '" r="5" fill="#c0392b" stroke="white" stroke-width="2"/>';
+
+  // scale bar: pick a round distance that fits comfortably
+  var mPerPx = 1 / (s * 111320 / 1);   // degrees->px, so metres per px
+  var target = 1000, barPx = target / (111320) * s;
+  if (barPx > W * 0.45) { target = 500; barPx = target / 111320 * s; }
+  var bx = W - PAD - barPx, by = H - 14;
+  var scale = '<line x1="' + bx.toFixed(1) + '" y1="' + by + '" x2="' + (bx + barPx).toFixed(1) + '" y2="' + by + '" stroke="#667" stroke-width="2"/>'
+    + '<text x="' + (bx + barPx / 2).toFixed(1) + '" y="' + (by - 4) + '" text-anchor="middle" font-size="9" fill="#667">' + (target === 1000 ? '1 ק"מ' : '500 מ\'') + '</text>';
+
+  var north = '<g transform="translate(' + (PAD - 8) + ',' + (PAD - 6) + ')">'
+    + '<path d="M0 10 L4 0 L8 10 L4 7 Z" fill="#667"/>'
+    + '<text x="4" y="20" text-anchor="middle" font-size="8.5" fill="#667">צפון</text></g>';
+
+  return '<div style="border:1.5px solid #e2e8f0;border-radius:10px;background:#f8fbff;overflow:hidden;margin-bottom:10px;">'
+    + '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg" direction="ltr">'
+    + gaps + lifts + runs + marks + ends + scale + north
+    + '</svg>'
+    + '<div style="padding:6px 10px 8px;font-size:0.67rem;color:#8a97a8;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">'
+    + '<span><b style="color:#27ae60;">●</b> תחילת הגלישה</span>'
+    + '<span><b style="color:#c0392b;">●</b> סיום</span>'
+    + (runs.indexOf('#2d8fd5') >= 0 ? '<span><b style="color:#2d8fd5;">—</b> כחול</span>' : '')
+    + (runs.indexOf('#d9453f') >= 0 ? '<span><b style="color:#d9453f;">—</b> אדום</span>' : '')
+    + (lifts ? '<span><b style="color:#9fb0c4;">- -</b> רכבל</span>' : '')
+    + (gaps ? '<span><b style="color:#c3ccd8;">· ·</b> חיבור משוער</span>' : '')
+    + '</div>'
+    + '<div style="padding:0 10px 8px;font-size:0.63rem;color:#aab4c0;text-align:center;">מסלולים: © OpenStreetMap contributors</div>'
+    + '</div>';
+}
+
 function _routeCard(r) {
   var legs = r.legs || [];
   var rows = legs.map(function (g, i) {
@@ -4522,6 +4637,7 @@ function _routeCard(r) {
     + '</div>'
     + (r.summary ? '<div style="font-size:0.81rem;color:#333;line-height:1.65;margin-bottom:9px;">' + _fixNums(r.summary) + '</div>' : '')
     + (statHtml ? '<div style="display:flex;gap:6px;background:#eef3fa;border-radius:8px;padding:7px 4px;margin-bottom:11px;">' + statHtml + '</div>' : '')
+    + _routeMapSvg(r)
     + rows
     + ((r.tips || []).length ? '<div style="margin-top:11px;display:flex;flex-direction:column;gap:5px;">'
         + r.tips.map(function (x) { return '<div style="font-size:0.75rem;color:#444;background:#fff8e1;padding:6px 9px;border-radius:6px;border-right:3px solid #f39c12;line-height:1.5;">' + _fixNums(x) + '</div>'; }).join('')
