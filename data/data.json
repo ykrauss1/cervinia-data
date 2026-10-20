@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-10-20T01:45:14.519Z",
-  "temperature": 2.4,
+  "updated_at": "2026-10-20T02:10:33.291Z",
+  "temperature": 2.3,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 47,
@@ -12,7 +12,7 @@
   "slopes_total_local": 0,
   "snow_depth": "0 cm",
   "last_snowfall": "[]",
-  "wind_speed": 1.4,
+  "wind_speed": 3.6,
   "wind_gust": 10.1,
   "humidity": 96,
   "avalanche_level": "1",
@@ -64,66 +64,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Monday, October 19",
+    "date": "Tuesday, October 20",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "rain"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Valtournenche",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": null
+        "icon": "rain"
       },
       {
         "name": "Torgnon",
-        "icon": null
+        "icon": "rain"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Wednesday, October 21",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "snow"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "rain-snow"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    },
     {
       "date": "Thursday, October 22",
       "periods": [
@@ -159,6 +138,27 @@
         {
           "label": "Evening\n(18.00 - 24.00)",
           "icon": "snow"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "snow"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, October 24",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "cloudy"
         },
         {
           "label": "Notte\n(01.00 - 07.00)",
