@@ -78,6 +78,13 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   #around-head { padding-top: 20px; }
   #around-sticky { margin: 0 -16px 12px; padding: 11px 16px 9px; }
 }
+/* The piste guide's two chip rows ("where" / "what") and the list/map
+   switcher stay pinned while the cards scroll under them. The scroller's
+   top padding has to go, or a strip of card shows above the bar; the bar
+   puts that padding back itself. */
+#piste-sticky { position: sticky; top: 0; z-index: 5; background: #fff;
+  margin: 0 -14px 10px; padding: 10px 14px 7px; border-bottom: 1px solid #eaeef3; }
+
 .counter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
 .c-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent); background: white; cursor: pointer; color: var(--accent); font-weight: bold; }
 .preview-banner { background: #fff3cd; border: 1px solid #ffc107; padding: 10px 20px; text-align: center; font-size: 0.85rem; color: #856404; }
@@ -4359,46 +4366,214 @@ function _fixNums(s) {
     .replace(/\b(CHF|EUR|USD|ILS)\s?(<span dir="ltr">)/g, '$2$1\u00a0');
 }
 
+// The chip row used to mix three unrelated things in one line: difficulty
+// (blue/red/black), place (Zermatt, Valtournenche, Torgnon) and kind of entry
+// (huts, apres-ski). Picking one cleared the others, so there was no way to
+// ask for "the blue runs in Valtournenche". It is now two questions - WHERE,
+// and WHAT to show - and they combine.
+var PISTE_AREAS = [
+  {k:'all',           label:'🎿 הכל'},
+  {k:'cervinia',      label:"🇮🇹 צ'רוויניה"},
+  {k:'valtournenche', label:'🏘️ ולטורננש'},
+  {k:'zermatt',       label:'🇨🇭 זרמט'},
+  {k:'small',         label:'🚡 טורגנון ושמואה'}
+];
+var PISTE_KINDS = [
+  {k:'all',   label:'הכל'},
+  {k:'route', label:'⭐ מסלול מומלץ'},
+  {k:'easy',  label:'🔵 מתחילים'},
+  {k:'inter', label:'🔴 בינוני'},
+  {k:'adv',   label:'⚫ מתקדמים'},
+  {k:'hut',   label:'🏠 בקתות'},
+  {k:'apres', label:'🎵 אפרה סקי'}
+];
+var AREA_TITLES = {
+  cervinia:      "🇮🇹 צ'רוויניה",
+  valtournenche: '🏘️ ולטורננש — אותה רשת מעליות',
+  zermatt:       '🇨🇭 זרמט — הצד השוויצרי',
+  torgnon:       '🚡 טורגנון',
+  chamois:       '🚡 שמואה'
+};
+var AREA_COLORS = {cervinia:'#1a3a6c', valtournenche:'#1e7e45', zermatt:'#b02a2a',
+                   torgnon:'#6b4fa0', chamois:'#6b4fa0'};
+var KIND_TITLES = {easy:'🔵 מתחילים', inter:'🔴 בינוני',
+                   adv:'⚫ מתקדמים', hut:'🏠 בקתות ומסעדות',
+                   apres:'🎵 אפרה סקי'};
+
+// difficulty comes from the diff field, never from the name - several names
+// carry a black circle as decoration
+function _pisteKindOf(section, p) {
+  if (section === 'restaurants') return 'hut';
+  if (section === 'apres_ski')   return 'apres';
+  var d = String(p.diff || '');
+  if (d.indexOf('⚫') >= 0) return 'adv';
+  if (d.indexOf('🔴') >= 0) return 'inter';
+  return 'easy';
+}
+
+function _pisteFlat() {
+  var out = [];
+  ['beginner','intermediate','advanced','zermatt','valtournenche','nearby',
+   'restaurants','apres_ski'].forEach(function (sec) {
+    (PISTES[sec] || []).forEach(function (p) {
+      out.push({p: p, sec: sec, area: p.area_key || 'cervinia',
+                kind: _pisteKindOf(sec, p)});
+    });
+  });
+  return out;
+}
+
+function _pisteCard(p, col) {
+  return '<div style="border:1.5px solid #eee;border-right:4px solid ' + col + ';border-radius:10px;padding:10px 12px;background:white;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
+    + '<div style="display:flex;align-items:center;gap:6px;">'
+    + '<span style="font-size:1rem;">' + p.diff + '</span>'
+    + (p.num && !p.num.startsWith('OB') && !p.num.startsWith('Z-') ? '<span dir="ltr" style="background:' + col + ';color:white;border-radius:5px;padding:1px 7px;font-size:0.69rem;font-weight:bold;">' + p.num + '</span>' : '')
+    + '<span style="font-weight:bold;font-size:0.88rem;">' + p.name + '</span>'
+    + '</div>'
+    + '<span style="font-size:0.72rem;color:#2980b9;font-weight:bold;white-space:nowrap;">' + (p.len || '') + '</span>'
+    + '</div>'
+    + '<div style="font-size:0.73rem;color:#999;margin-bottom:5px;">📍 ' + _fixNums(p.area) + '</div>'
+    + '<div style="font-size:0.8rem;color:#333;line-height:1.55;margin-bottom:5px;">' + p.desc + '</div>'
+    + (p.tip ? '<div style="font-size:0.74rem;color:#444;background:#fff8e1;padding:5px 8px;border-radius:6px;border-right:3px solid #f39c12;">' + p.tip + '</div>' : '')
+    + '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">'
+    + (p.tags || []).map(function (t) { return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">' + t + '</span>'; }).join('')
+    + '</div>'
+    + (function () {
+        if (!p.map && !p.trail && !p.geo) return '';
+        var btn = 'display:inline-flex;align-items:center;gap:4px;font-size:0.74rem;text-decoration:none;padding:4px 9px;border-radius:6px;';
+        var L = [];
+        var mapIsUrl = p.map && /^https?:\/\//.test(p.map);
+        if (p.trail) {
+          // Every run carries Mapy's own object id, so the link opens the run
+          // itself. Searching by name alone is not enough: the same name
+          // belongs to a lift, a footpath and sometimes a hamlet.
+          var u = 'https://mapy.com/en/zimni?q=' + encodeURIComponent(p.trail);
+          if (p.mapy) u += '&source=osm&id=' + encodeURIComponent(p.mapy) + '&ds=2';
+          if (p.xy) {
+            var c = String(p.xy).split(',');
+            u += '&x=' + encodeURIComponent(c[0].trim())
+               + '&y=' + encodeURIComponent(c[1].trim()) + '&z=16';
+          }
+          L.push('<a href="' + u + '" target="_blank" rel="noopener" style="' + btn
+            + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">'
+            + '⛷️ המסלול על המפה</a>');
+        }
+        if (mapIsUrl && /google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
+          L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
+            + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">📍 במפה</a>');
+        } else if (p.geo || (p.map && !mapIsUrl)) {
+          L.push('<a href="' + _gUrl(p.geo || p.map, p.latlon || p.start_latlon)
+            + '" target="_blank" rel="noopener" style="' + btn
+            + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">'
+            + (p.trail ? '📍 נקודת היציאה' : _gLabel(p.xy_approx)) + '</a>');
+        }
+        if (mapIsUrl && !/google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
+          L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
+            + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">🌐 אתר</a>');
+        }
+        return L.length ? '<div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;">' + L.join('') + '</div>' : '';
+      })()
+    + '</div>';
+}
+
+// A recommended route is not a piste - it is a chain of lifts and pistes that
+// only makes sense read top to bottom, so it gets a timeline rather than a
+// card in the grid. The numbers are the operator's own; the leg text says
+// where each one starts and ends so a skier can match it to a signpost.
+function _routeCard(r) {
+  var legs = r.legs || [];
+  var rows = legs.map(function (g, i) {
+    var isLift = g.type === 'lift';
+    var last = i === legs.length - 1;
+    var dot = isLift
+      ? '<div style="width:26px;height:26px;border-radius:50%;background:#eef3fa;border:1.5px solid #c9d8ec;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">🚡</div>'
+      : '<div style="width:26px;height:26px;border-radius:50%;background:white;border:1.5px solid #e2e2e2;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">' + (g.diff || '') + '</div>';
+    return '<div style="display:flex;gap:9px;align-items:stretch;">'
+      + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">'
+      + dot
+      + (last ? '' : '<div style="width:2px;flex:1;background:#e6ebf2;min-height:10px;"></div>')
+      + '</div>'
+      + '<div style="padding-bottom:' + (last ? '0' : '11px') + ';flex:1;min-width:0;">'
+      + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
+      + (g.num ? '<span dir="ltr" style="background:#1a3a6c;color:white;border-radius:5px;padding:1px 7px;font-size:0.68rem;font-weight:bold;">' + g.num + '</span>' : '')
+      + '<span style="font-weight:bold;font-size:0.84rem;">' + g.name + '</span>'
+      + (g.len ? '<span dir="ltr" style="font-size:0.72rem;color:#2980b9;font-weight:bold;">' + g.len + '</span>' : '')
+      + '</div>'
+      + (g.alt ? '<div style="font-size:0.72rem;color:#999;margin-top:2px;">' + _fixNums(g.alt) + '</div>' : '')
+      + (g.note ? '<div style="font-size:0.76rem;color:#444;margin-top:3px;line-height:1.55;">' + _fixNums(g.note) + '</div>' : '')
+      + '</div></div>';
+  }).join('');
+
+  var st = r.stats || {};
+  var statHtml = ['dist', 'top', 'bottom', 'time'].filter(function (k) { return st[k]; })
+    .map(function (k) {
+      var lbl = {dist: 'אורך', top: 'מלמעלה', bottom: 'עד', time: 'זמן'}[k];
+      return '<div style="flex:1;min-width:66px;text-align:center;">'
+        + '<div style="font-size:0.63rem;color:#9aa;margin-bottom:1px;">' + lbl + '</div>'
+        + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;">' + _fixNums(st[k]) + '</div></div>';
+    }).join('');
+
+  return '<div style="border:1.5px solid #d8e2f0;border-radius:12px;background:linear-gradient(180deg,#f7faff,#ffffff);padding:13px 14px;margin-bottom:10px;">'
+    + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">'
+    + '<span style="font-size:1.05rem;">⭐</span>'
+    + '<span style="font-weight:bold;font-size:0.95rem;color:#1a3a6c;">' + r.title + '</span>'
+    + (r.badge ? '<span style="font-size:0.66rem;padding:2px 8px;background:#1a3a6c;color:white;border-radius:10px;">' + r.badge + '</span>' : '')
+    + '</div>'
+    + (r.summary ? '<div style="font-size:0.81rem;color:#333;line-height:1.65;margin-bottom:9px;">' + _fixNums(r.summary) + '</div>' : '')
+    + (statHtml ? '<div style="display:flex;gap:6px;background:#eef3fa;border-radius:8px;padding:7px 4px;margin-bottom:11px;">' + statHtml + '</div>' : '')
+    + rows
+    + ((r.tips || []).length ? '<div style="margin-top:11px;display:flex;flex-direction:column;gap:5px;">'
+        + r.tips.map(function (x) { return '<div style="font-size:0.75rem;color:#444;background:#fff8e1;padding:6px 9px;border-radius:6px;border-right:3px solid #f39c12;line-height:1.5;">' + _fixNums(x) + '</div>'; }).join('')
+        + '</div>' : '')
+    + (r.warn ? '<div style="margin-top:9px;font-size:0.71rem;color:#888;line-height:1.5;">' + _fixNums(r.warn) + '</div>' : '')
+    + '</div>';
+}
+
+function _routesFor(area) {
+  var rs = (PISTES && PISTES.routes) || [];
+  return rs.filter(function (r) {
+    var a = r.area_key || 'cervinia';
+    if (area === 'all') return true;
+    if (area === 'small') return a === 'torgnon' || a === 'chamois';
+    return a === area;
+  });
+}
+
+function _chipRow(label, defs, active, fn) {
+  return '<div style="display:flex;align-items:flex-start;gap:7px;margin-bottom:5px;">'
+    + '<span style="font-size:0.64rem;color:#aaa;font-weight:bold;min-width:26px;padding-top:5px;">' + label + '</span>'
+    + '<div style="display:flex;gap:5px;flex-wrap:wrap;flex:1;">'
+    + defs.map(function (f) {
+        var on = f.k === active;
+        return '<button onclick="' + fn + '(\'' + f.k + '\')" style="padding:3px 9px;border-radius:14px;'
+          + 'border:1.5px solid ' + (on ? '#1a3a6c' : '#ddd') + ';background:' + (on ? '#1a3a6c' : 'white')
+          + ';color:' + (on ? 'white' : '#555') + ';font-size:0.72rem;cursor:pointer;'
+          + 'font-weight:' + (on ? 'bold' : 'normal') + ';white-space:nowrap;">' + f.label + '</button>';
+      }).join('')
+    + '</div></div>';
+}
+
 function renderPisteGuide() {
   var el = document.getElementById('piste-guide-content');
   if (!el) return;
 
-  var activeFilter = window.pisteFilter || 'all';
+  var area = window.pisteArea || 'all';
+  var kind = window.pisteKind || 'all';
   var activeTab = window.pisteTab || 'list';
 
-  var filterDefs = [
-    {k:'all',          label:'🎿 הכל'},
-    {k:'beginner',     label:'🔵 מתחילים'},
-    {k:'intermediate', label:'🔴 בינוני'},
-    {k:'advanced',     label:'⚫ מתקדמים'},
-    {k:'zermatt',      label:'🇨🇭 זרמט'},
-    {k:'valtournenche',label:'🏘️ ולטורננש'},
-    {k:'nearby',       label:'🚡 טורגנון ושמואה'},
-    {k:'restaurants',  label:'🏠 בקתות על ההר'},
-    {k:'apres_ski',    label:'🎵 אפרה סקי'},
-  ];
-
-  var catColors = {beginner:'#2980b9', intermediate:'#c0392b', advanced:'#2c3e50', zermatt:'#2c3e50',
-                   valtournenche:'#1e7e45', nearby:'#6b4fa0', restaurants:'#e67e22', apres_ski:'#8e44ad'};
-
-  // Tab switcher
-  var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:12px;">'
-    + [['list','📋 מסלולים'],['map','🗺️ מפה']].map(function(t){
-        var on = t[0]===activeTab;
-        return '<button onclick="setPisteTab(\''+t[0]+'\')" style="flex:1;padding:7px;border-radius:8px;border:none;cursor:pointer;font-size:0.82rem;font-weight:'+(on?'bold':'normal')+';background:'+(on?'#1a3a6c':'#f0f0f0')+';color:'+(on?'white':'#555')+';">'+t[1]+'</button>';
+  var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:8px;">'
+    + [['list','📋 מסלולים'],['map','🗺️ מפה']].map(function (t) {
+        var on = t[0] === activeTab;
+        return '<button onclick="setPisteTab(\'' + t[0] + '\')" style="flex:1;padding:6px;border-radius:8px;border:none;cursor:pointer;font-size:0.8rem;font-weight:' + (on ? 'bold' : 'normal') + ';background:' + (on ? '#1a3a6c' : '#f0f0f0') + ';color:' + (on ? 'white' : '#555') + ';">' + t[1] + '</button>';
       }).join('') + '</div>';
 
-  // Filter chips
-  var chipHtml = '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;">'
-    + filterDefs.map(function(f){
-        var on = f.k===activeFilter;
-        var isRest = f.k==='restaurants';
-        var bg     = on ? (isRest?'#e67e22':'#1a3a6c') : (isRest?'#fff3e0':'white');
-        var border = on ? (isRest?'#e67e22':'#1a3a6c') : (isRest?'#e67e22':'#ddd');
-        var color  = on ? 'white' : (isRest?'#c0530a':'#555');
-        var weight = isRest ? 'bold' : 'normal';
-        return '<button onclick="setPisteFilter(\''+f.k+'\')" style="padding:5px 11px;border-radius:14px;border:2px solid '+border+';background:'+bg+';color:'+color+';font-size:0.76rem;cursor:pointer;font-weight:'+weight+';">'+f.label+'</button>';
-      }).join('') + '</div>';
+  var chipHtml = activeTab === 'map' ? ''
+    : _chipRow('איפה', PISTE_AREAS, area, 'setPisteArea')
+    + _chipRow('מה', PISTE_KINDS, kind, 'setPisteKind');
+
+  // the switcher and both chip rows stay put while the list scrolls
+  var headHtml = '<div id="piste-sticky">' + tabHtml + chipHtml + '</div>';
 
   var bodyHtml = '';
 
@@ -4414,94 +4589,69 @@ function renderPisteGuide() {
       + '📌 מפת Cervino Ski Paradise הרשמית · כחול=קל · אדום=בינוני · שחור=קשה · צהוב=פוארה/אופ-פיסט'
       + '</div>';
   } else {
-    // Build list
-    var keys = activeFilter === 'all'
-      ? ['beginner','intermediate','advanced','zermatt','valtournenche','nearby','restaurants','apres_ski']
-      : [activeFilter];
-    var catTitles = {beginner:'🔵 מסלולים למתחילים', intermediate:'🔴 מסלולים לבינוניים', advanced:'⚫ מסלולים למתקדמים', zermatt:'⚫🇨🇭 זרמט — מסלולים שוויצריים', valtournenche:'🏘️ ולטורננש — אותה רשת מעליות', nearby:'🚡 טורגנון ושמואה — אתרים נפרדים', restaurants:'🏠 בקתות ומסעדות על המדרון', apres_ski:'🎵 אפרה סקי'};
     var _kosherText = (window._texts && window._texts.modals && window._texts.modals.kosher_notice)
       ? window._texts.modals.kosher_notice
       : 'האוכל בבקתות אינו כשר ואיננו מפרסמים המלצות על אוכל. עם זאת, ניתן בהחלט לשבת בבקתות ובמרפסות המשקיפות לנוף הנפלא, ליהנות מהשמש החורפית, לשתות בירה, משקאות קלים או חריף — ובכל הבקתות יש שירותים לשימוש הגולשים.';
     var kosherNotice = '<div style="margin-bottom:12px;padding:11px 14px;background:#fff8e1;border:1.5px solid #f39c12;border-radius:10px;font-size:0.8rem;color:#555;line-height:1.7;"><b>🕍 הערה לשומרי כשרות</b><br>' + _kosherText + '</div>';
 
+    var flat = _pisteFlat().filter(function (x) {
+      var areaOk = area === 'all' ? true
+                 : area === 'small' ? (x.area === 'torgnon' || x.area === 'chamois')
+                 : x.area === area;
+      return areaOk && (kind === 'all' || x.kind === kind);
+    });
+
     bodyHtml = '<div style="display:flex;flex-direction:column;gap:8px;">';
-    if (activeFilter === 'restaurants') { bodyHtml += kosherNotice; }
-    keys.forEach(function(k) {
-      var items = PISTES[k];
-      if (!items) return;
-      if (activeFilter === 'all') {
-        bodyHtml += '<div style="font-size:0.78rem;font-weight:bold;color:'+catColors[k]+';margin-top:6px;padding-right:2px;">'+catTitles[k]+'</div>';
+
+    // the recommended routes lead, because they are the one thing on this
+    // screen that answers "what should I actually ski today"
+    var routes = (kind === 'all' || kind === 'route') ? _routesFor(area) : [];
+    routes.forEach(function (r) { bodyHtml += _routeCard(r); });
+    if (kind === 'route') {
+      if (!routes.length) {
+        bodyHtml += '<div style="padding:22px 14px;text-align:center;color:#888;font-size:0.84rem;line-height:1.9;">'
+          + '\u05e2\u05d3\u05d9\u05d9\u05df \u05d0\u05d9\u05df \u05de\u05e1\u05dc\u05d5\u05dc \u05de\u05d5\u05de\u05dc\u05e5 \u05dc\u05d0\u05d6\u05d5\u05e8 \u05d4\u05d6\u05d4.<br>'
+          + '<span style="font-size:0.78rem;">\u05e0\u05e1\u05d5 "\u05d4\u05db\u05dc" \u05d1\u05e1\u05e8\u05d2\u05dc \u05d4\u05e2\u05dc\u05d9\u05d5\u05df.</span></div>';
       }
-      // the crossing briefing belongs above the Swiss runs, in either view
-      if (k === 'zermatt') { bodyHtml += renderSwissBox(); }
-      if (k === 'valtournenche' || k === 'nearby') { bodyHtml += renderAreaNote(k); }
-      items.forEach(function(p) {
-        var col = catColors[k];
-        bodyHtml += '<div style="border:1.5px solid #eee;border-right:4px solid '+col+';border-radius:10px;padding:10px 12px;background:white;">'
-          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
-          + '<div style="display:flex;align-items:center;gap:6px;">'
-          + '<span style="font-size:1rem;">'+p.diff+'</span>'
-          + (p.num && !p.num.startsWith('OB') && !p.num.startsWith('Z-') ? '<span dir="ltr" style="background:'+col+';color:white;border-radius:5px;padding:1px 7px;font-size:0.69rem;font-weight:bold;">'+p.num+'</span>' : '')
-          + '<span style="font-weight:bold;font-size:0.88rem;">'+p.name+'</span>'
-          + '</div>'
-          + '<span style="font-size:0.72rem;color:#2980b9;font-weight:bold;white-space:nowrap;">'+p.len+'</span>'
-          + '</div>'
-          + '<div style="font-size:0.73rem;color:#999;margin-bottom:5px;">📍 '+_fixNums(p.area)+'</div>'
-          + '<div style="font-size:0.8rem;color:#333;line-height:1.55;margin-bottom:5px;">'+p.desc+'</div>'
-          + (p.tip ? '<div style="font-size:0.74rem;color:#444;background:#fff8e1;padding:5px 8px;border-radius:6px;border-right:3px solid #f39c12;">'+p.tip+'</div>' : '')
-          + '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">'
-          + p.tags.map(function(t){ return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">'+t+'</span>'; }).join('')
-          + '</div>'
-          + (function () {
-              if (!p.map && !p.trail && !p.geo) return '';
-              var btn = 'display:inline-flex;align-items:center;gap:4px;font-size:0.74rem;text-decoration:none;padding:4px 9px;border-radius:6px;';
-              var L = [];
-              var mapIsUrl = p.map && /^https?:\/\//.test(p.map);
+      el.innerHTML = headHtml + bodyHtml + '</div>';
+      return;
+    }
 
-              if (p.trail) {
-                // Every run carries Mapy's own object id, so the link opens the
-                // run itself. Searching by name alone is not enough: the same
-                // name belongs to a lift, a footpath and sometimes a hamlet,
-                // and the search picked whichever it ranked first.
-                var u = 'https://mapy.com/en/zimni?q=' + encodeURIComponent(p.trail);
-                if (p.mapy) u += '&source=osm&id=' + encodeURIComponent(p.mapy) + '&ds=2';
-                if (p.latlon) {
-                  var c = String(p.latlon).split(',');
-                  u += '&x=' + encodeURIComponent(c[0].trim())
-                     + '&y=' + encodeURIComponent(c[1].trim()) + '&z=16';
-                }
-                L.push('<a href="' + u + '" target="_blank" rel="noopener" style="' + btn
-                  + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">'
-                  + '\u26f7\ufe0f המסלול על המפה</a>');
-              }
+    if (kind === 'hut' || kind === 'apres' || kind === 'all') bodyHtml += kosherNotice;
 
-              // a hut or a bar already pinned by hand keeps its exact link
-              if (mapIsUrl && /google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
-                L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
-                  + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">\ud83d\udccd במפה</a>');
-              } else if (p.geo || (p.map && !mapIsUrl)) {
-                L.push('<a href="' + _gUrl(p.geo || p.map, p.latlon || p.start_latlon)
-                  + '" target="_blank" rel="noopener" style="' + btn
-                  + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">'
-                  + (p.trail ? '\ud83d\udccd נקודת היציאה' : _gLabel(p.xy_approx)) + '</a>');
-              }
+    if (!flat.length) {
+      bodyHtml += '<div style="padding:22px 14px;text-align:center;color:#888;font-size:0.84rem;line-height:1.9;">'
+        + 'אין מה להציג בשילוב הזה.<br>'
+        + '<span style="font-size:0.78rem;">נסו אזור אחר, או "הכל" באחד משני הסרגלים.</span></div>';
+    }
 
-              // the apres-ski entries keep their own website
-              if (mapIsUrl && !/google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
-                L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
-                  + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">\ud83c\udf10 אתר</a>');
-              }
-              return L.length ? '<div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;">' + L.join('') + '</div>' : '';
-            })()
-          + '</div>';
+    ['cervinia','valtournenche','zermatt','torgnon','chamois'].forEach(function (ak) {
+      var inArea = flat.filter(function (x) { return x.area === ak; });
+      if (!inArea.length) return;
+      if (area === 'all' || area === 'small') {
+        bodyHtml += '<div style="font-size:0.8rem;font-weight:bold;color:' + AREA_COLORS[ak]
+          + ';margin-top:10px;padding-right:2px;border-bottom:1px solid #eee;padding-bottom:3px;">'
+          + AREA_TITLES[ak] + '</div>';
+      }
+      if (ak === 'zermatt') bodyHtml += renderSwissBox();
+      if (ak === 'valtournenche') bodyHtml += renderAreaNote('valtournenche');
+      if (ak === 'torgnon') bodyHtml += renderAreaNote('nearby');
+
+      ['easy','inter','adv','hut','apres'].forEach(function (kk) {
+        var sub = inArea.filter(function (x) { return x.kind === kk; });
+        if (!sub.length) return;
+        if (kind === 'all') {
+          bodyHtml += '<div style="font-size:0.72rem;color:#999;margin-top:7px;padding-right:2px;">'
+            + KIND_TITLES[kk] + '</div>';
+        }
+        sub.forEach(function (x) { bodyHtml += _pisteCard(x.p, AREA_COLORS[ak]); });
       });
     });
     bodyHtml += '</div>';
   }
 
-  el.innerHTML = tabHtml + chipHtml + bodyHtml;
+  el.innerHTML = headHtml + bodyHtml;
 
-  // Set map images after render
   if (activeTab === 'map') {
     var mapImg = document.getElementById('piste-map-display');
     var mapDl  = document.getElementById('piste-map-dl');
@@ -4654,7 +4804,17 @@ function renderSkipassPrices() {
   });
 }
 
-function setPisteFilter(f) { window.pisteFilter = f; renderPisteGuide(); }
+function setPisteArea(a) { window.pisteArea = a; renderPisteGuide(); }
+function setPisteKind(k) { window.pisteKind = k; renderPisteGuide(); }
+// kept so an old bookmark or a deep link with the single-axis name still works
+function setPisteFilter(f) {
+  var areaOf = {zermatt:'zermatt', valtournenche:'valtournenche', nearby:'small'};
+  var kindOf = {beginner:'easy', intermediate:'inter', advanced:'adv',
+                restaurants:'hut', apres_ski:'apres'};
+  window.pisteArea = areaOf[f] || 'all';
+  window.pisteKind = kindOf[f] || 'all';
+  renderPisteGuide();
+}
 function setPisteTab(t)    { window.pisteTab = t;    renderPisteGuide(); }
 
 function openPisteMapFull() {
@@ -8337,7 +8497,7 @@ function switchAdminTab(tab) {
   <div class="modal-content" style="max-width:580px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('skipassModal')">×</span>
     <h3 style="margin:0 0 4px;font-size:1.15rem;">🎫 סקי פס — צ'רוויניה</h3>
-    <p style="color:#888;font-size:0.82rem;margin:0 0 18px;">עונת 2025/2026 · מחירים לפי האתר הרשמי</p>
+    <p style="color:#888;font-size:0.82rem;margin:0 0 18px;">עונת 2026/2027 · מחירון רשמי של Cervino S.p.A.</p>
 
     <!-- Pass type tabs -->
     <div style="display:flex;gap:8px;margin-bottom:18px;">
@@ -9574,10 +9734,10 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
 <div id="pisteModal" class="modal" style="display:none;">
   <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
     <div style="background:linear-gradient(135deg,#1a3a6c,#2563b0);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
-      <h2 style="color:white;margin:0;font-size:1.1rem;">⛷️ מדריך מסלולים — צ'רוויניה</h2>
+      <h2 style="color:white;margin:0;font-size:1.1rem;">⛷️ מדריך מסלולים — צ'רוויניה והאזור</h2>
       <button onclick="closeM('pisteModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;font-size:1rem;cursor:pointer;">✕</button>
     </div>
-    <div style="padding:14px;max-height:75vh;overflow-y:auto;">
+    <div id="piste-scroll" style="padding:0 14px 14px;max-height:75vh;overflow-y:auto;">
       <div id="piste-guide-content">
         <div style="text-align:center;color:#aaa;font-size:0.82rem;padding:16px;">טוען...</div>
       </div>
