@@ -126,6 +126,15 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .fc-btn:hover { filter: brightness(1.18); transform: translateY(-1px); }
 @media (max-width: 420px) { .fc-btn { font-size: 0.74rem; padding: 8px 11px; } }
 
+/* the crossing briefing folds away; the arrow turns when it opens */
+.swiss-more > summary { cursor: pointer; list-style: none; font-size: 0.78rem;
+  font-weight: bold; color: #b02a2a; padding: 7px 10px; background: #fff;
+  border: 1.5px solid #f0d0d0; border-radius: 9px; user-select: none; }
+.swiss-more > summary::-webkit-details-marker { display: none; }
+.swiss-more > summary::after { content: ' \25be'; float: left; }
+.swiss-more[open] > summary::after { content: ' \25b4'; }
+.swiss-more > summary:hover { background: #fff1f1; }
+
 .counter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
 .c-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent); background: white; cursor: pointer; color: var(--accent); font-weight: bold; }
 .preview-banner { background: #fff3cd; border: 1px solid #ffc107; padding: 10px 20px; text-align: center; font-size: 0.85rem; color: #856404; }
@@ -477,11 +486,11 @@ img, svg, video { max-width: 100%; }
         </div>
 
         <div style="text-align:center;">
-          <div style="display:flex;align-items:center;gap:5px;justify-content:center;">
-            <div id="bar-hours" style="color:rgba(255,255,255,0.85);font-size:0.82rem;font-weight:700;line-height:1;">--</div>
-            <span id="bar-closed-notice" display="none" style="display:none;font-size:0.7rem;background:#e74c3c;color:white;border-radius:4px;padding:1px 5px;font-weight:bold;">סגור</span>
+          <div id="bar-hours" dir="ltr" style="color:rgba(255,255,255,0.85);font-size:0.95rem;font-weight:700;line-height:1;white-space:nowrap;">--</div>
+          <div style="margin-top:3px;line-height:1;">
+            <span id="bar-hours-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;">🕗 שעות</span>
+            <span id="bar-closed-notice" style="display:none;font-size:0.6rem;background:#e74c3c;color:white;border-radius:4px;padding:1px 6px;font-weight:bold;">סגור</span>
           </div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🕗 שעות</div>
         </div>
 
       </div>
@@ -621,7 +630,9 @@ img, svg, video { max-width: 100%; }
       </div>
       <div id="forum-msg2" style="display:none;margin-top:8px;padding:9px 12px;border-radius:8px;font-size:0.85rem;"></div>
     </div>
-    <div id="posts-list"></div>
+    <div id="posts-frame" style="max-height:62vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid #e6ebf2;border-radius:12px;padding:10px;background:#fcfdff;">
+      <div id="posts-list"></div>
+    </div>
     </div><!-- /forum-panel -->
 
     <!-- Reviews panel -->
@@ -962,9 +973,9 @@ img, svg, video { max-width: 100%; }
           </div>
         </div>
         <div style="display:flex;gap:6px;">
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="hotel" checked> מלון</label>
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="apt"> דירה</label>
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="any"> הכל</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="hotel" onchange="_refreshAllResults()" checked> מלון</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="apt" onchange="_refreshAllResults()"> דירה</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="any" onchange="_refreshAllResults()"> הכל</label>
         </div>
         <div class="stay-filters" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
           <div>
@@ -975,7 +986,7 @@ img, svg, video { max-width: 100%; }
               <span style="color:#aaa;">–</span>
               <input class="sf-max" type="number" min="0" step="10" placeholder="עד" inputmode="numeric"
                 style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
-              <select class="sf-cur" style="padding:8px 6px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;background:white;cursor:pointer;">
+              <select class="sf-cur" onchange="_refreshAllResults()" style="padding:8px 6px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;background:white;cursor:pointer;">
                 <option value="EUR">€ אירו</option>
                 <option value="ILS">₪ שקל</option>
                 <option value="USD">$ דולר</option>
@@ -984,7 +995,7 @@ img, svg, video { max-width: 100%; }
             </div>
           </div>
           <label style="display:flex;align-items:center;gap:6px;font-size:0.83rem;cursor:pointer;padding:9px 11px;border:1px solid #ddd;border-radius:9px;background:white;">
-            <input class="sf-kitchen" type="checkbox" style="width:15px;height:15px;"> 🍳 עם מטבח
+            <input class="sf-kitchen" type="checkbox" onchange="_refreshAllResults()" style="width:15px;height:15px;"> 🍳 עם מטבח
           </label>
         </div>
         <!-- תאריכי לינה נפרדים -->
@@ -1146,9 +1157,9 @@ img, svg, video { max-width: 100%; }
       <div style="margin-bottom:12px;">
         <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:6px;">סוג לינה</label>
         <div style="display:flex;gap:6px;">
-          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="hotel" checked> מלון</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="apt"> דירה</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="any"> הכל</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="hotel" onchange="_refreshAllResults()" checked> מלון</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="apt" onchange="_refreshAllResults()"> דירה</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="any" onchange="_refreshAllResults()"> הכל</label>
         </div>
       </div>
 
@@ -1166,7 +1177,7 @@ img, svg, video { max-width: 100%; }
             <span style="color:#aaa;">–</span>
             <input class="sf-max" type="number" min="0" step="10" placeholder="עד" inputmode="numeric"
               style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
-            <select class="sf-cur" style="padding:8px 6px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;background:white;cursor:pointer;">
+            <select class="sf-cur" onchange="_refreshAllResults()" style="padding:8px 6px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;background:white;cursor:pointer;">
               <option value="EUR">€ אירו</option>
               <option value="ILS">₪ שקל</option>
               <option value="USD">$ דולר</option>
@@ -1175,7 +1186,7 @@ img, svg, video { max-width: 100%; }
           </div>
         </div>
         <label style="display:flex;align-items:center;gap:6px;font-size:0.83rem;cursor:pointer;padding:9px 11px;border:1px solid #ddd;border-radius:9px;background:white;">
-          <input class="sf-kitchen" type="checkbox" style="width:15px;height:15px;"> 🍳 עם מטבח
+          <input class="sf-kitchen" type="checkbox" onchange="_refreshAllResults()" style="width:15px;height:15px;"> 🍳 עם מטבח
         </label>
       </div>
       <button onclick="searchHotel()" style="width:100%;padding:12px;background:#003580;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
@@ -2594,6 +2605,7 @@ function openM(id) {
 }
 function closeM(id) {
   const m = document.getElementById(id); if (m) m.style.display = 'none';
+  _unlockBodyScroll();
   var b = document.getElementById('modal-float-x'); if (b) b.classList.remove('on');
   if (_openModalId === id) _openModalId = null;
 }
@@ -2601,6 +2613,8 @@ function closeM(id) {
 // ESC key closes the topmost open modal
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Escape' && e.key !== 'Esc') return;
+  var camOv = document.getElementById('cam-fullscreen');
+  if (camOv && camOv.style.display === 'flex') { closeCamFull(); e.preventDefault(); return; }
   // Find all open modals (display !== 'none')
   const openModals = Array.from(document.querySelectorAll('.modal'))
     .filter(m => m.style.display && m.style.display !== 'none');
@@ -2615,6 +2629,7 @@ document.addEventListener('keydown', function(e) {
   } else if (top.id) {
     closeM(top.id);
   }
+  _unlockBodyScroll();
   e.preventDefault();
 });
 
@@ -2997,9 +3012,12 @@ function toggleCarDetails(id, on) {
 }
 // Only if a combined search is already on screen - this never starts one.
 function _refreshAllResults() {
-  var res = document.getElementById('all-results');
-  if (!res || res.style.display === 'none' || !res.innerHTML) return;
-  if (typeof searchAll === 'function') { _skipResultScroll = true; searchAll(); }
+  var pairs = [['all-results', 'searchAll'], ['hotel-results', 'searchHotel']];
+  pairs.forEach(function (pr) {
+    var res = document.getElementById(pr[0]);
+    if (!res || res.style.display === 'none' || !res.innerHTML) return;
+    if (typeof window[pr[1]] === 'function') { _skipResultScroll = true; window[pr[1]](); }
+  });
 }
 
 // Old compat
@@ -3617,7 +3635,6 @@ function _airbnbUrl(ci, co, adults, kids, accType, f) {
 // one line naming only the filters that actually travelled
 function _stayDesc(base, accType, f) {
   var on = [];
-  if (accType === 'apt') on.push('דירות בלבד');
   if (f.kitchen) on.push('עם מטבח');
   if (f.min != null || f.max != null) {
     on.push((CUR_SIGN[f.cur] || '') + (f.min != null ? f.min : '')
@@ -4683,7 +4700,7 @@ function _pisteCard(p, col) {
     + '</div>'
     + '<div style="font-size:0.73rem;color:#999;margin-bottom:5px;">📍 ' + _fixNums(p.area) + '</div>'
     + '<div style="font-size:0.8rem;color:#333;line-height:1.55;margin-bottom:5px;">' + p.desc + '</div>'
-    + (p.tip ? '<div style="font-size:0.74rem;color:#444;background:#fff8e1;padding:5px 8px;border-radius:6px;border-right:3px solid #f39c12;">' + p.tip + '</div>' : '')
+    + (p.tip ? '<div style="font-size:0.74rem;color:#444;background:#fff8e1;padding:5px 8px;border-radius:6px;border-right:3px solid #f39c12;">' + _fixPhones(p.tip) + '</div>' : '')
     + '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">'
     + (p.tags || []).map(function (t) { return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">' + t + '</span>'; }).join('')
     + '</div>'
@@ -5536,8 +5553,17 @@ function openCamFull(img) {
 }
 
 function closeCamFull() {
-  document.getElementById('cam-fullscreen').style.display = 'none';
+  var ov = document.getElementById('cam-fullscreen');
+  if (ov) ov.style.display = 'none';
+  _unlockBodyScroll();
+}
+// Called from every modal close and from Escape: whatever locked the page,
+// this is what lets the header stick again.
+function _unlockBodyScroll() {
+  var ov = document.getElementById('cam-fullscreen');
+  if (ov && ov.style.display !== 'none' && ov.style.display !== '') return;
   document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 }
 
 // Auto-refresh cams every 5 min when modal is open
@@ -6472,21 +6498,29 @@ function renderSwissBox() {
        + '</div>';
   }
 
+  // The last ascent time is the one line that can strand somebody, so it
+  // stays open. The rules, the fares and the small print are a page of
+  // reading that nobody wants above every run on the list - they fold away
+  // behind a disclosure the reader opens when the question comes up.
+  var detail = '';
   (sw.notes || []).forEach(function (n) {
     if (!_aLive(n.until)) return;
-    h += '<div style="font-size:0.78rem;color:#444;line-height:1.75;margin-bottom:7px;">'
+    detail += '<div style="font-size:0.78rem;color:#444;line-height:1.75;margin-bottom:7px;">'
        + _fixNums(_aEsc(n.text)) + '</div>';
   });
-
   if (sw.facts && sw.facts.length) {
-    h += '<div style="border-top:1px solid #f0d0d0;margin-top:4px;padding-top:7px;'
+    detail += '<div style="border-top:1px solid #f0d0d0;margin-top:4px;padding-top:7px;'
        + 'font-size:0.73rem;color:#777;line-height:1.8;">'
        + sw.facts.map(function (f) { return _fixNums(f); }).join('<br>') + '</div>';
   }
   if (sw.source_url) {
-    h += '<div style="margin-top:7px;"><a href="' + sw.source_url + '" target="_blank" '
+    detail += '<div style="margin-top:7px;"><a href="' + sw.source_url + '" target="_blank" '
        + 'rel="noopener" style="font-size:0.72rem;color:#888;">'
        + _aEsc(sw.source_label || '') + '</a></div>';
+  }
+  if (detail) {
+    h += '<details class="swiss-more"><summary>הכללים, המחירים והאחריות</summary>'
+       + '<div style="margin-top:9px;">' + detail + '</div></details>';
   }
   return h + '</div>';
 }
@@ -6643,6 +6677,58 @@ function renderAround(a) {
   renderAroundList();
 }
 
+// A kosher line is a Hebrew label followed by a long run of Latin brand
+// names: "שמן זית (פרווה) — Monini · Costa d'Oro · …". Hebrew and Latin in one
+// RTL line put the separators and the certifier names in the wrong places, and
+// the reader cannot tell which certifier belongs to which brand. The label
+// stays on its own RTL line and the brand run gets a left-aligned line of its
+// own, with any Hebrew inside it isolated so it still reads right-to-left.
+// A phone number is several digit groups separated by spaces. In an RTL line
+// each group is its own left-to-right run, so the paragraph lays them out
+// right-to-left and "0166 944311" is read back as "944311 0166". Wrapping the
+// whole number in one isolate makes it a single run again.
+// Only text nodes are touched, so numbers inside style="" attributes are safe.
+function _fixPhones(html) {
+  return String(html).replace(/(<[^>]*>)|([^<]+)/g, function (m, tag, txt) {
+    if (tag) return tag;
+    return txt.replace(/\+?\d{1,4}(?:[ \u00a0]\d{2,7}){1,4}/g, function (num) {
+      var digits = (num.match(/\d/g) || []).length;
+      // 8 digits or more is a phone number; "4 400" and "10 100" are not
+      return digits >= 8 ? '<bdi dir="ltr">' + num + '</bdi>' : num;
+    });
+  });
+}
+
+function _isolateHe(html) {
+  return String(html).replace(/(<[^>]*>)|([^<]+)/g, function (m, tag, txt) {
+    if (tag) return tag;
+    return txt.replace(/[\u0590-\u05FF]+(?:[ "'\u05f3\u05f4\-][\u0590-\u05FF]+)*/g,
+      function (h) { return '<bdi>' + h + '</bdi>'; });
+  });
+}
+function _kosherLine(ln) {
+  var tail = '', i = ln.indexOf('<br>');
+  if (i >= 0) { tail = ln.slice(i + 4); ln = ln.slice(0, i); }
+  var d = ln.indexOf(' \u2014 ');
+  var body = d < 0 ? '' : ln.slice(d + 3);
+  var plain = body.replace(/<[^>]*>/g, '');
+  var lat = (plain.match(/[A-Za-z]/g) || []).length;
+  var heb = (plain.match(/[\u0590-\u05FF]/g) || []).length;
+  // An enumeration gets the two-line treatment whatever the script mix: the
+  // certifier roll-call is half Hebrew court names, and it is exactly the line
+  // that was hardest to read. Only real prose is left alone.
+  var items = (plain.match(/\u00b7/g) || []).length;
+  if (d < 0 || (lat <= heb && items < 3)) {
+    return '<div style="margin-bottom:7px;">' + ln + (tail ? '<br>' + tail : '') + '</div>';
+  }
+  return '<div style="margin-bottom:11px;">'
+    + '<div style="font-weight:600;color:#24405f;">' + ln.slice(0, d) + '</div>'
+    + '<div dir="ltr" style="text-align:left;margin-top:3px;line-height:1.8;padding-inline-start:2px;">'
+    + _isolateHe(body) + '</div>'
+    + (tail ? '<div style="margin-top:3px;">' + tail + '</div>' : '')
+    + '</div>';
+}
+
 function _applyTexts(t) {
   if (!t) return;
   function _set(id, val) { var e=document.getElementById(id); if(e&&val!==undefined) e.innerHTML=val; }
@@ -6719,6 +6805,7 @@ function _applyTexts(t) {
     _set('skipass-zermatt-notice',  sp.zermatt_closure_notice);
     _set('skipass-mobile-title',    sp.mobile_pass_title);
     _set('skipass-mobile-desc',     sp.mobile_pass_desc);
+    _set('skipass-keycard',         _fixPhones(sp.keycard_note));
     _set('skipass-discounts-title', sp.discounts_title);
     if (sp.discounts) {
       var discEl = document.getElementById('skipass-discounts-list');
@@ -6733,7 +6820,7 @@ function _applyTexts(t) {
   // ── חניה ──
   if (t.parking) {
     var pk = t.parking;
-    if (pk.tips) _set('parking-tips', pk.tips);
+    if (pk.tips) _set('parking-tips', _fixPhones(pk.tips));
     if (pk.lots) {
       var pkEl = document.getElementById('parking-lots-list');
       if (pkEl) {
@@ -6744,7 +6831,7 @@ function _applyTexts(t) {
           else if (lot.map)  btns += '<a href="' + _gUrl(lot.map, lot.latlon) + '" target="_blank" rel="noopener" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f ' + (lot.xy_approx ? 'האזור במפה' : 'מפה') + '</a>';
           return '<div style="padding:12px 14px;border:1.5px solid ' + (lot.paid?'#ffd0d0':'#c8f0d0') + ';border-radius:10px;background:' + (lot.paid?'#fff5f5':'#f5fff8') + ';margin-bottom:10px;">' +
             '<div style="font-weight:bold;font-size:0.9rem;margin-bottom:6px;">' + lot.name + '</div>' +
-            '<div style="font-size:0.8rem;color:#555;line-height:1.8;margin-bottom:8px;">' + lot.desc + '</div>' +
+            '<div style="font-size:0.8rem;color:#555;line-height:1.8;margin-bottom:8px;">' + _fixPhones(lot.desc) + '</div>' +
             '<div style="display:flex;gap:7px;">' + btns + '</div></div>';
         }).join('');
       }
@@ -6772,7 +6859,7 @@ function _applyTexts(t) {
         if (ln.slice(0, 2) === '##') {
           return '<div style="font-weight:bold;color:#1a4b8c;margin:14px 0 6px;border-bottom:1px solid #dbe4f0;padding-bottom:3px;">' + ln.slice(2).trim() + '</div>';
         }
-        return '<div style="margin-bottom:7px;">' + ln + '</div>';
+        return _kosherLine(_fixPhones(ln));
       }).join('');
     }
     if (ko.cervinia_tips) {
@@ -7397,7 +7484,7 @@ function _buildSummerModals() {
       <div style="padding:16px;max-height:75vh;overflow-y:auto;">
         <div style="background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">
           🇮🇹🇨🇭 <b>מעבר ייחודי מצ'רוויניה לזרמט — ברגל!</b><br>
-          ניסיון אלפיני בלתי נשכח מעל 3,800מ — ללא סקיים.
+          ניסיון אלפיני בלתי נשכח מעל 3,800מ — ללא סקי.
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
@@ -7867,7 +7954,9 @@ function renderLiveBar(d) {
   if (d.opening_hours) set('bar-hours', d.opening_hours);
   // Show closed indicator outside opening hours
   const closedEl = document.getElementById('bar-closed-notice');
-  if (closedEl) closedEl.style.display = mountainOpen ? 'none' : 'inline';
+  const hoursLbl = document.getElementById('bar-hours-label');
+  if (closedEl) closedEl.style.display = mountainOpen ? 'none' : 'inline-block';
+  if (hoursLbl) hoursLbl.style.display = mountainOpen ? 'inline' : 'none';
 
   // ── Forecast modal: snow points ──
   if (d.snow_points && Array.isArray(d.snow_points)) {
@@ -8965,6 +9054,8 @@ function switchAdminTab(tab) {
       <div id="skipass-table-zermatt"></div>
       <div id="skipass-zermatt-notice" style="font-size:0.71rem;color:#888;margin-bottom:6px;line-height:1.6;"></div>
     </div>
+    <div id="skipass-keycard" style="padding:13px 15px;background:#fffdf5;border:1.5px solid #e8d9a8;border-radius:11px;margin-bottom:14px;font-size:0.78rem;color:#444;line-height:1.75;"></div>
+
     <!-- Skipas Mobile -->
     <div style="padding:13px 15px;background:linear-gradient(135deg,#f0f8ff,#e8f4fd);border:1.5px solid #4cc9f0;border-radius:11px;margin-bottom:14px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
@@ -8978,6 +9069,7 @@ function switchAdminTab(tab) {
         style="display:inline-block;padding:7px 16px;background:#4cc9f0;color:white;border-radius:8px;text-decoration:none;font-size:0.83rem;font-weight:bold;">
         📱 רכישה ב-Skipas Mobile
       </a>
+
     </div>
 
     <!-- Discounts -->
