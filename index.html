@@ -87,6 +87,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
 #modal-float-x {
   position: fixed; top: 14px; left: 14px; z-index: 100000;
+  /* top/left are overwritten from the dialog's own rect the moment it shows */
   width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
   background: rgba(10,25,47,0.86); color: white; font-size: 1.05rem; line-height: 1;
   box-shadow: 0 3px 12px rgba(0,0,0,0.3);
@@ -965,6 +966,27 @@ img, svg, video { max-width: 100%; }
           <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="apt"> דירה</label>
           <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="any"> הכל</label>
         </div>
+        <div class="stay-filters" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+          <div>
+            <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">💶 תקציב ללילה (אופציונלי)</label>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input class="sf-min" type="number" min="0" step="10" placeholder="מ-" inputmode="numeric"
+                style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
+              <span style="color:#aaa;">–</span>
+              <input class="sf-max" type="number" min="0" step="10" placeholder="עד" inputmode="numeric"
+                style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
+              <select class="sf-cur" style="padding:8px 6px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;background:white;cursor:pointer;">
+                <option value="EUR">€ אירו</option>
+                <option value="ILS">₪ שקל</option>
+                <option value="USD">$ דולר</option>
+                <option value="CHF">CHF פרנק</option>
+              </select>
+            </div>
+          </div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.83rem;cursor:pointer;padding:9px 11px;border:1px solid #ddd;border-radius:9px;background:white;">
+            <input class="sf-kitchen" type="checkbox" style="width:15px;height:15px;"> 🍳 עם מטבח
+          </label>
+        </div>
         <!-- תאריכי לינה נפרדים -->
         <div style="margin-top:8px;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:#555;">
@@ -1132,18 +1154,19 @@ img, svg, video { max-width: 100%; }
 
       <!-- Both of these really do travel in the URL - checked against
            Booking's and Airbnb's own filter panels, which come back with the
-           boxes ticked. Prices are forced to euros on both sides so the two
-           sets of results can be compared. -->
-      <div style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+           boxes ticked. The currency is handed to the sites as-is; no rate is
+           applied here, because a baked-in rate goes stale and then disagrees
+           with the prices on the page it links to. -->
+      <div class="stay-filters" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
         <div>
           <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">💶 תקציב ללילה (אופציונלי)</label>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input id="h-price-min" type="number" min="0" step="10" placeholder="מ-" inputmode="numeric"
+            <input class="sf-min" type="number" min="0" step="10" placeholder="מ-" inputmode="numeric"
               style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
             <span style="color:#aaa;">–</span>
-            <input id="h-price-max" type="number" min="0" step="10" placeholder="עד" inputmode="numeric"
+            <input class="sf-max" type="number" min="0" step="10" placeholder="עד" inputmode="numeric"
               style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
-            <select id="h-currency" style="padding:8px 6px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;background:white;cursor:pointer;">
+            <select class="sf-cur" style="padding:8px 6px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;background:white;cursor:pointer;">
               <option value="EUR">€ אירו</option>
               <option value="ILS">₪ שקל</option>
               <option value="USD">$ דולר</option>
@@ -1152,10 +1175,9 @@ img, svg, video { max-width: 100%; }
           </div>
         </div>
         <label style="display:flex;align-items:center;gap:6px;font-size:0.83rem;cursor:pointer;padding:9px 11px;border:1px solid #ddd;border-radius:9px;background:white;">
-          <input type="checkbox" id="h-kitchen" style="width:15px;height:15px;"> 🍳 עם מטבח
+          <input class="sf-kitchen" type="checkbox" style="width:15px;height:15px;"> 🍳 עם מטבח
         </label>
       </div>
-
       <button onclick="searchHotel()" style="width:100%;padding:12px;background:#003580;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
         🔍 חפש לינה
       </button>
@@ -2524,10 +2546,23 @@ function _wireModalScroll(m) {
   if (headerStaysPut || sc._xWired) return;
   sc._xWired = true;
   sc.addEventListener('scroll', function () {
-    if (_openModalId && sc.scrollTop > 48) b.classList.add('on');
+    if (_openModalId && sc.scrollTop > 48) { _placeFloatX(m); b.classList.add('on'); }
     else b.classList.remove('on');
   }, {passive: true});
 }
+// Anchor the button to the dialog, not the window: on a wide screen the
+// dialog is centred and a window-pinned button sits out in the page margin.
+function _placeFloatX(m) {
+  var b = document.getElementById('modal-float-x');
+  var box = m && m.querySelector('.modal-content');
+  if (!b || !box) return;
+  var r = box.getBoundingClientRect();
+  b.style.top = Math.max(8, r.top + 10) + 'px';
+  b.style.left = Math.max(8, r.left + 10) + 'px';
+}
+window.addEventListener('resize', function () {
+  if (_openModalId) _placeFloatX(document.getElementById(_openModalId));
+});
 
 function openM(id) {
   const m = document.getElementById(id);
@@ -2958,6 +2993,13 @@ function adjField(id, delta, min) {
 function toggleCarDetails(id, on) {
   const el = document.getElementById(id);
   if (el) el.style.display = on ? 'block' : 'none';
+  _refreshAllResults();
+}
+// Only if a combined search is already on screen - this never starts one.
+function _refreshAllResults() {
+  var res = document.getElementById('all-results');
+  if (!res || res.style.display === 'none' || !res.innerHTML) return;
+  if (typeof searchAll === 'function') { _skipResultScroll = true; searchAll(); }
 }
 
 // Old compat
@@ -3477,7 +3519,7 @@ function searchFlight() {
   const gfWithDates = gFlightsUrl('TLV', fCode, dr.ci, dr.co, pax);
   const links = [
     { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג ועוד אפשרויות רבות', url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
-    { icon: '✈️', title: 'Google Flights', desc: fCity + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
+    { icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך' + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
     { icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
   ];
@@ -3525,14 +3567,22 @@ function searchCar() {
 // and room_types[]=Entire home/apt for a whole place. Both are pinned to EUR
 // so the two result sets are in the same currency.
 var CUR_SIGN = {EUR: '\u20ac', ILS: '\u20aa', USD: '$', CHF: 'CHF\u00a0'};
+// Both lodging blocks carry the same controls; read the one the person can
+// actually see, so a figure typed in a hidden tab never silently filters.
 function _stayFilters() {
-  var n = function (id) {
-    var v = parseInt((document.getElementById(id) || {}).value, 10);
+  var boxes = [].slice.call(document.querySelectorAll('.stay-filters'));
+  var box = boxes.filter(function (el) { return el.offsetParent !== null; })[0] || boxes[0];
+  if (!box) return {min: null, max: null, cur: 'EUR', kitchen: false};
+  var n = function (sel) {
+    var el = box.querySelector(sel);
+    var v = el ? parseInt(el.value, 10) : NaN;
     return isFinite(v) && v > 0 ? v : null;
   };
-  var cur = (document.getElementById('h-currency') || {}).value || 'EUR';
-  return { min: n('h-price-min'), max: n('h-price-max'), cur: cur,
-           kitchen: !!(document.getElementById('h-kitchen') || {}).checked };
+  var curEl = box.querySelector('.sf-cur');
+  var kEl = box.querySelector('.sf-kitchen');
+  return { min: n('.sf-min'), max: n('.sf-max'),
+           cur: (curEl && curEl.value) || 'EUR',
+           kitchen: !!(kEl && kEl.checked) };
 }
 function _bookingUrl(ci, co, adults, kids, rooms, radius, accType, f) {
   f = f || {min: null, max: null, kitchen: false, cur: 'EUR'};
@@ -3638,7 +3688,7 @@ function searchAll() {
   const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
   let links = [
     { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג ועוד אפשרויות רבות', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
-    { icon: '✈️', title: 'Google Flights', desc: airLabel, url: gfUrl },
+    { icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך', url: gfUrl },
     { icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
     { icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
   ];
@@ -3677,9 +3727,9 @@ function searchAll() {
                                    : 'השוואת מחירים')
       + (cci!==dr.ci ? ' · תאריכים שונים' : '');
   const carAirport = airCode === 'MXP' ? 'Milan+Malpensa+Airport' : airCode === 'BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
-    links.push({ icon: '🚗', title: 'Kayak — ' + airCode, desc: kayakDesc,
+    links.push({ icon: '🚗', title: 'Kayak', desc: kayakDesc,
                  url: kayakCarUrl(airCode, cci, cco, automatic, atTerminal) });
-    links.push({ icon: '🚗', title: 'Skyscanner — ' + airCode, desc: carDesc, url: skyCarUrl(airCode, cci, cco) });
+    links.push({ icon: '🚗', title: 'Skyscanner', desc: carDesc, url: skyCarUrl(airCode, cci, cco) });
   }
 
   // רנדר תוצאות בתיבות
@@ -3693,11 +3743,18 @@ function searchAll() {
   const hotelLinks2  = links.filter(l => l.icon === '🏨' || l.icon === '🏠');
   const carLinks2    = links.filter(l => l.icon === '🚗');
 
+  function missing(ttl, bg, brd) {
+    return '<div style="background:' + bg + ';border:1.5px solid ' + brd + ';border-radius:11px;'
+      + 'padding:12px 14px;margin-bottom:10px;font-size:0.78rem;color:#8a6d3b;">'
+      + ttl + ' — לא נוצרו קישורים. נסו לרענן את העמוד.</div>';
+  }
   const res = document.getElementById('all-results');
   showResults(res);
   res.innerHTML = section('✈️ טיסות', '#f0f7ff', '#bcd', flightLinks2)
-               + section('🏨 לינה',   '#f0fff8', '#9dc', hotelLinks2)
-               + section('🚗 השכרת רכב', '#fff8f0', '#dca', carLinks2);
+               + (hasHotel ? (hotelLinks2.length ? section('🏨 לינה', '#f0fff8', '#9dc', hotelLinks2)
+                                                 : missing('🏨 לינה', '#f0fff8', '#9dc')) : '')
+               + (hasCar ? (carLinks2.length ? section('🚗 השכרת רכב', '#fff8f0', '#dca', carLinks2)
+                                             : missing('🚗 השכרת רכב', '#fff8f0', '#dca')) : '');
 }
 
 // One Hebrew locale for every picker on the page.
