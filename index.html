@@ -85,6 +85,37 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 #piste-sticky { position: sticky; top: 0; z-index: 5; background: #fff;
   margin: 0 -14px 10px; padding: 10px 14px 7px; border-bottom: 1px solid #eaeef3; }
 
+#modal-float-x {
+  position: fixed; top: 14px; left: 14px; z-index: 100000;
+  width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(10,25,47,0.86); color: white; font-size: 1.05rem; line-height: 1;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+  opacity: 0; pointer-events: none; transform: scale(0.8);
+  transition: opacity .18s ease, transform .18s ease;
+}
+#modal-float-x.on { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+.bar-u { font-size: 0.6em; font-weight: 600; opacity: 0.75; margin-inline-start: 2px; }
+
+#why-banner {
+  position: fixed; z-index: 9998;
+  bottom: calc(16px + var(--pwa-h, 0px)); right: 14px; left: auto;
+  display: flex; align-items: center; gap: 2px;
+  padding: 7px 8px 7px 4px; border-radius: 26px; cursor: pointer;
+  background: linear-gradient(135deg, #0a192f 0%, #1a4376 100%);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.32);
+  animation: whyPop .35s ease both .6s; max-width: calc(100vw - 28px);
+}
+#why-banner-body { display: flex; align-items: center; gap: 8px; padding: 0 8px 0 4px; min-width: 0; }
+#why-banner-title { color: #fff; font-size: 0.86rem; font-weight: bold; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+#why-banner-x { border: none; background: rgba(255,255,255,0.14); color: #cfe0f5;
+  width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 0.72rem;
+  line-height: 1; flex-shrink: 0; font-family: inherit; }
+#why-banner-x:hover { background: rgba(255,255,255,0.26); color: #fff; }
+@keyframes whyPop { from { opacity: 0; transform: translateY(14px) scale(.9); }
+                    to   { opacity: 1; transform: none; } }
+
 .counter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
 .c-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent); background: white; cursor: pointer; color: var(--accent); font-weight: bold; }
 .preview-banner { background: #fff3cd; border: 1px solid #ffc107; padding: 10px 20px; text-align: center; font-size: 0.85rem; color: #856404; }
@@ -257,7 +288,6 @@ img, svg, video { max-width: 100%; }
   }
 
   /* Why card - sizes to its content now, so only a floor is set */
-  #why-banner { min-height: 64px; }
 
   /* Cards & posts */
   .card { padding: 16px !important; margin-bottom: 16px !important; border-radius: 12px !important; }
@@ -425,7 +455,7 @@ img, svg, video { max-width: 100%; }
         </div>
 
         <div style="text-align:center;">
-          <div id="bar-snow" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
+          <div id="bar-snow" dir="ltr" style="color:#4cc9f0;font-size:1.25rem;font-weight:800;line-height:1;">--</div>
           <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">❄️ שלג ס"מ</div>
         </div>
 
@@ -514,27 +544,20 @@ img, svg, video { max-width: 100%; }
   </div>
 
   <!-- Why Cervinia card -->
-  <div id="why-banner" onclick="openWhyOnce()" style="margin-bottom:25px;border-radius:14px;overflow:hidden;cursor:pointer;position:relative;background:linear-gradient(135deg,#0a192f 0%,#15365f 55%,#1a4376 100%);box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-
-    <!-- the Matterhorn, as a backdrop rather than a picture: no network
-         request, no licence, and a fixed width so it never stretches -->
-    <svg viewBox="0 0 170 80" preserveAspectRatio="xMinYMax meet" aria-hidden="true"
-         style="position:absolute;left:0;bottom:0;height:100%;width:170px;max-width:55%;opacity:0.2;pointer-events:none;">
-      <polygon points="0,80 28,50 52,80" fill="#ffffff" opacity="0.35"/>
-      <polygon points="104,80 136,38 170,80" fill="#ffffff" opacity="0.5"/>
-      <polygon points="22,80 78,12 87,21 110,80" fill="#ffffff"/>
-      <polygon points="78,12 87,21 81,30 71,25 75,19" fill="#cfe2fa"/>
-    </svg>
-
-    <div style="position:relative;z-index:1;padding:14px 18px;">
-      <div style="display:flex;align-items:center;gap:9px;">
-        <span style="font-size:1.25rem;line-height:1;">🏔️</span>
-        <div id="why-banner-title" style="color:white;font-size:1.02rem;font-weight:bold;line-height:1.3;min-width:0;">למה צ'רוויניה?</div>
-        <div style="color:rgba(255,255,255,0.5);font-size:1.1rem;line-height:1;margin-right:2px;">←</div>
-        <div id="why-banner-sub" style="display:none;"></div>
-      </div>
-      <div id="why-banner-stats" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+  <!-- "Why Cervinia" is a one-time question: it is asked once, answered
+       once, and then gone for good. It used to sit at the top of the page as
+       a full-width block, which cost every returning visitor 90 pixels for
+       something they had already read. It is now a floating pill that costs
+       the layout nothing and carries its own dismiss. -->
+  <div id="why-banner" role="button" tabindex="0">
+    <button id="why-banner-x" type="button" aria-label="סגור" onclick="dismissWhyBanner(event)">✕</button>
+    <div id="why-banner-body" onclick="openWhyOnce()">
+      <span style="font-size:1.1rem;line-height:1;">🏔️</span>
+      <div id="why-banner-title">למה צ'רוויניה?</div>
+      <span style="color:rgba(255,255,255,0.55);font-size:1rem;line-height:1;">←</span>
     </div>
+    <div id="why-banner-sub" style="display:none;"></div>
+    <div id="why-banner-stats" style="display:none;"></div>
   </div>
 
   <!-- פורום -->
@@ -2276,9 +2299,9 @@ function _gustBand(g) {
 
 // Open-Meteo WMO codes: 71+ is snowfall, 95+ thunderstorm, 45/48 fog.
 function _visFlag(code) {
-  if (code === 45 || code === 48) return 'ערפל';
-  if (code >= 95) return 'סופת רעמים';
-  if (code >= 71 && code <= 86) return 'שלג';
+  if (code === 45 || code === 48) return 'צפוי ערפל';
+  if (code >= 95) return 'צפויה סופת רעמים';
+  if (code >= 71 && code <= 86) return 'צפוי שלג';
   return null;
 }
 
@@ -2294,9 +2317,9 @@ async function paintBarGust() {
   var wx = await _fetchCrossingWx();
   if (seq !== _barGustSeq) return;
   var g = wx && wx.current ? wx.current.windgusts_10m : null;
-  if (g == null) { el.textContent = '--'; el.style.color = 'rgba(255,255,255,0.5)'; return; }
+  if (g == null) { el.innerHTML = '--'; el.style.color = 'rgba(255,255,255,0.5)'; return; }
   var k = _gustBand(g).k;
-  el.textContent = Math.round(g);
+  el.innerHTML = Math.round(g) + '<span class="bar-u"> km/h</span>';
   el.style.color = { ok: '#8fe3a8', mild: '#ffe066', risk: '#ffa94d', bad: '#ff6b6b' }[k]
                    || 'rgba(255,255,255,0.8)';
   var wrap = document.getElementById('bar-gust-wrap');
@@ -2322,13 +2345,17 @@ async function openZermattForecast() {
   }
   function _set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
   _set('plateau-temp', temp != null ? Math.round(temp) + '°' : '--');
-  _set('plateau-wind', wind != null ? Math.round(wind) : '--');
-  _set('plateau-gust', gust != null ? Math.round(gust) : '--');
-  _set('plateau-snow', topSnow != null ? topSnow + ' ס"מ' : '--');
+  function _setU(id, v, u) {
+    var e = document.getElementById(id); if (!e) return;
+    e.innerHTML = v == null ? '--' : v + '<span class="bar-u">' + u + '</span>';
+  }
+  _setU('plateau-wind', wind != null ? Math.round(wind) : null, ' km/h');
+  _setU('plateau-gust', gust != null ? Math.round(gust) : null, ' km/h');
+  _setU('plateau-snow', topSnow != null ? topSnow : null, ' ס"מ');
   // deliberately not printing the model's grid elevation next to the 3,480 m in
   // the header: the two differ by a few dozen metres and look like a mistake
   _set('plateau-src', wx
-    ? 'נמדד בפלטאו רוזה ולא בכפר · רוח ומשבים ב-km/h'
+    ? 'נמדד בפלטאו רוזה, לא בכפר'
     : 'לא התקבלו נתוני מזג אוויר מהרכס');
 
   // ── the verdict: the operator's own status wins over any forecast ──
@@ -2410,13 +2437,15 @@ async function openZermattForecast() {
     var v = _visFlag(wx.daily.weathercode ? wx.daily.weathercode[i] : null);
     var parts = wx.daily.time[i].split('-');
     var label = i === 0 ? 'היום' : parts[2] + '.' + parts[1];
-    rows += '<div style="background:' + dayBg[b.k] + ';border-radius:9px;padding:9px 11px;'
-      + 'display:flex;align-items:center;justify-content:space-between;gap:8px;">'
-      + '<div style="font-size:0.8rem;font-weight:bold;min-width:52px;">' + label + '</div>'
-      + '<div dir="ltr" style="font-size:0.74rem;color:#555;white-space:nowrap;">🌬️ '
+    rows += '<div style="background:' + dayBg[b.k] + ';border-radius:9px;padding:8px 11px;'
+      + 'display:grid;grid-template-columns:54px 82px 1fr;align-items:center;gap:8px;margin-bottom:5px;">'
+      + '<div style="font-size:0.78rem;font-weight:bold;">' + label + '</div>'
+      + '<div dir="ltr" style="font-size:0.74rem;color:#555;white-space:nowrap;text-align:right;">'
       + (g != null ? Math.round(g) + ' km/h' : '--') + '</div>'
-      + '<div style="font-size:0.72rem;color:' + dayFg[b.k] + ';text-align:left;">'
-      + dayIc[b.k] + ' ' + b.txt + (v ? ' · ' + v : '') + '</div>'
+      + '<div style="font-size:0.72rem;color:' + dayFg[b.k] + ';line-height:1.5;">'
+      + dayIc[b.k] + ' ' + b.txt
+      + (v ? '<div style="font-size:0.66rem;color:#8a8a8a;margin-top:1px;">' + v + '</div>' : '')
+      + '</div>'
       + '</div>';
   }
   grid.innerHTML = '<div style="font-weight:bold;font-size:0.8rem;margin-bottom:6px;color:#0a192f;">'
@@ -2426,9 +2455,47 @@ async function openZermattForecast() {
     + 'לא אם הוא ייפתח.</div>';
 }
 
+// Every modal has its own X in its header, but the header scrolls away, and
+// on a long list that means scrolling all the way back up just to close.
+// Rather than make 28 different headers sticky, one floating X appears in the
+// corner as soon as the modal is scrolled, and closes whatever is open.
+var _openModalId = null;
+function _modalScroller(m) {
+  if (!m) return null;
+  var inner = m.querySelector('[style*="overflow-y:auto"], [style*="overflow-y: auto"]');
+  return inner || m.querySelector('.modal-content');
+}
+function _ensureFloatX() {
+  var b = document.getElementById('modal-float-x');
+  if (b) return b;
+  b = document.createElement('button');
+  b.id = 'modal-float-x';
+  b.type = 'button';
+  b.setAttribute('aria-label', 'סגור');
+  b.innerHTML = '\u2715';
+  b.onclick = function () { if (_openModalId) closeM(_openModalId); };
+  document.body.appendChild(b);
+  return b;
+}
+function _wireModalScroll(m) {
+  var sc = _modalScroller(m);
+  var b = _ensureFloatX();
+  b.classList.remove('on');
+  if (!sc) return;
+  sc.scrollTop = 0;            // every open starts at the top of the list
+  if (sc._xWired) return;
+  sc._xWired = true;
+  sc.addEventListener('scroll', function () {
+    if (_openModalId && sc.scrollTop > 70) b.classList.add('on');
+    else b.classList.remove('on');
+  }, {passive: true});
+}
+
 function openM(id) {
   const m = document.getElementById(id);
   if (m) m.style.display = 'flex';
+  _openModalId = id;
+  if (m) setTimeout(function () { _wireModalScroll(m); }, 40);
   if (id === 'authModal') {
     // נקה שדות בכל פתיחה
     ['login-name','login-pass','reg-name','reg-email','reg-pass','reg-pass2','forgot-email'].forEach(function(f) {
@@ -2449,7 +2516,11 @@ function openM(id) {
   if (id === 'rentalModal') switchRentTab('ski');
   if (id === 'lessonsModal') { setTimeout(renderInstructors, 50); switchLessonTab('group'); }
 }
-function closeM(id) { const m = document.getElementById(id); if (m) m.style.display = 'none'; }
+function closeM(id) {
+  const m = document.getElementById(id); if (m) m.style.display = 'none';
+  var b = document.getElementById('modal-float-x'); if (b) b.classList.remove('on');
+  if (_openModalId === id) _openModalId = null;
+}
 
 // ESC key closes the topmost open modal
 document.addEventListener('keydown', function(e) {
@@ -4379,13 +4450,16 @@ var PISTE_AREAS = [
   {k:'small',         label:'🚡 טורגנון ושמואה'}
 ];
 var PISTE_KINDS = [
-  {k:'all',   label:'הכל'},
   {k:'route', label:'⭐ מסלול מומלץ'},
-  {k:'easy',  label:'🔵 מתחילים'},
-  {k:'inter', label:'🔴 בינוני'},
-  {k:'adv',   label:'⚫ מתקדמים'},
+  {k:'runs',  label:'⛷️ מסלולים'},
   {k:'hut',   label:'🏠 בקתות'},
   {k:'apres', label:'🎵 אפרה סקי'}
+];
+var PISTE_DIFFS = [
+  {k:'all',   label:'הכל'},
+  {k:'easy',  label:'🔵 מתחילים'},
+  {k:'inter', label:'🔴 בינוני'},
+  {k:'adv',   label:'⚫ מתקדמים'}
 ];
 var AREA_TITLES = {
   cervinia:      "🇮🇹 צ'רוויניה",
@@ -4444,7 +4518,7 @@ function _pisteCard(p, col) {
         var btn = 'display:inline-flex;align-items:center;gap:4px;font-size:0.74rem;text-decoration:none;padding:4px 9px;border-radius:6px;';
         var L = [];
         var mapIsUrl = p.map && /^https?:\/\//.test(p.map);
-        if (p.trail) {
+        if (p.trail && p.mapy) {
           // Every run carries Mapy's own object id, so the link opens the run
           // itself. Searching by name alone is not enough: the same name
           // belongs to a lift, a footpath and sometimes a hamlet.
@@ -4516,6 +4590,7 @@ function _routeMapSvg(r) {
 
   var COL = {'🔵': '#2d8fd5', '🔴': '#d9453f', '⚫': '#333'};
   var lifts = '', runs = '', marks = '', gaps = '', first = null, last = null;
+  var prevDiff = '', prevPartial = false, partialShown = false, gapShown = false;
 
   function metres(a, b) {
     var dy = (b[1] - a[1]) * 111320, dx = (b[0] - a[0]) * 111320 * kx;
@@ -4534,15 +4609,22 @@ function _routeMapSvg(r) {
       if (idx === 0) {
         var h = a[0], t = a[a.length - 1];
         if (cursor && metres(cursor, t) < metres(cursor, h)) a = a.slice().reverse();
-        else if (!cursor && keys.length) { /* first line keeps its own order */ }
         if (cursor && metres(cursor, a[0]) > 150) {
+          // A gap that follows a run marked `partial` is the unmapped rest of
+          // that run, so it is drawn in the run's own colour: the skier is
+          // still on a blue piste there, we just have no line for it.
+          var gc = prevPartial ? (COL[prevDiff] || '#c3ccd8') : '#c3ccd8';
+          if (prevPartial) partialShown = true; else gapShown = true;
           gaps += '<path d="M' + X(cursor).toFixed(1) + ' ' + Y(cursor).toFixed(1)
                 + ' L' + X(a[0]).toFixed(1) + ' ' + Y(a[0]).toFixed(1)
-                + '" fill="none" stroke="#c3ccd8" stroke-width="1.6" stroke-dasharray="2 4" stroke-linecap="round"/>';
+                + '" fill="none" stroke="' + gc + '" stroke-width="' + (prevPartial ? 2.6 : 1.6)
+                + '" stroke-dasharray="2 5" stroke-linecap="round" opacity="' + (prevPartial ? 0.85 : 1) + '"/>';
         }
         cursor = a[a.length - 1];
+        if (g.type === 'piste') { prevDiff = g.diff; prevPartial = !!g.partial; }
+        else { prevPartial = false; }
       }
-      if (g.type === 'lift') {
+      if (g.type !== 'piste') {
         lifts += '<path d="' + path(a) + '" fill="none" stroke="#9fb0c4" stroke-width="1.6" stroke-dasharray="5 4" stroke-linecap="round"/>';
       } else {
         var c = COL[g.diff] || '#666';
@@ -4590,7 +4672,8 @@ function _routeMapSvg(r) {
     + (runs.indexOf('#2d8fd5') >= 0 ? '<span><b style="color:#2d8fd5;">—</b> כחול</span>' : '')
     + (runs.indexOf('#d9453f') >= 0 ? '<span><b style="color:#d9453f;">—</b> אדום</span>' : '')
     + (lifts ? '<span><b style="color:#9fb0c4;">- -</b> רכבל</span>' : '')
-    + (gaps ? '<span><b style="color:#c3ccd8;">· ·</b> חיבור משוער</span>' : '')
+    + (gapShown ? '<span><b style="color:#c3ccd8;">· ·</b> חיבור משוער</span>' : '')
+    + (partialShown ? '<span><b style="color:#2d8fd5;">· ·</b> כחול שלא מופה במלואו</span>' : '')
     + '</div>'
     + '<div style="padding:0 10px 8px;font-size:0.63rem;color:#aab4c0;text-align:center;">מסלולים: © OpenStreetMap contributors</div>'
     + '</div>';
@@ -4599,8 +4682,33 @@ function _routeMapSvg(r) {
 function _routeCard(r) {
   var legs = r.legs || [];
   var rows = legs.map(function (g, i) {
-    var isLift = g.type === 'lift';
     var last = i === legs.length - 1;
+
+    // A divider, for the point where two different ways up meet again.
+    if (g.type === 'note') {
+      return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0 11px;">'
+        + '<div style="flex:1;height:1px;background:#e6ebf2;"></div>'
+        + '<span style="font-size:0.7rem;color:#9aa7b5;white-space:nowrap;">' + g.text + '</span>'
+        + '<div style="flex:1;height:1px;background:#e6ebf2;"></div></div>';
+    }
+
+    // Two genuinely different ways to start the day, shown side by side
+    // rather than as one leg with a footnote.
+    if (g.type === 'choice') {
+      return '<div style="margin-bottom:12px;">'
+        + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:7px;">\u2b25 ' + g.name + '</div>'
+        + '<div style="display:flex;flex-direction:column;gap:7px;">'
+        + (g.options || []).map(function (o) {
+            return '<div style="border:1.5px solid #dbe4f0;border-radius:9px;padding:9px 11px;background:white;">'
+              + '<div style="font-weight:bold;font-size:0.82rem;color:#1a3a6c;">' + o.label + '</div>'
+              + (o.alt ? '<div style="font-size:0.72rem;color:#999;margin-top:2px;">' + _fixNums(o.alt) + '</div>' : '')
+              + '<div style="font-size:0.77rem;color:#444;margin-top:4px;line-height:1.6;">' + _fixNums(o.text) + '</div>'
+              + '</div>';
+          }).join('')
+        + '</div></div>';
+    }
+
+    var isLift = g.type === 'lift';
     var dot = isLift
       ? '<div style="width:26px;height:26px;border-radius:50%;background:#eef3fa;border:1.5px solid #c9d8ec;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">🚡</div>'
       : '<div style="width:26px;height:26px;border-radius:50%;background:white;border:1.5px solid #e2e2e2;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">' + (g.diff || '') + '</div>';
@@ -4614,6 +4722,7 @@ function _routeCard(r) {
       + (g.num ? '<span dir="ltr" style="background:#1a3a6c;color:white;border-radius:5px;padding:1px 7px;font-size:0.68rem;font-weight:bold;">' + g.num + '</span>' : '')
       + '<span style="font-weight:bold;font-size:0.84rem;">' + g.name + '</span>'
       + (g.len ? '<span dir="ltr" style="font-size:0.72rem;color:#2980b9;font-weight:bold;">' + g.len + '</span>' : '')
+      + (g.variant ? '<span style="font-size:0.63rem;padding:1px 7px;background:#eef3fa;color:#5b6b80;border-radius:9px;border:1px solid #dbe4f0;">רק בדרך ' + g.variant + '\u05f3</span>' : '')
       + '</div>'
       + (g.alt ? '<div style="font-size:0.72rem;color:#999;margin-top:2px;">' + _fixNums(g.alt) + '</div>' : '')
       + (g.note ? '<div style="font-size:0.76rem;color:#444;margin-top:3px;line-height:1.55;">' + _fixNums(g.note) + '</div>' : '')
@@ -4675,7 +4784,8 @@ function renderPisteGuide() {
   if (!el) return;
 
   var area = window.pisteArea || 'all';
-  var kind = window.pisteKind || 'all';
+  var kind = window.pisteKind || 'runs';
+  var diff = window.pisteDiff || 'all';
   var activeTab = window.pisteTab || 'list';
 
   var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:8px;">'
@@ -4686,7 +4796,8 @@ function renderPisteGuide() {
 
   var chipHtml = activeTab === 'map' ? ''
     : _chipRow('איפה', PISTE_AREAS, area, 'setPisteArea')
-    + _chipRow('מה', PISTE_KINDS, kind, 'setPisteKind');
+    + _chipRow('מה', PISTE_KINDS, kind, 'setPisteKind')
+    + (kind === 'runs' ? _chipRow('דרגה', PISTE_DIFFS, diff, 'setPisteDiff') : '');
 
   // the switcher and both chip rows stay put while the list scrolls
   var headHtml = '<div id="piste-sticky">' + tabHtml + chipHtml + '</div>';
@@ -4714,14 +4825,17 @@ function renderPisteGuide() {
       var areaOk = area === 'all' ? true
                  : area === 'small' ? (x.area === 'torgnon' || x.area === 'chamois')
                  : x.area === area;
-      return areaOk && (kind === 'all' || x.kind === kind);
+      if (!areaOk) return false;
+      if (kind === 'hut' || kind === 'apres') return x.kind === kind;
+      var isRun = x.kind === 'easy' || x.kind === 'inter' || x.kind === 'adv';
+      return isRun && (diff === 'all' || x.kind === diff);
     });
 
     bodyHtml = '<div style="display:flex;flex-direction:column;gap:8px;">';
 
     // the recommended routes lead, because they are the one thing on this
     // screen that answers "what should I actually ski today"
-    var routes = (kind === 'all' || kind === 'route') ? _routesFor(area) : [];
+    var routes = kind === 'route' ? _routesFor(area) : [];
     routes.forEach(function (r) { bodyHtml += _routeCard(r); });
     if (kind === 'route') {
       if (!routes.length) {
@@ -4733,7 +4847,7 @@ function renderPisteGuide() {
       return;
     }
 
-    if (kind === 'hut' || kind === 'apres' || kind === 'all') bodyHtml += kosherNotice;
+    if (kind === 'hut' || kind === 'apres') bodyHtml += kosherNotice;
 
     if (!flat.length) {
       bodyHtml += '<div style="padding:22px 14px;text-align:center;color:#888;font-size:0.84rem;line-height:1.9;">'
@@ -4756,7 +4870,7 @@ function renderPisteGuide() {
       ['easy','inter','adv','hut','apres'].forEach(function (kk) {
         var sub = inArea.filter(function (x) { return x.kind === kk; });
         if (!sub.length) return;
-        if (kind === 'all') {
+        if (kind === 'runs' && diff === 'all') {
           bodyHtml += '<div style="font-size:0.72rem;color:#999;margin-top:7px;padding-right:2px;">'
             + KIND_TITLES[kk] + '</div>';
         }
@@ -4922,13 +5036,15 @@ function renderSkipassPrices() {
 
 function setPisteArea(a) { window.pisteArea = a; renderPisteGuide(); }
 function setPisteKind(k) { window.pisteKind = k; renderPisteGuide(); }
+function setPisteDiff(d) { window.pisteDiff = d; renderPisteGuide(); }
 // kept so an old bookmark or a deep link with the single-axis name still works
 function setPisteFilter(f) {
   var areaOf = {zermatt:'zermatt', valtournenche:'valtournenche', nearby:'small'};
-  var kindOf = {beginner:'easy', intermediate:'inter', advanced:'adv',
-                restaurants:'hut', apres_ski:'apres'};
+  var kindOf = {restaurants:'hut', apres_ski:'apres'};
+  var diffOf = {beginner:'easy', intermediate:'inter', advanced:'adv'};
   window.pisteArea = areaOf[f] || 'all';
-  window.pisteKind = kindOf[f] || 'all';
+  window.pisteKind = kindOf[f] || 'runs';
+  window.pisteDiff = diffOf[f] || 'all';
   renderPisteGuide();
 }
 function setPisteTab(t)    { window.pisteTab = t;    renderPisteGuide(); }
@@ -7496,7 +7612,9 @@ function renderLiveBar(d) {
   // snow_depth — supports both string "140 cm" and number 140
   const rawSnow = d.snow_depth || d.snow_depth_top;
   const snowNum = rawSnow != null ? parseInt(String(rawSnow)) : null;
-  set('bar-snow', snowNum != null ? snowNum + ' ס"מ' : '--');
+  var _bs = document.getElementById('bar-snow');
+  if (_bs) _bs.innerHTML = snowNum != null
+    ? snowNum + '<span class="bar-u"> ס"מ</span>' : '--';
 
   // weather_description — Italian + English → Hebrew
   const weatherIcons = {
@@ -9718,6 +9836,11 @@ function hideWhyBanner() {
   var el = document.getElementById('why-banner');
   if (el) el.style.display = 'none';
 }
+function dismissWhyBanner(e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  try { localStorage.setItem('whySeen', '1'); } catch (err) {}
+  hideWhyBanner();
+}
 function openWhyOnce() {
   try { localStorage.setItem('whySeen', '1'); } catch (e) {}
   hideWhyBanner();
@@ -9733,6 +9856,8 @@ let deferredPrompt = null;
 function _padForPwaBar(on) {
   var bar = document.getElementById('pwa-banner');
   document.body.style.paddingBottom = (on && bar) ? (bar.offsetHeight + 8) + 'px' : '';
+  // the floating "why" pill rides above the install bar rather than under it
+  document.documentElement.style.setProperty('--pwa-h', (on && bar) ? bar.offsetHeight + 'px' : '0px');
 }
 
 window.addEventListener('beforeinstallprompt', function(e) {
