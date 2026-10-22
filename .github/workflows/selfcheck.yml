@@ -1,0 +1,61 @@
+# בדיקה אוטומטית בכל העלאה
+#
+# .github/workflows/selfcheck.yml — קובץ חדש ונפרד. אינו נוגע ב-update.yml.
+#
+# Everything sits at the repo root — index.html, texts.json and the three
+# scripts — and the scripts find each other from there, so no step needs a
+# working directory.
+#
+# Runs on GitHub's machines. The result appears under the repo's Actions tab:
+# a green tick, or a red X naming exactly what failed.
+
+name: בדיקת אתר
+
+on:
+  push:
+    paths:
+      - 'index.html'
+      - 'texts.json'
+      - 'validate.py'
+      - 'selfcheck.mjs'
+      - 'freshness.py'
+      - 'verified_urls.json'
+      - '.github/workflows/selfcheck.yml'
+  pull_request:
+  workflow_dispatch:        # להרצה ידנית מלשונית Actions
+
+jobs:
+  selfcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: התקנת Playwright
+        run: |
+          npm install --no-save playwright@1.49.1
+          npx playwright install --with-deps chromium
+
+      # texts.json: parses, required sections present, coordinates sane,
+      # every link in texts.json AND in index.html known-good.
+      - name: בדיקת texts.json והקישורים
+        run: python3 validate.py
+
+      # The page itself: every panel opens and closes, no script errors, no
+      # duplicate ids, no scrambled Hebrew, no empty links, no private phone
+      # numbers, no sideways overflow at seven phone widths.
+      - name: בדיקת האתר
+        run: node selfcheck.mjs
+
+      # A report, not a gate: which sources are due for a re-check.
+      - name: רשימת הרענון החודשי
+        run: python3 freshness.py
+        continue-on-error: true
