@@ -2005,6 +2005,16 @@ img, svg, video { max-width: 100%; }
                     </div>
                 </div>
 
+                <!-- בדיקה עצמית -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:4px;">🧪 בדיקת האתר</div>
+                    <div style="font-size:0.7rem;color:#999;margin-bottom:9px;line-height:1.6;">
+                        פותח כל חלון, בודק שגיאות, כיווניות, קישורים, דליפת טלפונים, וגלישה הצידה בשבעה רוחבי מסך. לוקח כחצי דקה.
+                    </div>
+                    <button id="st-run" onclick="ST.run()" style="width:100%;padding:10px;background:#0a7d4b;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;">🧪 הרצת בדיקות</button>
+                    <div id="st-out" style="margin-top:9px;max-height:40vh;overflow-y:auto;"></div>
+                </div>
+
                 <!-- מדריכים מומלצים -->
                 <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
@@ -4623,6 +4633,281 @@ AI.del = async function (id) {
   AI.load();
 };
 
+// ── בדיקה עצמית מתוך הדף ──────────────────────────────────────────────────
+// The same suite as texts/selfcheck.mjs, running inside the page so it needs
+// nothing installed. Most of it is just reading this document. The one check
+// that looks impossible from here is the responsive one - a page cannot
+// resize its own window - but it can load itself into a narrow iframe, and
+// media queries inside an iframe are evaluated against the iframe's width.
+// So the width checks are real, not simulated.
+var ST = { out: [], pass: 0 };
+
+ST.ok   = function ()        { ST.pass++; };
+ST.fail = function (t, d)    { ST.out.push({ t: t, d: d, kind: 'fail' }); };
+ST.warn = function (t, d)    { ST.out.push({ t: t, d: d, kind: 'warn' }); };
+
+ST.say = function (html) {
+  var e = document.getElementById('st-out');
+  if (e) e.innerHTML = html;
+};
+
+// Supabase and the weather feeds fail whenever the network is unhappy, and
+// that is the environment rather than the page.
+ST.NOISE = /supabase|Failed to fetch|NetworkError|ERR_|texts\.json|net::|Load failed/i;
+
+ST.run = async function () {
+  ST.out = []; ST.pass = 0;
+  var btn = document.getElementById('st-run');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ רץ…'; }
+  ST.say('<div style="font-size:0.8rem;color:#888;">מריץ…</div>');
+
+  var errs = [];
+  var onerr = function (e) {
+    var m = (e && (e.message || e.reason)) ? String(e.message || e.reason) : String(e);
+    if (!ST.NOISE.test(m)) errs.push(m.slice(0, 120));
+  };
+  window.addEventListener('error', onerr);
+  window.addEventListener('unhandledrejection', onerr);
+
+  var openIds = [].slice.call(document.querySelectorAll('.modal')).map(function (m) { return m.id; })
+    .filter(function (id) { return id && id !== 'adminModal'; });
+
+  try {
+    // ── every panel opens, is not empty, and closes again ────────────────
+    for (var i = 0; i < openIds.length; i++) {
+      var id = openIds[i];
+      var before = errs.length;
+      try {
+        openM(id);
+        await ST.wait(70);
+        var m = document.getElementById(id);
+        var c = m.querySelector('.modal-content');
+        var h = c ? Math.round(c.scrollHeight) : -1;
+        if (h < 40) ST.fail('החלון נפתח ולא ריק', id + ' בגובה ' + h + 'px'); else ST.ok();
+
+        var btnc = m.querySelector('.close-btn')
+          || [].slice.call(m.querySelectorAll('[onclick]')).filter(function (e) {
+               return (e.getAttribute('onclick') || '').indexOf("closeM('" + id + "')") > -1;
+             })[0];
+        if (!btnc) { ST.fail('לחצן סגירה', id + ' — אין לחצן סגירה'); }
+        else {
+          btnc.click();
+          await ST.wait(60);
+          if (m.style.display !== 'none') ST.fail('לחצן סגירה', id + ' — הלחיצה לא סגרה');
+          else ST.ok();
+        }
+      } catch (e) { ST.fail('פתיחת חלון', id + ': ' + String(e).slice(0, 80)); }
+      var fresh = errs.slice(before);
+      if (fresh.length) ST.fail('אין שגיאות סקריפט', id + ': ' + fresh[0]); else ST.ok();
+      document.querySelectorAll('.modal').forEach(function (x) {
+        if (x.id !== 'adminModal') x.style.display = 'none';
+      });
+    }
+
+    // ── Escape closes the top panel only ─────────────────────────────────
+    openM('pisteModal');
+    if (typeof openSources === 'function') openSources('pistes');
+    await ST.wait(150);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await ST.wait(150);
+    var sm = document.getElementById('sourcesModal'), pm = document.getElementById('pisteModal');
+    if (sm && sm.style.display === 'none' && pm && pm.style.display !== 'none') ST.ok();
+    else ST.fail('Escape סוגר רק את החלון העליון', 'מקורות: ' + (sm ? sm.style.display : '?')
+                 + ' · מסלולים: ' + (pm ? pm.style.display : '?'));
+    closeM('pisteModal');
+
+    // ── duplicate ids ────────────────────────────────────────────────────
+    // getElementById returns whichever came first, so one of the two
+    // controls silently stops working.
+    var seen = {}, dup = [];
+    document.querySelectorAll('[id]').forEach(function (e) {
+      if (seen[e.id]) { if (dup.indexOf(e.id) < 0) dup.push(e.id); } else seen[e.id] = 1;
+    });
+    if (dup.length) ST.fail('אין מזהים כפולים', dup.slice(0, 6).join(', ')); else ST.ok();
+
+    // ── bidi, links, placeholders - per panel, opened properly ───────────
+    var bidi = [], links = [], holes = [];
+    for (var j = 0; j < openIds.length; j++) {
+      var mid = openIds[j];
+      openM(mid); await ST.wait(70);
+      var mm = document.getElementById(mid);
+
+      mm.querySelectorAll('[dir="ltr"]').forEach(function (e) {
+        // Hebrew in an LTR run is fine while it is isolated in a <bdi> of
+        // its own, which is how the kosher lists mix a Latin brand run with
+        // a Hebrew gloss. Strip the isolates and look at what is left bare.
+        var cl = e.cloneNode(true);
+        cl.querySelectorAll('bdi,[dir="rtl"]').forEach(function (n) { n.remove(); });
+        var bare = (cl.textContent || '').trim();
+        if (bare.replace(/[^֐-׿]/g, '').length > 1) {
+          bidi.push(mid + ' :: ' + bare.slice(0, 44));
+        }
+      });
+
+      mm.querySelectorAll('a[href]').forEach(function (a) {
+        if (a.offsetParent === null) return;
+        var h = a.getAttribute('href') || '';
+        if (h === '#' && a.getAttribute('onclick')) return;
+        if (h.slice(0, 5) === 'data:') return;
+        if (!h || /undefined|null|NaN|YOUR_|example\.com/i.test(h)) {
+          links.push(mid + ' :: ' + (a.textContent || '').trim().slice(0, 24) + ' :: ' + h.slice(0, 50));
+        }
+      });
+
+      mm.querySelectorAll('[id]').forEach(function (e) {
+        var t = (e.textContent || '').trim();
+        if (/^(TODO|undefined|null|\[\]|\{\})$/i.test(t)) holes.push(e.id + ' = ' + t);
+      });
+
+      closeM(mid);
+    }
+    if (bidi.length) ST.fail('אין עברית כפויה לתוך רצף LTR', bidi.slice(0, 4).join(' | ')); else ST.ok();
+    if (links.length) ST.fail('אין קישורים ריקים', links.slice(0, 4).join(' | ')); else ST.ok();
+    if (holes.length) ST.fail('אין placeholder שלא מולא', holes.slice(0, 4).join(', ')); else ST.ok();
+
+    // ── the number formatter must leave tags alone ───────────────────────
+    if (typeof _fixNums === 'function') {
+      var probe = '<span style="font-size:0.78rem;color:#8a5a00;">מחיר 2,450 מ׳</span>';
+      if (_fixNums(probe).indexOf('font-size:0.78rem') > -1) ST.ok();
+      else ST.fail('מעצב המספרים לא נוגע בתגיות', 'מאפיין style נהרס');
+    }
+
+    // ── nothing private reaches a public reader ──────────────────────────
+    // Two traps here. Writing the numbers into this check would put them
+    // back in the page, which is the very thing being tested - so the list
+    // is held as hashes and the page's own digit runs are hashed to match.
+    // And the admin panel shows them on purpose, so it is excluded; what
+    // matters is the public file and the public panels.
+    var HASHED = [2932617153, 1778988392, 2279084835, 3888746630, 3710921417, 2590707623];
+    var hash = function (x) {
+      var h = 5381;
+      for (var k = 0; k < x.length; k++) h = ((h * 33) ^ x.charCodeAt(k)) >>> 0;
+      return h;
+    };
+    var hay = JSON.stringify(window._texts || {});
+    document.querySelectorAll('.modal').forEach(function (m) {
+      if (m.id !== 'adminModal') hay += ' ' + (m.textContent || '') + ' ' + m.innerHTML;
+    });
+    var runs = hay.match(/\d{9,}/g) || [];
+    var leak = 0;
+    runs.forEach(function (r) {
+      for (var a = 0; a + 10 <= r.length + 1; a++) {
+        if (HASHED.indexOf(hash(r.substr(a, 10))) > -1) leak++;
+      }
+    });
+    if (leak) ST.fail('אין טלפונים פרטיים בדף הציבורי', leak + ' מופעים'); else ST.ok();
+
+    // ── the editor loads and refuses a broken file ───────────────────────
+    if (typeof CE !== 'undefined' && window._texts) {
+      CE.data = null; CE.dirty = {};
+      try { localStorage.removeItem('ce_draft'); } catch (e) {}
+      CE.open();
+      if (JSON.stringify(CE.data) === JSON.stringify(window._texts)) ST.ok();
+      else ST.fail('העורך טוען את הקובץ ללא שינוי', 'הקובץ השתנה בטעינה');
+      try {
+        CE.set(CE.data, ['around', 'places', 0, 'what'], '<b>לא נסגר');
+        if (CE.validate().length > 0) ST.ok();
+        else ST.fail('העורך פוסל קובץ שבור', 'תגית פתוחה עברה את הבדיקה');
+      } catch (e) { ST.fail('העורך פוסל קובץ שבור', String(e).slice(0, 60)); }
+      CE.data = JSON.parse(JSON.stringify(window._texts)); CE.dirty = {};
+    }
+
+    // ── responsive: the page inside a narrow iframe of itself ────────────
+    await ST.widths();
+
+  } finally {
+    window.removeEventListener('error', onerr);
+    window.removeEventListener('unhandledrejection', onerr);
+    document.querySelectorAll('.modal').forEach(function (x) {
+      if (x.id !== 'adminModal') x.style.display = 'none';
+    });
+    if (btn) { btn.disabled = false; btn.textContent = '🧪 הרצת בדיקות'; }
+  }
+
+  ST.report();
+};
+
+ST.wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+
+// A page cannot resize its own window, but it can load itself into an iframe
+// of a given width - and inside that iframe the media queries are evaluated
+// against the iframe, so the layout really is the phone layout. The query
+// string stops the copy from running its own tests.
+ST.widths = async function () {
+  if (location.search.indexOf('selftest=1') > -1) return;   // we are the copy
+  var WIDTHS = [430, 414, 393, 390, 375, 360, 320];
+  var host = document.createElement('div');
+  host.style.cssText = 'position:fixed;left:-10000px;top:0;width:1px;height:1px;overflow:hidden;';
+  document.body.appendChild(host);
+  try {
+    for (var i = 0; i < WIDTHS.length; i++) {
+      var w = WIDTHS[i];
+      var spill = await ST.oneWidth(host, w);
+      if (spill === null) { ST.warn('בדיקת רוחב ' + w, 'לא ניתן לטעון עותק של הדף'); }
+      else if (spill.length) ST.fail('אין גלישה הצידה ברוחב ' + w, spill.join(', '));
+      else ST.ok();
+    }
+  } finally { host.remove(); }
+};
+
+ST.oneWidth = function (host, w) {
+  return new Promise(function (resolve) {
+    var f = document.createElement('iframe');
+    f.style.cssText = 'width:' + w + 'px;height:880px;border:0;';
+    f.src = location.pathname + '?selftest=1';
+    var done = false;
+    var finish = function (v) { if (!done) { done = true; try { f.remove(); } catch (e) {} resolve(v); } };
+    var timer = setTimeout(function () { finish(null); }, 12000);
+    f.onload = async function () {
+      try {
+        var d = f.contentDocument, win = f.contentWindow;
+        // give the copy the texts we already have, so it does not have to
+        // fetch them again, and so both sides test the same content
+        if (window._texts && typeof win._applyTexts === 'function') {
+          win._texts = window._texts;
+          win.PISTES = window._texts.pistes;
+          win.SKI_INSTRUCTORS = window._texts.ski_instructors || [];
+          win._applyTexts(window._texts);
+        }
+        await ST.wait(260);
+        var bad = [];
+        var mods = d.querySelectorAll('.modal');
+        for (var k = 0; k < mods.length; k++) {
+          var m = mods[k];
+          if (!m.id) continue;
+          try { win.openM(m.id); } catch (e) { continue; }
+          await ST.wait(55);
+          var c = m.querySelector('.modal-content');
+          if (c && c.scrollWidth > c.clientWidth + 2) {
+            bad.push(m.id + ' (' + c.scrollWidth + '>' + c.clientWidth + ')');
+          }
+          try { win.closeM(m.id); } catch (e) {}
+        }
+        clearTimeout(timer);
+        finish(bad);
+      } catch (e) { clearTimeout(timer); finish(null); }
+    };
+    host.appendChild(f);
+  });
+};
+
+ST.report = function () {
+  var fails = ST.out.filter(function (o) { return o.kind === 'fail'; });
+  var warns = ST.out.filter(function (o) { return o.kind === 'warn'; });
+  var head = fails.length
+    ? '<div style="padding:9px 11px;border-radius:8px;background:#ffecec;color:#b00;font-weight:bold;font-size:0.84rem;">'
+      + '✗ עברו ' + ST.pass + ' · נכשלו ' + fails.length + (warns.length ? ' · אזהרות ' + warns.length : '') + '</div>'
+    : '<div style="padding:9px 11px;border-radius:8px;background:#e8f8ec;color:#157a37;font-weight:bold;font-size:0.84rem;">'
+      + '✓ עברו ' + ST.pass + ' · הכול תקין' + (warns.length ? ' · אזהרות ' + warns.length : '') + '</div>';
+  var body = ST.out.map(function (o) {
+    var col = o.kind === 'fail' ? '#b00' : '#b06000';
+    return '<div style="margin-top:7px;font-size:0.78rem;line-height:1.6;">'
+      + '<b style="color:' + col + ';">' + (o.kind === 'fail' ? '✗ ' : '⚠ ') + o.t + '</b>'
+      + '<div style="color:#666;word-break:break-word;">' + CE.esc(o.d) + '</div></div>';
+  }).join('');
+  ST.say(head + body);
+};
+
 var CE = {
   data: null,      // working copy
   orig: null,      // what was loaded, for the "changed" marks
@@ -6830,7 +7115,22 @@ const SUPABASE_KEY = 'sb_publishable_B4HOCQF3IxN_6Ojz1_ctnA_k6JEAR4g';
 const USE_SUPABASE = true;
 
 // אתחול מיידי של קליינט Supabase
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// If the Supabase script has not loaded - a blocked CDN, a flaky network,
+// an ad blocker - this line used to throw at the top level of the script
+// block, and every top-level assignment after it was skipped. The functions
+// survived, because they hoist, but their variables came out undefined, so
+// unrelated parts of the page broke in ways that pointed nowhere near here.
+// Now the failure stays local: the backend is simply absent.
+var _sb = null;
+try {
+  if (typeof supabase !== 'undefined' && supabase && supabase.createClient) {
+    _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } else {
+    console.warn('Supabase לא נטען — האתר ימשיך לעבוד בלי החלקים שתלויים בו');
+  }
+} catch (e) {
+  console.warn('Supabase לא אותחל:', e && e.message);
+}
 function getSB() { return _sb; }
 
 // ── Supabase auth helpers ──
