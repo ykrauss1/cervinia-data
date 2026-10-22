@@ -59,7 +59,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         .result-link .rl-desc { font-size:0.75rem; color:#888; margin-top:2px; }
         .result-link .rl-arrow { color:#ccc; font-size:1rem; }
         .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
-.modal-content { background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; position: relative; max-height: 95vh; overflow-y: auto; }
+.modal-content { --mc-pad: 30px; background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; position: relative; max-height: 95vh; overflow-y: auto; }
 .modal-content::-webkit-scrollbar { width: 8px; }
 .modal-content::-webkit-scrollbar-track { background: transparent; }
 .modal-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
@@ -73,17 +73,18 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 #aroundModal .modal-content { padding-top: 0 !important; }
 #around-head { padding-top: 24px; }
 #around-sticky { position: sticky; top: 0; z-index: 5; background: #fff;
-  margin: 0 -24px 12px; padding: 11px 24px 9px; border-bottom: 1px solid #eaeef3; }
-@media (max-width: 420px) {
-  #around-head { padding-top: 20px; }
-  #around-sticky { margin: 0 -16px 12px; padding: 11px 16px 9px; }
-}
+  box-sizing: border-box;
+  margin: 0 calc(var(--mc-pad, 24px) * -1) 12px;
+  padding: 11px var(--mc-pad, 24px) 9px; border-bottom: 1px solid #eaeef3; }
+@media (max-width: 420px) { #around-head { padding-top: 20px; } }
 /* The piste guide's two chip rows ("where" / "what") and the list/map
    switcher stay pinned while the cards scroll under them. The scroller's
    top padding has to go, or a strip of card shows above the bar; the bar
    puts that padding back itself. */
 #piste-sticky { position: sticky; top: 0; z-index: 5; background: #fff;
-  margin: 0 -14px 10px; padding: 10px 14px 7px; border-bottom: 1px solid #eaeef3; }
+  box-sizing: border-box;
+  margin: 0 calc(var(--mc-pad, 14px) * -1) 10px;
+  padding: 10px var(--mc-pad, 14px) 7px; border-bottom: 1px solid #eaeef3; }
 
 #modal-float-x {
   position: fixed; top: 14px; left: 14px; z-index: 100000;
@@ -317,6 +318,7 @@ img, svg, video { max-width: 100%; }
     width: 95% !important;
     max-width: 95vw !important;
     padding: 20px 16px !important;
+    --mc-pad: 16px;
     max-height: 92vh;
     overflow-y: auto;
     border-radius: 14px !important;
@@ -356,7 +358,7 @@ img, svg, video { max-width: 100%; }
   #live-data-bar > div > div:first-child {
     grid-template-columns: repeat(2, 1fr) !important;
   }
-  .modal-content { padding: 16px 12px !important; }
+  .modal-content { padding: 16px 12px !important; --mc-pad: 12px; }
 }
 
 
@@ -700,6 +702,8 @@ img, svg, video { max-width: 100%; }
           <option value="הצעה לשיפור">💡 הצעה לשיפור</option>
           <option value="דיווח על בעיה">🐛 דיווח על בעיה</option>
           <option value="נתונים שגויים">📊 נתונים שגויים</option>
+          <option value="בקשת פרטי מדריך">🎿 בקשת פרטי מדריך</option>
+          <option value="הוספת מדריך מומלץ">➕ הוספת מדריך מומלץ</option>
           <option value="אחר">💬 אחר</option>
         </select>
       </div>
@@ -828,7 +832,7 @@ img, svg, video { max-width: 100%; }
       <div>
         <div style="color:white;font-weight:bold;font-size:1rem;">🌤️ תחזית מזג אוויר</div>
         <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;">Cervinia · Valtournenche · Chamois</div>
-        <div style="color:rgba(255,255,255,0.38);font-size:0.66rem;margin-top:1px;">תחזית לגובה הכפר (<span dir="ltr">~2,010 מ׳</span>) · לרכס ולמעבר לצרמט — ראו תחזית לינק צ'רמט</div>
+        <div style="color:rgba(255,255,255,0.38);font-size:0.66rem;margin-top:1px;">תחזית לגובה הכפר (<bdi dir="ltr">~2,010</bdi> מ׳) · לרכס ולמעבר לצרמט — ראו תחזית לינק צ'רמט</div>
       </div>
       <span class="close-btn" onclick="closeM('forecastModal')" style="color:white;background:rgba(255,255,255,0.15);">×</span>
     </div>
@@ -935,7 +939,7 @@ img, svg, video { max-width: 100%; }
     <div id="tpanel-all">
       <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
         <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
-        <select id="airport-select" style="flex:1;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
+        <select id="airport-select" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
           <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
           <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ · Ryanair</option>
           <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
@@ -1061,7 +1065,7 @@ img, svg, video { max-width: 100%; }
     <div id="tpanel-flight" style="display:none;">
       <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
         <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
-        <select id="airport-select-flight" style="flex:1;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
+        <select id="airport-select-flight" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
           <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
           <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ · Ryanair</option>
           <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
@@ -1078,7 +1082,7 @@ img, svg, video { max-width: 100%; }
     <div id="tpanel-car" style="display:none;">
       <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
         <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
-        <select id="airport-select-car" style="flex:1;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
+        <select id="airport-select-car" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
           <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
           <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ · Ryanair</option>
           <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
@@ -1590,11 +1594,17 @@ img, svg, video { max-width: 100%; }
         💡 שיעור פרטי עם משפחה (עד 5 איש) חלוקה שווה של המחיר — מאוד כדאי!
       </div>
 
-      <!-- Recommended instructors -->
+      <!-- Recommended instructors - names only, contact details on request -->
       <div style="margin-top:14px;border-top:1px solid #f0e8d0;padding-top:12px;">
-        <div style="font-size:0.82rem;font-weight:bold;margin-bottom:3px;">🎿 מדריכים אישיים מומלצים</div>
-        <div style="font-size:0.73rem;color:#888;margin-bottom:9px;">לחץ לפתיחת וואטסאפ ישירות</div>
+        <div id="les-ins-title" style="font-size:0.82rem;font-weight:bold;margin-bottom:3px;"></div>
+        <div id="les-ins-sub" style="font-size:0.73rem;color:#888;margin-bottom:9px;line-height:1.6;"></div>
         <div class="instructors-list" style="display:flex;flex-direction:column;gap:7px;"></div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;">
+          <button id="les-ins-cta" onclick="askForInstructor()"
+            style="flex:1;min-width:150px;padding:10px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;"></button>
+          <button id="les-ins-add" onclick="suggestInstructor()"
+            style="flex:1;min-width:150px;padding:10px;background:white;color:#1a73e8;border:1.5px solid #1a73e8;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;"></button>
+        </div>
       </div>
     </div>
 
@@ -1617,13 +1627,6 @@ img, svg, video { max-width: 100%; }
 
     <!-- Links -->
     <div style="border-top:1px solid #eee;padding-top:14px;">
-
-      <!-- Personal instructors -->
-      <div style="margin-bottom:18px;">
-        <div style="font-size:0.82rem;font-weight:bold;margin-bottom:3px;">🎿 מדריכים אישיים מומלצים</div>
-        <div style="font-size:0.73rem;color:#888;margin-bottom:10px;">מדריכים מנוסים — לחץ לפתיחת וואטסאפ</div>
-        <div class="instructors-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-      </div>
 
       <div>
       <div style="font-size:0.82rem;font-weight:bold;margin-bottom:10px;">🏫 בתי ספר לסקי בצ'רוויניה</div>
@@ -1655,11 +1658,6 @@ img, svg, video { max-width: 100%; }
 
       </div>
     </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="https://www.scuolascicervinia.com" target="_blank" style="padding:8px 14px;background:#1a3a6c;color:white;border-radius:8px;text-decoration:none;font-size:0.82rem;font-weight:bold;">🇮🇹 Scuola Sci Cervinia</a>
-        <a href="https://www.evolutionski.it" target="_blank" style="padding:8px 14px;background:#e74c3c;color:white;border-radius:8px;text-decoration:none;font-size:0.82rem;font-weight:bold;">Evolution Ski</a>
-        <a href="https://www.takelessons.com/search?q=ski+cervinia" target="_blank" style="padding:8px 14px;background:#2c3e50;color:white;border-radius:8px;text-decoration:none;font-size:0.82rem;font-weight:bold;">TakeLessons</a>
-      </div>
     </div>
   </div>
 </div>
@@ -1986,6 +1984,40 @@ img, svg, video { max-width: 100%; }
 
             <!-- ══ ניהול תוכן ══ -->
             <div id="adtab-content-content" style="display:none;">
+
+                <!-- עורך תוכן -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
+                        <div style="font-size:0.82rem;font-weight:bold;color:#333;">📝 עריכת תוכן האתר</div>
+                        <div id="ce-count" style="font-size:0.72rem;color:#888;">אין שינויים</div>
+                    </div>
+                    <input id="ce-search" type="text" placeholder="חיפוש בכל הטקסטים — הקלידו מילה כפי שהיא מופיעה באתר" dir="rtl"
+                        oninput="CE.search(this.value)"
+                        style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #ddd;border-radius:9px;font-size:0.84rem;font-family:inherit;margin-bottom:10px;">
+                    <div id="ce-body" style="max-height:52vh;overflow-y:auto;background:#fafbfc;border-radius:10px;padding:10px;"></div>
+                    <div id="ce-msg" style="display:none;margin-top:9px;padding:9px 11px;border-radius:8px;font-size:0.8rem;line-height:1.6;"></div>
+                    <div style="display:flex;gap:7px;margin-top:10px;">
+                        <button id="ce-export" onclick="CE.export()" style="flex:2;padding:10px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;">⬇️ ייצוא texts.json</button>
+                        <button onclick="CE.revert()" style="flex:1;padding:10px;background:white;color:#b00;border:1.5px solid #f0c0c0;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;">ביטול שינויים</button>
+                    </div>
+                    <div style="font-size:0.7rem;color:#999;margin-top:7px;line-height:1.6;">
+                        העריכה נשמרת אוטומטית בדפדפן הזה. הייצוא בודק את הקובץ לפני ההורדה ולא ייתן להוריד קובץ שבור.
+                    </div>
+                </div>
+
+                <!-- מדריכים מומלצים -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <div style="font-size:0.82rem;font-weight:bold;color:#333;">🎿 מדריכים מומלצים</div>
+                        <button onclick="AI.load()" style="padding:5px 11px;border:1px solid #ddd;background:white;border-radius:7px;font-size:0.74rem;cursor:pointer;">↻ רענון</button>
+                    </div>
+                    <div style="font-size:0.7rem;color:#999;margin-bottom:9px;line-height:1.6;">
+                        הטבלה מוגנת ב-RLS ונראית רק לך. באתר הציבורי מוצגת רק רשימה מטושטשת בלי פרטי קשר.
+                    </div>
+                    <div id="ai-list" style="max-height:34vh;overflow-y:auto;"></div>
+                    <div id="ai-msg" style="display:none;margin-top:8px;padding:8px 10px;border-radius:8px;font-size:0.78rem;"></div>
+                    <button onclick="AI.form()" style="width:100%;margin-top:9px;padding:9px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.82rem;font-weight:bold;cursor:pointer;">➕ הוספת מדריך</button>
+                </div>
 
                 <!-- באנר מערכת -->
                 <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
@@ -2631,6 +2663,8 @@ document.addEventListener('keydown', function(e) {
     cancelCrop();
   } else if (top.id === 'avatarCamModal') {
     closeWebcam();
+  } else if (top.id === 'sourcesModal') {
+    closeSources();
   } else if (top.id) {
     closeM(top.id);
   }
@@ -3541,7 +3575,7 @@ function searchFlight() {
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
   const gfWithDates = gFlightsUrl('TLV', fCode, dr.ci, dr.co, pax);
   const links = [
-    { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג ועוד אפשרויות רבות', url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
+    { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
     { icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך' + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
     { icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
@@ -3709,7 +3743,7 @@ function searchAll() {
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
   const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
   let links = [
-    { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו', desc: 'סינון שבת וחג ועוד אפשרויות רבות', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
+    { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
     { icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך', url: gfUrl },
     { icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
     { icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
@@ -4435,29 +4469,599 @@ function sharePost(postId) {
 // SKI_INSTRUCTORS נטענים מ-texts.json (ראה window._texts)
 var SKI_INSTRUCTORS = [];
 
+// The instructors are private people. Their mobile numbers used to sit in
+// texts.json, which is served publicly from GitHub Pages - blurring them in
+// the UI would have been theatre while anyone could read the file. The
+// numbers are gone from the file; what renders here is a frosted preview
+// that proves the list is real and carries no contact detail at all.
 function renderInstructors() {
   var targets = document.querySelectorAll('.instructors-list');
   if (!targets.length) return;
-  var html = SKI_INSTRUCTORS.map(function(ins) {
-    // הפניה באנגלית — המדריכים איטלקים
-    var msg = encodeURIComponent(
-      'Hello ' + ins.name + ', I found you through CerviniaLive (Yossi Krauss). '
-      + 'I would like to ask about private ski lessons in Cervinia 🎿 Thank you!'
-    );
-    var waUrl = 'https://wa.me/' + ins.phone + '?text=' + msg;
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1.5px solid #e8f5e9;border-radius:10px;background:#f9fffe;">'
-      + '<div>'
-      + '<div style="font-weight:bold;font-size:0.88rem;">' + ins.full + '</div>'
-      + '<div style="font-size:0.74rem;color:#888;direction:ltr;">+' + ins.phone.replace(/^39/, '39 ').replace(/(\d{3})(\d{3})(\d{4})$/, '$1 $2 $3') + '</div>'
-      + '</div>'
-      + '<a href="' + waUrl + '" target="_blank" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#25D366;color:white;border-radius:9px;text-decoration:none;font-size:0.82rem;font-weight:bold;white-space:nowrap;">'
-      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.852L0 24l6.304-1.513A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.002-1.366l-.359-.214-3.722.893.935-3.62-.234-.373A9.818 9.818 0 1112 21.818z"/></svg>'
-      + 'וואטסאפ'
-      + '</a>'
+  var les = (window._texts && window._texts.lessons) || {};
+  var set = function (id, v) { var e = document.getElementById(id); if (e && v !== undefined) e.innerHTML = v; };
+  set('les-ins-title', les.instructors_title);
+  set('les-ins-sub',   les.instructors_sub);
+  set('les-ins-cta',   les.instructors_cta || '✉️ בקשת פרטי מדריך');
+  set('les-ins-add',   les.instructors_add || '➕ הוסף מדריך מומלץ');
+
+  var html = SKI_INSTRUCTORS.map(function (ins) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;'
+      + 'padding:9px 12px;border:1.5px solid #e8f5e9;border-radius:10px;background:#f9fffe;'
+      + 'filter:blur(3.5px);user-select:none;pointer-events:none;" aria-hidden="true">'
+      + '<div style="font-weight:bold;font-size:0.86rem;">' + (ins.full || ins.name || '') + '</div>'
+      + '<div style="font-size:0.78rem;color:#999;direction:ltr;">+39 ••• ••• ••••</div>'
       + '</div>';
   }).join('');
+  if (SKI_INSTRUCTORS.length) {
+    html += '<div style="text-align:center;font-size:0.74rem;color:#888;margin-top:2px;">'
+      + SKI_INSTRUCTORS.length + ' ' + (les.instructors_count_label || 'מדריכים ברשימה') + '</div>';
+  }
   for (var i = 0; i < targets.length; i++) targets[i].innerHTML = html;
 }
+
+// Both of these ride the contact form that already works and already stores
+// to Supabase - no second pipeline to keep alive.
+function _openContactWith(subject, body) {
+  closeM('lessonsModal');
+  openM('contactModal');
+  setTimeout(function () {
+    var sel = document.getElementById('cf-subject');
+    if (sel) {
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === subject) { sel.selectedIndex = i; break; }
+      }
+    }
+    var msg = document.getElementById('cf-message');
+    if (msg) { if (!msg.value) msg.value = body; msg.focus(); }
+  }, 60);
+}
+
+function askForInstructor() {
+  _openContactWith('בקשת פרטי מדריך',
+    'שלום, אשמח לקבל פרטים של מדריך סקי פרטי.\n\n'
+    + 'תאריכים משוערים:\n'
+    + 'מספר משתתפים וגילאים:\n'
+    + 'רמה (מתחילים / ביניים / מתקדמים):\n'
+    + 'שפה מועדפת:\n');
+}
+
+function suggestInstructor() {
+  _openContactWith('הוספת מדריך מומלץ',
+    'שם המדריך:\n'
+    + 'טלפון:\n'
+    + 'מייל:\n'
+    + 'למה אתם ממליצים עליו:\n');
+}
+
+// ── עורך תוכן ─────────────────────────────────────────────────────────────
+// texts.json holds about 3,100 separate strings. Editing it by hand means
+// finding the right one among them and then not breaking the JSON, the inline
+// HTML or the right-to-left ordering on the way out. This editor hides all
+// three: it navigates by the cards the site actually shows, edits plain text,
+// and rebuilds the file itself with the key order intact.
+// ── מדריכים מומלצים ───────────────────────────────────────────────────────
+// The rows live in Supabase behind RLS, not in texts.json, because
+// texts.json is served publicly from GitHub Pages and these are private
+// people's mobile numbers. Everything here runs as the signed-in user, so
+// the policy does the gatekeeping - the page never has to.
+var AI = { rows: [] };
+
+AI.msg = function (t, ok) {
+  var m = document.getElementById('ai-msg'); if (!m) return;
+  m.style.display = 'block';
+  m.style.background = ok ? '#e8f8ec' : '#ffecec';
+  m.style.color = ok ? '#157a37' : '#b00';
+  m.textContent = t;
+};
+
+AI.load = async function () {
+  var box = document.getElementById('ai-list'); if (!box) return;
+  var sb = (typeof getSB === 'function') ? getSB() : null;
+  if (!sb) { box.innerHTML = '<div style="font-size:0.8rem;color:#999;">Supabase לא מחובר.</div>'; return; }
+  box.innerHTML = '<div style="font-size:0.8rem;color:#999;">טוען…</div>';
+  var res = await sb.from('ski_instructors').select('*').order('full_name');
+  if (res.error) { box.innerHTML = ''; AI.msg('שגיאה: ' + res.error.message, false); return; }
+  AI.rows = res.data || [];
+  if (!AI.rows.length) {
+    // An empty array is also what RLS returns to someone who is not an
+    // admin, so say both things rather than guessing which happened.
+    box.innerHTML = '<div style="font-size:0.8rem;color:#999;line-height:1.6;">'
+      + 'אין שורות. אם הרצתם את ה-SQL וזה עדיין ריק — ייתכן שהחשבון לא מסומן is_admin.</div>';
+    return;
+  }
+  box.innerHTML = AI.rows.map(function (r) {
+    return '<div style="padding:9px 11px;border:1px solid #eee;border-radius:9px;margin-bottom:5px;'
+      + (r.active ? '' : 'opacity:0.5;') + '">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+      + '<b style="font-size:0.85rem;">' + CE.esc(r.full_name) + '</b>'
+      + '<span><span onclick="AI.form(' + r.id + ')" style="cursor:pointer;font-size:0.74rem;color:#1a73e8;">עריכה</span>'
+      + ' · <span onclick="AI.del(' + r.id + ')" style="cursor:pointer;font-size:0.74rem;color:#b00;">מחיקה</span></span>'
+      + '</div>'
+      + '<div style="font-size:0.76rem;color:#666;direction:ltr;text-align:left;">'
+      + CE.esc(r.phone || '') + (r.email ? ' · ' + CE.esc(r.email) : '') + '</div>'
+      + (r.note ? '<div style="font-size:0.74rem;color:#888;margin-top:3px;">' + CE.esc(r.note) + '</div>' : '')
+      + '</div>';
+  }).join('');
+};
+
+AI.form = function (id) {
+  var r = AI.rows.filter(function (x) { return x.id === id; })[0] || {};
+  var box = document.getElementById('ai-list');
+  var f = function (k, lbl, dir) {
+    return '<div style="margin-bottom:7px;"><label style="font-size:0.72rem;color:#666;">' + lbl + '</label>'
+      + '<input id="ai-' + k + '" dir="' + (dir || 'rtl') + '" value="' + CE.esc(r[k] || '') + '"'
+      + ' style="width:100%;box-sizing:border-box;padding:7px 9px;border:1px solid #ddd;border-radius:7px;font-size:0.82rem;font-family:inherit;"></div>';
+  };
+  box.innerHTML = '<div style="border:1.5px solid #cfe0f5;border-radius:10px;padding:11px;background:#f7fbff;">'
+    + f('full_name', 'שם מלא') + f('first_name', 'שם פרטי')
+    + f('phone', 'טלפון', 'ltr') + f('email', 'מייל', 'ltr') + f('note', 'למה מומלץ')
+    + '<div style="display:flex;gap:6px;margin-top:8px;">'
+    + '<button onclick="AI.save(' + (id || 'null') + ')" style="flex:1;padding:8px;background:#1a73e8;color:white;border:none;border-radius:8px;font-size:0.8rem;font-weight:bold;cursor:pointer;">שמירה</button>'
+    + '<button onclick="AI.load()" style="flex:1;padding:8px;background:white;border:1px solid #ddd;border-radius:8px;font-size:0.8rem;cursor:pointer;">ביטול</button>'
+    + '</div></div>';
+};
+
+AI.save = async function (id) {
+  var g = function (k) { var e = document.getElementById('ai-' + k); return e ? e.value.trim() : ''; };
+  if (!g('full_name')) { AI.msg('שם מלא הוא שדה חובה', false); return; }
+  var row = { full_name: g('full_name'), first_name: g('first_name') || null,
+              phone: g('phone') || null, email: g('email') || null, note: g('note') || null };
+  var sb = getSB();
+  var res = id ? await sb.from('ski_instructors').update(row).eq('id', id)
+               : await sb.from('ski_instructors').insert(row);
+  if (res.error) { AI.msg('שגיאה: ' + res.error.message, false); return; }
+  AI.msg('נשמר.', true);
+  AI.load();
+};
+
+AI.del = async function (id) {
+  var r = AI.rows.filter(function (x) { return x.id === id; })[0] || {};
+  if (!confirm('למחוק את ' + (r.full_name || '') + '?')) return;
+  var res = await getSB().from('ski_instructors').delete().eq('id', id);
+  if (res.error) { AI.msg('שגיאה: ' + res.error.message, false); return; }
+  AI.msg('נמחק.', true);
+  AI.load();
+};
+
+var CE = {
+  data: null,      // working copy
+  orig: null,      // what was loaded, for the "changed" marks
+  cat: null,       // current top-level section
+  item: null,      // index inside a list, or a sub-key
+  dirty: {}        // path -> true
+};
+
+// The section names the reader sees, not the keys the file uses.
+CE.CATS = [
+  { k: 'pistes',       label: '⛷️ מסלולים, בקתות ואפרה־סקי' },
+  { k: 'around',       label: '🗺️ מה לעשות באזור' },
+  { k: 'kosher',       label: '✡️ כשרות' },
+  { k: 'skipass',      label: '🎟️ סקי פס' },
+  { k: 'parking',      label: '🅿️ חניונים' },
+  { k: 'lessons',      label: '🏫 שיעורי סקי' },
+  { k: 'rental',       label: '🎿 השכרת ציוד' },
+  { k: 'swiss',        label: '🇨🇭 מעבר לצרמט' },
+  { k: 'why_cervinia', label: "💡 למה צ'רוויניה" },
+  { k: 'area_notes',   label: '📍 הערות אזור' },
+  { k: 'services',     label: '🔘 כפתורי שירותים' },
+  { k: 'modals',       label: '🪟 טקסטים בחלונות' },
+  { k: 'ui',           label: '🖥️ כותרות האתר' },
+  { k: 'sources',      label: '📚 מקורות', ro: true },
+  { k: 'ski_instructors', label: '🎿 מדריכים', ro: true }
+];
+
+CE.FIELD = {
+  name: 'שם', he: 'שם בעברית', full: 'שם מלא', title: 'כותרת', sub: 'כותרת משנה',
+  desc: 'תיאור', what: 'מה זה', text: 'טקסט', tip: 'טיפ', warn: 'אזהרה',
+  open: 'שעות פתיחה', price: 'מחיר', area: 'מיקום / גובה', drive: 'דרך הגעה',
+  addr: 'כתובת', piste: 'על איזה מסלול', len: 'אורך', diff: 'דרגה',
+  phone: 'טלפון', url: 'קישור', label: 'תווית', note: 'הערה', icon: 'אייקון',
+  kashrut: 'כשרות', covers: 'מה מכסה', quote: 'ציטוט מהמקור', badge: 'תג',
+  summary: 'תקציר', num: 'מספר מסלול', season: 'עונה'
+};
+
+// Editing any of these breaks a link, a pin or a filter. They stay reachable,
+// behind a disclosure, so a stray keystroke cannot reach them by accident.
+CE.TECH = ['map','mapy','xy','latlon','start_latlon','trail','geo','area_key',
+           'cat','id','k','type','tags','bg','rule','q','until','season_until',
+           'xy_approx','storm'];
+
+CE.label = function (k) { return CE.FIELD[k] || k; };
+
+CE.open = function () {
+  if (!window._texts) { alert('texts.json עדיין לא נטען'); return; }
+  if (!CE.data) {
+    var draft = null;
+    try { draft = JSON.parse(localStorage.getItem('ce_draft') || 'null'); } catch (e) {}
+    CE.orig = JSON.parse(JSON.stringify(window._texts));
+    CE.data = draft && draft._version === window._texts._version
+      ? draft : JSON.parse(JSON.stringify(window._texts));
+    if (draft && draft._version === window._texts._version) CE.markAllDirty();
+  }
+  CE.cat = null; CE.item = null;
+  CE.render();
+};
+
+CE.markAllDirty = function () {
+  CE.walk(CE.data, [], function (path, v) {
+    if (CE.get(CE.orig, path) !== v) CE.dirty[path.join('/')] = true;
+  });
+};
+
+// Depth-first over every string in the tree, carrying the path.
+CE.walk = function (node, path, fn) {
+  if (node && typeof node === 'object') {
+    var keys = Array.isArray(node) ? node.map(function (_, i) { return i; }) : Object.keys(node);
+    keys.forEach(function (k) { CE.walk(node[k], path.concat([k]), fn); });
+  } else if (typeof node === 'string') {
+    fn(path, node);
+  }
+};
+
+CE.get = function (root, path) {
+  var n = root;
+  for (var i = 0; i < path.length; i++) { if (n == null) return undefined; n = n[path[i]]; }
+  return n;
+};
+CE.set = function (root, path, v) {
+  var n = root;
+  for (var i = 0; i < path.length - 1; i++) n = n[path[i]];
+  n[path[path.length - 1]] = v;
+};
+
+CE.esc = function (s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+};
+
+// A readable name for a list entry, so the list reads like the site and not
+// like an array.
+CE.itemName = function (v, i) {
+  if (v && typeof v === 'object') {
+    var n = v.name || v.full || v.title || v.label || v.he || v.text || v.covers;
+    if (n) return String(n).replace(/<[^>]*>/g, '').slice(0, 48);
+  }
+  if (typeof v === 'string') return v.replace(/<[^>]*>/g, '').slice(0, 48);
+  return '#' + (i + 1);
+};
+
+CE.render = function () {
+  var box = document.getElementById('ce-body');
+  if (!box) return;
+  if (!CE.cat)      box.innerHTML = CE.viewCats();
+  else if (CE.item === null) box.innerHTML = CE.viewItems();
+  else              box.innerHTML = CE.viewFields();
+  CE.refreshBar();
+};
+
+CE.viewCats = function () {
+  var h = '<div style="display:flex;flex-direction:column;gap:6px;">';
+  CE.CATS.forEach(function (c) {
+    if (CE.data[c.k] === undefined) return;
+    var n = 0;
+    CE.walk(CE.data[c.k], [], function () { n++; });
+    var changed = Object.keys(CE.dirty).filter(function (p) { return p.indexOf(c.k + '/') === 0; }).length;
+    h += '<div onclick="CE.goCat(' + JSON.stringify(c.k).replace(/"/g, '&quot;') + ')"'
+      + ' style="display:flex;justify-content:space-between;align-items:center;padding:11px 13px;'
+      + 'background:white;border:1px solid #e6e6e6;border-radius:10px;cursor:pointer;">'
+      + '<span style="font-size:0.88rem;font-weight:bold;">' + c.label
+      + (c.ro ? ' <span style="font-size:0.66rem;color:#999;font-weight:normal;">(לקריאה בלבד)</span>' : '')
+      + '</span>'
+      + '<span style="font-size:0.72rem;color:#999;">' + n + ' טקסטים'
+      + (changed ? ' · <b style="color:#e67e00;">' + changed + ' שונו</b>' : '') + '</span>'
+      + '</div>';
+  });
+  return h + '</div>';
+};
+
+CE.goCat = function (k) { CE.cat = k; CE.item = null; CE.render(); };
+CE.goBack = function () {
+  if (CE.item !== null) { CE.item = null; } else { CE.cat = null; }
+  CE.render();
+};
+
+// Inside a section: lists become a list of named rows, plain objects open
+// straight into their fields.
+CE.viewItems = function () {
+  var node = CE.data[CE.cat];
+  var h = CE.crumbs();
+  var subs = [];
+  Object.keys(node).forEach(function (k) {
+    var v = node[k];
+    if (Array.isArray(v)) subs.push({ k: k, kind: 'list', n: v.length });
+    else if (v && typeof v === 'object') subs.push({ k: k, kind: 'obj' });
+  });
+  var plain = Object.keys(node).filter(function (k) { return typeof node[k] === 'string'; });
+  if (plain.length) {
+    h += '<div onclick="CE.goItem(\'__plain__\')" style="padding:11px 13px;background:white;'
+      + 'border:1px solid #e6e6e6;border-radius:10px;cursor:pointer;margin-bottom:6px;font-size:0.86rem;font-weight:bold;">'
+      + '📄 טקסטים כלליים <span style="font-size:0.72rem;color:#999;font-weight:normal;">· '
+      + plain.length + '</span></div>';
+  }
+  subs.forEach(function (s) {
+    var v = node[s.k];
+    if (s.kind === 'list') {
+      h += '<div style="margin:10px 0 4px;font-size:0.78rem;color:#777;font-weight:bold;">'
+        + CE.label(s.k) + ' · ' + s.n + '</div>';
+      v.forEach(function (it, i) {
+        var dp = CE.cat + '/' + s.k + '/' + i;
+        var ch = Object.keys(CE.dirty).some(function (p) { return p.indexOf(dp + '/') === 0 || p === dp; });
+        h += '<div onclick="CE.goItem(\'' + s.k + '|' + i + '\')" style="padding:9px 12px;background:white;'
+          + 'border:1px solid ' + (ch ? '#f0c060' : '#eee') + ';border-radius:9px;cursor:pointer;'
+          + 'margin-bottom:4px;font-size:0.83rem;">'
+          + (ch ? '<span style="color:#e67e00;">● </span>' : '') + CE.esc(CE.itemName(it, i)) + '</div>';
+      });
+    } else {
+      h += '<div onclick="CE.goItem(\'' + s.k + '\')" style="padding:11px 13px;background:white;'
+        + 'border:1px solid #e6e6e6;border-radius:10px;cursor:pointer;margin:6px 0;font-size:0.86rem;font-weight:bold;">'
+        + '📁 ' + CE.label(s.k) + '</div>';
+    }
+  });
+  return h;
+};
+
+CE.goItem = function (sel) { CE.item = sel; CE.render(); };
+
+CE.itemPath = function () {
+  if (CE.item === '__plain__') return [CE.cat];
+  if (CE.item.indexOf('|') > -1) {
+    var p = CE.item.split('|');
+    return [CE.cat, p[0], parseInt(p[1], 10)];
+  }
+  return [CE.cat, CE.item];
+};
+
+CE.viewFields = function () {
+  var path = CE.itemPath();
+  var node = CE.get(CE.data, path);
+  var ro = (CE.CATS.filter(function (c) { return c.k === CE.cat; })[0] || {}).ro;
+  var h = CE.crumbs();
+  var main = '', tech = '';
+  var render = function (k, v, p) {
+    var full = p.concat([k]);
+    var block = CE.fieldHtml(full, k, v, ro);
+    if (CE.TECH.indexOf(String(k)) > -1) tech += block; else main += block;
+  };
+  if (CE.item === '__plain__') {
+    Object.keys(node).forEach(function (k) {
+      if (typeof node[k] === 'string') render(k, node[k], path);
+    });
+  } else {
+    CE.renderNode(node, path, render);
+  }
+  h += main;
+  if (tech) {
+    h += '<details style="margin-top:12px;"><summary style="cursor:pointer;font-size:0.78rem;color:#b06000;">'
+      + '⚙️ שדות טכניים — מזהי מפה, קואורדינטות, קטגוריות. שינוי כאן שובר קישורים</summary>'
+      + '<div style="margin-top:8px;">' + tech + '</div></details>';
+  }
+  return h;
+};
+
+// Nested objects and arrays of strings inside one item still have to show up.
+CE.renderNode = function (node, path, render, prefix) {
+  Object.keys(node).forEach(function (k) {
+    var v = node[k];
+    var name = (prefix ? prefix + ' · ' : '') + CE.label(k);
+    if (typeof v === 'string') render(k, v, path), 0;
+    else if (Array.isArray(v) && v.every(function (x) { return typeof x === 'string'; })) {
+      v.forEach(function (s, i) { render(i, s, path.concat([k])); });
+    } else if (Array.isArray(v)) {
+      // an array of objects nested inside an item - a route's legs, a
+      // source group's entries. Without this they are simply unreachable.
+      v.forEach(function (sub, i) {
+        if (sub && typeof sub === 'object') {
+          CE.renderNode(sub, path.concat([k, i]), render, name + ' ' + (i + 1));
+        }
+      });
+    } else if (v && typeof v === 'object') {
+      CE.renderNode(v, path.concat([k]), render, name);
+    }
+  });
+};
+
+CE.fieldHtml = function (full, k, v, ro) {
+  var id = 'ce_' + full.join('_').replace(/[^\w]/g, '_');
+  var key = full.join('/');
+  var changed = CE.dirty[key];
+  var long = String(v).length > 70 || String(v).indexOf('<') > -1;
+  var lbl = typeof k === 'number' ? '#' + (k + 1) : CE.label(k);
+  return '<div style="margin-bottom:11px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">'
+    + '<label style="font-size:0.76rem;color:#555;font-weight:bold;">' + CE.esc(lbl)
+    + (changed ? ' <span style="color:#e67e00;">●</span>' : '') + '</label>'
+    + (long && !ro ? '<span onclick="CE.preview(\'' + id + '\')" style="font-size:0.7rem;color:#1a73e8;cursor:pointer;">👁️ תצוגה</span>' : '')
+    + '</div>'
+    + (long
+        ? '<textarea id="' + id + '" ' + (ro ? 'readonly ' : '') + 'dir="rtl" rows="' + Math.min(10, Math.ceil(String(v).length / 60) + 1) + '"'
+          + ' oninput="CE.edit(this,\'' + CE.esc(key) + '\')"'
+          + ' style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid '
+          + (changed ? '#f0c060' : '#ddd') + ';border-radius:8px;font-size:0.84rem;font-family:inherit;'
+          + 'line-height:1.6;resize:vertical;' + (ro ? 'background:#fafafa;color:#777;' : '') + '">'
+          + CE.esc(v) + '</textarea>'
+        : '<input id="' + id + '" ' + (ro ? 'readonly ' : '') + 'dir="rtl" value="' + CE.esc(v) + '"'
+          + ' oninput="CE.edit(this,\'' + CE.esc(key) + '\')"'
+          + ' style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid '
+          + (changed ? '#f0c060' : '#ddd') + ';border-radius:8px;font-size:0.84rem;font-family:inherit;'
+          + (ro ? 'background:#fafafa;color:#777;' : '') + '">')
+    + '<div id="' + id + '_pv" style="display:none;margin-top:5px;padding:8px 10px;background:#f7f9fc;'
+    + 'border-right:3px solid #c9d8ee;border-radius:6px;font-size:0.84rem;line-height:1.7;"></div>'
+    + '</div>';
+};
+
+// The one thing a plain textarea cannot show: what the line will actually
+// look like once the site has run it through its own bidi and number
+// handling. This is the check for exactly the kind of string Yossi flagged -
+// "Plan Maison 2,555מ ← הכפר 2,025מ".
+CE.preview = function (id) {
+  var el = document.getElementById(id), pv = document.getElementById(id + '_pv');
+  if (!el || !pv) return;
+  if (pv.style.display !== 'none') { pv.style.display = 'none'; return; }
+  var s = el.value;
+  try { s = _fixNums(_aEsc(s)); } catch (e) {}
+  pv.innerHTML = s;
+  pv.style.display = 'block';
+};
+
+CE.edit = function (el, key) {
+  var path = key.split('/').map(function (p) { return /^\d+$/.test(p) ? parseInt(p, 10) : p; });
+  CE.set(CE.data, path, el.value);
+  var was = CE.get(CE.orig, path);
+  if (el.value === was) delete CE.dirty[key]; else CE.dirty[key] = true;
+  el.style.borderColor = CE.dirty[key] ? '#f0c060' : '#ddd';
+  CE.saveDraft();
+  CE.refreshBar();
+};
+
+CE.saveDraft = function () {
+  try { localStorage.setItem('ce_draft', JSON.stringify(CE.data)); } catch (e) {}
+};
+
+CE.crumbs = function () {
+  var c = (CE.CATS.filter(function (x) { return x.k === CE.cat; })[0] || {}).label || CE.cat;
+  var h = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
+    + '<button onclick="CE.goBack()" style="padding:5px 11px;border:1px solid #ddd;background:white;'
+    + 'border-radius:7px;font-size:0.78rem;cursor:pointer;">→ חזרה</button>'
+    + '<span style="font-size:0.8rem;color:#666;">' + c;
+  if (CE.item !== null) {
+    var node = CE.get(CE.data, CE.itemPath());
+    h += ' · ' + CE.esc(CE.item === '__plain__' ? 'טקסטים כלליים' : CE.itemName(node, 0));
+  }
+  return h + '</span></div>';
+};
+
+// ── search ────────────────────────────────────────────────────────────────
+// "It is hard to find the thing I want to change." Type a few words of the
+// text as it appears on the site and go straight to the field.
+CE.search = function (q) {
+  var box = document.getElementById('ce-body');
+  q = (q || '').trim();
+  if (q.length < 2) { CE.render(); return; }
+  var hits = [];
+  CE.walk(CE.data, [], function (path, v) {
+    if (hits.length > 80) return;
+    if (v.replace(/<[^>]*>/g, '').indexOf(q) > -1) hits.push({ p: path, v: v });
+  });
+  var h = '<div style="font-size:0.78rem;color:#666;margin-bottom:8px;">' + hits.length + ' תוצאות</div>';
+  if (!hits.length) h += '<div style="font-size:0.84rem;color:#999;">לא נמצא. נסו מילה אחרת מהטקסט כפי שהוא מופיע באתר.</div>';
+  hits.forEach(function (hit) {
+    var cat = CE.CATS.filter(function (c) { return c.k === hit.p[0]; })[0];
+    var where = (cat ? cat.label : hit.p[0]);
+    var txt = hit.v.replace(/<[^>]*>/g, '');
+    var at = txt.indexOf(q);
+    var snip = CE.esc(txt.slice(Math.max(0, at - 30), at)) + '<mark>' + CE.esc(q) + '</mark>'
+             + CE.esc(txt.slice(at + q.length, at + q.length + 40));
+    h += '<div onclick="CE.jump(' + CE.esc(JSON.stringify(JSON.stringify(hit.p))) + ')"'
+      + ' style="padding:9px 11px;background:white;border:1px solid #eee;border-radius:9px;'
+      + 'margin-bottom:5px;cursor:pointer;">'
+      + '<div style="font-size:0.72rem;color:#999;margin-bottom:2px;">' + where + ' · ' + CE.label(hit.p[hit.p.length - 1]) + '</div>'
+      + '<div style="font-size:0.82rem;line-height:1.5;">' + snip + '</div></div>';
+  });
+  box.innerHTML = h;
+};
+
+CE.jump = function (pathJson) {
+  var p = JSON.parse(pathJson);
+  CE.cat = p[0];
+  if (p.length >= 3 && typeof p[2] === 'number') CE.item = p[1] + '|' + p[2];
+  else if (p.length >= 2 && typeof CE.data[p[0]][p[1]] === 'object') CE.item = p[1];
+  else CE.item = '__plain__';
+  var sb = document.getElementById('ce-search'); if (sb) sb.value = '';
+  CE.render();
+  setTimeout(function () {
+    var id = 'ce_' + p.join('_').replace(/[^\w]/g, '_');
+    var el = document.getElementById(id);
+    if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); el.style.borderColor = '#1a73e8'; }
+  }, 60);
+};
+
+// ── validate and export ───────────────────────────────────────────────────
+// Only the checks a text edit can actually trip. The full rule set lives in
+// validate.py and runs before anything is published.
+CE.validate = function () {
+  var errs = [];
+  var d = CE.data;
+  ['pistes', 'around', 'kosher', 'skipass', 'parking'].forEach(function (k) {
+    if (d[k] === undefined) errs.push('חסר פרק: ' + k);
+  });
+  CE.walk(d, [], function (path, v) {
+    var key = path.join('/');
+    // unbalanced inline HTML - the commonest way a hand edit breaks a card
+    var st = [], m, re = /<\/?([a-zA-Z]+)[^>]*?(\/?)>/g, VOID = ['br','hr','img','input','meta','link'];
+    while ((m = re.exec(v))) {
+      var t = m[1].toLowerCase();
+      if (VOID.indexOf(t) > -1 || m[2] === '/') continue;
+      if (m[0].indexOf('</') === 0) {
+        if (!st.length || st[st.length - 1] !== t) { errs.push('תגית סגירה לא תואמת (' + t + ') ב-' + key); st = []; break; }
+        st.pop();
+      } else st.push(t);
+    }
+    if (st.length) errs.push('תגית ' + st.join(', ') + ' נפתחה ולא נסגרה ב-' + key);
+    var last = path[path.length - 1];
+    if (last === 'mapy' && v && !/^\d+$/.test(v)) errs.push('mapy חייב להיות ספרות בלבד ב-' + key);
+    if ((last === 'latlon' || last === 'start_latlon') && v) {
+      var c = v.split(',');
+      if (c.length !== 2 || isNaN(parseFloat(c[0])) || isNaN(parseFloat(c[1]))) errs.push('קואורדינטה לא תקינה ב-' + key);
+    }
+    // Mirrors validate.py rule 3d exactly: only the four run sections. The
+    // apres-ski and restaurant entries legitimately carry a website URL in
+    // the same field, and the page renders that as a separate button.
+    if (last === 'map' && path[0] === 'pistes'
+        && ['beginner','intermediate','advanced','zermatt'].indexOf(path[1]) > -1
+        && v && (v.indexOf('http') > -1 || v.indexOf('/') > -1)) {
+      errs.push('map צריך להיות שם מקום ולא כתובת ב-' + key);
+    }
+    // 3e: a mapy id only means something next to a trail name
+    if (last === 'mapy' && v && path[0] === 'pistes'
+        && ['beginner','intermediate','advanced','zermatt'].indexOf(path[1]) === -1) return;
+  });
+  (d.around && d.around.places ? d.around.places : []).forEach(function (pl, i) {
+    ['name', 'he', 'what', 'cat'].forEach(function (f) {
+      if (!pl[f]) errs.push('around.places[' + i + '] חסר ' + f);
+    });
+  });
+  return errs;
+};
+
+CE.refreshBar = function () {
+  var n = Object.keys(CE.dirty).length;
+  var el = document.getElementById('ce-count');
+  if (el) el.innerHTML = n ? '<b style="color:#e67e00;">' + n + ' שינויים לא מיוצאים</b>' : 'אין שינויים';
+  var b = document.getElementById('ce-export');
+  if (b) b.disabled = false;
+};
+
+CE.export = function () {
+  var errs = CE.validate();
+  var msg = document.getElementById('ce-msg');
+  if (errs.length) {
+    msg.style.display = 'block';
+    msg.style.background = '#ffecec'; msg.style.color = '#b00';
+    msg.innerHTML = '<b>לא ייצאתי — ' + errs.length + ' בעיות:</b><br>' + errs.slice(0, 8).map(CE.esc).join('<br>')
+      + (errs.length > 8 ? '<br>…' : '');
+    return;
+  }
+  var blob = new Blob([JSON.stringify(CE.data, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'texts.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  msg.style.display = 'block';
+  msg.style.background = '#e8f8ec'; msg.style.color = '#157a37';
+  msg.innerHTML = '✅ הקובץ ירד. העלו אותו לגיטהאב והעלו את APP_VER.';
+};
+
+CE.revert = function () {
+  if (!confirm('לבטל את כל השינויים ולחזור לקובץ שנטען?')) return;
+  CE.data = JSON.parse(JSON.stringify(CE.orig));
+  CE.dirty = {};
+  try { localStorage.removeItem('ce_draft'); } catch (e) {}
+  CE.cat = null; CE.item = null;
+  CE.render();
+  var msg = document.getElementById('ce-msg'); if (msg) msg.style.display = 'none';
+};
 
 function openCouponModal() {
   var m = document.getElementById('coupon-modal');
@@ -7071,9 +7675,43 @@ function renderSources() {
 }
 
 function openSources(group) {
-  _srcState().group = group || null;
+  var st = _srcState();
+  st.group = group || null;
+  // The panel usually opens on top of the modal whose ⓘ was tapped. Remember
+  // which that was, so closing the panel hands the page back to it instead of
+  // leaving the one underneath open but unregistered.
+  st.returnTo = (_openModalId && _openModalId !== 'sourcesModal') ? _openModalId : null;
   renderSources();
   openM('sourcesModal');
+}
+
+function closeSources() {
+  var back = _srcState().returnTo;
+  closeM('sourcesModal');
+  if (back && document.getElementById(back)) {
+    var m = document.getElementById(back);
+    if (m.style.display && m.style.display !== 'none') {
+      _openModalId = back;
+      setTimeout(function () { _wireModalScroll(m); }, 40);
+    }
+  }
+  _srcState().returnTo = null;
+}
+
+// The contact form already has a "wrong data" subject. Preselect it, so a
+// report arrives filed rather than as an untagged message.
+function reportDataError() {
+  closeSources();
+  openM('contactModal');
+  setTimeout(function () {
+    var sel = document.getElementById('cf-subject');
+    if (!sel) return;
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === 'נתונים שגויים') { sel.selectedIndex = i; break; }
+    }
+    var msg = document.getElementById('cf-message');
+    if (msg && !msg.value) msg.focus();
+  }, 60);
 }
 
 // Which modal answers to which group. One glyph in the header, nothing more -
@@ -9007,6 +9645,10 @@ function filterPosts(query) {
 }
 
 function switchAdminTab(tab) {
+        if (tab === 'content') {
+            if (typeof CE !== 'undefined') { try { CE.open(); } catch (e) { console.warn(e); } }
+            if (typeof AI !== 'undefined') { try { AI.load(); } catch (e) { console.warn(e); } }
+        }
         ['stats','content','users','system'].forEach(t => {
             const btn = document.getElementById('adtab-' + t);
             const panel = document.getElementById('adtab-content-' + t);
@@ -9360,20 +10002,6 @@ function switchAdminTab(tab) {
 
 
 <!-- 🅿️ Parking + 🚨 Emergency Modal -->
-<!-- Modal מקורות ואמינות -->
-<div id="sourcesModal" class="modal" onclick="if(event.target===this)closeM('sourcesModal')">
-  <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
-    <span class="close-btn" onclick="closeM('sourcesModal')">×</span>
-    <h3 id="src-title" style="margin:0 0 4px;font-size:1.08rem;"></h3>
-    <div id="src-updated" style="font-size:0.74rem;color:#999;margin-bottom:14px;"></div>
-    <div id="src-intro" style="font-size:0.86rem;line-height:1.65;color:#444;margin-bottom:12px;"></div>
-    <div id="src-disclaimer" style="font-size:0.84rem;line-height:1.6;background:#fff8e6;border:1px solid #f0dca8;border-radius:10px;padding:11px 13px;margin-bottom:14px;"></div>
-    <div id="src-scope" style="display:none;font-size:0.8rem;margin-bottom:12px;"></div>
-    <div id="src-list"></div>
-    <div id="src-report" style="margin-top:16px;padding-top:12px;border-top:1px solid #eee;font-size:0.82rem;color:#555;cursor:pointer;" onclick="closeM('sourcesModal');openM('contactModal');"></div>
-  </div>
-</div>
-
 <div id="parkingModal" class="modal" onclick="if(event.target===this)closeM('parkingModal')">
   <div class="modal-content" style="max-width:540px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('parkingModal')">×</span>
@@ -10448,6 +11076,23 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
                font-weight:bold;font-size:0.88rem;cursor:pointer;">
         ✕ סגור
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal מקורות ואמינות -->
+<div id="sourcesModal" class="modal" onclick="if(event.target===this)closeSources()">
+  <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
+    <span class="close-btn" onclick="closeSources()">×</span>
+    <h3 id="src-title" style="margin:0 0 4px;font-size:1.08rem;"></h3>
+    <div id="src-updated" style="font-size:0.74rem;color:#999;margin-bottom:14px;"></div>
+    <div id="src-intro" style="font-size:0.86rem;line-height:1.65;color:#444;margin-bottom:12px;"></div>
+    <div id="src-disclaimer" style="font-size:0.84rem;line-height:1.6;background:#fff8e6;border:1px solid #f0dca8;border-radius:10px;padding:11px 13px;margin-bottom:14px;"></div>
+    <div id="src-scope" style="display:none;font-size:0.8rem;margin-bottom:12px;"></div>
+    <div id="src-list"></div>
+    <div style="margin-top:16px;padding-top:13px;border-top:1px solid #eee;">
+      <div id="src-report" style="font-size:0.82rem;color:#555;margin-bottom:8px;"></div>
+      <button onclick="reportDataError()" style="width:100%;padding:10px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.86rem;font-weight:bold;cursor:pointer;">✉️ דיווח על נתון שגוי</button>
     </div>
   </div>
 </div>
