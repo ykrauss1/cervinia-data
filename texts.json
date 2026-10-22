@@ -419,34 +419,38 @@
         "len": "~950 מ'",
         "diff": "🔴",
         "map": "Plan Torrette, Breuil-Cervinia",
-        "desc": "החוליה הראשונה בשרשרת האדומה שמחברת את Plan Torrette לכפר. יורד מהצומת שבו מגיעה מעלית Cretaz אל Pré de Veau: מדרון עובד ומושלג היטב, בלי הפתעות, ובדרך כלל עמוס פחות מהציר של Plan Maison. המשכו מטה הוא 3.0 ואחריו 3.00.",
-        "tip": "💡 חלופה שקטה לירידה הביתה בשעות הסגירה, במקום הכחול 5",
+        "desc": "החוליה הראשונה בשרשרת האדומה שמחברת את Plan Torrette לכפר. יורד מהצומת שבו מגיעה מעלית Cretaz אל Pré de Veau: מדרון עובד ומושלג היטב, בלי קטעים תלולים. זה הקטע שמתחיל את הירידה הביתה בסוף היום.",
+        "tip": "🗺️ <b>במפה הוא מופיע כקו אחד עם 3.0.</b> המרשם הרשמי מפצל את הירידה למספרים, אבל ב-OpenStreetMap — ולכן גם ב-Mapy — זה שביל רצוף אחד בשם <bdi dir=\"ltr\">Plan Torrette-Pre de Veau</bdi>. לכן שני הכפתורים מובילים לאותו קו.",
         "tags": [
           "בינוני",
           "Plan Torrette",
           "חזרה לכפר"
         ],
         "trail": "Plan Torrette-Pre de Veau",
-        "start_latlon": "45.945200,7.648930",
-        "area_key": "cervinia"
+        "start_latlon": "45.9414714,7.6410127",
+        "area_key": "cervinia",
+        "mapy": "149384016",
+        "xy": "7.6410127,45.9414714"
       },
       {
         "num": "3.0",
         "name": "Pré de Veau – Pirovano",
-        "area": "מ-Pré de Veau בכיוון Pirovano",
+        "area": "מ-Pré de Veau אל אזור Pirovano ו-Giomein",
         "len": "~280 מ'",
         "diff": "🔴",
         "map": "Pre de Veau, Breuil-Cervinia",
-        "desc": "קטע קישור של פחות משלוש מאות מטר, המשך של אדום 3 מ-Pré de Veau בכיוון Pirovano. זו חוליה בשרשרת הירידה לכפר ולא מסלול עצמאי, והיא מופיעה בנפרד רק מפני שהמרשם התפעולי מפצל את מסלול 3 לשלושה קטעים ממוספרים.",
-        "tip": "",
+        "desc": "ההמשך הישיר של 3. מוריד מ-Pré de Veau אל אזור Pirovano, ומסתיים בשולי הכפר <b>ליד via Giomein</b> — שכונה בפני עצמה בצ׳רוויניה, לא מרכז הכפר ולא Cielo Alto.",
+        "tip": "🗺️ <b>אין לו אובייקט נפרד במפה.</b> הוא מסומן על אותו שביל של 3, ולכן הכפתור פותח את אותו קו.<br>📍 <b>שימו לב לשם:</b> <bdi dir=\"ltr\">via Giomein</bdi> בכפר ו-<bdi dir=\"ltr\">Alpe Giomein</bdi> בהר הם שני מקומות שונים לגמרי — האחד רחוב, השני כתף מעל Plan Torrette.",
         "tags": [
           "בינוני",
           "קישור",
           "חזרה לכפר"
         ],
         "trail": "Pre de Veau-Pirovano",
-        "start_latlon": "45.945560,7.642710",
-        "area_key": "cervinia"
+        "start_latlon": "45.9414714,7.6410127",
+        "area_key": "cervinia",
+        "mapy": "149384016",
+        "xy": "7.6410127,45.9414714"
       },
       {
         "num": "3.00",
