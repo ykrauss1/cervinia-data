@@ -655,6 +655,8 @@ img, svg, video { max-width: 100%; }
     <span onclick="openM('contactModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">צור קשר</span>
     <span style="color:rgba(255,255,255,0.2);">|</span>
     <span onclick="openM('helpModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">עזרה</span>
+    <span style="color:rgba(255,255,255,0.2);">|</span>
+    <span onclick="openSources()" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">מקורות ואמינות</span>
 
   </div>
   <div style="color:rgba(255,255,255,0.3);font-size:0.75rem;">CerviniaLive © 2026 · נתונים חיים מאתר Cervino Ski Paradise</div>
@@ -2580,6 +2582,9 @@ function openM(id) {
   if (m) m.style.display = 'flex';
   _openModalId = id;
   if (m) setTimeout(function () { _wireModalScroll(m); }, 40);
+  // The sources panel is built from texts.json every time it opens, so it is
+  // never stale and never blank if something opened it without openSources().
+  if (id === 'sourcesModal' && typeof renderSources === 'function') renderSources();
   if (id === 'authModal') {
     // נקה שדות בכל פתיחה
     ['login-name','login-pass','reg-name','reg-email','reg-pass','reg-pass2','forgot-email'].forEach(function(f) {
@@ -4609,8 +4614,20 @@ var PISTES = {
 // "2,111 \u2190 2,008 Campetto\u05de". Pinning every number left-to-right and
 // detaching the glued meter suffix fixes it, here rather than in the data,
 // so any string added later is handled too.
+// _fixNums rewrites numbers so they stay readable on a Hebrew line. It used
+// to run over the whole string, tags included, so a style like
+// "font-size:0.78rem" came out as font-size:<span dir="ltr">0.78</span>rem -
+// an invalid declaration the browser silently drops, and a table's own
+// layout numbers destroyed outright. It now splits the string on tags and
+// rewrites only the text between them; what is inside < > is left untouched.
 function _fixNums(s) {
   if (s === undefined || s === null) return '';
+  return String(s).split(/(<[^>]*>)/).map(function (part) {
+    return part.charAt(0) === '<' ? part : _fixNumsText(part);
+  }).join('');
+}
+
+function _fixNumsText(s) {
   return String(s)
     .replace(/(\d)\s*\u05de\u05f3?(?=[\s,.\u2190\u2013)\]]|$)/g, '$1 \u05de\u05f3')
     // a clock time and a date are single units: split across spans they come
@@ -4625,7 +4642,12 @@ function _fixNums(s) {
     // number in a Hebrew line: "\u20ac88" came out as "88\u20ac" and "CHF 104" as
     // "104 CHF". Pulling the mark inside the span keeps the pair together.
     .replace(/([\u20ac$\u20aa\u00a3])\s?(<span dir="ltr">)/g, '$2$1')
-    .replace(/\b(CHF|EUR|USD|ILS)\s?(<span dir="ltr">)/g, '$2$1\u00a0');
+    .replace(/\b(CHF|EUR|USD|ILS)\s?(<span dir="ltr">)/g, '$2$1\u00a0')
+    // Same problem one step earlier: an approximation mark left outside the
+    // run jumps to the far side of the number when Latin text precedes it -
+    // "Plan Torrette ~2,450" came out as "Plan Torrette 2,450~". Pulling the
+    // mark inside keeps it where it was written.
+    .replace(/([~\u2248\u00b1])\s?(<span dir="ltr">)/g, '$2$1');
 }
 
 // The chip row used to mix three unrelated things in one line: difficulty
@@ -6977,6 +6999,110 @@ function _applyTexts(t) {
   }
 }
 
+// ── מקורות ואמינות ───────────────────────────────────────────────────────
+// The list is generated into texts.json from verified_urls.json, which is the
+// register the audit actually works in. Nothing here is written by hand, so
+// the page and the register cannot drift apart: a source added to the register
+// appears here, and one that was never checked never does.
+// Everything here hangs off functions rather than top-level `var`s on purpose.
+// Line 6214 does `supabase.createClient(...)` at the top level of this same
+// script block, so if the Supabase CDN ever fails to load, that line throws
+// and every top-level assignment after it is skipped - the functions survive
+// (they hoist) but the variables come out undefined. Attribution should still
+// work on a page whose backend did not load, so it keeps no top-level state.
+function _srcState() {
+  if (!window.__src) window.__src = { group: null };
+  return window.__src;
+}
+
+function _srcItem(it) {
+  var h = '<div style="padding:9px 0;border-bottom:1px solid #f1f1f1;">'
+    + '<a href="' + it.url + '" target="_blank" rel="noopener"'
+    + ' style="font-size:0.85rem;font-weight:bold;color:#1a73e8;text-decoration:none;">'
+    + it.name + ' ↗</a>'
+    + '<div style="font-size:0.78rem;color:#777;line-height:1.55;margin-top:3px;">' + (it.covers || '') + '</div>';
+  if (it.quote) {
+    var lbl = (_texts && _texts.sources && _texts.sources.quote_label) || 'מה כתוב במקור';
+    h += '<details style="margin-top:5px;">'
+      + '<summary style="font-size:0.73rem;color:#999;cursor:pointer;list-style:none;">📄 ' + lbl + '</summary>'
+      + '<div style="margin-top:5px;padding:7px 9px;background:#f7f9fc;border-right:3px solid #c9d8ee;'
+      + 'border-radius:5px;font-size:0.74rem;line-height:1.5;color:#555;direction:ltr;text-align:left;">'
+      + '<bdi dir="ltr">“' + it.quote + '”</bdi></div></details>';
+  }
+  return h + '</div>';
+}
+
+function renderSources() {
+  var s = window._texts && window._texts.sources;
+  if (!s) {
+    // texts.json did not load. Say so rather than opening a blank panel.
+    var e = document.getElementById('src-list');
+    if (e) e.innerHTML = '<div style="font-size:0.85rem;color:#777;">רשימת המקורות לא נטענה. נסו לרענן את הדף.</div>';
+    return;
+  }
+  var set = function (id, v) { var e = document.getElementById(id); if (e) e.innerHTML = v || ''; };
+  set('src-title', s.title);
+  set('src-updated', 'נבדק לאחרונה: ' + (s.updated || ''));
+  set('src-intro', s.intro);
+  set('src-disclaimer', s.disclaimer);
+  set('src-report', s.report);
+
+  var st = _srcState();
+  var groups = s.groups || [];
+  var shown = st.group ? groups.filter(function (g) { return g.k === st.group; }) : groups;
+  if (!shown.length) { shown = groups; st.group = null; }
+
+  var scope = document.getElementById('src-scope');
+  if (scope) {
+    if (st.group) {
+      scope.style.display = '';
+      scope.innerHTML = '<span style="color:#777;">מוצגים המקורות של <b>' + shown[0].label + '</b></span>'
+        + ' · <span onclick="openSources()" style="color:#1a73e8;cursor:pointer;">הצג את כל המקורות</span>';
+    } else { scope.style.display = 'none'; }
+  }
+
+  var html = '';
+  shown.forEach(function (g) {
+    html += '<div style="margin-top:14px;">'
+      + '<div style="font-size:0.88rem;font-weight:bold;color:#0a192f;margin-bottom:2px;">' + g.label + '</div>'
+      + (g.items || []).map(_srcItem).join('') + '</div>';
+  });
+  set('src-list', html);
+}
+
+function openSources(group) {
+  _srcState().group = group || null;
+  renderSources();
+  openM('sourcesModal');
+}
+
+// Which modal answers to which group. One glyph in the header, nothing more -
+// the point is that the attribution is always one tap away, never in the way.
+function _srcChips() {
+  return {
+    skipassModal: 'skipass', pisteModal: 'pistes',  lessonsModal: 'lessons',
+    parkingModal: 'parking', aroundModal: 'around', kosherModal: 'kosher'
+  };
+}
+
+function _wireSourceChips() {
+  var map = _srcChips();
+  Object.keys(map).forEach(function (id) {
+    var m = document.getElementById(id);
+    if (!m || m.querySelector('.src-chip')) return;
+    var head = m.querySelector('h2, h3');
+    if (!head) return;
+    var b = document.createElement('span');
+    b.className = 'src-chip';
+    b.title = 'מאיפה הנתונים';
+    b.textContent = 'ⓘ';
+    b.style.cssText = 'cursor:pointer;color:#9bb0c7;font-size:0.82rem;margin-inline-start:6px;'
+      + 'vertical-align:middle;user-select:none;';
+    b.onclick = function (e) { e.stopPropagation(); openSources(map[id]); };
+    head.appendChild(b);
+  });
+}
+
 // ── טעינת texts.json ──
 async function loadTexts() {
   try {
@@ -6991,6 +7117,7 @@ async function loadTexts() {
     console.log('✅ texts.json נטען בהצלחה');
     // עדכן טקסטים ב-DOM
     _applyTexts(data);
+    _wireSourceChips();
   } catch(e) {
     console.warn('⚠️ texts.json לא נמצא — משתמש בערכי ברירת מחדל:', e.message);
   }
@@ -9233,6 +9360,20 @@ function switchAdminTab(tab) {
 
 
 <!-- 🅿️ Parking + 🚨 Emergency Modal -->
+<!-- Modal מקורות ואמינות -->
+<div id="sourcesModal" class="modal" onclick="if(event.target===this)closeM('sourcesModal')">
+  <div class="modal-content" style="max-width:560px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
+    <span class="close-btn" onclick="closeM('sourcesModal')">×</span>
+    <h3 id="src-title" style="margin:0 0 4px;font-size:1.08rem;"></h3>
+    <div id="src-updated" style="font-size:0.74rem;color:#999;margin-bottom:14px;"></div>
+    <div id="src-intro" style="font-size:0.86rem;line-height:1.65;color:#444;margin-bottom:12px;"></div>
+    <div id="src-disclaimer" style="font-size:0.84rem;line-height:1.6;background:#fff8e6;border:1px solid #f0dca8;border-radius:10px;padding:11px 13px;margin-bottom:14px;"></div>
+    <div id="src-scope" style="display:none;font-size:0.8rem;margin-bottom:12px;"></div>
+    <div id="src-list"></div>
+    <div id="src-report" style="margin-top:16px;padding-top:12px;border-top:1px solid #eee;font-size:0.82rem;color:#555;cursor:pointer;" onclick="closeM('sourcesModal');openM('contactModal');"></div>
+  </div>
+</div>
+
 <div id="parkingModal" class="modal" onclick="if(event.target===this)closeM('parkingModal')">
   <div class="modal-content" style="max-width:540px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('parkingModal')">×</span>
