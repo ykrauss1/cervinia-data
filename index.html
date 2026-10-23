@@ -577,7 +577,7 @@ img, svg, video { max-width: 100%; }
     <div id="svc-lessons"   class="service-btn" onclick="openM('lessonsModal')">🏫 הדרכת סקי</div>
     <div id="svc-kosher"    class="service-btn" onclick="openM('kosherModal')">🍽️<span style="letter-spacing:-0.6em;">🕯️🕯️</span>&#8203; כשרות ושבת</div>
     <div id="svc-webcam"    class="service-btn" onclick="openM('webcamModal')">📷 מצלמות</div>
-    <div id="svc-parking"   class="service-btn" onclick="openM('parkingModal')">🅿️🚨 כביש, חניה וחירום</div>
+    <div id="svc-parking"   class="service-btn" onclick="openM('parkingModal')">🚌🅿️🚨 תחבורה, חניה וחירום</div>
     <div id="svc-maps"      class="service-btn" onclick="openM('mapModal')"><span style="font-size:1.3rem;">🗺️</span> מפות</div>
   <div id="svc-piste"       class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים, בקתות ואפרה סקי</div>
   <div id="svc-around"      class="service-btn" onclick="openM('aroundModal')"><span style="font-size:1.3rem;">🏔️</span> מה לעשות באזור</div>
@@ -4838,6 +4838,108 @@ ST.run = async function () {
       CE.data = JSON.parse(JSON.stringify(window._texts)); CE.dirty = {};
     }
 
+    // ── המתכנן: לא מציג, מחשב — ולכן כאן טעות שקטה אפשרית ───────────────
+    if (typeof planArrival === 'function' && window._texts && window._texts.transport
+        && window._texts.transport.planner) {
+      if (!document.getElementById('ap-airport')) {
+        renderArrivalPlanner(window._texts.transport.planner);
+      }
+      // Each case was worked out by hand from the operator's timetable.
+      var PCASES = [
+        ['mxp', '2026-12-18', '12:00', ['14:05', '15:40', '17:45', '18:40'], []],
+        ['mxp', '2026-12-18', '18:00', ['18:05'], ['17:45']],
+        ['mxp', '2026-12-21', '09:00', ['11:05', '12:40', '13:45', '14:40'], []],
+        ['mxp', '2026-12-22', '09:00', ['אינו פועל'], ['11:05']],
+        ['mxp', '2026-12-24', '16:00', ['18:35', '20:10', '19:35'], []],
+        ['trn', '2026-12-21', '09:00', ['Porta Susa'], []],
+        ['mxp', '2026-12-18', '22:00', ['שימו לב', '23:30'], []],
+        ['mxp', '2026-12-18', '23:30', ['רכב שכור לא יעזור'], []],
+        ['trn', '2026-12-20', '19:30', ['20:00', 'רכב שכור לא יעזור'], []],
+        ['trn', '2026-12-21', '19:30', [], ['רכב שכור לא יעזור']]
+      ];
+      PCASES.forEach(function (c) {
+        try {
+          document.getElementById('ap-airport').value = c[0];
+          document.getElementById('ap-date').value    = c[1];
+          document.getElementById('ap-time').value    = c[2];
+          document.getElementById('ap-pax').value     = '2';
+          planArrival();
+          var txt = document.getElementById('ap-out').innerText || '';
+          var miss = c[3].filter(function (x) { return txt.indexOf(x) === -1; });
+          var bad  = c[4].filter(function (x) { return txt.indexOf(x) !== -1; });
+          if (miss.length)      ST.fail('מתכנן ' + c[0] + ' ' + c[1] + ' ' + c[2], 'חסר בתשובה: ' + miss.join(', '));
+          else if (bad.length)  ST.fail('מתכנן ' + c[0] + ' ' + c[1] + ' ' + c[2], 'לא אמור להופיע: ' + bad.join(', '));
+          else ST.ok();
+        } catch (e) {
+          ST.fail('מתכנן ' + c[0] + ' ' + c[1], String(e).slice(0, 70));
+        }
+      });
+    }
+
+    // ── הרמז העונתי: מופיע כשצריך, ושותק כשלא ───────────────────────────
+    if (typeof seasonHint === 'function' && window._texts && window._texts.season) {
+      var _d = function (v) { var x = v.split('-'); return new Date(+x[0], +x[1] - 1, +x[2]); };
+      var SCASES = [
+        ['2027-02-07', '2027-02-14', 'Settimana', true],
+        ['2027-03-14', '2027-03-21', 'אמצע מרץ', true],
+        ['2026-12-26', '2027-01-02', 'חג המולד', true],
+        ['2027-07-01', '2027-07-08', '', false]
+      ];
+      if (!document.getElementById('season-hint')) {
+        var _h = document.createElement('div'); _h.id = 'season-hint';
+        _h.style.display = 'none'; document.body.appendChild(_h);
+      }
+      SCASES.forEach(function (c) {
+        try {
+          seasonHint(_d(c[0]), _d(c[1]));
+          var t = (document.getElementById('season-hint') || {}).innerText || '';
+          if (c[3] && t.indexOf(c[2]) === -1)      ST.fail('רמז עונתי ' + c[0], 'לא הזכיר ' + c[2]);
+          else if (!c[3] && t.trim())              ST.fail('רמז עונתי ' + c[0], 'אמור לשתוק, אמר: ' + t.slice(0, 40));
+          else ST.ok();
+        } catch (e) { ST.fail('רמז עונתי ' + c[0], String(e).slice(0, 70)); }
+      });
+      try {
+        seasonHint(_d('2026-12-26'), _d('2027-01-02'));
+        var ht = (document.getElementById('season-hint') || {}).innerText || '';
+        if (ht.indexOf('חג המולד וראש השנה') < ht.indexOf('שוק חג המולד')) ST.ok();
+        else ST.fail('האזהרה לפני השוק', 'השוק הופיע ראשון');
+      } catch (e) { ST.fail('האזהרה לפני השוק', String(e).slice(0, 70)); }
+      seasonHint(null, null);
+    }
+
+    // ── המעבר לחיפוש הרכב ───────────────────────────────────────────────
+    if (typeof openCarSearch === 'function') {
+      try {
+        openM('parkingModal');
+        openCarSearch();
+        await ST.wait(200);
+        var okCar = document.getElementById('parkingModal').style.display === 'none'
+          && document.getElementById('hotelModal').style.display !== 'none'
+          && document.getElementById('ttab-car').className.indexOf('ttab-active') !== -1;
+        if (okCar) ST.ok();
+        else ST.fail('כפתור חיפוש הרכב פותח את לשונית הרכב', 'נפתח משהו אחר');
+        document.getElementById('hotelModal').style.display = 'none';
+      } catch (e) { ST.fail('כפתור חיפוש הרכב פותח את לשונית הרכב', String(e).slice(0, 70)); }
+    }
+
+    // ── לשונית התחבורה: כל הכרטיסים נבנים ───────────────────────────────
+    if (typeof renderTransport === 'function' && window._texts && window._texts.transport) {
+      try {
+        var body = document.getElementById('transport-body');
+        if (body) {
+          if (!body.innerHTML) renderTransport(window._texts.transport);
+          var html = body.innerHTML;
+          var gone = (window._texts.transport.groups || []).filter(function (g) {
+            return html.indexOf(g.title) === -1;
+          }).map(function (g) { return g.title; });
+          if (gone.length) ST.fail('כל כרטיסי התחבורה נבנים', 'לא הופיעו: ' + gone.join(' · '));
+          else if (html.indexOf('undefined') !== -1 || html.indexOf('[object') !== -1)
+            ST.fail('כל כרטיסי התחבורה נבנים', 'יש בפאנל undefined או [object Object]');
+          else ST.ok();
+        }
+      } catch (e) { ST.fail('כל כרטיסי התחבורה נבנים', String(e).slice(0, 70)); }
+    }
+
     // ── responsive: the page inside a narrow iframe of itself ────────────
     await ST.widths();
 
@@ -7549,7 +7651,7 @@ function _mins(hhmm) {
 function _hhmm(m) {
   m = ((m % 1440) + 1440) % 1440;
   var h = Math.floor(m / 60), x = m % 60;
-  return h + ':' + (x < 10 ? '0' + x : x);
+  return (h < 10 ? '0' + h : h) + ':' + (x < 10 ? '0' + x : x);
 }
 function _runsOn(run, dow) {
   return !run.days || run.days.indexOf(dow) !== -1;
@@ -7578,6 +7680,17 @@ function _apField(label, control) {
   return '<label style="display:block;min-width:0;">'
     + '<span style="display:block;font-size:0.7rem;color:#8a95a3;margin-bottom:3px;">'
     + label + '</span>' + control + '</label>';
+}
+
+// Hand the reader over to the trip planner's car tab. The search lives
+// there and should live in one place, so this opens that panel rather than
+// growing a second search of its own.
+function openCarSearch() {
+  closeM('parkingModal');
+  openM('hotelModal');
+  setTimeout(function () {
+    if (typeof switchTripTab === 'function') switchTripTab('car');
+  }, 60);
 }
 
 function renderArrivalPlanner(pl) {
@@ -7679,11 +7792,30 @@ function planArrival() {
     + 'זמן נסיעה ' + _waitHe(ap.drive_min) + '. '
     + 'הגעה משוערת כ-' + _hhmm(_mins(time) + 30 + ap.drive_min) + '.'));
 
-  // ── 3. or drive yourself ──
-  cards.push(_apCard('#f7f8fa', '#d8dde4', '#444', '🚗 ברכב שכור',
-    'זמן נסיעה ' + _waitHe(ap.drive_min) + ' בתנאים רגילים, '
+  // ── 3. or drive yourself - if the desk is still open ──
+  var carBody = 'זמן נסיעה ' + _waitHe(ap.drive_min) + ' בתנאים רגילים, '
     + 'הגעה משוערת כ-' + _hhmm(_mins(time) + 60 + ap.drive_min) + ' (כולל זמן בדלפק ההשכרה). '
-    + 'בחורף — צמיגי חורף או שרשראות ברכב, חובה.'));
+    + 'בחורף — צמיגי חורף או שרשראות ברכב, חובה.';
+  // A desk that has shut is the quiet way a trip goes wrong, so the warning
+  // appears at the moment the landing time is on the screen.
+  var tint = ['#f7f8fa', '#d8dde4', '#444'];
+  // Turin shuts earlier on a Sunday, and Turin is the airport closest to
+  // the valley - so the day of the week has to be part of this.
+  var close = (dow === 0 && ap.desk_close_sun) ? ap.desk_close_sun : ap.desk_close;
+  if (close) {
+    var slack = _mins(close) - ready;
+    if (slack < 0) {
+      carBody = '<b>הדלפקים נסגרים ב-' + close + ', ואתם תצאו מהטרמינל ב-'
+        + _hhmm(ready) + '.</b> רכב שכור לא יעזור כאן אלא אם סידרתם איסוף מראש. '
+        + carBody;
+      tint = ['#fff6f3', '#e8a088', '#9c3b16'];
+    } else if (slack < 60) {
+      carBody = '<b>שימו לב: הדלפקים נסגרים ב-' + close + ', כלומר '
+        + slack + ' דקות אחרי שתצאו מהטרמינל.</b> ' + carBody;
+      tint = ['#fffaf0', '#e8c488', '#8a5a00'];
+    }
+  }
+  cards.push(_apCard(tint[0], tint[1], tint[2], '🚗 ברכב שכור', carBody));
 
   out.innerHTML = '<div style="font-size:0.75rem;color:#8a95a3;margin-bottom:7px;">'
     + 'נחיתה ביום ' + DAYS[dow] + ', ' + time + ' · יצאתם מהטרמינל בערך ב-' + _hhmm(ready)
@@ -7762,10 +7894,17 @@ function renderTransport(tr) {
     if (g.links && g.links.length) {
       h += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;">';
       g.links.forEach(function (l) {
-        h += '<a href="' + l.url + '" target="_blank" rel="noopener" '
-           + 'style="padding:5px 11px;background:#1a73e8;color:white;border-radius:7px;'
-           + 'text-decoration:none;font-size:0.76rem;font-weight:bold;">'
-           + _aEsc(l.label) + '</a>';
+        var style = 'padding:5px 11px;background:#1a73e8;color:white;border-radius:7px;'
+                  + 'text-decoration:none;font-size:0.76rem;font-weight:bold;border:none;'
+                  + 'cursor:pointer;font-family:inherit;';
+        // a link leaves the site; an action stays inside it
+        if (l.action) {
+          h += '<button type="button" onclick="' + l.action + '" style="' + style + '">'
+             + _aEsc(l.label) + '</button>';
+        } else {
+          h += '<a href="' + l.url + '" target="_blank" rel="noopener" style="' + style + '">'
+             + _aEsc(l.label) + '</a>';
+        }
       });
       h += '</div>';
     }
