@@ -70,6 +70,17 @@ ALWAYS = {
         'מחירון השיעורים — כל המחירים בעמוד השיעורים',
     'https://www.cervinia.it/en/parcheggio-cervino-ski-paradise':
         'תעריפי החניון',
+    # The timetables are now the most perishable thing on the site: the
+    # arrival planner computes from them, so a silent change does not look
+    # like a wrong number - it looks like a connection that is not there.
+    'https://arriva.it/app/uploads/sites/3/2026/09/000503-Chatillon-Breuil-Cervinia.pdf':
+        'לוח הזמנים של הקו המקומי — המתכנן מחשב ממנו כל תשובה',
+    'https://arriva.it/app/uploads/sites/3/2025/12/AOSTA-MALPENSA_2026.pdf':
+        'לוח מלפנסה — בתוקף עד 31.12.2026 בלבד, כלומר מתחלף באמצע העונה',
+    'https://arriva.it/app/uploads/sites/3/2023/12/Tariffario-Arriva-Italia-Valle-dAosta_2024.pdf':
+        'תעריפי האוטובוסים — המחיר האחרון שפורסם הוא מ-2024',
+    'https://www.cervinia.it/en/impianti':
+        'תאריכי פתיחה וסגירה של העונה — כל כרטיס "מתי כדאי לנסוע" תלוי בהם',
 }
 
 
