@@ -1774,14 +1774,6 @@ img, svg, video { max-width: 100%; }
           <span style="font-size:0.8rem;color:#1a3a6c;">לגבי מוצרים נוספים — ראה <b>רשימת מוצרים כשרים</b> להלן.</span>
         </div>
       </div>
-      <!-- an organised kosher trip is the one way round "there is nothing in
-           the village", so it sits directly under that paragraph -->
-      <div id="kosher-group-box" style="display:none;padding:13px;border:1.5px solid #c5cae9;
-           border-right:4px solid #3f51b5;border-radius:11px;background:#f5f6fc;margin-bottom:12px;">
-        <div id="kosher-group-title" style="font-weight:bold;font-size:0.9rem;color:#283593;margin-bottom:5px;"></div>
-        <div id="kosher-group-text" style="font-size:0.82rem;color:#444;line-height:1.95;"></div>
-      </div>
-
       <div style="padding:13px;background:#f0fff4;border:1.5px solid #a5d6a7;border-radius:11px;">
         <div id="kosher-tips-title" style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;">💡 טיפים לשהייה כשרה</div>
         <div id="kosher-products-title" style="font-weight:bold;font-size:0.88rem;margin:4px 0 6px;"></div>
@@ -8313,12 +8305,6 @@ function _applyTexts(t) {
     _set('kosher-btn-kosher-sub',    ko.kosher_btn_sub);
     _set('kosher-cervinia-title',    ko.cervinia_title);
     _set('kosher-cervinia-text',     ko.cervinia_text);
-    if (ko.cervinia_group && ko.cervinia_group.text) {
-      _set('kosher-group-title', ko.cervinia_group.title);
-      _set('kosher-group-text',  ko.cervinia_group.text);
-      var _gb = document.getElementById('kosher-group-box');
-      if (_gb) _gb.style.display = 'block';
-    }
     _set('kosher-tips-title',        ko.cervinia_tips_title);
     _set('kosher-products-title',    ko.cervinia_products_title);
     if (ko.cervinia_products) {
