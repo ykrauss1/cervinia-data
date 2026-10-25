@@ -370,7 +370,27 @@ def _strip_expiries(o):
     elif isinstance(o, list):
         for v in o: _strip_expiries(v)
 _strip_expiries(_dated)
-for m in re.finditer(r'(\d{2})/(\d{2})/(20\d{2})', json.dumps(_dated, ensure_ascii=False)):
+_dated_json = json.dumps(_dated, ensure_ascii=False)
+# The start of a range that is still running is not a stale date: a season
+# written "24/10/2026-02/05/2027" is current all winter. Only the end of
+# such a pair is worth checking, so the opening date is taken out first.
+_RANGE = re.compile(r'(\d{2}/\d{2}/20\d{2})\s*[-\u2013]\s*(\d{2}/\d{2}/20\d{2})')
+def _drop_live_range_starts(txt):
+    out = []
+    last = 0
+    for m in _RANGE.finditer(txt):
+        try:
+            e = m.group(2).split('/')
+            ends = datetime.date(int(e[2]), int(e[1]), int(e[0]))
+        except ValueError:
+            continue
+        if ends >= TODAY:                 # the range has not finished
+            out.append(txt[last:m.start(1)])
+            last = m.end(1)
+    out.append(txt[last:])
+    return ''.join(out)
+_dated_json = _drop_live_range_starts(_dated_json)
+for m in re.finditer(r'(\d{2})/(\d{2})/(20\d{2})', _dated_json):
     dd, mm, yy = int(m.group(1)), int(m.group(2)), int(m.group(3))
     try: when = datetime.date(yy, mm, dd)
     except ValueError: continue
@@ -402,6 +422,151 @@ for sec in P:
                     if not (lo <= int(alt) <= hi):
                         err('%s: "%s" given as %sm, expected %d-%dm'
                             % (sec, place, alt, lo, hi))
+
+# ---- 7. the transport block, and the planner that reads it ----------
+#
+# The timetable is written twice on purpose: once as a table a person reads,
+# and once as machine times the arrival planner computes with. Two copies
+# drift, and a drift here is invisible - the page would show one time and the
+# planner would answer with another. So they are compared.
+TR = d.get('transport', {})
+if TR:
+    ids = [g.get('id') for g in TR.get('groups', [])]
+    for i, gid in enumerate(ids):
+        if not gid:
+            err('transport.groups[%d] has no id' % i)
+    if len(ids) != len(set(ids)):
+        err('transport.groups: duplicate id %s'
+            % sorted(set(x for x in ids if ids.count(x) > 1)))
+
+    def _tables(g):
+        if g.get('tables'):
+            return g['tables']
+        return [{'cols': g.get('cols'), 'rows': g.get('rows')}] if g.get('rows') else []
+
+    for g in TR.get('groups', []):
+        for t in _tables(g):
+            cols = t.get('cols') or []
+            for r in t.get('rows') or []:
+                cells = r if isinstance(r, list) else [r.get('a'), r.get('b'), r.get('c')]
+                cells = [c for c in cells if c not in (None, '')]
+                if cols and len(cells) != len(cols):
+                    err('transport.%s: a row has %d cells but the table has %d columns'
+                        % (g.get('id'), len(cells), len(cols)))
+
+    # a link either goes somewhere or does something; one of the two
+    for g in TR.get('groups', []):
+        for l in g.get('links', []) or []:
+            if not l.get('url') and not l.get('action'):
+                err('transport.%s: a link has neither url nor action (%r)'
+                    % (g.get('id'), l.get('label')))
+            if l.get('url') and l.get('action'):
+                err('transport.%s: the link %r has both a url and an action'
+                    % (g.get('id'), l.get('label')))
+            if not str(l.get('label', '')).strip():
+                err('transport.%s: a link has no label' % g.get('id'))
+
+    PLAN = TR.get('planner', {})
+    if PLAN:
+        TIME = re.compile(r'^([01]?\d|2[0-3]):[0-5]\d$')
+        for lk, line in (PLAN.get('lines') or {}).items():
+            for i, run in enumerate(line.get('runs', [])):
+                for f in ('dep', 'arr'):
+                    if not TIME.match(str(run.get(f, ''))):
+                        err('planner.lines.%s[%d].%s is not a time: %r'
+                            % (lk, i, f, run.get(f)))
+                def _m(v):
+                    h, mm = str(v).split(':'); return int(h) * 60 + int(mm)
+                try:
+                    if _m(run['arr']) <= _m(run['dep']):
+                        err('planner.lines.%s[%d] arrives at %s, before it leaves at %s'
+                            % (lk, i, run['arr'], run['dep']))
+                except Exception:
+                    pass
+                for dow in run.get('days', []):
+                    if dow not in range(7):
+                        err('planner.lines.%s[%d] has weekday %r (0-6 expected)'
+                            % (lk, i, dow))
+        for a in PLAN.get('airports', []):
+            if a.get('line') and a['line'] not in (PLAN.get('lines') or {}):
+                err('planner: airport %s points at line %r, which does not exist'
+                    % (a.get('id'), a['line']))
+
+        # the cross-check: every departure the planner knows about has to be
+        # a departure the reader can see in the table, and the other way round
+        def _table_times(gid, which=None):
+            """The departure/arrival pairs a reader sees. `which` picks one
+            table when the card holds more than one - the Linea Blu card has
+            the uphill and the downhill runs side by side."""
+            out = []
+            for g in TR.get('groups', []):
+                if g.get('id') != gid:
+                    continue
+                ts = _tables(g)
+                ts = [ts[which]] if (which is not None and which < len(ts)) else ts
+                for t in ts:
+                    for r in t.get('rows') or []:
+                        if isinstance(r, dict) and r.get('a') and r.get('b'):
+                            out.append((str(r['a']), str(r['b'])))
+            return out
+
+        # Malpensa: the table is departure -> arrival at Châtillon
+        mal = set(_table_times('malpensa'))
+        if mal:
+            run = set((r['dep'], r['arr']) for r in PLAN['lines']['mxp']['runs'])
+            if mal != run:
+                err('the Malpensa timetable differs between the table and the planner: '
+                    'only in the table %s · only in the planner %s'
+                    % (sorted(mal - run), sorted(run - mal)))
+        # Linea Blu: the table shows the railway-station time, the planner the
+        # bus-station time five minutes later, so only the arrivals can be
+        # compared directly - and their count must match.
+        blu = _table_times('lineablu', 0)   # the uphill table only
+        def _m2(v):
+            h, mm = str(v).split(':'); return int(h) * 60 + int(mm)
+        by_arr = {}
+        for dep, arr in blu:
+            by_arr[arr] = dep
+        for i, r in enumerate(PLAN['lines']['blu']['runs']):
+            if r['arr'] not in by_arr:
+                err('planner.lines.blu[%d] arrives at %s, which is in no row of the table'
+                    % (i, r['arr']))
+                continue
+            gap = _m2(r['dep']) - _m2(by_arr[r['arr']])
+            # The planner counts from the bus station, the table from the
+            # railway station a few minutes earlier. Five minutes usually,
+            # fifteen on the two runs that loop through Saint-Vincent - but
+            # never negative, and never a quarter of an hour out of range.
+            if not (0 <= gap <= 20):
+                err('planner.lines.blu[%d] leaves at %s while the table says %s (%d minutes apart)'
+                    % (i, r['dep'], by_arr[r['arr']], gap))
+        if len(PLAN['lines']['blu']['runs']) != len(blu):
+            err('Linea Blu: the planner has %d runs up, the table shows %d'
+                % (len(PLAN['lines']['blu']['runs']), len(blu)))
+
+# ---- 8. "when to go": the dates have to be real and in order --------
+SE = d.get('season', {})
+if SE:
+    ISO = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+    KINDS = {'busy', 'quiet', 'special'}
+    for i, pr in enumerate(SE.get('periods', [])):
+        for f in ('from', 'to'):
+            if not ISO.match(str(pr.get(f, ''))):
+                err('season.periods[%d].%s is not a YYYY-MM-DD date: %r'
+                    % (i, f, pr.get(f)))
+        try:
+            a = datetime.date(*[int(x) for x in pr['from'].split('-')])
+            b = datetime.date(*[int(x) for x in pr['to'].split('-')])
+            if b < a:
+                err('season.periods[%d] (%s) ends before it starts' % (i, pr.get('label')))
+        except Exception:
+            pass
+        if pr.get('kind') not in KINDS:
+            err('season.periods[%d] has kind %r, expected one of %s'
+                % (i, pr.get('kind'), sorted(KINDS)))
+        for f in ('label', 'note'):
+            if not str(pr.get(f, '')).strip():
+                err('season.periods[%d] has no %s' % (i, f))
 
 print('--- %s ---' % path)
 for e in ERR:  print('ERROR  ', e)
