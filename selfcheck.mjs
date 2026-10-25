@@ -44,8 +44,21 @@ const warn = (test, detail) => warns.push({ test, detail });
 let passed = 0;
 const ok = (t) => { passed++; };
 
-const LAUNCH = fs.existsSync('/opt/pw-browsers/chromium')
-  ? { executablePath: '/opt/pw-browsers/chromium' } : {};
+// On GitHub's machines Playwright finds its own browser and this resolves to
+// nothing. In the container the browser is pre-installed under a versioned
+// folder, and the version moves, so the binary is looked up rather than named.
+const LOCAL_CHROME = (() => {
+  const root = '/opt/pw-browsers';
+  if (!fs.existsSync(root)) return null;
+  for (const d of fs.readdirSync(root)) {
+    for (const rel of ['chrome-linux/chrome', 'chrome-linux/headless_shell']) {
+      const f = path.join(root, d, rel);
+      if (fs.existsSync(f)) return f;
+    }
+  }
+  return null;
+})();
+const LAUNCH = LOCAL_CHROME ? { executablePath: LOCAL_CHROME } : {};
 const browser = await pw.chromium.launch(LAUNCH);
 
 // ── 1. every panel opens, and nothing throws ──────────────────────────────
@@ -281,6 +294,151 @@ const validatorCatches = await page.evaluate(() => {
   return n > 0 ? 'ok' : 'a broken tag passed validation';
 });
 if (validatorCatches !== 'ok') fail('editor refuses a broken file', validatorCatches); else ok();
+
+
+// ── 11. the arrival planner answers, and answers correctly ───────────────
+//
+// The planner is the one place on the site that computes rather than
+// displays, so it is the one place a silent wrong answer can appear. Each
+// case below has a known right answer worked out by hand from the operator's
+// timetable; the test fails if the page disagrees with the timetable.
+const planCases = [
+  // [airport, date, landing, pax, what must appear, what must not]
+  ['mxp', '2026-12-18', '12:00', 2, ['14:05', '15:40', '17:45', '18:40'], []],
+  ['mxp', '2026-12-18', '18:00', 2, ['18:05'], ['17:45']],
+  ['mxp', '2026-12-21', '09:00', 4, ['11:05', '12:40', '13:45', '14:40'], []],
+  ['mxp', '2026-12-22', '09:00', 2, ['אינו פועל'], ['11:05']],
+  ['mxp', '2026-12-24', '16:00', 2, ['18:35', '20:10', '19:35'], []],
+  ['trn', '2026-12-21', '09:00', 3, ['Porta Susa'], []],
+  // the desks close long before the night is over, and Turin closes
+  // earlier again on a Sunday - the two cases that strand a late arrival
+  ['mxp', '2026-12-18', '22:00', 2, ['שימו לב', '23:30'], []],
+  ['mxp', '2026-12-18', '23:30', 2, ['רכב שכור לא יעזור'], []],
+  ['trn', '2026-12-20', '19:30', 2, ['20:00', 'רכב שכור לא יעזור'], []],
+  ['trn', '2026-12-21', '19:30', 2, [], ['רכב שכור לא יעזור']],
+];
+for (const [ap, date, time, pax, must, mustNot] of planCases) {
+  const txt = await page.evaluate(([ap, date, time, pax]) => {
+    if (typeof planArrival !== 'function') return '__missing__';
+    if (!document.getElementById('ap-airport')) {
+      renderArrivalPlanner(window._texts.transport.planner);
+    }
+    document.getElementById('ap-airport').value = ap;
+    document.getElementById('ap-date').value = date;
+    document.getElementById('ap-time').value = time;
+    document.getElementById('ap-pax').value = String(pax);
+    planArrival();
+    return document.getElementById('ap-out').innerText;
+  }, [ap, date, time, pax]);
+  const label = `planner ${ap} ${date} ${time}`;
+  if (txt === '__missing__') { fail(label, 'planArrival is not defined'); continue; }
+  const missing = must.filter(x => txt.indexOf(x) === -1);
+  const wrong   = mustNot.filter(x => txt.indexOf(x) !== -1);
+  if (missing.length) fail(label, `missing from the answer: ${missing.join(', ')}`);
+  else if (wrong.length) fail(label, `should not be in the answer: ${wrong.join(', ')}`);
+  else ok();
+}
+
+// every airport offers something, whatever the day
+const everyAirport = await page.evaluate(() => {
+  const ids = window._texts.transport.planner.airports.map(a => a.id);
+  const bad = [];
+  for (const id of ids) {
+    for (const day of ['2026-12-20', '2026-12-23']) {
+      document.getElementById('ap-airport').value = id;
+      document.getElementById('ap-date').value = day;
+      document.getElementById('ap-time').value = '10:00';
+      planArrival();
+      const t = document.getElementById('ap-out').innerText || '';
+      if (t.indexOf('הסעה פרטית') === -1 || t.indexOf('ברכב שכור') === -1) bad.push(id + ' ' + day);
+    }
+  }
+  return bad;
+});
+if (everyAirport.length) fail('every airport always has an answer', everyAirport.join(', ')); else ok();
+
+// ── 12. the seasonal hint fires on the right dates and stays quiet else ──
+const seasonCases = [
+  ['2027-02-07', '2027-02-14', 'Settimana', true],
+  ['2027-03-14', '2027-03-21', 'אמצע מרץ', true],
+  ['2026-12-26', '2027-01-02', 'חג המולד', true],
+  ['2027-07-01', '2027-07-08', '', false],   // high summer: nothing to say
+];
+for (const [a, b, needle, expect] of seasonCases) {
+  const txt = await page.evaluate(([a, b]) => {
+    if (typeof seasonHint !== 'function') return '__missing__';
+    const d = s => { const x = s.split('-'); return new Date(+x[0], +x[1] - 1, +x[2]); };
+    seasonHint(d(a), d(b));
+    return (document.getElementById('season-hint') || {}).innerText || '';
+  }, [a, b]);
+  const label = `season hint ${a}`;
+  if (txt === '__missing__') { fail(label, 'seasonHint is not defined'); continue; }
+  if (expect && txt.indexOf(needle) === -1) fail(label, `expected to mention "${needle}", said: ${txt.slice(0, 60)}`);
+  else if (!expect && txt.trim()) fail(label, `should have said nothing, said: ${txt.slice(0, 60)}`);
+  else ok();
+}
+
+// the warning outranks the decoration when both apply
+const hintOrder = await page.evaluate(() => {
+  const d = s => { const x = s.split('-'); return new Date(+x[0], +x[1] - 1, +x[2]); };
+  seasonHint(d('2026-12-26'), d('2027-01-02'));
+  const t = document.getElementById('season-hint').innerText;
+  return t.indexOf('חג המולד וראש השנה') < t.indexOf('שוק חג המולד') ? 'ok' : 'the market came first';
+});
+if (hintOrder !== 'ok') fail('the crowd warning comes before the Christmas market', hintOrder); else ok();
+
+// ── 12b. the handoff to the car search ──────────────────────────────────
+const carHandoff = await page.evaluate(async () => {
+  if (typeof openCarSearch !== 'function') return 'openCarSearch is not defined';
+  const body = document.getElementById('transport-body');
+  if (body && !body.innerHTML) renderTransport(window._texts.transport);
+  if (body && body.innerHTML.indexOf('openCarSearch()') === -1)
+    return 'the car-search button is not on the page';
+  openM('parkingModal');
+  openCarSearch();
+  await new Promise(r => setTimeout(r, 200));
+  if (document.getElementById('parkingModal').style.display !== 'none')
+    return 'the transport panel stayed open behind it';
+  const hotel = document.getElementById('hotelModal').style.display;
+  if (hotel === 'none' || hotel === '') return 'the trip panel did not open';
+  if (document.getElementById('ttab-car').className.indexOf('ttab-active') === -1)
+    return 'the trip panel opened on the wrong tab';
+  document.getElementById('hotelModal').style.display = 'none';
+  return 'ok';
+});
+if (carHandoff !== 'ok') fail('the car-search button opens the car tab', carHandoff); else ok();
+
+// ── 13. the transport tab renders whole ──────────────────────────────────
+const tr = await page.evaluate(() => {
+  const want = (window._texts.transport.groups || []).map(g => g.title);
+  const body = document.getElementById('transport-body');
+  if (!body) return 'no transport panel in the page';
+  if (!body.innerHTML) renderTransport(window._texts.transport);
+  const html = body.innerHTML;
+  const missing = want.filter(t => html.indexOf(t) === -1);
+  if (missing.length) return 'these cards did not render: ' + missing.join(' · ');
+  if (html.indexOf('undefined') !== -1 || html.indexOf('[object') !== -1)
+    return 'the panel contains undefined or [object Object]';
+  return 'ok';
+});
+if (tr !== 'ok') fail('the transport tab renders every card', tr); else ok();
+
+// its three tabs each show one panel and hide the others
+const parkTabs = await page.evaluate(() => {
+  if (typeof switchParkTab !== 'function') return 'switchParkTab is missing';
+  const names = ['parking', 'transport', 'emergency'];
+  for (const n of names) {
+    switchParkTab(n);
+    for (const m of names) {
+      const el = document.getElementById('park-panel-' + m);
+      if (!el) return 'no panel ' + m;
+      const shown = el.style.display !== 'none';
+      if (shown !== (m === n)) return `with ${n} open, ${m} was ${shown ? 'visible' : 'hidden'}`;
+    }
+  }
+  return 'ok';
+});
+if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', parkTabs); else ok();
 
 await browser.close();
 
