@@ -568,6 +568,55 @@ if SE:
             if not str(pr.get(f, '')).strip():
                 err('season.periods[%d] has no %s' % (i, f))
 
+# ---- 9. a piste or lift has to be findable on a map -----------------
+#   Hebrew spells a name the way it sounds, and no map will match it. Every
+#   name a reader might type into a map carries its Latin form; the Hebrew
+#   around it is only connective tissue.
+LAT = re.compile(r'[A-Za-z\u00C0-\u024F]')
+def _walk_names(o, path=''):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k == 'name' and isinstance(v, str):
+                if v.strip() and not LAT.search(v):
+                    err('%s.name has no Latin form, so it cannot be looked up '
+                        'on a map: %r' % (path, v))
+            else:
+                _walk_names(v, path + '.' + k if path else k)
+    elif isinstance(o, list):
+        for i, v in enumerate(o):
+            _walk_names(v, '%s[%d]' % (path, i))
+_walk_names(d.get('pistes', {}), 'pistes')
+
+# ---- 10. the kosher lists: Hebrew heads, Latin lists -----------------
+#   A product run reads left to right, so a Hebrew sentence dropped inside it
+#   comes out scrambled - the punctuation lands at the wrong end. Hebrew
+#   belongs in the heading before the marker; after it, only the short
+#   connectives a brand list needs.
+HEB_RUN = re.compile(r'[\u0590-\u05FF][\u0590-\u05FF \u05f3\u05f4"\'-]{11,}')
+def _tags(frag):
+    return (frag.count('<span'), frag.count('</span>'),
+            frag.count('<b>') + frag.count('<b '), frag.count('</b>'))
+for i, ln in enumerate(d.get('kosher', {}).get('cervinia_products', [])):
+    if '<ltr>' not in ln:
+        continue
+    if ln.count('<ltr>') > 2:
+        err('kosher.cervinia_products[%d] has %d <ltr> markers; a line and its '
+            'footnote may have one each' % (i, ln.count('<ltr>')))
+    for part in ln.split('<br>'):
+        if '<ltr>' not in part:
+            continue
+        head, body = part.split('<ltr>', 1)
+        for frag, what in ((head, 'heading'), (body, 'product run')):
+            so, sc, bo, bc = _tags(frag)
+            if so != sc or bo != bc:
+                err('kosher.cervinia_products[%d]: the %s is left with an '
+                    'unclosed tag - the <ltr> marker splits the string, so no '
+                    'tag may straddle it' % (i, what))
+        m = HEB_RUN.search(re.sub(r'<[^>]*>', '', body))
+        if m:
+            err('kosher.cervinia_products[%d] has Hebrew prose inside the '
+                'left-to-right product run: %r' % (i, m.group(0)[:40]))
+
 print('--- %s ---' % path)
 for e in ERR:  print('ERROR  ', e)
 for w in WARN: print('warn   ', w)
