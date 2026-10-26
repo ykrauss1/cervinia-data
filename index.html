@@ -347,6 +347,21 @@ img, svg, video { max-width: 100%; }
 }
 
 /* ==========================================
+   WIDE DESKTOP (≥ 1101px) - the stats line
+   ==========================================
+   The group hugged its own content, so on a wide screen it ended in a dead
+   strip of about 115px before the Matterhorn while every cell sat squeezed
+   together at an 8px gap. Letting the group take the free width and spacing
+   the cells across it gives one even rhythm the whole way along, and the
+   8px gap stays as the floor for the worst-case widest readings. */
+@media (min-width: 1101px) {
+  #live-data-bar > div > div:first-child {
+    flex: 1 1 auto;
+    justify-content: space-between;
+  }
+}
+
+/* ==========================================
    RESPONSIVE - SMALL PHONES (≤ 380px)
    ========================================== */
 /* ==========================================
@@ -507,10 +522,10 @@ img, svg, video { max-width: 100%; }
         </div>
 
         <div style="text-align:center;">
-          <div id="bar-hours" dir="ltr" style="color:rgba(255,255,255,0.85);font-size:0.95rem;font-weight:700;line-height:1;white-space:nowrap;">--</div>
-          <div style="margin-top:3px;line-height:1;">
+          <div id="bar-hours" dir="ltr" style="color:rgba(255,255,255,0.85);font-size:0.95rem;font-weight:700;line-height:1.15rem;white-space:nowrap;">--</div>
+          <div style="margin-top:2px;height:11px;line-height:11px;">
             <span id="bar-hours-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;">🕗 שעות</span>
-            <span id="bar-closed-notice" style="display:none;font-size:0.6rem;background:#e74c3c;color:white;border-radius:4px;padding:1px 6px;font-weight:bold;">סגור</span>
+            <span id="bar-closed-notice" style="display:none;font-size:0.58rem;background:#e74c3c;color:white;border-radius:4px;padding:0 5px;font-weight:bold;line-height:11px;height:11px;display:inline-block;vertical-align:top;margin-right:5px;">סגור</span>
           </div>
         </div>
 
@@ -1774,6 +1789,14 @@ img, svg, video { max-width: 100%; }
           <span style="font-size:0.8rem;color:#1a3a6c;">לגבי מוצרים נוספים — ראה <b>רשימת מוצרים כשרים</b> להלן.</span>
         </div>
       </div>
+      <!-- an organised kosher trip is the one way round "there is nothing in
+           the village", so it sits directly under that paragraph -->
+      <div id="kosher-group-box" style="display:none;padding:13px;border:1.5px solid #c5cae9;
+           border-right:4px solid #3f51b5;border-radius:11px;background:#f5f6fc;margin-bottom:12px;">
+        <div id="kosher-group-title" style="font-weight:bold;font-size:0.9rem;color:#283593;margin-bottom:5px;"></div>
+        <div id="kosher-group-text" style="font-size:0.82rem;color:#444;line-height:1.95;"></div>
+      </div>
+
       <div style="padding:13px;background:#f0fff4;border:1.5px solid #a5d6a7;border-radius:11px;">
         <div id="kosher-tips-title" style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;">💡 טיפים לשהייה כשרה</div>
         <div id="kosher-products-title" style="font-weight:bold;font-size:0.88rem;margin:4px 0 6px;"></div>
@@ -1882,25 +1905,25 @@ img, svg, video { max-width: 100%; }
 
   </div>
 </div>
-<div id="mapModal" class="modal" onclick="if(event.target===this)closeM('mapModal')">
+<div id="mapModal" class="modal" onclick="if(event.target===this)closeMapModal()">
   <div class="modal-content" style="max-width:960px;height:92vh;display:flex;flex-direction:column;padding:14px;gap:0;">
     <!-- כותרת -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;">
       <h3 style="margin:0;font-size:1rem;">🗺️ מפות</h3>
-      <span class="close-btn" style="position:static;font-size:1.4rem;cursor:pointer;" onclick="closeM('mapModal')">×</span>
+      <span class="close-btn" style="position:static;font-size:1.4rem;cursor:pointer;" onclick="closeMapModal()">×</span>
     </div>
     <!-- כפתורי בחירה -->
     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;flex-shrink:0;">
       <div style="display:flex;gap:6px;">
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('mymap')">📍 נקודות ציון</button>
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('town')">🏘️ מפת הכפר</button>
+        <button class="service-btn map-pick" data-map="mymap" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('mymap')">📍 נקודות ציון</button>
+        <button class="service-btn map-pick" data-map="town" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('town')">🏘️ מפת הכפר</button>
       </div>
       <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:2px 0;">⛷️ מפות מסלולים:</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-all')">🌍 כל האזור</button>
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-cervinia')">🇮🇹 צ׳רוויניה</button>
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-valtournenche')">🏔️ ולטורננש</button>
-        <button class="service-btn" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-swiss')">🇨🇭 שוויץ</button>
+        <button class="service-btn map-pick" data-map="piste-all" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-all')">🌍 כל האזור</button>
+        <button class="service-btn map-pick" data-map="piste-cervinia" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-cervinia')">🇮🇹 צ׳רוויניה</button>
+        <button class="service-btn map-pick" data-map="piste-valtournenche" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-valtournenche')">🏔️ ולטורננש</button>
+        <button class="service-btn map-pick" data-map="piste-swiss" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-swiss')">🇨🇭 שוויץ</button>
       </div>
     </div>
     <!-- toolbar: zoom + fullscreen + download (מוצג רק כשיש תוכן) -->
@@ -1928,7 +1951,7 @@ img, svg, video { max-width: 100%; }
       <!-- placeholder -->
       <div id="map-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:10px;color:#999;">
         <span style="font-size:3rem;">🗺️</span>
-        <span>בחר מפה מלמעלה</span>
+        <span>בחר מפה</span>
       </div>
     </div>
   </div>
@@ -2609,7 +2632,10 @@ function _ensureFloatX() {
   b.type = 'button';
   b.setAttribute('aria-label', 'סגור');
   b.innerHTML = '\u2715';
-  b.onclick = function () { if (_openModalId) closeM(_openModalId); };
+  b.onclick = function () {
+    if (!_openModalId) return;
+    if (_openModalId === 'mapModal') closeMapModal(); else closeM(_openModalId);
+  };
   document.body.appendChild(b);
   return b;
 }
@@ -2699,6 +2725,8 @@ document.addEventListener('keydown', function(e) {
     closeWebcam();
   } else if (top.id === 'sourcesModal') {
     closeSources();
+  } else if (top.id === 'mapModal') {
+    closeMapModal();
   } else if (top.id) {
     closeM(top.id);
   }
@@ -2736,6 +2764,38 @@ function _loadPdfJs(cb) {
   document.head.appendChild(s);
 }
 
+// Which map the reader last asked for, so the button can say so.
+function _mapMarkPick(type) {
+  document.querySelectorAll('.map-pick').forEach(function (b) {
+    var on = b.getAttribute('data-map') === type;
+    b.style.background   = on ? '#0a192f' : '';
+    b.style.color        = on ? '#fff'    : '';
+    b.style.borderColor  = on ? '#0a192f' : '';
+    b.style.fontWeight   = on ? 'bold'    : '';
+  });
+}
+function _mapIdle() {
+  var ph = document.getElementById('map-placeholder');
+  if (ph) {
+    ph.style.display = 'flex';
+    ph.innerHTML = '<span style="font-size:3rem;">🗺️</span><span>בחר מפה</span>';
+  }
+}
+// A 20MB download that nobody cancelled keeps running behind a closed panel,
+// and the next visit finds the old spinner still turning. Closing the panel
+// stops the download and puts the panel back to its resting state.
+var _mapTask = null;
+function _mapCancel() {
+  if (_mapTask) { try { _mapTask.destroy(); } catch (e) {} _mapTask = null; }
+}
+function closeMapModal() {
+  _mapCancel();
+  _mapReset();
+  _mapIdle();
+  _mapMarkPick(null);
+  closeM('mapModal');
+}
+
 function _mapReset() {
   _mapZoomLevel = 1;
   _mapCurrentPdf = null;
@@ -2762,7 +2822,9 @@ function _mapShowToolbar(downloadUrl, downloadName) {
 }
 
 function loadMap(type) {
+  _mapCancel();
   _mapReset();
+  _mapMarkPick(type);
   var pdfFiles = { 'piste-all':'slopesmap.pdf', 'piste':'slopesmap.pdf', 'piste-cervinia':'cerviniaslopesmap.pdf', 'piste-valtournenche':'valtournencheslopesmap.pdf', 'piste-swiss':'swissslopesmap.pdf' };
   var baseUrl  = 'https://ykrauss1.github.io/cervinia-data/';
 
@@ -2781,13 +2843,26 @@ function loadMap(type) {
     var pdfUrl = baseUrl + pdfFiles[type];
     _mapShowToolbar(pdfUrl, pdfFiles[type]);
     _loadPdfJs(function() {
-      pdfjsLib.getDocument({ url: pdfUrl, cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/', cMapPacked: true })
-        .promise.then(function(pdf) {
+      var task = pdfjsLib.getDocument({ url: pdfUrl, cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/', cMapPacked: true });
+      _mapTask = task;
+      // A map that takes a while should at least say how far it has got.
+      task.onProgress = function (p) {
+        var ph = document.getElementById('map-placeholder');
+        if (!ph || !p || !p.total) return;
+        var pct = Math.min(99, Math.round(p.loaded / p.total * 100));
+        ph.innerHTML = '<span style="font-size:2rem;">⏳</span><span>טוען את המפה… '
+          + pct + '%</span>';
+      };
+      task.promise.then(function(pdf) {
+          if (_mapTask !== task) return;        // the reader moved on
+          _mapTask = null;
           _mapCurrentPdf = pdf;
           _mapCurrentPage = 1;
           _mapZoomLevel = 1;
           _renderPdfPage(1);
         }).catch(function(e) {
+          if (_mapTask !== task) return;        // cancelled on purpose, not a failure
+          _mapTask = null;
           var ph = document.getElementById('map-placeholder');
           if (ph) ph.innerHTML = '<span style="color:#e74c3c;">שגיאה בטעינת ה-PDF</span><a href="' + pdfUrl + '" target="_blank" style="padding:10px 22px;background:#1a3a6c;color:white;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:8px;">📄 פתח ישירות</a>';
         });
@@ -4045,6 +4120,30 @@ function resetTripDates() {
 
 
 
+function openParkTransport() {
+  openM('parkingModal');
+  setTimeout(function () { switchParkTab('transport'); }, 50);
+}
+// The arrival planner and the "when to go" card are both buried a scroll or a
+// click deep inside a panel, which is fine once you know they are there and
+// useless if you do not. The search bar is how people find out.
+function openArrivalPlanner() {
+  openParkTransport();
+  setTimeout(function () {
+    var el = document.getElementById('arrival-planner');
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start' });
+  }, 220);
+}
+function openWhenToGo() {
+  openM('hotelModal');
+  setTimeout(function () {
+    var box = document.getElementById('season-box');
+    if (!box) return;
+    var d = box.querySelector('details');
+    if (d) d.open = true;
+    if (box.scrollIntoView) box.scrollIntoView({ block: 'start' });
+  }, 220);
+}
 function openParkEmergency() {
   openM('parkingModal');
   setTimeout(function(){ switchParkTab('emergency'); }, 50);
@@ -4883,7 +4982,7 @@ ST.run = async function () {
         ['2027-02-07', '2027-02-14', 'Settimana', true],
         ['2027-03-14', '2027-03-21', 'אמצע מרץ', true],
         ['2026-12-26', '2027-01-02', 'חג המולד', true],
-        ['2027-07-01', '2027-07-08', '', false]
+        ['2027-07-01', '2027-07-08', 'מחוץ לעונה', true]
       ];
       if (!document.getElementById('season-hint')) {
         var _h = document.createElement('div'); _h.id = 'season-hint';
@@ -7570,24 +7669,171 @@ function _seasonDays(p) {
   return [d(p.from), d(p.to)];
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+//  A verdict on a chosen week, and a nudge if a small shift would help
+//
+//  The periods in the content file already say which weeks are crowded and
+//  which are quiet. Given a trip, this counts how its days fall across them,
+//  says so in one line, and then tries the same trip shifted by up to a
+//  fortnight either way to see whether a few days' move clears the crowd. It
+//  never invents a reason: everything it says is one of the periods a human
+//  wrote, scored by nothing more than how many of the days land inside them.
+// ──────────────────────────────────────────────────────────────────────────
+function _seasonAsDate(v) {
+  if (v instanceof Date) return new Date(v.getFullYear(), v.getMonth(), v.getDate());
+  var x = String(v).split('-');
+  return x.length === 3 ? new Date(+x[0], +x[1] - 1, +x[2]) : new Date(v);
+}
+function _seasonISO(d) {
+  return d.getFullYear() + '-' + (d.getMonth() < 9 ? '0' : '') + (d.getMonth() + 1)
+       + '-' + (d.getDate() < 10 ? '0' : '') + d.getDate();
+}
+function _seasonHe(d) {
+  var M = ['בינואר','בפברואר','במרץ','באפריל','במאי','ביוני','ביולי',
+           'באוגוסט','בספטמבר','באוקטובר','בנובמבר','בדצמבר'];
+  return d.getDate() + ' ' + M[d.getMonth()];
+}
+// How the days of one trip fall across the periods.
+function _seasonTally(from, to) {
+  var se = window._texts && window._texts.season;
+  if (!se) return null;
+  var a = _seasonAsDate(from), b = _seasonAsDate(to);
+  if (b < a) { var t = a; a = b; b = t; }
+  var open  = se.open  ? _seasonAsDate(se.open)  : null;
+  var close = se.close ? _seasonAsDate(se.close) : null;
+  var out = { total: 0, busy: 0, quiet: 0, outside: 0, labels: [], from: a, to: b };
+  var seen = {};
+  for (var d = new Date(a); d <= b; d.setDate(d.getDate() + 1)) {
+    out.total++;
+    if ((open && d < open) || (close && d > close)) { out.outside++; continue; }
+    var hitBusy = false, hitQuiet = false;
+    (se.periods || []).forEach(function (p) {
+      var r = _seasonDays(p);
+      if (d < r[0] || d > r[1]) return;
+      if (p.kind === 'busy')  hitBusy = true;
+      if (p.kind === 'quiet') hitQuiet = true;
+      if (!seen[p.label]) { seen[p.label] = 1; out.labels.push(p); }
+    });
+    if (hitBusy) out.busy++; else if (hitQuiet) out.quiet++;
+  }
+  // A crowded day counts against the trip; a quiet one counts for it.
+  out.score = out.quiet - out.busy - out.outside * 2;
+  return out;
+}
+function _seasonFill(tpl, vals) {
+  return String(tpl || '').replace(/\{(\w+)\}/g, function (m, k) {
+    return vals[k] !== undefined ? vals[k] : m;
+  });
+}
+function _seasonDaysHe(n) {
+  return n === 1 ? 'יום אחד' : n === 2 ? 'יומיים' : n + ' ימים';
+}
+// The same trip, moved. A move that clears the crowd entirely is worth
+// suggesting; one that only thins it is worth suggesting in weaker words; and
+// when a fortnight either way changes nothing, saying so is the honest answer.
+function _seasonBetterShift(from, to) {
+  var base = _seasonTally(from, to);
+  if (!base) return null;
+  var clean = null, easier = null;
+  for (var n = 1; n <= 14 && !clean; n++) {
+    [n, -n].forEach(function (k) {
+      if (clean) return;
+      var a = _seasonAsDate(from), b = _seasonAsDate(to);
+      a.setDate(a.getDate() + k); b.setDate(b.getDate() + k);
+      var t = _seasonTally(a, b);
+      if (!t || t.outside) return;
+      var hit = { days: Math.abs(k), dir: k > 0 ? 'fwd' : 'back',
+                  from: a, to: b, was: base.busy, now: t.busy };
+      if (t.busy === 0) { clean = hit; return; }
+      if (!easier && t.busy <= base.busy - 2) easier = hit;
+    });
+  }
+  if (clean)  { clean.clean = true;  return clean; }
+  if (easier) { easier.clean = false; return easier; }
+  return null;
+}
+function seasonVerdict(from, to) {
+  var se = window._texts && window._texts.season;
+  var V  = se && se.verdict;
+  var t  = _seasonTally(from, to);
+  if (!se || !V || !t || !t.total) return '';
+
+  var key = 'good', why = [];
+  if (t.outside === t.total) {
+    key = 'closed';
+    var open = _seasonAsDate(se.open), close = _seasonAsDate(se.close);
+    why.push(_seasonFill(t.to < open ? V.before : V.after,
+      { open: _seasonHe(open), close: _seasonHe(close) }));
+  } else if (t.outside) {
+    key = 'mixed';
+    why.push(_seasonFill(V.partial,
+      { open: _seasonHe(_seasonAsDate(se.open)), close: _seasonHe(_seasonAsDate(se.close)) }));
+  }
+  if (key !== 'closed') {
+    if (t.busy) {
+      key = t.busy >= t.total / 2 ? 'busy' : 'mixed';
+      why.push(_seasonFill(V.busy_days, { n: t.busy, total: t.total }));
+    }
+    if (t.quiet) why.push(_seasonFill(V.quiet_days, { n: t.quiet, total: t.total }));
+    if (!t.busy && !t.quiet && !t.outside) why.push(V.clean);
+  }
+
+  var tone = V[key] || V.good;
+  var tint = SEASON_TINT[key === 'busy' ? 'busy' : key === 'good' ? 'quiet' : 'special']
+          || SEASON_TINT.special;
+  var html = '<div style="margin-top:9px;border:1.5px solid ' + tint.edge
+    + ';border-right:4px solid ' + tint.edge + ';border-radius:10px;background:'
+    + tint.bg + ';padding:9px 12px;">'
+    + '<div style="font-weight:bold;font-size:0.82rem;color:' + tone.ink + ';">'
+    + _aEsc(tone.label) + '</div>'
+    + '<div style="font-size:0.78rem;color:#444;line-height:1.75;margin-top:2px;">'
+    + _fixNums(_aEsc(why.join(' '))) + '</div>';
+
+  // Only worth suggesting a move when the dates are actually a problem.
+  if (key === 'busy' || key === 'mixed') {
+    var sh = _seasonBetterShift(from, to);
+    html += '<div style="font-size:0.77rem;color:#444;line-height:1.75;margin-top:5px;'
+          + 'border-top:1px solid rgba(0,0,0,0.07);padding-top:5px;">'
+          + _fixNums(_aEsc(sh
+              ? _seasonFill(sh.clean
+                    ? (sh.dir === 'fwd' ? V.shift_fwd : V.shift_back)
+                    : (sh.dir === 'fwd' ? V.ease_fwd  : V.ease_back),
+                  { n: _seasonDaysHe(sh.days), was: sh.was, now: sh.now,
+                    from: _seasonHe(sh.from), to: _seasonHe(sh.to) })
+              : V.no_shift))
+          + '</div>';
+  }
+  return html + '</div>';
+}
+
 function seasonHint(from, to) {
   var el = document.getElementById('season-hint');
   if (!el) return;
   var se = window._texts && window._texts.season;
   if (!el || !se || !from || !to) { if (el) el.innerHTML = ''; return; }
+  // The date picker hands over Date objects; anything else that knows a trip's
+  // dates has them as plain YYYY-MM-DD. Comparing a string against a Date
+  // quietly matches nothing, so both forms are turned into dates here.
+  function _asDate(v) {
+    if (v instanceof Date) return v;
+    var x = String(v).split('-');
+    return x.length === 3 ? new Date(+x[0], +x[1] - 1, +x[2]) : new Date(v);
+  }
+  from = _asDate(from); to = _asDate(to);
 
   var hits = (se.periods || []).filter(function (p) {
     var r = _seasonDays(p);
     return from <= r[1] && to >= r[0];          // the two ranges overlap
   });
-  if (!hits.length) { el.innerHTML = ''; return; }
+  var verdict = seasonVerdict(from, to);
+  if (!hits.length) { el.innerHTML = verdict; return; }
   // The warning matters more than the Christmas lights, so it goes first.
   var ORDER = { busy: 0, quiet: 1, special: 2 };
   // `ORDER[kind] || 3` would read busy as 3, because its rank is 0.
   function _rank(k) { return (k in ORDER) ? ORDER[k] : 3; }
   hits.sort(function (x, y) { return _rank(x.kind) - _rank(y.kind); });
 
-  el.innerHTML = hits.map(function (p) {
+  el.innerHTML = verdict + hits.map(function (p) {
     var c = SEASON_TINT[p.kind] || SEASON_TINT.special;
     return '<div style="margin-top:9px;border:1.5px solid ' + c.edge + ';border-right:4px solid '
       + c.edge + ';border-radius:10px;background:' + c.bg + ';padding:9px 12px;">'
@@ -7693,6 +7939,129 @@ function openCarSearch() {
   }, 60);
 }
 
+// ── reading a landing out of a sentence ───────────────────────────────────
+// The page is a static file on GitHub Pages, so there is no model here to ask
+// and no key that could safely sit in the source. What a sentence about a
+// landing actually carries is four things - airport, date, time, how many -
+// and those are patterns, not language. This reads them, fills the fields and
+// leaves them on screen, so the reader always sees what was understood and
+// can correct it before searching.
+var _AP_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי',
+                  'אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+var _AP_DOW    = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+var _AP_WORDNUM = { 'אחד':1,'שניים':2,'שני':2,'שתיים':2,'שלושה':3,'שלוש':3,'ארבעה':4,'ארבע':4,
+                    'חמישה':5,'חמש':5,'שישה':6,'שש':6,'שבעה':7,'שבע':7,'שמונה':8 };
+
+function _apPad(n) { return (n < 10 ? '0' : '') + n; }
+function _apISO(y, m, dd) { return y + '-' + _apPad(m) + '-' + _apPad(dd); }
+
+function _apParse(txt, pl) {
+  var t = ' ' + String(txt || '').replace(/[׳‘’]/g, "'") + ' ';
+  var ft = (pl && pl.freetext) || {};
+  var out = { airport: null, date: null, time: null, pax: null };
+  var today = new Date();
+
+  // airport, by any of the names the content file lists for it
+  var al = ft.aliases || {};
+  Object.keys(al).forEach(function (id) {
+    if (out.airport) return;
+    (al[id] || []).forEach(function (w) {
+      if (!out.airport && t.toLowerCase().indexOf(String(w).toLowerCase()) > -1) out.airport = id;
+    });
+  });
+
+  // date: 10/1, 10.1.27, "10 בינואר", a weekday, today or tomorrow
+  var m = t.match(/(\d{1,2})\s*[\/.]\s*(\d{1,2})(?:\s*[\/.]\s*(\d{2,4}))?/);
+  if (m) {
+    var yy = m[3] ? (+m[3] < 100 ? 2000 + +m[3] : +m[3]) : null;
+    out.date = _apDateFrom(+m[1], +m[2], yy, today);
+  }
+  if (!out.date) {
+    for (var i = 0; i < 12 && !out.date; i++) {
+      var mm = t.match(new RegExp('(\\d{1,2})\\s*ב?' + _AP_MONTHS[i]));
+      if (mm) out.date = _apDateFrom(+mm[1], i + 1, null, today);
+    }
+  }
+  if (!out.date) {
+    var W = function (w) { return new RegExp('(?:^|[\\s,.-])' + w + '(?:[\\s,.]|$)').test(t); };
+    if (W('היום'))            out.date = _apShift(today, 0);
+    else if (W('מחרתיים'))    out.date = _apShift(today, 2);
+    else if (W('מחר'))        out.date = _apShift(today, 1);
+  }
+  if (!out.date) {
+    for (var j = 0; j < 7 && !out.date; j++) {
+      if (new RegExp('(ביום|יום|ב)\\s?' + _AP_DOW[j] + '(\\s|,|$)').test(t)) {
+        var add = (j - today.getDay() + 7) % 7;
+        out.date = _apShift(today, add === 0 ? 7 : add);
+      }
+    }
+  }
+
+  // time: 14:00, 14.00, "בשעה 14", "ב-8 בערב"
+  var tm = t.match(/(\d{1,2})\s*[:]\s*(\d{2})/);
+  if (tm) {
+    out.time = _apPad(Math.min(23, +tm[1])) + ':' + _apPad(Math.min(59, +tm[2]));
+  } else {
+    var th = t.match(/(?:בשעה|ב-|ב)\s*(\d{1,2})\s*(בבוקר|בערב|בלילה|בצהריים|אחה"צ|אחר הצהריים|אחרי הצהריים)?(?!\s*[:\/.]?\d)/);
+    if (th) {
+      var h = +th[1], w = th[2] || '';
+      if (/ערב|לילה|אחה"צ|אחר הצהריים|אחרי הצהריים/.test(w) && h < 12) h += 12;
+      if (h >= 0 && h <= 23) out.time = _apPad(h) + ':00';
+    }
+  }
+
+  // how many are travelling
+  var px = t.match(/(\d{1,2})\s*(?:נוסעים|אנשים|איש|מבוגרים|passengers|people|adults|pax)/i);
+  if (px) out.pax = +px[1];
+  if (!out.pax) {
+    Object.keys(_AP_WORDNUM).forEach(function (w) {
+      if (!out.pax && new RegExp(w + '\\s*(נוסעים|אנשים|איש)').test(t)) out.pax = _AP_WORDNUM[w];
+    });
+  }
+  return out;
+}
+
+// A bare day and month means the next time that date comes round, so a
+// January landing typed in October lands in the coming January, not the past one.
+function _apDateFrom(dd, mo, yy, today) {
+  if (mo < 1 || mo > 12 || dd < 1 || dd > 31) return null;
+  var y = yy || today.getFullYear();
+  if (!yy) {
+    var cand = new Date(y, mo - 1, dd);
+    if (cand < new Date(today.getFullYear(), today.getMonth(), today.getDate())) y += 1;
+  }
+  return _apISO(y, mo, dd);
+}
+function _apShift(from, days) {
+  var x = new Date(from.getFullYear(), from.getMonth(), from.getDate() + days);
+  return _apISO(x.getFullYear(), x.getMonth() + 1, x.getDate());
+}
+
+function runArrivalText() {
+  var pl = window._texts && window._texts.transport && window._texts.transport.planner;
+  var inp = document.getElementById('ap-text');
+  var say = document.getElementById('ap-read');
+  if (!pl || !inp) return;
+  var r = _apParse(inp.value, pl);
+  var ft = pl.freetext || {}, miss = ft.missing || {};
+  var gaps = [];
+  if (r.airport) { var a = document.getElementById('ap-airport'); if (a) a.value = r.airport; }
+  else gaps.push(miss.airport || 'שדה תעופה');
+  if (r.date) { var d = document.getElementById('ap-date'); if (d) d.value = r.date; }
+  else gaps.push(miss.date || 'תאריך');
+  if (r.time) { var t = document.getElementById('ap-time'); if (t) t.value = r.time; }
+  else gaps.push(miss.time || 'שעה');
+  if (r.pax) { var p = document.getElementById('ap-pax'); if (p) p.value = r.pax; }
+
+  if (say) {
+    say.style.display = gaps.length ? 'block' : 'none';
+    say.innerHTML = gaps.length
+      ? _aEsc(gaps.join(' · ')) + '. השלימו למטה ולחצו על החיפוש.'
+      : '';
+  }
+  if (!gaps.length) planArrival();
+}
+
 function renderArrivalPlanner(pl) {
   var box = document.getElementById('arrival-planner');
   if (!box || !pl) return;
@@ -7706,6 +8075,21 @@ function renderArrivalPlanner(pl) {
       + _aEsc(pl.title) + '</div>'
     + '<div style="font-size:0.77rem;color:#667;line-height:1.7;margin-bottom:10px;">'
       + _aEsc(pl.lead) + '</div>'
+    + (pl.freetext
+        ? '<div style="margin-bottom:9px;">'
+          + '<div style="font-size:0.72rem;color:#667;margin-bottom:3px;">'
+            + _aEsc(pl.freetext.label || '') + '</div>'
+          + '<input type="text" id="ap-text" placeholder="'
+            + _aEsc(pl.freetext.placeholder || '') + '" '
+            + 'onkeydown="if(event.key===\'Enter\'){event.preventDefault();runArrivalText();}" '
+            + 'style="' + F + '">'
+          + '<div id="ap-read" style="display:none;font-size:0.73rem;color:#8a5a00;margin-top:4px;"></div>'
+          + '<button type="button" onclick="runArrivalText()" style="width:100%;margin-top:6px;'
+            + 'padding:8px;background:white;color:#1a3a6c;border:1.5px solid #9dc0e4;'
+            + 'border-radius:8px;font-size:0.79rem;font-weight:bold;cursor:pointer;'
+            + 'font-family:inherit;">↵ תקראו את זה בשבילי</button>'
+        + '</div>'
+        : '')
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;">'
       + _apField('שדה תעופה',
           '<select id="ap-airport" style="' + F + '">' + opts + '</select>')
@@ -7714,9 +8098,17 @@ function renderArrivalPlanner(pl) {
       + _apField('נוסעים',
           '<input type="number" id="ap-pax" value="2" min="1" max="8" style="' + F + '">')
     + '</div>'
-    + '<button type="button" onclick="planArrival()" style="width:100%;padding:10px;'
-      + 'background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;'
-      + 'font-weight:bold;cursor:pointer;font-family:inherit;">🔎 מה האפשרויות</button>'
+    + '<div style="display:flex;gap:8px;">'
+      + '<button type="button" onclick="planArrival()" style="flex:1;padding:10px;'
+        + 'background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;'
+        + 'font-weight:bold;cursor:pointer;font-family:inherit;">🔎 מה האפשרויות</button>'
+      // Results stay on screen until the next search, and a reader who has
+      // finished with them has no way to put them away. This is that way.
+      + '<button type="button" id="ap-reset" onclick="resetArrival()" style="display:none;'
+        + 'padding:10px 14px;background:white;color:#44536a;border:1.5px solid #cfd8e3;'
+        + 'border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;'
+        + 'font-family:inherit;">נקה</button>'
+    + '</div>'
     + '<div id="ap-out" style="margin-top:10px;"></div>'
     + '</div>';
 }
@@ -7779,7 +8171,8 @@ function planArrival() {
         }
       } else {
         body += '<br><b>אבל משם כבר אין אוטובוס למעלה באותו ערב.</b> '
-             + 'האחרון לצ\'רוויניה יוצא ב-19:35.';
+             + 'האחרון לצ\'רוויניה יוצא ב-19:35.'
+             + (pl.taxi ? '<br>' + pl.taxi : '');
         cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', '🚌 האוטובוס מגיע רק עד שאטיון', body));
       }
     }
@@ -7820,6 +8213,20 @@ function planArrival() {
   out.innerHTML = '<div style="font-size:0.75rem;color:#8a95a3;margin-bottom:7px;">'
     + 'נחיתה ביום ' + DAYS[dow] + ', ' + time + ' · יצאתם מהטרמינל בערך ב-' + _hhmm(ready)
     + '</div>' + cards.join('');
+  var rb = document.getElementById('ap-reset');
+  if (rb) rb.style.display = 'block';
+}
+
+// Empty the answer and put the form back where it started.
+function resetArrival() {
+  var out = document.getElementById('ap-out');
+  if (out) out.innerHTML = '';
+  var d = document.getElementById('ap-date');   if (d) d.value = '';
+  var t = document.getElementById('ap-time');   if (t) t.value = '14:00';
+  var x = document.getElementById('ap-pax');    if (x) x.value = '2';
+  var a = document.getElementById('ap-airport');if (a) a.selectedIndex = 0;
+  var rb = document.getElementById('ap-reset'); if (rb) rb.style.display = 'none';
+  if (d && d.focus) d.focus();
 }
 
 function _apCard(bg, edge, ink, title, body) {
@@ -8153,9 +8560,28 @@ function _isolateHe(html) {
       function (h) { return '<bdi>' + h + '</bdi>'; });
   });
 }
+// One string -> a right-aligned Hebrew heading and, after the <ltr> marker, a
+// left-aligned Latin run. Used for the line and for its footnote alike.
+function _koshSplit(str, headStyle) {
+  var mk = str.indexOf('<ltr>');
+  if (mk < 0) return '<div style="' + headStyle + '">' + str + '</div>';
+  var hd = str.slice(0, mk).replace(/(?:\s|&nbsp;)*(?:\u2014|:)?(?:\s|&nbsp;)*$/, '');
+  return (hd ? '<div style="' + headStyle + '">' + hd + '</div>' : '')
+    + '<div dir="ltr" style="text-align:left;margin-top:3px;line-height:1.8;padding-inline-start:2px;">'
+    + _isolateHe(str.slice(mk + 5)) + '</div>';
+}
 function _kosherLine(ln) {
   var tail = '', i = ln.indexOf('<br>');
   if (i >= 0) { tail = ln.slice(i + 4); ln = ln.slice(0, i); }
+  // An explicit <ltr> marker is the author's own split, and it wins over any
+  // guess: everything before it is the Hebrew heading, right-aligned, and
+  // everything after is the Latin run of products, left-aligned. Guessing from
+  // the script mix broke on exactly the lines where a Hebrew sentence sat in
+  // the middle of the brand names.
+  if (ln.indexOf('<ltr>') >= 0 || tail.indexOf('<ltr>') >= 0) {
+    return '<div style="margin-bottom:11px;">' + _koshSplit(ln, 'font-weight:600;color:#24405f;')
+      + (tail ? _koshSplit(tail, 'margin-top:3px;') : '') + '</div>';
+  }
   var d = ln.indexOf(' \u2014 ');
   var body = d < 0 ? '' : ln.slice(d + 3);
   var plain = body.replace(/<[^>]*>/g, '');
@@ -8305,6 +8731,12 @@ function _applyTexts(t) {
     _set('kosher-btn-kosher-sub',    ko.kosher_btn_sub);
     _set('kosher-cervinia-title',    ko.cervinia_title);
     _set('kosher-cervinia-text',     ko.cervinia_text);
+    if (ko.cervinia_group && ko.cervinia_group.text) {
+      _set('kosher-group-title', ko.cervinia_group.title);
+      _set('kosher-group-text',  ko.cervinia_group.text);
+      var _gb = document.getElementById('kosher-group-box');
+      if (_gb) _gb.style.display = 'block';
+    }
     _set('kosher-tips-title',        ko.cervinia_tips_title);
     _set('kosher-products-title',    ko.cervinia_products_title);
     if (ko.cervinia_products) {
@@ -9549,7 +9981,7 @@ function renderLiveBar(d) {
   const closedEl = document.getElementById('bar-closed-notice');
   const hoursLbl = document.getElementById('bar-hours-label');
   if (closedEl) closedEl.style.display = mountainOpen ? 'none' : 'inline-block';
-  if (hoursLbl) hoursLbl.style.display = mountainOpen ? 'inline' : 'none';
+  if (hoursLbl) hoursLbl.style.display = 'inline';   // the label stays; the badge joins it
 
   // ── Forecast modal: snow points ──
   if (d.snow_points && Array.isArray(d.snow_points)) {
@@ -9726,6 +10158,11 @@ const SEARCH_INDEX = [
   { text: 'כשר מסעדה אוכל', action: "openM('kosherModal')", icon: '🍽️', label: 'אוכל כשר' },
   { text: 'מצלמות webcam שידור חי', action: "openM('webcamModal')", icon: '📷', label: 'מצלמות חי' },
   { text: 'חניה כביש נסיעה', action: "openM('parkingModal')", icon: '🅿️', label: 'חניה וכביש' },
+  { text: 'תחבורה אוטובוס הסעה שאטל linea blu רכבת תחנה', action: "openParkTransport()", icon: '🚌', label: 'תחבורה והסעות' },
+  { text: 'נחתתי נחיתה טיסה הגעה משדה התעופה מלפנסה מתכנן', action: "openArrivalPlanner()", icon: '🛬', label: 'נחתתי — איך אני מגיע?' },
+  { text: 'השכרת רכב שרשראות צמיגי חורף גבול שוויץ צרפת', action: "openParkTransport()", icon: '🚗', label: 'רכב שכור וחוקי החורף' },
+  { text: 'מונית מוניות taxi', action: "openParkTransport()", icon: '🚕', label: 'מוניות' },
+  { text: 'מתי לנסוע עונה שלג עומס חופשות חגים פברואר מרץ settimana bianca', action: "openWhenToGo()", icon: '📅', label: 'מתי כדאי לנסוע' },
   { text: 'חירום מוקד משטרה הצלה אמבולנס מד"א', action: "openParkEmergency()", icon: '🚨', label: 'מספרי חירום' },
   { text: 'מפות מסלולים piste', action: "openM('mapModal')", icon: '🗺️', label: 'מפות' },
   { text: 'מסלולים piste guide', action: "openM('pisteModal')", icon: '⛷️', label: 'מדריך מסלולים' },
