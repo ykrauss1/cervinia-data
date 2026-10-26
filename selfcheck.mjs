@@ -441,11 +441,44 @@ const parkTabs = await page.evaluate(() => {
 });
 if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', parkTabs); else ok();
 
+// ── the crossing to Zermatt cannot be open when nothing else is ───────────
+// The feed has said OPEN on a day with no slopes open at all. A green "open"
+// on the front page is the one claim a reader plans a day around, so the rest
+// of the feed overrules it.
+{
+  const r = await page.evaluate(() => {
+    const read = () => document.getElementById('zermatt-status').textContent.trim();
+    const base = { temperature: 3, opening_hours: '08:00 - 16:45' };
+    const out = {};
+    renderLiveBar(Object.assign({}, base,
+      { zermatt_link: 'OPEN', slopes_open_local: 0, slopes_open_global: 0 }));
+    out.noSlopes = read();
+    renderLiveBar(Object.assign({}, base,
+      { zermatt_link: 'OPEN', slopes_open_local: 12, slopes_open_global: 40 }));
+    out.withSlopes = read();
+    renderLiveBar(Object.assign({}, base,
+      { zermatt_link: 'CLOSED', slopes_open_local: 12, slopes_open_global: 40 }));
+    out.closed = read();
+    return out;
+  });
+  if (r.noSlopes !== 'סגור') fail('the Zermatt badge follows the rest of the feed',
+    `no slopes open anywhere, yet the crossing showed "${r.noSlopes}"`); else ok();
+  if (r.withSlopes !== 'פתוח') fail('the Zermatt badge follows the rest of the feed',
+    `a genuinely open day showed "${r.withSlopes}"`); else ok();
+  if (r.closed !== 'סגור') fail('the Zermatt badge follows the rest of the feed',
+    `a closed crossing showed "${r.closed}"`); else ok();
+}
+
 // ── the maps panel lets go of what it started ─────────────────────────────
 // A map is a large download. Closing the panel has to stop it, or the next
 // visit opens on a spinner that will never finish, with nothing behind it.
 {
   const r = await page.evaluate(async () => {
+    // On a machine with a network this would fetch pdf.js and a multi-megabyte
+    // map, which is not what is under test here and makes the run slow and
+    // flaky. The loader is stood down for the duration.
+    const realLoader = window._loadPdfJs;
+    window._loadPdfJs = function () {};
     const ph = () => document.getElementById('map-placeholder').innerText.replace(/\s+/g, ' ').trim();
     const marked = () => [...document.querySelectorAll('.map-pick')]
       .filter(b => b.style.background).map(b => b.getAttribute('data-map'));
@@ -458,6 +491,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     openM('mapModal');
     const onReopen = ph();
     closeMapModal();
+    window._loadPdfJs = realLoader;
     return { onOpen, loadingMark, afterClose, afterMark, onReopen };
   });
   if (!/בחר מפה/.test(r.onOpen)) fail('the maps panel opens at rest',
@@ -662,7 +696,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
   const filled = await page.evaluate(() => {
     const e = document.getElementById('kosher-group-box');
-    return e ? (e.style.display !== 'none' && e.innerText.trim().length > 40) : false;
+    // textContent, not innerText: the card is folded away behind its heading
+    // now, and innerText would only report the heading.
+    return e ? (e.style.display !== 'none' && e.textContent.trim().length > 200) : false;
   });
   if (T.kosher && T.kosher.cervinia_group && !filled)
     fail('content file and page agree', 'the kosher group box exists but stayed empty or hidden');
@@ -670,11 +706,16 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 }
 
 // ── the live data bar on a desktop width ──────────────────────────────────
-// Every cell in the bar is a value over a grey label. The opening-hours cell
-// kept breaking that shape: a smaller value font made the cell taller, and
-// centring then lifted it off the line the other readings sit on, while the
-// group hugged its own content and left a dead strip before the Matterhorn.
-// Checked with the widest readings the bar can ever hold.
+// Every cell is a value over a grey label. The opening-hours cell kept
+// breaking that shape: a smaller value font made the cell taller, and
+// centring lifted it off the line the other readings sit on. The group also
+// used to hug its content and leave a dead strip before the Matterhorn.
+//
+// What is NOT asserted is that it all fits on one line. How wide the readings
+// come out depends on the Hebrew fonts the machine happens to have, so a
+// runner with wider fonts wraps where we do not - and wrapping is fine. What
+// has to hold either way: cells sharing a line are level with each other, the
+// gaps along a line are equal, and no dead strip is left over.
 {
   const wide = await browser.newPage({ viewport: { width: 1440, height: 760 } });
   await wide.goto('file://' + PAGE);
@@ -693,29 +734,40 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const right = document.querySelector('#live-data-bar > div > div:last-child');
     const kids = [...grp.children];
     const cells = kids.filter(e => !(e.getAttribute('style') || '').includes('width:1px'));
-    const tops = cells.map(e => e.getBoundingClientRect().top);
+
+    // group the cells into the lines they actually render on
+    const lines = {};
+    cells.forEach(e => {
+      const b = e.getBoundingClientRect();
+      const key = Math.round(b.top / 8);
+      (lines[key] = lines[key] || []).push(b.top);
+    });
+    const worstDrop = Math.max(...Object.values(lines)
+      .map(tops => Math.max(...tops) - Math.min(...tops)));
+
+    // gaps between neighbours that share a line
     const gaps = [];
     for (let i = 0; i < kids.length - 1; i++) {
-      gaps.push(Math.round(kids[i].getBoundingClientRect().left
-                         - kids[i + 1].getBoundingClientRect().right));
+      const a = kids[i].getBoundingClientRect(), c = kids[i + 1].getBoundingClientRect();
+      if (Math.abs(a.top - c.top) < 3) gaps.push(Math.round(a.left - c.right));
     }
     return {
-      spread: Math.round(Math.max(...tops) - Math.min(...tops)),
+      worstDrop: Math.round(worstDrop),
       gapSpread: Math.max(...gaps) - Math.min(...gaps),
       slack: Math.round(grp.getBoundingClientRect().left - right.getBoundingClientRect().right),
       labelShown: !!lb && getComputedStyle(lb).display !== 'none'
     };
   }, T);
-  if (r.spread > 1) fail('data bar sits on one line',
-    `the cells are ${r.spread}px apart vertically at 1440px - one of them is off the line`);
+  if (r.worstDrop > 1) fail('the data bar sits on its line',
+    `cells sharing a line are ${r.worstDrop}px apart vertically - one is off the line`);
   else ok();
-  if (r.gapSpread > 1) fail('data bar spacing is even',
-    `the gaps between cells differ by ${r.gapSpread}px`);
+  if (r.gapSpread > 1) fail('the data bar spacing is even',
+    `gaps along a line differ by ${r.gapSpread}px`);
   else ok();
-  if (r.slack > 40) fail('data bar fills its width',
+  if (r.slack > 40) fail('the data bar fills its width',
     `${r.slack}px of dead space between the readings and the Matterhorn`);
   else ok();
-  if (!r.labelShown) fail('hours cell keeps its label',
+  if (!r.labelShown) fail('the hours cell keeps its label',
     'the closed badge replaced the label instead of joining it');
   else ok();
   await wide.close();
