@@ -357,7 +357,13 @@ img, svg, video { max-width: 100%; }
 @media (min-width: 1101px) {
   #live-data-bar > div > div:first-child {
     flex: 1 1 auto;
-    justify-content: space-between;
+  }
+  /* Letting the cells themselves grow fills the line evenly, and keeps doing
+     something sensible on a machine whose Hebrew fonts are wider than ours:
+     if the readings do wrap, each line still fills, instead of one cell being
+     flung to the far end by space-between. */
+  #live-data-bar > div > div:first-child > div:not([style*="width:1px"]) {
+    flex: 1 1 auto;
   }
 }
 
@@ -396,6 +402,19 @@ img, svg, video { max-width: 100%; }
 }
 
 
+
+/* A long section folded away behind its own heading. The marker is drawn by
+   hand because Safari still will not style the native one. */
+#kosherModal details > summary::-webkit-details-marker { display: none; }
+#kosherModal details > summary::before {
+  content: '\25C0';
+  display: inline-block;
+  font-size: 0.72em;
+  margin-left: 6px;
+  color: #7a89a8;
+  transition: transform 0.15s;
+}
+#kosherModal details[open] > summary::before { transform: rotate(-90deg); }
 .ftx{font-size:0.71rem;background:white;border:1px solid #cfe2f5;border-radius:20px;padding:3px 10px;cursor:pointer;color:#37474f;}
 .ftx:hover{background:#0a192f;color:white;border-color:#0a192f;}
 </style>
@@ -440,8 +459,8 @@ img, svg, video { max-width: 100%; }
           <span style="color:rgba(255,255,255,0.55);font-size:0.85rem;">🔍</span>
           <input id="global-search-input" type="text" autocomplete="off" placeholder="חיפוש..."
             oninput="globalSearch(this.value)"
-            style="background:none;border:none;outline:none;color:white;font-size:0.8rem;width:110px;direction:rtl;"
-            onfocus="this.style.width='170px'" onblur="if(!this.value)this.style.width='110px'">
+            style="background:none;border:none;outline:none;color:white;font-size:0.85rem;width:150px;direction:rtl;transition:width 0.15s;"
+            onfocus="this.style.width='230px'" onblur="if(!this.value)this.style.width='150px'">
         </div>
         <div id="global-search-results" style="display:none;position:absolute;z-index:9999;top:calc(100% + 6px);right:0;min-width:250px;background:white;border:1px solid #ddd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-height:320px;overflow-y:auto;"></div>
       </div>
@@ -523,9 +542,9 @@ img, svg, video { max-width: 100%; }
 
         <div style="text-align:center;">
           <div id="bar-hours" dir="ltr" style="color:rgba(255,255,255,0.85);font-size:0.95rem;font-weight:700;line-height:1.15rem;white-space:nowrap;">--</div>
-          <div style="margin-top:2px;height:11px;line-height:11px;">
+          <div style="margin-top:2px;height:0.6875rem;line-height:0.6875rem;">
             <span id="bar-hours-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;">🕗 שעות</span>
-            <span id="bar-closed-notice" style="display:none;font-size:0.58rem;background:#e74c3c;color:white;border-radius:4px;padding:0 5px;font-weight:bold;line-height:11px;height:11px;display:inline-block;vertical-align:top;margin-right:5px;">סגור</span>
+            <span id="bar-closed-notice" style="display:none;font-size:0.58rem;background:#e74c3c;color:white;border-radius:4px;padding:0 5px;font-weight:bold;line-height:0.6875rem;height:0.6875rem;display:inline-block;vertical-align:top;margin-right:5px;">סגור</span>
           </div>
         </div>
 
@@ -596,6 +615,20 @@ img, svg, video { max-width: 100%; }
     <div id="svc-maps"      class="service-btn" onclick="openM('mapModal')"><span style="font-size:1.3rem;">🗺️</span> מפות</div>
   <div id="svc-piste"       class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים, בקתות ואפרה סקי</div>
   <div id="svc-around"      class="service-btn" onclick="openM('aroundModal')"><span style="font-size:1.3rem;">🏔️</span> מה לעשות באזור</div>
+  </div>
+
+  <!-- The four standing links used to live only at the very bottom, which
+       meant scrolling the whole page to reach "about" or "help". They sit
+       here instead, under the services, and the footer keeps the credit. -->
+  <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;
+       margin:10px 0 2px;font-size:0.78rem;color:#7a8794;">
+    <span onclick="openM('aboutModal')"   style="cursor:pointer;">עלינו</span>
+    <span style="color:#cfd6df;">|</span>
+    <span onclick="openM('contactModal')" style="cursor:pointer;">צור קשר</span>
+    <span style="color:#cfd6df;">|</span>
+    <span onclick="openM('helpModal')"    style="cursor:pointer;">עזרה</span>
+    <span style="color:#cfd6df;">|</span>
+    <span onclick="openSources()"         style="cursor:pointer;">מקורות ואמינות</span>
   </div>
 
   <!-- Why Cervinia card -->
@@ -1793,14 +1826,18 @@ img, svg, video { max-width: 100%; }
            the village", so it sits directly under that paragraph -->
       <div id="kosher-group-box" style="display:none;padding:13px;border:1.5px solid #c5cae9;
            border-right:4px solid #3f51b5;border-radius:11px;background:#f5f6fc;margin-bottom:12px;">
-        <div id="kosher-group-title" style="font-weight:bold;font-size:0.9rem;color:#283593;margin-bottom:5px;"></div>
-        <div id="kosher-group-text" style="font-size:0.82rem;color:#444;line-height:1.95;"></div>
+        <details>
+          <summary id="kosher-group-title" style="font-weight:bold;font-size:0.9rem;color:#283593;cursor:pointer;list-style:none;"></summary>
+          <div id="kosher-group-text" style="font-size:0.82rem;color:#444;line-height:1.95;margin-top:6px;"></div>
+        </details>
       </div>
 
       <div style="padding:13px;background:#f0fff4;border:1.5px solid #a5d6a7;border-radius:11px;">
         <div id="kosher-tips-title" style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;">💡 טיפים לשהייה כשרה</div>
-        <div id="kosher-products-title" style="font-weight:bold;font-size:0.88rem;margin:4px 0 6px;"></div>
-      <div id="kosher-products-list" style="font-size:0.79rem;color:#444;line-height:1.95;margin-bottom:14px;"></div>
+        <details style="margin:4px 0 10px;">
+          <summary id="kosher-products-title" style="font-weight:bold;font-size:0.88rem;cursor:pointer;list-style:none;"></summary>
+          <div id="kosher-products-list" style="font-size:0.79rem;color:#444;line-height:1.95;margin:6px 0 4px;"></div>
+        </details>
       <div id="kosher-tips-list" style="font-size:0.82rem;color:#555;line-height:2;">
           🧳 <b>הבאת מזון מישראל</b> — מותר ומומלץ (שימורים, קפואים בצידנית)<br>
           🛒 <b>הצטיידות במילאנו</b> לפני העלייה לכפר<br>
@@ -2520,7 +2557,7 @@ async function openZermattForecast() {
   // ── the verdict: the operator's own status wins over any forecast ──
   var band = _gustBand(gust);
   var vis  = _visFlag(code);
-  var zVal = (d.zermatt_link || '').toUpperCase();
+  var zVal = _zermattState(d);
   var icon, verdict, reason, bg, border;
 
   if (zVal === 'OPEN') {
@@ -2784,8 +2821,9 @@ function _mapIdle() {
 // A 20MB download that nobody cancelled keeps running behind a closed panel,
 // and the next visit finds the old spinner still turning. Closing the panel
 // stops the download and puts the panel back to its resting state.
-var _mapTask = null;
+var _mapTask = null, _mapGen = 0;
 function _mapCancel() {
+  _mapGen++;                       // anything still on its way is now stale
   if (_mapTask) { try { _mapTask.destroy(); } catch (e) {} _mapTask = null; }
 }
 function closeMapModal() {
@@ -2842,7 +2880,9 @@ function loadMap(type) {
   } else if (pdfFiles[type]) {
     var pdfUrl = baseUrl + pdfFiles[type];
     _mapShowToolbar(pdfUrl, pdfFiles[type]);
+    var gen = _mapGen;
     _loadPdfJs(function() {
+      if (gen !== _mapGen) return;   // the panel was closed before pdf.js arrived
       var task = pdfjsLib.getDocument({ url: pdfUrl, cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/', cMapPacked: true });
       _mapTask = task;
       // A map that takes a while should at least say how far it has got.
@@ -9892,6 +9932,21 @@ async function fetchWttrForecast() {
 }
 
 
+// The crossing to Zermatt is a ski route over the glacier, so it cannot be
+// open while nothing in Cervinia is. The feed has been seen reporting OPEN on
+// a day with zero slopes open and 5cm of snow, and a green "open" is the one
+// claim a reader plans a whole day around. When the rest of the feed
+// contradicts the flag, the rest of the feed wins. Both the badge in the bar
+// and the verdict in the crossing panel read it from here, so they cannot
+// drift apart.
+function _zermattState(d) {
+  d = d || {};
+  var v = String(d.zermatt_link || '').toUpperCase();
+  var slopes = (parseInt(d.slopes_open_local, 10) || 0)
+             + (parseInt(d.slopes_open_global, 10) || 0);
+  if (v === 'OPEN' && slopes === 0) return 'CLOSED';
+  return v;
+}
 function renderLiveBar(d) {
   // Parse JSON string fields from Supabase
   ['forecast_today','forecast_next_days','snow_points'].forEach(function(k) {
@@ -10071,7 +10126,7 @@ function renderLiveBar(d) {
   }
 
   // Zermatt big colored badge
-  const zVal2 = (d.zermatt_link || '').toUpperCase();
+  const zVal2 = _zermattState(d);
   const zBarEl = document.getElementById('bar-zermatt');
   if (zBarEl) {
     const dot = document.getElementById('matterhorn-dot');
