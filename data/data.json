@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-26T01:51:40.189Z",
+  "updated_at": "2026-10-26T02:16:18.147Z",
   "temperature": 0.1,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
@@ -12,9 +12,9 @@
   "slopes_total_local": 0,
   "snow_depth": "15 cm",
   "last_snowfall": "23/10/2026",
-  "wind_speed": 6.8,
+  "wind_speed": 3.2,
   "wind_gust": 66.6,
-  "humidity": null,
+  "humidity": 31,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
@@ -50,66 +50,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Sunday, October 25",
+    "date": "Monday, October 26",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "cloudy"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "cloudy"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "cloudy"
+        "icon": "sun"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Tuesday, October 27",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    },
     {
       "date": "Wednesday, October 28",
       "periods": [
