@@ -362,7 +362,8 @@ const seasonCases = [
   ['2027-02-07', '2027-02-14', 'Settimana', true],
   ['2027-03-14', '2027-03-21', 'אמצע מרץ', true],
   ['2026-12-26', '2027-01-02', 'חג המולד', true],
-  ['2027-07-01', '2027-07-08', '', false],   // high summer: nothing to say
+  // High summer is not silence any more: the verdict says the lifts are shut.
+  ['2027-07-01', '2027-07-08', 'מחוץ לעונה', true],
 ];
 for (const [a, b, needle, expect] of seasonCases) {
   const txt = await page.evaluate(([a, b]) => {
@@ -439,6 +440,286 @@ const parkTabs = await page.evaluate(() => {
   return 'ok';
 });
 if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', parkTabs); else ok();
+
+// ── the maps panel lets go of what it started ─────────────────────────────
+// A map is a large download. Closing the panel has to stop it, or the next
+// visit opens on a spinner that will never finish, with nothing behind it.
+{
+  const r = await page.evaluate(async () => {
+    const ph = () => document.getElementById('map-placeholder').innerText.replace(/\s+/g, ' ').trim();
+    const marked = () => [...document.querySelectorAll('.map-pick')]
+      .filter(b => b.style.background).map(b => b.getAttribute('data-map'));
+    openM('mapModal');
+    const onOpen = ph();
+    loadMap('piste-cervinia');
+    const loadingMark = marked().join();
+    closeMapModal();
+    const afterClose = ph(), afterMark = marked().join();
+    openM('mapModal');
+    const onReopen = ph();
+    closeMapModal();
+    return { onOpen, loadingMark, afterClose, afterMark, onReopen };
+  });
+  if (!/בחר מפה/.test(r.onOpen)) fail('the maps panel opens at rest',
+    `it opened saying "${r.onOpen}"`); else ok();
+  if (r.loadingMark !== 'piste-cervinia') fail('the chosen map is marked',
+    `the marked button was "${r.loadingMark}"`); else ok();
+  if (!/בחר מפה/.test(r.afterClose) || !/בחר מפה/.test(r.onReopen))
+    fail('closing the maps panel cancels the download',
+      `reopening showed "${r.onReopen}" - a load was left running`); else ok();
+  if (r.afterMark !== '') fail('closing the maps panel cancels the download',
+    'a button stayed marked after the panel closed'); else ok();
+}
+
+// ── the verdict on a chosen week ──────────────────────────────────────────
+// The verdict is only ever a count of how the days fall across periods a
+// human wrote, so the thing that can go wrong is the arithmetic and the
+// promise: a move offered as clearing the crowd has to actually clear it.
+{
+  const r = await page.evaluate(() => {
+    const el = document.getElementById('season-hint');
+    const say = (a, b) => { seasonHint(a, b); return el.innerText; };
+    const out = {};
+    out.peak   = say('2026-12-26', '2027-01-02');
+    out.best   = say('2027-03-12', '2027-03-19');
+    out.closed = say('2027-06-01', '2027-06-08');
+    // a shift that claims to clear the crowd, checked against the tally
+    const sh = _seasonBetterShift('2026-12-26', '2027-01-02');
+    out.shiftClean = sh && sh.clean ? _seasonTally(sh.from, sh.to).busy : -1;
+    out.plural = [1, 2, 5].map(n => _seasonDaysHe(n));
+    out.leftover = /\{\w+\}/.test(out.peak + out.best + out.closed);
+    return out;
+  });
+  const V = T.season.verdict;
+  if (!r.peak.includes(V.busy.label))   fail('the verdict reads the week right',
+    'Christmas week did not come back as a crowded one');  else ok();
+  if (!r.best.includes(V.good.label))   fail('the verdict reads the week right',
+    'mid-March did not come back as a good week');          else ok();
+  if (!r.closed.includes(V.closed.label)) fail('the verdict reads the week right',
+    'a week in June was not reported as out of season');     else ok();
+  if (r.shiftClean !== 0) fail('a suggested move keeps its promise',
+    `it offered a move "out of the crowd" that still has ${r.shiftClean} crowded days`);
+  else ok();
+  if (r.plural.join('|') !== 'יום אחד|יומיים|5 ימים') fail('the verdict reads the week right',
+    `days are counted as: ${r.plural.join(', ')}`);          else ok();
+  if (r.leftover) fail('the verdict reads the week right',
+    'an unfilled {placeholder} reached the screen');         else ok();
+}
+
+// ── the search bar knows what the site holds ──────────────────────────────
+// Every panel is reachable by a button, but only what the index names is
+// reachable by typing. A section nobody can find is a section nobody has.
+{
+  const r = await page.evaluate(() => {
+    const box = document.getElementById('global-search-results');
+    const hits = (q) => { globalSearch(q); return box.querySelectorAll('div[onclick]').length; };
+    const words = ['מתי', 'עונה', 'שלג', 'אוטובוס', 'נחתתי', 'שרשראות', 'מונית', 'תחבורה'];
+    const missed = words.filter(w => hits(w) === 0);
+    // every entry's action has to name something that exists
+    const broken = SEARCH_INDEX.map(i => i.action)
+      .map(a => (String(a).match(/^([A-Za-z_$][\w$]*)\s*\(/) || [])[1])
+      .filter(fn => fn && typeof window[fn] !== 'function');
+    globalSearch('');
+    return { missed, broken };
+  });
+  if (r.missed.length) fail('the search bar finds the newer sections',
+    `nothing comes back for: ${r.missed.join(', ')}`);
+  else ok();
+  if (r.broken.length) fail('the search bar finds the newer sections',
+    `an entry calls ${r.broken.join(', ')}, which does not exist`);
+  else ok();
+  // and the one that has to travel two levels down really gets there
+  const deep = await page.evaluate(async () => {
+    openWhenToGo();
+    await new Promise(r => setTimeout(r, 400));
+    const d = document.querySelector('#season-box details');
+    const open = !!(d && d.open);
+    closeM('hotelModal');
+    return open;
+  });
+  if (!deep) fail('the search bar finds the newer sections',
+    '"when to go" opened the panel but left the card collapsed');
+  else ok();
+}
+
+// ── the date picker's season hint ─────────────────────────────────────────
+// The picker hands over Date objects and everything else holds plain
+// YYYY-MM-DD. A string compared against a Date matches nothing and the hint
+// just does not appear, which looks like no hint being due.
+{
+  const r = await page.evaluate(() => {
+    const el = document.getElementById('season-hint');
+    const run = (a, b) => { seasonHint(a, b); return el.innerText.trim(); };
+    const mid = (p) => { const f = p.from.split('-'), t = p.to.split('-');
+      return [new Date(+f[0], +f[1] - 1, +f[2]), new Date(+t[0], +t[1] - 1, +t[2])]; };
+    const p = window._texts.season.periods[0];
+    const [d1, d2] = mid(p);
+    return {
+      asText:  run(p.from, p.to).length > 0,
+      asDate:  run(d1, d2).length > 0,
+      // out of season names no period, only the verdict
+      quietWhenOutside: !/\u05d2\u05e9\u05e8 \u05d4\u05d0\u05d9\u05de\u05e7\u05d5\u05dc\u05d8\u05d4|Settimana|\u05d0\u05de\u05e6\u05e2 \u05de\u05e8\u05e5/.test(run('2027-07-01', '2027-07-08'))
+    };
+  });
+  if (!r.asText) fail('the season hint fires', 'plain YYYY-MM-DD dates matched nothing');
+  else ok();
+  if (!r.asDate) fail('the season hint fires', 'Date objects from the picker matched nothing');
+  else ok();
+  if (!r.quietWhenOutside) fail('the season hint fires', 'a week in July still produced a hint');
+  else ok();
+}
+
+// ── the planner's two new controls ────────────────────────────────────────
+// A reader left at Chatillon after the last bus up has one option left, and
+// it has to be on the screen. And an answer that cannot be put away stays on
+// the screen until the next search, which is not the same as being current.
+{
+  const r = await page.evaluate(() => {
+    const set = (id, v) => { document.getElementById(id).value = v; };
+    // Friday, landing 16:30: catches the 18:05 coach, reaches Chatillon at
+    // 19:40, and the last bus up has gone at 19:35.
+    set('ap-airport', 'mxp'); set('ap-date', '2027-01-08');
+    set('ap-time', '16:30'); set('ap-pax', '3');
+    planArrival();
+    const out = document.getElementById('ap-out');
+    const state = {
+      taxi: /מונית/.test(out.innerText),
+      resetShown: getComputedStyle(document.getElementById('ap-reset')).display !== 'none'
+    };
+    resetArrival();
+    state.cleared = document.getElementById('ap-out').innerHTML === ''
+                 && document.getElementById('ap-date').value === ''
+                 && getComputedStyle(document.getElementById('ap-reset')).display === 'none';
+    return state;
+  });
+  if (!r.taxi) fail('a taxi when the last bus has gone',
+    'the planner left the reader at Chatillon with no way on');
+  else ok();
+  if (!r.resetShown) fail('the answer can be put away', 'no clear control appeared');
+  else ok();
+  if (!r.cleared) fail('the answer can be put away', 'clearing left the form or the answer behind');
+  else ok();
+}
+
+// ── reading a landing out of a sentence ───────────────────────────────────
+// Dates are relative to the day the suite runs, so the cases that say "today"
+// or name a weekday are computed here rather than written down.
+{
+  const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+                   + '-' + String(d.getDate()).padStart(2, '0');
+  const shift = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
+  const nextDow = (want) => { const d = new Date();
+    let add = (want - d.getDay() + 7) % 7; d.setDate(d.getDate() + (add === 0 ? 7 : add));
+    return iso(d); };
+  const CASES = [
+    ['נוחת במלפנסה ב-10 בינואר ב-14:00, ארבעה נוסעים', { airport:'mxp', time:'14:00', pax:4 }],
+    ['אני נוחת בטורינו ביום ראשון בשעה 9',             { airport:'trn', date:nextDow(0), time:'09:00' }],
+    ['landing at Malpensa 15/01/2027 at 18:30, 5 passengers',
+                                                       { airport:'mxp', date:'2027-01-15', time:'18:30', pax:5 }],
+    ['מגיע לברגמו מחר ב-8 בערב',                       { airport:'bgy', date:shift(1), time:'20:00' }],
+    ['לינאטה 3.2 ב-7:45 שני נוסעים',                   { airport:'lin', time:'07:45', pax:2 }],
+    ['מלפנסה היום',                                     { airport:'mxp', date:shift(0) }],
+    ['נוחת ב-14:00',                                    { airport:null, date:null, time:'14:00' }]
+  ];
+  const got = await page.evaluate((cs) => cs.map(c =>
+      _apParse(c[0], window._texts.transport.planner)), CASES);
+  CASES.forEach(([sentence, want], i) => {
+    const bad = Object.keys(want).filter(k => (got[i][k] || null) !== (want[k] || null));
+    if (bad.length) fail('a landing read out of a sentence',
+      `"${sentence}" -> ${bad.map(k => k + '=' + got[i][k]).join(', ')}`);
+    else ok();
+  });
+  // A bare day and month is the next time that date comes round, never the
+  // one that has just gone.
+  const fwd = await page.evaluate(() => {
+    const r = _apParse('מלפנסה ב-1 בינואר ב-10:00', window._texts.transport.planner);
+    return r.date && r.date >= new Date().toISOString().slice(0, 10);
+  });
+  if (!fwd) fail('a landing read out of a sentence', 'a bare date resolved into the past');
+  else ok();
+}
+
+// ── the page can still render everything the content file holds ──────────
+// A page rolled back to an older copy keeps passing its own tests: it is
+// internally consistent, it has simply lost a section. The content file is
+// what moves ahead, so each block in it is matched against the element that
+// is supposed to show it. A block with nowhere to go means the two files
+// have drifted apart - almost always a stale index.html.
+{
+  const WIRED = [
+    ['kosher.cervinia_group',  'kosher-group-box',  (T) => T.kosher && T.kosher.cervinia_group],
+    ['transport.groups',       'transport-body',    (T) => T.transport && T.transport.groups],
+    ['transport.planner',      'arrival-planner',   (T) => T.transport && T.transport.planner],
+    ['season.periods',         'season-box',        (T) => T.season && T.season.periods],
+    ['pistes.routes',          'park-tab-transport',(T) => T.pistes && T.pistes.routes]
+  ];
+  for (const [block, id, has] of WIRED) {
+    if (!has(T)) continue;
+    const seen = await page.evaluate((i) => !!document.getElementById(i), id);
+    if (!seen) fail('content file and page agree',
+      `texts.json carries ${block} but index.html has no #${id} - the page is older than the content`);
+    else ok();
+  }
+  const filled = await page.evaluate(() => {
+    const e = document.getElementById('kosher-group-box');
+    return e ? (e.style.display !== 'none' && e.innerText.trim().length > 40) : false;
+  });
+  if (T.kosher && T.kosher.cervinia_group && !filled)
+    fail('content file and page agree', 'the kosher group box exists but stayed empty or hidden');
+  else ok();
+}
+
+// ── the live data bar on a desktop width ──────────────────────────────────
+// Every cell in the bar is a value over a grey label. The opening-hours cell
+// kept breaking that shape: a smaller value font made the cell taller, and
+// centring then lifted it off the line the other readings sit on, while the
+// group hugged its own content and left a dead strip before the Matterhorn.
+// Checked with the widest readings the bar can ever hold.
+{
+  const wide = await browser.newPage({ viewport: { width: 1440, height: 760 } });
+  await wide.goto('file://' + PAGE);
+  await wide.waitForTimeout(900);
+  const r = await wide.evaluate((T) => {
+    _applyTexts(T);
+    const put = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    put('bar-temp', '-12°');  put('bar-slopes-local', '109'); put('bar-slopes-global', '(109/109)');
+    put('bar-lifts-local', '47'); put('bar-lifts-global', '(47/47)');
+    put('bar-wind', '123 km/h'); put('bar-gust', '123 km/h'); put('bar-snow', '215');
+    put('bar-weather-desc', 'שלג כבד'); put('bar-hours', '08:00–16:45');
+    const cn = document.getElementById('bar-closed-notice');
+    if (cn) cn.style.display = 'inline-block';
+    const lb = document.getElementById('bar-hours-label');
+    const grp = document.querySelector('#live-data-bar > div > div:first-child');
+    const right = document.querySelector('#live-data-bar > div > div:last-child');
+    const kids = [...grp.children];
+    const cells = kids.filter(e => !(e.getAttribute('style') || '').includes('width:1px'));
+    const tops = cells.map(e => e.getBoundingClientRect().top);
+    const gaps = [];
+    for (let i = 0; i < kids.length - 1; i++) {
+      gaps.push(Math.round(kids[i].getBoundingClientRect().left
+                         - kids[i + 1].getBoundingClientRect().right));
+    }
+    return {
+      spread: Math.round(Math.max(...tops) - Math.min(...tops)),
+      gapSpread: Math.max(...gaps) - Math.min(...gaps),
+      slack: Math.round(grp.getBoundingClientRect().left - right.getBoundingClientRect().right),
+      labelShown: !!lb && getComputedStyle(lb).display !== 'none'
+    };
+  }, T);
+  if (r.spread > 1) fail('data bar sits on one line',
+    `the cells are ${r.spread}px apart vertically at 1440px - one of them is off the line`);
+  else ok();
+  if (r.gapSpread > 1) fail('data bar spacing is even',
+    `the gaps between cells differ by ${r.gapSpread}px`);
+  else ok();
+  if (r.slack > 40) fail('data bar fills its width',
+    `${r.slack}px of dead space between the readings and the Matterhorn`);
+  else ok();
+  if (!r.labelShown) fail('hours cell keeps its label',
+    'the closed badge replaced the label instead of joining it');
+  else ok();
+  await wide.close();
+}
 
 await browser.close();
 
