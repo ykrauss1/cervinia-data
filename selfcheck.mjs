@@ -441,6 +441,67 @@ const parkTabs = await page.evaluate(() => {
 });
 if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', parkTabs); else ok();
 
+// ── you can zoom a map until you can read it, and get back out ────────────
+// "All the area" is a sheet 3412pt across. Fitted to a phone that is an
+// eighth of its size, so a flat 5x limit left the lettering unreadable. The
+// limit is now set by a canvas budget instead, which must hold on every sheet
+// and on every screen width.
+{
+  const SHEETS = {
+    'all the area': [3412.39, 2425.94],
+    'cervinia':     [909.08, 729.71],
+    'valtournenche':[869.67, 823.1],
+    'swiss':        [1965.35, 1220.13]
+  };
+  const r = await page.evaluate((SHEETS) => {
+    const out = [];
+    for (const [name, [w, h]] of Object.entries(SHEETS)) {
+      for (const containerW of [410, 1400]) {
+        const base = containerW / w;
+        const ceil = _mapZoomCeiling({ width: w, height: h }, base);
+        const scale = base * ceil;
+        out.push({ name, containerW, ceil, mp: (w * scale) * (h * scale) / 1e6 });
+      }
+    }
+    return { out, budget: MAP_CANVAS_BUDGET };
+  }, SHEETS);
+  const over = r.out.filter(x => x.mp > r.budget / 1e6 + 0.5);
+  if (over.length) fail('a map zooms within its canvas budget',
+    `${over[0].name} at ${over[0].containerW}px would need ${over[0].mp.toFixed(0)} megapixels`);
+  else ok();
+  // on a phone the big sheet has to go well past the old flat limit
+  const phone = r.out.find(x => x.name === 'all the area' && x.containerW === 410);
+  if (phone.ceil < 8) fail('a map zooms until it can be read',
+    `the widest sheet still stops at ${phone.ceil.toFixed(1)}x on a phone`);
+  else ok();
+}
+
+// ── full screen has a way back ────────────────────────────────────────────
+// The toolbar lives outside the container, so going full screen used to take
+// every control away with it - no zoom, and on a phone no way back at all.
+{
+  const r = await page.evaluate(async () => {
+    const c = () => getComputedStyle(document.getElementById('map-fs-controls')).display;
+    openM('mapModal');
+    const before = c();
+    mapFullscreen();
+    await new Promise(r => setTimeout(r, 250));
+    const during = c();
+    mapExitFullscreen();
+    await new Promise(r => setTimeout(r, 150));
+    const after = c();
+    const stuck = document.getElementById('map-container').classList.contains('map-faux-full');
+    closeMapModal();
+    return { before, during, after, stuck };
+  });
+  if (r.before !== 'none' || r.during === 'none') fail('full screen has a way back',
+    `the controls were "${r.before}" before and "${r.during}" during`);
+  else ok();
+  if (r.after !== 'none' || r.stuck) fail('full screen has a way back',
+    'leaving full screen left the controls or the layout behind');
+  else ok();
+}
+
 // ── the crossing to Zermatt cannot be open when nothing else is ───────────
 // The feed has said OPEN on a day with no slopes open at all. A green "open"
 // on the front page is the one claim a reader plans a day around, so the rest
