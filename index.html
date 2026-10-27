@@ -511,7 +511,7 @@ img, svg, video { max-width: 100%; }
             <span id="bar-slopes-local" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;">--</span>
             <span id="bar-slopes-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
           </div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים <span style="opacity:0.6;">כולל האיזור</span></div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים <span style="opacity:0.6;">כל האזור (צ׳רוויניה)</span></div>
         </div>
 
         <div style="text-align:center;">
@@ -519,7 +519,7 @@ img, svg, video { max-width: 100%; }
             <span id="bar-lifts-local" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;">--</span>
             <span id="bar-lifts-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
           </div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות <span style="opacity:0.6;">כולל האיזור</span></div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות <span style="opacity:0.6;">כל האזור (צ׳רוויניה)</span></div>
         </div>
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
@@ -2956,13 +2956,22 @@ function loadMap(type) {
   }
 }
 
+var _mapRender = null;      // the render in flight, if any
+var _mapRenderGen = 0;
 function _renderPdfPage(pageNum) {
   if (!_mapCurrentPdf) return;
   var canvas  = document.getElementById('map-pdf-canvas');
   var pdfWrap = document.getElementById('map-pdf-wrap');
   var ph      = document.getElementById('map-placeholder');
   if (!canvas) return;
+  // Two renders on one canvas corrupt it - resizing a canvas resets its
+  // context out from under whatever is still drawing, and the page comes back
+  // mirrored or upside down. Entering and leaving full screen asks for a
+  // fresh render, so this is easy to trigger. One at a time.
+  if (_mapRender) { try { _mapRender.cancel(); } catch (e) {} _mapRender = null; }
+  var gen = ++_mapRenderGen;
   _mapCurrentPdf.getPage(pageNum).then(function(page) {
+    if (gen !== _mapRenderGen) return;
     var container = document.getElementById('map-container');
     var containerW = container ? container.clientWidth - 20 : 800;
     var viewport0 = page.getViewport({ scale: 1 });
@@ -2980,21 +2989,40 @@ function _renderPdfPage(pageNum) {
     canvas.width  = viewport.width;
     canvas.height = viewport.height;
     var ctx = canvas.getContext('2d');
-    page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.style.transform = '';          // drop any preview scaling
+    var task = page.render({ canvasContext: ctx, viewport: viewport });
+    _mapRender = task;
+    task.promise.then(function() {
+      if (gen !== _mapRenderGen) return;
+      _mapRender = null;
       if (ph)      { ph.style.display = 'none'; ph.style.position = ''; }
       if (pdfWrap) pdfWrap.style.display = 'block';
       var zl = document.getElementById('map-zoom-label');
       if (zl) zl.textContent = Math.round(_mapZoomLevel * 100) + '%';
-    });
+    }).catch(function () { /* cancelled on purpose */ });
   });
 }
 
 var _mapMaxZoom = 5;
-var MAP_CANVAS_BUDGET = 12e6;      // pixels; about 48MB of canvas
+// Each sheet holds an image about 6000px along its long side, which is sharp
+// enough to read the piste list at full size. The old budget stopped the
+// canvas at two thirds of that, so the smallest lettering never arrived. The
+// budget now reaches the sheet's own resolution on a desktop, and stops short
+// of what iOS will refuse to allocate on a phone.
+function MAP_CANVAS_BUDGET() {
+  // A laptop with a short window is not a phone, so the screen size alone is
+  // the wrong question. A touch pointer on a small screen is a phone; a
+  // tablet and anything with a mouse get the full budget.
+  var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  var narrow = Math.min(screen.width || 1200, screen.height || 900) < 820;
+  return (coarse && narrow) ? 14e6 : 28e6;
+}
 function _mapZoomCeiling(viewport0, baseScale) {
   // The budget is a ceiling, never a floor: on a wide screen the page already
   // starts out larger, so it needs less zoom to reach the same real detail.
-  var maxScale = Math.sqrt(MAP_CANVAS_BUDGET / (viewport0.width * viewport0.height));
+  var maxScale = Math.sqrt(MAP_CANVAS_BUDGET() / (viewport0.width * viewport0.height));
   return Math.max(1.5, Math.min(24, maxScale / baseScale));
 }
 function mapZoomIn()  { _mapZoomLevel = Math.min(_mapMaxZoom, _mapZoomLevel * 1.3); _applyMapZoom(); }
@@ -3056,6 +3084,40 @@ function mapExitFullscreen() {
 }
 document.addEventListener('fullscreenchange', _mapFsPaint);
 document.addEventListener('webkitfullscreenchange', _mapFsPaint);
+
+// ── the wheel zooms the map ───────────────────────────────────────────────
+// Re-rendering the page on every notch of the wheel would be unusable, so the
+// canvas is scaled with CSS for instant feedback and redrawn properly once
+// the wheel stops. The crisp version always wins in the end.
+var _mapWheelTimer = null;
+function _mapWheel(e) {
+  if (!_mapCurrentPdf && !(document.getElementById('map-img') || {}).src) return;
+  e.preventDefault();
+  var before = _mapZoomLevel;
+  var step = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+  _mapZoomLevel = Math.max(0.3, Math.min(_mapMaxZoom, _mapZoomLevel * step));
+  if (_mapZoomLevel === before) return;
+  var zl = document.getElementById('map-zoom-label');
+  if (zl) zl.textContent = Math.round(_mapZoomLevel * 100) + '%';
+  var canvas = document.getElementById('map-pdf-canvas');
+  if (_mapCurrentPdf && canvas) {
+    canvas.style.transformOrigin = 'top right';
+    canvas.style.transform = 'scale(' + (_mapZoomLevel / before)
+      * (parseFloat(canvas.dataset.preview || 1)) + ')';
+    canvas.dataset.preview = (parseFloat(canvas.dataset.preview || 1) * (_mapZoomLevel / before));
+  }
+  clearTimeout(_mapWheelTimer);
+  _mapWheelTimer = setTimeout(function () {
+    if (canvas) { canvas.dataset.preview = 1; }
+    _applyMapZoom();
+  }, 200);
+}
+['map-pdf-wrap', 'map-img-wrap'].forEach(function (id) {
+  document.addEventListener('DOMContentLoaded', function () {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('wheel', _mapWheel, { passive: false });
+  });
+});
 
 // ── Service modals ──
 function openRentalModal() { openM('rentalModal'); }
@@ -6448,7 +6510,8 @@ function renderSkipassAges() {
     el.innerHTML = bands.map(function (b) {
       return '<span style="padding:2px 8px;background:' + (b.bg || '#f8f9fa') + ';border-radius:10px;">'
         + b.icon + ' ' + escHtml(clAgeLabel(b))
-        + (b.chip ? ' — <b>' + escHtml(b.chip) + '</b>' : '') + '</span>';
+        + (b.chip ? ' — <b>' + escHtml(String(b.chip).replace(/<[^>]*>/g, '')) + '</b>' : '')
+        + '</span>';
     }).join('');
   });
 
@@ -8183,13 +8246,27 @@ function renderArrivalPlanner(pl) {
   var opts = (pl.airports || []).map(function (a) {
     return '<option value="' + a.id + '">' + _aEsc(a.name) + '</option>';
   }).join('');
+  var tab = function (id, label) {
+    return '<button type="button" id="ap-tab-' + id + '" onclick="switchApTab(\'' + id + '\')" '
+      + 'style="flex:1;padding:7px;border-radius:8px;border:1.5px solid #cfe2f5;cursor:pointer;'
+      + 'font-family:inherit;font-size:0.79rem;font-weight:bold;background:white;color:#44536a;">'
+      + label + '</button>';
+  };
   box.innerHTML =
     '<div style="border:1.5px solid #cfe2f5;border-radius:11px;'
       + 'background:linear-gradient(135deg,#eef6ff,#f8fbff);padding:13px 14px;margin-bottom:14px;">'
-    + '<div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:3px;">'
+    + '<div id="ap-title" style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:3px;">'
       + _aEsc(pl.title) + '</div>'
-    + '<div style="font-size:0.77rem;color:#667;line-height:1.7;margin-bottom:10px;">'
+    + '<div id="ap-lead" style="font-size:0.77rem;color:#667;line-height:1.7;margin-bottom:10px;">'
       + _aEsc(pl.lead) + '</div>'
+    // A journey that works one way may not work the other: the last bus down
+    // the valley and the last coach to the airport are not the mirror of the
+    // ones that brought you up, and finding that out at the airport is too
+    // late. Both legs are asked here, in the same card.
+    + '<div style="display:flex;gap:6px;margin-bottom:10px;">'
+      + tab('in', '🛬 הגעה') + tab('out', '🛫 חזרה הביתה')
+    + '</div>'
+    + '<div id="ap-pane-in">'
     + (pl.freetext
         ? '<div style="margin-bottom:9px;">'
           + '<div style="font-size:0.72rem;color:#667;margin-bottom:3px;">'
@@ -8224,8 +8301,54 @@ function renderArrivalPlanner(pl) {
         + 'border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;'
         + 'font-family:inherit;">נקה</button>'
     + '</div>'
+    + '</div>'                                   // end of the arrival pane
+    + '<div id="ap-pane-out" style="display:none;">'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;">'
+        + _apField('שדה תעופה',
+            '<select id="dp-airport" style="' + F + '">' + opts + '</select>')
+        + _apField('תאריך הטיסה', '<input type="date" id="dp-date" style="' + F + '">')
+        + _apField('שעת הטיסה', '<input type="time" id="dp-time" value="10:00" style="' + F + '">')
+        + _apField('נוסעים',
+            '<input type="number" id="dp-pax" value="2" min="1" max="8" style="' + F + '">')
+      + '</div>'
+      + '<div style="display:flex;gap:8px;">'
+        + '<button type="button" onclick="planDeparture()" style="flex:1;padding:10px;'
+          + 'background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;'
+          + 'font-weight:bold;cursor:pointer;font-family:inherit;">🔎 מתי לצאת</button>'
+        + '<button type="button" id="dp-reset" onclick="resetDeparture()" style="display:none;'
+          + 'padding:10px 14px;background:white;color:#44536a;border:1.5px solid #cfd8e3;'
+          + 'border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;'
+          + 'font-family:inherit;">נקה</button>'
+      + '</div>'
+    + '</div>'
     + '<div id="ap-out" style="margin-top:10px;"></div>'
     + '</div>';
+  switchApTab('in');
+}
+
+function switchApTab(which) {
+  var pl = window._texts && window._texts.transport && window._texts.transport.planner;
+  if (pl) {
+    var ttl = document.getElementById('ap-title'), led = document.getElementById('ap-lead');
+    if (ttl) ttl.textContent = (which === 'out' && pl.title_out) ? pl.title_out : pl.title;
+    if (led) led.textContent = (which === 'out' && pl.lead_out)  ? pl.lead_out  : pl.lead;
+  }
+  ['in', 'out'].forEach(function (k) {
+    var pane = document.getElementById('ap-pane-' + k);
+    var btn  = document.getElementById('ap-tab-' + k);
+    if (pane) pane.style.display = (k === which) ? 'block' : 'none';
+    if (btn) {
+      var on = (k === which);
+      btn.style.background  = on ? '#0a192f' : 'white';
+      btn.style.color       = on ? 'white'   : '#44536a';
+      btn.style.borderColor = on ? '#0a192f' : '#cfe2f5';
+    }
+  });
+  var out = document.getElementById('ap-out');
+  if (out) out.innerHTML = '';
+  ['ap-reset', 'dp-reset'].forEach(function (id) {
+    var b = document.getElementById(id); if (b) b.style.display = 'none';
+  });
 }
 
 function planArrival() {
@@ -8341,6 +8464,131 @@ function resetArrival() {
   var x = document.getElementById('ap-pax');    if (x) x.value = '2';
   var a = document.getElementById('ap-airport');if (a) a.selectedIndex = 0;
   var rb = document.getElementById('ap-reset'); if (rb) rb.style.display = 'none';
+  if (d && d.focus) d.focus();
+}
+
+// ── the journey home ──────────────────────────────────────────────────────
+// Worked backwards from the flight: be at the airport a set time before it
+// leaves, which fixes the last coach you can take, which fixes the last bus
+// down the valley you can take. The chain breaks far more often in this
+// direction than on the way up - on most days there is exactly one coach
+// that works, and on two days of the week there is none at all.
+function _prevRun(line, dow, arriveBy) {
+  var best = null;
+  (line.runs || []).forEach(function (r) {
+    if (!_runsOn(r, dow)) return;
+    if (_mins(r.arr) > arriveBy) return;
+    if (!best || _mins(r.dep) > _mins(best.dep)) best = r;
+  });
+  return best;
+}
+function planDeparture() {
+  var pl  = window._texts && window._texts.transport && window._texts.transport.planner;
+  var out = document.getElementById('ap-out');
+  if (!pl || !out) return;
+
+  var apId = (document.getElementById('dp-airport') || {}).value;
+  var date = (document.getElementById('dp-date') || {}).value;
+  var time = (document.getElementById('dp-time') || {}).value;
+  var pax  = Math.max(1, Math.min(8, parseInt((document.getElementById('dp-pax') || {}).value, 10) || 2));
+  if (!date || !time) {
+    out.innerHTML = '<div style="font-size:0.79rem;color:#c0392b;">בחרו תאריך ושעת טיסה.</div>';
+    return;
+  }
+  var ap = (pl.airports || []).filter(function (a) { return a.id === apId; })[0];
+  if (!ap) return;
+
+  var parts = date.split('-');
+  var dow   = new Date(+parts[0], +parts[1] - 1, +parts[2]).getDay();
+  var DAYS  = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  var checkin = pl.checkin_min || 150;
+  var beBy  = _mins(time) - checkin;          // at the airport by this time
+  var cards = [];
+
+  if (beBy <= 0) {
+    out.innerHTML = '<div style="font-size:0.79rem;color:#c0392b;">טיסה בשעה כזו מחייבת לינה ליד השדה בלילה שלפני.</div>';
+    return;
+  }
+
+  // ── 1. by bus, if the chain closes ──
+  var dl = ap.line_down && pl.lines ? pl.lines[ap.line_down] : null;
+  if (!dl) {
+    cards.push(_apCard('#f7f8fa', '#d8dde4', '#555', '🚌 אוטובוס',
+      ap.no_bus || ('אין קו אוטובוס ישיר משאטיון ל' + ap.name + '.')));
+  } else {
+    var coach = _prevRun(dl, dow, beBy);
+    if (!coach) {
+      var any = (dl.runs || []).filter(function (r) { return _runsOn(r, dow); });
+      cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', '🚌 אוטובוס — לא הפעם',
+        any.length
+          ? 'ביום ' + DAYS[dow] + ' האוטובוס האחרון שמגיע בזמן ל' + ap.name
+            + ' היה צריך להגיע עד ' + _hhmm(beBy) + ', והראשון באותו יום מגיע רק ב-'
+            + any[0].arr + '. נשארו ההסעה והרכב.'
+          : 'ביום ' + DAYS[dow] + ' הקו הזה אינו פועל כלל. נשארו ההסעה והרכב.'));
+    } else {
+      var blu = pl.lines.blu_down
+        ? _prevRun(pl.lines.blu_down, dow, _mins(coach.dep) - (pl.connect_min || 10))
+        : null;
+      var cost = (dl.price || 0) * pax;
+      var body = '';
+      if (blu) {
+        cost += (pl.lines.blu_down.price || 0) * pax;
+        var wait = _mins(coach.dep) - _mins(blu.arr);
+        body = "🔵 " + blu.dep + " מצ'רוויניה ← " + blu.arr + ' בשאטיון'
+             + '<br>🚌 ' + coach.dep + ' משאטיון ← <b>' + coach.arr + ' ב' + ap.name + '</b>'
+             + '<br><span style="color:#667;">המתנה בשאטיון: ' + _waitHe(wait)
+             + ' · הכל יחד כ-€' + (Math.round(cost * 10) / 10) + ' ל-' + pax + ' נוסעים'
+             + '<br>זה מותיר ' + _waitHe(_mins(time) - _mins(coach.arr)) + ' בשדה לפני הטיסה.</span>'
+             // The two stops in Châtillon are not the same stop, and with ski
+             // bags the walk between them is the whole margin.
+             + (wait <= 20
+                 ? '<br><span style="color:#8a5a00;">⚠️ חיבור צמוד, ובשתי תחנות שונות: '
+                   + 'הקו המקומי מגיע לתחנת הרכבת, והאוטובוס לשדה יוצא מתחנת האוטובוסים. '
+                   + 'עם ציוד סקי זה לא הרבה זמן.</span>'
+                 : '');
+        cards.push(_apCard(wait >= 60 ? '#fffaf0' : '#f3fbf5',
+                           wait >= 60 ? '#e8c488' : '#8fcfa3',
+                           wait >= 60 ? '#8a5a00' : '#1d6b35',
+          wait >= 60 ? '🚌 בתחבורה ציבורית — אבל עם המתנה' : '🚌 בתחבורה ציבורית', body));
+      } else {
+        body = 'האוטובוס לשדה יוצא משאטיון ב-' + coach.dep
+             + ', <b>ואין אוטובוס מצ\'רוויניה שמגיע לשאטיון לפניו.</b> '
+             + 'הקו המקומי הראשון של היום יוצא ב-'
+             + ((pl.lines.blu_down.runs || [])[0] || {}).dep + '.';
+        cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16',
+          '🚌 האוטובוס קיים — אבל לא מגיעים אליו', body));
+      }
+    }
+  }
+
+  // ── 2. a transfer, which always works ──
+  var price = pax <= 2 ? ap.t_small : ap.t_big;
+  cards.push(_apCard('#f4f9ff', '#8fb8e0', '#1a4f85', '🚐 הסעה פרטית',
+    '<b>צאו מהמלון ב-' + _hhmm(beBy - ap.drive_min) + '</b> כדי להיות בשדה ב-'
+    + _hhmm(beBy) + '. <b>€' + price + '</b> לרכב ל-' + pax + ' נוסעים, זמן נסיעה '
+    + _waitHe(ap.drive_min) + '.'));
+
+  // ── 3. or drive yourself ──
+  cards.push(_apCard('#f7f8fa', '#d8dde4', '#444', '🚗 ברכב שכור',
+    '<b>צאו מהמלון ב-' + _hhmm(beBy - ap.drive_min - 30) + '</b> — זמן נסיעה '
+    + _waitHe(ap.drive_min) + ', ועוד כחצי שעה להחזרת הרכב ולמעבר לטרמינל. '
+    + 'בחורף הוסיפו מרווח: הכביש למטה עלול להיסגר או לעבור לשיירות מלוות.'));
+
+  out.innerHTML = '<div style="font-size:0.75rem;color:#8a95a3;margin-bottom:7px;">'
+    + 'טיסה ביום ' + DAYS[dow] + ', ' + time + ' · להיות בשדה עד ' + _hhmm(beBy)
+    + ' (' + _waitHe(checkin) + ' לפני ההמראה)</div>' + cards.join('');
+  var rb = document.getElementById('dp-reset');
+  if (rb) rb.style.display = 'block';
+}
+
+function resetDeparture() {
+  var out = document.getElementById('ap-out');
+  if (out) out.innerHTML = '';
+  var d = document.getElementById('dp-date');    if (d) d.value = '';
+  var t = document.getElementById('dp-time');    if (t) t.value = '10:00';
+  var x = document.getElementById('dp-pax');     if (x) x.value = '2';
+  var a = document.getElementById('dp-airport'); if (a) a.selectedIndex = 0;
+  var rb = document.getElementById('dp-reset');  if (rb) rb.style.display = 'none';
   if (d && d.focus) d.focus();
 }
 
@@ -10045,21 +10293,27 @@ function renderLiveBar(d) {
   const closeHour = parseFloat((openingStr.split('-')[1] || '16:45').trim().replace(':','.'));
   const mountainOpen = hourItaly >= openHour && hourItaly < closeHour;
 
-  const sLocal = (d.slopes_open_local != null && d.slopes_total_local != null) ? d.slopes_open_local + '/' + d.slopes_total_local : null;
-  const sGlobal = (d.slopes_open_global != null && d.slopes_total_global != null) ? d.slopes_open_global + '/' + d.slopes_total_global : null;
-  set('bar-slopes-local', sLocal || sGlobal || '--');
-  set('bar-slopes-global', sLocal && sGlobal ? ' (' + sGlobal + ')' : '');
-  function fmtLifts(open, total) {
+  // The big number is the whole ski area, because that is the number the
+  // operator puts on its own front page and the one a reader recognises. The
+  // figure for Cervinia alone follows in brackets, and only when it says
+  // something: the feed reports the local slope count as 0 out of 0, which is
+  // not a reading at all, and it used to be the headline.
+  function _count(open, total) {
     if (open == null) return null;
-    if (total == null || total === 0) return open + '';
-    // אם open > total — הנתון שגוי, מציג open/open
-    if (parseInt(open) > parseInt(total)) return open + '/' + open;
-    return open + '/' + total;
+    var o = parseInt(open, 10), t = parseInt(total, 10);
+    if (isNaN(o)) return null;
+    if (isNaN(t) || t <= 0) return null;       // "0/0" is an absent reading
+    if (o > t) return null;                    // and so is a count above the total
+    return o + '/' + t;
   }
-  const lLocal  = (d.lifts_open_local  != null) ? fmtLifts(d.lifts_open_local,  d.lifts_total_local)  : null;
-  const lGlobal = (d.lifts_open_global != null) ? fmtLifts(d.lifts_open_global, d.lifts_total_global) : null;
-  set('bar-lifts-local', lLocal || lGlobal || '--');
-  set('bar-lifts-global', lLocal && lGlobal ? ' (' + lGlobal + ')' : '');
+  const sArea  = _count(d.slopes_open_global, d.slopes_total_global);
+  const sLocal = _count(d.slopes_open_local,  d.slopes_total_local);
+  set('bar-slopes-local',  sArea || sLocal || '--');
+  set('bar-slopes-global', (sArea && sLocal) ? ' (' + sLocal + ')' : '');
+  const lArea  = _count(d.lifts_open_global, d.lifts_total_global);
+  const lLocal = _count(d.lifts_open_local,  d.lifts_total_local);
+  set('bar-lifts-local',   lArea || lLocal || '--');
+  set('bar-lifts-global',  (lArea && lLocal) ? ' (' + lLocal + ')' : '');
   set('bar-wind', d.wind_speed != null ? Math.round(d.wind_speed) + ' km/h' : '--');
 
   // snow_depth — supports both string "140 cm" and number 140
@@ -11228,7 +11482,7 @@ function switchAdminTab(tab) {
           <div id="skipass-mobile-desc" style="font-size:0.75rem;color:#555;">ללא תור בקופות — קונים אונליין והשער נפתח דרך הטלפון</div>
         </div>
       </div>
-      <a href="https://shop.cervinoskiparadise.it/en" target="_blank"
+      <a href="https://shop.cervinoskiparadise.it/" target="_blank"
         style="display:inline-block;padding:7px 16px;background:#4cc9f0;color:white;border-radius:8px;text-decoration:none;font-size:0.83rem;font-weight:bold;">
         📱 רכישה ב-Skipas Mobile
       </a>
@@ -11250,7 +11504,7 @@ function switchAdminTab(tab) {
     <div style="border-top:1px solid #eee;padding-top:14px;">
       <div style="font-size:0.78rem;color:#888;margin-bottom:8px;">רכישה מראש אונליין:</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="https://shop.cervinoskiparadise.it/en" target="_blank"
+        <a href="https://shop.cervinoskiparadise.it/" target="_blank"
           style="padding:9px 16px;background:#0a192f;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;">
           🌐 אתר רשמי Cervinia
         </a>
