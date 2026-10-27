@@ -506,20 +506,20 @@ img, svg, video { max-width: 100%; }
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
 
-        <div style="text-align:center;">
+        <div id="bar-slopes-cell" style="text-align:center;cursor:pointer;" onclick="openM('helpModal')">
           <div style="line-height:1;">
             <span id="bar-slopes-local" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;">--</span>
             <span id="bar-slopes-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
           </div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים <span style="opacity:0.6;">כל האזור (צ׳רוויניה)</span></div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים <span id="bar-slopes-scope" style="opacity:0.6;"></span></div>
         </div>
 
-        <div style="text-align:center;">
+        <div id="bar-lifts-cell" style="text-align:center;cursor:pointer;" onclick="openM('helpModal')">
           <div style="line-height:1;">
             <span id="bar-lifts-local" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;">--</span>
             <span id="bar-lifts-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
           </div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות <span style="opacity:0.6;">כל האזור (צ׳רוויניה)</span></div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות <span id="bar-lifts-scope" style="opacity:0.6;"></span></div>
         </div>
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
@@ -2588,8 +2588,12 @@ async function openZermattForecast() {
   var icon, verdict, reason, bg, border;
 
   if (zVal === 'OPEN') {
-    icon = '✅'; verdict = 'הלינק פתוח';
-    reason = 'לפי הסטטוס הרשמי' + (band.k === 'risk' || band.k === 'bad'
+    var skiable = _zermattSkiable(d);
+    icon = '✅'; verdict = skiable ? 'הלינק פתוח' : 'המעבר פתוח — ברכבל בלבד';
+    reason = (skiable ? 'לפי הסטטוס הרשמי'
+      : 'ה-Matterhorn Alpine Crossing פועל כל השנה, גם כשאין מסלול פתוח. '
+        + 'אפשר לחצות לצ\'רמט ברכבל, לא בגלישה')
+      + (band.k === 'risk' || band.k === 'bad'
       ? ' — אבל ברכס משבים של ' + Math.round(gust) + ' km/h, וייתכן שייסגר במהלך היום' : '');
     bg = '#f0fff4'; border = '#66bb6a';
   } else if (zVal === 'CLOSED') {
@@ -10273,12 +10277,16 @@ async function fetchWttrForecast() {
 // and the verdict in the crossing panel read it from here, so they cannot
 // drift apart.
 function _zermattState(d) {
-  d = d || {};
-  var v = String(d.zermatt_link || '').toUpperCase();
-  var slopes = (parseInt(d.slopes_open_local, 10) || 0)
-             + (parseInt(d.slopes_open_global, 10) || 0);
-  if (v === 'OPEN' && slopes === 0) return 'CLOSED';
-  return v;
+  return String((d || {}).zermatt_link || '').toUpperCase();
+}
+// Open with no piste open is not a contradiction: the Matterhorn Alpine
+// Crossing is a cable-car link that runs the year round, so you can cross to
+// Zermatt on a day when there is nothing to ski. Saying only "open" invites
+// the reader to plan a ski crossing that is not on, so the badge says which
+// of the two it is.
+function _zermattSkiable(d) {
+  return ((parseInt((d || {}).slopes_open_global, 10) || 0)
+        + (parseInt((d || {}).slopes_open_local, 10) || 0)) > 0;
 }
 function renderLiveBar(d) {
   // Parse JSON string fields from Supabase
@@ -10316,14 +10324,50 @@ function renderLiveBar(d) {
     if (o > t) return null;                    // and so is a count above the total
     return o + '/' + t;
   }
+  // The caption has to describe the numbers that are actually on the screen.
+  // It used to promise "whole area (Cervinia)" even on the line where the
+  // feed had no Cervinia figure at all and nothing was in brackets.
+  function _scope(area, local) {
+    if (area && local) return 'כל האזור (צ׳רוויניה)';
+    if (area)  return 'כל האזור';
+    if (local) return 'צ׳רוויניה';
+    return '';
+  }
+  // "13/47 (4/5)" is short enough for the bar but says nothing on its own,
+  // so the same thing is spelled out in a tooltip and for screen readers.
+  // The number after the slash is how many are in operation in this period,
+  // not how many the resort has: Cervinia does not have five lifts, it has
+  // five running in October. Saying only "4/5" invites exactly that mistake.
+  function _countTip(word, area, local) {
+    const part = (pair, where) => {
+      const n = pair.split('/');
+      return n[0] + ' מתוך ' + n[1] + ' ' + where;
+    };
+    const out = [];
+    if (area)  out.push(part(area,  'בכל אזור Cervino Ski Paradise'));
+    if (local) out.push(part(local, 'בצ׳רוויניה עצמה'));
+    if (!out.length) return '';
+    return word + ' פתוחים כעת, מתוך אלו שמופעלים בתקופה זו: '
+         + out.join(' · ') + '. לחץ להסבר.';
+  }
+  function _tip(id, text) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (text) { el.setAttribute('title', text); el.setAttribute('aria-label', text); }
+    else { el.removeAttribute('title'); el.removeAttribute('aria-label'); }
+  }
   const sArea  = _count(d.slopes_open_global, d.slopes_total_global);
   const sLocal = _count(d.slopes_open_local,  d.slopes_total_local);
   set('bar-slopes-local',  sArea || sLocal || '--');
   set('bar-slopes-global', (sArea && sLocal) ? ' (' + sLocal + ')' : '');
+  set('bar-slopes-scope',  _scope(sArea, sLocal));
+  _tip('bar-slopes-cell',  _countTip('מסלולים', sArea, sLocal));
   const lArea  = _count(d.lifts_open_global, d.lifts_total_global);
   const lLocal = _count(d.lifts_open_local,  d.lifts_total_local);
   set('bar-lifts-local',   lArea || lLocal || '--');
   set('bar-lifts-global',  (lArea && lLocal) ? ' (' + lLocal + ')' : '');
+  set('bar-lifts-scope',   _scope(lArea, lLocal));
+  _tip('bar-lifts-cell',   _countTip('מעליות', lArea, lLocal));
   set('bar-wind', d.wind_speed != null ? Math.round(d.wind_speed) + ' km/h' : '--');
 
   // snow_depth — supports both string "140 cm" and number 140
@@ -10479,6 +10523,7 @@ function renderLiveBar(d) {
     } else {
       zColor = '#e74c3c'; zText = 'סגור'; zBorder = 'rgba(231,76,60,0.3)';
     }
+    if (zVal2 === 'OPEN' && !_zermattSkiable(d)) zText = 'רכבל בלבד';
     if (dot) { dot.setAttribute('fill', zColor); }
     if (label) { label.setAttribute('fill', zColor); }
     if (status) { status.textContent = zText; }
