@@ -415,6 +415,16 @@ img, svg, video { max-width: 100%; }
   transition: transform 0.15s;
 }
 #kosherModal details[open] > summary::before { transform: rotate(-90deg); }
+
+/* iOS Safari will not put a div into native full screen, so this does the
+   same job with plain positioning and works everywhere. */
+#map-container.map-faux-full {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9500 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+}
 .ftx{font-size:0.71rem;background:white;border:1px solid #cfe2f5;border-radius:20px;padding:3px 10px;cursor:pointer;color:#37474f;}
 .ftx:hover{background:#0a192f;color:white;border-color:#0a192f;}
 </style>
@@ -1985,6 +1995,19 @@ img, svg, video { max-width: 100%; }
       </div>
       <!-- iframe (מפת הכפר) -->
       <iframe id="map-frame" src="" width="100%" height="100%" style="border:none;display:none;position:absolute;inset:0;"></iframe>
+      <!-- shown only while the container is full screen -->
+      <div id="map-fs-controls" style="display:none;position:absolute;top:10px;left:10px;z-index:30;
+           gap:6px;align-items:center;">
+        <button onclick="mapExitFullscreen()" aria-label="יציאה ממסך מלא"
+          style="width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;
+                 background:rgba(10,25,47,0.82);color:white;font-size:1.1rem;line-height:1;">✕</button>
+        <button onclick="mapZoomIn()" aria-label="הגדלה"
+          style="width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;
+                 background:rgba(10,25,47,0.82);color:white;font-size:1.2rem;line-height:1;">＋</button>
+        <button onclick="mapZoomOut()" aria-label="הקטנה"
+          style="width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;
+                 background:rgba(10,25,47,0.82);color:white;font-size:1.2rem;line-height:1;">－</button>
+      </div>
       <!-- placeholder -->
       <div id="map-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:10px;color:#999;">
         <span style="font-size:3rem;">🗺️</span>
@@ -2944,6 +2967,14 @@ function _renderPdfPage(pageNum) {
     var containerW = container ? container.clientWidth - 20 : 800;
     var viewport0 = page.getViewport({ scale: 1 });
     var baseScale = containerW / viewport0.width;
+    // How far in you may go depends on the page. "All the area" is a sheet
+    // 3412pt across, so fitting it to a phone already shrinks it to an eighth
+    // of itself, and the old flat limit of 5x left the lettering unreadable.
+    // The limit is now whatever keeps the canvas inside a fixed pixel budget,
+    // which on a wide sheet is roughly twice the zoom it used to allow and on
+    // a small one still stops well short of exhausting a phone's memory.
+    _mapMaxZoom = _mapZoomCeiling(viewport0, baseScale);
+    if (_mapZoomLevel > _mapMaxZoom) _mapZoomLevel = _mapMaxZoom;
     var scale     = baseScale * _mapZoomLevel;
     var viewport  = page.getViewport({ scale: scale });
     canvas.width  = viewport.width;
@@ -2958,7 +2989,15 @@ function _renderPdfPage(pageNum) {
   });
 }
 
-function mapZoomIn()  { _mapZoomLevel = Math.min(5, _mapZoomLevel * 1.3); _applyMapZoom(); }
+var _mapMaxZoom = 5;
+var MAP_CANVAS_BUDGET = 12e6;      // pixels; about 48MB of canvas
+function _mapZoomCeiling(viewport0, baseScale) {
+  // The budget is a ceiling, never a floor: on a wide screen the page already
+  // starts out larger, so it needs less zoom to reach the same real detail.
+  var maxScale = Math.sqrt(MAP_CANVAS_BUDGET / (viewport0.width * viewport0.height));
+  return Math.max(1.5, Math.min(24, maxScale / baseScale));
+}
+function mapZoomIn()  { _mapZoomLevel = Math.min(_mapMaxZoom, _mapZoomLevel * 1.3); _applyMapZoom(); }
 function mapZoomOut() { _mapZoomLevel = Math.max(0.3, _mapZoomLevel / 1.3); _applyMapZoom(); }
 function mapZoomReset() { _mapZoomLevel = 1; _applyMapZoom(); }
 
@@ -2975,12 +3014,48 @@ function _applyMapZoom() {
   }
 }
 
+// Full screen hides the toolbar, which sits outside the container - so on a
+// phone there was no way back and no way to zoom once you were in. These
+// three buttons live inside the container and appear only while it is full.
+// iOS Safari will not put a div into native full screen at all, so there is a
+// plain fixed-position fallback that behaves the same everywhere.
+function _mapFsOn() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement)
+      || document.getElementById('map-container').classList.contains('map-faux-full');
+}
+function _mapFsPaint() {
+  var c = document.getElementById('map-fs-controls');
+  if (c) c.style.display = _mapFsOn() ? 'flex' : 'none';
+  // the container just changed width, so the page has to be drawn again
+  setTimeout(_applyMapZoom, 60);
+}
 function mapFullscreen() {
   var el = document.getElementById('map-container');
   if (!el) return;
-  var req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-  if (req) req.call(el);
+  if (_mapFsOn()) { mapExitFullscreen(); return; }
+  var req = el.requestFullscreen || el.webkitRequestFullscreen
+         || el.mozRequestFullScreen || el.msRequestFullscreen;
+  var done = null;
+  if (req) { try { done = req.call(el); } catch (e) { done = Promise.reject(e); } }
+  else     { done = Promise.reject(); }
+  // requestFullscreen rejects rather than throws when the browser will not
+  // allow it, so the fallback has to hang off the promise.
+  if (done && done.catch) {
+    done.catch(function () { el.classList.add('map-faux-full'); _mapFsPaint(); });
+  }
+  _mapFsPaint();
 }
+function mapExitFullscreen() {
+  var el = document.getElementById('map-container');
+  if (el) el.classList.remove('map-faux-full');
+  var ex = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+  if (ex && (document.fullscreenElement || document.webkitFullscreenElement)) {
+    try { ex.call(document); } catch (e) {}
+  }
+  _mapFsPaint();
+}
+document.addEventListener('fullscreenchange', _mapFsPaint);
+document.addEventListener('webkitfullscreenchange', _mapFsPaint);
 
 // ── Service modals ──
 function openRentalModal() { openM('rentalModal'); }
