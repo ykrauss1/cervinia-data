@@ -110,8 +110,13 @@ async function scrape() {
     } catch (_) {}
   }
 
-  const lifts_total_global = 47;
-  const slopes_total_global = 109;
+  // The totals are read further down, from the lifts-and-slopes page, where
+  // the operator prints them himself ("SKI LIFTS 10 di 15", "SLOPES 0 di 9").
+  // They used to be the constants 47 and 109 - the whole-season totals - and
+  // that is not what cervinia.it shows: in October it turned "no slope open"
+  // into "0/109" instead of the operator's "0/9".
+  let lifts_total_global = null;
+  let slopes_total_global = null;
 
   let zermatt_link = await page.$eval(
     'span.U4QfZ',
@@ -120,36 +125,122 @@ async function scrape() {
 
   console.log('Zermatt link status:', zermatt_link);
 
-  // LOCAL LIFTS
+  // ------------------------------------------------------------
+  // LOCAL LIFTS AND SLOPES - the live panel on the home page
+  // ------------------------------------------------------------
+  // The panel has one tab per village and opens on Breuil-Cervinia. It is
+  // read by the labels "Open ski lifts" and "Open slopes" rather than by the
+  // generated class names, which change whenever the site is rebuilt, and the
+  // open tab is checked: publishing Valtournenche's figures as Cervinia's
+  // would be worse than publishing none.
   let lifts_open_local = null;
   let lifts_total_local = null;
   let slopes_open_local = null;
   let slopes_total_local = null;
 
   try {
-    const localLinks = await page.$$('a[href="/en/impianti"]');
-    console.log('Local lifts links found:', localLinks.length);
+    const local = await page.evaluate(() => {
+      const clean = (el) => (el && el.innerText || '').replace(/\s+/g, ' ').trim();
 
-    const localBlocks = await page.$$eval('a[href="/en/impianti"]', items =>
-      items.map(a => ({
-        open: a.querySelector('.size-25')?.innerText.trim() || null,
-        total: a.querySelector('.size-18')?.innerText.trim() || null,
-        html: a.innerHTML.slice(0, 200)
-      }))
-    );
-    console.log('Local blocks:', JSON.stringify(localBlocks));
+      // the selected village is the one drawn in black, the others are grey
+      const tab = [...document.querySelectorAll('*')].find(el =>
+        !el.children.length &&
+        /^(BREUIL CERVINIA|VALTOURNENCHE|CHAMOIS|TORGNON|ZERMATT)$/.test(clean(el).toUpperCase()) &&
+        / black /.test(' ' + ((el.parentElement && el.parentElement.className) || '') + ' ')
+      );
 
-    const validBlocks = localBlocks.filter(b => b.open !== null && b.total !== null);
-    console.log('Valid local blocks:', JSON.stringify(validBlocks));
-    if (validBlocks.length >= 2) {
-      lifts_open_local = parseInt(validBlocks[0].open);
-      lifts_total_local = parseInt(validBlocks[0].total);
-      slopes_open_local = parseInt(validBlocks[1].open);
-      slopes_total_local = parseInt(validBlocks[1].total);
+      const pair = (label) => {
+        const el = [...document.querySelectorAll('div')].find(d => {
+          const t = clean(d).toLowerCase();
+          return t.indexOf(label) === 0 && /\d+\s+\d+$/.test(t);
+        });
+        const m = el && clean(el).match(/(\d+)\s+(\d+)$/);
+        return m ? [Number(m[1]), Number(m[2])] : null;
+      };
+
+      return {
+        active: tab ? clean(tab).toUpperCase() : null,
+        lifts:  pair('open ski lifts'),
+        slopes: pair('open slopes')
+      };
+    });
+
+    console.log('Local panel:', JSON.stringify(local));
+
+    if (local.active && local.active.indexOf('CERVINIA') === -1) {
+      console.log('LOCAL PANEL IS SHOWING', local.active, '- not publishing it as Cervinia');
+    } else {
+      if (local.lifts)  { lifts_open_local  = local.lifts[0];  lifts_total_local  = local.lifts[1]; }
+      if (local.slopes) { slopes_open_local = local.slopes[0]; slopes_total_local = local.slopes[1]; }
     }
     console.log('Local lifts result:', { lifts_open_local, lifts_total_local, slopes_open_local, slopes_total_local });
   } catch (e) {
     console.log('LOCAL LIFTS ERROR:', e.message);
+  }
+
+  // ============================================================
+  // 1b) LIFTS AND SLOPES PAGE - the totals, as the operator counts them
+  // ============================================================
+  // The page prints "SKI LIFTS 10 di 15" and "SLOPES 0 di 9": how many are
+  // open out of how many are in service this period - not out of the whole
+  // season's inventory. Both numbers are taken from here so the bar can never
+  // disagree with the page it is quoting.
+  console.log('Fetching lifts and slopes page...');
+
+  try {
+    await page.goto('https://www.cervinia.it/en/impianti', {
+      waitUntil: 'networkidle2',
+      timeout: 60000
+    });
+
+    await autoScroll(page);
+    await sleep(2000);
+
+    const pairs = await page.evaluate(() => {
+      const txt = (d) => (d.innerText || '').replace(/\s+/g, ' ').trim();
+      const hits = [...document.querySelectorAll('div')].filter(d => /^\d+ di \d+$/.test(txt(d)));
+      // keep the innermost match only, so a wrapper is not counted twice
+      return hits
+        .filter(d => !hits.some(o => o !== d && d.contains(o)))
+        .map(d => txt(d).split(' di ').map(Number));
+    });
+
+    console.log('Area totals found:', JSON.stringify(pairs));
+
+    // the page prints lifts first, then slopes
+    if (pairs.length >= 2) {
+      lifts_open_global   = pairs[0][0];
+      lifts_total_global  = pairs[0][1];
+      slopes_open_global  = pairs[1][0];
+      slopes_total_global = pairs[1][1];
+    }
+  } catch (e) {
+    console.log('AREA TOTALS NOT FOUND:', e.message);
+  }
+
+  // A denominator is better than none, so the season totals stay as the last
+  // resort - but the log says so, because they are the figures that were wrong.
+  if (lifts_total_global == null)  { lifts_total_global  = 47;  console.log('Falling back to the season total for lifts (47)'); }
+  if (slopes_total_global == null) { slopes_total_global = 109; console.log('Falling back to the season total for slopes (109)'); }
+
+  // Nothing downstream can make sense of "9 open out of 5", so a pair that
+  // contradicts itself is dropped rather than published.
+  const sane = (open, total) => !(open != null && total != null && open > total);
+  if (!sane(lifts_open_global, lifts_total_global)) {
+    console.log('DROPPING area lifts:', lifts_open_global, '>', lifts_total_global);
+    lifts_open_global = lifts_total_global = null;
+  }
+  if (!sane(slopes_open_global, slopes_total_global)) {
+    console.log('DROPPING area slopes:', slopes_open_global, '>', slopes_total_global);
+    slopes_open_global = slopes_total_global = null;
+  }
+  if (!sane(lifts_open_local, lifts_total_local)) {
+    console.log('DROPPING local lifts:', lifts_open_local, '>', lifts_total_local);
+    lifts_open_local = lifts_total_local = null;
+  }
+  if (!sane(slopes_open_local, slopes_total_local)) {
+    console.log('DROPPING local slopes:', slopes_open_local, '>', slopes_total_local);
+    slopes_open_local = slopes_total_local = null;
   }
 
   // ============================================================
