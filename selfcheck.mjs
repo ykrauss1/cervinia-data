@@ -574,12 +574,93 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `9 open out of 5 was printed anyway: "${r.impossible.lifts}"`); else ok();
   if (r.empty.slopes !== '--' || r.empty.lifts !== '--') fail('the bar counts the whole area first',
     `with no feed at all it showed "${r.empty.slopes}" and "${r.empty.lifts}"`); else ok();
+
+  // the caption has to describe the numbers that are on the screen: it used
+  // to promise "whole area (Cervinia)" on a line with no Cervinia figure
+  const cap = await page.evaluate(() => {
+    const read = () => ({
+      slopes: document.getElementById('bar-slopes-scope').textContent.trim(),
+      lifts:  document.getElementById('bar-lifts-scope').textContent.trim(),
+      slopeBracket: /\(/.test(document.getElementById('bar-slopes-global').textContent),
+      liftBracket:  /\(/.test(document.getElementById('bar-lifts-global').textContent)
+    });
+    const feed = { slopes_open_global: 9, slopes_total_global: 109,
+                   slopes_open_local: 0, slopes_total_local: 0,
+                   lifts_open_global: 13, lifts_total_global: 47,
+                   lifts_open_local: 4, lifts_total_local: 5 };
+    const out = {};
+    renderLiveBar(feed); out.real = read();
+    renderLiveBar(Object.assign({}, feed,
+      { slopes_open_local: 4, slopes_total_local: 9 })); out.withLocal = read();
+    renderLiveBar({}); out.empty = read();
+    return out;
+  });
+  const agrees = (c) => (c.slopes.indexOf('(') > -1) === c.slopeBracket
+                     && (c.lifts.indexOf('(') > -1) === c.liftBracket;
+  if (!agrees(cap.real)) fail('the caption matches the numbers',
+    `caption "${cap.real.slopes}" but brackets ${cap.real.slopeBracket}`); else ok();
+  if (!agrees(cap.withLocal)) fail('the caption matches the numbers',
+    'with a local figure present the caption did not mention it'); else ok();
+  if (cap.empty.slopes || cap.empty.lifts) fail('the caption matches the numbers',
+    'with no feed at all the caption still described a scope'); else ok();
+
+  // "13/47 (4/5)" is unreadable on its own - he said so - so the cell also
+  // carries the sentence in full, for a hover and for a screen reader
+  const tip = await page.evaluate(() => {
+    const read = () => ({
+      slopes: document.getElementById('bar-slopes-cell').getAttribute('title') || '',
+      lifts:  document.getElementById('bar-lifts-cell').getAttribute('title') || ''
+    });
+    const feed = { slopes_open_global: 9, slopes_total_global: 109,
+                   slopes_open_local: 0, slopes_total_local: 0,
+                   lifts_open_global: 13, lifts_total_global: 47,
+                   lifts_open_local: 4, lifts_total_local: 5 };
+    const out = {};
+    renderLiveBar(feed); out.real = read();
+    renderLiveBar({});   out.empty = read();
+    return out;
+  });
+  if (!/13 מתוך 47/.test(tip.real.lifts) || !/4 מתוך 5/.test(tip.real.lifts))
+    fail('the counts are spelled out in full somewhere',
+      `the lifts cell explains itself as "${tip.real.lifts}"`); else ok();
+  if (!/9 מתוך 109/.test(tip.real.slopes) || /מתוך 0/.test(tip.real.slopes))
+    fail('the counts are spelled out in full somewhere',
+      `the slopes cell explains itself as "${tip.real.slopes}"`); else ok();
+  if (tip.empty.slopes || tip.empty.lifts)
+    fail('the counts are spelled out in full somewhere',
+      'with no feed at all a stale explanation was left behind'); else ok();
+
+  // "4/5" reads as "Cervinia has five lifts" unless the denominator is named
+  // for what it is - the lifts running this period, not the resort's stock
+  if (!/מופעלים בתקופה/.test(tip.real.lifts) || !/מופעלים בתקופה/.test(tip.real.slopes))
+    fail('the counts say what the denominator is',
+      `the explanation reads "${tip.real.lifts}"`); else ok();
+
+  // and the same sentence has to be reachable by tapping, not only by hover,
+  // because most of the readers are on a phone
+  const tap = await page.evaluate(() => ['bar-lifts-cell', 'bar-slopes-cell'].map(id => {
+    const el = document.getElementById(id);
+    return el ? (el.getAttribute('onclick') || '') + '|' + el.style.cursor : null;
+  }));
+  if (!tap.every(t => t && /helpModal/.test(t) && /pointer/.test(t)))
+    fail('the counts say what the denominator is',
+      `the cells are not tappable: ${JSON.stringify(tap)}`); else ok();
+
+  // the answer it opens on has to carry the correction, not the old wording
+  const faq = await page.evaluate(() =>
+    [...document.querySelectorAll('#helpModal p')].map(p => p.innerText).join(' ')
+  );
+  if (!/אינו סך כל המעליות/.test(faq))
+    fail('the counts say what the denominator is',
+      'the help answer still lets the reader read the total as the resort size'); else ok();
 }
 
-// ── the crossing to Zermatt cannot be open when nothing else is ───────────
-// The feed has said OPEN on a day with no slopes open at all. A green "open"
-// on the front page is the one claim a reader plans a day around, so the rest
-// of the feed overrules it.
+// ── the crossing to Zermatt says which kind of crossing is open ───────────
+// The Matterhorn Alpine Crossing is a cable-car link that runs the year
+// round, so the operator can report it open on a day with no piste open at
+// all - that is not a contradiction, and overruling it was a mistake. But
+// "open" alone invites a reader to plan a ski crossing that is not on, so the
+// badge distinguishes the two.
 {
   const r = await page.evaluate(() => {
     const read = () => document.getElementById('zermatt-status').textContent.trim();
@@ -587,20 +668,21 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const out = {};
     renderLiveBar(Object.assign({}, base,
       { zermatt_link: 'OPEN', slopes_open_local: 0, slopes_open_global: 0 }));
-    out.noSlopes = read();
+    out.liftOnly = read();
     renderLiveBar(Object.assign({}, base,
       { zermatt_link: 'OPEN', slopes_open_local: 12, slopes_open_global: 40 }));
-    out.withSlopes = read();
+    out.skiable = read();
     renderLiveBar(Object.assign({}, base,
       { zermatt_link: 'CLOSED', slopes_open_local: 12, slopes_open_global: 40 }));
     out.closed = read();
     return out;
   });
-  if (r.noSlopes !== 'סגור') fail('the Zermatt badge follows the rest of the feed',
-    `no slopes open anywhere, yet the crossing showed "${r.noSlopes}"`); else ok();
-  if (r.withSlopes !== 'פתוח') fail('the Zermatt badge follows the rest of the feed',
-    `a genuinely open day showed "${r.withSlopes}"`); else ok();
-  if (r.closed !== 'סגור') fail('the Zermatt badge follows the rest of the feed',
+  if (r.liftOnly !== 'רכבל בלבד') fail('the crossing says which kind it is',
+    `open with no piste open showed "${r.liftOnly}" - it should say the lift link only`);
+  else ok();
+  if (r.skiable !== 'פתוח') fail('the crossing says which kind it is',
+    `a skiable day showed "${r.skiable}"`); else ok();
+  if (r.closed !== 'סגור') fail('the crossing says which kind it is',
     `a closed crossing showed "${r.closed}"`); else ok();
 }
 
