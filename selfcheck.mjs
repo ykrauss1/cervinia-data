@@ -447,32 +447,44 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 // limit is now set by a canvas budget instead, which must hold on every sheet
 // and on every screen width.
 {
+  // page width, page height, and the pixel width of the image inside it
   const SHEETS = {
-    'all the area': [3412.39, 2425.94],
-    'cervinia':     [909.08, 729.71],
-    'valtournenche':[869.67, 823.1],
-    'swiss':        [1965.35, 1220.13]
+    'all the area': [3412.39, 2425.94, 6020],
+    'cervinia':     [909.08, 729.71, 5682],
+    'valtournenche':[869.67, 823.1, 5436],
+    'swiss':        [1965.35, 1220.13, 6006]
   };
   const r = await page.evaluate((SHEETS) => {
     const out = [];
-    for (const [name, [w, h]] of Object.entries(SHEETS)) {
+    for (const [name, [w, h, srcPx]] of Object.entries(SHEETS)) {
       for (const containerW of [410, 1400]) {
         const base = containerW / w;
         const ceil = _mapZoomCeiling({ width: w, height: h }, base);
         const scale = base * ceil;
-        out.push({ name, containerW, ceil, mp: (w * scale) * (h * scale) / 1e6 });
+        out.push({ name, containerW, ceil, mp: (w * scale) * (h * scale) / 1e6,
+                   pctOfSource: (w * scale) / srcPx });
       }
     }
-    return { out, budget: MAP_CANVAS_BUDGET };
+    return { out, budget: MAP_CANVAS_BUDGET() };
   }, SHEETS);
+  if (!(r.budget > 1e6)) fail('a map zooms within its canvas budget',
+    'the canvas budget did not come back as a number');
+  else ok();
   const over = r.out.filter(x => x.mp > r.budget / 1e6 + 0.5);
   if (over.length) fail('a map zooms within its canvas budget',
     `${over[0].name} at ${over[0].containerW}px would need ${over[0].mp.toFixed(0)} megapixels`);
   else ok();
-  // on a phone the big sheet has to go well past the old flat limit
+  // the big sheet has to go well past the old flat limit of 5x
   const phone = r.out.find(x => x.name === 'all the area' && x.containerW === 410);
   if (phone.ceil < 8) fail('a map zooms until it can be read',
-    `the widest sheet still stops at ${phone.ceil.toFixed(1)}x on a phone`);
+    `the widest sheet still stops at ${phone.ceil.toFixed(1)}x on a narrow screen`);
+  else ok();
+  // and on a machine with a mouse, every sheet has to reach the detail that is
+  // actually in the file - stopping at two thirds of it is what made the
+  // piste list unreadable
+  const short = r.out.filter(x => x.pctOfSource < 0.95);
+  if (short.length) fail('a map zooms until it can be read',
+    `${short[0].name} stops at ${Math.round(short[0].pctOfSource * 100)}% of the detail in the file`);
   else ok();
 }
 
@@ -500,6 +512,68 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.after !== 'none' || r.stuck) fail('full screen has a way back',
     'leaving full screen left the controls or the layout behind');
   else ok();
+}
+
+// ── no markup leaks into the text as text ─────────────────────────────────
+// A field that carries a <b> and is then escaped prints the tag itself. It
+// happened in the ski-pass legend, where the chip is already set in bold by
+// its own markup.
+{
+  const leaked = await page.evaluate(() => {
+    if (typeof renderSkipassAges === 'function') renderSkipassAges();
+    const ids = ['skipass-legend-cervinia', 'skipass-legend-zermatt',
+                 'skipass-discounts-list', 'kosher-products-list',
+                 'transport-body', 'season-box'];
+    const bad = [];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && /&lt;\/?[a-zA-Z]|<[a-zA-Z]+>(?=[^<]*<\/)/.test(el.innerHTML) === false) {
+        if (/<[a-z]+>|<\/[a-z]+>/i.test(el.innerText)) bad.push(id);
+      } else if (el && /<[a-z]+>|<\/[a-z]+>/i.test(el.innerText)) bad.push(id);
+    });
+    return bad;
+  });
+  if (leaked.length) fail('no markup is printed as text',
+    `a tag shows up as text inside: ${leaked.join(', ')}`);
+  else ok();
+}
+
+// ── the counts in the bar say what the operator says ──────────────────────
+// The headline used to be the figure for Cervinia alone, which the feed
+// reports as 0 out of 0 - not a reading, just an absence with a slash in it.
+// The operator's own front page counts the whole area, so that is the number
+// in large type, and Cervinia follows in brackets when it says something.
+{
+  const r = await page.evaluate(() => {
+    const read = () => ({
+      slopes: document.getElementById('bar-slopes-local').textContent
+            + document.getElementById('bar-slopes-global').textContent,
+      lifts:  document.getElementById('bar-lifts-local').textContent
+            + document.getElementById('bar-lifts-global').textContent
+    });
+    const feed = { slopes_open_global: 9, slopes_total_global: 109,
+                   slopes_open_local: 0, slopes_total_local: 0,
+                   lifts_open_global: 13, lifts_total_global: 47,
+                   lifts_open_local: 4, lifts_total_local: 5 };
+    const out = {};
+    renderLiveBar(feed);                                    out.real = read();
+    renderLiveBar(Object.assign({}, feed,
+      { slopes_open_local: 4, slopes_total_local: 9 }));    out.withLocal = read();
+    renderLiveBar(Object.assign({}, feed,
+      { lifts_open_local: 9, lifts_total_local: 5 }));      out.impossible = read();
+    renderLiveBar({});                                      out.empty = read();
+    return out;
+  });
+  if (r.real.slopes !== '9/109') fail('the bar counts the whole area first',
+    `the feed says 9 of 109 open, the bar says "${r.real.slopes}"`); else ok();
+  if (r.real.lifts !== '13/47 (4/5)') fail('the bar counts the whole area first',
+    `lifts came back as "${r.real.lifts}"`); else ok();
+  if (!/\(4\/9\)/.test(r.withLocal.slopes)) fail('the bar counts the whole area first',
+    `a real local figure was dropped: "${r.withLocal.slopes}"`); else ok();
+  if (/\(/.test(r.impossible.lifts)) fail('the bar counts the whole area first',
+    `9 open out of 5 was printed anyway: "${r.impossible.lifts}"`); else ok();
+  if (r.empty.slopes !== '--' || r.empty.lifts !== '--') fail('the bar counts the whole area first',
+    `with no feed at all it showed "${r.empty.slopes}" and "${r.empty.lifts}"`); else ok();
 }
 
 // ── the crossing to Zermatt cannot be open when nothing else is ───────────
@@ -661,6 +735,53 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.asDate) fail('the season hint fires', 'Date objects from the picker matched nothing');
   else ok();
   if (!r.quietWhenOutside) fail('the season hint fires', 'a week in July still produced a hint');
+  else ok();
+}
+
+// ── the journey home ──────────────────────────────────────────────────────
+// The way back is the leg that breaks. The coach runs on four days of the
+// week, the first one of the day leaves Châtillon at 2:25 - long before any
+// local bus comes down the valley - and an early flight is simply not
+// reachable by bus. Each of those has to be said plainly rather than guessed
+// at by the reader.
+{
+  const r = await page.evaluate(() => {
+    const run = (date, time, pax) => {
+      switchApTab('out');
+      document.getElementById('dp-airport').value = 'mxp';
+      document.getElementById('dp-date').value = date;
+      document.getElementById('dp-time').value = time;
+      document.getElementById('dp-pax').value = String(pax || 2);
+      planDeparture();
+      return document.getElementById('ap-out').innerText;
+    };
+    const out = {
+      sundayEvening: run('2027-01-10', '19:00'),   // works, with a long wait
+      sundayMorning: run('2027-01-10', '08:00'),   // coach runs, nothing reaches it
+      tuesday:       run('2027-01-12', '19:00'),   // no coach at all
+      thursday:      run('2027-01-14', '21:00', 5),// a tight but real connection
+      tooEarly:      run('2027-01-10', '06:00')    // first coach lands too late
+    };
+    switchApTab('in');
+    return out;
+  });
+  const want = [
+    ['sundayEvening', /11:25/,                 'the Sunday coach that works was not offered'],
+    ['sundayMorning', /לא מגיעים אליו/,         'a coach nobody can reach was offered as an option'],
+    ['tuesday',       /אינו פועל כלל/,          'Tuesday, when the line does not run, was not called out'],
+    ['thursday',      /15:55/,                 "Thursday's own coach was missed"],
+    ['thursday',      /חיבור צמוד/,             'a ten-minute change between two stations went unflagged'],
+    ['tooEarly',      /לא הפעם/,                'a flight no bus can reach was not refused']
+  ];
+  want.forEach(([key, re, why]) => {
+    if (!re.test(r[key])) fail('the journey home is worked out backwards', why);
+    else ok();
+  });
+  // every answer must still offer the two that always work
+  const missing = Object.entries(r).filter(([, txt]) =>
+    !/הסעה פרטית/.test(txt) || !/ברכב שכור/.test(txt)).map(([k]) => k);
+  if (missing.length) fail('the journey home is worked out backwards',
+    `no fallback offered for: ${missing.join(', ')}`);
   else ok();
 }
 
