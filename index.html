@@ -809,9 +809,13 @@ img, svg, video { max-width: 100%; }
     <div style="color:#555;font-size:0.88rem;line-height:1.8;">
       <p><b>הנתונים לא מתעדכנים?</b><br>הנתונים מתעדכנים אוטומטית כל שעה. נסה לרענן את הדף.</p>
       <p><b>איך נרשמים?</b><br>לחץ על "כניסה" בפינה העליונה ובחר "הרשמה".</p>
-      <p><b>מה ההבדל בין מקומי לכללי?</b><br>מקומי = צ'רוויניה בלבד. כללי = כל המרחב (צ'רוויניה + ולטורננש + צ'מואה).</p>
+      <p><b>מה אומרים המספרים בבאנר?</b><br>המספר הגדול הוא כל מרחב הסקי; הקטן בסוגריים הוא צ'רוויניה בלבד.</p>
       <p><b>מה זה חיבור לצ'רמט?</b><br>מעבר בין מרחב הסקי של צ'רוויניה לצ'רמט (שוויץ) דרך הקרחון. פתוח בתנאי מזג אוויר טובים בחורף.</p>
     </div>
+    <!-- The install banner appears once and is gone for good after a tap.
+         This is where it can always be found again. It sits OUTSIDE the FAQ
+         block above, which _applyTexts rewrites from the content file. -->
+    <div id="help-install" style="margin-top:16px;padding-top:14px;border-top:1px solid #eee;"></div>
   </div>
 </div>
 
@@ -2752,6 +2756,7 @@ function openM(id) {
   if (id === 'forecastModal') { fetchWttrForecast(); }
   if (id === 'parkingModal') switchParkTab('parking');
   if (id === 'kosherModal') { setTimeout(function(){ switchKoshMain('shabbat'); }, 30); }
+  if (id === 'helpModal' && typeof renderInstallHelp === 'function') renderInstallHelp();
   if (id === 'pisteModal') {
     window.pisteChipsOpen = true; window._pisteChipsPinned = false;
     setTimeout(function () { renderPisteGuide(); _wirePisteAutoCollapse(); }, 30);
@@ -5115,7 +5120,7 @@ ST.run = async function () {
     }
 
     // ── המתכנן: לא מציג, מחשב — ולכן כאן טעות שקטה אפשרית ───────────────
-    if (typeof planArrival === 'function' && window._texts && window._texts.transport
+    if (typeof planTrip === 'function' && window._texts && window._texts.transport
         && window._texts.transport.planner) {
       if (!document.getElementById('ap-airport')) {
         renderArrivalPlanner(window._texts.transport.planner);
@@ -5139,7 +5144,7 @@ ST.run = async function () {
           document.getElementById('ap-date').value    = c[1];
           document.getElementById('ap-time').value    = c[2];
           document.getElementById('ap-pax').value     = '2';
-          planArrival();
+          planTrip();
           var txt = document.getElementById('ap-out').innerText || '';
           var miss = c[3].filter(function (x) { return txt.indexOf(x) === -1; });
           var bad  = c[4].filter(function (x) { return txt.indexOf(x) !== -1; });
@@ -8136,7 +8141,8 @@ function _apISO(y, m, dd) { return y + '-' + _apPad(m) + '-' + _apPad(dd); }
 function _apParse(txt, pl) {
   var t = ' ' + String(txt || '').replace(/[׳‘’]/g, "'") + ' ';
   var ft = (pl && pl.freetext) || {};
-  var out = { airport: null, date: null, time: null, pax: null };
+  var out = { airport: null, date: null, time: null, pax: null,
+              outDate: null, outTime: null };
   var today = new Date();
 
   // airport, by any of the names the content file lists for it
@@ -8148,23 +8154,55 @@ function _apParse(txt, pl) {
     });
   });
 
-  // date: 10/1, 10.1.27, "10 בינואר", a weekday, today or tomorrow
+  // how many are travelling
+  var px = t.match(/(\d{1,2})\s*(?:נוסעים|אנשים|איש|מבוגרים|passengers|people|adults|pax)/i);
+  if (px) out.pax = +px[1];
+  if (!out.pax) {
+    Object.keys(_AP_WORDNUM).forEach(function (w) {
+      if (!out.pax && new RegExp(w + '\\s*(נוסעים|אנשים|איש)').test(t)) out.pax = _AP_WORDNUM[w];
+    });
+  }
+
+  // A sentence often holds both legs: "landing on the 10th... coming back on
+  // the 15th". Everything after the word that starts the return belongs to
+  // the return, everything before it to the arrival.
+  var back = t.search(/(חוזר(?:ים|ת)?|חזרה|חזור|טיסה הביתה|return|flying back)/);
+  var head = back > -1 ? t.slice(0, back) : t;
+  var tail = back > -1 ? t.slice(back) : '';
+  var first = _apParseWhen(head, today);
+  out.date = first.date; out.time = first.time;
+  if (tail) {
+    var second = _apParseWhen(tail, today);
+    out.outDate = second.date; out.outTime = second.time;
+    // "coming back at 4 in the morning" with no arrival in the sentence
+    if (!out.date && !out.time) { out.date = null; out.time = null; }
+  }
+  return out;
+}
+
+// One leg's date and time out of one stretch of text.
+function _apParseWhen(t, today) {
+  var out = { date: null, time: null };
+  if (!t || !t.trim()) return out;
+  var rest = t;
+
   var m = t.match(/(\d{1,2})\s*[\/.]\s*(\d{1,2})(?:\s*[\/.]\s*(\d{2,4}))?/);
   if (m) {
     var yy = m[3] ? (+m[3] < 100 ? 2000 + +m[3] : +m[3]) : null;
     out.date = _apDateFrom(+m[1], +m[2], yy, today);
+    rest = rest.replace(m[0], ' ');
   }
   if (!out.date) {
     for (var i = 0; i < 12 && !out.date; i++) {
       var mm = t.match(new RegExp('(\\d{1,2})\\s*ב?' + _AP_MONTHS[i]));
-      if (mm) out.date = _apDateFrom(+mm[1], i + 1, null, today);
+      if (mm) { out.date = _apDateFrom(+mm[1], i + 1, null, today); rest = rest.replace(mm[0], ' '); }
     }
   }
   if (!out.date) {
     var W = function (w) { return new RegExp('(?:^|[\\s,.-])' + w + '(?:[\\s,.]|$)').test(t); };
-    if (W('היום'))            out.date = _apShift(today, 0);
-    else if (W('מחרתיים'))    out.date = _apShift(today, 2);
-    else if (W('מחר'))        out.date = _apShift(today, 1);
+    if (W('היום'))         out.date = _apShift(today, 0);
+    else if (W('מחרתיים')) out.date = _apShift(today, 2);
+    else if (W('מחר'))     out.date = _apShift(today, 1);
   }
   if (!out.date) {
     for (var j = 0; j < 7 && !out.date; j++) {
@@ -8175,26 +8213,19 @@ function _apParse(txt, pl) {
     }
   }
 
-  // time: 14:00, 14.00, "בשעה 14", "ב-8 בערב"
-  var tm = t.match(/(\d{1,2})\s*[:]\s*(\d{2})/);
+  // time: 14:00, "בשעה 14", "ב-8 בערב", and a bare "3 אחה״צ"
+  var PERIOD = 'בבוקר|בערב|בלילה|בצהריים|אחה"צ|אחהצ|אחר הצהריים|אחרי הצהריים';
+  var tm = rest.match(/(\d{1,2})\s*:\s*(\d{2})/);
   if (tm) {
     out.time = _apPad(Math.min(23, +tm[1])) + ':' + _apPad(Math.min(59, +tm[2]));
   } else {
-    var th = t.match(/(?:בשעה|ב-|ב)\s*(\d{1,2})\s*(בבוקר|בערב|בלילה|בצהריים|אחה"צ|אחר הצהריים|אחרי הצהריים)?(?!\s*[:\/.]?\d)/);
+    var th = rest.match(new RegExp('(?:בשעה|ב-|ב)\\s*(\\d{1,2})\\s*(' + PERIOD + ')?(?!\\s*[:\\/.]?\\d)'))
+          || rest.match(new RegExp('(\\d{1,2})\\s*(' + PERIOD + ')'));
     if (th) {
       var h = +th[1], w = th[2] || '';
-      if (/ערב|לילה|אחה"צ|אחר הצהריים|אחרי הצהריים/.test(w) && h < 12) h += 12;
+      if (new RegExp('ערב|לילה|אחה"צ|אחהצ|אחר הצהריים|אחרי הצהריים').test(w) && h < 12) h += 12;
       if (h >= 0 && h <= 23) out.time = _apPad(h) + ':00';
     }
-  }
-
-  // how many are travelling
-  var px = t.match(/(\d{1,2})\s*(?:נוסעים|אנשים|איש|מבוגרים|passengers|people|adults|pax)/i);
-  if (px) out.pax = +px[1];
-  if (!out.pax) {
-    Object.keys(_AP_WORDNUM).forEach(function (w) {
-      if (!out.pax && new RegExp(w + '\\s*(נוסעים|אנשים|איש)').test(t)) out.pax = _AP_WORDNUM[w];
-    });
   }
   return out;
 }
@@ -8222,22 +8253,24 @@ function runArrivalText() {
   if (!pl || !inp) return;
   var r = _apParse(inp.value, pl);
   var ft = pl.freetext || {}, miss = ft.missing || {};
-  var gaps = [];
-  if (r.airport) { var a = document.getElementById('ap-airport'); if (a) a.value = r.airport; }
-  else gaps.push(miss.airport || 'שדה תעופה');
-  if (r.date) { var d = document.getElementById('ap-date'); if (d) d.value = r.date; }
-  else gaps.push(miss.date || 'תאריך');
-  if (r.time) { var t = document.getElementById('ap-time'); if (t) t.value = r.time; }
-  else gaps.push(miss.time || 'שעה');
-  if (r.pax) { var p = document.getElementById('ap-pax'); if (p) p.value = r.pax; }
+  var set = function (id, v) { var e = document.getElementById(id); if (e && v) e.value = v; };
+  set('ap-airport', r.airport);
+  set('ap-date', r.date);
+  set('ap-time', r.time);
+  set('dp-date', r.outDate);
+  set('dp-time', r.outTime);
+  set('ap-pax', r.pax);
 
+  var gaps = [];
+  if (!r.airport) gaps.push(miss.airport || 'שדה תעופה');
+  var gotIn  = r.date && r.time, gotOut = r.outDate && r.outTime;
+  if (!gotIn && !gotOut) gaps.push(miss.date || 'תאריך ושעה');
   if (say) {
     say.style.display = gaps.length ? 'block' : 'none';
     say.innerHTML = gaps.length
-      ? _aEsc(gaps.join(' · ')) + '. השלימו למטה ולחצו על החיפוש.'
-      : '';
+      ? _aEsc(gaps.join(' · ')) + '. השלימו למטה ולחצו על החיפוש.' : '';
   }
-  if (!gaps.length) planArrival();
+  if (!gaps.length) planTrip();
 }
 
 function renderArrivalPlanner(pl) {
@@ -8246,27 +8279,18 @@ function renderArrivalPlanner(pl) {
   var opts = (pl.airports || []).map(function (a) {
     return '<option value="' + a.id + '">' + _aEsc(a.name) + '</option>';
   }).join('');
-  var tab = function (id, label) {
-    return '<button type="button" id="ap-tab-' + id + '" onclick="switchApTab(\'' + id + '\')" '
-      + 'style="flex:1;padding:7px;border-radius:8px;border:1.5px solid #cfe2f5;cursor:pointer;'
-      + 'font-family:inherit;font-size:0.79rem;font-weight:bold;background:white;color:#44536a;">'
-      + label + '</button>';
-  };
+  // One trip, one form. A journey that works on the way up may have no way
+  // back on the day you leave, and the answer to that is not "take the bus
+  // out and improvise home" - it is to hire a car for the whole week. So both
+  // legs are asked together and judged together. Either half may be left
+  // empty, and then only the half that was filled is answered.
   box.innerHTML =
     '<div style="border:1.5px solid #cfe2f5;border-radius:11px;'
       + 'background:linear-gradient(135deg,#eef6ff,#f8fbff);padding:13px 14px;margin-bottom:14px;">'
-    + '<div id="ap-title" style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:3px;">'
+    + '<div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:3px;">'
       + _aEsc(pl.title) + '</div>'
-    + '<div id="ap-lead" style="font-size:0.77rem;color:#667;line-height:1.7;margin-bottom:10px;">'
+    + '<div style="font-size:0.77rem;color:#667;line-height:1.7;margin-bottom:10px;">'
       + _aEsc(pl.lead) + '</div>'
-    // A journey that works one way may not work the other: the last bus down
-    // the valley and the last coach to the airport are not the mirror of the
-    // ones that brought you up, and finding that out at the airport is too
-    // late. Both legs are asked here, in the same card.
-    + '<div style="display:flex;gap:6px;margin-bottom:10px;">'
-      + tab('in', '🛬 הגעה') + tab('out', '🛫 חזרה הביתה')
-    + '</div>'
-    + '<div id="ap-pane-in">'
     + (pl.freetext
         ? '<div style="margin-bottom:9px;">'
           + '<div style="font-size:0.72rem;color:#667;margin-bottom:3px;">'
@@ -8285,95 +8309,46 @@ function renderArrivalPlanner(pl) {
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;">'
       + _apField('שדה תעופה',
           '<select id="ap-airport" style="' + F + '">' + opts + '</select>')
-      + _apField('תאריך נחיתה', '<input type="date" id="ap-date" style="' + F + '">')
-      + _apField('שעת נחיתה', '<input type="time" id="ap-time" value="14:00" style="' + F + '">')
       + _apField('נוסעים',
           '<input type="number" id="ap-pax" value="2" min="1" max="8" style="' + F + '">')
     + '</div>'
+    + '<div style="font-size:0.74rem;color:#1a3a6c;font-weight:bold;margin:2px 0 4px;">🛬 הגעה</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;">'
+      + _apField('תאריך נחיתה', '<input type="date" id="ap-date" style="' + F + '">')
+      + _apField('שעת נחיתה', '<input type="time" id="ap-time" style="' + F + '">')
+    + '</div>'
+    + '<div style="font-size:0.74rem;color:#1a3a6c;font-weight:bold;margin:2px 0 4px;">🛫 חזרה</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">'
+      + _apField('תאריך הטיסה חזרה', '<input type="date" id="dp-date" style="' + F + '">')
+      + _apField('שעת הטיסה', '<input type="time" id="dp-time" style="' + F + '">')
+    + '</div>'
+    + '<div style="font-size:0.72rem;color:#8a95a3;margin-bottom:9px;">'
+      + 'אפשר למלא רק כיוון אחד.</div>'
     + '<div style="display:flex;gap:8px;">'
-      + '<button type="button" onclick="planArrival()" style="flex:1;padding:10px;'
+      + '<button type="button" onclick="planTrip()" style="flex:1;padding:10px;'
         + 'background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;'
         + 'font-weight:bold;cursor:pointer;font-family:inherit;">🔎 מה האפשרויות</button>'
-      // Results stay on screen until the next search, and a reader who has
-      // finished with them has no way to put them away. This is that way.
       + '<button type="button" id="ap-reset" onclick="resetArrival()" style="display:none;'
         + 'padding:10px 14px;background:white;color:#44536a;border:1.5px solid #cfd8e3;'
         + 'border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;'
         + 'font-family:inherit;">נקה</button>'
     + '</div>'
-    + '</div>'                                   // end of the arrival pane
-    + '<div id="ap-pane-out" style="display:none;">'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;">'
-        + _apField('שדה תעופה',
-            '<select id="dp-airport" style="' + F + '">' + opts + '</select>')
-        + _apField('תאריך הטיסה', '<input type="date" id="dp-date" style="' + F + '">')
-        + _apField('שעת הטיסה', '<input type="time" id="dp-time" value="10:00" style="' + F + '">')
-        + _apField('נוסעים',
-            '<input type="number" id="dp-pax" value="2" min="1" max="8" style="' + F + '">')
-      + '</div>'
-      + '<div style="display:flex;gap:8px;">'
-        + '<button type="button" onclick="planDeparture()" style="flex:1;padding:10px;'
-          + 'background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;'
-          + 'font-weight:bold;cursor:pointer;font-family:inherit;">🔎 מתי לצאת</button>'
-        + '<button type="button" id="dp-reset" onclick="resetDeparture()" style="display:none;'
-          + 'padding:10px 14px;background:white;color:#44536a;border:1.5px solid #cfd8e3;'
-          + 'border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;'
-          + 'font-family:inherit;">נקה</button>'
-      + '</div>'
-    + '</div>'
     + '<div id="ap-out" style="margin-top:10px;"></div>'
     + '</div>';
-  switchApTab('in');
 }
 
-function switchApTab(which) {
-  var pl = window._texts && window._texts.transport && window._texts.transport.planner;
-  if (pl) {
-    var ttl = document.getElementById('ap-title'), led = document.getElementById('ap-lead');
-    if (ttl) ttl.textContent = (which === 'out' && pl.title_out) ? pl.title_out : pl.title;
-    if (led) led.textContent = (which === 'out' && pl.lead_out)  ? pl.lead_out  : pl.lead;
-  }
-  ['in', 'out'].forEach(function (k) {
-    var pane = document.getElementById('ap-pane-' + k);
-    var btn  = document.getElementById('ap-tab-' + k);
-    if (pane) pane.style.display = (k === which) ? 'block' : 'none';
-    if (btn) {
-      var on = (k === which);
-      btn.style.background  = on ? '#0a192f' : 'white';
-      btn.style.color       = on ? 'white'   : '#44536a';
-      btn.style.borderColor = on ? '#0a192f' : '#cfe2f5';
-    }
-  });
-  var out = document.getElementById('ap-out');
-  if (out) out.innerHTML = '';
-  ['ap-reset', 'dp-reset'].forEach(function (id) {
-    var b = document.getElementById(id); if (b) b.style.display = 'none';
-  });
+function _dow(date) {
+  var p = String(date).split('-');
+  return new Date(+p[0], +p[1] - 1, +p[2]).getDay();
 }
+var _AP_DAYNAMES = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 
-function planArrival() {
-  var pl  = window._texts && window._texts.transport && window._texts.transport.planner;
-  var out = document.getElementById('ap-out');
-  if (!pl || !out) return;
-
-  var apId = (document.getElementById('ap-airport') || {}).value;
-  var date = (document.getElementById('ap-date') || {}).value;
-  var time = (document.getElementById('ap-time') || {}).value;
-  var pax  = Math.max(1, Math.min(8, parseInt((document.getElementById('ap-pax') || {}).value, 10) || 2));
-  if (!date || !time) {
-    out.innerHTML = '<div style="font-size:0.79rem;color:#c0392b;">בחרו תאריך ושעת נחיתה.</div>';
-    return;
-  }
-  var ap = (pl.airports || []).filter(function (a) { return a.id === apId; })[0];
-  if (!ap) return;
-
-  var parts = date.split('-');
-  var dow   = new Date(+parts[0], +parts[1] - 1, +parts[2]).getDay();
+// ── the way up ────────────────────────────────────────────────────────────
+function _legArrival(pl, ap, date, time, pax) {
+  var dow   = _dow(date);
   var ready = _mins(time) + (pl.buffer_min || 60);
-  var DAYS  = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-  var cards = [];
+  var cards = [], busOk = false, busCost = 0;
 
-  // ── 1. by bus, if there is one from this airport ──
   var line = ap.line && pl.lines ? pl.lines[ap.line] : null;
   if (!line) {
     cards.push(_apCard('#f7f8fa', '#d8dde4', '#555', '🚌 אוטובוס',
@@ -8384,95 +8359,58 @@ function planArrival() {
       var runsToday = (line.runs || []).filter(function (r) { return _runsOn(r, dow); });
       cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', '🚌 אוטובוס — לא הפעם',
         runsToday.length
-          ? 'ביום ' + DAYS[dow] + ' האוטובוס האחרון מ' + ap.name + ' יוצא ב-'
+          ? 'ביום ' + _AP_DAYNAMES[dow] + ' האוטובוס האחרון מ' + ap.name + ' יוצא ב-'
             + runsToday[runsToday.length - 1].dep + ', ואתם תהיו מחוץ לטרמינל רק ב-'
-            + _hhmm(ready) + '. נשארו ההסעה והרכב.'
-          : 'ביום ' + DAYS[dow] + ' הקו הזה אינו פועל כלל. נשארו ההסעה והרכב.'));
+            + _hhmm(ready) + '.'
+          : 'ביום ' + _AP_DAYNAMES[dow] + ' הקו הזה אינו פועל כלל.'));
     } else {
       var leg2 = _nextRun(pl.lines.blu, dow, _mins(leg1.arr) + (pl.connect_min || 10));
       var cost = (line.price || 0) * pax;
       var body = '🚌 ' + leg1.dep + ' מ' + ap.name + ' ← ' + leg1.arr + ' בשאטיון';
       if (leg2) {
+        busOk = true;
         cost += (pl.lines.blu.price || 0) * pax;
+        busCost = cost;
         var wait = _mins(leg2.dep) - _mins(leg1.arr);
         body += '<br>🔵 ' + leg2.dep + ' משאטיון ← <b>' + leg2.arr + " בצ'רוויניה</b>"
              + '<br><span style="color:#667;">המתנה בשאטיון: ' + _waitHe(wait)
-             + ' · הכל יחד כ-€' + (Math.round(cost * 10) / 10)
-             + ' ל-' + pax + ' נוסעים</span>';
-        // An hour or more at a bus station with ski bags is not a recommendation,
-        // so the card stops looking like one.
-        if (wait >= 60) {
-          cards.push(_apCard('#fffaf0', '#e8c488', '#8a5a00',
-            '🚌 בתחבורה ציבורית — אבל עם המתנה', body));
-        } else {
-          cards.push(_apCard('#f3fbf5', '#8fcfa3', '#1d6b35', '🚌 בתחבורה ציבורית', body));
-        }
+             + ' · כ-€' + (Math.round(cost * 10) / 10) + ' ל-' + pax + ' נוסעים</span>';
+        cards.push(wait >= 60
+          ? _apCard('#fffaf0', '#e8c488', '#8a5a00', '🚌 בתחבורה ציבורית — אבל עם המתנה', body)
+          : _apCard('#f3fbf5', '#8fcfa3', '#1d6b35', '🚌 בתחבורה ציבורית', body));
       } else {
         body += '<br><b>אבל משם כבר אין אוטובוס למעלה באותו ערב.</b> '
              + 'האחרון לצ\'רוויניה יוצא ב-19:35.'
              + (pl.taxi ? '<br>' + pl.taxi : '');
-        cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', '🚌 האוטובוס מגיע רק עד שאטיון', body));
+        cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16',
+          '🚌 האוטובוס מגיע רק עד שאטיון', body));
       }
     }
   }
-
-  // ── 2. a transfer, which always works ──
-  var price = pax <= 2 ? ap.t_small : ap.t_big;
-  cards.push(_apCard('#f4f9ff', '#8fb8e0', '#1a4f85', '🚐 הסעה פרטית',
-    'יוצאת כשאתם יוצאים, עד דלת המלון. <b>€' + price + '</b> לרכב ל-' + pax + ' נוסעים, '
-    + 'זמן נסיעה ' + _waitHe(ap.drive_min) + '. '
-    + 'הגעה משוערת כ-' + _hhmm(_mins(time) + 30 + ap.drive_min) + '.'));
-
-  // ── 3. or drive yourself - if the desk is still open ──
-  var carBody = 'זמן נסיעה ' + _waitHe(ap.drive_min) + ' בתנאים רגילים, '
-    + 'הגעה משוערת כ-' + _hhmm(_mins(time) + 60 + ap.drive_min) + ' (כולל זמן בדלפק ההשכרה). '
-    + 'בחורף — צמיגי חורף או שרשראות ברכב, חובה.';
   // A desk that has shut is the quiet way a trip goes wrong, so the warning
-  // appears at the moment the landing time is on the screen.
-  var tint = ['#f7f8fa', '#d8dde4', '#444'];
-  // Turin shuts earlier on a Sunday, and Turin is the airport closest to
-  // the valley - so the day of the week has to be part of this.
+  // travels with the leg and is printed on the car card below.
   var close = (dow === 0 && ap.desk_close_sun) ? ap.desk_close_sun : ap.desk_close;
+  var desk = null;
   if (close) {
     var slack = _mins(close) - ready;
     if (slack < 0) {
-      carBody = '<b>הדלפקים נסגרים ב-' + close + ', ואתם תצאו מהטרמינל ב-'
-        + _hhmm(ready) + '.</b> רכב שכור לא יעזור כאן אלא אם סידרתם איסוף מראש. '
-        + carBody;
-      tint = ['#fff6f3', '#e8a088', '#9c3b16'];
+      desk = { level: 2, text: '<b>הדלפקים נסגרים ב-' + close + ', ואתם תצאו מהטרמינל ב-'
+        + _hhmm(ready) + '. רכב שכור לא יעזור כאן אלא אם סידרתם איסוף מראש.</b>' };
     } else if (slack < 60) {
-      carBody = '<b>שימו לב: הדלפקים נסגרים ב-' + close + ', כלומר '
-        + slack + ' דקות אחרי שתצאו מהטרמינל.</b> ' + carBody;
-      tint = ['#fffaf0', '#e8c488', '#8a5a00'];
+      desk = { level: 1, text: '<b>שימו לב: הדלפקים נסגרים ב-' + close + ', כלומר '
+        + slack + ' דקות אחרי שתצאו מהטרמינל.</b>' };
     }
   }
-  cards.push(_apCard(tint[0], tint[1], tint[2], '🚗 ברכב שכור', carBody));
-
-  out.innerHTML = '<div style="font-size:0.75rem;color:#8a95a3;margin-bottom:7px;">'
-    + 'נחיתה ביום ' + DAYS[dow] + ', ' + time + ' · יצאתם מהטרמינל בערך ב-' + _hhmm(ready)
-    + '</div>' + cards.join('');
-  var rb = document.getElementById('ap-reset');
-  if (rb) rb.style.display = 'block';
+  return {
+    cards: cards, busOk: busOk, busCost: busCost, desk: desk,
+    arriveBy: ready,
+    head: 'נחיתה ביום ' + _AP_DAYNAMES[dow] + ', ' + time
+        + ' · יצאתם מהטרמינל בערך ב-' + _hhmm(ready),
+    leaveBy: null
+  };
 }
 
-// Empty the answer and put the form back where it started.
-function resetArrival() {
-  var out = document.getElementById('ap-out');
-  if (out) out.innerHTML = '';
-  var d = document.getElementById('ap-date');   if (d) d.value = '';
-  var t = document.getElementById('ap-time');   if (t) t.value = '14:00';
-  var x = document.getElementById('ap-pax');    if (x) x.value = '2';
-  var a = document.getElementById('ap-airport');if (a) a.selectedIndex = 0;
-  var rb = document.getElementById('ap-reset'); if (rb) rb.style.display = 'none';
-  if (d && d.focus) d.focus();
-}
-
-// ── the journey home ──────────────────────────────────────────────────────
-// Worked backwards from the flight: be at the airport a set time before it
-// leaves, which fixes the last coach you can take, which fixes the last bus
-// down the valley you can take. The chain breaks far more often in this
-// direction than on the way up - on most days there is exactly one coach
-// that works, and on two days of the week there is none at all.
+// ── the way home ──────────────────────────────────────────────────────────
 function _prevRun(line, dow, arriveBy) {
   var best = null;
   (line.runs || []).forEach(function (r) {
@@ -8482,35 +8420,19 @@ function _prevRun(line, dow, arriveBy) {
   });
   return best;
 }
-function planDeparture() {
-  var pl  = window._texts && window._texts.transport && window._texts.transport.planner;
-  var out = document.getElementById('ap-out');
-  if (!pl || !out) return;
-
-  var apId = (document.getElementById('dp-airport') || {}).value;
-  var date = (document.getElementById('dp-date') || {}).value;
-  var time = (document.getElementById('dp-time') || {}).value;
-  var pax  = Math.max(1, Math.min(8, parseInt((document.getElementById('dp-pax') || {}).value, 10) || 2));
-  if (!date || !time) {
-    out.innerHTML = '<div style="font-size:0.79rem;color:#c0392b;">בחרו תאריך ושעת טיסה.</div>';
-    return;
-  }
-  var ap = (pl.airports || []).filter(function (a) { return a.id === apId; })[0];
-  if (!ap) return;
-
-  var parts = date.split('-');
-  var dow   = new Date(+parts[0], +parts[1] - 1, +parts[2]).getDay();
-  var DAYS  = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+function _legDeparture(pl, ap, date, time, pax) {
+  var dow     = _dow(date);
   var checkin = pl.checkin_min || 150;
-  var beBy  = _mins(time) - checkin;          // at the airport by this time
-  var cards = [];
+  var beBy    = _mins(time) - checkin;
+  var cards = [], busOk = false, busCost = 0;
 
   if (beBy <= 0) {
-    out.innerHTML = '<div style="font-size:0.79rem;color:#c0392b;">טיסה בשעה כזו מחייבת לינה ליד השדה בלילה שלפני.</div>';
-    return;
+    cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', '🛫 טיסה מוקדמת מאוד',
+      'טיסה בשעה כזו מחייבת לינה ליד השדה בלילה שלפני.'));
+    return { cards: cards, busOk: false, leaveBy: null,
+             head: 'טיסה ביום ' + _AP_DAYNAMES[dow] + ', ' + time };
   }
 
-  // ── 1. by bus, if the chain closes ──
   var dl = ap.line_down && pl.lines ? pl.lines[ap.line_down] : null;
   if (!dl) {
     cards.push(_apCard('#f7f8fa', '#d8dde4', '#555', '🚌 אוטובוס',
@@ -8521,75 +8443,163 @@ function planDeparture() {
       var any = (dl.runs || []).filter(function (r) { return _runsOn(r, dow); });
       cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', '🚌 אוטובוס — לא הפעם',
         any.length
-          ? 'ביום ' + DAYS[dow] + ' האוטובוס האחרון שמגיע בזמן ל' + ap.name
-            + ' היה צריך להגיע עד ' + _hhmm(beBy) + ', והראשון באותו יום מגיע רק ב-'
-            + any[0].arr + '. נשארו ההסעה והרכב.'
-          : 'ביום ' + DAYS[dow] + ' הקו הזה אינו פועל כלל. נשארו ההסעה והרכב.'));
+          ? 'ביום ' + _AP_DAYNAMES[dow] + ' האוטובוס היה צריך להגיע ל' + ap.name
+            + ' עד ' + _hhmm(beBy) + ', והראשון באותו יום מגיע רק ב-' + any[0].arr + '.'
+          : 'ביום ' + _AP_DAYNAMES[dow] + ' הקו הזה אינו פועל כלל.'));
     } else {
       var blu = pl.lines.blu_down
         ? _prevRun(pl.lines.blu_down, dow, _mins(coach.dep) - (pl.connect_min || 10))
         : null;
-      var cost = (dl.price || 0) * pax;
-      var body = '';
       if (blu) {
-        cost += (pl.lines.blu_down.price || 0) * pax;
+        busOk = true;
+        var cost = ((dl.price || 0) + (pl.lines.blu_down.price || 0)) * pax;
+        busCost = cost;
         var wait = _mins(coach.dep) - _mins(blu.arr);
-        body = "🔵 " + blu.dep + " מצ'רוויניה ← " + blu.arr + ' בשאטיון'
-             + '<br>🚌 ' + coach.dep + ' משאטיון ← <b>' + coach.arr + ' ב' + ap.name + '</b>'
-             + '<br><span style="color:#667;">המתנה בשאטיון: ' + _waitHe(wait)
-             + ' · הכל יחד כ-€' + (Math.round(cost * 10) / 10) + ' ל-' + pax + ' נוסעים'
-             + '<br>זה מותיר ' + _waitHe(_mins(time) - _mins(coach.arr)) + ' בשדה לפני הטיסה.</span>'
-             // The two stops in Châtillon are not the same stop, and with ski
-             // bags the walk between them is the whole margin.
-             + (wait <= 20
-                 ? '<br><span style="color:#8a5a00;">⚠️ חיבור צמוד, ובשתי תחנות שונות: '
-                   + 'הקו המקומי מגיע לתחנת הרכבת, והאוטובוס לשדה יוצא מתחנת האוטובוסים. '
-                   + 'עם ציוד סקי זה לא הרבה זמן.</span>'
-                 : '');
-        cards.push(_apCard(wait >= 60 ? '#fffaf0' : '#f3fbf5',
-                           wait >= 60 ? '#e8c488' : '#8fcfa3',
-                           wait >= 60 ? '#8a5a00' : '#1d6b35',
-          wait >= 60 ? '🚌 בתחבורה ציבורית — אבל עם המתנה' : '🚌 בתחבורה ציבורית', body));
+        var body = '🔵 ' + blu.dep + " מצ'רוויניה ← " + blu.arr + ' בשאטיון'
+          + '<br>🚌 ' + coach.dep + ' משאטיון ← <b>' + coach.arr + ' ב' + ap.name + '</b>'
+          + '<br><span style="color:#667;">המתנה בשאטיון: ' + _waitHe(wait)
+          + ' · כ-€' + (Math.round(cost * 10) / 10) + ' ל-' + pax + ' נוסעים'
+          + '<br>זה מותיר ' + _waitHe(_mins(time) - _mins(coach.arr)) + ' בשדה לפני הטיסה.</span>'
+          + (wait <= 20
+              ? '<br><span style="color:#8a5a00;">⚠️ חיבור צמוד, ובשתי תחנות שונות: '
+                + 'הקו המקומי מגיע לתחנת הרכבת, והאוטובוס לשדה יוצא מתחנת האוטובוסים. '
+                + 'עם ציוד סקי זה לא הרבה זמן.</span>'
+              : '');
+        cards.push(wait >= 60
+          ? _apCard('#fffaf0', '#e8c488', '#8a5a00', '🚌 בתחבורה ציבורית — אבל עם המתנה', body)
+          : _apCard('#f3fbf5', '#8fcfa3', '#1d6b35', '🚌 בתחבורה ציבורית', body));
       } else {
-        body = 'האוטובוס לשדה יוצא משאטיון ב-' + coach.dep
-             + ', <b>ואין אוטובוס מצ\'רוויניה שמגיע לשאטיון לפניו.</b> '
-             + 'הקו המקומי הראשון של היום יוצא ב-'
-             + ((pl.lines.blu_down.runs || [])[0] || {}).dep + '.';
         cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16',
-          '🚌 האוטובוס קיים — אבל לא מגיעים אליו', body));
+          '🚌 האוטובוס קיים — אבל לא מגיעים אליו',
+          'האוטובוס לשדה יוצא משאטיון ב-' + coach.dep
+          + ', <b>ואין אוטובוס מצ\'רוויניה שמגיע לשאטיון לפניו.</b> '
+          + 'הקו המקומי הראשון של היום יוצא ב-'
+          + (((pl.lines.blu_down || {}).runs || [])[0] || {}).dep + '.'));
       }
     }
   }
+  return {
+    cards: cards, busOk: busOk, busCost: busCost, leaveBy: beBy,
+    head: 'טיסה ביום ' + _AP_DAYNAMES[dow] + ', ' + time + ' · להיות בשדה עד '
+        + _hhmm(beBy) + ' (' + _waitHe(checkin) + ' לפני ההמראה)'
+  };
+}
 
-  // ── 2. a transfer, which always works ──
-  var price = pax <= 2 ? ap.t_small : ap.t_big;
-  cards.push(_apCard('#f4f9ff', '#8fb8e0', '#1a4f85', '🚐 הסעה פרטית',
-    '<b>צאו מהמלון ב-' + _hhmm(beBy - ap.drive_min) + '</b> כדי להיות בשדה ב-'
-    + _hhmm(beBy) + '. <b>€' + price + '</b> לרכב ל-' + pax + ' נוסעים, זמן נסיעה '
-    + _waitHe(ap.drive_min) + '.'));
+// ── both legs, judged as one decision ─────────────────────────────────────
+function planTrip() {
+  var pl  = window._texts && window._texts.transport && window._texts.transport.planner;
+  var out = document.getElementById('ap-out');
+  if (!pl || !out) return;
 
-  // ── 3. or drive yourself ──
-  cards.push(_apCard('#f7f8fa', '#d8dde4', '#444', '🚗 ברכב שכור',
-    '<b>צאו מהמלון ב-' + _hhmm(beBy - ap.drive_min - 30) + '</b> — זמן נסיעה '
-    + _waitHe(ap.drive_min) + ', ועוד כחצי שעה להחזרת הרכב ולמעבר לטרמינל. '
-    + 'בחורף הוסיפו מרווח: הכביש למטה עלול להיסגר או לעבור לשיירות מלוות.'));
+  var apId  = (document.getElementById('ap-airport') || {}).value;
+  var inD   = (document.getElementById('ap-date') || {}).value;
+  var inT   = (document.getElementById('ap-time') || {}).value;
+  var outD  = (document.getElementById('dp-date') || {}).value;
+  var outT  = (document.getElementById('dp-time') || {}).value;
+  var pax   = Math.max(1, Math.min(8, parseInt((document.getElementById('ap-pax') || {}).value, 10) || 2));
+  var hasIn  = !!(inD && inT), hasOut = !!(outD && outT);
+  if (!hasIn && !hasOut) {
+    out.innerHTML = '<div style="font-size:0.79rem;color:#c0392b;">'
+      + 'מלאו תאריך ושעה לפחות בכיוון אחד.</div>';
+    return;
+  }
+  var ap = (pl.airports || []).filter(function (a) { return a.id === apId; })[0];
+  if (!ap) return;
 
-  out.innerHTML = '<div style="font-size:0.75rem;color:#8a95a3;margin-bottom:7px;">'
-    + 'טיסה ביום ' + DAYS[dow] + ', ' + time + ' · להיות בשדה עד ' + _hhmm(beBy)
-    + ' (' + _waitHe(checkin) + ' לפני ההמראה)</div>' + cards.join('');
-  var rb = document.getElementById('dp-reset');
+  var A = hasIn  ? _legArrival(pl, ap, inD, inT, pax)   : null;
+  var B = hasOut ? _legDeparture(pl, ap, outD, outT, pax) : null;
+  var html = '';
+
+  // The verdict comes first, because on a round trip it is the whole answer:
+  // a car hired on arrival is also the car that takes you back, and one leg
+  // without a bus settles the other leg too.
+  if (A && B) {
+    var nights = Math.max(1, Math.round(
+      (new Date(outD) - new Date(inD)) / 86400000));
+    var transfer = (pax <= 2 ? ap.t_small : ap.t_big) * 2;
+    if (A.busOk && B.busOk) {
+      html += _apCard('#f3fbf5', '#8fcfa3', '#1d6b35', '✅ תחבורה ציבורית עובדת בשני הכיוונים',
+        'אפשר לוותר על רכב. הפירוט של כל כיוון למטה.');
+    } else if (!A.busOk && !B.busOk) {
+      html += _apCard('#fff6f3', '#e8a088', '#9c3b16', '🚗 בשני הכיוונים אין תחבורה ציבורית',
+        'ההחלטה היא לכל הטיול: רכב שכור ל-' + nights + ' ימים, או שתי הסעות פרטיות — '
+        + 'כ-€' + transfer + ' הלוך ושוב ל-' + pax + ' נוסעים.');
+    } else {
+      // One dead leg does not force a car for the whole week: the bus one way
+      // and a single transfer the other is usually the cheapest thing on the
+      // page, and it was being hidden behind an all-or-nothing choice.
+      var worksWay = A.busOk ? 'ההגעה' : 'החזרה';
+      var deadWay  = A.busOk ? 'החזרה' : 'ההגעה';
+      var busLeg   = Math.round(((A.busOk ? A.busCost : B.busCost) || 0) * 10) / 10;
+      var mixed    = Math.round((busLeg + transfer / 2) * 10) / 10;
+      html += _apCard('#fffaf0', '#e8c488', '#8a5a00',
+        '⚖️ ' + worksWay + ' עובדת בתחבורה ציבורית, ' + deadWay + ' לא',
+        '<b>אין חובה להחליט על כל הטיול.</b> אפשר לשלב: ' + worksWay
+        + ' באוטובוס (כ-€' + busLeg + ') ו' + deadWay + ' בהסעה פרטית (€'
+        + (transfer / 2) + ') — <b>כ-€' + mixed + ' יחד</b> ל-' + pax + ' נוסעים.'
+        + '<br>שתי הסעות פרטיות יעלו כ-€' + transfer
+        + ', ורכב שכור ל-' + nights + ' ימים הוא אפשרות שלישית — '
+        + 'שווה בעיקר אם תרצו עצמאות בהר ולא רק הסעה לשדה.');
+    }
+  }
+
+  if (A) {
+    html += '<div style="font-size:0.75rem;color:#8a95a3;margin:10px 0 7px;">🛬 ' + A.head + '</div>'
+          + A.cards.join('');
+    if (!B) html += _tripDrive(pl, ap, pax, 'in', A);
+  }
+  if (B) {
+    html += '<div style="font-size:0.75rem;color:#8a95a3;margin:10px 0 7px;">🛫 ' + B.head + '</div>'
+          + B.cards.join('');
+  }
+  html += _tripDrive(pl, ap, pax, (A && B) ? 'both' : (B ? 'out' : 'in'), A, B);
+
+  out.innerHTML = html;
+  var rb = document.getElementById('ap-reset');
   if (rb) rb.style.display = 'block';
 }
 
-function resetDeparture() {
+// The two options that always work, priced for however many legs were asked.
+function _tripDrive(pl, ap, pax, mode, A, B) {
+  if (mode === 'in' && A && B) return '';
+  var one = (pax <= 2 ? ap.t_small : ap.t_big);
+  var h = '';
+  var legs = (mode === 'both') ? 2 : 1;
+  h += _apCard('#f4f9ff', '#8fb8e0', '#1a4f85', '🚐 הסעה פרטית',
+    (legs === 2 ? '<b>€' + (one * 2) + '</b> הלוך ושוב' : '<b>€' + one + '</b> לכיוון')
+    + ' לרכב ל-' + pax + ' נוסעים, זמן נסיעה ' + _waitHe(ap.drive_min) + '.'
+    + (A ? ' יוצאת כשאתם יוצאים, עד דלת המלון — הגעה משוערת כ-'
+           + _hhmm(A.arriveBy - 30 + ap.drive_min) + '.' : '')
+    + (B && B.leaveBy != null
+        ? ' בחזרה — <b>צאו מהמלון ב-' + _hhmm(B.leaveBy - ap.drive_min) + '</b>.'
+        : ''));
+  var desk = A && A.desk;
+  var tint = desk ? (desk.level === 2 ? ['#fff6f3', '#e8a088', '#9c3b16']
+                                      : ['#fffaf0', '#e8c488', '#8a5a00'])
+                  : ['#f7f8fa', '#d8dde4', '#444'];
+  h += _apCard(tint[0], tint[1], tint[2], '🚗 ברכב שכור',
+    (desk ? desk.text + ' ' : '')
+    + 'זמן נסיעה ' + _waitHe(ap.drive_min) + ' לכיוון. '
+    + (A ? 'הגעה משוערת כ-' + _hhmm(A.arriveBy + ap.drive_min) + '. ' : '')
+    + 'בחורף — צמיגי חורף או שרשראות ברכב, חובה.'
+    + (B && B.leaveBy != null
+        ? ' בחזרה — <b>צאו מהמלון ב-' + _hhmm(B.leaveBy - ap.drive_min - 30) + '</b>, '
+          + 'כולל החזרת הרכב ומעבר לטרמינל.'
+        : ''));
+  return h;
+}
+
+function resetArrival() {
   var out = document.getElementById('ap-out');
   if (out) out.innerHTML = '';
-  var d = document.getElementById('dp-date');    if (d) d.value = '';
-  var t = document.getElementById('dp-time');    if (t) t.value = '10:00';
-  var x = document.getElementById('dp-pax');     if (x) x.value = '2';
-  var a = document.getElementById('dp-airport'); if (a) a.selectedIndex = 0;
-  var rb = document.getElementById('dp-reset');  if (rb) rb.style.display = 'none';
-  if (d && d.focus) d.focus();
+  ['ap-date', 'ap-time', 'dp-date', 'dp-time', 'ap-text'].forEach(function (id) {
+    var e = document.getElementById(id); if (e) e.value = '';
+  });
+  var x = document.getElementById('ap-pax');     if (x) x.value = '2';
+  var a = document.getElementById('ap-airport'); if (a) a.selectedIndex = 0;
+  var r = document.getElementById('ap-read');    if (r) { r.style.display = 'none'; r.innerHTML = ''; }
+  var rb = document.getElementById('ap-reset');  if (rb) rb.style.display = 'none';
+  var d = document.getElementById('ap-date');    if (d && d.focus) d.focus();
 }
 
 function _apCard(bg, edge, ink, title, body) {
@@ -10555,6 +10565,7 @@ const SEARCH_INDEX = [
   { text: 'עלינו אודות', action: "openM('aboutModal')", icon: 'ℹ️', label: 'עלינו' },
   { text: 'צור קשר פנו אלינו', action: "openM('contactModal')", icon: '✉️', label: 'צור קשר' },
   { text: 'עזרה שאלות תשובות', action: "openM('helpModal')", icon: '❓', label: 'עזרה' },
+  { text: 'התקנה להתקין אפליקציה מסך הבית אופליין בלי אינטרנט pwa', action: "openM('helpModal')", icon: '📲', label: 'התקנת האפליקציה' },
   { text: "למה cervinia יתרונות", action: "openM('whyModal')", icon: "🏔️", label: "למה צ'רוויניה?" },
 ];
 
@@ -12609,6 +12620,45 @@ function installPWA() {
     }
     deferredPrompt = null;
   });
+}
+
+// ── where to find "install" after the banner has gone ─────────────────────
+// The banner shows once and a tap makes it disappear for good. Chromium only
+// hands over an install prompt through an event we cannot ask for again, and
+// Safari never offers one at all - so this says plainly what to do by hand on
+// each platform, and uses the real prompt when there happens to be one.
+function _pwaInstalled() {
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || navigator.standalone === true;
+}
+function renderInstallHelp() {
+  var el = document.getElementById('help-install');
+  if (!el) return;
+  var why = '<div style="font-size:0.82rem;color:#555;line-height:1.8;">'
+    + 'ההתקנה מוסיפה אייקון למסך הבית ופותחת את האתר במסך מלא. '
+    + '<b>העיקר הוא שהאתר נשמר במכשיר ונפתח גם בלי קליטה</b> — מדריך המסלולים, '
+    + 'הבקתות, לוחות הזמנים, הכשרות ומספרי החירום. רק הנתונים החיים לא יתעדכנו.'
+    + '</div>';
+  if (_pwaInstalled()) {
+    el.innerHTML = '<b style="font-size:0.88rem;">📲 האפליקציה מותקנת</b>' + why;
+    return;
+  }
+  var ua = navigator.userAgent || '';
+  var how;
+  if (/iPad|iPhone|iPod/.test(ua)) {
+    how = 'באייפון: כפתור <b>שיתוף</b> בתחתית הדפדפן ← <b>הוספה למסך הבית</b>.';
+  } else if (/Android/.test(ua)) {
+    how = 'באנדרואיד: תפריט <b>⋮</b> בפינת הדפדפן ← <b>התקנת אפליקציה</b> או <b>הוספה למסך הבית</b>.';
+  } else {
+    how = 'במחשב: סמל ההתקנה בשורת הכתובת של הדפדפן, או תפריט <b>⋮</b> ← <b>התקנה</b>.';
+  }
+  el.innerHTML = '<b style="font-size:0.88rem;">📲 התקנת האפליקציה</b>' + why
+    + (deferredPrompt
+        ? '<button type="button" onclick="installPWA()" style="margin-top:9px;padding:9px 18px;'
+          + 'background:#0a192f;color:white;border:none;border-radius:9px;font-weight:bold;'
+          + 'cursor:pointer;font-family:inherit;font-size:0.85rem;">📲 התקן עכשיו</button>'
+        : '')
+    + '<div style="margin-top:8px;font-size:0.8rem;color:#667;line-height:1.8;">' + how + '</div>';
 }
 
 function dismissPWA() {
