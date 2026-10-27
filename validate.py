@@ -510,14 +510,28 @@ if TR:
                             out.append((str(r['a']), str(r['b'])))
             return out
 
-        # Malpensa: the table is departure -> arrival at Châtillon
-        mal = set(_table_times('malpensa'))
-        if mal:
-            run = set((r['dep'], r['arr']) for r in PLAN['lines']['mxp']['runs'])
-            if mal != run:
-                err('the Malpensa timetable differs between the table and the planner: '
+        # Malpensa: one table per direction, one line per direction.
+        for which, lk, label in ((0, 'mxp', 'ממלפנסה'), (1, 'mxp_down', 'למלפנסה')):
+            tab = set(_table_times('malpensa', which))
+            line = (PLAN.get('lines') or {}).get(lk)
+            if not tab or not line:
+                continue
+            run = set((r['dep'], r['arr']) for r in line.get('runs', []))
+            if tab != run:
+                err('the Malpensa timetable (%s) differs between the table and the '
+                    'planner: only in the table %s · only in the planner %s'
+                    % (label, sorted(tab - run), sorted(run - tab)))
+        # The downhill Linea Blu leaves Cervinia and arrives at the railway
+        # station, so for once both ends match the table exactly.
+        down = set(_table_times('lineablu', 1))
+        dline = (PLAN.get('lines') or {}).get('blu_down')
+        if down and dline:
+            drun = set((r['dep'], r['arr']) for r in dline.get('runs', []))
+            if down != drun:
+                err('the downhill Linea Blu differs between the table and the planner: '
                     'only in the table %s · only in the planner %s'
-                    % (sorted(mal - run), sorted(run - mal)))
+                    % (sorted(down - drun), sorted(drun - down)))
+
         # Linea Blu: the table shows the railway-station time, the planner the
         # bus-station time five minutes later, so only the arrivals can be
         # compared directly - and their count must match.
