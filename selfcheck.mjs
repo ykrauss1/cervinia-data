@@ -319,7 +319,7 @@ const planCases = [
 ];
 for (const [ap, date, time, pax, must, mustNot] of planCases) {
   const txt = await page.evaluate(([ap, date, time, pax]) => {
-    if (typeof planArrival !== 'function') return '__missing__';
+    if (typeof planTrip !== 'function') return '__missing__';
     if (!document.getElementById('ap-airport')) {
       renderArrivalPlanner(window._texts.transport.planner);
     }
@@ -327,11 +327,11 @@ for (const [ap, date, time, pax, must, mustNot] of planCases) {
     document.getElementById('ap-date').value = date;
     document.getElementById('ap-time').value = time;
     document.getElementById('ap-pax').value = String(pax);
-    planArrival();
+    planTrip();
     return document.getElementById('ap-out').innerText;
   }, [ap, date, time, pax]);
   const label = `planner ${ap} ${date} ${time}`;
-  if (txt === '__missing__') { fail(label, 'planArrival is not defined'); continue; }
+  if (txt === '__missing__') { fail(label, 'planTrip is not defined'); continue; }
   const missing = must.filter(x => txt.indexOf(x) === -1);
   const wrong   = mustNot.filter(x => txt.indexOf(x) !== -1);
   if (missing.length) fail(label, `missing from the answer: ${missing.join(', ')}`);
@@ -348,7 +348,7 @@ const everyAirport = await page.evaluate(() => {
       document.getElementById('ap-airport').value = id;
       document.getElementById('ap-date').value = day;
       document.getElementById('ap-time').value = '10:00';
-      planArrival();
+      planTrip();
       const t = document.getElementById('ap-out').innerText || '';
       if (t.indexOf('הסעה פרטית') === -1 || t.indexOf('ברכב שכור') === -1) bad.push(id + ' ' + day);
     }
@@ -675,6 +675,37 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'an unfilled {placeholder} reached the screen');         else ok();
 }
 
+// ── "install" can still be found after the banner is gone ─────────────────
+// The banner shows once, and a tap on the X sets a flag that keeps it away
+// for good. If the only way in disappears with it, the offline copy - the
+// whole point of the thing on a mountain - is unreachable. It also has to
+// survive _applyTexts, which rewrites the help panel's FAQ wholesale.
+{
+  const r = await page.evaluate(() => {
+    localStorage.setItem('pwaDismissed', '1');
+    _applyTexts(window._texts);                 // the rewrite that ate it once
+    openM('helpModal');
+    const el = document.getElementById('help-install');
+    const txt = el ? el.innerText : '';
+    closeM('helpModal');
+    const box = document.getElementById('global-search-results');
+    globalSearch('התקנה');
+    const hits = box.querySelectorAll('div[onclick]').length;
+    globalSearch('');
+    localStorage.removeItem('pwaDismissed');
+    return { present: !!el, txt, hits };
+  });
+  if (!r.present) fail('install can be found again',
+    'the help panel has no install section - _applyTexts probably overwrote it');
+  else ok();
+  if (!/בלי קליטה/.test(r.txt)) fail('install can be found again',
+    'the section does not say what installing is actually for');
+  else ok();
+  if (!r.hits) fail('install can be found again',
+    'searching for "התקנה" finds nothing');
+  else ok();
+}
+
 // ── the search bar knows what the site holds ──────────────────────────────
 // Every panel is reachable by a button, but only what the index names is
 // reachable by typing. A section nobody can find is a section nobody has.
@@ -738,6 +769,73 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   else ok();
 }
 
+// ── a round trip is one decision ──────────────────────────────────────────
+// You cannot ride the bus up and conjure a car for the way back, so when one
+// leg has no public transport the answer covers the whole trip. Either half
+// may also be left empty, and then only that half is answered.
+{
+  const r = await page.evaluate(() => {
+    const set = (id, v) => { document.getElementById(id).value = v || ''; };
+    const run = (inD, inT, outD, outT, pax) => {
+      set('ap-airport', 'mxp'); set('ap-pax', String(pax || 2));
+      set('ap-date', inD); set('ap-time', inT);
+      set('dp-date', outD); set('dp-time', outT);
+      planTrip();
+      return document.getElementById('ap-out').innerText;
+    };
+    return {
+      both:     run('2027-01-10', '08:30', '2027-01-17', '19:00'),
+      halfWay:  run('2027-01-10', '11:00', '2027-01-17', '08:00'),
+      neither:  run('2027-01-12', '11:00', '2027-01-19', '19:00', 4),
+      inOnly:   run('2027-01-10', '15:00', '', ''),
+      outOnly:  run('', '', '2027-01-14', '21:00'),
+      nothing:  run('', '', '', '')
+    };
+  });
+  const want = [
+    ['both',    /עובדת בשני הכיוונים/,  'two legs that both work were not called out as such'],
+    ['halfWay', /עובדת בתחבורה ציבורית/, 'a trip with one dead leg got no combined verdict'],
+    // the cheapest answer to one dead leg is usually a bus one way and a
+    // single transfer the other, and it has to be offered rather than hidden
+    // behind an all-or-nothing choice
+    ['halfWay', /אפשר לשלב/,             'the mixed bus-and-transfer option was not offered'],
+    ['halfWay', /אין חובה להחליט על כל הטיול/, 'it still framed this as a whole-trip decision'],
+    ['neither', /בשני הכיוונים אין/,    'a trip with no bus either way was not called out'],
+    ['inOnly',  /נחיתה ביום/,           'an arrival-only query lost its arrival'],
+    ['outOnly', /טיסה ביום/,            'a return-only query lost its return'],
+    ['nothing', /לפחות בכיוון אחד/,     'an empty form gave no guidance']
+  ];
+  want.forEach(([k, re, why]) => {
+    if (!re.test(r[k])) fail('a round trip is judged as one decision', why); else ok();
+  });
+  // a one-way question must not sprout the other leg
+  if (/טיסה ביום/.test(r.inOnly)) fail('a round trip is judged as one decision',
+    'an arrival-only query answered about the return as well'); else ok();
+  if (/נחיתה ביום/.test(r.outOnly)) fail('a round trip is judged as one decision',
+    'a return-only query answered about the arrival as well'); else ok();
+}
+
+// ── one sentence, both legs ───────────────────────────────────────────────
+{
+  const r = await page.evaluate(() => {
+    const pl = window._texts.transport.planner;
+    const a = _apParse('נוחת במלפנסה 10 בינואר 3 אחה"צ. חוזר ב 15 בינואר ב 4 בבוקר', pl);
+    const b = _apParse('חוזר ב 15 בינואר ב 4 בבוקר ממלפנסה', pl);
+    const c = _apParse('נוחת במלפנסה ב-10 בינואר ב-14:00', pl);
+    return { a, b, c };
+  });
+  if (r.a.time !== '15:00' || r.a.outTime !== '04:00' || !/01-15$/.test(r.a.outDate || ''))
+    fail('one sentence can hold both legs',
+      `got ${r.a.date} ${r.a.time} -> ${r.a.outDate} ${r.a.outTime}`);
+  else ok();
+  if (r.b.outTime !== '04:00' || r.b.time)
+    fail('one sentence can hold both legs',
+      'a return-only sentence was read as an arrival'); else ok();
+  if (r.c.outDate || r.c.outTime)
+    fail('one sentence can hold both legs',
+      'an arrival-only sentence invented a return'); else ok();
+}
+
 // ── the journey home ──────────────────────────────────────────────────────
 // The way back is the leg that breaks. The coach runs on four days of the
 // week, the first one of the day leaves Châtillon at 2:25 - long before any
@@ -747,12 +845,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 {
   const r = await page.evaluate(() => {
     const run = (date, time, pax) => {
-      switchApTab('out');
-      document.getElementById('dp-airport').value = 'mxp';
+      document.getElementById('ap-airport').value = 'mxp';
+      document.getElementById('ap-date').value = '';     // the return leg only
+      document.getElementById('ap-time').value = '';
       document.getElementById('dp-date').value = date;
       document.getElementById('dp-time').value = time;
-      document.getElementById('dp-pax').value = String(pax || 2);
-      planDeparture();
+      document.getElementById('ap-pax').value = String(pax || 2);
+      planTrip();
       return document.getElementById('ap-out').innerText;
     };
     const out = {
@@ -762,7 +861,6 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       thursday:      run('2027-01-14', '21:00', 5),// a tight but real connection
       tooEarly:      run('2027-01-10', '06:00')    // first coach lands too late
     };
-    switchApTab('in');
     return out;
   });
   const want = [
@@ -796,7 +894,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // 19:40, and the last bus up has gone at 19:35.
     set('ap-airport', 'mxp'); set('ap-date', '2027-01-08');
     set('ap-time', '16:30'); set('ap-pax', '3');
-    planArrival();
+    planTrip();
     const out = document.getElementById('ap-out');
     const state = {
       taxi: /מונית/.test(out.innerText),
