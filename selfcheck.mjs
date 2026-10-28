@@ -1176,6 +1176,176 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the rebuilt form lost the handler that fills the template'); else ok();
 }
 
+// ── the rental prices come from a published list ─────────────────────────
+// The page used to carry ranges like "~€25-35 a day" that no shop published
+// and that were too low: Genzianella's cheapest adult ski-and-boots package
+// is €41 a day, and €25 is the skis on their own. Checked 28.10.2026 against
+// genzianellasport.it/it/listini.html, which is the only Cervinia shop
+// publishing a full list for the current season - nolski.it still serves a
+// PDF for 2025-26. One shop's list, named on the page, beats a made-up range.
+{
+  const r = T.rental || {};
+  const rows = r.price_rows || [];
+  if (rows.length < 8) fail('the rental prices come from a published list',
+    `the table has ${rows.length} rows`); else ok();
+
+  const byLabel = {};
+  rows.forEach(row => { byLabel[row.label] = (row.v || []).join('|'); });
+  const expect = {
+    '🎿 סקי + מגפיים — מבוגר':     '€41|€97|€175',
+    '🎿 סקי + מגפיים — ילדים':     '€19|€50|€90',
+    '🏂 סנובורד + נעליים — מבוגר': '€51|€120|€205',
+    '🪖 קסדה':                      '€8|€16|€25'
+  };
+  const wrong = Object.keys(expect).filter(k => byLabel[k] !== expect[k]);
+  if (wrong.length) fail('the rental prices come from a published list',
+    wrong.map(k => `${k}: ${byLabel[k] || 'missing'} (list says ${expect[k]})`).join(' · ')); else ok();
+
+  // the reader has to be told whose list this is, or it is another anonymous range
+  if (!/Genzianella/.test(r.price_sub || '')) fail('the rental prices come from a published list',
+    'the table does not say which shop publishes these prices'); else ok();
+  // and that other shops differ
+  if (!/לכל חנות מחירון משלה/.test(r.price_sub || '')) fail('the rental prices come from a published list',
+    'the table reads as if it covered every shop in the village'); else ok();
+
+  // Turning up in peak season without a booking can mean no equipment at
+  // all - Yossi has had it happen. The shop's own FAQ says the booking
+  // "guarantees availability", which is the same thing said politely.
+  if (!/הזמינו מראש/.test(r.booking_warning || '')) fail('the rental prices come from a published list',
+    'nothing on the page warns about turning up without a booking'); else ok();
+  const shown = await page.evaluate(() => {
+    openM('rentalModal');
+    const w = document.getElementById('rental-booking-warning');
+    return !!(w && w.textContent.trim().length > 60);
+  });
+  if (!shown) fail('the rental prices come from a published list',
+    'the booking warning is in the content file but never drawn'); else ok();
+
+  // the morning of the first ski day is the longest queue of the week
+  if (!(r.tips || []).some(t => /ביום שלפני/.test(t))) fail('the rental prices come from a published list',
+    'the tip about fitting the equipment the afternoon before is gone'); else ok();
+
+  // the third "shop" was Genzianella's own second branch under a wrong name
+  // Via Bich holds two shops with near-identical signs, a few doors apart.
+  // The page carried one card that mixed the name of the first with the
+  // phone number of the second, so a reader ringing "Ski Service" reached
+  // Cretaz. Both are listed now, each with its own number.
+  const shops = await page.evaluate(() => {
+    openM('rentalModal');
+    return document.body.innerText;
+  });
+  const wantShops = ['Genzianella Sport', 'Cervinia Ski Service', 'Noleggio Cretaz',
+                     'Ski 2.0', 'Adriano Sport'];
+  const missing = wantShops.filter(n => shops.indexOf(n) === -1);
+  if (missing.length) fail('every rental shop is listed under its own name',
+    `missing from the list: ${missing.join(', ')}`); else ok();
+  // the number that used to sit under the wrong name
+  const pairs = await page.evaluate(() => {
+    const out = {};
+    document.querySelectorAll('#rentalModal a[href^="tel:"]').forEach(a => {
+      const card = a.closest('div[style*="border-radius:11px"]');
+      const name = card ? (card.querySelector('div[style*="font-weight:bold"]') || {}).textContent : '';
+      out[(name || '').trim()] = a.getAttribute('href');
+    });
+    return out;
+  });
+  const expectTel = {
+    '🎿 Cervinia Ski Service': 'tel:+393398511092',
+    '🎿 Noleggio Cretaz':      'tel:+390166949484',
+    '🎿 Genzianella Sport':    'tel:+390166550102'
+  };
+  const badTel = Object.keys(expectTel).filter(k => pairs[k] !== expectTel[k]);
+  if (badTel.length) fail('every rental shop is listed under its own name',
+    badTel.map(k => `${k} rings ${pairs[k] || 'nothing'}`).join(' · ')); else ok();
+
+  // the midday closure is the detail that sends people to a locked door
+  if (!(r.tips || []).some(t => /12:30/.test(t))) fail('every rental shop is listed under its own name',
+    'the page does not say the village shops close at midday'); else ok();
+
+  // Renting up at Plan Maison costs you two things, and the page used to
+  // name neither properly: on a windy day the gear is out of reach even if
+  // another sector is open, and every day has to end at the gondola, before
+  // it stops - no last run down to the village, no run after an apres-ski.
+  const pm = await page.evaluate(() => {
+    const card = [...document.querySelectorAll('#rentalModal div')]
+      .find(d => /Adriano Sport/.test(d.textContent) && d.textContent.length < 900);
+    return card ? card.textContent.replace(/\s+/g, ' ') : '';
+  });
+  const pmNeeds = { 'wind': /רוח/, 'another sector': /ולטורננש/,
+                    'must end at the gondola': /לסיים כל יום/, 'apres-ski': /אפרה סקי/ };
+  const pmGaps = Object.keys(pmNeeds).filter(k => !pmNeeds[k].test(pm));
+  if (pmGaps.length) fail('every rental shop is listed under its own name',
+    `the Plan Maison card does not mention: ${pmGaps.join(', ')}`); else ok();
+
+  // the three tabs are gone: they switched two cards while the shop list
+  // below them never changed, so every tab looked like the same screen
+  const ui = await page.evaluate(() => ({
+    tabs: ['ski', 'snowboard', 'other'].filter(t => document.getElementById('rent-tab-' + t)).length,
+    switcher: typeof switchRentTab,
+    tableRows: (function () {
+      openM('rentalModal');
+      return document.querySelectorAll('#rental-price-table tbody tr').length;
+    })()
+  }));
+  if (ui.tabs || ui.switcher !== 'undefined') fail('the rental prices come from a published list',
+    `${ui.tabs} rental tabs are still in the page`); else ok();
+  if (ui.tableRows !== rows.length) fail('the rental prices come from a published list',
+    `the content file has ${rows.length} rows but ${ui.tableRows} were drawn`); else ok();
+}
+
+// ── the lesson prices are the ones the schools publish ───────────────────
+// Checked against the 2026/27 tariffs on 28.10.2026:
+//   scuolacervino.com/lezioni-di-sci-cervinia  - 2h €115/110, 3h €170/150,
+//     half day €230/210, full day €450; top season €130/190/255/500;
+//     group half day 3d €180 / 5d €210, full day 3d €400 / 5d €600
+//   ride-em.com/tariffe-...  - identical for 1 to 4 students
+//   scuoladiscibreuil.com/en/private-lessons - the only school publishing a
+//     single-hour rate: €70 at 9:00, €65 at 13:00, €75 high, €80 peak
+// The single hour was missing from the page, which is why a reader worked it
+// out from the two-hour price, got €57.50 and was surprised to be quoted €70.
+{
+  const les = T.lessons || {};
+  const priv = les.private || {};
+  const grp = les.group || {};
+  const flat = (o) => Object.values(o).join(' ');
+  const want = (where, hay, needles) => {
+    const missing = needles.filter(n => hay.indexOf(n) === -1);
+    if (missing.length) fail('the lesson prices are the ones the schools publish',
+      `${where} no longer carries ${missing.join(', ')}`); else ok();
+  };
+  want('the single hour',  flat(priv), ['€70', '€65', '€75', '€80']);
+  want('the private rates', flat(priv), ['€115', '€110', '€170', '€230', '€450']);
+  want('the group rates',   flat(grp),  ['€180', '€210', '€400', '€600']);
+
+  // the hour has to say whose price it is and that it is sold by availability
+  if (!/ברויל/.test(flat(priv)) || !/זמינות/.test(flat(priv)))
+    fail('the lesson prices are the ones the schools publish',
+      'the single-hour price is shown without saying which school publishes it'); else ok();
+  // and a freelance instructor is not bound by any of it
+  if (!/מדריך עצמאי/.test(flat(priv)))
+    fail('the lesson prices are the ones the schools publish',
+      'nothing warns that an independent instructor sets his own price'); else ok();
+
+  // Booking a named instructor direct is an unwritten agreement: no refund
+  // rule, no insurance, nobody to appeal to. Booking through a school buys
+  // those terms and costs you the choice of who turns up. Both halves have
+  // to be on the page, or the recommendation is only half honest.
+  const note = les.instructors_note || '';
+  const needs = { 'ביטול': /מבטלים|ביטול/, 'תשלום': /תשלום/, 'מזג אוויר': /מזג אוויר/,
+                  '72 שעות': /72 שעות/, 'choice of instructor': /בוחרים/,
+                  'assigned at a school': /מוקצה/ };
+  const gaps = Object.keys(needs).filter(k => !needs[k].test(note));
+  if (gaps.length) fail('the instructor note weighs both ways',
+    `the note says nothing about: ${gaps.join(', ')}`); else ok();
+  if (!/<b>/.test(note) || note.length < 200) fail('the instructor note weighs both ways',
+    `the note is ${note.length} characters - too short to carry both sides`); else ok();
+
+  // the school whose own site no longer lists Cervinia is gone from the page
+  const r = await page.evaluate(() => document.body.innerHTML.indexOf('gr-mountain') > -1);
+  if (r) fail('the lesson prices are the ones the schools publish',
+    'the page still links to a school whose own site does not list Cervinia'); else ok();
+}
+
 // ── the instructors section shows nothing about the instructors ──────────
 // It used to render one blurred row per instructor and a count underneath.
 // Six smudges and a number prove nothing, and the line about not publishing
@@ -1188,9 +1358,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (typeof renderInstructors === 'function') renderInstructors();
     const list = document.querySelector('.instructors-list');
     const sub = document.getElementById('les-ins-sub');
+    const note = document.getElementById('les-ins-note');
     const out = {
       listHtml: (list ? list.innerHTML : 'NO LIST').trim(),
       sub: sub ? sub.textContent.trim() : '',
+      noteShown: !!(note && note.textContent.trim().length > 100),
       blurred: [...document.querySelectorAll('.instructors-list *')]
         .filter(e => /blur\(/.test(e.getAttribute('style') || '')).length
     };
@@ -1207,6 +1379,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!/שלחו בקשה מפורטת/.test(r.sub))
     fail('the instructors section shows nothing about the instructors',
       `the subtitle no longer asks for a request: "${r.sub}"`); else ok();
+  if (!r.noteShown) fail('the instructors section shows nothing about the instructors',
+    'the instructor-versus-school note is in the content file but never rendered'); else ok();
 }
 
 // ── the standing links are reachable without scrolling ───────────────────
