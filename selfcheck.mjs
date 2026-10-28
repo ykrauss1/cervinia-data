@@ -1135,6 +1135,233 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   await wide.close();
 }
 
+// ── the contact form asks what the subject needs ─────────────────────────
+// Choosing "recommend an instructor" used to leave the previous subject's
+// template in the box, so someone recommending an instructor was asked for
+// their own dates, group size and ski level. The template follows the
+// subject now, and a message somebody has typed is never overwritten.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    openM('contactModal');
+    const sel = document.getElementById('cf-subject');
+    const msg = document.getElementById('cf-message');
+    const pick = (v) => { sel.value = v; sel.dispatchEvent(new Event('change')); };
+
+    pick('בקשת פרטי מדריך'); out.ask = msg.value;
+    pick('הוספת מדריך מומלץ'); out.suggest = msg.value;
+    // something typed by hand must survive a change of subject
+    msg.value = 'שלום, יש לי שאלה אחרת לגמרי.';
+    pick('נתונים שגויים'); out.typed = msg.value;
+
+    // and the form the user gets back after sending has to be the same form
+    out.before = document.querySelectorAll('#cf-subject option').length;
+    resetContactForm();
+    out.after = document.querySelectorAll('#cf-subject option').length;
+    out.afterHasSuggest = !!document.querySelector('#cf-subject option[value="הוספת מדריך מומלץ"]');
+    out.afterWired = !!(document.getElementById('cf-subject') || {}).getAttribute('onchange');
+    closeM('contactModal');
+    return out;
+  });
+  if (!/תאריכים משוערים/.test(r.ask)) fail('the contact form asks what the subject needs',
+    `asking for an instructor offered "${r.ask.slice(0, 40)}"`); else ok();
+  if (!/שם המדריך/.test(r.suggest) || /תאריכים משוערים/.test(r.suggest))
+    fail('the contact form asks what the subject needs',
+      `recommending an instructor offered "${r.suggest.slice(0, 60)}"`); else ok();
+  if (!/שאלה אחרת לגמרי/.test(r.typed)) fail('the contact form asks what the subject needs',
+    'a message the user had typed was overwritten by a template'); else ok();
+  if (r.after !== r.before || !r.afterHasSuggest) fail('the contact form asks what the subject needs',
+    `after one send the subject list went from ${r.before} options to ${r.after}`); else ok();
+  if (!r.afterWired) fail('the contact form asks what the subject needs',
+    'the rebuilt form lost the handler that fills the template'); else ok();
+}
+
+// ── the instructors section shows nothing about the instructors ──────────
+// It used to render one blurred row per instructor and a count underneath.
+// Six smudges and a number prove nothing, and the line about not publishing
+// contact details drew attention to what was being withheld. Heading, one
+// sentence, and the request button.
+{
+  const r = await page.evaluate(async () => {
+    openM('lessonsModal');
+    await new Promise(res => setTimeout(res, 200));
+    if (typeof renderInstructors === 'function') renderInstructors();
+    const list = document.querySelector('.instructors-list');
+    const sub = document.getElementById('les-ins-sub');
+    const out = {
+      listHtml: (list ? list.innerHTML : 'NO LIST').trim(),
+      sub: sub ? sub.textContent.trim() : '',
+      blurred: [...document.querySelectorAll('.instructors-list *')]
+        .filter(e => /blur\(/.test(e.getAttribute('style') || '')).length
+    };
+    closeM('lessonsModal');
+    return out;
+  });
+  if (r.listHtml !== '') fail('the instructors section shows nothing about the instructors',
+    `the list still renders: "${r.listHtml.slice(0, 70)}"`); else ok();
+  if (r.blurred) fail('the instructors section shows nothing about the instructors',
+    `${r.blurred} blurred rows are still being drawn`); else ok();
+  if (/איננו מפרסמים/.test(r.sub) || /ברשימה/.test(r.sub))
+    fail('the instructors section shows nothing about the instructors',
+      `the subtitle reads "${r.sub}"`); else ok();
+  if (!/שלחו בקשה מפורטת/.test(r.sub))
+    fail('the instructors section shows nothing about the instructors',
+      `the subtitle no longer asks for a request: "${r.sub}"`); else ok();
+}
+
+// ── the standing links are reachable without scrolling ───────────────────
+// "About", "contact", "help" and the sources register lived at the very
+// bottom of a long page. A copy was put under the services, where it read as
+// part of the forum underneath it. Both are wrong: they belong in a menu
+// that is one tap away wherever the reader happens to be.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const btn = document.getElementById('menu-btn');
+    out.inHeader = !!(btn && btn.closest('#sticky-header'));
+
+    openSideMenu();
+    await new Promise(res => setTimeout(res, 300));
+    const menu = document.getElementById('side-menu');
+    out.onScreen = menu.getBoundingClientRect().right > 0
+                && menu.getBoundingClientRect().left < window.innerWidth
+                && menu.classList.contains('on');
+    out.items = [...document.querySelectorAll('#side-menu-links button')].map(b => b.textContent.trim());
+
+    // the drawer has to get out of the way before what it opens appears
+    smGo('help');
+    await new Promise(res => setTimeout(res, 400));
+    out.closedAfterGo = !menu.classList.contains('on');
+    out.helpOpen = document.getElementById('helpModal').style.display === 'flex';
+    closeM('helpModal');
+
+    // and the duplicate row above the forum is gone
+    const forum = document.getElementById('forum-section') || document.body;
+    out.strayRow = [...document.querySelectorAll('span')]
+      .filter(e => e.textContent.trim() === 'מקורות ואמינות').length;
+    return out;
+  });
+  if (!r.inHeader) fail('the standing links are reachable without scrolling',
+    'there is no menu button in the header'); else ok();
+  if (!r.onScreen) fail('the standing links are reachable without scrolling',
+    'the side menu did not slide into view'); else ok();
+  if (r.items.length !== 4) fail('the standing links are reachable without scrolling',
+    `the menu holds ${r.items.length} items: ${JSON.stringify(r.items)}`); else ok();
+  if (!r.closedAfterGo || !r.helpOpen) fail('the standing links are reachable without scrolling',
+    `choosing an item left the drawer open (${!r.closedAfterGo}) or opened nothing (${!r.helpOpen})`); else ok();
+  // one copy on the page - the footer's - not two
+  if (r.strayRow !== 1) fail('the standing links are reachable without scrolling',
+    `"מקורות ואמינות" appears ${r.strayRow} times on the page, not once`); else ok();
+}
+
+// ── the × goes back, not out ─────────────────────────────────────────────
+// A panel opened from inside another panel closed to the home page, so
+// cancelling "ask about an instructor" threw the reader out of ski lessons
+// altogether. The × now returns to wherever the panel was opened from.
+{
+  const r = await page.evaluate(async () => {
+    const shown = (id) => {
+      const m = document.getElementById(id);
+      return !!(m && m.style.display && m.style.display !== 'none');
+    };
+    const out = {};
+    openM('lessonsModal');
+    askForInstructor();
+    await new Promise(res => setTimeout(res, 120));
+    out.contactOpen = shown('contactModal');
+    closeM('contactModal');
+    out.backInLessons = shown('lessonsModal');
+    closeM('lessonsModal');
+    out.allClosed = !shown('lessonsModal') && !shown('contactModal');
+
+    // the same for the car search, which hands over from parking to the planner
+    openM('parkingModal');
+    openCarSearch();
+    await new Promise(res => setTimeout(res, 120));
+    out.plannerOpen = shown('hotelModal');
+    closeM('hotelModal');
+    out.backInParking = shown('parkingModal');
+    closeM('parkingModal');
+
+    // and a panel opened on its own must still close to the page
+    openM('helpModal');
+    closeM('helpModal');
+    out.plainClose = !shown('helpModal');
+    return out;
+  });
+  if (!r.contactOpen) fail('the × goes back, not out',
+    'the contact form did not open from the lessons panel'); else ok();
+  if (!r.backInLessons) fail('the × goes back, not out',
+    'closing the contact form left the reader outside the lessons panel'); else ok();
+  if (!r.allClosed) fail('the × goes back, not out',
+    'the lessons panel would not close afterwards'); else ok();
+  if (!r.plannerOpen || !r.backInParking) fail('the × goes back, not out',
+    'the car search did not return to the parking panel'); else ok();
+  if (!r.plainClose) fail('the × goes back, not out',
+    'a panel opened on its own no longer closes'); else ok();
+}
+
+// ── zooming the map makes the map bigger ─────────────────────────────────
+// It did not. The canvas carried max-width:100%, so every zoom level drew a
+// finer bitmap inside a box pinned to the container's width and the picture
+// on screen never changed - the wheel, the + button and full screen all
+// looked broken in the same way. The real PDF comes from a CDN this test
+// cannot reach, so a stand-in page supplies the geometry; what is under test
+// is the sizing, not the decoding.
+{
+  await page.evaluate(() => openM('mapModal'));
+  await page.waitForTimeout(250);
+  const r = await page.evaluate(async () => {
+    const W = 3412, H = 1596;        // the "whole area" sheet, in points
+    window._mapCurrentPdf = {
+      getPage: () => Promise.resolve({
+        getViewport: (o) => ({ width: W * o.scale, height: H * o.scale }),
+        render: () => ({ promise: Promise.resolve(), cancel() {} })
+      })
+    };
+    window._mapCurrentPage = 1;
+    const wrap = document.getElementById('map-pdf-wrap');
+    const canvas = document.getElementById('map-pdf-canvas');
+    const settle = () => new Promise(res => setTimeout(res, 150));
+    const read = () => ({
+      css: Math.round(canvas.getBoundingClientRect().width),
+      wrapW: Math.round(wrap.getBoundingClientRect().width),
+      scrollW: wrap.scrollWidth
+    });
+    const out = {};
+    window._mapZoomLevel = 1;  _applyMapZoom(); await settle(); out.fit = read();
+    window._mapZoomLevel = 3;  _applyMapZoom(); await settle(); out.x3  = read();
+    out.ceiling = Math.round(_mapMaxZoom * 100) / 100;
+    return out;
+  });
+  if (r.x3.css < r.fit.css * 2.5) fail('zooming the map makes the map bigger',
+    `at 300% the canvas is ${r.x3.css}px wide, at 100% it is ${r.fit.css}px`); else ok();
+  // and the part that moved off screen has to be reachable
+  if (r.x3.scrollW < r.x3.css - 2) fail('zooming the map makes the map bigger',
+    `the map is ${r.x3.css}px wide but only ${r.x3.scrollW}px of it can be scrolled to`); else ok();
+  if (r.fit.css > r.fit.wrapW) fail('zooming the map makes the map bigger',
+    `at 100% the map overflows its box: ${r.fit.css}px inside ${r.fit.wrapW}px`); else ok();
+  // a ceiling that stops at 1.5x would make the lettering unreadable again
+  if (!(r.ceiling >= 4)) fail('zooming the map makes the map bigger',
+    `the zoom ceiling came out at ${r.ceiling}x`); else ok();
+
+  // One wheel listener, reached by bubbling from whichever viewer is on
+  // screen. Hanging it on the children as well would zoom twice per notch;
+  // hanging it only on the children left full screen without a wheel.
+  const notch = await page.evaluate(async () => {
+    window._mapZoomLevel = 1;
+    const wrap = document.getElementById('map-pdf-wrap');
+    const box = wrap.getBoundingClientRect();
+    wrap.dispatchEvent(new WheelEvent('wheel', {
+      deltaY: -120, bubbles: true, cancelable: true,
+      clientX: box.left + box.width / 2, clientY: box.top + box.height / 2
+    }));
+    return window._mapZoomLevel;
+  });
+  if (Math.abs(notch - 1.12) > 0.005) fail('zooming the map makes the map bigger',
+    `one notch of the wheel took the zoom to ${notch} instead of 1.12`); else ok();
+}
+
 await browser.close();
 
 // ── report ────────────────────────────────────────────────────────────────
