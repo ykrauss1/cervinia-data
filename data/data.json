@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-10-28T01:35:26.136Z",
-  "temperature": 3.3,
+  "updated_at": "2026-10-28T02:09:00.214Z",
+  "temperature": 3.7,
   "zermatt_link": "OPEN",
   "lifts_open_global": 10,
   "lifts_total_global": 15,
@@ -12,9 +12,9 @@
   "slopes_total_local": null,
   "snow_depth": "5 cm",
   "last_snowfall": "25/10/2026",
-  "wind_speed": 11.9,
+  "wind_speed": 9.7,
   "wind_gust": 20.5,
-  "humidity": null,
+  "humidity": 59,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -50,65 +50,43 @@
     }
   ],
   "forecast_today": {
-    "date": "Tuesday, October 27",
+    "date": "Wednesday, October 28",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "sun"
+        "icon": "partially-cloudy"
       }
     ]
   },
-  "forecast_next_days": [
-    {
-      "date": "Thursday, October 29",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "sun"
-        }
-      ]
-    }
-  ]
+  "forecast_next_days": []
 }
