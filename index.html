@@ -416,6 +416,22 @@ img, svg, video { max-width: 100%; }
 }
 #kosherModal details[open] > summary::before { transform: rotate(-90deg); }
 
+/* The same fold, available anywhere. A long block sits behind one line and
+   an arrow, so the panel opens on what the reader came for. */
+details.fold { border: 1px solid #e6eaef; border-radius: 10px; background: #fafbfc; }
+details.fold > summary {
+  cursor: pointer; list-style: none; padding: 10px 13px;
+  font-size: 0.84rem; font-weight: bold; color: #37485c;
+}
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::before {
+  content: '\25C0'; display: inline-block; font-size: 0.72em;
+  margin-left: 7px; color: #7a89a8; transition: transform 0.15s;
+}
+details.fold[open] > summary::before { transform: rotate(-90deg); }
+details.fold > summary:hover { background: #f2f5f8; border-radius: 10px; }
+details.fold > .fold-body { padding: 0 13px 12px; }
+
 /* iOS Safari will not put a div into native full screen, so this does the
    same job with plain positioning and works everywhere. */
 /* ── side menu ──────────────────────────────────────────────────────────
@@ -1538,22 +1554,37 @@ img, svg, video { max-width: 100%; }
          same screen - and the numbers in them were ranges nobody published.
          This is one shop's own price list, which can be checked. -->
     <div style="margin-bottom:16px;">
-      <!-- Turning up in peak season without a booking can mean no equipment
-           at all; the shop's own FAQ says a booking "guarantees availability". -->
-      <div id="rental-booking-warning" style="font-size:0.8rem;line-height:1.75;color:#7a2e00;
-           background:#fff4ec;border:1.5px solid #ffd2b5;border-radius:10px;
-           padding:11px 13px;margin-bottom:14px;"></div>
-      <div id="rental-price-title" style="font-size:0.95rem;font-weight:bold;margin-bottom:4px;"></div>
-      <div id="rental-price-sub" style="font-size:0.76rem;color:#777;line-height:1.7;margin-bottom:10px;"></div>
-      <div style="overflow-x:auto;">
-        <table id="rental-price-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;"></table>
-      </div>
+      <!-- The headline is the thing to remember; the shop-specific detail
+           behind it is for whoever wants to know why. -->
+      <!-- One line, and the whole line opens the explanation. -->
+      <details style="background:#fff4ec;border:1.5px solid #ffd2b5;border-radius:10px;
+               padding:9px 13px;margin-bottom:10px;">
+        <summary id="rental-booking-summary" style="cursor:pointer;list-style:none;
+                 font-size:0.85rem;font-weight:bold;color:#7a2e00;">
+          🔴 בשיא העונה הזמינו מראש.<span style="font-weight:normal;font-size:0.76rem;color:#9a5a33;">&nbsp; למה ▾</span>
+        </summary>
+        <div id="rental-booking-warning" style="font-size:0.78rem;line-height:1.75;font-weight:normal;color:#7a2e00;margin-top:7px;"></div>
+      </details>
+
+      <details class="fold" style="margin-bottom:14px;">
+        <summary id="rental-price-title">💶 מחירון השכרה</summary>
+        <div class="fold-body">
+          <div id="rental-price-sub" style="font-size:0.76rem;color:#777;line-height:1.7;margin-bottom:10px;"></div>
+          <div style="overflow-x:auto;">
+            <table id="rental-price-table" style="width:100%;border-collapse:collapse;font-size:0.8rem;"></table>
+          </div>
+        </div>
+      </details>
     </div>
 
-    <div style="padding:12px;background:#fffbf0;border-radius:10px;border:1px solid #fde8a0;margin-bottom:14px;">
-      <b style="font-size:0.85rem;">💡 טיפים להשכרה:</b>
-      <ul id="rental-ski-tips" style="margin:6px 0 0;padding-right:18px;font-size:0.8rem;color:#555;line-height:1.8;"></ul>
-    </div>
+    <!-- Seven tips is the longest block here, and none of them is the reason
+         anyone opened the panel. Folded, like the price table. -->
+    <details class="fold" style="margin-bottom:14px;background:#fffbf0;border-color:#fde8a0;">
+      <summary style="color:#7a5a00;">💡 טיפים להשכרה</summary>
+      <div class="fold-body">
+        <ul id="rental-ski-tips" style="margin:0;padding-right:18px;font-size:0.8rem;color:#555;line-height:1.8;"></ul>
+      </div>
+    </details>
 
     <!-- Local recommended shops — FIRST -->
     <div style="border-top:1px solid #eee;padding-top:14px;margin-bottom:14px;">
@@ -1589,7 +1620,9 @@ img, svg, video { max-width: 100%; }
           <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
             📍 <b>Via Carrel 2</b>, Breuil-Cervinia<br>
             ☎ <a href="tel:+390166691210" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 691210</a><br>
-            החנות היחידה בכפר שהיא ski-in / ski-out — מגיעים אליה עם המגלשיים ברגליים.
+            מגדירים את עצמם כ-ski-in / ski-out, כלומר בימים עם שלג טוב מגיעים עד הדלת בגלישה.
+            למטה יש ארונות מחוממים — €8 ליום לארון שמכיל את הציוד של שני מבוגרים.
+            <div style="font-size:0.74rem;color:#777;margin-top:4px;">🕐 08:00–19:00 ברצף, לפי האתר שלהם.</div>
           </div>
           <!-- Coupon box -->
           <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid #3dbfa0;border-radius:10px;margin-bottom:10px;background:#f0fffc;">
@@ -1667,7 +1700,9 @@ img, svg, video { max-width: 100%; }
           <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
             📍 <b>Plan Maison 1</b> — בתוך תחנת ההגעה של הגונדולה, 2,555 מ׳<br>
             ☎ <a href="tel:+390166949220" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 949220</a><br>
-            עולים ברכבל בנעליים רגילות ומחליפים למעלה, והציוד נשאר על ההר בלילה — בלי לסחוב מגפיים הלוך ושוב.<br>
+            <b>היתרון:</b> עולים לגונדולה בנחת בנעליים רגילות,
+            מחליפים למעלה, ובסוף היום משאירים את הציוד שם ויורדים לכפר בנעליים —
+            ואפשר להמשיך ישר לאן שרוצים, בלי מגפי סקי ובלי לסחוב מגלשיים ברחוב.<br>
             <b>שני חסרונות, ושניהם נובעים מאותו דבר — הציוד נמצא למעלה:</b><br>
             • כשהגונדולה סגורה ברוח אין גישה לציוד בכלל. גם אם ולטורננש פתוחה באותו יום, אי אפשר להגיע אליה.<br>
             • חייבים לסיים כל יום בפלאן מייזון ולרדת בגונדולה. אי אפשר לגלוש לכפר בירידה האחרונה,
@@ -1693,6 +1728,14 @@ img, svg, video { max-width: 100%; }
         🛒 <b>מה כדאי לקנות בדרך (ולא בכפר):</b><br>
         כפפות · גוגלס · גרביים תרמיות · Base Layer (בגד תחתון מנדף) · צוואריון · קרם הגנה לשמש+שלג · כדורי חימום ידיים
       </div>
+
+      <!-- The arithmetic is short and it settles the question, so it is on
+           the page rather than left to the reader. -->
+      <details class="fold" style="margin-top:10px;">
+        <summary id="rental-buy-vs-rent-title">🧮 לשכור מעיל ומכנסיים, או לקנות?</summary>
+        <div class="fold-body" id="rental-buy-vs-rent"
+             style="font-size:0.79rem;color:#555;line-height:1.85;"></div>
+      </details>
     </div>
   </div>
 </div>
@@ -9405,6 +9448,8 @@ function _applyTexts(t) {
       }).join('');
     }
     _set('rental-buy-on-way-tip',      r.buy_on_way_tip);
+    _set('rental-buy-vs-rent-title',   r.buy_vs_rent_title);
+    _set('rental-buy-vs-rent',         r.buy_vs_rent);
   }
 
   // ── שיעורי סקי: כותרות ומחירים ──
