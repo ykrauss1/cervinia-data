@@ -1211,15 +1211,18 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   // Turning up in peak season without a booking can mean no equipment at
   // all - Yossi has had it happen. The shop's own FAQ says the booking
   // "guarantees availability", which is the same thing said politely.
-  if (!/הזמינו מראש/.test(r.booking_warning || '')) fail('the rental prices come from a published list',
-    'nothing on the page warns about turning up without a booking'); else ok();
   const shown = await page.evaluate(() => {
     openM('rentalModal');
     const w = document.getElementById('rental-booking-warning');
-    return !!(w && w.textContent.trim().length > 60);
+    // the headline is the summary of the fold the explanation sits in
+    const fold = w && w.closest('details');
+    const head = fold && fold.querySelector('summary');
+    return !!(w && w.textContent.trim().length > 60
+              && head && /הזמינו מראש/.test(head.textContent)
+              && !fold.open);
   });
   if (!shown) fail('the rental prices come from a published list',
-    'the booking warning is in the content file but never drawn'); else ok();
+    'the booking warning, or the headline above it, is missing'); else ok();
 
   // the morning of the first ski day is the longest queue of the week
   if (!(r.tips || []).some(t => /ביום שלפני/.test(t))) fail('the rental prices come from a published list',
@@ -1258,17 +1261,50 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (badTel.length) fail('every rental shop is listed under its own name',
     badTel.map(k => `${k} rings ${pairs[k] || 'nothing'}`).join(' · ')); else ok();
 
-  // the midday closure is the detail that sends people to a locked door
-  if (!(r.tips || []).some(t => /12:30/.test(t))) fail('every rental shop is listed under its own name',
-    'the page does not say the village shops close at midday'); else ok();
+  // Two of the four village shops close at midday and two do not, and the
+  // two that do are the same company. "Most of them close" was a guess.
+  const hoursTip = (r.tips || []).find(t => /12:30/.test(t)) || '';
+  if (!hoursTip) fail('every rental shop is listed under its own name',
+    'the page does not say which shops close at midday'); else ok();
+  if (!/Cervinia Ski Service/.test(hoursTip) || !/Ski 2\.0/.test(hoursTip))
+    fail('every rental shop is listed under its own name',
+      'the hours line does not name the shops that stay open through midday'); else ok();
+  if (/רובן|רוב החנויות/.test(hoursTip)) fail('every rental shop is listed under its own name',
+    'the hours line still generalises from two shops to most of them'); else ok();
+
+  // Renting a jacket and trousers costs more than buying them within two
+  // days, which is the kind of sum a reader should not have to do.
+  if (!/€70/.test(r.buy_vs_rent || '') || !/יומיים/.test(r.buy_vs_rent || ''))
+    fail('every rental shop is listed under its own name',
+      'the buy-or-rent comparison is missing its conclusion'); else ok();
+  const cmp = await page.evaluate(() => {
+    const el = document.getElementById('rental-buy-vs-rent');
+    return !!(el && el.textContent.trim().length > 150 && el.closest('details'));
+  });
+  if (!cmp) fail('every rental shop is listed under its own name',
+    'the buy-or-rent comparison is not drawn, or is not behind a fold'); else ok();
+
+  // the three long blocks sit behind their own headings now, so the panel
+  // opens on the shops rather than on a wall of text
+  const folded = await page.evaluate(() => ['rental-price-table', 'rental-ski-tips',
+      'rental-buy-vs-rent'].filter(id => {
+    const el = document.getElementById(id);
+    const d = el && el.closest('details');
+    return !(d && !d.open);
+  }));
+  if (folded.length) fail('every rental shop is listed under its own name',
+    `not folded away: ${folded.join(', ')}`); else ok();
 
   // Renting up at Plan Maison costs you two things, and the page used to
   // name neither properly: on a windy day the gear is out of reach even if
   // another sector is open, and every day has to end at the gondola, before
   // it stops - no last run down to the village, no run after an apres-ski.
   const pm = await page.evaluate(() => {
-    const card = [...document.querySelectorAll('#rentalModal div')]
-      .find(d => /Adriano Sport/.test(d.textContent) && d.textContent.length < 900);
+    // the smallest div that holds the whole card, not just its heading
+    const cards = [...document.querySelectorAll('#rentalModal div')]
+      .filter(d => /Adriano Sport/.test(d.textContent) && /Plan Maison 1/.test(d.textContent));
+    const card = cards.reduce((a, b) =>
+      (a.textContent.length <= b.textContent.length ? a : b), cards[0]);
     return card ? card.textContent.replace(/\s+/g, ' ') : '';
   });
   const pmNeeds = { 'wind': /רוח/, 'another sector': /ולטורננש/,
