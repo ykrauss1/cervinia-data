@@ -1272,10 +1272,16 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     return card ? card.textContent.replace(/\s+/g, ' ') : '';
   });
   const pmNeeds = { 'wind': /רוח/, 'another sector': /ולטורננש/,
-                    'must end at the gondola': /לסיים כל יום/, 'apres-ski': /אפרה סקי/ };
+                    'must end at the gondola': /לסיים כל יום/, 'apres-ski': /אפרה סקי/,
+                    // Google listed it as opening at 07:30. Nobody can be up
+                    // there at 07:30: the gondola does not run until 08:30,
+                    // and the shop's own reply to a review says 09:00.
+                    'the first gondola': /הגונדולה הראשונה/ };
   const pmGaps = Object.keys(pmNeeds).filter(k => !pmNeeds[k].test(pm));
   if (pmGaps.length) fail('every rental shop is listed under its own name',
     `the Plan Maison card does not mention: ${pmGaps.join(', ')}`); else ok();
+  if (/07:30/.test(pm)) fail('every rental shop is listed under its own name',
+    'the Plan Maison shop is shown opening before the gondola that reaches it'); else ok();
 
   // the three tabs are gone: they switched two cards while the shop list
   // below them never changed, so every tab looked like the same screen
