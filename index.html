@@ -556,7 +556,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
   <div id="side-menu-links" role="navigation">
     <button onclick="smGo('about')"><span>ℹ️</span>עלינו</button>
     <button onclick="smGo('contact')"><span>✉️</span>צור קשר</button>
-    <button onclick="smGo('help')"><span>❓</span>עזרה והתקנת האפליקציה</button>
+    <button id="sm-install" onclick="smGo('install')"><span>📲</span>התקנת האפליקציה</button>
+    <button onclick="smGo('help')"><span>❓</span>עזרה</button>
     <button onclick="smGo('sources')"><span>📚</span>מקורות ואמינות</button>
   </div>
   <div id="side-menu-foot">CerviniaLive</div>
@@ -2894,6 +2895,10 @@ function openSideMenu() {
   var o = document.getElementById('side-menu-overlay');
   var b = document.getElementById('menu-btn');
   if (!m || !o) return;
+  // nothing to install once it is installed
+  var inst = document.getElementById('sm-install');
+  if (inst) inst.style.display = (typeof _pwaInstalled === 'function' && _pwaInstalled())
+    ? 'none' : 'flex';
   o.classList.add('on');
   // the class that slides it in has to land on a frame after the one that
   // made the overlay visible, or the browser skips the transition
@@ -2922,7 +2927,21 @@ var SIDE_MENU_ACTIONS = {
   about:   function () { openM('aboutModal'); },
   contact: function () { openM('contactModal'); },
   help:    function () { openM('helpModal'); },
-  sources: function () { openSources(); }
+  sources: function () { openSources(); },
+  // The install prompt appears once and is gone after a tap. On a phone this
+  // is the way back to it, so it gets a line of its own rather than hiding
+  // behind "help" - and it opens the help panel already scrolled to it.
+  install: function () {
+    openM('helpModal');
+    setTimeout(function () {
+      var el = document.getElementById('help-install');
+      if (!el) return;
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      el.style.transition = 'background 0.4s';
+      el.style.background = '#fff6d8';
+      setTimeout(function () { el.style.background = ''; }, 1400);
+    }, 120);
+  }
 };
 function smGo(key) {
   closeSideMenu();
