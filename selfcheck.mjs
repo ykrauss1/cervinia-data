@@ -1445,10 +1445,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.items = [...document.querySelectorAll('#side-menu-links button')].map(b => b.textContent.trim());
 
     // the drawer has to get out of the way before what it opens appears
-    smGo('help');
-    await new Promise(res => setTimeout(res, 400));
+    smGo('install');
+    await new Promise(res => setTimeout(res, 500));
     out.closedAfterGo = !menu.classList.contains('on');
     out.helpOpen = document.getElementById('helpModal').style.display === 'flex';
+    // and it has to land on the install block, not at the top of the panel
+    const ins = document.getElementById('help-install');
+    out.installFilled = !!(ins && ins.textContent.trim().length > 60);
     closeM('helpModal');
 
     // and the duplicate row above the forum is gone
@@ -1461,10 +1464,18 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'there is no menu button in the header'); else ok();
   if (!r.onScreen) fail('the standing links are reachable without scrolling',
     'the side menu did not slide into view'); else ok();
-  if (r.items.length !== 4) fail('the standing links are reachable without scrolling',
+  if (r.items.length !== 5) fail('the standing links are reachable without scrolling',
     `the menu holds ${r.items.length} items: ${JSON.stringify(r.items)}`); else ok();
+  // The install prompt shows once and never again. On a phone the side menu
+  // is the only way back to it, so it gets its own line rather than hiding
+  // in the middle of the help panel.
+  if (!r.items.some(t => /התקנת האפליקציה/.test(t)))
+    fail('the standing links are reachable without scrolling',
+      'there is no way back to the install prompt'); else ok();
   if (!r.closedAfterGo || !r.helpOpen) fail('the standing links are reachable without scrolling',
     `choosing an item left the drawer open (${!r.closedAfterGo}) or opened nothing (${!r.helpOpen})`); else ok();
+  if (!r.installFilled) fail('the standing links are reachable without scrolling',
+    'the install panel opened empty'); else ok();
   // one copy on the page - the footer's - not two
   if (r.strayRow !== 1) fail('the standing links are reachable without scrolling',
     `"מקורות ואמינות" appears ${r.strayRow} times on the page, not once`); else ok();
