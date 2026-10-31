@@ -140,28 +140,41 @@ async function scrape() {
 
   try {
     const local = await page.evaluate(() => {
-      const clean = (el) => (el && el.innerText || '').replace(/\s+/g, ' ').trim();
+      // textContent, not innerText: innerText depends on layout, and in a
+      // headless browser the panel can lay out differently or not at all -
+      // which is how the Cervinia figures silently became null.
+      const txt = (el) => ((el && el.textContent) || '').replace(/\s+/g, ' ').trim();
 
-      // the selected village is the one drawn in black, the others are grey
+      // the selected village is the one drawn in black, the others grey
       const tab = [...document.querySelectorAll('*')].find(el =>
         !el.children.length &&
-        /^(BREUIL CERVINIA|VALTOURNENCHE|CHAMOIS|TORGNON|ZERMATT)$/.test(clean(el).toUpperCase()) &&
+        /^(BREUIL CERVINIA|VALTOURNENCHE|CHAMOIS|TORGNON|ZERMATT)$/.test(txt(el).toUpperCase()) &&
         / black /.test(' ' + ((el.parentElement && el.parentElement.className) || '') + ' ')
       );
 
-      const pair = (label) => {
+      // 1) the generated class names, which is what the page actually uses
+      const byClass = [...document.querySelectorAll('a[href="/en/impianti"]')]
+        .map(a => [a.querySelector('.size-25'), a.querySelector('.size-18')])
+        .filter(([o, t]) => o && t)
+        .map(([o, t]) => [parseInt(txt(o), 10), parseInt(txt(t), 10)])
+        .filter(([o, t]) => !isNaN(o) && !isNaN(t));
+
+      // 2) the labels, for the day those class names change
+      const byLabel = (label) => {
         const el = [...document.querySelectorAll('div')].find(d => {
-          const t = clean(d).toLowerCase();
-          return t.indexOf(label) === 0 && /\d+\s+\d+$/.test(t);
+          const t = txt(d).toLowerCase();
+          return t.indexOf(label) === 0 && /\d+ \d+$/.test(t);
         });
-        const m = el && clean(el).match(/(\d+)\s+(\d+)$/);
+        const m = el && txt(el).match(/(\d+) (\d+)$/);
         return m ? [Number(m[1]), Number(m[2])] : null;
       };
 
+      const lifts  = byClass[0] || byLabel('open ski lifts');
+      const slopes = byClass[1] || byLabel('open slopes');
       return {
-        active: tab ? clean(tab).toUpperCase() : null,
-        lifts:  pair('open ski lifts'),
-        slopes: pair('open slopes')
+        active: tab ? txt(tab).toUpperCase() : null,
+        via: byClass.length >= 2 ? 'class' : 'label',
+        lifts, slopes
       };
     });
 
