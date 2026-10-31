@@ -7,7 +7,27 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <!-- version: 15.5 -->
-<title>CerviniaLive</title>
+<title>צ׳רוויניה לייב · CerviniaLive — מדריך הסקי לצ׳רוויניה בעברית</title>
+
+<!-- How the link looks when somebody forwards it. Without these, a share in
+     WhatsApp is a bare URL with no title, no line of text and no picture -
+     which is most of the reason a link does or does not get opened. -->
+<meta name="description" content="כל מה שצריך לחופשת סקי בצ׳רוויניה, בעברית: מצב מעליות ומסלולים בזמן אמת, מדריך מסלולים ובקתות, כשרות ושבת, תחבורה מהשדה, השכרת ציוד ומחירים.">
+<link rel="canonical" href="https://ykrauss1.github.io/cervinia-data/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="צ׳רוויניה לייב">
+<meta property="og:locale" content="he_IL">
+<meta property="og:url" content="https://ykrauss1.github.io/cervinia-data/">
+<meta property="og:title" content="צ׳רוויניה לייב — מדריך הסקי לצ׳רוויניה בעברית">
+<meta property="og:description" content="מצב מעליות ומסלולים בזמן אמת, מדריך מסלולים ובקתות, כשרות ושבת, תחבורה מהשדה והשכרת ציוד.">
+<meta property="og:image" content="https://ykrauss1.github.io/cervinia-data/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="צ׳רוויניה לייב — מדריך הסקי לצ׳רוויניה בעברית">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="צ׳רוויניה לייב — מדריך הסקי לצ׳רוויניה בעברית">
+<meta name="twitter:description" content="מצב מעליות ומסלולים בזמן אמת, מדריך מסלולים ובקתות, כשרות ושבת, תחבורה מהשדה והשכרת ציוד.">
+<meta name="twitter:image" content="https://ykrauss1.github.io/cervinia-data/og-image.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -11185,6 +11205,15 @@ async function submitPost() {
   }
 }
 
+// Has the reader touched anything yet? Nothing may move the page before the
+// first tap or key - what looks like a helpful scroll then is the page
+// running away from someone who has not even started reading.
+var _userHasActed = false;
+['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) {
+  window.addEventListener(ev, function () { _userHasActed = true; },
+    { once: true, passive: true, capture: true });
+});
+
 // שתי שורות הודעה: אחת מעל הרשימה ואחת צמודה לתיבת הכתיבה,
 // כדי שהודעה לעולם לא תופיע מחוץ למסך
 function forumMsg(text, isError) {
@@ -11201,11 +11230,17 @@ function forumMsg(text, isError) {
     el.style.display = 'block';
   });
   if (!text) return;
-  const area = document.getElementById('new-post-area');
-  const near = (area && area.style.display !== 'none')
-    ? document.getElementById('forum-msg2')
-    : document.getElementById('forum-msg');
-  if (near && near.scrollIntoView) { try { near.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+  // Scrolling to the message is right when the reader just pressed something
+  // and is waiting for an answer. It is wrong when the forum simply failed to
+  // load: that message arrives on its own, and the page used to jump to the
+  // bottom before the reader had seen the top of it.
+  if (_userHasActed) {
+    const area = document.getElementById('new-post-area');
+    const near = (area && area.style.display !== 'none')
+      ? document.getElementById('forum-msg2')
+      : document.getElementById('forum-msg');
+    if (near && near.scrollIntoView) { try { near.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+  }
   setTimeout(function() {
     els.forEach(function(el){ if (el.textContent === text) el.style.display = 'none'; });
   }, 8000);
