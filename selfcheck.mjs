@@ -1176,6 +1176,134 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the rebuilt form lost the handler that fills the template'); else ok();
 }
 
+// ── a long panel says what is inside it ──────────────────────────────────
+// Opening "kosher -> Milan" used to drop the reader into restaurants with no
+// sign that synagogues and places to stay followed further down. Each long
+// panel now opens with chips naming its sections, built from the headings
+// themselves so the strip cannot drift away from the content.
+{
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise(res => setTimeout(res, ms));
+    const out = {};
+    openM('kosherModal'); await wait(250);
+    switchKoshMain('kosher'); await wait(200);
+    for (const t of ['cervinia', 'milan']) {
+      switchKoshTab(t); await wait(200);
+      const strip = document.querySelector('#kosh-panel-' + t + ' .panel-toc');
+      out['kosher/' + t] = strip ? [...strip.children].map(c => c.textContent.trim()) : null;
+    }
+    // a chip has to actually move the panel to its section
+    switchKoshTab('milan'); await wait(200);
+    const box = document.querySelector('#kosherModal .modal-content');
+    box.scrollTop = 0;
+    const chips = [...document.querySelectorAll('#kosh-panel-milan .panel-toc button')];
+    if (chips.length) {
+      chips[chips.length - 1].click();
+      await wait(700);
+      out.scrolled = box.scrollTop;
+    } else {
+      out.scrolled = -1;          // nothing to tap: reported as a failure below
+    }
+    closeM('kosherModal');
+
+    openM('parkingModal'); await wait(400);
+    switchParkTab('transport'); await wait(500);
+    const st = document.querySelector('#park-panel-transport .panel-toc');
+    out.transport = st ? [...st.children].map(c => c.textContent.trim()) : null;
+    closeM('parkingModal');
+    return out;
+  });
+  const want = { 'kosher/cervinia': 3, 'kosher/milan': 4, transport: 6 };
+  const thin = Object.keys(want).filter(k => !r[k] || r[k].length < want[k]);
+  if (thin.length) fail('a long panel says what is inside it',
+    thin.map(k => `${k}: ${r[k] ? r[k].length + ' chips' : 'no strip'}`).join(' · ')); else ok();
+  // the chips have to name the sections a reader would not guess are there
+  const milan = (r['kosher/milan'] || []).join(' ');
+  if (!/בתי כנסת/.test(milan) || !/לינה/.test(milan)) fail('a long panel says what is inside it',
+    `the Milan strip reads ${JSON.stringify(r['kosher/milan'])}`); else ok();
+  if (!(r.scrolled > 100)) fail('a long panel says what is inside it',
+    `tapping the last chip moved the panel to ${r.scrolled}px`); else ok();
+}
+
+// ── every phone number on the page can be dialled ────────────────────────
+// Printed straight into a right-to-left line, "+39 02 48519326" is laid out
+// group by group from the right and read back as "48519326 02 39+". The
+// Milan and Torino lists were doing exactly that. This walks every panel,
+// including the sub-tabs that only render when you click them, and fails on
+// any number that is not inside a left-to-right isolate.
+{
+  const r = await page.evaluate(async () => {
+    const PHONE = /\+?\d{1,4}(?:[ \u00a0]\d{2,7}){1,4}/g;
+    const bad = [], seen = new Set();
+    let total = 0;
+    const scan = (where) => {
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = walker.nextNode())) {
+        const m = (n.nodeValue || '').match(PHONE);
+        if (!m) continue;
+        for (const num of m) {
+          if ((num.match(/\d/g) || []).length < 8) continue;
+          const el = n.parentElement;
+          if (!el || !el.offsetParent) continue;
+          let e = el, ok = false;
+          for (let i = 0; i < 6 && e; i++, e = e.parentElement) {
+            const cs = getComputedStyle(e);
+            // Chrome reports unicode-bidi:isolate on every block container,
+            // so testing for it passes everything and proves nothing. What
+            // actually keeps the digit groups in order is a left-to-right
+            // direction, which means a <bdi dir="ltr"> or dir="ltr".
+            if (cs.direction === 'ltr') { ok = true; break; }
+          }
+          total++;
+          if (ok) continue;
+          const key = where + '|' + num;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          bad.push(where + ': ' + num);
+        }
+      }
+    };
+    const wait = (ms) => new Promise(res => setTimeout(res, ms));
+    const sub = {
+      kosherModal: async () => {
+        for (const m of ['shabbat', 'kosher']) {
+          switchKoshMain(m); await wait(110);
+          if (m === 'kosher') for (const t of ['cervinia', 'delivery', 'milan', 'torino']) {
+            switchKoshTab(t); await wait(110); scan('kosher/' + t);
+          } else scan('kosher/shabbat');
+        }
+      },
+      skipassModal: async () => {
+        for (const t of ['cervinia', 'zermatt']) { switchPassTab(t); await wait(110); scan('skipass/' + t); }
+      },
+      lessonsModal: async () => {
+        for (const t of ['group', 'private', 'kids']) { switchLessonTab(t); await wait(110); scan('lessons/' + t); }
+      },
+      parkingModal: async () => {
+        for (const t of ['parking', 'transport', 'emergency']) {
+          try { switchParkTab(t); } catch (e) {}
+          await wait(110); scan('parking/' + t);
+        }
+      }
+    };
+    scan('home');
+    for (const id of [...document.querySelectorAll('.modal')].map(m => m.id).filter(Boolean)) {
+      try { openM(id); } catch (e) { continue; }
+      await wait(160);
+      scan(id);
+      if (sub[id]) { try { await sub[id](); } catch (e) { bad.push(id + ': subtab ' + e.message); } }
+      try { closeM(id); } catch (e) {}
+    }
+    return { bad, total };
+  });
+  if (r.bad.length) fail('every phone number on the page can be dialled',
+    r.bad.slice(0, 6).join(' · ')); else ok();
+  // and the walk has to be finding numbers at all, or it proves nothing
+  if (r.total < 40) fail('every phone number on the page can be dialled',
+    `only ${r.total} phone numbers were reached - the walk is not opening the panels`); else ok();
+}
+
 // ── the link looks like something when it is forwarded ───────────────────
 // Most of the traffic this site will ever get arrives as a link somebody
 // pasted into a WhatsApp group. Without these tags that paste is a bare URL:
