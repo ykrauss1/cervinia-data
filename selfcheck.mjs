@@ -1176,6 +1176,51 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the rebuilt form lost the handler that fills the template'); else ok();
 }
 
+// ── the link looks like something when it is forwarded ───────────────────
+// Most of the traffic this site will ever get arrives as a link somebody
+// pasted into a WhatsApp group. Without these tags that paste is a bare URL:
+// no title, no sentence, no picture, and far fewer taps.
+{
+  const head = await page.evaluate(() => {
+    const m = (sel, attr) => {
+      const e = document.querySelector(sel);
+      return e ? (e.getAttribute(attr || 'content') || '') : null;
+    };
+    return {
+      title: document.title,
+      desc: m('meta[name="description"]'),
+      ogTitle: m('meta[property="og:title"]'),
+      ogDesc: m('meta[property="og:description"]'),
+      ogImage: m('meta[property="og:image"]'),
+      ogW: m('meta[property="og:image:width"]'),
+      ogH: m('meta[property="og:image:height"]'),
+      ogUrl: m('meta[property="og:url"]'),
+      twCard: m('meta[name="twitter:card"]'),
+      canonical: m('link[rel="canonical"]', 'href'),
+      lang: document.documentElement.lang,
+      dir: document.documentElement.dir
+    };
+  });
+  const missing = Object.keys(head).filter(k => !head[k]);
+  if (missing.length) fail('the link looks like something when it is forwarded',
+    `missing: ${missing.join(', ')}`); else ok();
+  // a bare "CerviniaLive" tells a Hebrew reader nothing about what it is
+  if (!/צ׳רוויניה/.test(head.title)) fail('the link looks like something when it is forwarded',
+    `the page title is "${head.title}"`); else ok();
+  if (!/^https:\/\//.test(head.ogImage || '') || !/og-image\.png$/.test(head.ogImage || ''))
+    fail('the link looks like something when it is forwarded',
+      `og:image is "${head.ogImage}" - it has to be an absolute URL`); else ok();
+  if (head.ogW !== '1200' || head.ogH !== '630')
+    fail('the link looks like something when it is forwarded',
+      `og:image is declared ${head.ogW}x${head.ogH}, not 1200x630`); else ok();
+  if ((head.ogDesc || '').length < 40) fail('the link looks like something when it is forwarded',
+    'the one line under the title is too short to say what the site is'); else ok();
+  // and the file it points at has to exist beside the page
+  if (!fs.existsSync(path.join(path.dirname(PAGE), 'og-image.png')))
+    fail('the link looks like something when it is forwarded',
+      'og-image.png is not next to index.html'); else ok();
+}
+
 // ── the rental prices come from a published list ─────────────────────────
 // The page used to carry ranges like "~€25-35 a day" that no shop published
 // and that were too low: Genzianella's cheapest adult ski-and-boots package
