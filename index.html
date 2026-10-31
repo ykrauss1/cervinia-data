@@ -454,6 +454,21 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
 /* iOS Safari will not put a div into native full screen, so this does the
    same job with plain positioning and works everywhere. */
+/* ── panel contents strip ───────────────────────────────────────────────
+   A long panel reads as one undifferentiated scroll. These chips say what is
+   inside before the reader has to find out by scrolling. */
+.panel-toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.panel-toc:empty { display: none; }
+.panel-toc button {
+  background: #eef3f9; border: 1px solid #d7e2ee; color: #2d4a6b;
+  border-radius: 999px; padding: 5px 12px; font-size: 0.75rem;
+  font-family: inherit; cursor: pointer; line-height: 1.3; white-space: nowrap;
+}
+.panel-toc button:hover { background: #e2ebf5; }
+.toc-flash { animation: tocFlash 1.2s ease; }
+@keyframes tocFlash { from { background: #fff6d8; } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .toc-flash { animation: none; } }
+
 /* ── side menu ──────────────────────────────────────────────────────────
    A drawer from the right, because the page is right-to-left and the start
    edge is where a reader's thumb already is. */
@@ -1863,13 +1878,13 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
         <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
           <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Scuola Sci del Cervino <span style="font-size:0.68rem;background:#1a3a6c;color:white;padding:1px 7px;border-radius:8px;">מאז 1936</span></div>
-          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Piazzale Funivie + Chalet Cretaz</b> · ☎ +39 0166 948744</div>
+          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Piazzale Funivie + Chalet Cretaz</b> · ☎ <a href="tel:+390166948744" style="color:#1a73e8;text-decoration:none;"><bdi dir="ltr">+39 0166 948744</bdi></a></div>
           <a href="https://scuolacervino.com/en/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuolacervino.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola%20Sci%20Cervino/@45.9356162,7.6304743,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
         <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
           <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Ride'em / New Ski School</div>
-          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Via Meynet 3</b>, Breuil-Cervinia · ☎ +39 0166 948532</div>
+          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Via Meynet 3</b>, Breuil-Cervinia · ☎ <a href="tel:+390166948532" style="color:#1a73e8;text-decoration:none;"><bdi dir="ltr">+39 0166 948532</bdi></a></div>
           <a href="https://www.ride-em.com/?lang=en" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 ride-em.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Ride%27Em%2C%20Via%20Meynet%203/@45.9355155,7.6301735,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
         </div>
 
@@ -1964,9 +1979,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <button id="kosh-tab-torino"   onclick="switchKoshTab('torino')"   class="ttab-btn" style="flex:1;font-size:0.8rem;">🏛️ טורינו</button>
       </div>    <!-- CERVINIA -->
     <div id="kosh-panel-cervinia">
+      <nav class="panel-toc"></nav>
 
       <div style="padding:14px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:11px;margin-bottom:12px;">
-        <div id="kosher-cervinia-title" style="font-size:1rem;font-weight:bold;margin-bottom:8px;">ℹ️ מה יש בכפר?</div>
+        <div id="kosher-cervinia-title" data-toc="ℹ️ מה יש בכפר" style="font-size:1rem;font-weight:bold;margin-bottom:8px;">ℹ️ מה יש בכפר?</div>
         <div id="kosher-cervinia-text" style="font-size:0.84rem;color:#555;line-height:1.9;">
           בצ'רוויניה עצמה <b>אין מסעדות כשרות</b>.<br>
           בסופרמרקט המקומי ניתן למצוא:<br>
@@ -1974,18 +1990,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           <span style="font-size:0.8rem;color:#1a3a6c;">לגבי מוצרים נוספים — ראה <b>רשימת מוצרים כשרים</b> להלן.</span>
         </div>
       </div>
-      <!-- an organised kosher trip is the one way round "there is nothing in
-           the village", so it sits directly under that paragraph -->
-      <div id="kosher-group-box" style="display:none;padding:13px;border:1.5px solid #c5cae9;
-           border-right:4px solid #3f51b5;border-radius:11px;background:#f5f6fc;margin-bottom:12px;">
-        <details>
-          <summary id="kosher-group-title" style="font-weight:bold;font-size:0.9rem;color:#283593;cursor:pointer;list-style:none;"></summary>
-          <div id="kosher-group-text" style="font-size:0.82rem;color:#444;line-height:1.95;margin-top:6px;"></div>
-        </details>
-      </div>
-
       <div style="padding:13px;background:#f0fff4;border:1.5px solid #a5d6a7;border-radius:11px;">
-        <div id="kosher-tips-title" style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;">💡 טיפים לשהייה כשרה</div>
+        <div id="kosher-tips-title" data-toc="💡 טיפים ורשימת מוצרים" style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;">💡 טיפים לשהייה כשרה</div>
         <details style="margin:4px 0 10px;">
           <summary id="kosher-products-title" style="font-weight:bold;font-size:0.88rem;cursor:pointer;list-style:none;"></summary>
           <div id="kosher-products-list" style="font-size:0.79rem;color:#444;line-height:1.95;margin:6px 0 4px;"></div>
@@ -1999,9 +2005,19 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         </div>
       </div>
     
+      <!-- An organised trip is one answer among several, not the headline,
+           so it sits after the practical material rather than above it. -->
+      <div id="kosher-group-box" style="display:none;padding:13px;border:1.5px solid #c5cae9;
+           border-right:4px solid #3f51b5;border-radius:11px;background:#f5f6fc;margin:12px 0;">
+        <details>
+          <summary id="kosher-group-title" data-toc="🕍 חופשה כשרה מאורגנת" style="font-weight:bold;font-size:0.9rem;color:#283593;cursor:pointer;list-style:none;"></summary>
+          <div id="kosher-group-text" style="font-size:0.82rem;color:#444;line-height:1.95;margin-top:6px;"></div>
+        </details>
+      </div>
+
       <!-- Kosher resources -->
       <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px;">
-        <div id="kosher-resources-title" style="font-size:0.82rem;font-weight:bold;margin-bottom:9px;">📋 מידע כשרות למטייל באיטליה</div>
+        <div id="kosher-resources-title" data-toc="📋 מידע למטייל" style="font-size:0.82rem;font-weight:bold;margin-bottom:9px;">📋 מידע כשרות למטייל באיטליה</div>
         <div style="display:flex;flex-direction:column;gap:7px;">
 
           <a href="https://www.italykosherunion.it/en/kosher-products-list/" target="_blank"
@@ -2063,18 +2079,21 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
     <!-- MILAN -->
     <div id="kosh-panel-milan" style="display:none;">
+      <nav class="panel-toc"></nav>
       <div id="kosher-milan-note" style="font-size:0.8rem;color:#666;background:#f5f5f5;padding:9px 12px;border-radius:8px;margin-bottom:14px;"></div>
       <!-- Businesses are a LIST in texts.json, not fixed slots in this file.
            The old markup hard-coded one slot per business, so a shop that
            turned out not to exist could not be removed without editing a
            1.8MB file - and so it stayed up. -->
+      <div id="kosher-milan-restaurants-title" data-toc="🍽️ מסעדות וחנויות"
+           style="font-weight:bold;font-size:0.88rem;margin:4px 0 8px;"></div>
       <div id="kosher-milan-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
-      <div id="kosher-milan-shuls-title" style="font-weight:bold;font-size:0.88rem;margin:16px 0 8px;"></div>
+      <div id="kosher-milan-shuls-title" data-toc style="font-weight:bold;font-size:0.88rem;margin:16px 0 8px;"></div>
       <div id="kosher-milan-shuls" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
-      <div id="kosher-milan-stays-title" style="font-weight:bold;font-size:0.88rem;margin:16px 0 8px;"></div>
+      <div id="kosher-milan-stays-title" data-toc style="font-weight:bold;font-size:0.88rem;margin:16px 0 8px;"></div>
       <div id="kosher-milan-stays-note" style="font-size:0.78rem;color:#666;background:#f5f5f5;padding:9px 12px;border-radius:8px;margin-bottom:10px;"></div>
       <div id="kosher-milan-stays" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
-      <div id="kosher-milan-shop-tip" style="padding:10px 13px;background:#fffbf0;border:1px solid #fde8a0;border-radius:9px;font-size:0.79rem;color:#555;line-height:1.8;">
+      <div id="kosher-milan-shop-tip" data-toc="🛒 מה לקנות" style="padding:10px 13px;background:#fffbf0;border:1px solid #fde8a0;border-radius:9px;font-size:0.79rem;color:#555;line-height:1.8;">
         🛒 <b>מה כדאי לקנות במילאנו לשהייה בכפר:</b><br>
         שימורי טונה · פסטה + רוטב · עוגיות · גבינות מאוטמות · מיצים · חטיפים לרכבל
       </div>
@@ -2082,6 +2101,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
     <!-- TORINO -->
     <div id="kosh-panel-torino" style="display:none;">
+      <nav class="panel-toc"></nav>
       <div id="kosher-torino-note" style="font-size:0.8rem;color:#666;background:#f5f5f5;padding:9px 12px;border-radius:8px;margin-bottom:14px;"></div>
       <div id="kosher-torino-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
       <div id="kosher-torino-tip" style="padding:10px 13px;background:#e8f4fd;border:1px solid #c0d8f0;border-radius:9px;font-size:0.79rem;color:#1a5276;">
@@ -2909,6 +2929,44 @@ function openM(id) {
   if (id === 'skipassModal') switchPassTab('cervinia');
   if (id === 'lessonsModal') { setTimeout(renderInstructors, 50); switchLessonTab('group'); }
 }
+// ── what is inside this panel ────────────────────────────────────────────
+// Somebody opening "kosher -> Milan" meets restaurants, then synagogues, then
+// places to stay, and learns that only by scrolling to the end. Each long
+// panel gets a strip of chips naming its sections, built from the headings
+// themselves so it cannot drift away from them.
+function buildPanelToc(panelId) {
+  var panel = document.getElementById(panelId);
+  if (!panel) return 0;
+  var strip = panel.querySelector('.panel-toc');
+  if (!strip) return 0;
+  var secs = [].slice.call(panel.querySelectorAll('[data-toc]'));
+  strip.innerHTML = '';
+  secs.forEach(function (sec, i) {
+    var label = (sec.getAttribute('data-toc') || sec.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!label) return;                       // a heading the content file left empty
+    if (!sec.id) sec.id = panelId + '-sec-' + i;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.onclick = function () { scrollToSection(sec); };
+    strip.appendChild(b);
+  });
+  return strip.children.length;
+}
+function scrollToSection(sec) {
+  if (!sec) return;
+  var box = sec.closest('.modal-content') || sec.closest('[style*="overflow"]');
+  if (box && box.scrollHeight > box.clientHeight) {
+    var top = sec.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+    box.scrollTo({ top: Math.max(0, top - 8), behavior: 'smooth' });
+  } else if (sec.scrollIntoView) {
+    sec.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  sec.classList.remove('toc-flash');
+  void sec.offsetWidth;                        // restart the animation
+  sec.classList.add('toc-flash');
+}
+
 // ── side menu ────────────────────────────────────────────────────────────
 function openSideMenu() {
   var m = document.getElementById('side-menu');
@@ -6740,8 +6798,7 @@ function renderKosherList(id, places, city) {
       + (p.addr ? '<div style="font-size:0.77rem;color:#555;margin-bottom:5px;">📍 ' + p.addr + '</div>' : '')
       + (p.desc ? '<div style="font-size:0.77rem;color:#777;margin-bottom:5px;">' + p.desc + '</div>' : '')
       + (p.kashrut ? '<div style="font-size:0.74rem;color:#2d6a4f;margin-bottom:5px;">✔️ ' + p.kashrut + '</div>' : '')
-      + (p.phone ? '<div style="font-size:0.77rem;margin-bottom:4px;">☎ <a href="tel:'
-          + p.phone.replace(/[^0-9+]/g, '') + '" style="color:#1a73e8;">' + p.phone + '</a></div>' : '')
+      + (p.phone ? '<div style="font-size:0.77rem;margin-bottom:4px;">☎ ' + _telLink(p.phone) + '</div>' : '')
       + (function () {
           var L = [];
           if (p.url) L.push('<a href="' + p.url + '" target="_blank" rel="noopener" style="font-size:0.77rem;color:#1a73e8;">🌐 אתר</a>');
@@ -8901,6 +8958,8 @@ function renderTransport(tr) {
   if (!box || !tr) return;
   var h = '';
 
+  // the chips go above everything, so the panel says what it holds
+  h += '<nav class="panel-toc"></nav>';
   if (tr.title) h += '<h3 style="margin:0 0 6px;font-size:1.05rem;">' + _aEsc(tr.title) + '</h3>';
   if (tr.intro) h += '<p style="color:#888;font-size:0.78rem;margin:0 0 14px;line-height:1.7;">'
                    + _fixNums(_aEsc(tr.intro)) + '</p>';
@@ -8914,7 +8973,8 @@ function renderTransport(tr) {
   (tr.groups || []).forEach(function (g) {
     h += '<div style="border:1.5px solid #e3e8ef;border-radius:11px;background:#fbfcfe;'
        + 'padding:13px 14px;margin-bottom:12px;">'
-       + '<div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;">'
+       + '<div data-toc="' + _aEsc((g.icon ? g.icon + ' ' : '') + (g.title || ''))
+       + '" style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;">'
        + _aEsc((g.icon ? g.icon + ' ' : '') + (g.title || '')) + '</div>';
 
     if (g.lead) h += '<div style="font-size:0.8rem;color:#555;line-height:1.8;margin-bottom:9px;">'
@@ -8982,6 +9042,8 @@ function renderTransport(tr) {
                     + _fixNums(_aEsc(tr.footer)) + '</div>';
 
   box.innerHTML = h;
+  buildPanelToc('park-panel-transport');
+  _isolatePhonesInDom(box);
 }
 
 function renderSwissBox() {
@@ -9212,6 +9274,63 @@ function _fixPhones(html) {
   });
 }
 
+// Every phone number on the page goes through here. Printed straight into an
+// RTL line, "+39 02 48519326" is laid out group by group from the right and
+// read back as "48519326 02 39+" - a number nobody can dial. The isolate
+// makes the whole number one left-to-right run again.
+// Isolating every phone number by hand, in markup and in the content file
+// alike, is a rule somebody will forget - and the number that slips through
+// is read back digit-group by digit-group and cannot be dialled. This sweeps
+// the rendered page instead: any phone-shaped run that is not already in a
+// left-to-right context gets wrapped where it stands.
+var _PHONE_RE = /\+?\d{1,4}(?:[ \u00a0]\d{2,7}){1,4}/;
+function _isolatePhonesInDom(root) {
+  var host = root || document.body;
+  if (!host || !document.createTreeWalker) return 0;
+  var walker = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+  var todo = [], n;
+  while ((n = walker.nextNode())) {
+    var txt = n.nodeValue || '';
+    if (!_PHONE_RE.test(txt)) continue;
+    var el = n.parentElement;
+    if (!el || el.closest('script,style,textarea,input')) continue;
+    var e = el, ltr = false;
+    for (var i = 0; i < 8 && e; i++, e = e.parentElement) {
+      if (getComputedStyle(e).direction === 'ltr') { ltr = true; break; }
+    }
+    if (!ltr) todo.push(n);
+  }
+  todo.forEach(function (node) {
+    var html = node.nodeValue.replace(/[&<>]/g, function (c) {
+      return c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;';
+    }).replace(new RegExp(_PHONE_RE.source, 'g'), function (num) {
+      return (num.match(/\d/g) || []).length >= 8
+        ? '<bdi dir="ltr">' + num + '</bdi>' : num;
+    });
+    var span = document.createElement('span');
+    span.innerHTML = html;
+    if (node.parentNode) node.parentNode.replaceChild(span, node);
+  });
+  return todo.length;
+}
+
+// Some entries carry more than a bare number: two numbers, or a Hebrew note
+// saying which number is which. Isolating the whole string would drag that
+// Hebrew into a left-to-right run, so each number is isolated and linked on
+// its own and everything around it is left as it was.
+function _telLink(phone, style) {
+  if (!phone) return '';
+  var st = style || 'color:#1a73e8;text-decoration:none;';
+  return String(phone).replace(/(<[^>]*>)|([^<]+)/g, function (m, tag, txt) {
+    if (tag) return tag;
+    return txt.replace(/\+?\d{1,4}(?:[ \u00a0]\d{2,7}){1,4}/g, function (num) {
+      if ((num.match(/\d/g) || []).length < 8) return num;
+      return '<a href="tel:' + num.replace(/[^0-9+]/g, '') + '" style="' + st
+        + '"><bdi dir="ltr">' + num + '</bdi></a>';
+    });
+  });
+}
+
 function _isolateHe(html) {
   return String(html).replace(/(<[^>]*>)|([^<]+)/g, function (m, tag, txt) {
     if (tag) return tag;
@@ -9421,6 +9540,7 @@ function _applyTexts(t) {
     _set('kosher-milan-shop-tip', ko.milan_shopping_tip);
     _set('kosher-torino-note',  ko.torino_note);
     renderKosherList('kosher-milan-list',  ko.milan_places, 'Milano');
+    _set('kosher-milan-restaurants-title', ko.milan_restaurants_title);
     _set('kosher-milan-shuls-title',  ko.milan_shuls_title);
     _set('kosher-milan-stays-title',  ko.milan_stays_title);
     _set('kosher-milan-stays-note',   ko.milan_stays_note);
@@ -9531,6 +9651,12 @@ function _applyTexts(t) {
       _set('les-kids-tip',         k.tip);
     }
   }
+  // Last, after everything above has written to the page: catch any phone
+  // number that reached the DOM without a left-to-right isolate, and build
+  // the contents strip of every panel long enough to need one.
+  _isolatePhonesInDom(document.body);
+  ['kosh-panel-milan', 'kosh-panel-torino', 'kosh-panel-cervinia',
+   'park-panel-transport'].forEach(buildPanelToc);
 }
 
 // ── מקורות ואמינות ───────────────────────────────────────────────────────
@@ -11815,8 +11941,13 @@ function switchAdminTab(tab) {
     <h3 style="margin:0 0 4px;font-size:1.15rem;">🎫 סקי פס — צ'רוויניה</h3>
     <p style="color:#888;font-size:0.82rem;margin:0 0 18px;">עונת 2026/2027 · מחירון רשמי של Cervino S.p.A.</p>
 
+    <!-- The tables are long, and most people come here to buy rather than to
+         read a tariff, so they fold away behind one line like the rental ones. -->
+    <details class="fold" id="skipass-prices-fold" style="margin-bottom:14px;">
+      <summary>💶 מחירוני הסקי פס</summary>
+      <div class="fold-body">
     <!-- Pass type tabs -->
-    <div style="display:flex;gap:8px;margin-bottom:18px;">
+    <div style="display:flex;gap:8px;margin:4px 0 18px;">
       <button id="pass-tab-cervinia" onclick="switchPassTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;">🇮🇹 Cervinia</button>
       <button id="pass-tab-zermatt" onclick="switchPassTab('zermatt')" class="ttab-btn" style="flex:1;">🇨🇭 + צ'רמט</button>
     </div>
@@ -11836,6 +11967,8 @@ function switchAdminTab(tab) {
       <div id="skipass-table-zermatt"></div>
       <div id="skipass-zermatt-notice" style="font-size:0.71rem;color:#888;margin-bottom:6px;line-height:1.6;"></div>
     </div>
+      </div>
+    </details>
     <div id="skipass-keycard" style="padding:13px 15px;background:#fffdf5;border:1.5px solid #e8d9a8;border-radius:11px;margin-bottom:14px;font-size:0.78rem;color:#444;line-height:1.75;"></div>
 
     <!-- Skipas Mobile -->
@@ -11855,15 +11988,15 @@ function switchAdminTab(tab) {
     </div>
 
     <!-- Discounts -->
-    <div style="padding:12px 15px;background:#fffbf0;border:1px solid #fde8a0;border-radius:10px;margin-bottom:14px;">
-      <div id="skipass-discounts-title" style="font-weight:bold;font-size:0.85rem;margin-bottom:8px;">💡 הנחות וחינמיות שכדאי לדעת:</div>
-      <div id="skipass-discounts-list" style="font-size:0.81rem;color:#555;line-height:2.1;">
+    <details class="fold" style="margin-bottom:14px;background:#fffbf0;border-color:#fde8a0;">
+      <summary id="skipass-discounts-title" style="color:#7a5a00;">💡 הנחות וחינמיות שכדאי לדעת</summary>
+      <div class="fold-body" id="skipass-discounts-list" style="font-size:0.81rem;color:#555;line-height:2.1;">
         👥 <b>קבוצות</b> — פס חינם על כל 15 שרוכשים (הפס ה-16)<br>
         🗓️ <b>רכישה מראש אונליין</b> — ממוצע 5-10% זול יותר<br>
         🏨 <b>מבצע אפריל 2026</b> — 30% הנחה עם 4+ לילות ו-4+ ימי סקי<br>
         🎓 <b>סטודנטים</b> — Aosta Valley University Pass (יומי + 6 ימים)<br>
       </div>
-    </div>
+    </details>
 
     <!-- Buy online buttons -->
     <div style="border-top:1px solid #eee;padding-top:14px;">
@@ -12125,7 +12258,7 @@ function switchAdminTab(tab) {
           </a>
         </div>
         <div style="margin-top:9px;font-size:0.76rem;color:#888;line-height:1.7;">
-          📻 רדיו VDA: FM 97.8 · חסימות דרכים: <a href="tel:800007772" style="color:#1a73e8;">800 007 772</a>
+          📻 רדיו VDA: <bdi dir="ltr">FM 97.8</bdi> · חסימות דרכים: <a href="tel:800007772" style="color:#1a73e8;"><bdi dir="ltr">800 007 772</bdi></a>
         </div>
       </div>
     </div>
