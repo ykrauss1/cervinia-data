@@ -600,6 +600,9 @@ function romeMinutes(d = new Date()) {
 // and these are the fallbacks for the runs where that field is missing.
 const LIFT_WINDOW = [9 * 60, 15 * 60 + 30];   // 09:00 - 15:30 Rome
 const WIND_WINDOW = [6 * 60, 18 * 60];        // 06:00 - 18:00 Rome
+// Not derived from the lifts: an avalanche bulletin is read the evening
+// before, by somebody deciding whether to go off-piste tomorrow.
+const AVALANCHE_WINDOW = [7 * 60, 20 * 60];   // 07:00 - 20:00 Rome
 
 function inWindow([from, to], now = romeMinutes()) {
   return now >= from && now <= to;
@@ -775,7 +778,18 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
   }
 
   // --- wind ---------------------------------------------------------------
-  if (inWindow(WIND_WINDOW, nowMin)) {
+  //
+  // This window was a fixed 06:00-18:00 while the lift and crossing windows
+  // were being derived from the feed, and it fired at 17:47 on a day whose
+  // lifts had already stopped - a warning that high lifts "may close" sent
+  // to people for whom everything was already shut. Same mistake as the
+  // other two, left standing in the one rule that had not been revisited.
+  //
+  // It starts an hour BEFORE the lifts do, because wind is the one thing
+  // worth knowing before you decide to set out at all, and it ends with the
+  // lift window, because after that there is nothing left to close.
+  const windWin = skiDayWindow(next, -60, 90, WIND_WINDOW);
+  if (inWindow(windWin, nowMin)) {
     const gPrev = num(prev.wind_gust);
     const gNext = num(next.wind_gust);
     if (gPrev !== null && gNext !== null) {
@@ -802,9 +816,14 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
   }
 
   // --- avalanche danger ---------------------------------------------------
+  // The one rule with a reason to run outside the skiing day: the bulletin
+  // is issued for tomorrow, and somebody deciding tonight whether to go
+  // off-piste wants it. But not at three in the morning, so it still has a
+  // floor and a ceiling - just a waking-hours one rather than a lift one.
   const aPrev = num(prev.avalanche_level);
   const aNext = num(next.avalanche_level);
-  if (aNext !== null && aNext >= 4 && (aPrev === null || aPrev < 4)) {
+  if (inWindow(AVALANCHE_WINDOW, nowMin)
+      && aNext !== null && aNext >= 4 && (aPrev === null || aPrev < 4)) {
     out.push({
       key: 'avalanche-high',
       severity: 'danger',
