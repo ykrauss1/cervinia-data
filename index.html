@@ -734,7 +734,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v15.8';
+  var v='v15.9';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6680,10 +6680,23 @@ function _pisteCard(p, col) {
           L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
             + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">📍 במפה</a>');
         } else if (p.geo || (p.map && !mapIsUrl)) {
-          L.push('<a href="' + _gUrl(p.geo || p.map, p.latlon || p.start_latlon)
-            + '" target="_blank" rel="noopener" style="' + btn
-            + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">'
-            + (p.trail ? '📍 נקודת היציאה' : _gLabel(p.xy_approx)) + '</a>');
+          // "נקודת היציאה" read either way - the end of the run, or how to
+          // get to it. It meant neither: it is where the run STARTS, which
+          // for almost every run here is the top of a lift. The button says
+          // that now, and names the station, so the answer arrives without
+          // a map at all.
+          var sp = _startPlace(p), mp = p.trail ? _mapyPoint(p.start_latlon || p.latlon) : '';
+          if (mp) {
+            L.push('<a href="' + mp + '" target="_blank" rel="noopener" style="' + btn
+              + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">'
+              + '🚩 תחילת המסלול'
+              + (sp ? ' · <bdi dir="ltr">' + esc(sp) + '</bdi>' : '') + '</a>');
+          } else {
+            L.push('<a href="' + _gUrl(p.geo || p.map, p.latlon || p.start_latlon)
+              + '" target="_blank" rel="noopener" style="' + btn
+              + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">'
+              + _gLabel(p.xy_approx) + '</a>');
+          }
         }
         if (mapIsUrl && !/google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
           L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
@@ -8398,6 +8411,37 @@ function _gUrl(name, xy) {
   var c = String(xy).split(',');
   return 'https://www.google.com/maps/search/' + encodeURIComponent(n)
        + '/@' + encodeURIComponent(c[0].trim()) + ',' + encodeURIComponent(c[1].trim()) + ',16z';
+}
+
+// ── where a run begins ───────────────────────────────────────────────────
+// The start of a piste is a point on a mountainside. Google Maps has no
+// lifts and no runs drawn on it, so a pin there lands in a blank white field,
+// and the link was a SEARCH for a place name - which answers with whatever
+// Google can find under "Campetto" and often with nothing at all. Mapy's
+// winter map draws the lifts and the pistes, which is the only thing that
+// makes such a point readable.
+//
+// Documented endpoint: https://mapy.com/fnc/v1/showmap
+// center is longitude,latitude - the REVERSE of the latitude,longitude the
+// content file stores. Swapping them silently moves the marker to
+// Kazakhstan, so the swap happens once, here, and the self-check asserts it.
+function _mapyPoint(latlon, zoom) {
+  var c = String(latlon || '').split(',');
+  if (c.length !== 2) return '';
+  var lat = c[0].trim(), lon = c[1].trim();
+  if (!lat || !lon || isNaN(parseFloat(lat)) || isNaN(parseFloat(lon))) return '';
+  return 'https://mapy.com/fnc/v1/showmap?mapset=winter'
+       + '&center=' + encodeURIComponent(lon + ',' + lat)
+       + '&zoom=' + (zoom || 16) + '&marker=true';
+}
+
+// "Plan Maison, Breuil-Cervinia" is the lift station the run starts from.
+// Naming it on the button answers the question without opening anything,
+// which is the point: most readers want to know WHICH LIFT, not a pin.
+function _startPlace(o) {
+  var n = String((o && (o.map || o.geo)) || '').trim();
+  if (!n || /^https?:/i.test(n)) return '';
+  return n.split(',')[0].trim();
 }
 
 // an approximate pin says so, rather than claiming a precision we do not have
