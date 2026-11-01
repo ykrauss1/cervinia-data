@@ -1487,6 +1487,50 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the button opens a map without naming the station the run starts from'); else ok();
 }
 
+// ── the page says how old its numbers are ────────────────────────────────
+// The badge read "🟢 נתונים חיים" whenever the fetch succeeded, no matter
+// when the reading was taken. GitHub's scheduler drops most of the
+// half-hourly runs, and a reading from half past five in the morning was
+// still being called live at a quarter to seven in the evening. A live-data
+// site that lies about the age of its data is worse than one with no data.
+{
+  const r = await page.evaluate(() => {
+    const badge = document.getElementById('data-source-badge');
+    const ago = (min) => new Date(Date.now() - min * 60000).toISOString();
+    const read = (min) => {
+      showDataSourceBadge('live', ago(min));
+      return { text: badge.textContent, colour: badge.style.color };
+    };
+    const out = { fresh: read(10), hour: read(70), stale: read(200), old: read(13 * 60) };
+    showDataSourceBadge('live', null);
+    out.noStamp = badge.textContent;
+    showDataSourceBadge('demo');
+    out.demo = badge.textContent;
+    return out;
+  });
+
+  const T = 'the page says how old its numbers are';
+  if (!/חיים/.test(r.fresh.text)) fail(T,
+    `a ten-minute-old reading reads "${r.fresh.text}"`); else ok();
+  if (!/חיים/.test(r.hour.text)) fail(T,
+    `a seventy-minute-old reading reads "${r.hour.text}"`); else ok();
+  if (/חיים/.test(r.stale.text)) fail(T,
+    `a three-hour-old reading still calls itself live: "${r.stale.text}"`); else ok();
+  if (!/שעות/.test(r.stale.text)) fail(T,
+    `a stale reading does not say how old it is: "${r.stale.text}"`); else ok();
+  if (/חיים/.test(r.old.text)) fail(T,
+    `a thirteen-hour-old reading still calls itself live: "${r.old.text}"`); else ok();
+  if (!/ישנים/.test(r.old.text)) fail(T,
+    `a thirteen-hour-old reading is not called old: "${r.old.text}"`); else ok();
+  if (r.stale.colour === r.fresh.colour) fail(T,
+    'stale and fresh are the same colour, so the glance says nothing'); else ok();
+  if (r.old.colour === r.stale.colour) fail(T,
+    'old and merely stale look identical'); else ok();
+  if (!/לדוגמה/.test(r.demo)) fail(T,
+    `the demo badge broke: "${r.demo}"`); else ok();
+  if (!r.noStamp) fail(T, 'with no timestamp the badge went blank'); else ok();
+}
+
 // ── a reader chooses which alerts wake them ──────────────────────────────
 // A subscription was all or nothing: the crossing, the lifts, the wind and
 // every alert a person posted, or silence. The only control left to someone
