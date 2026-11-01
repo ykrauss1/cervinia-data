@@ -1396,6 +1396,77 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'with no posts the strip says nothing at all'); else ok();
 }
 
+// ── the cards promise what the panels hold ───────────────────────────────
+// The subtitles live in texts.json, and the markup carries a copy as the
+// fallback for when that file cannot be fetched. The two drifted: the piste
+// card still said "איפה אוכלים על ההר" in the markup weeks after the line
+// was taken out of the content file, and anyone whose texts.json failed to
+// load saw the old wording. Whatever the reason for a mismatch, it means one
+// of the two is wrong.
+{
+  // Read from disk, not fetched: the page is opened over file://, where
+  // fetch is blocked, and this check must not depend on that.
+  const buttons = (JSON.parse(fs.readFileSync(TEXTS, 'utf8')).services || {}).buttons || [];
+  const r = await page.evaluate((btns) => {
+    const out = { missing: [], drift: [], count: btns.length };
+    for (const b of btns) {
+      const el = document.getElementById(b.id);
+      if (!el) { out.missing.push(b.id); continue; }
+      const lab = el.querySelector('.svc-txt b');
+      const sub = el.querySelector('.svc-txt small');
+      const L = lab ? lab.textContent.trim() : '';
+      const S = sub ? sub.textContent.trim() : '';
+      if (L !== (b.label || '').trim() || S !== (b.sub || '').trim()) {
+        out.drift.push({ id: b.id, markup: S, json: (b.sub || '').trim() });
+      }
+    }
+    return out;
+  }, buttons);
+
+  const T = 'the cards promise what the panels hold';
+  if (r.count < 8) fail(T, `only ${r.count} service buttons in texts.json`); else ok();
+  if (r.missing.length) fail(T,
+    `texts.json names cards the page does not have: ${r.missing.join(', ')}`); else ok();
+  if (r.drift.length) fail(T,
+    'markup and texts.json disagree: ' + r.drift.map(d =>
+      `${d.id} markup="${d.markup}" json="${d.json}"`).join(' ; ')); else ok();
+}
+
+// ── the search box in the header is a search box ─────────────────────────
+// It had no name and no type beyond "text", which is exactly the shape
+// Chrome decides is a "your name" field: it filled it with the saved name
+// and painted its own opaque background over a field that sits in a dark
+// header. autocomplete="off" does not stop that on its own.
+{
+  const r = await page.evaluate(() => {
+    const el = document.getElementById('global-search-input');
+    if (!el) return { missing: true };
+    // The raw stylesheet text, not the parsed rules: a browser that does not
+    // understand :-webkit-autofill drops the rule from cssRules entirely, and
+    // the guard would look missing when it is right there in the file.
+    const css = [...document.querySelectorAll('style')].map(n => n.textContent).join('\n');
+    return {
+      type: el.getAttribute('type'),
+      name: el.getAttribute('name') || '',
+      auto: el.getAttribute('autocomplete'),
+      label: el.getAttribute('aria-label') || '',
+      hasAutofillGuard: /#global-search-input:-webkit-autofill/.test(css)
+                        && /-webkit-box-shadow[^;]*inset/.test(css)
+    };
+  });
+
+  const T = 'the search box in the header is a search box';
+  if (r.missing) { fail(T, 'there is no #global-search-input at all'); }
+  else {
+    if (r.type !== 'search') fail(T, `type is "${r.type}", not search`); else ok();
+    if (!r.name) fail(T, 'the field still has no name, so the browser guesses'); else ok();
+    if (r.auto !== 'off') fail(T, `autocomplete is "${r.auto}"`); else ok();
+    if (!r.label) fail(T, 'the field has no accessible label'); else ok();
+    if (!r.hasAutofillGuard) fail(T,
+      'nothing covers the colour a browser paints when it autofills anyway'); else ok();
+  }
+}
+
 // ── the forum opens on request, and closes again ─────────────────────────
 // It used to sit open on the home page directly under the strip that
 // summarises it: the same posts twice, and no way to put the second copy
