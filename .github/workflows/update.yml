@@ -2,7 +2,10 @@ name: Run Scraper
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    # Not "*/30", which fires at :00 and :30 - the two busiest minutes on
+    # GitHub's scheduler, where runs are routinely delayed and sometimes
+    # dropped outright. Same cadence, moved off the crowd.
+    - cron: "7,37 * * * *"
   workflow_dispatch:
 
 jobs:
