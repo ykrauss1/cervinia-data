@@ -3553,40 +3553,64 @@
   "services": {
     "buttons": [
       {
-        "id": "svc-travel",
-        "label": "✈️ תכנון טיול"
-      },
-      {
-        "id": "svc-skipass",
-        "label": "🎫 סקי פס"
-      },
-      {
-        "id": "svc-rental",
-        "label": "⛷️ השכרת ציוד"
-      },
-      {
-        "id": "svc-lessons",
-        "label": "🏫 הדרכת סקי"
-      },
-      {
-        "id": "svc-kosher",
-        "label": "🍽️🕯️ כשרות ושבת"
+        "id": "svc-piste",
+        "icon": "⛷️",
+        "label": "מסלולים, בקתות ואפרה סקי",
+        "sub": "מדריך לכל מסלול · איפה עוצרים על ההר · איפה מבלים אחרי"
       },
       {
         "id": "svc-webcam",
-        "label": "📷 מצלמות"
+        "icon": "📷",
+        "label": "מצלמות",
+        "sub": "לראות את ההר עכשיו, לפני שיוצאים"
       },
       {
         "id": "svc-parking",
-        "label": "🚌🅿️🚨 תחבורה, חניה וחירום"
+        "icon": "🚌",
+        "label": "תחבורה, חניה וחירום",
+        "sub": "מהשדה לכפר · לוחות זמנים · רכב שכור · מספרי חירום"
+      },
+      {
+        "id": "svc-travel",
+        "icon": "✈️",
+        "label": "תכנון טיול",
+        "sub": "טיסות, לינה ורכב — הלוך וחזור"
+      },
+      {
+        "id": "svc-skipass",
+        "icon": "🎫",
+        "label": "סקי פס",
+        "sub": "מחירים, הנחות ואיפה קונים"
+      },
+      {
+        "id": "svc-rental",
+        "icon": "🎿",
+        "label": "השכרת ציוד",
+        "sub": "חמש חנויות, מחירון ושעות"
+      },
+      {
+        "id": "svc-lessons",
+        "icon": "🏫",
+        "label": "הדרכת סקי",
+        "sub": "מחירון 2026/27, קבוצות ומדריכים"
+      },
+      {
+        "id": "svc-kosher",
+        "icon": "🕯️",
+        "label": "כשרות ושבת",
+        "sub": "זמני שבת · מה לקנות בסופר · מילאנו וטורינו"
       },
       {
         "id": "svc-maps",
-        "label": "🗺️ מפות"
+        "icon": "🗺️",
+        "label": "מפות",
+        "sub": "מסלולים, הכפר ונקודות ציון"
       },
       {
-        "id": "svc-piste",
-        "label": "⛷️ מסלולים, בקתות ואפרה סקי"
+        "id": "svc-around",
+        "icon": "🏔️",
+        "label": "מה לעשות באזור",
+        "sub": "ליום סוער, או ליום בלי מגלשיים"
       }
     ]
   },
@@ -3860,7 +3884,6 @@
         "kashrut": "בשרי גלאט, תחת רבנות מילאנו (Milano)",
         "phone": "+39 02 4694643",
         "url": "https://www.baghetto.com/en/",
-        "warn": "בכתובת הזו פעלה בעבר מסעדת Re Salomone, ועדיין מסתובבים ברשת שלטים ורישומים בשם הישן. אותו טלפון.",
         "map": "Ba'Ghetto",
         "latlon": "45.4618696,9.1513205"
       },
@@ -3871,7 +3894,8 @@
         "kashrut": "בשרי גלאט, תחת רבנות מילאנו (Milano)",
         "phone": "+39 02 48519326",
         "map": "Denzel",
-        "latlon": "45.4650008,9.1553071"
+        "latlon": "45.4650008,9.1553071",
+        "url": "https://www.denzel.it/"
       },
       {
         "name": "🧀 My Kafè — חלבי ופרווה",
@@ -3889,7 +3913,8 @@
         "kashrut": "חלבי, חלב ישראל, תחת רבנות מילאנו (Milano)",
         "phone": "+39 02 416368",
         "map": "Carmel",
-        "latlon": "45.456107,9.136635"
+        "latlon": "45.456107,9.136635",
+        "url": "https://carmelkosher.it/"
       },
       {
         "name": "🥩 Snubar — בשרי",
@@ -3939,7 +3964,8 @@
         "desc": "מצרכים, מאפים, חלות, מוכן לאכילה.",
         "phone": "+39 02 4122855",
         "map": "Kosher Paradise",
-        "latlon": "45.4570174,9.1359275"
+        "latlon": "45.4570174,9.1359275",
+        "url": "https://www.kosherparadise.it/contatto.html"
       },
       {
         "name": "🏪 Eretz — מינימרקט",
@@ -3975,7 +4001,8 @@
         "phone": "+39 011 6596031",
         "warn": "הזמנה <b>24 שעות מראש לפחות</b>. בשבת ובחג האוכל נאסף מראש.",
         "map": "Eno ristorante",
-        "latlon": "45.059707,7.682029"
+        "latlon": "45.059707,7.682029",
+        "url": "https://www.enoristorante.it/"
       },
       {
         "name": "🥖 Bertino — מאפייה",
@@ -3993,7 +4020,8 @@
         "desc": "שלושה סניפים.",
         "kashrut": "חלב סתם — כל הטעמים מאושרים אלא אם צוין אחרת",
         "map": "Mara dei Boschi",
-        "latlon": "45.0579782,7.683849"
+        "latlon": "45.0579782,7.683849",
+        "url": "https://www.maradeiboschi.it/"
       },
       {
         "name": "🍲 Casa di Riposo — בית האבות היהודי",
@@ -4060,6 +4088,44 @@
         "url": "https://beitchabadcentralmilan.com/en/",
         "map": "Beit Chabad centro Milano",
         "latlon": "45.4619442,9.1870235"
+      },
+      {
+        "name": "🕍 בית הכנסת הפרסי — Via Montecuccoli",
+        "addr": "Via Montecuccoli 27",
+        "desc": "נוסח ספרדי-פרסי. מופיע ברשימת בתי הכנסת של קהילת מילאנו. זהו בית הכנסת הקרוב ביותר ל-BB Hotels Aparthotel Visconti, ובאותו רחוב נמצאת הקצבייה Mister Meat.",
+        "map": "Sinagoga Via Montecuccoli Milano",
+        "xy_approx": true,
+        "latlon": "45.45891,9.1321506"
+      },
+      {
+        "name": "🕍 Beth Yoseph ve-Eliahu",
+        "addr": "Via Eupili 8",
+        "desc": "נוסח איטלקי. מחוץ לרובע הדרום-מערבי — בערך 4 ק״מ צפונה מרחוב Soderini.",
+        "map": "Via Eupili 8 Milano",
+        "xy_approx": true,
+        "latlon": "45.4818,9.1627"
+      },
+      {
+        "name": "🕍 Ohel Ya'akov",
+        "addr": "Via Cellini 2",
+        "desc": "נוסח אשכנזי, חב\"ד. ממזרח למרכז, רחוק מהאוכל הכשר ומהלינה.",
+        "map": "Via Benvenuto Cellini 2 Milano",
+        "xy_approx": true,
+        "latlon": "45.4635,9.2065"
+      },
+      {
+        "name": "🕍 Beth Shlomo",
+        "addr": "Corso Lodi 8",
+        "desc": "נוסח אשכנזי. דרומית-מזרחית למרכז.",
+        "map": "Sinagoga Beth Shlomo Corso Lodi Milano",
+        "latlon": "45.450463,9.2043827"
+      },
+      {
+        "name": "🕍 Naar Israel — חב\"ד פיאצה קסטלו",
+        "addr": "Piazza Castello 5",
+        "desc": "בית חב\"ד במרכז העיר, ליד הקסטלו. נוח למי שמטייל במרכז ולא שוהה ברובע היהודי.",
+        "map": "Chabad House Milan city center Naar Israel",
+        "latlon": "45.4684114,9.1803476"
       }
     ],
     "milan_stays_title": "🛏️ לינה במילאנו לשומרי שבת",
@@ -4072,16 +4138,18 @@
         "phone": "+39 02 4875 0072",
         "warn": "ℹ️ ודאו מול המלון את המפתח המכני ואת החיישנים לפני שמזמינים.",
         "map": "BB Hotels Aparthotel Visconti",
-        "latlon": "45.4650053,9.1355913"
+        "latlon": "45.4650053,9.1355913",
+        "url": "https://bbhotels.it/aparthotel-visconti/"
       },
       {
         "name": "🔑 CHEZROMYK — צימר כשר",
         "addr": "Via Marostica 40",
-        "desc": "<b>מפתח ידני.</b> ארוחת בוקר כשרה. המארחים גרים בסמוך. כ-9 דקות הליכה מבית חב\"ד.",
+        "desc": "<b>מפתח ידני.</b> ארוחת בוקר כשרה. המארחים גרים בסמוך. כ-9 דקות הליכה מבית חב\"ד. נפתח גם סניף שני ממול, ב-Via Marostica 35.",
         "map": "Via Marostica 40",
         "xy_approx": true,
         "latlon": "45.461412,9.1421597",
-        "phone": "+39 348 398 2698"
+        "phone": "+39 348 398 2698",
+        "url": "https://chezromyk.it/"
       },
       {
         "name": "🔑 Residence Desenzano",
@@ -4089,14 +4157,16 @@
         "warn": "בדירות יש כיריים אינדוקציה — שווה לבדוק.",
         "map": "Residence Desenzano",
         "latlon": "45.4620657,9.1407961",
-        "phone": "+39 02 487 8811"
+        "phone": "+39 02 487 8811",
+        "url": "https://www.residencedesenzano.it/"
       },
       {
         "name": "🔑 Milan Marriott",
         "desc": "<b>אופציה למפתח מכני רגיל</b> — צריך לבקש.",
         "map": "Milan Marriott Hotel",
         "latlon": "45.4610932,9.1539466",
-        "phone": "+39 02 48521"
+        "phone": "+39 02 48521",
+        "url": "https://www.marriott.com/en-us/hotels/milit-milan-marriott-hotel/overview/"
       },
       {
         "name": "🔑 B&B I 10 mondi",
@@ -4108,11 +4178,12 @@
       {
         "name": "🏠 MK Apartment",
         "addr": "Via Lorenzo Perosi 8",
-        "desc": "דירה כשרה, כ-5 דקות מבית חב\"ד. מדווח על פלטה לשבת.",
+        "desc": "דירה כשרה, כ-5 דקות מבית חב\"ד. מדווח על פלטה לשבת. הטלפון הוא מספר וואטסאפ.",
         "map": "Via Lorenzo Perosi 8",
         "xy_approx": true,
         "latlon": "45.4555641,9.1431226",
-        "phone": "+1 321 346 9055"
+        "phone": "+1 321 346 9055",
+        "url": "https://mkapartment-milan.com/"
       }
     ],
     "cervinia_products_title": "🛒 מה אפשר לקנות בסופר בצ'רוויניה ובאיטליה — עם גוף הכשרות",
@@ -4173,7 +4244,8 @@
       "🔬 <b>רשימת תוספי המזון האסורים</b> — בסוף החוברת יש טבלה של הרב ריקרדו די סניי, לפי מספרי E אירופיים: אילו תוספים אסורים תמיד ואילו אסורים ללא פיקוח. שימושי כשמוצר לא מופיע ברשימה ורוצים לקרוא את התווית.<br><span style=\"font-size:0.76rem;color:#888;\">אסורים תמיד: <bdi dir=\"ltr\">E120, E441, E542, E630, E631, E635, E1000</bdi> · עלולים להיות ממקור חלבי: <bdi dir=\"ltr\">E469, E637, E966</bdi></span>",
       "⚠️ <b>הרשימה מתעדכנת כל שנה</b> וגם במהלכה. היא נועדה לשימוש פרטי לפי רמת הכשרות של כל אחד, ואינה מחליפה שאלת רב."
     ],
-    "milan_restaurants_title": "🍽️ מסעדות, קייטרינג וחנויות"
+    "milan_restaurants_title": "🍽️ מסעדות, קייטרינג וחנויות",
+    "milan_shuls_note": "רוב האוכל הכשר והלינה נמצאים ברובע הדרום-מערבי (Soderini · Sally Mayer · Montecuccoli · San Gimignano), וגם רוב בתי הכנסת. <b>במילאנו אין עירוב</b>, אז המרחק מהלינה לבית הכנסת נחשב.<br>יש בעיר עוד אורטוריות קטנות — Centro Modena ברחוב Tenca ו-Josef Tehillot ברחוב dei Gracchi בין השאר. הרשימה המלאה באתר הקהילה, <a href=\"https://www.mosaico-cem.it/milano-ebraica/sinagoghe-e-oratori/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a73e8;\">mosaico-cem.it</a>."
   },
   "around": {
     "title": "🏔️ מה לעשות באזור",
@@ -4186,7 +4258,7 @@
       "❄️ <b>רוח שסוגרת את הגבוה לא בהכרח סוגרת את הנמוך.</b> מגזר ולטורננש (Valtournenche) מגיע עד כ-2,432 מ' בלבד, לעומת 3,480 מ' ב-Plateau Rosà — כאלף מטר נמוך יותר וקרוב לקו העצים. כשרוח משביתה את הרכבלים הגבוהים, Salette ו-Motta לרוב ממשיכים לעבוד. גם Chamois ו-Torgnon הם מגזרים נמוכים ומוגנים.<br>בדקו בדף הסטטוס הרשמי, שיש בו לשונית נפרדת לכל מגזר, לפני שיורדים."
     ],
     "status_url": "https://www.cervinia.it/en/impianti",
-    "status_label": "🚦 סטטוס מעליות ומסלולים — לפי מגזר",
+    "status_label": "🚦 סטטוס מעליות ומסלולים — לפי איזור",
     "storm_label": "☔ רק מה שעובד ביום סוער",
     "cats": [
       {
@@ -4814,7 +4886,7 @@
           {
             "name": "Cervino Ski Paradise — סטטוס מעליות ומסלולים",
             "url": "https://www.cervinia.it/en/impianti",
-            "covers": "הסטטוס החי של המעליות והמסלולים, לפי מגזר. מתעדכן אחרי 08:30",
+            "covers": "הסטטוס החי של המעליות והמסלולים, לפי איזור. מתעדכן אחרי 08:30",
             "quote": ""
           },
           {
