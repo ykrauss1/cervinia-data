@@ -553,9 +553,291 @@ function saveToJson(data) {
 }
 
 // ============================================================
-// MAIN
+// AUTOMATIC ALERTS
+//
+// The scraper runs every half hour and is the only thing on this project
+// that sees the mountain twice. That is all an alert needs: not a reading,
+// but a reading next to the one before it. "Gust 78" is weather; "gust was
+// 40 and is now 78" is news.
+//
+// Three rules the whole block obeys:
+//
+//   1. Transitions only. Every check compares the previous row against the
+//      new one, so a condition that persists is reported once, not every
+//      thirty minutes. cl_auto_alert's cooldown is the net under that, for
+//      the runs where the previous row is missing.
+//   2. No baseline, no alerts. If the previous reading cannot be read, this
+//      block does nothing at all rather than treat every value as a change.
+//   3. Daylight for anything about lifts. The feed reports zero open after
+//      closing time, every single evening. Pushing that would teach people
+//      to ignore us by the end of the first week.
+//
+// Set CL_AUTO_ALERTS=off to silence the whole block without touching code.
 // ============================================================
+
+// Minutes since midnight in Europe/Rome - the mountain's own clock, not the
+// runner's UTC and not the reader's.
+function romeMinutes(d = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Rome',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    }).formatToParts(d);
+    const h = +parts.find(p => p.type === 'hour').value;
+    const m = +parts.find(p => p.type === 'minute').value;
+    return h * 60 + m;
+  } catch {
+    return d.getUTCHours() * 60 + d.getUTCMinutes();
+  }
+}
+
+// Lifts are reported closed all evening and all night. Only inside the
+// skiing day does "closed" mean something went wrong.
+const LIFT_WINDOW = [9 * 60, 15 * 60 + 30];   // 09:00 - 15:30 Rome
+const WIND_WINDOW = [6 * 60, 18 * 60];        // 06:00 - 18:00 Rome
+
+function inWindow([from, to], now = romeMinutes()) {
+  return now >= from && now <= to;
+}
+
+// Numbers arrive as numbers, as "45", as "45 cm" or as null, depending on
+// which part of the feed they came from.
+function num(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  const m = String(v).match(/-?\d+(?:[.,]\d+)?/);
+  if (!m) return null;
+  const n = parseFloat(m[0].replace(',', '.'));
+  return isFinite(n) ? n : null;
+}
+
+function upper(v) {
+  return String(v ?? '').trim().toUpperCase();
+}
+
+// The resort this site is about, falling back to the whole Matterhorn area
+// when the village panel could not be read.
+function liftsOpen(d) {
+  const local = num(d?.lifts_open_local);
+  return local !== null ? local : num(d?.lifts_open_global);
+}
+function liftsTotal(d) {
+  const local = num(d?.lifts_total_local);
+  return local !== null ? local : num(d?.lifts_total_global);
+}
+
+// ------------------------------------------------------------
+// The rules
+//
+// Each returns an alert or nothing. Severity decides the push: 'warning' and
+// 'danger' reach phones, 'info' only reaches the strip - so good news is
+// shown without waking anybody.
+// ------------------------------------------------------------
+// nowMin is injectable so the rules can be tested at a chosen hour instead
+// of only at whatever hour the test happens to run.
+function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
+  if (!prev || !next) return [];
+  const out = [];
+
+  // --- the crossing to Zermatt ------------------------------------------
+  const zPrev = upper(prev.zermatt_link);
+  const zNext = upper(next.zermatt_link);
+  if (zPrev === 'OPEN' && zNext === 'CLOSED') {
+    out.push({
+      key: 'zermatt-closed',
+      severity: 'danger',
+      hours: 8,
+      cooldown: 10,
+      text: 'המעבר לצ׳רמט סגור. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.'
+    });
+  } else if (zPrev === 'CLOSED' && zNext === 'OPEN') {
+    out.push({
+      key: 'zermatt-open',
+      severity: 'info',          // good news: the strip, not the phone
+      hours: 5,
+      cooldown: 8,
+      text: 'המעבר לצ׳רמט נפתח מחדש.'
+    });
+  }
+
+  // --- lifts, inside the skiing day only --------------------------------
+  if (inWindow(LIFT_WINDOW, nowMin)) {
+    const oPrev = liftsOpen(prev);
+    const oNext = liftsOpen(next);
+    const tNext = liftsTotal(next);
+
+    // "Was running, is not." Three is the floor on purpose: it means the day
+    // had actually started, so this is a stoppage and not a slow morning.
+    if (oPrev !== null && oNext !== null && oPrev >= 3 && oNext === 0) {
+      out.push({
+        key: 'lifts-all-closed',
+        severity: 'danger',
+        hours: 5,
+        cooldown: 8,
+        text: 'כל המעליות בצ׳רוויניה סגורות כרגע. בדקו את המצב לפני שאתם יוצאים.'
+      });
+    } else if (
+      oPrev !== null && oNext !== null && tNext &&
+      oPrev >= 5 && oNext > 0 && oNext <= Math.floor(oPrev * 0.4)
+    ) {
+      out.push({
+        key: 'lifts-mostly-closed',
+        severity: 'warning',
+        hours: 4,
+        cooldown: 8,
+        text: 'רוב המעליות בצ׳רוויניה נסגרו — ' + oNext + ' פתוחות מתוך ' + tNext + '.'
+      });
+    }
+  }
+
+  // --- wind ---------------------------------------------------------------
+  if (inWindow(WIND_WINDOW, nowMin)) {
+    const gPrev = num(prev.wind_gust);
+    const gNext = num(next.wind_gust);
+    if (gPrev !== null && gNext !== null) {
+      if (gPrev < 100 && gNext >= 100) {
+        out.push({
+          key: 'wind-severe',
+          severity: 'danger',
+          hours: 6,
+          cooldown: 10,
+          text: 'רוח עזה בהר — משבים עד ' + Math.round(gNext) +
+                ' קמ״ש. צפו לסגירות נרחבות של מעליות.'
+        });
+      } else if (gPrev < 70 && gNext >= 70) {
+        out.push({
+          key: 'wind-strong',
+          severity: 'warning',
+          hours: 5,
+          cooldown: 10,
+          text: 'רוח חזקה בהר — משבים עד ' + Math.round(gNext) +
+                ' קמ״ש. ייתכנו סגירות של מעליות גבוהות.'
+        });
+      }
+    }
+  }
+
+  // --- avalanche danger ---------------------------------------------------
+  const aPrev = num(prev.avalanche_level);
+  const aNext = num(next.avalanche_level);
+  if (aNext !== null && aNext >= 4 && (aPrev === null || aPrev < 4)) {
+    out.push({
+      key: 'avalanche-high',
+      severity: 'danger',
+      hours: 18,
+      cooldown: 20,
+      text: 'דרגת סכנת מפולות ' + aNext +
+            ' באיזור. אל תצאו מהפיסטות המסומנות.'
+    });
+  }
+
+  // --- fresh snow ---------------------------------------------------------
+  // The one piece of good news worth a line on the strip. No push: nobody
+  // needs their phone to buzz about powder at four in the morning.
+  const sPrev = num(prev.snow_depth);
+  const sNext = num(next.snow_depth);
+  if (sPrev !== null && sNext !== null && sNext - sPrev >= 20) {
+    out.push({
+      key: 'fresh-snow',
+      severity: 'info',
+      hours: 14,
+      cooldown: 20,
+      text: 'ירד שלג טרי — ' + Math.round(sNext - sPrev) +
+            ' ס״מ נוספו, ועומק השלג כעת ' + Math.round(sNext) + ' ס״מ.'
+    });
+  }
+
+  return out;
+}
+
+// ------------------------------------------------------------
+// Reading the baseline
+//
+// Must run BEFORE saveToSupabase, which overwrites ski_status_current with
+// the new reading. Called first in main for that reason.
+// ------------------------------------------------------------
+async function readPreviousReading() {
+  try {
+    const { data, error } = await supabase
+      .from('ski_status_current')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+    if (error) {
+      console.warn('Previous reading unavailable:', error.message);
+      return null;
+    }
+    if (!data) {
+      console.log('No previous reading yet - auto alerts stay quiet this run.');
+      return null;
+    }
+    return data;
+  } catch (e) {
+    console.warn('Previous reading failed:', e.message);
+    return null;
+  }
+}
+
+// ------------------------------------------------------------
+// Raising them
+//
+// cl_auto_alert returns the new id, or null when the key is still within its
+// cooldown. Both are success; only a thrown error is a problem, and even that
+// is logged rather than allowed to fail the run - the data is already saved
+// by this point and a missed alert is better than a missed update.
+// ------------------------------------------------------------
+async function raiseAutoAlerts(prev, next) {
+  if (String(process.env.CL_AUTO_ALERTS || '').toLowerCase() === 'off') {
+    console.log('Auto alerts: disabled by CL_AUTO_ALERTS=off.');
+    return;
+  }
+
+  let found;
+  try {
+    found = detectAutoAlerts(prev, next);
+  } catch (e) {
+    console.error('Auto alert detection failed:', e.message);
+    return;
+  }
+
+  if (!found.length) {
+    console.log('Auto alerts: nothing changed.');
+    return;
+  }
+
+  for (const a of found) {
+    try {
+      const { data, error } = await supabase.rpc('cl_auto_alert', {
+        p_key:      a.key,
+        p_text:     a.text,
+        p_severity: a.severity,
+        p_hours:    a.hours,
+        p_cooldown: a.cooldown
+      });
+      if (error) {
+        console.error('Auto alert "' + a.key + '" rejected:', error.message);
+      } else if (data) {
+        console.log('Auto alert raised [' + a.severity + '] ' + a.key + ' -> ' + data);
+      } else {
+        console.log('Auto alert "' + a.key + '" still in cooldown - not sent.');
+      }
+    } catch (e) {
+      console.error('Auto alert "' + a.key + '" failed:', e.message);
+    }
+  }
+}
+
+// ============================================================
+// MAIN
+//
+// The order matters in one place: the previous reading is fetched first,
+// because saveToSupabase overwrites it.
+// ============================================================
+const previous = await readPreviousReading();
+
 const data = await scrape();
 console.log('SCRAPED DATA:', JSON.stringify(data, null, 2));
+
 saveToJson(data);
 await saveToSupabase(data);
+await raiseAutoAlerts(previous, data);
