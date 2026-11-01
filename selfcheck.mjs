@@ -1176,6 +1176,148 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the rebuilt form lost the handler that fills the template'); else ok();
 }
 
+// ── an address printed as text is a dead end ─────────────────────────────
+// The huts and apres-ski bars carried lines like "rifugioteodulo.com" as
+// plain text: the reader sees the address and has to retype it. Every bare
+// domain that reaches the page is turned into a link, wherever it renders.
+{
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise(res => setTimeout(res, ms));
+    const RE = /(^|[^@\w.\/-])((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:com|it|ch|org|net|eu|info))(?![\w@.\/-])/i;
+    const bare = [];
+    let linked = 0;
+    const scan = (where) => {
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = w.nextNode())) {
+        const m = (n.nodeValue || '').match(RE);
+        if (!m) continue;
+        const el = n.parentElement;
+        if (!el || !el.offsetParent) continue;
+        if (el.closest('a')) { linked++; continue; }
+        if (el.closest('script,style,textarea,input')) continue;
+        bare.push(where + ': ' + m[2]);
+      }
+    };
+    scan('home');
+    for (const id of [...document.querySelectorAll('.modal')].map(m => m.id).filter(Boolean)) {
+      try { openM(id); } catch (e) { continue; }
+      await wait(200);
+      scan(id);
+      // the huts are behind their own chip and get a pass of their own below,
+      // so this walk leaves that filter alone rather than toggling it
+      try { closeM(id); } catch (e) {}
+    }
+    return { bare: [...new Set(bare)], linked };
+  });
+  if (r.bare.length) fail('an address printed as text is a dead end',
+    r.bare.slice(0, 6).join(' · ')); else ok();
+  // And the sweep itself, tested directly rather than through a list whose
+  // filter chip is a toggle: a bare address put into the page has to come
+  // back as a link, and a phone number has to come back isolated. This is
+  // what actually fails when either sweep is disabled.
+  const sweep = await page.evaluate(async () => {
+    const probe = document.createElement('div');
+    probe.id = 'sweep-probe';
+    probe.textContent = 'בדיקה rifugioteodulo.com · 0166 949400 · סוף';
+    document.body.appendChild(probe);
+    await new Promise(res => setTimeout(res, 400));   // the observer is debounced
+    const html = probe.innerHTML;
+    const out = {
+      linked: /<a [^>]*href="https:\/\/rifugioteodulo\.com"/.test(html),
+      isolated: /<bdi dir="ltr">0166 949400<\/bdi>/.test(html)
+    };
+    probe.remove();
+    return out;
+  });
+  if (!sweep.linked) fail('an address printed as text is a dead end',
+    'an address added to the page was left as plain text'); else ok();
+  if (!sweep.isolated) fail('an address printed as text is a dead end',
+    'a phone number added to the page was left without an isolate'); else ok();
+}
+
+// ── the forum shows faces, and says it is there ──────────────────────────
+// The avatars were uploaded, cropped and stored, and the forum never looked
+// them up - every post was a name in a list. And the forum itself sits below
+// ten service cards, so nobody landing on the page knew it existed.
+{
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise(res => setTimeout(res, ms));
+    allPosts = [1, 2, 3, 4].map(i => ({
+      id: 'p' + i, user: 'משתמש ' + i, content: 'הודעה ' + i,
+      timestamp: Date.now() - i * 3600e3, replies: [], reactions: {}, _userReacts: {}
+    }));
+    window.FORUM_AVATARS = { 'משתמש 2': 'https://example.com/face.jpg' };
+    renderPosts('');
+    await wait(250);
+    const box = document.getElementById('forum-peek');
+    const track = document.getElementById('forum-peek-track');
+    const out = {
+      peekShown: box && box.style.display === 'block',
+      cards: document.querySelectorAll('.peek-card').length,
+      // The markup is what is checked, not the loaded page: the test URL is
+      // not a real image, so the <img> fires onerror and the circle falls
+      // back to the initial - which is the behaviour wanted in production and
+      // would hide the bug here.
+      avatarMarkup: /<img [^>]*src="https:\/\/example\.com\/face\.jpg"/.test(_postAvatar('משתמש 2')),
+      fallbackMarkup: /<span data-ini="[^"]+"[^>]*>[^<]+<\/span>/.test(_postAvatar('משתמש 9')),
+      postShowsCircle: !!document.querySelector('#posts-list span[data-ini]'),
+      dir: track ? getComputedStyle(track).direction : null
+    };
+    // the arrows move it, and move it back
+    const a = track.scrollLeft; peekMove(1); await wait(500);
+    out.moved = Math.abs(track.scrollLeft - a) > 50;
+    peekMove(-1); await wait(500);
+    out.returned = Math.abs(track.scrollLeft - a) < 5;
+    // and with nothing to show the strip disappears rather than showing husks
+    allPosts = [];
+    renderForumPeek();
+    out.hiddenWhenEmpty = box.style.display === 'none';
+    return out;
+  });
+  if (!r.peekShown || r.cards < 3) fail('the forum shows faces, and says it is there',
+    `the home-page strip drew ${r.cards} cards (shown: ${r.peekShown})`); else ok();
+  if (!r.avatarMarkup) fail('the forum shows faces, and says it is there',
+    'a post whose author has a photo is drawn without it'); else ok();
+  if (!r.fallbackMarkup) fail('the forum shows faces, and says it is there',
+    'a post whose author has no photo lost its initial circle'); else ok();
+  if (!r.postShowsCircle) fail('the forum shows faces, and says it is there',
+    'the posts themselves carry no avatar at all'); else ok();
+  if (!r.moved || !r.returned) fail('the forum shows faces, and says it is there',
+    `the arrows moved it: ${r.moved}, and back: ${r.returned} (direction ${r.dir})`); else ok();
+  if (!r.hiddenWhenEmpty) fail('the forum shows faces, and says it is there',
+    'with no posts the strip stayed on screen'); else ok();
+}
+
+// ── the colour answers before the digits are read ────────────────────────
+// Every live number was the same blue, so "0 of 9 slopes" and "14 of 15"
+// looked identical at a glance - which is the one thing somebody checking
+// the bar at 8am wants to know without reading.
+{
+  const r = await page.evaluate(async () => {
+    const read = () => getComputedStyle(document.getElementById('bar-slopes-local')).color;
+    const base = { lifts_open_global: 10, lifts_total_global: 15 };
+    const out = {};
+    renderLiveBar(Object.assign({}, base, { slopes_open_global: 0, slopes_total_global: 9 }));
+    out.shut = read();
+    renderLiveBar(Object.assign({}, base, { slopes_open_global: 2, slopes_total_global: 9 }));
+    out.some = read();
+    renderLiveBar(Object.assign({}, base, { slopes_open_global: 9, slopes_total_global: 9 }));
+    out.open = read();
+    return out;
+  });
+  const distinct = new Set([r.shut, r.some, r.open]).size;
+  if (distinct !== 3) fail('the colour answers before the digits are read',
+    `nothing open, partly open and all open came back as ${distinct} colour(s): ${JSON.stringify(r)}`); else ok();
+  // red for shut, green for open - not the other way round
+  const redish = (c) => { const n = c.match(/\d+/g).map(Number); return n[0] > 200 && n[1] < 150; };
+  const greenish = (c) => { const n = c.match(/\d+/g).map(Number); return n[1] > 150 && n[0] < 150; };
+  if (!redish(r.shut)) fail('the colour answers before the digits are read',
+    `with nothing open the number is ${r.shut}`); else ok();
+  if (!greenish(r.open)) fail('the colour answers before the digits are read',
+    `with everything open the number is ${r.open}`); else ok();
+}
+
 // ── a long panel says what is inside it ──────────────────────────────────
 // Opening "kosher -> Milan" used to drop the reader into restaurants with no
 // sign that synagogues and places to stay followed further down. Each long
