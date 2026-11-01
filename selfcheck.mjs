@@ -2349,6 +2349,62 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     fail(T, "a person's card is labelled a measurement"); else ok();
   if (r.badgeThrew)
     fail(T, 'the unread badge crashes on an authorless alert: ' + r.badgeThrew); else ok();
+
+  // The mark lived only in the card's grey footer line, which most people
+  // never reach: the banner at the top of the page is where an alert is
+  // actually met, and many readers never open the panel at all. It has to
+  // survive there, and it has to be above the fold inside the card.
+  const places = await page.evaluate(() => {
+    const now = Date.now();
+    const mk = (id, author, name, text) => _rowToAlert({
+      id, author_id: author, author_name: name, text,
+      severity: 'warning', kind: 'alert',
+      created_at: new Date(now - 6e4).toISOString(),
+      expires_at: new Date(now + 36e5).toISOString() });
+    _alerts = [mk('s1', null, 'צ׳רוויניה לייב', 'רוח חזקה בהר.'),
+               mk('s2', '11111111-1111-1111-1111-111111111111', 'דוד', 'תור ארוך בפלאן מזון.')];
+    refreshAlertStrip();
+    const strip = document.getElementById('alert-strip');
+    const out = {
+      stripChip: !!strip.querySelector('.auto-chip'),
+      stripShown: getComputedStyle(strip).display !== 'none',
+      stripHeight: strip.getBoundingClientRect().height
+    };
+    // The rows that unfold under the banner show everything AFTER the first,
+    // so the system alert has to be second for this to test anything at all.
+    _alerts = [mk('h1', '11111111-1111-1111-1111-111111111111', 'דוד', 'תור ארוך.'),
+               mk('s3', null, 'צ׳רוויניה לייב', 'רוח חזקה בהר.')];
+    _alertMoreOpen = true; refreshAlertStrip();
+    const more = document.getElementById('alert-more');
+    out.moreRows = more ? more.querySelectorAll('.amore-row').length : 0;
+    out.moreChip = !!(more && more.querySelector('.auto-chip'));
+    _alertMoreOpen = false;
+    _alerts = [mk('s1', null, 'צ׳רוויניה לייב', 'רוח חזקה בהר.'),
+               mk('s2', '11111111-1111-1111-1111-111111111111', 'דוד', 'תור ארוך בפלאן מזון.')];
+
+    // inside the card: at the top with the severity tag, not in the footer
+    const html = _alertCardHtml(_alerts[0]);
+    const tagAt  = html.indexOf('מדידה אוטומטית');
+    const textAt = html.indexOf('רוח חזקה בהר');
+    out.chipBeforeText = tagAt >= 0 && textAt >= 0 && tagAt < textAt;
+    out.humanCardClean = _alertCardHtml(_alerts[1]).indexOf('מדידה אוטומטית') < 0;
+    _alerts = [];
+    refreshAlertStrip();
+    return out;
+  });
+
+  if (!places.stripShown || places.stripHeight < 10)
+    fail(T, 'the banner did not render, so the check saw nothing'); else ok();
+  if (!places.stripChip) fail(T,
+    'the banner gives no sign that the alert is a measurement'); else ok();
+  if (places.moreRows !== 1) fail(T,
+    `the unfolded rows did not render (${places.moreRows}), so the check saw nothing`); else ok();
+  if (!places.moreChip) fail(T,
+    'the rows unfolded under the banner lose the mark'); else ok();
+  if (!places.chipBeforeText) fail(T,
+    'the mark sits below the text, where it is only found by scrolling'); else ok();
+  if (!places.humanCardClean) fail(T,
+    "a person's report is labelled a measurement"); else ok();
 }
 
 await browser.close();
