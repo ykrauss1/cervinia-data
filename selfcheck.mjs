@@ -1487,6 +1487,41 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the button opens a map without naming the station the run starts from'); else ok();
 }
 
+// ── the tab carries our icon, not a globe ────────────────────────────────
+// The page declared an apple-touch-icon and nothing else. apple-touch-icon
+// is for an iPhone home screen; the browser tab reads rel="icon", and with
+// none declared every tab showed the generic globe.
+{
+  const r = await page.evaluate(() => {
+    const links = [...document.querySelectorAll('link[rel~="icon"]')]
+      .map(l => ({ rel: l.getAttribute('rel'),
+                   href: l.getAttribute('href'),
+                   sizes: l.getAttribute('sizes') }));
+    return {
+      links,
+      hasPlainIcon: links.some(l => /(^|\s)icon(\s|$)/.test(l.rel)),
+      hasApple: !!document.querySelector('link[rel="apple-touch-icon"]'),
+      allRelative: links.every(l => l.href && !/^https?:/i.test(l.href))
+    };
+  });
+
+  const T = 'the tab carries our icon, not a globe';
+  if (!r.hasPlainIcon) fail(T,
+    'no rel="icon" is declared, so the tab falls back to the browser default'); else ok();
+  if (r.links.length < 2) fail(T,
+    `only ${r.links.length} icon link(s) - one size has to serve every display`); else ok();
+  if (!r.hasApple) fail(T, 'the iPhone home-screen icon was lost'); else ok();
+  if (!r.allRelative) fail(T,
+    'an icon is referenced absolutely and will not follow the site between hosts'); else ok();
+
+  // the files themselves must exist next to the page
+  const fs2 = await import('fs');
+  for (const f of ['favicon.ico', 'favicon-16.png', 'favicon-32.png']) {
+    if (!fs2.existsSync(path.join(path.dirname(PAGE), f)))
+      fail(T, `${f} is declared but not next to index.html`); else ok();
+  }
+}
+
 // ── the page says how old its numbers are ────────────────────────────────
 // The badge read "🟢 נתונים חיים" whenever the fetch succeeded, no matter
 // when the reading was taken. GitHub's scheduler drops most of the
