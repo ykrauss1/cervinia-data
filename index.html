@@ -744,7 +744,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v16.1';
+  var v='v16.3';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -946,13 +946,22 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
       </div>
 
+      <!-- How old the reading is. showDataSourceBadge has been writing into
+           this id for a long time, but the element itself disappeared in a
+           redesign, so the function has been doing nothing and the page has
+           been showing no freshness at all - while presenting readings from
+           this morning as live. -->
+      <div id="data-source-badge"
+           style="position:absolute;bottom:4px;inset-inline-start:12px;z-index:2;
+                  font-size:0.58rem;font-weight:600;letter-spacing:0.01em;
+                  color:rgba(255,255,255,0.45);pointer-events:none;"></div>
+
     </div>
   </div>
 
-  <!-- Services. Ten identical white cards with one line in the middle told
-       the reader nothing and left most of the page empty. They have weights
-       now - the ones people open on the mountain are larger - and each says
-       in a second line what is behind it. -->
+  <!-- Services. Every card the same size: two of them were double width for
+       a while and both read as a button someone had pulled by the corner.
+       Each says in a second line what is actually behind it. -->
   <div class="services-grid">
     <div id="svc-webcam" class="service-btn svc-wide" onclick="openM('webcamModal')">
       <span class="svc-ico">📷</span>
@@ -3455,7 +3464,13 @@ function loadMap(type) {
   _mapReset();
   _mapMarkPick(type);
   var pdfFiles = { 'piste-all':'slopesmap.pdf', 'piste':'slopesmap.pdf', 'piste-cervinia':'cerviniaslopesmap.pdf', 'piste-valtournenche':'valtournencheslopesmap.pdf', 'piste-swiss':'swissslopesmap.pdf' };
-  var baseUrl  = 'https://ykrauss1.github.io/cervinia-data/';
+  // Relative, not the full github.io address it used to be. Once a custom
+  // domain is attached, GitHub REDIRECTS the old URL to the new one, so a
+  // hardcoded absolute path turns every map into a cross-origin fetch that
+  // bounces through a redirect - which PDF.js is entitled to refuse. An
+  // empty base resolves against whatever host is serving the page, so the
+  // maps follow the site wherever it lives.
+  var baseUrl  = '';
 
   if (type === 'mymap') {
     var imgWrap = document.getElementById('map-img-wrap');
@@ -10969,7 +10984,7 @@ async function loadLiveData() {
         console.log('✅ Live data from Supabase:', rows && rows.length > 0 ? rows[0].updated_at : 'empty array', 'count:', rows ? rows.length : 0, 'keys:', rows && rows[0] ? Object.keys(rows[0]).join(',') : 'none', 'temp:', rows && rows[0] ? rows[0].temperature : 'N/A');
         if (rows && rows.length > 0) {
           renderLiveBar(rows[0]);
-          showDataSourceBadge('live');
+          showDataSourceBadge('live', rows[0].updated_at);
           return;
         }
       } else {
@@ -10982,15 +10997,46 @@ async function loadLiveData() {
   renderLiveBar(DEMO_LIVE);
 }
 
-function showDataSourceBadge(mode) {
+// How old a reading may be before the page stops calling it live. The
+// scraper is meant to run every half hour; GitHub's scheduler drops a lot of
+// those, and a reading from this morning was still being presented as
+// "נתונים חיים" at eight in the evening. The badge now says the age, which
+// is the one thing a reader needs to judge it for themselves.
+var DATA_FRESH_MIN = 90;    // under this: live
+var DATA_STALE_MIN = 6 * 60; // over this: say so in red
+
+function _dataAgeText(min) {
+  if (min < 60) return 'לפני ' + Math.max(1, Math.round(min)) + ' דק׳';
+  var h = Math.floor(min / 60);
+  if (h < 24) return 'לפני ' + h + (h === 1 ? ' שעה' : ' שעות');
+  var d = Math.floor(h / 24);
+  return 'לפני ' + d + (d === 1 ? ' יום' : ' ימים');
+}
+
+function showDataSourceBadge(mode, updatedAt) {
   const badge = document.getElementById('data-source-badge');
   if (!badge) return;
-  if (mode === 'live') {
-    badge.textContent = '🟢 נתונים חיים';
-    badge.style.color = '#2ecc71';
-  } else {
+  if (mode !== 'live') {
     badge.textContent = '🟡 נתונים לדוגמה';
     badge.style.color = '#f39c12';
+    badge.title = '';
+    return;
+  }
+
+  var min = null;
+  if (updatedAt) {
+    var t = new Date(updatedAt).getTime();
+    if (!isNaN(t)) min = (Date.now() - t) / 60000;
+  }
+
+  // No timestamp at all: do not claim freshness we cannot show.
+  if (min === null)              { badge.textContent = '🟢 נתונים חיים';  badge.style.color = '#2ecc71'; }
+  else if (min < DATA_FRESH_MIN) { badge.textContent = '🟢 נתונים חיים';  badge.style.color = '#2ecc71'; }
+  else if (min < DATA_STALE_MIN) { badge.textContent = '🟡 עודכן ' + _dataAgeText(min); badge.style.color = '#f39c12'; }
+  else                           { badge.textContent = '🔴 הנתונים ישנים · ' + _dataAgeText(min); badge.style.color = '#e74c3c'; }
+
+  if (min !== null) {
+    badge.title = 'הקריאה האחרונה: ' + new Date(updatedAt).toLocaleString('he-IL');
   }
 }
 
