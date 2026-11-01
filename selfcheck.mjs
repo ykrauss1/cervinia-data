@@ -1487,6 +1487,68 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the button opens a map without naming the station the run starts from'); else ok();
 }
 
+// ── a reader chooses which alerts wake them ──────────────────────────────
+// A subscription was all or nothing: the crossing, the lifts, the wind and
+// every alert a person posted, or silence. The only control left to someone
+// who wanted less was to turn the whole thing off.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    out.topics = (typeof PUSH_TOPICS !== 'undefined') ? PUSH_TOPICS.map(t => t.k) : [];
+    out.hasToggle = typeof togglePushTopic === 'function';
+    out.hasLoad   = typeof loadPushTopics === 'function';
+
+    // with nothing loaded the block must draw nothing at all, not an empty
+    // card promising choices the server never confirmed
+    _pushTopicsCache = null;
+    out.emptyWhenUnknown = _pushTopicsHtml() === '';
+
+    // with a server answer, one checkbox per topic, ticked to match
+    _pushTopicsCache = ['zermatt', 'snow'];
+    const html = _pushTopicsHtml();
+    const d = document.createElement('div'); d.innerHTML = html;
+    const boxes = [...d.querySelectorAll('input[type="checkbox"]')];
+    out.boxes = boxes.length;
+    out.checked = boxes.filter(b => b.checked).length;
+    out.everyTopicWired = PUSH_TOPICS.every(t => html.indexOf("togglePushTopic('" + t.k + "')") >= 0);
+    out.labelled = PUSH_TOPICS.every(t => html.indexOf(t.label) >= 0);
+    _pushTopicsCache = null;
+    return out;
+  });
+
+  const T = 'a reader chooses which alerts wake them';
+  const want = ['zermatt', 'lifts', 'weather', 'snow', 'community'];
+  if (JSON.stringify(r.topics) !== JSON.stringify(want))
+    fail(T, `the topic list is ${JSON.stringify(r.topics)}, not ${JSON.stringify(want)}`); else ok();
+  if (!r.hasToggle || !r.hasLoad) fail(T, 'the topic functions are missing'); else ok();
+  if (!r.emptyWhenUnknown) fail(T,
+    'the chooser draws itself before the server has said what is on'); else ok();
+  if (r.boxes !== want.length) fail(T,
+    `${r.boxes} checkboxes for ${want.length} topics`); else ok();
+  if (r.checked !== 2) fail(T,
+    `${r.checked} boxes ticked where the server said 2`); else ok();
+  if (!r.everyTopicWired) fail(T, 'a topic is drawn but wired to nothing'); else ok();
+  if (!r.labelled) fail(T, 'a topic has no readable label'); else ok();
+
+  // Turning the last one off would leave a phone subscribed and permanently
+  // deaf. It must refuse and point at the button that unsubscribes properly.
+  const last = await page.evaluate(async () => {
+    _pushTopicsCache = ['zermatt'];
+    let shown = '';
+    const real = window.renderPushRow;
+    window.renderPushRow = async (e) => { shown = e || ''; };
+    await togglePushTopic('zermatt');
+    window.renderPushRow = real;
+    const left = (_pushTopicsCache || []).slice();
+    _pushTopicsCache = null;
+    return { shown, left };
+  });
+  if (!/בטל/.test(last.shown)) fail(T,
+    `clearing the last topic said "${last.shown}" instead of pointing at unsubscribe`); else ok();
+  if (last.left.length !== 1) fail(T,
+    'clearing the last topic emptied the list anyway'); else ok();
+}
+
 // ── the cards promise what the panels hold ───────────────────────────────
 // The subtitles live in texts.json, and the markup carries a copy as the
 // fallback for when that file cannot be fetched. The two drifted: the piste
