@@ -1236,6 +1236,84 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'a phone number added to the page was left without an isolate'); else ok();
 }
 
+// ── the Cervino sits behind the readings, not instead of them ────────────
+// A hero band of its own would push the eight live readings below the fold,
+// and those readings are the reason the page gets opened at all. The photo
+// is the bar's own background, darkened hard enough to keep every figure
+// legible, and the bar falls back to its flat gradient if the file is gone.
+{
+  if (!fs.existsSync(path.join(path.dirname(PAGE), 'hero-cervino.jpg')))
+    fail('the Cervino sits behind the readings', 'hero-cervino.jpg is not next to index.html');
+  else ok();
+  const r = await page.evaluate(() => {
+    const bar = document.getElementById('live-data-bar');
+    const inner = bar.querySelector('.bar-inner');
+    const before = getComputedStyle(inner, '::before');
+    const after = getComputedStyle(inner, '::after');
+    const kid = inner.firstElementChild;
+    return {
+      hasHero: bar.classList.contains('has-hero'),
+      image: before.backgroundImage,
+      imgZ: before.zIndex, dimZ: after.zIndex,
+      kidZ: kid ? getComputedStyle(kid).zIndex : null,
+      // the readings must still be on top of both layers
+      overflow: getComputedStyle(inner).overflow
+    };
+  });
+  if (!r.hasHero || !/hero-cervino/.test(r.image)) fail('the Cervino sits behind the readings',
+    `the bar is not carrying the photo: ${r.image}`); else ok();
+  if (r.imgZ !== '0' || r.dimZ !== '0' || r.kidZ !== '1')
+    fail('the Cervino sits behind the readings',
+      `layers came out photo ${r.imgZ}, dim ${r.dimZ}, readings ${r.kidZ}`
+      + ' - the darkening has to sit over the photo and under the figures'); else ok();
+  if (r.overflow === 'visible') fail('the Cervino sits behind the readings',
+    'the photo is not clipped to the bar'); else ok();
+}
+
+// ── the camera card shows the mountain ───────────────────────────────────
+// Nothing on the home page moved, and the service cards were ten identical
+// boxes. This one carries the Plan Maison camera behind its text. A camera
+// that is down has to leave an ordinary card, not a dark empty rectangle.
+{
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise(res => setTimeout(res, ms));
+    const card = document.getElementById('svc-webcam');
+    const out = {};
+    // a picture that loads
+    const good = 'data:image/svg+xml;base64,' + btoa(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="24">'
+      + '<rect width="40" height="24" fill="#9fd0f5"/></svg>');
+    SVC_CAM_URL = good;
+    refreshServiceCam();
+    await wait(500);
+    out.live = card.classList.contains('has-live');
+    out.layer = !!card.querySelector('.svc-live');
+    out.dot = !!card.querySelector('.svc-livedot');
+    out.painted = /url\(/.test((card.querySelector('.svc-live') || {}).style?.backgroundImage || '');
+    // the rule that lifts the card's children above the picture also catches
+    // the picture itself, and then the darkening overlay ends up underneath
+    // it and the Hebrew sits on a bright photo
+    const layerEl = card.querySelector('.svc-live');
+    out.layerZ = layerEl ? getComputedStyle(layerEl).zIndex : null;
+    out.textZ = getComputedStyle(card.querySelector('.svc-txt')).zIndex;
+    // and one that does not
+    SVC_CAM_URL = 'https://example.invalid/none.jpg';
+    refreshServiceCam();
+    await wait(700);
+    out.fellBack = !card.classList.contains('has-live');
+    return out;
+  });
+  if (!r.live || !r.layer || !r.painted) fail('the camera card shows the mountain',
+    `the live layer did not appear: ${JSON.stringify(r)}`); else ok();
+  if (!r.dot) fail('the camera card shows the mountain',
+    'nothing marks the card as live'); else ok();
+  if (r.layerZ !== '0' || r.textZ !== '1') fail('the camera card shows the mountain',
+    `the picture is at z-index ${r.layerZ} and the text at ${r.textZ} - the`
+    + ' overlay that keeps the Hebrew readable ends up under the photo'); else ok();
+  if (!r.fellBack) fail('the camera card shows the mountain',
+    'a camera that is down left the card dark and empty'); else ok();
+}
+
 // ── the forum shows faces, and says it is there ──────────────────────────
 // The avatars were uploaded, cropped and stored, and the forum never looked
 // them up - every post was a name in a list. And the forum itself sits below
@@ -1243,7 +1321,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 {
   const r = await page.evaluate(async () => {
     const wait = (ms) => new Promise(res => setTimeout(res, ms));
-    allPosts = [1, 2, 3, 4].map(i => ({
+    allPosts = [1, 2, 3, 4, 5].map(i => ({
       id: 'p' + i, user: 'משתמש ' + i, content: 'הודעה ' + i,
       timestamp: Date.now() - i * 3600e3, replies: [], reactions: {}, _userReacts: {}
     }));
@@ -1251,9 +1329,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     renderPosts('');
     await wait(250);
     const box = document.getElementById('forum-peek');
-    const track = document.getElementById('forum-peek-track');
+    const names = () => [...document.querySelectorAll('.peek-card b')].map(b => b.textContent);
+
     const out = {
       peekShown: box && box.style.display === 'block',
+      per: peekPerView(),
       cards: document.querySelectorAll('.peek-card').length,
       // The markup is what is checked, not the loaded page: the test URL is
       // not a real image, so the <img> fires onerror and the circle falls
@@ -1261,32 +1341,123 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       // would hide the bug here.
       avatarMarkup: /<img [^>]*src="https:\/\/example\.com\/face\.jpg"/.test(_postAvatar('משתמש 2')),
       fallbackMarkup: /<span data-ini="[^"]+"[^>]*>[^<]+<\/span>/.test(_postAvatar('משתמש 9')),
-      postShowsCircle: !!document.querySelector('#posts-list span[data-ini]'),
-      dir: track ? getComputedStyle(track).direction : null
+      postShowsCircle: !!document.querySelector('#posts-list span[data-ini]')
     };
-    // the arrows move it, and move it back
-    const a = track.scrollLeft; peekMove(1); await wait(500);
-    out.moved = Math.abs(track.scrollLeft - a) > 50;
-    peekMove(-1); await wait(500);
-    out.returned = Math.abs(track.scrollLeft - a) < 5;
-    // and with nothing to show the strip disappears rather than showing husks
+
+    // A window, not a scroller: whatever is on show must be whole cards and
+    // there must be nothing outside the box waiting to be dragged into view.
+    const track = document.getElementById('forum-peek-track');
+    out.noOverflow = track.scrollWidth <= track.clientWidth + 1;
+    out.noScrollbarCss = getComputedStyle(track).overflowX !== 'auto';
+
+    // the arrows change which posts are shown, and change them back
+    const first = names();
+    peekMove(1); await wait(80);
+    const second = names();
+    out.moved = first.length > 0 && second.length > 0 && first.join('|') !== second.join('|');
+    peekMove(-1); await wait(80);
+    out.returned = names().join('|') === first.join('|');
+
+    // at the newest post there is nowhere further to go, and the arrow says so
+    out.prevDisabledAtStart = document.getElementById('peek-prev').disabled === true;
+
+    // with nothing to show the strip stays - it is the only door to the forum
+    // now - but it says so instead of drawing empty husks
     allPosts = [];
     renderForumPeek();
-    out.hiddenWhenEmpty = box.style.display === 'none';
+    out.staysWhenEmpty = box.style.display === 'block';
+    out.emptyCards = document.querySelectorAll('.peek-card').length;
+    out.saysEmpty = document.getElementById('peek-empty').style.display !== 'none';
     return out;
   });
-  if (!r.peekShown || r.cards < 3) fail('the forum shows faces, and says it is there',
-    `the home-page strip drew ${r.cards} cards (shown: ${r.peekShown})`); else ok();
-  if (!r.avatarMarkup) fail('the forum shows faces, and says it is there',
+
+  const T = 'the forum shows faces, and says it is there';
+  if (!r.peekShown || r.cards !== r.per) fail(T,
+    `the strip drew ${r.cards} cards where ${r.per} fit (shown: ${r.peekShown})`); else ok();
+  if (!r.avatarMarkup) fail(T,
     'a post whose author has a photo is drawn without it'); else ok();
-  if (!r.fallbackMarkup) fail('the forum shows faces, and says it is there',
+  if (!r.fallbackMarkup) fail(T,
     'a post whose author has no photo lost its initial circle'); else ok();
-  if (!r.postShowsCircle) fail('the forum shows faces, and says it is there',
+  if (!r.postShowsCircle) fail(T,
     'the posts themselves carry no avatar at all'); else ok();
-  if (!r.moved || !r.returned) fail('the forum shows faces, and says it is there',
-    `the arrows moved it: ${r.moved}, and back: ${r.returned} (direction ${r.dir})`); else ok();
-  if (!r.hiddenWhenEmpty) fail('the forum shows faces, and says it is there',
-    'with no posts the strip stayed on screen'); else ok();
+  if (!r.noOverflow) fail(T,
+    'the strip overflows its box - a scrollbar and a sliced card are back'); else ok();
+  if (!r.noScrollbarCss) fail(T,
+    'the track still declares overflow-x:auto'); else ok();
+  if (!r.moved || !r.returned) fail(T,
+    `the arrows changed the posts: ${r.moved}, and changed them back: ${r.returned}`); else ok();
+  if (!r.prevDisabledAtStart) fail(T,
+    'the arrow at the newest post is still enabled, pointing nowhere'); else ok();
+  if (!r.staysWhenEmpty) fail(T,
+    'with no posts the strip vanished, taking the only way into the forum'); else ok();
+  if (r.emptyCards !== 0) fail(T,
+    `with no posts the strip still drew ${r.emptyCards} husks`); else ok();
+  if (!r.saysEmpty) fail(T,
+    'with no posts the strip says nothing at all'); else ok();
+}
+
+// ── the forum opens on request, and closes again ─────────────────────────
+// It used to sit open on the home page directly under the strip that
+// summarises it: the same posts twice, and no way to put the second copy
+// away. The strip is the home page now.
+{
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise(res => setTimeout(res, ms));
+    const card = document.getElementById('forum-card');
+    const btn  = document.getElementById('peek-open-btn');
+    try { localStorage.removeItem('forumOpen'); } catch (e) {}
+
+    allPosts = [1, 2, 3].map(i => ({
+      id: 'q' + i, user: 'כותב ' + i, content: 'הודעה ' + i,
+      timestamp: Date.now() - i * 3600e3, replies: [], reactions: {}, _userReacts: {}
+    }));
+    renderPosts('');
+    restoreForumOpenState();
+    await wait(60);
+
+    const out = { closedAtStart: card.style.display === 'none',
+                  labelClosed: (btn.textContent || '').trim() };
+
+    peekOpenForum(); await wait(60);
+    out.openedByButton = card.style.display !== 'none';
+    out.labelOpen = (btn.textContent || '').trim();
+    let saved = null; try { saved = localStorage.getItem('forumOpen'); } catch (e) {}
+    out.remembered = saved === '1';
+
+    peekOpenForum(); await wait(60);
+    out.closedAgain = card.style.display === 'none';
+    let cleared = 'x'; try { cleared = localStorage.getItem('forumOpen'); } catch (e) {}
+    out.forgotten = (cleared === null);
+
+    // there is a visible × inside the card, not only the toggle underneath
+    forumOpen(false); await wait(40);
+    out.hasCloseControl = !!card.querySelector('button[onclick="forumClose()"]');
+    forumClose(); await wait(40);
+    out.closeControlWorks = card.style.display === 'none';
+
+    // opening a single post from the strip must open the forum first,
+    // or it scrolls to something that is not on the page
+    peekOpenPost('q1'); await wait(60);
+    out.postOpensForum = card.style.display !== 'none';
+
+    forumClose();
+    try { localStorage.removeItem('forumOpen'); } catch (e) {}
+    return out;
+  });
+
+  const T = 'the forum opens on request, and closes again';
+  if (!r.closedAtStart) fail(T,
+    'the whole forum is still open on the home page under its own summary'); else ok();
+  if (!r.openedByButton) fail(T, 'the button under the strip does not open it'); else ok();
+  if (!r.closedAgain) fail(T, 'once open there is no way to close it'); else ok();
+  if (!r.hasCloseControl) fail(T, 'the forum carries no close control of its own'); else ok();
+  if (!r.closeControlWorks) fail(T, 'the × inside the forum does not close it'); else ok();
+  if (!r.postOpensForum) fail(T,
+    'clicking a post in the strip scrolls to a forum that is still hidden'); else ok();
+  if (!r.remembered || !r.forgotten) fail(T,
+    `the choice is not remembered (saved: ${r.remembered}, cleared: ${r.forgotten})`); else ok();
+  if (r.labelClosed === r.labelOpen) fail(T,
+    `the toggle reads "${r.labelClosed}" whether it opens or closes`); else ok();
 }
 
 // ── the colour answers before the digits are read ────────────────────────
@@ -1902,6 +2073,58 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   });
   if (Math.abs(notch - 1.12) > 0.005) fail('zooming the map makes the map bigger',
     `one notch of the wheel took the zoom to ${notch} instead of 1.12`); else ok();
+}
+
+// ── a reading is marked as a reading ─────────────────────────────────────
+// The scraper now raises its own alerts: a closed crossing, a gust past 70,
+// every lift stopped in the middle of the day. Those rows have no author, and
+// the card used to print "👤" beside whatever name they carried, which reads
+// as a person standing at the lift saying so. The two deserve different kinds
+// of trust in opposite directions, so the card says which it is.
+{
+  const r = await page.evaluate(() => {
+    const sys = _rowToAlert({
+      id: 'sys-1', author_id: null, author_name: 'צ׳רוויניה לייב',
+      text: 'המעבר לצ׳רמט סגור.', severity: 'danger', kind: 'alert',
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 36e5).toISOString()
+    });
+    const human = _rowToAlert({
+      id: 'hum-1', author_id: '11111111-1111-1111-1111-111111111111',
+      author_name: 'יוסי', text: 'תור ארוך בפלאן מזון.', severity: 'info',
+      kind: 'alert', created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 36e5).toISOString()
+    });
+    // the badge counter reads authorId; a null author must not break it
+    let badgeThrew = '';
+    try {
+      _alerts = [sys, human];
+      updateAlertBadge();
+    } catch (e) { badgeThrew = e.message; }
+    return {
+      sysAuto:   sys.auto === true,
+      humanAuto: human.auto === false,
+      sysCard:   _alertCardHtml(sys),
+      humanCard: _alertCardHtml(human),
+      badgeThrew
+    };
+  });
+
+  const T = 'a reading is marked as a reading';
+  if (!r.sysAuto)   fail(T, 'an authorless row was not flagged as automatic'); else ok();
+  if (!r.humanAuto) fail(T, "a person's alert was flagged as automatic"); else ok();
+  if (!/📡/.test(r.sysCard))
+    fail(T, 'the system card shows no instrument mark'); else ok();
+  if (/👤/.test(r.sysCard))
+    fail(T, 'the system card still shows the person icon'); else ok();
+  if (!/מדידה אוטומטית/.test(r.sysCard))
+    fail(T, 'the system card does not say it is a measurement'); else ok();
+  if (!/👤/.test(r.humanCard))
+    fail(T, "a person's card lost its person icon"); else ok();
+  if (/מדידה אוטומטית/.test(r.humanCard))
+    fail(T, "a person's card is labelled a measurement"); else ok();
+  if (r.badgeThrew)
+    fail(T, 'the unread badge crashes on an authorless alert: ' + r.badgeThrew); else ok();
 }
 
 await browser.close();
