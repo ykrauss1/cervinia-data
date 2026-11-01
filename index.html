@@ -56,9 +56,136 @@ input[type=file] { display: none !important; }
 }
         nav { background: var(--dark); color: white; padding: 4px 5%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .admin-badge { background: var(--error); color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-left: 10px; }
-.services-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 25px; }
-.service-btn { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: box-shadow 0.2s; }
-.service-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+/* The services, with weights. Ten equal squares carrying one line each left
+   the page empty and said nothing about what was behind them; the ones people
+   open standing on the mountain are wider now, and every card has a second
+   line naming what it holds. */
+.services-grid {
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  gap: 12px; margin-bottom: 25px;
+}
+.service-btn {
+  background: white; border: 1px solid #e3e8ee; border-radius: 14px;
+  padding: 16px 18px; cursor: pointer; text-align: right;
+  display: flex; align-items: center; gap: 13px;
+  grid-column: span 2; min-height: 84px;
+  box-shadow: 0 1px 3px rgba(16,40,70,0.06);
+  transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
+}
+.service-btn:hover {
+  box-shadow: 0 8px 22px rgba(16,40,70,0.13);
+  border-color: #cfe0f2; transform: translateY(-2px);
+}
+/* The Cervino from the Italian side, behind the live bar. The photograph is
+   darkened hard enough that every reading keeps its contrast, and the card
+   falls back to the old flat gradient if the file is missing. */
+.bar-inner {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg,#0a192f,#162d5a);
+}
+#live-data-bar.has-hero .bar-inner::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background-image: url('hero-cervino.jpg');
+  background-size: cover; background-position: center 38%;
+  opacity: 0.42;
+}
+#live-data-bar.has-hero .bar-inner::after {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(180deg, rgba(8,20,40,0.55) 0%, rgba(8,20,40,0.88) 100%);
+}
+#live-data-bar.has-hero .bar-inner > * { position: relative; z-index: 1; }
+
+/* A peek at the forum, above the forum itself. */
+.peek-arrow {
+  width: 30px; height: 30px; border-radius: 9px; cursor: pointer;
+  border: 1px solid #dde4ec; background: #fff; color: #41566e;
+  font-size: 1.1rem; line-height: 1; font-family: inherit;
+}
+.peek-arrow:hover { background: #f1f5f9; }
+.peek-all {
+  background: #fff; border: 1px solid #cfe0f2; color: #1a4b8c;
+  border-radius: 999px; padding: 7px 18px; font-size: 0.82rem;
+  font-weight: 600; font-family: inherit; cursor: pointer;
+}
+.peek-all:hover { background: #eef4fb; }
+.peek-card {
+  flex: 0 0 min(280px, 78%); scroll-snap-align: start;
+  background: #fff; border: 1px solid #e3e8ee; border-radius: 12px;
+  padding: 12px 13px; cursor: pointer; display: flex; flex-direction: column; gap: 7px;
+  box-shadow: 0 1px 3px rgba(16,40,70,0.06);
+}
+.peek-card:hover { border-color: #cfe0f2; box-shadow: 0 6px 16px rgba(16,40,70,0.1); }
+.peek-card .peek-body {
+  font-size: 0.81rem; color: #44525f; line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Sign-in sits in the dark header, so it is a pill, not a card. */
+.signin-btn {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.28);
+  color: #fff; border-radius: 999px; padding: 6px 16px;
+  font-size: 0.84rem; font-weight: 600; font-family: inherit;
+  cursor: pointer; white-space: nowrap; line-height: 1.3;
+  transition: background 0.15s, border-color 0.15s;
+}
+.signin-btn:hover { background: rgba(255,255,255,0.19); border-color: rgba(255,255,255,0.45); }
+
+.service-btn.svc-wide { grid-column: span 3; }
+.service-btn.svc-tall { grid-column: span 3; }
+.svc-ico {
+  font-size: 1.7rem; line-height: 1; flex: none;
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(145deg,#eef4fb,#e2ecf7);
+}
+.svc-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.svc-txt b { font-size: 0.95rem; color: #16314f; font-weight: 700; }
+.svc-txt small { font-size: 0.74rem; color: #7b8a99; font-weight: 400; line-height: 1.5; }
+/* the two that carry live content get a touch more presence */
+#svc-webcam .svc-ico, #svc-piste .svc-ico {
+  background: linear-gradient(145deg,#0f2a4a,#1c4a7d); color: #fff;
+}
+
+/* The camera card shows the mountain as it is right now. The picture is the
+   card's background, dimmed enough that the Hebrew on top stays readable,
+   and the card falls back to the ordinary white one if the camera is down. */
+#svc-webcam.has-live {
+  position: relative; overflow: hidden; border-color: #15304f;
+  background: #0f2a4a; color: #fff;
+}
+#svc-webcam.has-live .svc-live {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  opacity: 0.7; transition: opacity 0.6s;
+  /* the rule that lifts the card's children above the picture also catches
+     this layer, so it is pinned back down below the darkening overlay */
+  z-index: 0;
+}
+/* A real camera picture is bright and busy, so the side the Hebrew sits on
+   is darkened hard and the far side is left showing the mountain. */
+#svc-webcam.has-live::after {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(270deg,
+    rgba(8,22,42,0.93) 0%, rgba(8,22,42,0.86) 38%, rgba(8,22,42,0.3) 100%);
+}
+#svc-webcam.has-live > * { position: relative; z-index: 1; }
+#svc-webcam.has-live .svc-txt b { color: #fff; }
+#svc-webcam.has-live .svc-txt small { color: rgba(255,255,255,0.78); }
+#svc-webcam.has-live .svc-ico {
+  background: rgba(255,255,255,0.14); backdrop-filter: blur(3px);
+}
+#svc-webcam .svc-livedot {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.66rem; color: #8ef0b0; font-weight: 600; margin-top: 2px;
+}
+#svc-webcam .svc-livedot i {
+  width: 6px; height: 6px; border-radius: 50%; background: #51cf66;
+  box-shadow: 0 0 0 0 rgba(81,207,102,0.7); animation: livePulse 2.4s infinite;
+}
+@keyframes livePulse {
+  70% { box-shadow: 0 0 0 7px rgba(81,207,102,0); }
+  100% { box-shadow: 0 0 0 0 rgba(81,207,102,0); }
+}
+@media (prefers-reduced-motion: reduce) { #svc-webcam .svc-livedot i { animation: none; } }
 .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
@@ -268,8 +395,12 @@ img, svg, video { max-width: 100%; }
   #auth-area { flex-shrink: 0; }
 
   /* Services grid - 2 columns on mobile */
-  .services-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; margin-bottom: 16px !important; }
-  .service-btn { padding: 14px 8px !important; font-size: 0.85rem !important; min-height: 56px; gap: 6px !important; }
+  .services-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 9px !important; margin-bottom: 16px !important; }
+  .service-btn { padding: 12px !important; min-height: 78px; gap: 10px !important; grid-column: span 1 !important; }
+  .service-btn.svc-wide, .service-btn.svc-tall { grid-column: span 2 !important; }
+  .svc-ico { width: 40px; height: 40px; font-size: 1.4rem; }
+  .svc-txt b { font-size: 0.88rem; }
+  .svc-txt small { font-size: 0.7rem; }
 
   /* Live Data Bar - vertical grid on mobile */
   #live-data-bar { margin: 10px 0 !important; }
@@ -457,7 +588,17 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 /* ── panel contents strip ───────────────────────────────────────────────
    A long panel reads as one undifferentiated scroll. These chips say what is
    inside before the reader has to find out by scrolling. */
-.panel-toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+/* Sticky, because the strip is only half useful if reaching a section means
+   you can no longer get back to the list without scrolling to the top. */
+.panel-toc {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  position: sticky; top: 0; z-index: 5;
+  /* room on the end side so a chip never slides under the modal's close × */
+  margin: 0 -4px 12px; padding: 8px 4px; padding-inline-end: 44px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #edf1f5;
+}
 .panel-toc:empty { display: none; }
 .panel-toc button {
   background: #eef3f9; border: 1px solid #d7e2ee; color: #2d4a6b;
@@ -612,8 +753,12 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div class="container">
 
   <!-- בר נתונים חי -->
-  <div id="live-data-bar" style="margin:14px 0;">
-    <div style="background:linear-gradient(135deg,#0a192f,#162d5a);border-radius:0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 3px 14px rgba(0,0,0,0.2);">
+  <!-- The mountain sits behind the live bar rather than above it. A hero of
+       its own would push the eight live readings below the fold, and those
+       readings are why anyone opens this page at eight in the morning; this
+       way the atmosphere costs no information at all. -->
+  <div id="live-data-bar" class="has-hero" style="margin:14px 0;">
+    <div class="bar-inner" style="padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 3px 14px rgba(0,0,0,0.2);">
 
       <!-- Stats group -->
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -732,18 +877,55 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     </div>
   </div>
 
-  <!-- שירותים -->
+  <!-- Services. Ten identical white cards with one line in the middle told
+       the reader nothing and left most of the page empty. They have weights
+       now - the ones people open on the mountain are larger - and each says
+       in a second line what is behind it. -->
   <div class="services-grid">
-    <div id="svc-travel"    class="service-btn" onclick="openM('hotelModal')">✈️ תכנון טיול</div>
-    <div id="svc-skipass"   class="service-btn" onclick="openM('skipassModal')">🎫 סקי פס</div>
-    <div id="svc-rental"    class="service-btn" onclick="openM('rentalModal')">⛷️ השכרת ציוד</div>
-    <div id="svc-lessons"   class="service-btn" onclick="openM('lessonsModal')">🏫 הדרכת סקי</div>
-    <div id="svc-kosher"    class="service-btn" onclick="openM('kosherModal')">🍽️<span style="letter-spacing:-0.6em;">🕯️🕯️</span>&#8203; כשרות ושבת</div>
-    <div id="svc-webcam"    class="service-btn" onclick="openM('webcamModal')">📷 מצלמות</div>
-    <div id="svc-parking"   class="service-btn" onclick="openM('parkingModal')">🚌🅿️🚨 תחבורה, חניה וחירום</div>
-    <div id="svc-maps"      class="service-btn" onclick="openM('mapModal')"><span style="font-size:1.3rem;">🗺️</span> מפות</div>
-  <div id="svc-piste"       class="service-btn" onclick="openM('pisteModal')"><span style="font-size:1.3rem;">⛷️</span> מסלולים, בקתות ואפרה סקי</div>
-  <div id="svc-around"      class="service-btn" onclick="openM('aroundModal')"><span style="font-size:1.3rem;">🏔️</span> מה לעשות באזור</div>
+    <div id="svc-piste" class="service-btn svc-wide" onclick="openM('pisteModal')">
+      <span class="svc-ico">⛷️</span>
+      <span class="svc-txt"><b>מסלולים, בקתות ואפרה סקי</b>
+        <small>מדריך לכל מסלול · איפה אוכלים על ההר · איפה שותים אחרי</small></span>
+    </div>
+    <div id="svc-webcam" class="service-btn svc-tall" onclick="openM('webcamModal')">
+      <span class="svc-ico">📷</span>
+      <span class="svc-txt"><b>מצלמות</b>
+        <small>לראות את ההר עכשיו, לפני שיוצאים</small></span>
+    </div>
+    <div id="svc-parking" class="service-btn svc-wide" onclick="openM('parkingModal')">
+      <span class="svc-ico">🚌</span>
+      <span class="svc-txt"><b>תחבורה, חניה וחירום</b>
+        <small>מהשדה לכפר · לוחות זמנים · רכב שכור · מספרי חירום</small></span>
+    </div>
+    <div id="svc-travel" class="service-btn" onclick="openM('hotelModal')">
+      <span class="svc-ico">✈️</span>
+      <span class="svc-txt"><b>תכנון טיול</b><small>טיסות, לינה ורכב</small></span>
+    </div>
+    <div id="svc-skipass" class="service-btn" onclick="openM('skipassModal')">
+      <span class="svc-ico">🎫</span>
+      <span class="svc-txt"><b>סקי פס</b><small>מחירים, הנחות ואיפה קונים</small></span>
+    </div>
+    <div id="svc-rental" class="service-btn" onclick="openM('rentalModal')">
+      <span class="svc-ico">🎿</span>
+      <span class="svc-txt"><b>השכרת ציוד</b><small>חמש חנויות, מחירון ושעות</small></span>
+    </div>
+    <div id="svc-lessons" class="service-btn" onclick="openM('lessonsModal')">
+      <span class="svc-ico">🏫</span>
+      <span class="svc-txt"><b>הדרכת סקי</b><small>מחירון 2026/27 ומדריכים</small></span>
+    </div>
+    <div id="svc-kosher" class="service-btn svc-wide" onclick="openM('kosherModal')">
+      <span class="svc-ico">🕯️</span>
+      <span class="svc-txt"><b>כשרות ושבת</b>
+        <small>זמני שבת · מה אפשר לקנות בסופר · מילאנו וטורינו</small></span>
+    </div>
+    <div id="svc-maps" class="service-btn" onclick="openM('mapModal')">
+      <span class="svc-ico">🗺️</span>
+      <span class="svc-txt"><b>מפות</b><small>מסלולים, הכפר ונקודות ציון</small></span>
+    </div>
+    <div id="svc-around" class="service-btn" onclick="openM('aroundModal')">
+      <span class="svc-ico">🏔️</span>
+      <span class="svc-txt"><b>מה לעשות באזור</b><small>ליום סוער או ליום בלי מגלשיים</small></span>
+    </div>
   </div>
 
   <!-- The four standing links used to be repeated here, between the services
@@ -768,8 +950,28 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <div id="why-banner-stats" style="display:none;"></div>
   </div>
 
+  <!-- The forum sits below ten service cards, so nobody who lands here knows
+       there is a live community in it. Three recent posts say so without
+       asking anything of the reader. Manual arrows only - nothing moves on
+       its own next to a live data bar - and the whole strip disappears when
+       there is nothing to show. -->
+  <div id="forum-peek" style="display:none;max-width:750px;margin:0 auto 14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
+      <div style="font-size:0.9rem;font-weight:bold;color:#16314f;">💬 מהפורום</div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="peekMove(1)" aria-label="הקודם" class="peek-arrow">›</button>
+        <button onclick="peekMove(-1)" aria-label="הבא" class="peek-arrow">‹</button>
+      </div>
+    </div>
+    <div id="forum-peek-track" style="display:flex;gap:10px;overflow-x:auto;scroll-behavior:smooth;
+         scroll-snap-type:x mandatory;padding-bottom:4px;"></div>
+    <div style="text-align:center;margin-top:8px;">
+      <button onclick="peekOpenForum()" class="peek-all">לפורום המלא ←</button>
+    </div>
+  </div>
+
   <!-- פורום -->
-  <div class="card" style="max-width:750px;margin-left:auto;margin-right:auto;">
+  <div class="card" id="forum-card" style="max-width:750px;margin-left:auto;margin-right:auto;">
     <!-- Forum / Reviews tabs -->
     <div style="display:flex;gap:8px;margin-bottom:14px;">
       <button id="forum-main-tab" onclick="switchForumTab('forum')"
@@ -1562,7 +1764,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     </div>
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
       <button onclick="closeM('whyModal');openM('hotelModal');" style="flex:1;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;">📅 תכנון טיול</button>
-      <button onclick="closeM('whyModal');loadMap('piste');" class="service-btn" style="flex:1">⛷️ מסלולים PDF</button>
+      <button onclick="closeM('whyModal');loadMap('piste');" class="signin-btn" style="flex:1;color:#16314f;background:#eef4fb;border-color:#cfe0f2;">⛷️ מסלולים PDF</button>
     </div>
           <!-- Facebook group -->
           <a href="https://www.facebook.com/groups/385880019907484/" target="_blank"
@@ -2089,6 +2291,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
            style="font-weight:bold;font-size:0.88rem;margin:4px 0 8px;"></div>
       <div id="kosher-milan-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
       <div id="kosher-milan-shuls-title" data-toc style="font-weight:bold;font-size:0.88rem;margin:16px 0 8px;"></div>
+      <div id="kosher-milan-shuls-note" style="font-size:0.78rem;color:#666;background:#f5f5f5;padding:9px 12px;border-radius:8px;margin-bottom:10px;line-height:1.8;"></div>
       <div id="kosher-milan-shuls" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
       <div id="kosher-milan-stays-title" data-toc style="font-weight:bold;font-size:0.88rem;margin:16px 0 8px;"></div>
       <div id="kosher-milan-stays-note" style="font-size:0.78rem;color:#666;background:#f5f5f5;padding:9px 12px;border-radius:8px;margin-bottom:10px;"></div>
@@ -9043,7 +9246,6 @@ function renderTransport(tr) {
 
   box.innerHTML = h;
   buildPanelToc('park-panel-transport');
-  _isolatePhonesInDom(box);
 }
 
 function renderSwissBox() {
@@ -9314,6 +9516,69 @@ function _isolatePhonesInDom(root) {
   return todo.length;
 }
 
+// Two passes that every rendered list needs: isolate the phone numbers so
+// they can be dialled, and turn bare domains into links. There are dozens of
+// render functions and more will be written, so instead of remembering to
+// call these from each one, an observer runs them over whatever lands in the
+// page. Both passes are idempotent - a number already inside a <bdi> and a
+// domain already inside an <a> are skipped - so they cannot feed themselves.
+function _polishRendered(root) {
+  _isolatePhonesInDom(root);
+  _linkifyDomainsInDom(root);
+}
+(function () {
+  if (!window.MutationObserver) return;
+  var pending = null, running = false;
+  var run = function () {
+    pending = null;
+    running = true;
+    try { _polishRendered(document.body); } catch (e) {}
+    running = false;
+  };
+  var obs = new MutationObserver(function () {
+    if (running || pending) return;
+    pending = setTimeout(run, 150);
+  });
+  document.addEventListener('DOMContentLoaded', function () {
+    obs.observe(document.body, { childList: true, subtree: true });
+  });
+})();
+
+// A bare domain printed as text is a dead end: the reader sees the address
+// and has to retype it. This turns every one that is not already a link into
+// one, in the rendered page, so it works for every list at once.
+var _DOMAIN_RE = /(^|[^@\w.\/-])((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:com|it|ch|org|net|eu|info))(?![\w@.\/-])/gi;
+function _linkifyDomainsInDom(root) {
+  var host = root || document.body;
+  if (!host || !document.createTreeWalker) return 0;
+  var walker = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+  var todo = [], n;
+  while ((n = walker.nextNode())) {
+    var txt = n.nodeValue || '';
+    _DOMAIN_RE.lastIndex = 0;
+    if (!_DOMAIN_RE.test(txt)) continue;
+    var el = n.parentElement;
+    if (!el) continue;
+    // already a link, or somewhere a link makes no sense
+    if (el.closest('a,script,style,textarea,input,summary')) continue;
+    todo.push(n);
+  }
+  todo.forEach(function (node) {
+    var esc = node.nodeValue.replace(/[&<>]/g, function (c) {
+      return c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;';
+    });
+    _DOMAIN_RE.lastIndex = 0;
+    var html = esc.replace(_DOMAIN_RE, function (m, before, dom) {
+      return before + '<a href="https://' + dom + '" target="_blank" rel="noopener" '
+        + 'style="color:#1a73e8;"><bdi dir="ltr">' + dom + '</bdi></a>';
+    });
+    var span = document.createElement('span');
+    span.innerHTML = html;
+    if (node.parentNode) node.parentNode.replaceChild(span, node);
+  });
+  return todo.length;
+}
+
 // Some entries carry more than a bare number: two numbers, or a Hebrew note
 // saying which number is which. Isolating the whole string would drag that
 // Hebrew into a left-to-right run, so each number is isolated and linked on
@@ -9397,9 +9662,15 @@ function _applyTexts(t) {
 
   // ── כפתורי שירותים ──
   if (t.services && t.services.buttons) {
-    t.services.buttons.forEach(function(btn) {
+    t.services.buttons.forEach(function (btn) {
       var el = document.getElementById(btn.id);
-      if (el && btn.label) el.innerHTML = btn.label;
+      if (!el || !btn.label) return;
+      // icon, name and the line that says what is behind the card - written
+      // here rather than in the markup so the content file still owns them
+      el.innerHTML = '<span class="svc-ico">' + _aEsc(btn.icon || '') + '</span>'
+        + '<span class="svc-txt"><b>' + _aEsc(btn.label) + '</b>'
+        + (btn.sub ? '<small>' + _aEsc(btn.sub) + '</small>' : '')
+        + '</span>';
     });
   }
 
@@ -9542,6 +9813,7 @@ function _applyTexts(t) {
     renderKosherList('kosher-milan-list',  ko.milan_places, 'Milano');
     _set('kosher-milan-restaurants-title', ko.milan_restaurants_title);
     _set('kosher-milan-shuls-title',  ko.milan_shuls_title);
+    _set('kosher-milan-shuls-note',  ko.milan_shuls_note);
     _set('kosher-milan-stays-title',  ko.milan_stays_title);
     _set('kosher-milan-stays-note',   ko.milan_stays_note);
     renderKosherList('kosher-milan-shuls', ko.milan_shuls, 'Milano');
@@ -9654,9 +9926,12 @@ function _applyTexts(t) {
   // Last, after everything above has written to the page: catch any phone
   // number that reached the DOM without a left-to-right isolate, and build
   // the contents strip of every panel long enough to need one.
-  _isolatePhonesInDom(document.body);
+  _polishRendered(document.body);
   ['kosh-panel-milan', 'kosh-panel-torino', 'kosh-panel-cervinia',
    'park-panel-transport'].forEach(buildPanelToc);
+  // the cards have just been rewritten from the content file, so the live
+  // layer has to be put back on top of the new markup
+  if (typeof startServiceCam === 'function') startServiceCam();
 }
 
 // ── מקורות ואמינות ───────────────────────────────────────────────────────
@@ -10537,7 +10812,9 @@ function renderHeader() {
     const lvEmoji = {'מתחיל':'🟢','בינוני':'🔵','מתקדם':'🔴','מקצועי':'⚫'}[user.level] || '';
     area.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">${adminBadge}${gear}${avatar}<div style="display:flex;flex-direction:column;line-height:1.2;cursor:pointer;" onclick="openM('profileModal')"><b style="color:white;font-size:0.9rem;">${user.name}</b>${user.level?`<span style="color:#4cc9f0;font-size:0.68rem;">${lvEmoji} ${user.level}</span>`:''}</div><button onclick="logout()" title="התנתקות" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:0.8rem;padding:4px 6px;border-radius:6px;transition:color 0.15s;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">⏏</button></div>`;
   } else {
-    area.innerHTML = `<button onclick="openM('authModal')" class="service-btn" style="padding:8px 18px;">&#1499;&#1504;&#1497;&#1505;&#1492;</button>`;
+    // It used to borrow .service-btn, which is now a large card with an icon
+    // tile - so the sign-in button grew into a white block in the header.
+    area.innerHTML = `<button onclick="openM('authModal')" class="signin-btn">&#1499;&#1504;&#1497;&#1505;&#1492;</button>`;
   }
 }
 
@@ -10753,6 +11030,27 @@ function renderLiveBar(d) {
     if (local) return 'צ׳רוויניה';
     return '';
   }
+  // All the live numbers were the same blue, so "0 of 9 slopes open" and
+  // "14 of 15" looked alike at a glance. The colour now carries the answer
+  // before the digits are read: open, partly open, or shut.
+  function _severity(mainId, subId, pair) {
+    var main = document.getElementById(mainId);
+    var sub = document.getElementById(subId);
+    var colour = '#4cc9f0';
+    if (pair) {
+      var n = String(pair).split('/');
+      var open = parseInt(n[0], 10), total = parseInt(n[1], 10);
+      if (!isNaN(open) && !isNaN(total) && total > 0) {
+        var share = open / total;
+        colour = open === 0 ? '#ff6b6b'       // nothing running
+               : share < 0.5 ? '#ffc048'      // less than half
+               : '#51cf66';                   // most of it, or all
+      }
+    }
+    if (main) main.style.color = colour;
+    if (sub)  sub.style.color = colour;
+  }
+
   // "13/47 (4/5)" is short enough for the bar but says nothing on its own,
   // so the same thing is spelled out in a tooltip and for screen readers.
   // The number after the slash is how many are in operation in this period,
@@ -10782,12 +11080,14 @@ function renderLiveBar(d) {
   set('bar-slopes-global', (sArea && sLocal) ? ' (' + sLocal + ')' : '');
   set('bar-slopes-scope',  _scope(sArea, sLocal));
   _tip('bar-slopes-cell',  _countTip('מסלולים', sArea, sLocal));
+  _severity('bar-slopes-local', 'bar-slopes-global', sArea || sLocal);
   const lArea  = _count(d.lifts_open_global, d.lifts_total_global);
   const lLocal = _count(d.lifts_open_local,  d.lifts_total_local);
   set('bar-lifts-local',   lArea || lLocal || '--');
   set('bar-lifts-global',  (lArea && lLocal) ? ' (' + lLocal + ')' : '');
   set('bar-lifts-scope',   _scope(lArea, lLocal));
   _tip('bar-lifts-cell',   _countTip('מעליות', lArea, lLocal));
+  _severity('bar-lifts-local', 'bar-lifts-global', lArea || lLocal);
   set('bar-wind', d.wind_speed != null ? Math.round(d.wind_speed) + ' km/h' : '--');
 
   // snow_depth — supports both string "140 cm" and number 140
@@ -11236,8 +11536,37 @@ async function sbFetch(path, opts) {
   return ct.includes('json') ? res.json() : null;
 }
 
+// A name on its own is a row in a table; a face is a person. The avatars
+// were already there - uploaded, cropped, stored - and the forum simply never
+// looked them up. One query builds the map, and a post with no photo falls
+// back to the same initial circle used everywhere else.
+var FORUM_AVATARS = {};
+async function loadForumAvatars() {
+  try {
+    const rows = await sbFetch('profiles?select=username,avatar_url');
+    if (!rows) return;
+    const map = {};
+    rows.forEach(function (r) { if (r.username) map[r.username] = r.avatar_url || null; });
+    FORUM_AVATARS = map;
+  } catch (e) { /* the forum works without faces */ }
+}
+function _postAvatar(name, size) {
+  var px = size || 34;
+  var url = FORUM_AVATARS[name];
+  var inner = url
+    ? '<img src="' + esc(safeUrl(url)) + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;"'
+      + ' onerror="this.parentElement.textContent=this.parentElement.dataset.ini">'
+    : esc(getInitial(name));
+  return '<span data-ini="' + esc(getInitial(name)) + '" style="width:' + px + 'px;height:' + px + 'px;'
+    + 'border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;'
+    + 'font-size:' + Math.round(px * 0.42) + 'px;font-weight:bold;color:#fff;'
+    + (url ? 'background:#fff;' : 'background:linear-gradient(135deg,#4cc9f0,#2a6cb5);')
+    + '">' + inner + '</span>';
+}
+
 async function loadPostsFromSupabase() {
   try {
+    await loadForumAvatars();
     const posts = await sbFetch('posts?select=*&order=created_at.desc');
     const replies = await sbFetch('replies?select=*&order=created_at.asc');
     if (!posts) return false;
@@ -11734,6 +12063,7 @@ function renderPosts(query, sort, chips) {
       + '</div>';
     return;
   }
+  renderForumPeek();
   list.innerHTML = banner + filtered.map(function(p) {
     const isOwner = isMine(p);
     const canDel = user && (isOwner || isAdmin());
@@ -11750,8 +12080,15 @@ function renderPosts(query, sort, chips) {
       }
     }
     return '<div class="post" id="post-' + safeId(p.id) + '">'
-      + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + escJs(p.user) + '\')">' + highlight(p.user, query) + '</b> <span style="color:#bbb;font-size:0.75rem;">' + timeAgo(p.timestamp) + '</span>'
-      + '<div style="margin:6px 0;">' + highlight(p.content, query) + '</div>'
+      + '<div style="display:flex;align-items:center;gap:9px;">'
+      +   '<span style="cursor:pointer;" onclick="showUserInfo(\'' + escJs(p.user) + '\')">'
+      +     _postAvatar(p.user) + '</span>'
+      +   '<div style="min-width:0;">'
+      +     '<b style="cursor:pointer;color:var(--accent);display:block;line-height:1.3;" onclick="showUserInfo(\'' + escJs(p.user) + '\')">' + highlight(p.user, query) + '</b>'
+      +     '<span style="color:#bbb;font-size:0.75rem;">' + timeAgo(p.timestamp) + '</span>'
+      +   '</div>'
+      + '</div>'
+      + '<div style="margin:8px 0 6px;">' + highlight(p.content, query) + '</div>'
       + fileHtml
       + reactionsHtml(p, false)
       + '<div style="display:flex;gap:10px;margin-top:6px;font-size:0.85rem;color:#888;align-items:center;flex-wrap:wrap;">'
@@ -11767,6 +12104,109 @@ function renderPosts(query, sort, chips) {
   }).join('');
 }
 
+
+// ── the camera card shows the mountain, not an icon ──────────────────────
+// The service cards were ten identical boxes and nothing on the home page
+// moved. This one carries the Plan Maison camera behind its text, refreshed
+// every few minutes - the cheapest way to say "this is live". The image is
+// loaded first and only painted if it actually arrives, so a camera that is
+// down leaves an ordinary card rather than a dark empty rectangle.
+var SVC_CAM_URL = 'https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_PLANMAISON.jpg';
+var _svcCamTimer = null;
+function refreshServiceCam() {
+  var card = document.getElementById('svc-webcam');
+  if (!card) return;
+  var img = new Image();
+  img.onload = function () {
+    var layer = card.querySelector('.svc-live');
+    if (!layer) {
+      layer = document.createElement('span');
+      layer.className = 'svc-live';
+      card.insertBefore(layer, card.firstChild);
+    }
+    layer.style.backgroundImage = 'url("' + img.src + '")';
+    card.classList.add('has-live');
+    // a quiet "live" line under the name, once there is really a picture
+    var txt = card.querySelector('.svc-txt');
+    if (txt && !txt.querySelector('.svc-livedot')) {
+      var dot = document.createElement('span');
+      dot.className = 'svc-livedot';
+      dot.innerHTML = '<i></i>פלאן מייזון · עכשיו';
+      txt.appendChild(dot);
+    }
+  };
+  img.onerror = function () { card.classList.remove('has-live'); };
+  // the cache-buster belongs on a real URL; appending it to a data: URL
+  // would corrupt the picture
+  img.src = /^https?:/i.test(SVC_CAM_URL)
+    ? SVC_CAM_URL + (SVC_CAM_URL.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now()
+    : SVC_CAM_URL;
+}
+function startServiceCam() {
+  refreshServiceCam();
+  clearInterval(_svcCamTimer);
+  // often enough to be current, rarely enough to cost nothing on a phone
+  _svcCamTimer = setInterval(function () {
+    if (!document.hidden) refreshServiceCam();
+  }, 5 * 60 * 1000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) refreshServiceCam();
+  });
+}
+
+// ── a peek at the forum, on the home page ────────────────────────────────
+// Three of the newest posts, with the author's face, as a strip you move by
+// hand. Nothing animates: the live bar above it is what should hold the eye.
+function renderForumPeek() {
+  var box = document.getElementById('forum-peek');
+  var track = document.getElementById('forum-peek-track');
+  if (!box || !track) return;
+  var posts = (typeof allPosts !== 'undefined' && allPosts) ? allPosts.slice() : [];
+  posts.sort(function (a, b) { return b.timestamp - a.timestamp; });
+  posts = posts.slice(0, 6);
+  if (!posts.length) { box.style.display = 'none'; track.innerHTML = ''; return; }
+  track.innerHTML = posts.map(function (p) {
+    var body = String(p.content || '').replace(/<[^>]*>/g, '');
+    return '<div class="peek-card" onclick="peekOpenPost(\'' + escJs(String(p.id)) + '\')">'
+      + '<div style="display:flex;align-items:center;gap:8px;">'
+      +   _postAvatar(p.user, 28)
+      +   '<div style="min-width:0;">'
+      +     '<b style="font-size:0.82rem;color:#16314f;display:block;line-height:1.3;">' + esc(p.user) + '</b>'
+      +     '<span style="font-size:0.7rem;color:#9aa6b2;">' + timeAgo(p.timestamp) + '</span>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="peek-body">' + esc(body) + '</div>'
+      + ((p.replies || []).length
+          ? '<div style="font-size:0.72rem;color:#7b8a99;">💬 ' + p.replies.length + ' תגובות</div>' : '')
+      + '</div>';
+  }).join('');
+  box.style.display = 'block';
+}
+function peekMove(dir) {
+  var track = document.getElementById('forum-peek-track');
+  if (!track) return;
+  var card = track.querySelector('.peek-card');
+  var step = card ? card.getBoundingClientRect().width + 10 : 280;
+  // In a right-to-left box scrollLeft runs the other way, so "next" has to
+  // flip with the direction or the arrows do the opposite of what they say.
+  var rtl = getComputedStyle(track).direction === 'rtl';
+  track.scrollLeft += (rtl ? -dir : dir) * step;
+}
+function peekOpenForum() {
+  var card = document.getElementById('forum-card');
+  if (card && card.scrollIntoView) card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+function peekOpenPost(id) {
+  peekOpenForum();
+  setTimeout(function () {
+    var el = document.getElementById('post-' + safeId(id));
+    if (el && el.scrollIntoView) {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      el.classList.add('toc-flash');
+      setTimeout(function () { el.classList.remove('toc-flash'); }, 1400);
+    }
+  }, 350);
+}
 
 function clearForumFilter() {
   const si = document.getElementById('search-input');
@@ -12413,6 +12853,11 @@ function _rowToAlert(r) {
     severity: (r.severity === 'danger' || r.severity === 'info') ? r.severity : 'warning',
     ts:       new Date(r.created_at).getTime(),
     authorId: r.author_id || '',
+    // No author at all means the scraper raised it: a reading, not a report.
+    // Worth marking, because the two deserve different amounts of trust in
+    // opposite directions - a measurement is not somebody's impression, and
+    // somebody standing at the lift sees things no feed reports.
+    auto:     !r.author_id,
     kind:     (r.kind === 'notice') ? 'notice' : 'alert',
     // a notice sets its own lifetime, so trust the row rather than the
     // 24 hour rule that governs alerts
@@ -12971,7 +13416,8 @@ function _alertCardHtml(a) {
     + (canDel ? '<button type="button" onclick="deleteAlert(\'' + escHtml(a.id) + '\')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1rem;padding:0 0 0 6px;">🗑️</button>' : '')
     + '</div>'
     + '<div style="display:flex;justify-content:space-between;margin-top:5px;">'
-    + '<span style="font-size:0.7rem;color:#888;">👤 ' + escHtml(a.user) + ' · ' + alertTimeAgo(a.ts) + '</span>'
+    + '<span style="font-size:0.7rem;color:#888;">' + (a.auto ? '📡' : '👤') + ' ' + escHtml(a.user)
+    + (a.auto ? ' · מדידה אוטומטית' : '') + ' · ' + alertTimeAgo(a.ts) + '</span>'
     + '<span style="font-size:0.67rem;color:#bbb;">' + timeLeft(a) + '</span>'
     + '</div></div>';
 }
