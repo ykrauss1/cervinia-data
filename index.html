@@ -60,21 +60,27 @@ input[type=file] { display: none !important; }
    the page empty and said nothing about what was behind them; the ones people
    open standing on the mountain are wider now, and every card has a second
    line naming what it holds. */
-/* Three across, every card the same size, and the twelve cells fill exactly
-   four rows with nothing left ragged. The six-column version let a card span
-   two or three, which made "כשרות ושבת" run the width of the page while the
-   card under it waited for a row of its own - a lot of white for a button.
-   Only two cards earn a double: the camera, which carries a live photograph,
-   and the last one, which closes the final row. */
+/* Every card the same size, and none of them stretched. Two were double
+   width for a while - the camera for its live photograph, the last one to
+   square off the final row - and both read as a button someone had pulled
+   by the corner. The webcam frame is too dark and too small to show much
+   anyway, so it buys its width with nothing. */
+/* Ten cards into three columns leaves two cells empty at the end, and a
+   lone card stranded in the corner reads as the same wasted space the wide
+   cards did. Flex rather than grid, so the short last row centres itself
+   instead. */
 .services-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: flex; flex-wrap: wrap; justify-content: center;
   gap: 10px; margin-bottom: 22px;
 }
 .service-btn {
   background: white; border: 1px solid #e3e8ee; border-radius: 14px;
   padding: 13px 15px; cursor: pointer; text-align: right;
   display: flex; align-items: center; gap: 12px;
-  grid-column: span 1; min-height: 72px;
+  /* border-box, or the padding and border are added to the flex basis and
+     three cards no longer fit on a row they were measured for. */
+  box-sizing: border-box;
+  flex: 0 1 calc((100% - 20px) / 3); min-width: 0; min-height: 72px;
   box-shadow: 0 1px 3px rgba(16,40,70,0.06);
   transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
 }
@@ -107,20 +113,29 @@ input[type=file] { display: none !important; }
    to drag anything on a summary. The window now renders exactly as many
    whole cards as fit, and the arrows swap which posts are in it - so there
    is no overflow to scroll and nothing to cut in half. */
-.peek-wrap { position: relative; padding-inline: 38px; }
+.peek-wrap { position: relative; padding-inline: 44px; }
+/* The arrows were the characters › and ‹. A glyph sits on a text baseline,
+   so it never lands in the middle of a circle however the box is centred,
+   and at that size it reads as a stray punctuation mark. A drawn chevron
+   has no baseline to fight: it is centred because it is centred. */
 .peek-arrow {
   position: absolute; top: 50%; transform: translateY(-50%);
-  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
-  border: 1px solid #dde4ec; background: #fff; color: #41566e;
-  font-size: 1.1rem; line-height: 1; font-family: inherit;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 6px rgba(16,40,70,0.1);
-  transition: background 0.15s, opacity 0.15s;
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  border: 1px solid #e1e8f0; background: #fff; color: #41566e;
+  padding: 0; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(16,40,70,0.12);
+  transition: background 0.15s, color 0.15s, border-color 0.15s,
+              box-shadow 0.15s, opacity 0.15s;
 }
+.peek-arrow svg { width: 17px; height: 17px; display: block; }
 .peek-arrow.prev { inset-inline-end: 0; }
 .peek-arrow.next { inset-inline-start: 0; }
-.peek-arrow:hover:not(:disabled) { background: #f1f5f9; }
-.peek-arrow:disabled { opacity: 0.3; cursor: default; }
+.peek-arrow:hover:not(:disabled) {
+  background: #1a4b8c; border-color: #1a4b8c; color: #fff;
+  box-shadow: 0 4px 12px rgba(16,40,70,0.2);
+}
+.peek-arrow:active:not(:disabled) { transform: translateY(-50%) scale(0.94); }
+.peek-arrow:disabled { opacity: 0.32; cursor: default; box-shadow: none; }
 .peek-empty {
   text-align: center; font-size: 0.84rem; color: #7b8a99;
   padding: 14px 0 4px;
@@ -143,6 +158,22 @@ input[type=file] { display: none !important; }
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 
+/* Even with the attributes above, some browsers autofill anyway - and the
+   colour they paint cannot be overridden with background-color, only covered
+   by a very large inset shadow. The field sits in a dark header, so it also
+   has to keep its white text. */
+#global-search-input:-webkit-autofill,
+#global-search-input:-webkit-autofill:hover,
+#global-search-input:-webkit-autofill:focus,
+#global-search-input:-webkit-autofill:active {
+  -webkit-text-fill-color: #fff !important;
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  caret-color: #fff;
+  transition: background-color 9999s ease-in-out 0s;
+}
+/* Chrome draws its own clear "x" on type=search, in the wrong colour. */
+#global-search-input::-webkit-search-cancel-button { filter: invert(1); opacity: 0.5; }
+
 /* Sign-in sits in the dark header, so it is a pill, not a card. */
 .signin-btn {
   background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.28);
@@ -153,7 +184,8 @@ input[type=file] { display: none !important; }
 }
 .signin-btn:hover { background: rgba(255,255,255,0.19); border-color: rgba(255,255,255,0.45); }
 
-.service-btn.svc-wide { grid-column: span 2; }
+/* Kept so the class is harmless wherever it still appears in the markup. */
+.service-btn.svc-wide { flex: 0 1 calc((100% - 20px) / 3); }
 .svc-ico {
   font-size: 1.7rem; line-height: 1; flex: none;
   width: 48px; height: 48px; border-radius: 12px;
@@ -417,9 +449,10 @@ img, svg, video { max-width: 100%; }
   #auth-area { flex-shrink: 0; }
 
   /* Services grid - 2 columns on mobile */
-  .services-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; margin-bottom: 16px !important; }
+  .services-grid { gap: 8px !important; margin-bottom: 16px !important; }
+  .service-btn, .service-btn.svc-wide { flex: 0 1 calc((100% - 8px) / 2) !important; }
   .service-btn { padding: 12px !important; min-height: 78px; gap: 10px !important; grid-column: span 1 !important; }
-  .service-btn.svc-wide { grid-column: span 2 !important; }
+
   .svc-ico { width: 40px; height: 40px; font-size: 1.4rem; }
   .svc-txt b { font-size: 0.88rem; }
   .svc-txt small { font-size: 0.7rem; }
@@ -701,7 +734,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v15.7';
+  var v='v15.8';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -727,7 +760,14 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div id="global-search-bar" style="position:relative;margin-right:12px;">
         <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:5px 12px;">
           <span style="color:rgba(255,255,255,0.55);font-size:0.85rem;">🔍</span>
-          <input id="global-search-input" type="text" autocomplete="off" placeholder="חיפוש..."
+          <!-- type="search" and a name of its own, because an unnamed text input
+               with no name is exactly what Chrome decides is a "your name"
+               field: it filled this one with the saved name and painted its
+               own white background over it. autocomplete="off" alone does not
+               stop that - browsers ignore it on fields they have guessed. -->
+          <input id="global-search-input" type="search" name="cl-site-search"
+            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            aria-label="חיפוש באתר" placeholder="חיפוש..."
             oninput="globalSearch(this.value)"
             style="background:none;border:none;outline:none;color:white;font-size:0.85rem;width:150px;direction:rtl;transition:width 0.15s;"
             onfocus="this.style.width='230px'" onblur="if(!this.value)this.style.width='150px'">
@@ -912,41 +952,41 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <div id="svc-piste" class="service-btn" onclick="openM('pisteModal')">
       <span class="svc-ico">⛷️</span>
       <span class="svc-txt"><b>מסלולים, בקתות ואפרה סקי</b>
-        <small>מדריך לכל מסלול · איפה אוכלים על ההר · איפה שותים אחרי</small></span>
+        <small>לפי רמה · צ'רוויניה, צ'רמט וולטורננש · ואיפה עוצרים בדרך</small></span>
     </div>
     <div id="svc-parking" class="service-btn" onclick="openM('parkingModal')">
       <span class="svc-ico">🚌</span>
       <span class="svc-txt"><b>תחבורה, חניה וחירום</b>
-        <small>מהשדה לכפר · לוחות זמנים · רכב שכור · מספרי חירום</small></span>
+        <small>מהשדה לכפר · לוחות זמנים · רכב שכור · שרשראות · חירום</small></span>
     </div>
     <div id="svc-travel" class="service-btn" onclick="openM('hotelModal')">
       <span class="svc-ico">✈️</span>
-      <span class="svc-txt"><b>תכנון טיול</b><small>טיסות, לינה ורכב</small></span>
+      <span class="svc-txt"><b>תכנון טיול</b><small>חיפוש טיסות, לינה ורכב — בשאלה אחת</small></span>
     </div>
     <div id="svc-skipass" class="service-btn" onclick="openM('skipassModal')">
       <span class="svc-ico">🎫</span>
-      <span class="svc-txt"><b>סקי פס</b><small>מחירים, הנחות ואיפה קונים</small></span>
+      <span class="svc-txt"><b>סקי פס</b><small>מחירון צ'רוויניה וצ'רמט · הנחות לפי גיל · פס בסמארטפון</small></span>
     </div>
     <div id="svc-rental" class="service-btn" onclick="openM('rentalModal')">
       <span class="svc-ico">🎿</span>
-      <span class="svc-txt"><b>השכרת ציוד</b><small>חמש חנויות, מחירון ושעות</small></span>
+      <span class="svc-txt"><b>השכרת ציוד</b><small>חמש חנויות בכפר ושלוש בדרך · מחירון · לשכור או לקנות</small></span>
     </div>
     <div id="svc-lessons" class="service-btn" onclick="openM('lessonsModal')">
       <span class="svc-ico">🏫</span>
-      <span class="svc-txt"><b>הדרכת סקי</b><small>מחירון 2026/27 ומדריכים</small></span>
+      <span class="svc-txt"><b>הדרכת סקי</b><small>מחירון 2026/27 · קבוצות, פרטי וילדים · מדריכים</small></span>
     </div>
     <div id="svc-kosher" class="service-btn" onclick="openM('kosherModal')">
       <span class="svc-ico">🕯️</span>
       <span class="svc-txt"><b>כשרות ושבת</b>
-        <small>זמני שבת · מה אפשר לקנות בסופר · מילאנו וטורינו</small></span>
+        <small>זמני שבת · מוצרים בסופר · משלוח · מילאנו וטורינו</small></span>
     </div>
     <div id="svc-maps" class="service-btn" onclick="openM('mapModal')">
       <span class="svc-ico">🗺️</span>
-      <span class="svc-txt"><b>מפות</b><small>מסלולים, הכפר ונקודות ציון</small></span>
+      <span class="svc-txt"><b>מפות</b><small>מסלולים, הכפר, ולטורננש ושוויץ</small></span>
     </div>
     <div id="svc-around" class="service-btn svc-wide" onclick="openM('aroundModal')">
       <span class="svc-ico">🏔️</span>
-      <span class="svc-txt"><b>מה לעשות באזור</b><small>ליום סוער או ליום בלי מגלשיים</small></span>
+      <span class="svc-txt"><b>מה לעשות באזור</b><small>ימים סוערים · אחרי הסקי · ומה סגור בחורף</small></span>
     </div>
   </div>
 
@@ -980,9 +1020,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
   <div id="forum-peek" style="display:none;max-width:750px;margin:0 auto 14px;">
     <div style="font-size:0.9rem;font-weight:bold;color:#16314f;margin-bottom:8px;">💬 מהפורום</div>
     <div class="peek-wrap">
-      <button id="peek-prev" onclick="peekMove(-1)" aria-label="הקודמים" class="peek-arrow prev">›</button>
+      <button id="peek-prev" onclick="peekMove(-1)" aria-label="הודעות חדשות יותר" class="peek-arrow prev"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
       <div id="forum-peek-track" style="display:flex;gap:10px;align-items:stretch;"></div>
-      <button id="peek-next" onclick="peekMove(1)" aria-label="הבאים" class="peek-arrow next">‹</button>
+      <button id="peek-next" onclick="peekMove(1)" aria-label="הודעות ישנות יותר" class="peek-arrow next"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
     </div>
     <div id="peek-empty" class="peek-empty" style="display:none;">
       אין עדיין הודעות בפורום. היו הראשונים לכתוב.
