@@ -751,12 +751,53 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
 }
 
 // ------------------------------------------------------------
-// Reading the baseline
+//  Reading the baseline
 //
-// Must run BEFORE saveToSupabase, which overwrites ski_status_current with
-// the new reading. Called first in main for that reason.
+//  This read decides everything: with no previous reading the whole alert
+//  block stays silent, by design. So it must come from the table that is
+//  actually filled.
+//
+//  It used to read ski_status_current, and that was wrong for a reason
+//  written three lines above the upsert that fills it: that upsert is
+//  treated as OPTIONAL - saveToSupabase only warns when it fails. A table
+//  the writer is allowed to give up on is the last place to look for the
+//  one fact the alerts depend on, and the first real transition proved it:
+//  Zermatt went CLOSED -> OPEN, ski_status_history recorded both readings,
+//  and no alert was raised because the baseline came back empty.
+//
+//  ski_status_history gets a plain insert on every run and is checked for
+//  errors. Its newest row IS the previous reading, because this runs before
+//  saveToSupabase writes the new one.
 // ------------------------------------------------------------
+function _describeReading(r) {
+  if (!r) return 'none';
+  return (r.updated_at || '?')
+       + ' (zermatt=' + (r.zermatt_link || '?')
+       + ', lifts=' + (r.lifts_open_local != null ? r.lifts_open_local : '?')
+       + ', gust=' + (r.wind_gust != null ? r.wind_gust : '?') + ')';
+}
+
 async function readPreviousReading() {
+  // 1. the table every run inserts into
+  try {
+    const { data, error } = await supabase
+      .from('ski_status_history')
+      .select('*')
+      .order('updated_at', { ascending: false })
+      .limit(1);
+    if (error) {
+      console.warn('History baseline unavailable:', error.message);
+    } else if (data && data.length) {
+      console.log('Baseline from ski_status_history: ' + _describeReading(data[0]));
+      return data[0];
+    } else {
+      console.log('ski_status_history is empty.');
+    }
+  } catch (e) {
+    console.warn('History baseline failed:', e.message);
+  }
+
+  // 2. the single-row table, if it happens to be there
   try {
     const { data, error } = await supabase
       .from('ski_status_current')
@@ -764,18 +805,19 @@ async function readPreviousReading() {
       .eq('id', 1)
       .maybeSingle();
     if (error) {
-      console.warn('Previous reading unavailable:', error.message);
-      return null;
+      console.warn('Current-row baseline unavailable:', error.message);
+    } else if (data) {
+      console.log('Baseline from ski_status_current: ' + _describeReading(data));
+      return data;
     }
-    if (!data) {
-      console.log('No previous reading yet - auto alerts stay quiet this run.');
-      return null;
-    }
-    return data;
   } catch (e) {
-    console.warn('Previous reading failed:', e.message);
-    return null;
+    console.warn('Current-row baseline failed:', e.message);
   }
+
+  // Said out loud, because this is the state in which the alert block does
+  // nothing at all and the log should never leave that to be guessed at.
+  console.log('No previous reading - auto alerts stay quiet this run.');
+  return null;
 }
 
 // ------------------------------------------------------------
