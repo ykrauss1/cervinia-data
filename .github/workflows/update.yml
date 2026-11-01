@@ -1,4 +1,5 @@
 name: Run Scraper
+
 on:
   schedule:
     - cron: "*/30 * * * *"
@@ -7,30 +8,65 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    # A hung Puppeteer used to sit there until GitHub killed the job six hours
+    # later. Ten minutes is four times what a good run needs.
+    timeout-minutes: 10
+
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      # ------------------------------------------------------------------
+      #  Chromium's libraries
+      #
+      #  This step used to name its packages outright, and one of them -
+      #  libasound2t64 - exists only on Ubuntu 24.04. The day GitHub moves
+      #  ubuntu-latest in either direction, a hardcoded name stops resolving
+      #  and apt-get exits 1, which fails the job before the scraper has
+      #  drawn breath. And it is not one package: the 64-bit time_t
+      #  transition renamed a whole family (libasound2, libatk1.0-0,
+      #  libatk-bridge2.0-0, libcups2, libgtk-3-0 ...), each gaining a t64
+      #  twin, on a different schedule per image.
+      #
+      #  So instead of naming them, we ask the image which name it has. Each
+      #  package is tried plain, then with t64; anything the image does not
+      #  carry at all is skipped out loud rather than killing the run.
+      # ------------------------------------------------------------------
       - name: Install Chromium dependencies
         run: |
+          set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y \
-            ca-certificates fonts-liberation \
-            libasound2t64 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 \
-            libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 \
-            libgcc-s1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 \
-            libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 \
-            libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 \
-            libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 \
-            libxtst6 lsb-release wget xdg-utils
+
+          want="ca-certificates fonts-liberation
+                libasound2 libatk-bridge2.0-0 libatk1.0-0 libcairo2 libcups2
+                libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libglib2.0-0
+                libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0
+                libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1
+                libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1
+                libxtst6"
+
+          pkgs=""
+          for p in $want; do
+            if apt-cache show "$p" > /dev/null 2>&1; then
+              pkgs="$pkgs $p"
+            elif apt-cache show "${p}t64" > /dev/null 2>&1; then
+              pkgs="$pkgs ${p}t64"
+              echo "note: using ${p}t64 in place of $p"
+            else
+              echo "note: skipping $p - not in this runner image"
+            fi
+          done
+
+          echo "installing:$pkgs"
+          sudo apt-get install -y --no-install-recommends $pkgs
 
       - name: Install Node dependencies
         run: npm install
@@ -41,16 +77,40 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
+      # ------------------------------------------------------------------
+      #  Committing the reading
+      #
+      #  The old version ran "git stash --include-untracked" and then
+      #  "git stash pop". Those two are not a pair: when there is nothing to
+      #  stash, stash exits 0 having saved nothing, and pop then exits 1 with
+      #  "No stash entries found" - a red run caused purely by the data not
+      #  having changed. Verified, not assumed: stash exit=0, pop exit=1.
+      #
+      #  Rather than pair them correctly, the whole dance goes. "pull --rebase
+      #  --autostash" sets the working tree aside, rebases onto the remote and
+      #  puts it back, in one flag that cannot leave a half-applied stash
+      #  behind. The checkout is fresh, so there were never local commits to
+      #  replay in the first place.
+      # ------------------------------------------------------------------
       - name: Commit data.json to repo
         run: |
-          git config user.name "github-actions[bot]"
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git stash --include-untracked
-          git fetch origin main
-          git rebase origin/main
-          git stash pop
+
+          if [ -z "$(git status --porcelain data/data.json)" ]; then
+            echo "data.json unchanged - nothing to commit."
+            exit 0
+          fi
+
+          git pull --rebase --autostash origin main
+
           git add data/data.json
-          git diff --cached --quiet && echo "No changes, skipping." && exit 0
+          if git diff --cached --quiet; then
+            echo "No changes after rebase - skipping."
+            exit 0
+          fi
+
           git commit -m "Update data.json [$(date -u '+%Y-%m-%d %H:%M UTC')]"
           git push origin main
         env:
