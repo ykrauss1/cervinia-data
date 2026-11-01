@@ -1396,6 +1396,97 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'with no posts the strip says nothing at all'); else ok();
 }
 
+// ── the start of a run says it is the start of a run ─────────────────────
+// The button read "נקודת היציאה", which in Hebrew is either the point a run
+// ends at or the way you get to it. It is neither: it is where the run
+// BEGINS, which for nearly every run here is the top of a lift. It also
+// pointed at a Google Maps SEARCH for a place name, on a map that draws no
+// lifts and no pistes - so the one thing the reader wanted to see was the
+// one thing that map could not show.
+{
+  const pistes = (() => {
+    const t = JSON.parse(fs.readFileSync(TEXTS, 'utf8')).pistes || {};
+    return ['beginner','intermediate','advanced','zermatt','valtournenche','nearby']
+      .flatMap(k => t[k] || []).filter(o => o && o.trail);
+  })();
+
+  const r = await page.evaluate((rows) => {
+    const out = { n: rows.length, swapped: [], outside: [], noPlace: [], notWinter: [],
+                  noMarker: [], guards: [] };
+    // bad input must produce nothing at all, not a half-built link
+    ['', 'abc', '45.9', null, '1,2,3'].forEach(v => {
+      if (_mapyPoint(v) !== '') out.guards.push(String(v));
+    });
+    for (const o of rows) {
+      const src = o.start_latlon || o.latlon || '';
+      const url = _mapyPoint(src);
+      const m = /[?&]center=([^&]+)/.exec(url || '');
+      if (!m) { out.swapped.push(o.name); continue; }
+      const [lon, lat] = decodeURIComponent(m[1]).split(',').map(Number);
+      const [slat, slon] = String(src).split(',').map(Number);
+      // the content file stores latitude first; the URL must store it second
+      if (!(Math.abs(lon - slon) < 1e-9 && Math.abs(lat - slat) < 1e-9)) out.swapped.push(o.name);
+      // and the result has to be in the Alps, not its mirror image
+      if (!(lat > 45 && lat < 46.5 && lon > 7 && lon < 8.2)) out.outside.push(o.name);
+      if (!/mapset=winter/.test(url)) out.notWinter.push(o.name);
+      if (!/marker=true/.test(url)) out.noMarker.push(o.name);
+      if (!_startPlace(o)) out.noPlace.push(o.name);
+    }
+    return out;
+  }, pistes);
+
+  const T = 'the start of a run says it is the start of a run';
+  if (r.n < 50) fail(T, `only ${r.n} runs carry a trail - the content file looks wrong`); else ok();
+  if (r.guards.length) fail(T,
+    `_mapyPoint built a link from junk input: ${r.guards.join(', ')}`); else ok();
+  if (r.swapped.length) fail(T,
+    `latitude and longitude are the wrong way round for ${r.swapped.length} runs `
+    + `(${r.swapped.slice(0,3).join(', ')})`); else ok();
+  if (r.outside.length) fail(T,
+    `${r.outside.length} start points fall outside the Alps (${r.outside.slice(0,3).join(', ')})`); else ok();
+  if (r.notWinter.length) fail(T,
+    'the start point opens a map with no lifts or pistes on it'); else ok();
+  if (r.noMarker.length) fail(T,
+    'the map opens with nothing marked on it'); else ok();
+  if (r.noPlace.length) fail(T,
+    `${r.noPlace.length} runs cannot name the station they start from`); else ok();
+
+  // and the wording itself
+  // The page is opened over file://, where its own fetch of texts.json is
+  // blocked, so PISTES stays empty and the guide draws its chips and no
+  // cards at all. Every earlier check that looked at this panel was really
+  // looking at an empty panel. Hand the content in directly.
+  const wording = await page.evaluate(async (t) => {
+    PISTES = t.pistes;
+    if (t.apres_ski) PISTES.apres_ski = t.apres_ski;
+    openM('pisteModal');
+    // Reset every filter the guide reads. An earlier check leaves the panel
+    // on whatever chips it was exercising, and "kind" in particular decides
+    // whether the list shows runs at all.
+    window.pisteTab = 'list'; window.pisteArea = 'all';
+    window.pisteKind = 'runs'; window.pisteDiff = 'all';
+    if (typeof renderPisteGuide === 'function') renderPisteGuide();
+    await new Promise(res => setTimeout(res, 600));
+    const el = document.getElementById('pisteModal');
+    const html = el.innerHTML;
+    const cards = el.querySelectorAll('a[href*="mapy.com/fnc/v1/showmap"]').length;
+    closeM('pisteModal');
+    return {
+      rendered: cards,
+      oldLabel: /נקודת היציאה/.test(html),
+      newLabel: /תחילת המסלול/.test(html),
+      namesStation: /תחילת המסלול[^<]*·\s*<bdi/.test(html)
+    };
+  }, JSON.parse(fs.readFileSync(TEXTS, 'utf8')));
+
+  if (!wording.rendered) fail(T,
+    'the piste panel drew no start-point links at all - the check saw an empty panel'); else ok();
+  if (wording.oldLabel) fail(T, 'the ambiguous "נקודת היציאה" is still on the page'); else ok();
+  if (!wording.newLabel) fail(T, 'no run says where it begins any more'); else ok();
+  if (!wording.namesStation) fail(T,
+    'the button opens a map without naming the station the run starts from'); else ok();
+}
+
 // ── the cards promise what the panels hold ───────────────────────────────
 // The subtitles live in texts.json, and the markup carries a copy as the
 // fallback for when that file cannot be fetched. The two drifted: the piste
