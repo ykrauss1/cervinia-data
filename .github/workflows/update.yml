@@ -30,23 +30,42 @@ jobs:
       # ------------------------------------------------------------------
       #  Chromium's libraries
       #
-      #  This step used to name its packages outright, and one of them -
-      #  libasound2t64 - exists only on Ubuntu 24.04. The day GitHub moves
-      #  ubuntu-latest in either direction, a hardcoded name stops resolving
-      #  and apt-get exits 1, which fails the job before the scraper has
-      #  drawn breath. And it is not one package: the 64-bit time_t
-      #  transition renamed a whole family (libasound2, libatk1.0-0,
-      #  libatk-bridge2.0-0, libcups2, libgtk-3-0 ...), each gaining a t64
-      #  twin, on a different schedule per image.
+      #  The runner is Ubuntu 26.04 now, and the 64-bit time_t transition
+      #  renamed a whole family of packages: libasound2, libatk1.0-0,
+      #  libatk-bridge2.0-0, libcups2, libglib2.0-0 and libgtk-3-0 each
+      #  became <name>t64. The old names did not disappear - they survive as
+      #  VIRTUAL packages with no installation candidate, which is the trap:
       #
-      #  So instead of naming them, we ask the image which name it has. Each
-      #  package is tried plain, then with t64; anything the image does not
-      #  carry at all is skipped out loud rather than killing the run.
+      #    E: Package 'libasound2' has no installation candidate
+      #
+      #  So "does apt know this name" is the wrong question; it answers yes
+      #  for a virtual package. "apt-cache show" exits 0 for them, which is
+      #  how an earlier version of this step picked libasound2 over
+      #  libasound2t64 and killed the job. The right question is whether the
+      #  name has a real installation CANDIDATE, which is what apt-cache
+      #  policy reports - and that is what is asked below, plain name first,
+      #  then the t64 twin.
+      #
+      #  Nothing here is fatal either. A missing library that Chromium
+      #  actually needs shows up as a loud Puppeteer launch error one step
+      #  later; a missing library it does not need should never have been
+      #  able to stop a scraper run in the first place.
       # ------------------------------------------------------------------
       - name: Install Chromium dependencies
         run: |
-          set -euo pipefail
-          sudo apt-get update
+          set -uo pipefail
+          sudo apt-get update || true
+
+          has_candidate() {
+            apt-cache policy "$1" 2>/dev/null \
+              | sed -n 's/^ *Candidate: *//p' | head -1 | grep -qv '^(none)$'
+          }
+          pick() {
+            for cand in "$1" "${1}t64"; do
+              if has_candidate "$cand"; then echo "$cand"; return 0; fi
+            done
+            return 1
+          }
 
           want="ca-certificates fonts-liberation
                 libasound2 libatk-bridge2.0-0 libatk1.0-0 libcairo2 libcups2
@@ -58,18 +77,24 @@ jobs:
 
           pkgs=""
           for p in $want; do
-            if apt-cache show "$p" > /dev/null 2>&1; then
-              pkgs="$pkgs $p"
-            elif apt-cache show "${p}t64" > /dev/null 2>&1; then
-              pkgs="$pkgs ${p}t64"
-              echo "note: using ${p}t64 in place of $p"
+            if chosen="$(pick "$p")"; then
+              pkgs="$pkgs $chosen"
+              [ "$chosen" = "$p" ] || echo "note: using $chosen in place of $p"
             else
-              echo "note: skipping $p - not in this runner image"
+              echo "note: skipping $p - no installation candidate on this image"
             fi
           done
-
           echo "installing:$pkgs"
-          sudo apt-get install -y --no-install-recommends $pkgs
+
+          # One go if it works; otherwise one at a time, so a single awkward
+          # name cannot take the whole run down with it.
+          if ! sudo apt-get install -y --no-install-recommends $pkgs; then
+            echo "::warning::batch install failed - retrying package by package"
+            for p in $pkgs; do
+              sudo apt-get install -y --no-install-recommends "$p" \
+                || echo "::warning::could not install $p - continuing"
+            done
+          fi
 
       - name: Install Node dependencies
         run: npm install
