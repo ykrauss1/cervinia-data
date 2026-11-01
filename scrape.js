@@ -591,13 +591,49 @@ function romeMinutes(d = new Date()) {
   }
 }
 
-// Lifts are reported closed all evening and all night. Only inside the
-// skiing day does "closed" mean something went wrong.
+// Lifts are reported closed all evening and all night, and so is the
+// crossing to Zermatt - it is a cable-car link, and it shuts when the lifts
+// shut. Only inside the skiing day does "closed" mean something went wrong.
+//
+// The window is not guessed: the feed carries the operator's own hours in
+// opening_hours ("08:00 - 16:45"), so the mountain says when its day is,
+// and these are the fallbacks for the runs where that field is missing.
 const LIFT_WINDOW = [9 * 60, 15 * 60 + 30];   // 09:00 - 15:30 Rome
 const WIND_WINDOW = [6 * 60, 18 * 60];        // 06:00 - 18:00 Rome
 
 function inWindow([from, to], now = romeMinutes()) {
   return now >= from && now <= to;
+}
+
+// "08:00 - 16:45" -> [480, 1005]. Anything else -> null.
+function parseOpeningHours(d) {
+  const m = String((d && d.opening_hours) || '')
+    .match(/(\d{1,2}):(\d{2})\s*[-\u2013\u2014]\s*(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  const from = (+m[1]) * 60 + (+m[2]);
+  const to   = (+m[3]) * 60 + (+m[4]);
+  if (!(to > from) || to > 24 * 60) return null;
+  return [from, to];
+}
+
+// The operating day, trimmed at both ends. The trims are the point:
+//
+//   padStart - the lifts do not all start at once, so "not everything is
+//              running yet" at 08:10 is a morning, not a fault.
+//   padEnd   - everything shuts at the end of the day, every day. Without
+//              this trim the scraper would report the timetable as an
+//              emergency once every evening, and people would mute it
+//              inside a week.
+//
+// Zermatt needs a longer tail than the lifts: the last ascent back to Italy
+// is around 14:50, so the crossing is already shutting while the pistes are
+// still running.
+function skiDayWindow(next, padStart, padEnd, fallback) {
+  const hours = parseOpeningHours(next);
+  if (!hours) return fallback;
+  const from = hours[0] + padStart;
+  const to   = hours[1] - padEnd;
+  return (to > from) ? [from, to] : fallback;
 }
 
 // Numbers arrive as numbers, as "45", as "45 cm" or as null, depending on
@@ -639,29 +675,77 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
   if (!prev || !next) return [];
   const out = [];
 
+  const liftWin = skiDayWindow(next, 60, 90, LIFT_WINDOW);
+
+  // The crossing gets a window of its own, and a wider one than the lifts.
+  // The first version trimmed two hours off the front, on the reasoning that
+  // the last ascent back to Italy is about 14:50 - which quietly assumed
+  // everybody comes back the same day. They do not: you can ski across and
+  // stay, and there are lockers at the lower station in Zermatt. So the
+  // afternoon stays in. Only the final hour is trimmed, because at 16:45
+  // everything shuts and that is the timetable, not news.
+  const zermWin = skiDayWindow(next, 0, 60, LIFT_WINDOW);
+
+  // Two moments inside that window behave differently from the rest:
+  //
+  //   zMorning - by an hour after the lifts start, a crossing that is still
+  //              shut is a fact about today, not a mountain waking up.
+  //   zOpenFrom- the crossing opens WITH the lifts every morning, so a
+  //              CLOSED->OPEN before this is the timetable. After it, the
+  //              same transition means it opened after having been shut,
+  //              which is the news somebody who gave up at nine wants.
+  const zMorning  = zermWin[0] + 60;
+  const zOpenFrom = Math.max(zermWin[0] + 90, 9 * 60 + 30);
+
   // --- the crossing to Zermatt ------------------------------------------
+  //
+  // This is a cable-car link, not a border post: it closes every single
+  // evening with the lifts, and opens every morning with them. Reporting
+  // either as news would mean a push every day at dusk - the same mistake
+  // the lift rules were already guarded against, and one this rule made
+  // until a reader asked why a closure at six in the evening would alert.
   const zPrev = upper(prev.zermatt_link);
   const zNext = upper(next.zermatt_link);
-  if (zPrev === 'OPEN' && zNext === 'CLOSED') {
+  if (!inWindow(zermWin, nowMin)) {
+    // outside the crossing's operating hours, both directions are the
+    // timetable doing what a timetable does
+  } else if (zPrev === 'OPEN' && zNext === 'CLOSED') {
+    // it was running and it stopped - wind, or a fault
     out.push({
       key: 'zermatt-closed',
       severity: 'danger',
       hours: 8,
       cooldown: 10,
-      text: 'המעבר לצ׳רמט סגור. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.'
+      text: 'המעבר לצ׳רמט נסגר. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.'
     });
-  } else if (zPrev === 'CLOSED' && zNext === 'OPEN') {
+  } else if (zPrev === 'CLOSED' && zNext === 'CLOSED'
+             && nowMin >= zMorning && (liftsOpen(next) || 0) > 0) {
+    // Still shut an hour into a day on which the mountain is running. This
+    // is a STATE, not a transition, which is the point: on a day the
+    // crossing never opens at all there is no transition to catch, and
+    // somebody planning to cross finds out by going up. The cooldown keeps
+    // it to once a day.
+    out.push({
+      key: 'zermatt-shut-today',
+      severity: 'warning',
+      hours: 7,
+      cooldown: 14,
+      text: 'המעבר לצ׳רמט סגור היום, בזמן שהמעליות בצ׳רוויניה פועלות.'
+    });
+  } else if (zPrev === 'CLOSED' && zNext === 'OPEN' && nowMin >= zOpenFrom) {
+    // Opened after having been shut - worth telling the person who gave up
+    // at nine. Before zOpenFrom this is just the morning timetable.
     out.push({
       key: 'zermatt-open',
       severity: 'info',          // good news: the strip, not the phone
       hours: 5,
       cooldown: 8,
-      text: 'המעבר לצ׳רמט נפתח מחדש.'
+      text: 'המעבר לצ׳רמט נפתח. אפשר לחצות.'
     });
   }
 
   // --- lifts, inside the skiing day only --------------------------------
-  if (inWindow(LIFT_WINDOW, nowMin)) {
+  if (inWindow(liftWin, nowMin)) {
     const oPrev = liftsOpen(prev);
     const oNext = liftsOpen(next);
     const tNext = liftsTotal(next);
