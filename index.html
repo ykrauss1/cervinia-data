@@ -60,15 +60,21 @@ input[type=file] { display: none !important; }
    the page empty and said nothing about what was behind them; the ones people
    open standing on the mountain are wider now, and every card has a second
    line naming what it holds. */
+/* Three across, every card the same size, and the twelve cells fill exactly
+   four rows with nothing left ragged. The six-column version let a card span
+   two or three, which made "כשרות ושבת" run the width of the page while the
+   card under it waited for a row of its own - a lot of white for a button.
+   Only two cards earn a double: the camera, which carries a live photograph,
+   and the last one, which closes the final row. */
 .services-grid {
-  display: grid; grid-template-columns: repeat(6, 1fr);
-  gap: 12px; margin-bottom: 25px;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; margin-bottom: 22px;
 }
 .service-btn {
   background: white; border: 1px solid #e3e8ee; border-radius: 14px;
-  padding: 16px 18px; cursor: pointer; text-align: right;
-  display: flex; align-items: center; gap: 13px;
-  grid-column: span 2; min-height: 84px;
+  padding: 13px 15px; cursor: pointer; text-align: right;
+  display: flex; align-items: center; gap: 12px;
+  grid-column: span 1; min-height: 72px;
   box-shadow: 0 1px 3px rgba(16,40,70,0.06);
   transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
 }
@@ -96,12 +102,29 @@ input[type=file] { display: none !important; }
 #live-data-bar.has-hero .bar-inner > * { position: relative; z-index: 1; }
 
 /* A peek at the forum, above the forum itself. */
+/* The strip used to be a scrolling box: a scrollbar under three and a bit
+   cards, with the next one sliced down the middle. A reader should not have
+   to drag anything on a summary. The window now renders exactly as many
+   whole cards as fit, and the arrows swap which posts are in it - so there
+   is no overflow to scroll and nothing to cut in half. */
+.peek-wrap { position: relative; padding-inline: 38px; }
 .peek-arrow {
-  width: 30px; height: 30px; border-radius: 9px; cursor: pointer;
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
   border: 1px solid #dde4ec; background: #fff; color: #41566e;
   font-size: 1.1rem; line-height: 1; font-family: inherit;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(16,40,70,0.1);
+  transition: background 0.15s, opacity 0.15s;
 }
-.peek-arrow:hover { background: #f1f5f9; }
+.peek-arrow.prev { inset-inline-end: 0; }
+.peek-arrow.next { inset-inline-start: 0; }
+.peek-arrow:hover:not(:disabled) { background: #f1f5f9; }
+.peek-arrow:disabled { opacity: 0.3; cursor: default; }
+.peek-empty {
+  text-align: center; font-size: 0.84rem; color: #7b8a99;
+  padding: 14px 0 4px;
+}
 .peek-all {
   background: #fff; border: 1px solid #cfe0f2; color: #1a4b8c;
   border-radius: 999px; padding: 7px 18px; font-size: 0.82rem;
@@ -109,7 +132,7 @@ input[type=file] { display: none !important; }
 }
 .peek-all:hover { background: #eef4fb; }
 .peek-card {
-  flex: 0 0 min(280px, 78%); scroll-snap-align: start;
+  flex: 1 1 0; min-width: 0;
   background: #fff; border: 1px solid #e3e8ee; border-radius: 12px;
   padding: 12px 13px; cursor: pointer; display: flex; flex-direction: column; gap: 7px;
   box-shadow: 0 1px 3px rgba(16,40,70,0.06);
@@ -130,8 +153,7 @@ input[type=file] { display: none !important; }
 }
 .signin-btn:hover { background: rgba(255,255,255,0.19); border-color: rgba(255,255,255,0.45); }
 
-.service-btn.svc-wide { grid-column: span 3; }
-.service-btn.svc-tall { grid-column: span 3; }
+.service-btn.svc-wide { grid-column: span 2; }
 .svc-ico {
   font-size: 1.7rem; line-height: 1; flex: none;
   width: 48px; height: 48px; border-radius: 12px;
@@ -395,9 +417,9 @@ img, svg, video { max-width: 100%; }
   #auth-area { flex-shrink: 0; }
 
   /* Services grid - 2 columns on mobile */
-  .services-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 9px !important; margin-bottom: 16px !important; }
+  .services-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; margin-bottom: 16px !important; }
   .service-btn { padding: 12px !important; min-height: 78px; gap: 10px !important; grid-column: span 1 !important; }
-  .service-btn.svc-wide, .service-btn.svc-tall { grid-column: span 2 !important; }
+  .service-btn.svc-wide { grid-column: span 2 !important; }
   .svc-ico { width: 40px; height: 40px; font-size: 1.4rem; }
   .svc-txt b { font-size: 0.88rem; }
   .svc-txt small { font-size: 0.7rem; }
@@ -679,7 +701,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v15.5';
+  var v='v15.7';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -882,17 +904,17 @@ details.fold > .fold-body { padding: 0 13px 12px; }
        now - the ones people open on the mountain are larger - and each says
        in a second line what is behind it. -->
   <div class="services-grid">
-    <div id="svc-piste" class="service-btn svc-wide" onclick="openM('pisteModal')">
-      <span class="svc-ico">⛷️</span>
-      <span class="svc-txt"><b>מסלולים, בקתות ואפרה סקי</b>
-        <small>מדריך לכל מסלול · איפה אוכלים על ההר · איפה שותים אחרי</small></span>
-    </div>
-    <div id="svc-webcam" class="service-btn svc-tall" onclick="openM('webcamModal')">
+    <div id="svc-webcam" class="service-btn svc-wide" onclick="openM('webcamModal')">
       <span class="svc-ico">📷</span>
       <span class="svc-txt"><b>מצלמות</b>
         <small>לראות את ההר עכשיו, לפני שיוצאים</small></span>
     </div>
-    <div id="svc-parking" class="service-btn svc-wide" onclick="openM('parkingModal')">
+    <div id="svc-piste" class="service-btn" onclick="openM('pisteModal')">
+      <span class="svc-ico">⛷️</span>
+      <span class="svc-txt"><b>מסלולים, בקתות ואפרה סקי</b>
+        <small>מדריך לכל מסלול · איפה אוכלים על ההר · איפה שותים אחרי</small></span>
+    </div>
+    <div id="svc-parking" class="service-btn" onclick="openM('parkingModal')">
       <span class="svc-ico">🚌</span>
       <span class="svc-txt"><b>תחבורה, חניה וחירום</b>
         <small>מהשדה לכפר · לוחות זמנים · רכב שכור · מספרי חירום</small></span>
@@ -913,7 +935,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <span class="svc-ico">🏫</span>
       <span class="svc-txt"><b>הדרכת סקי</b><small>מחירון 2026/27 ומדריכים</small></span>
     </div>
-    <div id="svc-kosher" class="service-btn svc-wide" onclick="openM('kosherModal')">
+    <div id="svc-kosher" class="service-btn" onclick="openM('kosherModal')">
       <span class="svc-ico">🕯️</span>
       <span class="svc-txt"><b>כשרות ושבת</b>
         <small>זמני שבת · מה אפשר לקנות בסופר · מילאנו וטורינו</small></span>
@@ -922,7 +944,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <span class="svc-ico">🗺️</span>
       <span class="svc-txt"><b>מפות</b><small>מסלולים, הכפר ונקודות ציון</small></span>
     </div>
-    <div id="svc-around" class="service-btn" onclick="openM('aroundModal')">
+    <div id="svc-around" class="service-btn svc-wide" onclick="openM('aroundModal')">
       <span class="svc-ico">🏔️</span>
       <span class="svc-txt"><b>מה לעשות באזור</b><small>ליום סוער או ליום בלי מגלשיים</small></span>
     </div>
@@ -956,22 +978,31 @@ details.fold > .fold-body { padding: 0 13px 12px; }
        its own next to a live data bar - and the whole strip disappears when
        there is nothing to show. -->
   <div id="forum-peek" style="display:none;max-width:750px;margin:0 auto 14px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
-      <div style="font-size:0.9rem;font-weight:bold;color:#16314f;">💬 מהפורום</div>
-      <div style="display:flex;gap:6px;">
-        <button onclick="peekMove(1)" aria-label="הקודם" class="peek-arrow">›</button>
-        <button onclick="peekMove(-1)" aria-label="הבא" class="peek-arrow">‹</button>
-      </div>
+    <div style="font-size:0.9rem;font-weight:bold;color:#16314f;margin-bottom:8px;">💬 מהפורום</div>
+    <div class="peek-wrap">
+      <button id="peek-prev" onclick="peekMove(-1)" aria-label="הקודמים" class="peek-arrow prev">›</button>
+      <div id="forum-peek-track" style="display:flex;gap:10px;align-items:stretch;"></div>
+      <button id="peek-next" onclick="peekMove(1)" aria-label="הבאים" class="peek-arrow next">‹</button>
     </div>
-    <div id="forum-peek-track" style="display:flex;gap:10px;overflow-x:auto;scroll-behavior:smooth;
-         scroll-snap-type:x mandatory;padding-bottom:4px;"></div>
-    <div style="text-align:center;margin-top:8px;">
-      <button onclick="peekOpenForum()" class="peek-all">לפורום המלא ←</button>
+    <div id="peek-empty" class="peek-empty" style="display:none;">
+      אין עדיין הודעות בפורום. היו הראשונים לכתוב.
+    </div>
+    <div style="text-align:center;margin-top:10px;">
+      <button id="peek-open-btn" onclick="peekOpenForum()" class="peek-all">לפורום המלא ←</button>
     </div>
   </div>
 
   <!-- פורום -->
-  <div class="card" id="forum-card" style="max-width:750px;margin-left:auto;margin-right:auto;">
+  <!-- The whole forum used to sit open on the home page underneath the strip
+       that summarises it, so a reader met the same posts twice and had no way
+       to put the second copy away. The summary is the home page now; this
+       opens on request and closes again. -->
+  <div class="card" id="forum-card" style="display:none;max-width:750px;margin-left:auto;margin-right:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
+      <div style="font-size:0.95rem;font-weight:bold;color:#16314f;">💬 פורום הגולשים</div>
+      <button type="button" onclick="forumClose()" aria-label="סגירת הפורום"
+        style="background:none;border:1px solid #dde4ec;border-radius:9px;width:30px;height:30px;cursor:pointer;color:#5a6b7d;font-size:1rem;line-height:1;font-family:inherit;">✕</button>
+    </div>
     <!-- Forum / Reviews tabs -->
     <div style="display:flex;gap:8px;margin-bottom:14px;">
       <button id="forum-main-tab" onclick="switchForumTab('forum')"
@@ -10226,6 +10257,7 @@ window.onload = async function() {
   }
   renderFilterChips();
   renderPostBtn();
+  restoreForumOpenState();
   loadLiveData();
   loadForecast();
   initFlatpickr();
@@ -12025,6 +12057,10 @@ function countReplies(item) {
 }
 
 function renderPosts(query, sort, chips) {
+  // The strip summarises the forum, not the current filter, and it is the
+  // only way in now that the forum starts closed - so it renders first,
+  // before any early return for an empty result.
+  renderForumPeek();
   if (sort === undefined) sort = document.getElementById('forum-sort')?.value || 'newest';
   if (chips === undefined) chips = [];
   if (query === undefined) query = '';
@@ -12063,7 +12099,6 @@ function renderPosts(query, sort, chips) {
       + '</div>';
     return;
   }
-  renderForumPeek();
   list.innerHTML = banner + filtered.map(function(p) {
     const isOwner = isMine(p);
     const canDel = user && (isOwner || isAdmin());
@@ -12155,17 +12190,58 @@ function startServiceCam() {
 }
 
 // ── a peek at the forum, on the home page ────────────────────────────────
-// Three of the newest posts, with the author's face, as a strip you move by
-// hand. Nothing animates: the live bar above it is what should hold the eye.
-function renderForumPeek() {
-  var box = document.getElementById('forum-peek');
-  var track = document.getElementById('forum-peek-track');
-  if (!box || !track) return;
+// The newest posts, with the author's face, in a window you move by hand.
+// Nothing animates: the live bar above it is what should hold the eye.
+//
+// The window renders only the posts it is showing. That is the whole trick:
+// with no cards outside the box there is nothing to overflow, so there is no
+// scrollbar and no card sliced down the middle - the two things that made
+// the first version feel like a widget rather than a summary.
+var PEEK_POOL = 9;      // how far back the arrows can reach
+var _peekIdx  = 0;      // index of the leftmost post on show
+
+// Three on a desktop, two on a tablet, one on a phone - whole cards either
+// way, because the count is what changes, not the card width.
+function peekPerView() {
+  var w = window.innerWidth || 1024;
+  if (w <= 560) return 1;
+  if (w <= 900) return 2;
+  return 3;
+}
+
+function _peekPosts() {
   var posts = (typeof allPosts !== 'undefined' && allPosts) ? allPosts.slice() : [];
   posts.sort(function (a, b) { return b.timestamp - a.timestamp; });
-  posts = posts.slice(0, 6);
-  if (!posts.length) { box.style.display = 'none'; track.innerHTML = ''; return; }
-  track.innerHTML = posts.map(function (p) {
+  return posts.slice(0, PEEK_POOL);
+}
+
+function renderForumPeek() {
+  var box   = document.getElementById('forum-peek');
+  var track = document.getElementById('forum-peek-track');
+  if (!box || !track) return;
+
+  var posts = _peekPosts();
+  var empty = document.getElementById('peek-empty');
+  var wrap  = track.parentNode;
+
+  // The strip stays even with nothing in it: it is the only way in to the
+  // forum now that the forum itself starts closed, so it must not vanish.
+  box.style.display = 'block';
+  if (!posts.length) {
+    track.innerHTML = '';
+    if (wrap)  wrap.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (wrap)  wrap.style.display = '';
+  if (empty) empty.style.display = 'none';
+
+  var per = Math.min(peekPerView(), posts.length);
+  var max = posts.length - per;
+  if (_peekIdx > max) _peekIdx = max;
+  if (_peekIdx < 0)   _peekIdx = 0;
+
+  track.innerHTML = posts.slice(_peekIdx, _peekIdx + per).map(function (p) {
     var body = String(p.content || '').replace(/<[^>]*>/g, '');
     return '<div class="peek-card" onclick="peekOpenPost(\'' + escJs(String(p.id)) + '\')">'
       + '<div style="display:flex;align-items:center;gap:8px;">'
@@ -12180,24 +12256,86 @@ function renderForumPeek() {
           ? '<div style="font-size:0.72rem;color:#7b8a99;">💬 ' + p.replies.length + ' תגובות</div>' : '')
       + '</div>';
   }).join('');
-  box.style.display = 'block';
+
+  // An arrow that cannot go anywhere says so, instead of looking broken.
+  var prev = document.getElementById('peek-prev');
+  var next = document.getElementById('peek-next');
+  if (prev) prev.disabled = (_peekIdx <= 0);
+  if (next) next.disabled = (_peekIdx >= max);
 }
+
 function peekMove(dir) {
-  var track = document.getElementById('forum-peek-track');
-  if (!track) return;
-  var card = track.querySelector('.peek-card');
-  var step = card ? card.getBoundingClientRect().width + 10 : 280;
-  // In a right-to-left box scrollLeft runs the other way, so "next" has to
-  // flip with the direction or the arrows do the opposite of what they say.
-  var rtl = getComputedStyle(track).direction === 'rtl';
-  track.scrollLeft += (rtl ? -dir : dir) * step;
+  _peekIdx += dir;
+  renderForumPeek();
 }
-function peekOpenForum() {
+
+// Turning a phone sideways changes how many fit; re-render rather than leave
+// a window showing one card with room for three.
+window.addEventListener('resize', (function () {
+  var t = null, last = peekPerView();
+  return function () {
+    clearTimeout(t);
+    t = setTimeout(function () {
+      var now = peekPerView();
+      if (now !== last) { last = now; renderForumPeek(); }
+    }, 180);
+  };
+})());
+
+// ── opening and closing the forum ────────────────────────────────────────
+// The choice is remembered, so somebody who reads the forum every morning is
+// not made to open it every morning. Browser storage can be unavailable or
+// throw outright, and this is a convenience rather than state the page
+// depends on - so every touch of it is wrapped, and a failure just means the
+// default.
+var FORUM_OPEN_KEY = 'forumOpen';
+
+function _forumIsOpen() {
   var card = document.getElementById('forum-card');
-  if (card && card.scrollIntoView) card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  return !!(card && card.style.display !== 'none');
 }
+
+function forumOpen(scroll) {
+  var card = document.getElementById('forum-card');
+  if (!card) return;
+  card.style.display = '';
+  _syncPeekButton();
+  try { localStorage.setItem(FORUM_OPEN_KEY, '1'); } catch (e) {}
+  if (scroll !== false && card.scrollIntoView) {
+    card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+}
+
+function forumClose() {
+  var card = document.getElementById('forum-card');
+  if (!card) return;
+  card.style.display = 'none';
+  _syncPeekButton();
+  try { localStorage.removeItem(FORUM_OPEN_KEY); } catch (e) {}
+  var peek = document.getElementById('forum-peek');
+  if (peek && peek.scrollIntoView) peek.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+function _syncPeekButton() {
+  var btn = document.getElementById('peek-open-btn');
+  if (!btn) return;
+  btn.textContent = _forumIsOpen() ? 'סגירת הפורום ▲' : 'לפורום המלא ←';
+}
+
+// The button under the strip is a toggle: whatever it says, it does.
+function peekOpenForum() {
+  if (_forumIsOpen()) forumClose(); else forumOpen(true);
+}
+
+// Restore the reader's last choice, once the page is built.
+function restoreForumOpenState() {
+  var saved = null;
+  try { saved = localStorage.getItem(FORUM_OPEN_KEY); } catch (e) {}
+  if (saved === '1') forumOpen(false); else _syncPeekButton();
+}
+
 function peekOpenPost(id) {
-  peekOpenForum();
+  forumOpen(true);
   setTimeout(function () {
     var el = document.getElementById('post-' + safeId(id));
     if (el && el.scrollIntoView) {
