@@ -174,6 +174,16 @@ input[type=file] { display: none !important; }
 /* Chrome draws its own clear "x" on type=search, in the wrong colour. */
 #global-search-input::-webkit-search-cancel-button { filter: invert(1); opacity: 0.5; }
 
+/* An alert the scraper raised, marked wherever it appears. It inherits its
+   colour from whatever it sits on - the yellow banner, the pink card - so it
+   reads as part of the alert rather than a sticker on top of it. */
+.auto-chip {
+  display: inline-block; font-size: 0.66rem; font-weight: 600;
+  line-height: 1.5; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid currentColor; opacity: 0.75;
+  white-space: nowrap; vertical-align: middle;
+}
+
 /* Sign-in sits in the dark header, so it is a pill, not a card. */
 .signin-btn {
   background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.28);
@@ -734,7 +744,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v16.0';
+  var v='v16.1';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7630,7 +7640,12 @@ function refreshAlertStrip() {
     openAlertPanel();
   };
 
-  textEl.innerHTML = (a.kind === 'notice' ? '📌 ' : '') + escHtml(a.text)
+  // The banner is where most people meet an alert - many never open the
+  // panel at all - so the distinction between a measurement and a person
+  // standing at the lift has to survive here, not only inside the card.
+  textEl.innerHTML = (a.kind === 'notice' ? '📌 ' : '')
+    + (a.auto ? '<span class="auto-chip">📡 מדידה אוטומטית</span> ' : '')
+    + escHtml(a.text)
     + ' <span style="font-size:0.72rem;opacity:0.7;font-weight:normal;">— '
     + escHtml(a.user) + ', ' + alertTimeAgo(a.ts) + '</span>'
     + (rest.length
@@ -7647,7 +7662,9 @@ function refreshAlertStrip() {
       moreEl.innerHTML = rest.map(function (x) {
         var s = (x.kind === 'notice') ? 'notice' : (x.severity || 'warning');
         return '<div class="amore-row amore-' + s + '">'
-          + '<span style="flex:1;">' + (x.kind === 'notice' ? '📌 ' : '') + escHtml(x.text) + '</span>'
+          + '<span style="flex:1;">' + (x.kind === 'notice' ? '📌 ' : '')
+          + (x.auto ? '<span class="auto-chip">📡 מדידה אוטומטית</span> ' : '')
+          + escHtml(x.text) + '</span>'
           + '<span class="amore-meta">' + escHtml(x.user) + ' · ' + alertTimeAgo(x.ts) + '</span>'
           + '</div>';
       }).join('');
@@ -13725,13 +13742,15 @@ function _alertCardHtml(a) {
   return '<div style="padding:11px 13px;border:1.5px solid ' + border[sev] + ';border-radius:10px;background:' + bg[sev] + ';margin-bottom:8px;">'
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
     + '<div style="font-size:0.88rem;font-weight:bold;line-height:1.5;flex:1;">'
-    + '<span style="font-size:0.7rem;font-weight:normal;opacity:0.8;">' + tag + '</span><br>'
+    + '<span style="font-size:0.7rem;font-weight:normal;opacity:0.8;">' + tag + '</span>'
+    + (a.auto ? ' <span class="auto-chip">📡 מדידה אוטומטית</span>' : '')
+    + '<br>'
     + '<span style="white-space:pre-wrap;">' + escHtml(a.text) + '</span></div>'
     + (canDel ? '<button type="button" onclick="deleteAlert(\'' + escHtml(a.id) + '\')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1rem;padding:0 0 0 6px;">🗑️</button>' : '')
     + '</div>'
     + '<div style="display:flex;justify-content:space-between;margin-top:5px;">'
     + '<span style="font-size:0.7rem;color:#888;">' + (a.auto ? '📡' : '👤') + ' ' + escHtml(a.user)
-    + (a.auto ? ' · מדידה אוטומטית' : '') + ' · ' + alertTimeAgo(a.ts) + '</span>'
+    + ' · ' + alertTimeAgo(a.ts) + '</span>'
     + '<span style="font-size:0.67rem;color:#bbb;">' + timeLeft(a) + '</span>'
     + '</div></div>';
 }
