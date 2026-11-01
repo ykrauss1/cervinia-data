@@ -734,7 +734,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v15.9';
+  var v='v16.0';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -13538,6 +13538,95 @@ async function _healPush() {
   } catch (e) {}
 }
 
+// ── which alerts wake this device ────────────────────────────────────────
+// A subscription used to be all or nothing: the crossing, the lifts, the
+// wind and everything a reader posted, or silence. Someone who only cares
+// whether the crossing to Zermatt is running had one control left - turning
+// the whole thing off - which is how a notification system dies.
+//
+// Five topics, deliberately few. The server decides which topic an alert
+// belongs to from its key, so nothing is stored twice and a new rule lands
+// in the right place without a migration.
+var PUSH_TOPICS = [
+  { k: 'zermatt',   ico: '🇨🇭', label: 'המעבר לצ׳רמט',  sub: 'נסגר, נפתח, או סגור כל היום' },
+  { k: 'lifts',     ico: '🚡', label: 'מעליות',          sub: 'עצירה באמצע יום הסקי' },
+  { k: 'weather',   ico: '💨', label: 'רוח ומפולות',     sub: 'משבים חזקים, דרגת סכנה' },
+  { k: 'snow',      ico: '❄️', label: 'שלג טרי',         sub: 'לא נשלח לטלפון, רק לסרגל' },
+  { k: 'community', ico: '💬', label: 'דיווחים מהשטח',   sub: 'מה שגולשים מדווחים' }
+];
+var _pushTopicsCache = null;
+var _pushTopicBusy = false;
+
+async function _pushEndpoint() {
+  try {
+    var reg = await _swReady();
+    if (!reg) return '';
+    var sub = await reg.pushManager.getSubscription();
+    return sub ? sub.endpoint : '';
+  } catch (e) { return ''; }
+}
+
+async function loadPushTopics() {
+  var sb = await _pushSb(), ep = await _pushEndpoint();
+  if (!sb || !ep) return null;
+  try {
+    var res = await sb.rpc('cl_push_get_topics', { p_endpoint: ep });
+    // An older database has no such function. That is not an error worth
+    // showing anybody: it just means this device gets everything, which is
+    // what it got before the column existed.
+    if (res.error) return null;
+    _pushTopicsCache = Array.isArray(res.data) ? res.data : null;
+    return _pushTopicsCache;
+  } catch (e) { return null; }
+}
+
+async function togglePushTopic(k) {
+  if (_pushTopicBusy) return;
+  var cur = _pushTopicsCache || PUSH_TOPICS.map(function (t) { return t.k; });
+  var next = (cur.indexOf(k) >= 0)
+    ? cur.filter(function (x) { return x !== k; })
+    : cur.concat([k]);
+
+  // All of them off is a phone that has agreed to be notified and never
+  // will be. Turning notifications off is what the בטל button is for, and
+  // it removes the row properly instead of leaving a deaf one behind.
+  if (!next.length) { await renderPushRow('כדי להפסיק לגמרי, השתמשו בכפתור "בטל".'); return; }
+
+  _pushTopicBusy = true;
+  var sb = await _pushSb(), ep = await _pushEndpoint(), err = '';
+  if (sb && ep) {
+    try {
+      var res = await sb.rpc('cl_push_set_topics', { p_endpoint: ep, p_topics: next });
+      if (res.error) err = 'לא הצלחנו לשמור את הבחירה. נסו שוב.';
+      else _pushTopicsCache = Array.isArray(res.data) ? res.data : next;
+    } catch (e) { err = 'לא הצלחנו לשמור את הבחירה. נסו שוב.'; }
+  } else {
+    err = 'אין חיבור לשרת כרגע.';
+  }
+  _pushTopicBusy = false;
+  await renderPushRow(err);
+}
+
+function _pushTopicsHtml() {
+  if (!_pushTopicsCache) return '';
+  var on = _pushTopicsCache;
+  return '<div style="margin:-6px 0 12px;padding:10px 12px;border:1px solid #e3e5e9;'
+       + 'border-radius:10px;background:#fbfcfd;">'
+    + '<div style="font-size:0.74rem;color:#7b8a99;margin-bottom:8px;">מה ישלח לטלפון הזה</div>'
+    + PUSH_TOPICS.map(function (t) {
+        var isOn = on.indexOf(t.k) >= 0;
+        return '<label style="display:flex;align-items:flex-start;gap:9px;padding:5px 0;cursor:pointer;">'
+          + '<input type="checkbox" ' + (isOn ? 'checked' : '')
+          + ' onchange="togglePushTopic(\'' + t.k + '\')" '
+          + 'style="margin-top:3px;width:15px;height:15px;cursor:pointer;flex:none;">'
+          + '<span style="min-width:0;">'
+          + '<b style="font-size:0.78rem;color:#16314f;font-weight:600;">' + t.ico + ' ' + escHtml(t.label) + '</b>'
+          + '<br><span style="font-size:0.7rem;color:#8b97a3;">' + escHtml(t.sub) + '</span>'
+          + '</span></label>';
+      }).join('')
+    + '</div>';
+}
+
 async function togglePush() {
   if (_pushBusy) return;
   _pushBusy = true;
@@ -13564,6 +13653,8 @@ async function renderPushRow(err) {
   var el = document.getElementById('push-row');
   if (!el) return;
   var st = await pushState();
+  if (st === 'on') { if (!_pushTopicsCache) await loadPushTopics(); }
+  else             { _pushTopicsCache = null; }
 
   var on   = (st === 'on');
   var tint = on ? '#eaf7ee' : '#f7f8fa';
@@ -13601,7 +13692,8 @@ async function renderPushRow(err) {
     + '<div style="flex:1;font-size:0.78rem;line-height:1.45;">' + body + '</div>'
     + action
     + '</div>'
-    + (err ? '<div style="margin:-6px 0 12px;font-size:0.76rem;color:#c0392b;">' + escHtml(err) + '</div>' : '');
+    + (err ? '<div style="margin:-6px 0 12px;font-size:0.76rem;color:#c0392b;">' + escHtml(err) + '</div>' : '')
+    + (on ? _pushTopicsHtml() : '');
 }
 
 // ---- time ----
