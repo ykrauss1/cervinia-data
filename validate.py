@@ -78,6 +78,10 @@ def check_html_links(path=None):
     seen = set()
     for m in re.finditer(r'href="(https?://[^"]+)"', html):
         u = m.group(1)
+        # a href built in JavaScript - "https://' + dom + '" - is a template,
+        # not an address, and there is nothing to verify about it
+        if "'" in u or '"' in u or ' + ' in u:
+            continue
         if u in seen:
             continue
         seen.add(u)
