@@ -1,2 +1,33 @@
+# ---------------------------------------------------------------------
+#  CerviniaLive - what never belongs in the repository
+#
+#  This file used to be called "gitignore", without the dot. Git does not
+#  know that name, so for its whole life it did nothing: node_modules/ sat
+#  in the working tree as untracked, and every scraper run had to work
+#  around it.
+# ---------------------------------------------------------------------
+
+# Installed by "npm install" on every Actions run. Thousands of files,
+# none of them ours.
 node_modules/
+
+# Logs
 *.log
+npm-debug.log*
+
+# Things that must stay on your computer and nowhere else. Listing them
+# here is a second lock on the door, behind the upload script's own
+# neverUpload list: if a file is named here, "git add ." cannot sweep it
+# in by accident.
+push-secrets.txt
+instructors-private.json
+.env
+.env.*
+*.pem
+
+# Leftovers from Windows, macOS and editors
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
