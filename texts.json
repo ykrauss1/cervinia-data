@@ -3554,61 +3554,61 @@
     "buttons": [
       {
         "id": "svc-piste",
-        "icon": "⛷️",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-skier\"/></svg>",
         "label": "מסלולים, בקתות ואפרה סקי",
         "sub": "לפי רמה · צ'רוויניה, צ'רמט וולטורננש · ואיפה עוצרים בדרך"
       },
       {
         "id": "svc-webcam",
-        "icon": "📷",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 48 48\" aria-hidden=\"true\"><use href=\"#ico-camera\"/></svg>",
         "label": "מצלמות",
         "sub": "לראות את ההר עכשיו, לפני שיוצאים"
       },
       {
         "id": "svc-parking",
-        "icon": "🚌",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-bus\"/></svg>",
         "label": "תחבורה, חניה וחירום",
         "sub": "מהשדה לכפר · לוחות זמנים · רכב שכור · שרשראות · חירום"
       },
       {
         "id": "svc-travel",
-        "icon": "✈️",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-airplane\"/></svg>",
         "label": "תכנון טיול",
-        "sub": "חיפוש טיסות, לינה ורכב — בשאלה אחת"
+        "sub": "חיפוש טיסות, לינה ורכב — בשאילתא אחת"
       },
       {
         "id": "svc-skipass",
-        "icon": "🎫",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-ticket\"/></svg>",
         "label": "סקי פס",
         "sub": "מחירון צ'רוויניה וצ'רמט · הנחות לפי גיל · פס בסמארטפון"
       },
       {
         "id": "svc-rental",
-        "icon": "🎿",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-skis\"/></svg>",
         "label": "השכרת ציוד",
         "sub": "חמש חנויות בכפר ושלוש בדרך · מחירון · לשכור או לקנות"
       },
       {
         "id": "svc-lessons",
-        "icon": "🏫",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-school\"/></svg>",
         "label": "הדרכת סקי",
         "sub": "מחירון 2026/27 · קבוצות, פרטי וילדים · מדריכים"
       },
       {
         "id": "svc-kosher",
-        "icon": "🕯️",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-candle\"/></svg>",
         "label": "כשרות ושבת",
         "sub": "זמני שבת · מוצרים בסופר · משלוח · מילאנו וטורינו"
       },
       {
         "id": "svc-maps",
-        "icon": "🗺️",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-world-map\"/></svg>",
         "label": "מפות",
         "sub": "מסלולים, הכפר, ולטורננש ושוויץ"
       },
       {
         "id": "svc-around",
-        "icon": "🏔️",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-snow-capped-mountain\"/></svg>",
         "label": "מה לעשות באזור",
         "sub": "ימים סוערים · אחרי הסקי · ומה סגור בחורף"
       }
@@ -3855,7 +3855,7 @@
     "tab_milan": "🏙️ מילאנו (Milano)",
     "tab_torino": "🏛️ טורינו (Torino)",
     "cervinia_title": "ℹ️ מה יש בכפר?",
-    "cervinia_text": "בצ'רוויניה עצמה <b>אין מסעדות כשרות, אין מאפיות כשרות ואין בית כנסת</b>.<br>בכפר יש סופרמרקט קטן, <b>Crai</b>, ובו מצרכים בסיסיים.<br>בתקופות עמוסות נוצרות לא פעם התארגנויות של ישראלים במקום — מניין, סעודת שבת, קנייה משותפת. שווה לבדוק בקבוצות הווטסאפ של נופשי סקי בצ'רוויניה לפני הנסיעה.",
+    "cervinia_text": "בצ'רוויניה עצמה <b>אין מסעדות כשרות, אין מאפיות כשרות ואין בית כנסת</b>.<br>בכפר יש סופרמרקט קטן, <b>Crai</b>, ובו מצרכים בסיסיים.<br>בתקופות עמוסות נוצרות לא פעם התארגנויות של ישראלים במקום — מניין, סעודת שבת, קנייה משותפת. שווה לבדוק ב<b>קבוצת הפייסבוק הישראלית</b> של צ'רוויניה לפני הנסיעה — שם מתפרסמות ההתארגנויות, ומשם לרוב נפתחות גם קבוצות ווטסאפ לתאריכים מסוימים.",
     "cervinia_group": {
       "title": "🕍 דרך אחת לאכול כשר בצ'רוויניה: לנסוע עם קבוצה",
       "text": "<b>Fun Fit Family</b> מארגנים חופשות סקי כשרות בצ'רוויניה — מלון שלם עם מטבח כשר, פנסיון מלא, השכרת ציוד כלולה, תוכנית נפרדת לילדים עם צוות, ושבת מסורתית במקום. המלון הוא <b><bdi dir=\"ltr\">Hotel Lo Stambecco</bdi></b> בפלאן מייזון, בגובה <b>2,550 מ'</b> — ski-in/ski-out ממש על המסלול. <b>אין אליו כביש:</b> הגישה היחידה היא ברכבל מהכפר, שפועל 8:30–16:30 וחינם לאורחים, ומחוץ לשעות האלה אפשר להזמין הסעת אופנוע-שלג פרטית. כדאי לתכנן את שעת ההגעה בהתאם.<br>הם מפעילים חופשות כאלה מאז 2021, בצ'רוויניה ובפינצולו. המועד הקרוב הוא <b>חנוכה, 6–13 בדצמבר 2026</b>.<br><b>כשרות:</b> משגיח צמוד, בשר גלאט וחלב ישראל, אלא אם צוין אחרת.<br>למחירים, למה שכלול ולתנאי הביטול — פנו אליהם ישירות: וואטסאפ <bdi dir=\"ltr\" style=\"white-space:nowrap;\">+39 320 349 3380</bdi> או מייל <bdi dir=\"ltr\">info@funfit-fam.com</bdi>.<br><a href=\"https://www.funfit-fam.com/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a73e8;font-weight:bold;\">האתר שלהם ←</a> · <a href=\"https://www.lostambecco.it/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a73e8;font-weight:bold;\">אתר המלון ←</a>"
