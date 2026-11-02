@@ -1960,6 +1960,45 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'clearing the last topic emptied the list anyway'); else ok();
 }
 
+// ── the price ceiling reaches the hotel sites as a ceiling ──────────────
+// Booking took "nflt=price=USD-0-150-1" as a filter and still accepted the
+// link, so nothing looked broken - but it read 1500 as a FLOOR, and a search
+// for apartments under $150 a night came back with no places at all. Price
+// is not an nflt key there: it is a parameter of its own, and its order runs
+// the other way round, min-max-CUR.
+{
+  const r = await page.evaluate(() => {
+    const out = [];
+    const cases = [
+      { f: { cur: 'USD', max: 150 },            want: 'price=0-150-USD' },
+      { f: { cur: 'USD', min: 100, max: 200 },  want: 'price=100-200-USD' },
+      { f: { cur: 'EUR', max: 90, kitchen: 1 }, want: 'price=0-90-EUR' }
+    ];
+    for (const c of cases) {
+      const u = _bookingUrl('2027-01-10', '2027-01-15', 2, 0, 1, 0, 'apt', c.f);
+      out.push({ want: c.want, has: u.indexOf('&' + c.want) >= 0,
+                 inNflt: /nflt=[^&]*price/.test(u), url: u });
+    }
+    // and no filter at all when nothing was typed
+    const bare = _bookingUrl('2027-01-10', '2027-01-15', 2, 0, 1, 0, 'apt', { cur: 'USD' });
+    return { out, bareHasPrice: /[?&]price=/.test(bare),
+             // the label the reader sees must say which way the bound runs
+             label: _stayDesc('דירות', 'apt', { cur: 'USD', max: 150 }) };
+  });
+
+  const T = 'the price ceiling reaches the hotel sites as a ceiling';
+  const miss = r.out.filter(o => !o.has);
+  const nflt = r.out.filter(o => o.inNflt);
+  if (miss.length) fail(T,
+    `missing ${miss.map(o => o.want).join(', ')} - got ${miss[0].url}`); else ok();
+  if (nflt.length) fail(T,
+    'the price is back inside nflt, where Booking misreads it'); else ok();
+  if (r.bareHasPrice) fail(T,
+    'an empty budget still sends a price filter'); else ok();
+  if (!/^דירות · עד 150 \$ ללילה$/.test(r.label)) fail(T,
+    `the button reads "${r.label}" - a bare dash reads as a price missing its other half`); else ok();
+}
+
 // ── a panel wears the picture of the card that opened it ────────────────
 // The cards became drawings and their panel headings stayed emoji
 // characters, so tapping a pair of skis landed the reader on a page headed
