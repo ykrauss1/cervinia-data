@@ -1973,11 +1973,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       origin: 'TLV', adults: 2, currency: 'USD', nights: [4, 5, 6, 7],
       dests: { MXP: { he: 'מילאנו מלפנסה', km: 175 }, TRN: { he: 'טורינו', km: 100 } },
       cal: {
-        MXP: { 4: {}, 5: { '2027-01-10': 520, '2027-01-12': 380, '2027-03-28': 400 },
+        MXP: { 3: { '2027-02-04': 310 },
+               4: {}, 5: { '2027-01-10': 520, '2027-01-12': 380, '2027-03-28': 400 },
                6: {}, 7: {} },
-        TRN: { 4: {}, 5: {}, 6: {}, 7: {} }
+        TRN: { 3: {}, 4: {}, 5: {}, 6: {}, 7: {} }
       },
-      rets: { MXP: { 4: {}, 5: {}, 6: {}, 7: {} }, TRN: { 4: {}, 5: {}, 6: {}, 7: {} } },
+      rets: { MXP: { 3: {}, 4: {}, 5: {}, 6: {}, 7: {} },
+              TRN: { 3: {}, 4: {}, 5: {}, 6: {}, 7: {} } },
       offers: [
         { kind: 'midweek', bandHe: 'אמצע שבוע', dest: 'MXP', date: '2027-01-12',
           ret: '2027-01-17', nights: 5, price: 380, carrier: 'Wizz Air', direct: false },
@@ -2005,6 +2007,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.four = flightForDatesHtml('MXP', '2027-01-10', '2027-01-15', '4');
 
     out.offers = flightOffersHtml();
+    out.months    = flightMonthsHtml();
+    out.monthRows = flightMonths().map(r => r.month + '=' + r.typical + '/' + r.low);
 
     // the home card: painted, then painted again - the second pass must
     // not stack a second price onto the same line
@@ -2022,6 +2026,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.teaserBare = sub ? sub.querySelectorAll('.fl-teaser').length : -1;
     out.bareDates  = flightForDatesHtml('MXP', '2027-01-10', '2027-01-15', '2');
     out.bareOffers = flightOffersHtml();
+    out.bareMonths = flightMonthsHtml();
 
     // nights across the European DST change (29 March 2027)
     out.dst = _flNights('2027-03-26', '2027-03-31');
@@ -2071,6 +2076,25 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'a carrier name from the file reached the page as live markup'); else ok();
   if (!/&lt;img/.test(r.offers)) fail(T,
     'the carrier name was dropped rather than escaped'); else ok();
+
+  // ── the season, month by month, straight out of the calendar ──────
+  // Three offers all landing on the same Christmas week is what this
+  // answers; it needs no extra call, because every priced day is already
+  // in the file.
+  if (!/ינואר/.test(r.months) || !/פברואר/.test(r.months) || !/מרץ/.test(r.months))
+    fail(T, 'the month strip is missing a month of the season'); else ok();
+  // the cheapest day of each month, whatever trip length it was found at
+  // The TYPICAL price, not the lowest: in the real snapshot the lowest was
+  // the same 126 in four months out of five - one airline's floor fare, a
+  // statistic that cannot tell December from February.
+  if (JSON.stringify(r.monthRows) !==
+      JSON.stringify(['2027-01=450/380', '2027-02=310/310', '2027-03=400/400']))
+    fail(T, `the months came out as ${JSON.stringify(r.monthRows)}`); else ok();
+  // and the cheapest month of all is marked, so the strip says something
+  if (!/#0f6b3f/.test(r.months)) fail(T,
+    'no month is marked as the cheapest, so the strip is just numbers'); else ok();
+  if (r.bareMonths !== '') fail(T,
+    'with no snapshot the month strip still paints'); else ok();
 
   if (r.bareDates !== '' || r.bareOffers !== '') fail(T,
     'with no snapshot the page still paints something'); else ok();
