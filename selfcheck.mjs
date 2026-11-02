@@ -1487,6 +1487,271 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the button opens a map without naming the station the run starts from'); else ok();
 }
 
+// ── "nothing open" is not the same as "we do not know" ───────────────────
+// _count treats 0/0 as an absent reading, which is right for the Cervinia
+// figure standing next to a real area figure. But when both come back 0/0
+// the feed is not silent - it is saying no piste is running today - and the
+// bar printed "--", which a reader reads as a fault.
+{
+  const r = await page.evaluate(() => {
+    const read = (d) => { renderLiveBar(d); return {
+      main: document.getElementById('bar-slopes-local').textContent,
+      scope: document.getElementById('bar-slopes-scope').textContent,
+      colour: getComputedStyle(document.getElementById('bar-slopes-local')).color }; };
+    return {
+      shut:   read({ slopes_open_global:0, slopes_total_global:0,
+                     slopes_open_local:0,  slopes_total_local:0 }),
+      silent: read({}),
+      open:   read({ slopes_open_global:28, slopes_total_global:46,
+                     slopes_open_local:18,  slopes_total_local:22 })
+    };
+  });
+
+  const T = 'nothing open is not the same as we do not know';
+  if (r.shut.main === '--') fail(T,
+    'a feed reporting zero pistes still prints "--"'); else ok();
+  if (!r.shut.scope) fail(T,
+    'the zero stands alone with no caption saying what it means'); else ok();
+  if (r.silent.main !== '--') fail(T,
+    `a silent feed prints "${r.silent.main}" instead of admitting it knows nothing`); else ok();
+  if (r.shut.colour === r.silent.colour) fail(T,
+    'shut and unknown are the same colour'); else ok();
+  if (r.open.main !== '28/46') fail(T,
+    `an ordinary reading broke: "${r.open.main}"`); else ok();
+}
+
+// ── the card styling stays in the grid it was built for ─────────────────
+// .service-btn started as a plain white button and was borrowed all over
+// the page. Turning it into a 72-pixel flex card quietly turned the six map
+// pickers into six cards, each with room for an icon it does not have -
+// which is how a panel of six short labels came to fill half the screen.
+{
+  const r = await page.evaluate(async () => {
+    openM('mapModal');
+    await new Promise(res => setTimeout(res, 350));
+    const picks = [...document.querySelectorAll('.map-pick')];
+    const out = {
+      picks: picks.length,
+      tallest: Math.max(0, ...picks.map(b => Math.round(b.getBoundingClientRect().height)))
+    };
+    closeM('mapModal');
+    const cards = [...document.querySelectorAll('.services-grid .service-btn')];
+    out.cards = cards.length;
+    out.cardHeight = Math.min(...cards.map(c => Math.round(c.getBoundingClientRect().height)));
+
+    // The map pickers carry .map-pick and inline padding of their own, so
+    // measuring them does not answer the question - they stay short either
+    // way, which is how the first version of this check passed with the
+    // scoping deliberately removed. A bare borrower, with nothing to
+    // protect it, is what the bare class actually does to a button.
+    const probe = document.createElement('button');
+    probe.className = 'service-btn';
+    probe.textContent = 'בדיקה';
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    document.body.appendChild(probe);
+    out.bareHeight = Math.round(probe.getBoundingClientRect().height);
+    out.bareDisplay = getComputedStyle(probe).display;
+    probe.remove();
+    return out;
+  });
+
+  const T = 'the card styling stays in the grid it was built for';
+  if (r.picks < 5) fail(T, `only ${r.picks} map pickers found`); else ok();
+  if (r.tallest > 48) fail(T,
+    `a map picker is ${r.tallest}px tall - it is wearing the service card again`); else ok();
+  if (r.cards < 8) fail(T, `only ${r.cards} service cards`); else ok();
+  if (r.cardHeight < 60) fail(T,
+    `the service cards collapsed to ${r.cardHeight}px - the scoping went too far`); else ok();
+  if (r.bareHeight > 48) fail(T,
+    `a plain button borrowing the class is ${r.bareHeight}px tall - the card `
+    + 'metrics are on the bare class again'); else ok();
+  if (r.bareDisplay === 'flex') fail(T,
+    'a plain button borrowing the class is still a flex container'); else ok();
+}
+
+// ── the map can be dragged ───────────────────────────────────────────────
+// The wrapper carried cursor:grab for a long time with nothing listening,
+// so the pointer promised a gesture the page did not honour and the only
+// way round a large map was the scrollbars.
+{
+  await page.evaluate(async () => {
+    openM('mapModal');
+    await new Promise(res => setTimeout(res, 300));
+    const wrap = document.getElementById('map-img-wrap');
+    const img  = document.getElementById('map-img');
+    wrap.style.display = 'block';
+    img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1700">' +
+      '<rect width="2400" height="1700" fill="#ccd"/></svg>');
+    img.style.width = '2400px'; img.style.maxWidth = 'none';
+    wrap.scrollLeft = 0; wrap.scrollTop = 0;
+    await new Promise(res => setTimeout(res, 250));
+  });
+
+  const wired = await page.evaluate(() => ({
+    cursor: getComputedStyle(document.getElementById('map-img-wrap')).cursor,
+    overflowing: document.getElementById('map-img-wrap').scrollWidth
+               > document.getElementById('map-img-wrap').clientWidth + 10
+  }));
+
+  const box = await (await page.$('#map-img-wrap')).boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 - 200, box.y + box.height / 2 - 100, { steps: 10 });
+  await page.mouse.up();
+  const after = await page.evaluate(() => {
+    const w = document.getElementById('map-img-wrap');
+    const out = { left: Math.round(w.scrollLeft), top: Math.round(w.scrollTop),
+                  cursor: getComputedStyle(w).cursor };
+    w.style.display = 'none'; closeM('mapModal');
+    return out;
+  });
+
+  const T = 'the map can be dragged';
+  if (!wired.overflowing) fail(T,
+    'the test image did not overflow, so dragging it proves nothing'); else ok();
+  if (wired.cursor !== 'grab') fail(T,
+    `the pointer shows "${wired.cursor}", so nothing invites the gesture`); else ok();
+  if (after.left < 150) fail(T,
+    `dragging left moved the map ${after.left}px - the handler is not listening`); else ok();
+  if (after.top < 70) fail(T,
+    `dragging up moved the map ${after.top}px vertically`); else ok();
+  if (after.cursor !== 'grab') fail(T,
+    `the pointer stayed "${after.cursor}" after the button came up`); else ok();
+}
+
+// ── the community links have a standing door ─────────────────────────────
+// The Israeli Facebook group, the video and the Hebrew write-ups lived in a
+// panel reachable from a banner that shows once and never again. A reader
+// who dismissed it had no way back except the search box.
+{
+  const r = await page.evaluate(() => ({
+    inMenu: !!document.querySelector('#side-menu-links button[onclick*="\'why\'"]'),
+    menuText: [...document.querySelectorAll('#side-menu-links button')]
+                .map(b => b.textContent.trim()).join(' | '),
+    actionExists: typeof SIDE_MENU_ACTIONS === 'object' && typeof SIDE_MENU_ACTIONS.why === 'function',
+    fbInWhy: !!document.querySelector('#whyModal a[href*="facebook.com/groups"]'),
+    fbInKosher: !!document.querySelector('#kosherModal a[href*="facebook.com/groups"]'),
+    whatsappClaim: /קבוצות הווטסאפ/.test(
+      (document.getElementById('kosher-cervinia-text') || {}).textContent || '')
+  }));
+
+  const T = 'the community links have a standing door';
+  if (!r.inMenu) fail(T,
+    `the side menu has no way to the community panel: ${r.menuText}`); else ok();
+  if (!r.actionExists) fail(T, 'the menu entry is wired to nothing'); else ok();
+  if (!r.fbInWhy) fail(T, 'the Facebook group link left the why panel'); else ok();
+  if (!r.fbInKosher) fail(T,
+    'the kosher panel describes the community without linking to it'); else ok();
+  if (r.whatsappClaim) fail(T,
+    'the village text still sends readers to WhatsApp groups'); else ok();
+}
+
+// ── the kosher product list can be found ─────────────────────────────────
+// Fifty-five products with their certifying body sat folded inside the tips
+// box behind a <summary> with list-style:none - which strips the disclosure
+// triangle. The heading looked like a line of bold text, and a reader
+// reported the list as missing. It was never missing; it was invisible.
+{
+  const r = await page.evaluate(async (t) => {
+    window._texts = t;
+    if (typeof _applyTexts === 'function') _applyTexts(t);
+    openM('kosherModal');
+    // The panel runs its own set-up on a timer after opening and lands on
+    // the Shabbat tab; switching before that fires is undone by it.
+    await new Promise(res => setTimeout(res, 400));
+    if (typeof switchKoshMain === 'function') switchKoshMain('kosher');
+    if (typeof switchKoshTab === 'function') switchKoshTab('cervinia');
+    await new Promise(res => setTimeout(res, 300));
+    const su = document.getElementById('kosher-products-title');
+    const li = document.getElementById('kosher-products-list');
+    const out = {
+      inJson: (t.kosher.cervinia_products || []).length,
+      items: li ? li.children.length : 0,
+      summaryHeight: su ? Math.round(su.getBoundingClientRect().height) : 0,
+      summaryText: su ? su.textContent : '',
+      marker: su ? getComputedStyle(su, '::before').content : '',
+      isFold: !!(su && su.parentElement.classList.contains('fold'))
+    };
+    const d = su && su.parentElement;
+    if (d) { d.open = true; await new Promise(res => setTimeout(res, 150));
+             out.openHeight = Math.round(li.getBoundingClientRect().height); }
+    closeM('kosherModal');
+    return out;
+  }, JSON.parse(fs.readFileSync(TEXTS, 'utf8')));
+
+  const T = 'the kosher product list can be found';
+  if (r.inJson < 20) fail(T, `only ${r.inJson} products in the content file`); else ok();
+  if (r.items < r.inJson) fail(T,
+    `${r.items} rows rendered for ${r.inJson} products`); else ok();
+  if (r.summaryHeight < 10) fail(T,
+    'the heading that opens the list is not on screen at all'); else ok();
+  if (!r.isFold) fail(T,
+    'the list is not using the site fold, so it has no arrow of its own'); else ok();
+  if (!r.marker || r.marker === 'none') fail(T,
+    'nothing marks the heading as something you can open'); else ok();
+  if (!/\d+\s*מוצרים/.test(r.summaryText)) fail(T,
+    `the heading does not say how many are behind it: "${r.summaryText}"`); else ok();
+  if (!r.openHeight) fail(T, 'opening the fold reveals nothing'); else ok();
+}
+
+// ── the search box does not carry text in, or markup out ─────────────────
+// Two faults in one dropdown: the field kept coming back holding a name the
+// page never put there (the browser restores it, and autocomplete="off" is
+// only a hint), and a post's HTML was sliced at fifty characters and poured
+// into innerHTML - a cut-open tag swallowed the row, which is the blank
+// white box that appeared under the field.
+{
+  const r = await page.evaluate(async () => {
+    const inp = document.getElementById('global-search-input');
+    const box = document.getElementById('global-search-results');
+
+    allPosts = [{ id: 'x1', user: 'יוסי',
+      content: '<p>הראשון שלג <b>ירד</b> היום בבוקר והיה נהדר לגלוש שם</p>',
+      timestamp: Date.now(), replies: [], reactions: {}, _userReacts: {} },
+      { id: 'x2', user: '<img src=x onerror=alert(1)>',
+      content: 'ניסיון הזרקה', timestamp: Date.now(), replies: [], reactions: {}, _userReacts: {} }];
+
+    globalSearch('שלג');
+    const rows = [...box.querySelectorAll('div[onclick]')];
+    const out = {
+      rowCount: rows.length,
+      rowText: rows.map(x => x.textContent.trim()).join(' | '),
+      anyEmptyRow: rows.some(x => !x.textContent.trim()),
+      leftATag: /<(p|b|img|script)[ >]/i.test(box.innerHTML),
+      goesToPost: rows.some(x => /peekOpenPost/.test(x.getAttribute('onclick') || ''))
+    };
+
+    globalSearch('הזרקה');
+    out.injectedNode = !!box.querySelector('img');
+
+    // the field must come back empty however the browser restores it
+    inp.value = 'יוסי';
+    window.dispatchEvent(new Event('pageshow'));
+    out.valueAfterPageshow = inp.value;
+    out.boxAfterPageshow = box.style.display;
+
+    allPosts = []; globalSearch('');
+    return out;
+  });
+
+  const T = 'the search box does not carry text in, or markup out';
+  if (!r.rowCount) fail(T, 'a matching post produced no row at all'); else ok();
+  if (r.anyEmptyRow) fail(T,
+    `a result row rendered blank: "${r.rowText}"`); else ok();
+  if (r.leftATag) fail(T,
+    'a post\'s HTML tags reached the dropdown unescaped'); else ok();
+  if (r.injectedNode) fail(T,
+    'a post built a live element inside the dropdown - that is an injection hole'); else ok();
+  if (!r.goesToPost) fail(T,
+    'clicking a forum hit does not open that post'); else ok();
+  if (r.valueAfterPageshow !== '') fail(T,
+    `the field still held "${r.valueAfterPageshow}" after the page came back`); else ok();
+  if (r.boxAfterPageshow !== 'none') fail(T,
+    'the dropdown stayed open across a page restore'); else ok();
+}
+
 // ── the tab carries our icon, not a globe ────────────────────────────────
 // The page declared an apple-touch-icon and nothing else. apple-touch-icon
 // is for an iPhone home screen; the browser tab reads rel="icon", and with
@@ -1628,6 +1893,53 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'clearing the last topic emptied the list anyway'); else ok();
 }
 
+// ── every card's picture is drawn, not typed ─────────────────────────────
+// An emoji character is a request, not a picture: the reader sees whatever
+// their system font draws. U+1F3BF is "skis and ski boot" in Unicode and
+// Windows renders it as something closer to a snowboard, which is a picture
+// arguing with its own label. These are Google's drawings of the same
+// characters, defined once as symbols and referenced by every card.
+{
+  const r = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('.services-grid .service-btn')];
+    const out = { cards: cards.length, noIcon: [], stillEmoji: [], broken: [], sizes: [] };
+    for (const c of cards) {
+      const ico = c.querySelector('.svc-ico');
+      if (!ico) { out.noIcon.push(c.id); continue; }
+      const use = ico.querySelector('svg use');
+      if (!use) {
+        // anything that is not a <use> reference is a bare character
+        if (ico.textContent.trim()) out.stillEmoji.push(c.id + ':' + ico.textContent.trim());
+        else out.noIcon.push(c.id);
+        continue;
+      }
+      const id = (use.getAttribute('href') || use.getAttribute('xlink:href') || '').replace('#', '');
+      if (!id || !document.getElementById(id)) { out.broken.push(c.id + '->' + id); continue; }
+      const box = ico.querySelector('svg').getBoundingClientRect();
+      out.sizes.push(Math.round(box.width));
+    }
+    // the sprite itself must take no space in the layout
+    const sprite = document.querySelector('svg[aria-hidden="true"][style*="width:0"]');
+    out.spriteHidden = !!sprite && Math.round(sprite.getBoundingClientRect().height) === 0;
+    out.symbols = sprite ? sprite.querySelectorAll('symbol').length : 0;
+    return out;
+  });
+
+  const T = "every card's picture is drawn, not typed";
+  if (r.cards < 8) fail(T, `only ${r.cards} cards`); else ok();
+  if (r.noIcon.length) fail(T, `cards with no icon at all: ${r.noIcon.join(', ')}`); else ok();
+  if (r.stillEmoji.length) fail(T,
+    `still drawing with a font character: ${r.stillEmoji.join(', ')}`); else ok();
+  if (r.broken.length) fail(T,
+    `a card points at a symbol that is not there: ${r.broken.join(', ')}`); else ok();
+  if (r.symbols < r.cards) fail(T,
+    `${r.symbols} symbols defined for ${r.cards} cards`); else ok();
+  if (!r.spriteHidden) fail(T,
+    'the sprite is taking up space in the page instead of hiding'); else ok();
+  if (r.sizes.some(w => w < 14 || w > 40)) fail(T,
+    `an icon rendered at ${Math.min(...r.sizes)}-${Math.max(...r.sizes)}px`); else ok();
+}
+
 // ── the cards promise what the panels hold ───────────────────────────────
 // The subtitles live in texts.json, and the markup carries a copy as the
 // fallback for when that file cannot be fetched. The two drifted: the piste
@@ -1636,10 +1948,41 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 // load saw the old wording. Whatever the reason for a mismatch, it means one
 // of the two is wrong.
 {
-  // Read from disk, not fetched: the page is opened over file://, where
-  // fetch is blocked, and this check must not depend on that.
+  // BOTH sides come off disk, and that is the whole point. The first version
+  // of this check read the live DOM - but _applyTexts runs near the top of
+  // this suite and rewrites every card from texts.json, so by the time the
+  // check ran it was comparing the content file against itself and passed
+  // whatever the markup said. It sat there green while index.html still
+  // carried "בשאלה אחת" and texts.json said "בשאילתא אחת".
   const buttons = (JSON.parse(fs.readFileSync(TEXTS, 'utf8')).services || {}).buttons || [];
-  const r = await page.evaluate((btns) => {
+  const pageSrc = fs.readFileSync(PAGE, 'utf8');
+  const r = (() => {
+    const out = { missing: [], drift: [], iconDrift: [], count: buttons.length };
+    for (const b of buttons) {
+      const re = new RegExp(
+        '<div id="' + b.id + '" class="service-btn[^"]*"[^>]*>\\s*' +
+        '(?:<!--[\\s\\S]*?-->\\s*)?<span class="svc-ico">([\\s\\S]*?)</span>[\\s\\S]*?' +
+        '<span class="svc-txt"><b>([\\s\\S]*?)</b>\\s*<small>([\\s\\S]*?)</small>');
+      const m = re.exec(pageSrc);
+      if (!m) { out.missing.push(b.id); continue; }
+      const norm = (x) => x.replace(/\s+/g, ' ').trim();
+      const I = norm(m[1]), L = norm(m[2]), S = norm(m[3]);
+      if (L !== String(b.label || '').trim() || S !== String(b.sub || '').trim()) {
+        out.drift.push({ id: b.id, markup: S, json: String(b.sub || '').trim() });
+      }
+      // The icon drifts the same way and is harder to notice: _applyTexts
+      // overwrites it from texts.json the moment the content file loads, so
+      // a stale emoji in the markup is invisible until the day that fetch
+      // fails - and then the card shows a different picture than everyone
+      // else sees.
+      if (I !== norm(String(b.icon || ''))) {
+        out.iconDrift.push({ id: b.id,
+          markup: I.slice(0, 40), json: norm(String(b.icon || '')).slice(0, 40) });
+      }
+    }
+    return out;
+  })();
+  const _unused = async (btns) => {
     const out = { missing: [], drift: [], count: btns.length };
     for (const b of btns) {
       const el = document.getElementById(b.id);
@@ -1653,7 +1996,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       }
     }
     return out;
-  }, buttons);
+  };
 
   const T = 'the cards promise what the panels hold';
   if (r.count < 8) fail(T, `only ${r.count} service buttons in texts.json`); else ok();
@@ -1661,6 +2004,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `texts.json names cards the page does not have: ${r.missing.join(', ')}`); else ok();
   if (r.drift.length) fail(T,
     'markup and texts.json disagree: ' + r.drift.map(d =>
+      `${d.id} markup="${d.markup}" json="${d.json}"`).join(' ; ')); else ok();
+  if (r.iconDrift.length) fail(T,
+    'the icons disagree: ' + r.iconDrift.map(d =>
       `${d.id} markup="${d.markup}" json="${d.json}"`).join(' ; ')); else ok();
 }
 
@@ -2253,8 +2599,20 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'there is no menu button in the header'); else ok();
   if (!r.onScreen) fail('the standing links are reachable without scrolling',
     'the side menu did not slide into view'); else ok();
-  if (r.items.length !== 5) fail('the standing links are reachable without scrolling',
-    `the menu holds ${r.items.length} items: ${JSON.stringify(r.items)}`); else ok();
+  // Not an exact count: the menu is where things go when they need a
+  // standing door, and pinning it to five made adding one a test failure
+  // rather than a decision. What matters is that the four that must be
+  // there are there, and that the list stays short enough to read.
+  {
+    const must = ['עלינו', 'צור קשר', 'עזרה', 'מקורות'];
+    const joined = r.items.join(' | ');
+    const missing = must.filter(m => joined.indexOf(m) < 0);
+    if (missing.length) fail('the standing links are reachable without scrolling',
+      `the menu lost ${missing.join(', ')}: ${JSON.stringify(r.items)}`); else ok();
+    if (r.items.length < 4 || r.items.length > 8)
+      fail('the standing links are reachable without scrolling',
+        `the menu holds ${r.items.length} items`); else ok();
+  }
   // The install prompt shows once and never again. On a phone the side menu
   // is the only way back to it, so it gets its own line rather than hiding
   // in the middle of the help panel.
