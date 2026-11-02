@@ -4711,18 +4711,27 @@ function _bookingUrl(ci, co, adults, kids, rooms, radius, accType, f) {
   f = f || {min: null, max: null, kitchen: false, cur: 'EUR'};
   var cur = f.cur || 'EUR';
   var nflt = [];
-  if (f.min != null || f.max != null) {
-    nflt.push('price=' + cur + '-' + (f.min != null ? f.min : 0) + '-' +
-              (f.max != null ? f.max : 'max') + '-1');
-  }
   if (accType === 'apt') nflt.push('ht_id=201');
   if (f.kitchen) nflt.push('roomfacility=999');
+  // Price is NOT an nflt filter on Booking, and its order is the reverse of
+  // what nflt's other keys suggest: a top-level price=<min>-<max>-<CUR>.
+  // Sent inside nflt as "price=USD-0-150-1" it was still accepted as a
+  // filter - which is what made it hard to see - but it came out as a 1500
+  // FLOOR rather than a 150 ceiling, which is why a search for apartments
+  // under $150 a night in Cervinia returned nothing at all.
+  // There is no documented open-ended form, so a min with no max gets a
+  // ceiling high enough to exclude nothing.
+  var price = '';
+  if (f.min != null || f.max != null) {
+    price = '&price=' + (f.min != null ? f.min : 0) + '-'
+          + (f.max != null ? f.max : 100000) + '-' + cur;
+  }
   return 'https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia'
     + '&checkin=' + ci + '&checkout=' + co
     + '&group_adults=' + adults + '&group_children=' + (kids || 0)
     + '&no_rooms=' + (rooms || 1)
     + (radius ? '&radius=' + radius + 'km' : '')
-    + '&selected_currency=' + cur
+    + '&selected_currency=' + cur + price
     + (nflt.length ? '&nflt=' + encodeURIComponent(nflt.join(';')) : '');
 }
 function _airbnbUrl(ci, co, adults, kids, accType, f) {
@@ -4742,8 +4751,15 @@ function _stayDesc(base, accType, f) {
   var on = [];
   if (f.kitchen) on.push('עם מטבח');
   if (f.min != null || f.max != null) {
-    on.push((CUR_SIGN[f.cur] || '') + (f.min != null ? f.min : '')
-            + '–' + (f.max != null ? f.max : '') + ' ללילה');
+    // A bare dash read as a price that had lost its other half: a ceiling of
+    // 150 came out "$-150". Hebrew says the relation in words, and the sign
+    // follows the number as it does when anyone writes a price by hand.
+    // CHF carries a trailing space from the days it was a prefix.
+    var sign = (CUR_SIGN[f.cur] || '').trim();
+    var span = (f.min != null && f.max != null) ? (f.min + ' עד ' + f.max)
+             : (f.max != null)                  ? ('עד ' + f.max)
+             :                                    ('מ-' + f.min);
+    on.push([span, sign, 'ללילה'].filter(Boolean).join(' '));
   }
   return on.length ? base + ' · ' + on.join(' · ') : base;
 }
