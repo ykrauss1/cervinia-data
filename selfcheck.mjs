@@ -1979,10 +1979,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       },
       rets: { MXP: { 4: {}, 5: {}, 6: {}, 7: {} }, TRN: { 4: {}, 5: {}, 6: {}, 7: {} } },
       offers: [
-        { kind: 'cheapest', dest: 'MXP', date: '2027-01-12', ret: '2027-01-17',
-          nights: 5, price: 380, carrier: 'Wizz Air', direct: false },
-        { kind: 'israeli', dest: 'MXP', date: '2027-01-12', ret: '2027-01-17',
-          nights: 5, price: 540, carrier: '<img src=x onerror=alert(1)>', direct: true }
+        { kind: 'midweek', bandHe: 'אמצע שבוע', dest: 'MXP', date: '2027-01-12',
+          ret: '2027-01-17', nights: 5, price: 380, carrier: 'Wizz Air', direct: false },
+        { kind: 'weekend', bandHe: 'סוף שבוע', dest: 'MXP', date: '2027-01-08',
+          ret: '2027-01-11', nights: 3, price: 420, carrier: 'ITA', direct: true },
+        { kind: 'israeli', bandHe: 'אמצע שבוע', dest: 'MXP', date: '2027-01-12',
+          ret: '2027-01-17', nights: 5, price: 540, carrier: '<img src=x onerror=alert(1)>', direct: true }
       ]
     };
     window._FLIGHTS = snap; window._flTried = true;
@@ -2068,7 +2070,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!/טיסה מ-/.test(r.teaser)) fail(T,
     'the travel card shows no fare'); else ok();
   if (!/380/.test(r.teaser)) fail(T,
-    `the card shows the wrong fare: "${r.teaser}"`); else ok();
+    `the card should show the lowest of the offers, got: "${r.teaser}"`); else ok();
+  if (/אמצע שבוע/.test(r.offers) === false) fail(T,
+    'the offers do not say which kind of trip each one is'); else ok();
+  if (!/3 לילות/.test(r.offers)) fail(T,
+    'an offer does not say how many nights it covers'); else ok();
   if (r.teaserTwice !== 1) fail(T,
     `painting twice left ${r.teaserTwice} fares on the card`); else ok();
   if (r.teaserBare !== 0) fail(T,
