@@ -10706,7 +10706,15 @@ function flightMonthsHtml() {
       '<div style="font-size:0.92rem;font-weight:800;' +
         (win ? 'color:#0f6b3f;' : 'color:#16314f;') + '">' +
         '<bdi>' + r.typical + ' $</bdi></div>' +
-      '<div style="font-size:0.63rem;color:#9aa5b1;">מ-<bdi>' + r.low + '</bdi></div>' +
+      // "126 · from 126" reads like a discount tag with nothing behind it,
+      // so the second line goes only where the two differ. An earlier
+      // version wrote "no variation" instead, which was simply false:
+      // January runs from 126 to 254: its MIDDLE is near the floor, which
+      // is a different statement. An empty line of the same height keeps
+      // the cells aligned and claims nothing.
+      (r.low < r.typical
+        ? '<div style="font-size:0.63rem;color:#9aa5b1;">מ-<bdi>' + r.low + '</bdi></div>'
+        : '<div style="font-size:0.63rem;">&nbsp;</div>') +
       '</div>';
   }).join('');
 
