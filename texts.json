@@ -3572,7 +3572,7 @@
       },
       {
         "id": "svc-travel",
-        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-airplane\"/></svg>",
+        "icon": "<svg class=\"svc-ico-img\" viewBox=\"0 0 128 128\" aria-hidden=\"true\"><use href=\"#ico-suitcase\"/></svg>",
         "label": "תכנון טיול",
         "sub": "חיפוש טיסות, לינה ורכב — בשאילתא אחת"
       },
@@ -6245,6 +6245,21 @@
       "no_shift": "הזזה של עד שבועיים לכאן או לכאן אינה משפרת את התמונה — זו פשוט תקופה עמוסה.",
       "ease_fwd": "💡 דחייה של {n} תקטין את ימי העומס מ-{was} ל-{now}: {from} עד {to}.",
       "ease_back": "💡 הקדמה של {n} תקטין את ימי העומס מ-{was} ל-{now}: {from} עד {to}."
+    }
+  },
+  "community": {
+    "_comment": "Each entry renders only when its url is filled in. Leaving a url empty removes that link from every panel at once - no code change.",
+    "facebook": {
+      "url": "https://www.facebook.com/groups/385880019907484/",
+      "icon": "👥",
+      "title": "קבוצת הפייסבוק הישראלית של צ׳רוויניה",
+      "sub": "שאלות, המלצות ודיווחים מהשטח — הקהילה הישראלית"
+    },
+    "whatsapp": {
+      "url": "",
+      "icon": "💬",
+      "title": "צ׳רוויניה לגולש הדתי — קבוצת ווטסאפ",
+      "sub": "תיאום מניין, סעודת שבת וקנייה משותפת — לדיון מהיר בין מי שנמצא שם עכשיו"
     }
   }
 }
