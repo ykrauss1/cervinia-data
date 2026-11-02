@@ -69,7 +69,14 @@ const BANDS = [
 // price for a ski trip is a number nobody wants.
 const SEASON_MONTHS = [11, 0, 1, 2, 3];   // Dec, Jan, Feb, Mar, Apr (0-based)
 
-const ADULTS = 2;
+// ONE passenger, and the whole file depends on it. The price-calendar call
+// takes no `adults` parameter at all, so it answers for a single traveller;
+// the pricing call was asking for two. The first snapshot put 126 and 252
+// side by side for the same flight on the same date - exactly 2.00x - and
+// the page labelled the 126 "for two travellers", which is the opposite of
+// true. Per person is also how flight engines display, so the reader needs
+// no conversion in their head, only a multiplication.
+const ADULTS = 1;
 
 // Marketing names as the provider writes them. Matched case-insensitively
 // on a substring, which is how trip-finder matches them too.
@@ -257,7 +264,7 @@ function flightsFrom(win) {
     for (const o of win.options) {
       if (o && o.price != null) {
         out.push({ price: Math.round(Number(o.price)),
-                   carrier: o.carrier || '', direct: !!o.isDirect });
+                   carrier: tidyCarrier(o.carrier), direct: !!o.isDirect });
       }
     }
     return out;
@@ -267,13 +274,29 @@ function flightsFrom(win) {
     for (const y of b.slice(0, 12)) {
       if (x && y && x.price != null && y.price != null) {
         out.push({ price: Math.round(Number(x.price) + Number(y.price)),
-                   carrier: sameCarrier(x.carrier, y.carrier),
+                   carrier: tidyCarrier(sameCarrier(x.carrier, y.carrier)),
                    direct: !!(x.isDirect && y.isDirect) });
       }
     }
   }
   return out;
 }
+// The edge names an option by joining both legs itself, so a Wizz round
+// trip arrives as "Wizz Air / Wizz Air". Left alone it reads as two
+// different airlines - and worse, it was defeating isIsraeli below, which
+// rejects a joined name on purpose. A genuine El Al round trip came through
+// as "El Al / El Al" and was thrown away, which is why the first snapshot
+// had no Israeli offer at all.
+function tidyCarrier(c) {
+  if (!c) return '';
+  const seen = [];
+  for (const part of String(c).split('/')) {
+    const t = part.trim();
+    if (t && !seen.some(x => x.toLowerCase() === t.toLowerCase())) seen.push(t);
+  }
+  return seen.join(' / ');
+}
+
 // A round trip is "El Al" only when both legs are El Al. A mixed pair is
 // named as the pair, because calling it by one of the two would be a claim
 // the ticket does not support.
@@ -407,7 +430,7 @@ async function main() {
 // The test harness imports this file to exercise the pure parts - the
 // season maths, the leg pairing, the choice of offers - without touching
 // the network.
-export { seasonWindows, flightsFrom, sameCarrier, isIsraeli, buildOffers,
+export { seasonWindows, flightsFrom, sameCarrier, tidyCarrier, isIsraeli, buildOffers,
          pickDatesToPrice, addDays, BANDS, NIGHTS, DESTS };
 
 if (!process.env.CL_FLIGHTS_TEST) {
