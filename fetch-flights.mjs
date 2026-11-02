@@ -38,14 +38,32 @@ const ORIGIN = 'TLV';
 // The three airports the site already offers, with the drive as the page
 // states it elsewhere. Geneva is deliberately absent: it adds a border and
 // the Mont Blanc toll, which is a different kind of trip.
+// Milan Malpensa only. The first live run answered the question: Bergamo
+// returned a priced day in NO month at all (Ryanair is not flying TLV-BGY
+// this season), and Turin returned December and then one stray day in
+// February. Sixty of the eighty-four calls bought nothing. The two are
+// kept here, commented out, because a Ryanair season would bring Bergamo
+// straight back.
 const DESTS = [
-  { code: 'MXP', he: 'מילאנו מלפנסה',  km: 175 },
-  { code: 'BGY', he: 'מילאנו ברגמו',   km: 200 },
-  { code: 'TRN', he: 'טורינו',          km: 100 }
+  { code: 'MXP', he: 'מילאנו מלפנסה',  km: 175 }
+  // { code: 'BGY', he: 'מילאנו ברגמו', km: 200 },   // no inventory 2026/27
+  // { code: 'TRN', he: 'טורינו',        km: 100 }    // December only
 ];
 
-// Ski-week lengths. A Sunday-to-Thursday is four nights; a full week is seven.
-const NIGHTS = [4, 5, 6, 7];
+// The lengths people actually ask for, which is the question Yossi raised:
+// a long weekend (3), Sunday-to-Thursday (4), Sunday-to-Friday (5), and a
+// full week (6-7). Each length is a separate call - the calendar is keyed on
+// it - but with one airport that is 25 calls, not 84.
+const NIGHTS = [3, 4, 5, 6, 7];
+
+// Which of those lengths belongs to which kind of trip. The headline offers
+// are built one per band, because "the cheapest flight of the winter" is a
+// useless number to somebody who can only get away from Thursday to Sunday.
+const BANDS = [
+  { key: 'weekend', he: 'סוף שבוע',    nights: [3] },
+  { key: 'midweek', he: 'אמצע שבוע',   nights: [4, 5] },
+  { key: 'week',    he: 'שבוע מלא',    nights: [6, 7] }
+];
 
 // Cervinia's season. Months outside it are not fetched at all - an August
 // price for a ski trip is a number nobody wants.
@@ -58,9 +76,10 @@ const ADULTS = 2;
 const ISRAELI = ['el al', 'israir', 'arkia', 'air haifa', 'sundor', "sun d'or"];
 
 const SLEEP_BETWEEN = 250;          // gentle on the provider's rate limit
-const CAL_TIMEOUT   = 25000;
+const CAL_TIMEOUT   = 20000;
 const PRICE_TIMEOUT = 60000;
-const PRICE_CALLS   = 4;            // how many nine-second calls we allow
+const PRICE_CALLS   = 3;            // one per band, and they are the slow ones
+const CAL_RETRY     = 1;            // one more go at a call that fell over
 
 const log = (...a) => console.log(...a);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -95,9 +114,18 @@ async function post(body, timeout) {
 function seasonWindows(today = new Date()) {
   const out = [];
   const start = new Date(today); start.setDate(start.getDate() + 1);
+  let started = false;
   for (let i = 0; i < 15; i++) {
     const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
-    if (!SEASON_MONTHS.includes(d.getMonth())) continue;
+    const inSeason = SEASON_MONTHS.includes(d.getMonth());
+    // Skip forward to the first ski month, then take the months that follow
+    // it and STOP at the first one outside the season. December to April are
+    // consecutive, so this is exactly one season. The earlier version kept
+    // scanning and asked for December 2027 and January 2028 as well - twelve
+    // calls that came back empty every time, because the provider has no
+    // inventory that far out.
+    if (!inSeason) { if (started) break; else continue; }
+    started = true;
     const first = new Date(d.getFullYear(), d.getMonth(), 1);
     const last  = new Date(d.getFullYear(), d.getMonth() + 1, 0);
     const from  = first < start ? start : first;
@@ -129,9 +157,19 @@ async function fetchCalendars(windows) {
       cal[d.code][n] = {}; rets[d.code][n] = {};
       for (const w of windows) {
         calls++;
-        const j = await post({ priceCalendar: true, origin: ORIGIN,
-                               destination: d.code, from: w.from, to: w.to,
-                               nights: n }, CAL_TIMEOUT);
+        // A transient failure costs a whole month of a whole trip length,
+        // and the first run lost eight of them that way - March and April at
+        // five nights, January at seven - months that certainly have flights.
+        // "no data" after a retry is far likelier to be real.
+        let j = null;
+        for (let attempt = 0; attempt <= CAL_RETRY; attempt++) {
+          j = await post({ priceCalendar: true, origin: ORIGIN,
+                           destination: d.code, from: w.from, to: w.to,
+                           nights: n }, CAL_TIMEOUT);
+          const broke = !j || j._error || j._httpError;
+          if (!broke) break;
+          if (attempt < CAL_RETRY) { calls++; await sleep(900); }
+        }
 
         // The first answer is printed whole. This job cannot be tested from
         // a development container - the network there does not reach
@@ -175,20 +213,24 @@ async function fetchCalendars(windows) {
  *  the cheapest at each other airport, and nothing else.
  * ------------------------------------------------------------------- */
 function pickDatesToPrice({ cal, rets }) {
-  const best = {};                       // one candidate per destination
-  for (const d of DESTS) {
-    for (const n of NIGHTS) {
-      for (const [date, price] of Object.entries(cal[d.code]?.[n] || {})) {
-        if (!best[d.code] || price < best[d.code].price) {
-          best[d.code] = { dest: d.code, nights: n, date, price,
-                           ret: rets[d.code][n][date] || addDays(date, n) };
+  // One candidate per BAND. "The cheapest flight of the winter" is a useless
+  // figure to somebody who can only get away Thursday to Sunday, so each
+  // kind of trip gets its own cheapest date and its own pricing call.
+  const best = {};
+  for (const b of BANDS) {
+    for (const d of DESTS) {
+      for (const n of b.nights) {
+        for (const [date, price] of Object.entries(cal[d.code]?.[n] || {})) {
+          if (!best[b.key] || price < best[b.key].price) {
+            best[b.key] = { band: b.key, bandHe: b.he, dest: d.code, nights: n,
+                            date, price,
+                            ret: rets[d.code][n][date] || addDays(date, n) };
+          }
         }
       }
     }
   }
-  return Object.values(best)
-    .sort((a, b) => a.price - b.price)
-    .slice(0, PRICE_CALLS);
+  return BANDS.map(b => best[b.key]).filter(Boolean).slice(0, PRICE_CALLS);
 }
 function addDays(isoDate, n) {
   const d = new Date(isoDate + 'T00:00:00Z');
@@ -280,31 +322,36 @@ async function priceCandidates(cands) {
  *  already paid for.
  * ------------------------------------------------------------------- */
 function buildOffers(priced) {
-  const all = [];
-  for (const p of priced) {
-    for (const f of p.flights) {
-      all.push({ ...f, dest: p.dest, date: p.date, ret: p.ret, nights: p.nights });
-    }
-  }
-  if (!all.length) return [];
-  const by = (arr, k) => arr.slice().sort((x, y) => k(x) - k(y))[0];
   const offers = [];
+  const all = [];
 
-  const cheapest = by(all, f => f.price);
-  if (cheapest) offers.push({ kind: 'cheapest', ...cheapest });
-
-  // "best" means a direct flight that is not much dearer. A direct flight
-  // at twice the price is not a better offer, it is a different decision.
-  const direct = all.filter(f => f.direct);
-  const bestDirect = by(direct, f => f.price);
-  if (bestDirect && bestDirect !== cheapest &&
-      bestDirect.price <= cheapest.price * 1.6) {
-    offers.push({ kind: 'best', ...bestDirect });
+  // One offer per band: the cheapest flight actually found for that kind of
+  // trip, carrying the airline that flies it.
+  for (const p of priced) {
+    const flights = p.flights.slice().sort((a, b) => a.price - b.price);
+    for (const f of flights) {
+      all.push({ ...f, dest: p.dest, date: p.date, ret: p.ret,
+                 nights: p.nights, band: p.band, bandHe: p.bandHe });
+    }
+    if (!flights.length) continue;
+    const cheap = flights[0];
+    // A direct flight within a quarter of the cheapest price is worth having
+    // instead: same money, hours less travelling.
+    const direct = flights.filter(f => f.direct && f.price <= cheap.price * 1.25)[0];
+    const pick = direct || cheap;
+    offers.push({ kind: p.band, bandHe: p.bandHe, dest: p.dest, date: p.date,
+                  ret: p.ret, nights: p.nights, price: pick.price,
+                  carrier: pick.carrier, direct: pick.direct });
   }
 
-  const il = by(all.filter(f => isIsraeli(f.carrier)), f => f.price);
-  if (il && !offers.some(o => o.price === il.price && o.carrier === il.carrier)) {
-    offers.push({ kind: 'israeli', ...il });
+  // And one across all of them for an Israeli carrier, which is a different
+  // question from price: an airline that keeps flying when others cancel is
+  // worth money to anyone holding a lift pass already paid for.
+  const il = all.filter(f => isIsraeli(f.carrier)).sort((a, b) => a.price - b.price)[0];
+  if (il && !offers.some(o => o.carrier === il.carrier && o.price === il.price)) {
+    offers.push({ kind: 'israeli', bandHe: il.bandHe, dest: il.dest, date: il.date,
+                  ret: il.ret, nights: il.nights, price: il.price,
+                  carrier: il.carrier, direct: il.direct });
   }
   return offers;
 }
@@ -335,6 +382,7 @@ async function main() {
     currency: 'USD',
     dests: Object.fromEntries(DESTS.map(d => [d.code, { he: d.he, km: d.km }])),
     nights: NIGHTS,
+    bands: BANDS,
     cal, rets, offers
   };
 
@@ -360,7 +408,7 @@ async function main() {
 // season maths, the leg pairing, the choice of offers - without touching
 // the network.
 export { seasonWindows, flightsFrom, sameCarrier, isIsraeli, buildOffers,
-         pickDatesToPrice, addDays };
+         pickDatesToPrice, addDays, BANDS, NIGHTS, DESTS };
 
 if (!process.env.CL_FLIGHTS_TEST) {
   main().catch(e => { console.error('fetch-flights failed:', e); process.exitCode = 1; });
