@@ -10657,6 +10657,68 @@ function flightOffersHtml() {
       ' · לנוסע אחד</small></div>' + rows + note + '</div>';
 }
 
+// ── the season, month by month ────────────────────────────────────────
+// The month dimension costs nothing. The snapshot already holds every
+// priced day of the season, so "what does each month start at" is a loop
+// over a file that is already in memory - no extra call, no airline name
+// needed. It also answers the question the three offers could not: they
+// all landed on the same Christmas week, because one week happened to be
+// cheapest at every trip length.
+var _FL_MONTH_HE = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי',
+                    'אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+function flightMonths() {
+  if (!_FLIGHTS || !_FLIGHTS.cal) return [];
+  var byMonth = {};
+  for (var dest in _FLIGHTS.cal) {
+    for (var n in _FLIGHTS.cal[dest]) {
+      var days = _FLIGHTS.cal[dest][n];
+      for (var date in days) {
+        var m = date.slice(0, 7);
+        (byMonth[m] = byMonth[m] || []).push(days[date]);
+      }
+    }
+  }
+  return Object.keys(byMonth).sort().map(function (m) {
+    var a = byMonth[m].slice().sort(function (x, y) { return x - y; });
+    var mid = a.length >> 1;
+    return { month: m, days: a.length, low: a[0],
+             typical: a.length % 2 ? a[mid] : Math.round((a[mid - 1] + a[mid]) / 2) };
+  });
+}
+
+function flightMonthsHtml() {
+  var rows = flightMonths();
+  if (rows.length < 2) return '';          // one month is not a comparison
+  // The TYPICAL price, not the lowest. The lowest is the same 126 in four
+  // months out of five - it is one airline's floor fare, and a statistic
+  // that cannot tell December from February tells the reader nothing. The
+  // middle of each month's prices separates them properly: February 126,
+  // December 164, March 198, April 292.
+  var best = Math.min.apply(null, rows.map(function (r) { return r.typical; }));
+  var cells = rows.map(function (r) {
+    var mi = parseInt(r.month.slice(5, 7), 10) - 1;
+    var win = r.typical === best;
+    return '<div style="flex:1;min-width:58px;text-align:center;padding:7px 3px;' +
+      'border-radius:8px;' + (win ? 'background:#e7f6ec;' : '') + '">' +
+      '<div style="font-size:0.68rem;color:#7b8a99;">' +
+        esc(_FL_MONTH_HE[mi] || r.month) + '</div>' +
+      '<div style="font-size:0.92rem;font-weight:800;' +
+        (win ? 'color:#0f6b3f;' : 'color:#16314f;') + '">' +
+        '<bdi>' + r.typical + ' $</bdi></div>' +
+      '<div style="font-size:0.63rem;color:#9aa5b1;">מ-<bdi>' + r.low + '</bdi></div>' +
+      '</div>';
+  }).join('');
+
+  return '<div style="background:#fff;border:1.5px solid #dfe8f3;border-radius:11px;' +
+    'padding:10px 11px;margin-bottom:12px;">' +
+    '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:6px;">' +
+      '📆 המחיר הרגיל בכל חודש</div>' +
+    '<div style="display:flex;gap:4px;">' + cells + '</div>' +
+    '<div style="font-size:0.66rem;color:#9aa5b1;margin-top:6px;line-height:1.5;">' +
+      'המחיר האמצעי של החודש, ומתחתיו הזול ביותר שנמצא בו · לנוסע אחד</div></div>';
+}
+
 // A price on the home card, so the cheapest fare is visible without
 // opening anything. Deliberately NOT a popup on load: a modal in front of
 // a first-time visitor is the surest way to lose them, and the number is
@@ -10685,7 +10747,7 @@ async function paintFlightOffers() {
   var host = document.getElementById('flight-offers');
   if (!host) return;
   await loadFlights();
-  var html = flightOffersHtml();
+  var html = flightMonthsHtml() + flightOffersHtml();
   host.innerHTML = html;
   host.style.display = html ? 'block' : 'none';
 }
