@@ -1960,6 +1960,125 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'clearing the last topic emptied the list anyway'); else ok();
 }
 
+// ── the flight snapshot answers from the file, never from the network ──
+// A live pricing call is about nine seconds and is metered per call, so a
+// reader who picks dates is answered out of data/flights.json. What is
+// checked here is everything that can go wrong in reading it: a trip
+// length the daily job does not cover, a carrier name carrying markup, a
+// nearby day that is cheaper, and the case of no file at all.
+{
+  const r = await page.evaluate(async () => {
+    const snap = {
+      generated: new Date(Date.now() - 3.6e6).toISOString(),
+      origin: 'TLV', adults: 2, currency: 'USD', nights: [4, 5, 6, 7],
+      dests: { MXP: { he: 'מילאנו מלפנסה', km: 175 }, TRN: { he: 'טורינו', km: 100 } },
+      cal: {
+        MXP: { 4: {}, 5: { '2027-01-10': 520, '2027-01-12': 380, '2027-03-28': 400 },
+               6: {}, 7: {} },
+        TRN: { 4: {}, 5: {}, 6: {}, 7: {} }
+      },
+      rets: { MXP: { 4: {}, 5: {}, 6: {}, 7: {} }, TRN: { 4: {}, 5: {}, 6: {}, 7: {} } },
+      offers: [
+        { kind: 'cheapest', dest: 'MXP', date: '2027-01-12', ret: '2027-01-17',
+          nights: 5, price: 380, carrier: 'Wizz Air', direct: false },
+        { kind: 'israeli', dest: 'MXP', date: '2027-01-12', ret: '2027-01-17',
+          nights: 5, price: 540, carrier: '<img src=x onerror=alert(1)>', direct: true }
+      ]
+    };
+    window._FLIGHTS = snap; window._flTried = true;
+
+    const out = {};
+    // a date the snapshot holds
+    out.hit = flightForDatesHtml('MXP', '2027-01-10', '2027-01-15', '2');
+    // the same, where a nearby day is much cheaper
+    out.hasTip = /💡/.test(out.hit);
+    out.tipDay = (out.hit.match(/ביציאה ב-([0-9.]+)/) || [])[1] || '';
+    // a trip length the daily job does not cover
+    out.uncovered = flightForDatesHtml('MXP', '2027-01-10', '2027-01-19', '2');
+    // a cheap date with nothing cheaper beside it
+    out.noTip = !/💡/.test(flightForDatesHtml('MXP', '2027-01-12', '2027-01-17', '2'));
+    // a date with no stored price at all
+    out.gap = flightForDatesHtml('MXP', '2027-02-02', '2027-02-07', '2');
+    // a party that is not two
+    out.four = flightForDatesHtml('MXP', '2027-01-10', '2027-01-15', '4');
+
+    out.offers = flightOffersHtml();
+
+    // the home card: painted, then painted again - the second pass must
+    // not stack a second price onto the same line
+    const card = document.getElementById('svc-travel');
+    const sub  = card && card.querySelector('.svc-txt small');
+    if (sub) sub.innerHTML = sub.innerHTML.replace(/<span class="fl-teaser">.*?<\/span>/g, '');
+    await paintTravelTeaser(); await paintTravelTeaser();
+    out.teaser = sub ? sub.textContent : '';
+    out.teaserTwice = sub ? sub.querySelectorAll('.fl-teaser').length : -1;
+
+    // no file at all: every surface must come back empty, not broken
+    window._FLIGHTS = null;
+    if (sub) sub.innerHTML = sub.innerHTML.replace(/<span class="fl-teaser">.*?<\/span>/g, '');
+    await paintTravelTeaser();
+    out.teaserBare = sub ? sub.querySelectorAll('.fl-teaser').length : -1;
+    out.bareDates  = flightForDatesHtml('MXP', '2027-01-10', '2027-01-15', '2');
+    out.bareOffers = flightOffersHtml();
+
+    // nights across the European DST change (29 March 2027)
+    out.dst = _flNights('2027-03-26', '2027-03-31');
+    out.plain = _flNights('2027-01-10', '2027-01-15');
+    return out;
+  });
+
+  const T = 'the flight snapshot answers from the file';
+
+  if (!/380|520/.test(r.hit)) fail(T, 'a stored date showed no price'); else ok();
+  if (!/5 לילות/.test(r.hit)) fail(T, 'the trip length is not stated'); else ok();
+  if (!/לשני נוסעים/.test(r.hit)) fail(T,
+    'the price does not say how many people it covers'); else ok();
+  if (!/עודכן היום/.test(r.hit)) fail(T, 'the price carries no age'); else ok();
+
+  if (!r.hasTip) fail(T, 'a nearby day 27% cheaper was not offered'); else ok();
+  if (r.tipDay !== '12.1') fail(T,
+    `the cheaper day shows as "${r.tipDay}", wanted 12.1`); else ok();
+  if (!r.noTip) fail(T,
+    'the cheapest day in the month was told there is something cheaper'); else ok();
+
+  // The honest answer to an uncovered trip length. Silence here reads as
+  // "there are no flights", which is a different and false statement.
+  if (!/9/.test(r.uncovered) || !/4–5–6–7|4.5.6.7/.test(r.uncovered)) fail(T,
+    `an uncovered trip length must name the lengths covered - got "${r.uncovered.slice(0, 140)}"`); else ok();
+  if (!r.gap || !/אין מחיר שמור/.test(r.gap)) fail(T,
+    'a date with no stored price says nothing at all'); else ok();
+  if (!/בחרת 4/.test(r.four)) fail(T,
+    'a party of four is shown a two-person price with no word about it'); else ok();
+
+  if (!/Wizz Air/.test(r.offers)) fail(T, 'the offers carry no airline'); else ok();
+  if (!/ממשיכות לטוס/.test(r.offers)) fail(T,
+    'the Israeli-carrier line is there without the reason it is there'); else ok();
+  // Only an UNESCAPED tag is the hole. The words "onerror=alert(1)" survive
+  // inside the neutralised text and are harmless there, so testing for them
+  // fails on correct output - which is exactly what it did.
+  if (/<img|<script|<\/b>\s*<img/i.test(r.offers)) fail(T,
+    'a carrier name from the file reached the page as live markup'); else ok();
+  if (!/&lt;img/.test(r.offers)) fail(T,
+    'the carrier name was dropped rather than escaped'); else ok();
+
+  if (r.bareDates !== '' || r.bareOffers !== '') fail(T,
+    'with no snapshot the page still paints something'); else ok();
+
+  // the home card carries the cheapest fare, and carries it only once
+  if (!/טיסה מ-/.test(r.teaser)) fail(T,
+    'the travel card shows no fare'); else ok();
+  if (!/380/.test(r.teaser)) fail(T,
+    `the card shows the wrong fare: "${r.teaser}"`); else ok();
+  if (r.teaserTwice !== 1) fail(T,
+    `painting twice left ${r.teaserTwice} fares on the card`); else ok();
+  if (r.teaserBare !== 0) fail(T,
+    'with no snapshot the card still shows a fare'); else ok();
+
+  if (r.dst !== 5) fail(T,
+    `a trip across the clock change counted ${r.dst} nights, not 5`); else ok();
+  if (r.plain !== 5) fail(T, `an ordinary trip counted ${r.plain} nights`); else ok();
+}
+
 // ── the price ceiling reaches the hotel sites as a ceiling ──────────────
 // Booking took "nflt=price=USD-0-150-1" as a filter and still accepted the
 // link, so nothing looked broken - but it read 1500 as a FLOOR, and a search
