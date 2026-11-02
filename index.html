@@ -1635,10 +1635,12 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
         </select>
       </div>
+      <div id="flight-offers" style="display:none;"></div>
       <!-- מספר הנוסעים נקבע בשורה העליונה של המודאל (משותף לכל הלשוניות) -->
       <button onclick="searchFlight()" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;margin-bottom:8px;">
         🔍 חפש טיסות
       </button>
+      <div id="fl-snapshot" style="display:none;margin-top:10px;"></div>
       <div id="flight-results" style="display:none;margin-top:10px;"></div>
     </div>
 
@@ -4138,6 +4140,7 @@ function switchTripTab(tab) {
   });
   // init flatpickr לשדות הנפרדים אחרי שהם גלויים
   if (tab === 'car' || tab === 'hotel') setTimeout(initFlatpickr, 50);
+  if (tab === 'flight') paintFlightOffers();
 }
 
 var _skipResultScroll = false;   // החיפוש החופשי מדליק אותו לפעם אחת
@@ -4651,6 +4654,16 @@ function searchFlight() {
   res.innerHTML = '<div style="background:#f0f7ff;border:1.5px solid #bcd;border-radius:11px;padding:12px 14px;">'
     + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:8px;">✈️ טיסות — ברירת מחדל: מילאנו (MXP)</div>'
     + makeResultLinks(links) + '</div>';
+  // The snapshot answers instantly from a file; the links below it are the
+  // live sites. Painted after the links so a slow first load of the file
+  // never holds them up.
+  loadFlights().then(function () {
+    var box = document.getElementById('fl-snapshot');
+    if (!box) return;
+    var html = flightForDatesHtml(fCode, dr.ci, dr.co, pax);
+    box.innerHTML = html;
+    box.style.display = html ? 'block' : 'none';
+  });
 }
 
 function searchCar() {
@@ -4686,7 +4699,8 @@ function searchCar() {
 
 // Filter tokens read off Booking's and Airbnb's own filter sidebars rather
 // than guessed: ht_id=201 is Apartments, roomfacility=999 is Kitchen, and the
-// price band is price=EUR-min-max-1. Airbnb wants amenities[]=8 for a kitchen
+// price band is a parameter of its own, price=min-max-CUR (see _bookingUrl,
+// which had it wrong). Airbnb wants amenities[]=8 for a kitchen
 // and room_types[]=Entire home/apt for a whole place. Both are pinned to EUR
 // so the two result sets are in the same currency.
 var CUR_SIGN = {EUR: '\u20ac', ILS: '\u20aa', USD: '$', CHF: 'CHF\u00a0'};
@@ -10489,6 +10503,181 @@ function _wireSourceChips() {
   });
 }
 
+// ── the daily flight snapshot ─────────────────────────────────────────
+// data/flights.json is written once a day by fetch-flights.mjs. Nothing
+// here calls a flight API: a live search costs about nine seconds and is
+// metered per call, so a reader who picks dates is answered out of a file
+// that is already in memory. See the header of fetch-flights.mjs.
+var _FLIGHTS = null, _flTried = false;
+
+async function loadFlights() {
+  if (_flTried) return _FLIGHTS;
+  _flTried = true;
+  try {
+    var res = await fetch('data/flights.json?v=' + Math.floor(Date.now() / 3.6e6));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var j = await res.json();
+    if (!j || !j.cal) throw new Error('no calendar in the file');
+    _FLIGHTS = j;
+    console.log('flights snapshot loaded, generated ' + j.generated);
+  } catch (e) {
+    console.warn('flights snapshot unavailable:', e.message);
+    _FLIGHTS = null;
+  }
+  return _FLIGHTS;
+}
+
+// Nights between two ISO dates. Both are parsed as UTC midnight so the
+// subtraction cannot be thrown off by a daylight-saving boundary falling
+// inside the trip.
+function _flNights(ci, co) {
+  var a = Date.parse(ci + 'T00:00:00Z'), b = Date.parse(co + 'T00:00:00Z');
+  if (!isFinite(a) || !isFinite(b)) return 0;
+  return Math.round((b - a) / 86400000);
+}
+
+function _flLookup(dest, nights, date) {
+  var byDest = _FLIGHTS && _FLIGHTS.cal && _FLIGHTS.cal[dest];
+  var days = byDest && byDest[String(nights)];
+  return (days && days[date] != null) ? days[date] : null;
+}
+
+// The whole month is already in the file, so a cheaper nearby departure
+// costs nothing to find. Only offered when the saving is real money.
+function _flCheaperNearby(dest, nights, date, price) {
+  var days = _FLIGHTS && _FLIGHTS.cal[dest] && _FLIGHTS.cal[dest][String(nights)];
+  if (!days) return null;
+  var base = Date.parse(date + 'T00:00:00Z'), best = null;
+  for (var d in days) {
+    if (d === date) continue;
+    var gap = Math.abs(Date.parse(d + 'T00:00:00Z') - base) / 86400000;
+    if (gap > 6) continue;
+    if (days[d] < price * 0.9 && (!best || days[d] < best.price)) {
+      best = { date: d, price: days[d] };
+    }
+  }
+  return best;
+}
+
+function _flDay(iso) {
+  var p = iso.split('-');
+  return (+p[2]) + '.' + (+p[1]);
+}
+function _flAge(gen) {
+  var h = (Date.now() - Date.parse(gen)) / 3.6e6;
+  if (!isFinite(h)) return '';
+  if (h < 24) return 'עודכן היום';
+  var d = Math.floor(h / 24);
+  return d === 1 ? 'עודכן אתמול' : 'עודכן לפני ' + d + ' ימים';
+}
+
+// The price the snapshot holds, for the dates the reader actually chose.
+function flightForDatesHtml(dest, ci, co, pax) {
+  if (!_FLIGHTS) return '';
+  var n = _flNights(ci, co);
+  var covered = (_FLIGHTS.nights || []).map(Number);
+  var price = _flLookup(dest, n, ci);
+
+  if (price == null) {
+    // Saying nothing would read as "no flights". Saying which trip lengths
+    // the snapshot covers is the honest version, and it is short.
+    var why = covered.indexOf(n) < 0
+      ? 'המחירון היומי מכסה טיולים של ' + covered.join('–') + ' לילות, והטיול הזה הוא ' + n
+      : 'אין מחיר שמור לתאריך הזה';
+    return '<div style="font-size:0.74rem;color:#8a97a6;margin-bottom:8px;">' +
+           esc(why) + ' · המחירים למטה חיים באתרים עצמם</div>';
+  }
+
+  var cheaper = _flCheaperNearby(dest, n, ci, price);
+  var name = (_FLIGHTS.dests[dest] && _FLIGHTS.dests[dest].he) || dest;
+  var paxNote = (parseInt(pax, 10) === 2) ? 'לשני נוסעים' :
+                'לשני נוסעים — בחרת ' + pax;
+
+  return '<div style="background:linear-gradient(135deg,#0f2a4a,#1c4a7d);color:#fff;' +
+    'border-radius:11px;padding:12px 14px;margin-bottom:10px;">' +
+    '<div style="font-size:0.72rem;opacity:.75;margin-bottom:3px;">' +
+      'הלוך–חזור לתל אביב · ' + esc(name) + ' · ' + n + ' לילות</div>' +
+    '<div style="font-size:1.45rem;font-weight:800;line-height:1.1;">' +
+      '<bdi>' + price + ' $</bdi></div>' +
+    '<div style="font-size:0.7rem;opacity:.72;margin-top:3px;">' + esc(paxNote) +
+      ' · ' + esc(_flAge(_FLIGHTS.generated)) + '</div>' +
+    (cheaper ? '<div style="margin-top:8px;font-size:0.76rem;background:rgba(255,255,255,.14);' +
+       'border-radius:7px;padding:6px 9px;">💡 ביציאה ב-' + _flDay(cheaper.date) +
+       ' המחיר הוא <b><bdi>' + cheaper.price + ' $</bdi></b></div>' : '') +
+    '</div>';
+}
+
+// The three headline offers, shown before any dates are chosen. These are
+// the only figures that carry an airline name, because they are the only
+// ones that came from a real pricing call.
+var _FL_KIND = {
+  cheapest: { t: 'הזולה בעונה',      i: '💰' },
+  best:     { t: 'ישירה ומשתלמת',    i: '⚡' },
+  israeli:  { t: 'בחברה ישראלית',    i: '🇮🇱' }
+};
+function flightOffersHtml() {
+  if (!_FLIGHTS || !Array.isArray(_FLIGHTS.offers) || !_FLIGHTS.offers.length) return '';
+  var rows = _FLIGHTS.offers.map(function (o) {
+    var k = _FL_KIND[o.kind] || { t: o.kind, i: '✈️' };
+    var name = (_FLIGHTS.dests[o.dest] && _FLIGHTS.dests[o.dest].he) || o.dest;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;' +
+      'border-top:1px solid #e3ebf4;">' +
+      '<span style="font-size:1.1rem;flex:none;">' + k.i + '</span>' +
+      '<span style="flex:1;min-width:0;">' +
+        '<b style="font-size:0.8rem;color:#16314f;">' + esc(k.t) + '</b>' +
+        '<small style="display:block;font-size:0.71rem;color:#7b8a99;">' +
+          esc(o.carrier || 'ללא פירוט חברה') + ' · ' + esc(name) + ' · ' +
+          '<bdi>' + _flDay(o.date) + '–' + _flDay(o.ret) + '</bdi>' +
+          (o.direct ? ' · ישירה' : '') + '</small></span>' +
+      '<b style="flex:none;font-size:0.92rem;color:#0f2a4a;"><bdi>' + o.price +
+        ' $</bdi></b></div>';
+  }).join('');
+
+  // The Israeli-carrier line is here because of reliability, not kashrut:
+  // an airline that keeps flying when others cancel is worth money to
+  // anyone holding a lift pass already paid for. Written that way.
+  var note = _FLIGHTS.offers.some(function (o) { return o.kind === 'israeli'; })
+    ? '<div style="font-size:0.7rem;color:#7b8a99;margin-top:7px;line-height:1.5;">' +
+      'החברות הישראליות ממשיכות לטוס גם בתקופות מתוחות, אלא אם השמיים נסגרים בהוראת הממשלה.</div>'
+    : '';
+
+  return '<div style="background:#fff;border:1.5px solid #dfe8f3;border-radius:11px;' +
+    'padding:11px 13px;margin-bottom:12px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">' +
+      '<b style="font-size:0.78rem;color:#1a3a6c;">✈️ מה שנמצא העונה</b>' +
+      '<small style="font-size:0.66rem;color:#9aa5b1;">' + esc(_flAge(_FLIGHTS.generated)) +
+      ' · לשני נוסעים</small></div>' + rows + note + '</div>';
+}
+
+// A price on the home card, so the cheapest fare is visible without
+// opening anything. Deliberately NOT a popup on load: a modal in front of
+// a first-time visitor is the surest way to lose them, and the number is
+// worth more as an invitation than as an interruption.
+async function paintTravelTeaser() {
+  await loadFlights();
+  var card = document.getElementById('svc-travel');
+  if (!card || !_FLIGHTS || !Array.isArray(_FLIGHTS.offers)) return;
+  var cheap = _FLIGHTS.offers.filter(function (o) { return o.kind === 'cheapest'; })[0];
+  if (!cheap) return;
+  var host = card.querySelector('.svc-txt small');
+  if (!host || host.querySelector('.fl-teaser')) return;
+  var b = document.createElement('span');
+  b.className = 'fl-teaser';
+  b.innerHTML = ' · <b style="color:#0f6b3f;">טיסה מ-<bdi>' + cheap.price + ' $</bdi></b>';
+  host.appendChild(b);
+}
+
+// Painted when the flight tab is opened, so the offers are there before
+// anybody searches anything.
+async function paintFlightOffers() {
+  var host = document.getElementById('flight-offers');
+  if (!host) return;
+  await loadFlights();
+  var html = flightOffersHtml();
+  host.innerHTML = html;
+  host.style.display = html ? 'block' : 'none';
+}
+
 // ── טעינת texts.json ──
 async function loadTexts() {
   try {
@@ -10506,6 +10695,7 @@ async function loadTexts() {
     _wireSourceChips();
     renderCommunity();
     applyModalIcons();
+    paintTravelTeaser();
   } catch(e) {
     console.warn('⚠️ texts.json לא נמצא — משתמש בערכי ברירת מחדל:', e.message);
   }
