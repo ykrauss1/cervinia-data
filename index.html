@@ -10610,10 +10610,13 @@ function flightForDatesHtml(dest, ci, co, pax) {
 // The three headline offers, shown before any dates are chosen. These are
 // the only figures that carry an airline name, because they are the only
 // ones that came from a real pricing call.
+// One offer per kind of trip, because "the cheapest flight of the winter"
+// says nothing to somebody who can only get away from Thursday to Sunday.
 var _FL_KIND = {
-  cheapest: { t: 'הזולה בעונה',      i: '💰' },
-  best:     { t: 'ישירה ומשתלמת',    i: '⚡' },
-  israeli:  { t: 'בחברה ישראלית',    i: '🇮🇱' }
+  weekend: { t: 'סוף שבוע',        i: '📅' },
+  midweek: { t: 'אמצע שבוע',       i: '🎿' },
+  week:    { t: 'שבוע מלא',        i: '🗓️' },
+  israeli: { t: 'בחברה ישראלית',   i: '🇮🇱' }
 };
 function flightOffersHtml() {
   if (!_FLIGHTS || !Array.isArray(_FLIGHTS.offers) || !_FLIGHTS.offers.length) return '';
@@ -10628,6 +10631,7 @@ function flightOffersHtml() {
         '<small style="display:block;font-size:0.71rem;color:#7b8a99;">' +
           esc(o.carrier || 'ללא פירוט חברה') + ' · ' + esc(name) + ' · ' +
           '<bdi>' + _flDay(o.date) + '–' + _flDay(o.ret) + '</bdi>' +
+          (o.nights ? ' · ' + o.nights + ' לילות' : '') +
           (o.direct ? ' · ישירה' : '') + '</small></span>' +
       '<b style="flex:none;font-size:0.92rem;color:#0f2a4a;"><bdi>' + o.price +
         ' $</bdi></b></div>';
@@ -10657,8 +10661,12 @@ async function paintTravelTeaser() {
   await loadFlights();
   var card = document.getElementById('svc-travel');
   if (!card || !_FLIGHTS || !Array.isArray(_FLIGHTS.offers)) return;
-  var cheap = _FLIGHTS.offers.filter(function (o) { return o.kind === 'cheapest'; })[0];
-  if (!cheap) return;
+  // The offers are per band now, so the lowest of them is what belongs on
+  // the card - whichever kind of trip happens to be carrying it.
+  var cheap = _FLIGHTS.offers.slice().sort(function (a, b) {
+    return (a.price || 1e9) - (b.price || 1e9);
+  })[0];
+  if (!cheap || cheap.price == null) return;
   var host = card.querySelector('.svc-txt small');
   if (!host || host.querySelector('.fl-teaser')) return;
   var b = document.createElement('span');
