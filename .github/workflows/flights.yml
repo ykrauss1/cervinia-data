@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     # The grid is sixty calendar calls plus four pricing calls. Twenty
     # minutes is several times what it should need and still bounded.
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -47,12 +47,17 @@ jobs:
           git config user.name  "cervinia-bot"
           git config user.email "cervinia-bot@users.noreply.github.com"
 
-          if git diff --quiet -- data/flights.json; then
+          # `git add` BEFORE asking whether anything changed. git diff looks
+          # only at tracked files, so on the first run - when the file is
+          # brand new and untracked - it answered "nothing changed", and the
+          # run wrote a perfectly good snapshot and then threw it away.
+          git add data/flights.json
+
+          if git diff --cached --quiet -- data/flights.json; then
             echo "prices unchanged — nothing to commit"
             exit 0
           fi
 
-          git add data/flights.json
           git commit -m "flights: daily price snapshot"
 
           # Rebase rather than merge, and autostash so a run that leaves
