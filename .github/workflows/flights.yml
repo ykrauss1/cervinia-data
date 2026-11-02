@@ -27,8 +27,9 @@ concurrency:
 jobs:
   flights:
     runs-on: ubuntu-latest
-    # The grid is sixty calendar calls plus four pricing calls. Twenty
-    # minutes is several times what it should need and still bounded.
+    # Twenty-five calendar calls plus three pricing calls - the live runs
+    # came in at 96 and 137 seconds. Thirty minutes leaves room for the
+    # retries without ever hanging the runner all day.
     timeout-minutes: 30
 
     steps:
@@ -36,7 +37,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Fetch the price calendar and the headline offers
         run: node fetch-flights.mjs
