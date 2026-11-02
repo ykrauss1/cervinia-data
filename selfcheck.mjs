@@ -2093,6 +2093,17 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   // and the cheapest month of all is marked, so the strip says something
   if (!/#0f6b3f/.test(r.months)) fail(T,
     'no month is marked as the cheapest, so the strip is just numbers'); else ok();
+  // A "from" price equal to the typical one is a discount tag with nothing
+  // behind it. February in the fixture has a single price, so its cell must
+  // not claim a range; January's 380 against a typical 450 must show one.
+  if (!/מ-<bdi>380/.test(r.months)) fail(T,
+    'a month with a real spread does not show what it starts at'); else ok();
+  if (/מ-<bdi>310/.test(r.months)) fail(T,
+    'a month whose cheapest day IS its typical day still claims a range'); else ok();
+  // and it must not make a claim in that gap instead. "No variation" was
+  // false: a month can run 126 to 254 and still have its middle at 131.
+  if (/ללא תנודה|אין תנודה|קבוע/.test(r.months)) fail(T,
+    'the strip makes a claim about variation it cannot support'); else ok();
   if (r.bareMonths !== '') fail(T,
     'with no snapshot the month strip still paints'); else ok();
 
