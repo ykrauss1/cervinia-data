@@ -2033,8 +2033,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 
   if (!/380|520/.test(r.hit)) fail(T, 'a stored date showed no price'); else ok();
   if (!/5 לילות/.test(r.hit)) fail(T, 'the trip length is not stated'); else ok();
-  if (!/לשני נוסעים/.test(r.hit)) fail(T,
-    'the price does not say how many people it covers'); else ok();
+  // The calendar answers for ONE traveller - the call carries no passenger
+  // count at all - so a label saying "for two" was simply false. The first
+  // snapshot proved it: 126 in the calendar, 252 from the pricing call for
+  // the same flight on the same date, exactly 2.00x.
+  if (!/לנוסע אחד/.test(r.hit)) fail(T,
+    'the price does not say it is per traveller'); else ok();
+  if (/לשני נוסעים/.test(r.hit) || /לשני נוסעים/.test(r.offers)) fail(T,
+    'the page still claims the per-person figure covers two people'); else ok();
   if (!/עודכן היום/.test(r.hit)) fail(T, 'the price carries no age'); else ok();
 
   if (!r.hasTip) fail(T, 'a nearby day 27% cheaper was not offered'); else ok();
@@ -2049,8 +2055,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `an uncovered trip length must name the lengths covered - got "${r.uncovered.slice(0, 140)}"`); else ok();
   if (!r.gap || !/אין מחיר שמור/.test(r.gap)) fail(T,
     'a date with no stored price says nothing at all'); else ok();
-  if (!/בחרת 4/.test(r.four)) fail(T,
-    'a party of four is shown a two-person price with no word about it'); else ok();
+  if (!/בחרת 4 נוסעים/.test(r.four)) fail(T,
+    'a party of four is not told the figure is for one'); else ok();
+  // and no invented total: four times the cheapest seat is not a fare
+  if (/1512|1680/.test(r.four)) fail(T,
+    'the page multiplied the fare out into a total nobody can check'); else ok();
 
   if (!/Wizz Air/.test(r.offers)) fail(T, 'the offers carry no airline'); else ok();
   if (!/ממשיכות לטוס/.test(r.offers)) fail(T,
