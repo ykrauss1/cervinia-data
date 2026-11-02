@@ -1621,6 +1621,73 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `the pointer stayed "${after.cursor}" after the button came up`); else ok();
 }
 
+// ── a group appears the day it is ready, and not before ──────────────────
+// The links were two hardcoded blocks of markup in two panels, so adding a
+// second group meant editing the page twice. They come from texts.json now,
+// and the rule that makes that safe is: an entry with no url renders
+// nothing. A group announced before it exists is worse than no group - a
+// link to four people and no messages says the site is abandoned.
+{
+  const r = await page.evaluate((texts) => {
+    window._texts = JSON.parse(JSON.stringify(texts));
+    const read = () => {
+      renderCommunity();
+      const k = document.getElementById('kosher-community');
+      const w = document.getElementById('why-community');
+      return {
+        kosherLinks: k ? k.querySelectorAll('a').length : -1,
+        whyLinks:    w ? w.querySelectorAll('a').length : -1,
+        kosherShown: k ? k.style.display : null,
+        hrefs: [...(k ? k.querySelectorAll('a') : [])].map(a => a.getAttribute('href'))
+      };
+    };
+    const out = { asShipped: read() };
+
+    // fill the whatsapp url in: both panels must pick it up, with no code change
+    window._texts.community.whatsapp.url = 'https://chat.whatsapp.com/TESTINVITE';
+    out.withGroup = read();
+
+    // empty every url: both panels must go quiet rather than draw husks
+    window._texts.community.whatsapp.url = '';
+    window._texts.community.facebook.url = '   ';
+    out.withNone = read();
+
+    // and an injected url must not become markup
+    window._texts.community.facebook.url = '" onmouseover="alert(1)';
+    window._texts.community.facebook.title = '<img src=x onerror=alert(1)>';
+    renderCommunity();
+    const k2 = document.getElementById('kosher-community');
+    out.injected = !!k2.querySelector('img');
+    // the attribute itself, not the word: an escaped url still CONTAINS the
+    // text "onmouseover", inertly, and testing the html string for it fails
+    // a correct implementation.
+    out.rawAttr = !!k2.querySelector('[onmouseover]');
+
+    // Put the real content back. This check runs before others that look for
+    // the Facebook link, and leaving a mangled _texts behind made two of them
+    // fail for a reason that had nothing to do with what they test.
+    window._texts = JSON.parse(JSON.stringify(texts));
+    renderCommunity();
+    return out;
+  }, JSON.parse(fs.readFileSync(TEXTS, 'utf8')));
+
+  const T = 'a group appears the day it is ready, and not before';
+  if (r.asShipped.kosherLinks !== 1) fail(T,
+    `as shipped the kosher panel drew ${r.asShipped.kosherLinks} links - only Facebook has a url`); else ok();
+  if (r.asShipped.whyLinks !== 1) fail(T,
+    `as shipped the why panel drew ${r.asShipped.whyLinks} links`); else ok();
+  if (r.withGroup.kosherLinks !== 2 || r.withGroup.whyLinks !== 2) fail(T,
+    `filling in one url gave ${r.withGroup.kosherLinks} and ${r.withGroup.whyLinks} links`); else ok();
+  if (!r.withGroup.hrefs.some(h => /chat\.whatsapp\.com/.test(h || ''))) fail(T,
+    'the new group did not reach the panel'); else ok();
+  if (r.withNone.kosherLinks !== 0 || r.withNone.whyLinks !== 0) fail(T,
+    'an empty url still drew a link'); else ok();
+  if (r.withNone.kosherShown !== 'none') fail(T,
+    'with nothing to show the block still takes up space'); else ok();
+  if (r.injected || r.rawAttr) fail(T,
+    'a url or title from the content file reached the DOM unescaped'); else ok();
+}
+
 // ── the community links have a standing door ─────────────────────────────
 // The Israeli Facebook group, the video and the Hebrew write-ups lived in a
 // panel reachable from a banner that shows once and never again. A reader
@@ -1891,6 +1958,111 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `clearing the last topic said "${last.shown}" instead of pointing at unsubscribe`); else ok();
   if (last.left.length !== 1) fail(T,
     'clearing the last topic emptied the list anyway'); else ok();
+}
+
+// ── a panel wears the picture of the card that opened it ────────────────
+// The cards became drawings and their panel headings stayed emoji
+// characters, so tapping a pair of skis landed the reader on a page headed
+// by a skier - the same contradiction the drawings were meant to end, moved
+// one screen along.
+//
+// What the expectation is read FROM is the whole point. MODAL_ICONS is what
+// the code applies, so asking MODAL_ICONS what the heading should show
+// compares the map to itself and passes whatever it contains. The honest
+// source is the card the reader actually tapped: its own <use href> is set
+// in the markup, by hand, nowhere near the map.
+{
+  const r = await page.evaluate(async (t) => {
+    window._texts = t;
+    if (typeof _applyTexts === 'function') _applyTexts(t);
+
+    // card -> the panel it opens, straight from the home page
+    const cards = [...document.querySelectorAll('.services-grid .service-btn')]
+      .map(el => {
+        const m  = (el.getAttribute('onclick') || '').match(/openM\(\s*'([^']+)'/);
+        const u  = el.querySelector('.svc-ico use');
+        return m && u
+          ? { id: m[1], want: (u.getAttribute('href') || '').replace('#', '') }
+          : null;
+      })
+      .filter(Boolean);
+
+    const out = { panels: [], cards: cards.length, doubled: false };
+    for (const c of cards) {
+      openM(c.id);
+      await new Promise(res => setTimeout(res, 90));
+      const md  = document.getElementById(c.id);
+      const h   = md && md.querySelector('h1, h2, h3');
+      const ico = h && h.querySelector('.ttl-ico use');
+      out.panels.push({
+        id: c.id,
+        want: c.want,
+        sym: ico ? (ico.getAttribute('href') || '').replace('#', '') : null,
+        leftover: h ? /[☀-➿]|[\uD83C-\uDBFF][\uDC00-\uDFFF]/.test(h.textContent) : true,
+        words: h ? h.textContent.replace(/\s+/g, ' ').trim().length : 0
+      });
+      closeM(c.id);
+      await new Promise(res => setTimeout(res, 40));
+    }
+    // the pass runs on every open and after every content load, so running
+    // it again must change nothing
+    applyModalIcons(); applyModalIcons();
+    out.doubled = [...document.querySelectorAll('h1, h2, h3')]
+      .some(h => h.querySelectorAll('.ttl-ico').length > 1);
+    return out;
+  }, JSON.parse(fs.readFileSync(TEXTS, 'utf8')));
+
+  const T = 'a panel wears the picture of the card that opened it';
+  const missing = r.panels.filter(p => !p.sym);
+  const wrong   = r.panels.filter(p => p.sym && p.sym !== p.want);
+  const left    = r.panels.filter(p => p.leftover);
+  const empty   = r.panels.filter(p => p.words < 3);
+
+  if (r.cards < 10) fail(T,
+    `only ${r.cards} cards on the home page carry both a panel and a drawing`); else ok();
+  if (missing.length) fail(T,
+    `no drawing in: ${missing.map(p => p.id).join(', ')}`); else ok();
+  if (wrong.length) fail(T,
+    wrong.map(p => `${p.id} is headed by ${p.sym}, but its card shows ${p.want}`).join(' ; ')); else ok();
+  if (left.length) fail(T,
+    `an emoji survived beside the drawing in: ${left.map(p => p.id).join(', ')}`); else ok();
+  if (empty.length) fail(T,
+    `the heading text was eaten in: ${empty.map(p => p.id).join(', ')}`); else ok();
+  if (r.doubled) fail(T, 'running the pass twice stacked two drawings'); else ok();
+}
+
+// ── the search box is not a login field ─────────────────────────────────
+// Chrome kept offering a saved credential over it - not autocomplete and
+// not form restoration, but the PASSWORD MANAGER, which is why type=search,
+// a name of its own and autocomplete=off all failed: those are hints. It
+// offers nothing on a readonly field, and the attribute comes off the
+// moment the reader touches it.
+{
+  const r = await page.evaluate(() => {
+    const el = document.getElementById('global-search-input');
+    if (!el) return { missing: true };
+    const before = el.hasAttribute('readonly');
+    el.dispatchEvent(new Event('focus'));
+    const afterFocus = el.hasAttribute('readonly');
+    el.dispatchEvent(new Event('blur'));
+    const afterBlur = el.hasAttribute('readonly');
+    return { before, afterFocus, afterBlur,
+             type: el.getAttribute('type'),
+             ignores: !!el.getAttribute('data-lpignore') && el.hasAttribute('data-1p-ignore') };
+  });
+
+  const T = 'the search box is not a login field';
+  if (r.missing) { fail(T, 'there is no search field'); }
+  else {
+    if (!r.before) fail(T,
+      'the field is writable before it is touched, so the password manager can offer on it'); else ok();
+    if (r.afterFocus) fail(T,
+      'the field stayed readonly after focus - nobody can type in it'); else ok();
+    if (!r.afterBlur) fail(T,
+      'the guard is not restored on blur, so it protects only the first visit'); else ok();
+    if (r.type !== 'search') fail(T, `type is "${r.type}"`); else ok();
+    if (!r.ignores) fail(T, 'the password-manager opt-outs are missing'); else ok();
+  }
 }
 
 // ── every card's picture is drawn, not typed ─────────────────────────────
