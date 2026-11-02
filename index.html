@@ -10590,8 +10590,12 @@ function flightForDatesHtml(dest, ci, co, pax) {
 
   var cheaper = _flCheaperNearby(dest, n, ci, price);
   var name = (_FLIGHTS.dests[dest] && _FLIGHTS.dests[dest].he) || dest;
-  var paxNote = (parseInt(pax, 10) === 2) ? 'לשני נוסעים' :
-                'לשני נוסעים — בחרת ' + pax;
+  // Per traveller, because that is what the daily job asks the provider for.
+  // The figure is NOT multiplied out here: the cheapest seat on a flight is
+  // not a promise about the second one, and inventing a total would be a
+  // number nobody could check.
+  var n2 = parseInt(pax, 10) || 1;
+  var paxNote = 'המחיר לנוסע אחד' + (n2 > 1 ? ' · בחרת ' + n2 + ' נוסעים' : '');
 
   return '<div style="background:linear-gradient(135deg,#0f2a4a,#1c4a7d);color:#fff;' +
     'border-radius:11px;padding:12px 14px;margin-bottom:10px;">' +
@@ -10650,7 +10654,7 @@ function flightOffersHtml() {
     '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">' +
       '<b style="font-size:0.78rem;color:#1a3a6c;">✈️ מה שנמצא העונה</b>' +
       '<small style="font-size:0.66rem;color:#9aa5b1;">' + esc(_flAge(_FLIGHTS.generated)) +
-      ' · לשני נוסעים</small></div>' + rows + note + '</div>';
+      ' · לנוסע אחד</small></div>' + rows + note + '</div>';
 }
 
 // A price on the home card, so the cheapest fare is visible without
