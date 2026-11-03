@@ -2259,10 +2259,20 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.skiBoot = /🎿/.test(html);
 
     if (host && host.querySelector('[data-fl-offer]')) {
+      // clear the engine links first, so "did pressing this draw them?" has
+      // a meaningful answer
+      ['flight-results', 'all-results'].forEach(id => {
+        const e = document.getElementById(id);
+        if (e) { e.innerHTML = ''; e.style.display = 'none'; }
+      });
       host.querySelector('[data-fl-offer]').click();
-      await new Promise(r2 => setTimeout(r2, 200));
+      await new Promise(r2 => setTimeout(r2, 400));
       const dt = document.getElementById('trip-dates');
       out.btnCi = dt ? dt.getAttribute('data-ci') : '';
+      // the dates must be ON SCREEN, not only in an attribute
+      out.btnShown = dt ? (dt.value || '') : '';
+      out.btnNights = (document.getElementById('trip-summary-nights') || {}).textContent || '';
+      out.btnDrewLinks = results();
     }
 
     // saved searches
@@ -2316,6 +2326,22 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the heading does not say the offers span the whole season'); else ok();
   if (r.btnCi !== '2027-01-12') fail(T,
     `the offer button filled "${r.btnCi}" instead of its own date`); else ok();
+  // A results panel with no dates anywhere on it is how somebody ends up
+  // looking at an answer without knowing the question.
+  if (!r.btnShown) fail(T,
+    'pressing an offer left the date field blank - the reader sees results ' +
+    'with no dates on screen'); else ok();
+  // "26-29 בדצמבר 26" reads as three dates: the trailing two-digit year
+  // looks exactly like another day number.
+  if (/\sב[א-ת]+ \d\d$/.test(r.btnShown)) fail(T,
+    `the date field reads "${r.btnShown}" - that trailing year looks like a day`); else ok();
+  if (!/20\d\d/.test(r.btnShown)) fail(T,
+    `the date field shows no full year: "${r.btnShown}"`); else ok();
+  if (!/לילות|לילה/.test(r.btnNights)) fail(T,
+    `the nights strip says "${r.btnNights}"`); else ok();
+  if (r.btnDrewLinks !== 0) fail(T,
+    'pressing an offer drew the engine links as well - the same thing that ' +
+    'made "חפש" look pointless'); else ok();
 
   if (r.savedCount !== 1) fail(T, 'the search was not saved'); else ok();
   if (r.savedTwice !== 1) fail(T,
@@ -2324,6 +2350,40 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.restored !== 'מילאנו לשבוע' || r.restoredCi !== '2027-01-10') fail(T,
     `restoring gave "${r.restored}" / ${r.restoredCi}`); else ok();
   if (r.afterDelete !== 0) fail(T, 'a deleted search is still there'); else ok();
+}
+
+// ── the contact form is wired to the library it loads ─────────────────
+// The page loads @emailjs/browser@4 and called it in the v3 way - init
+// with a bare string instead of { publicKey } - so the library never had a
+// key and every send failed. The reader was then told to "ask on Facebook",
+// a channel that does not exist and never did.
+{
+  const r = await page.evaluate(() => {
+    const src = submitContactForm.toString();
+    const head = document.documentElement.innerHTML;
+    return {
+      sdkMajor: (head.match(/@emailjs\/browser@(\d+)/) || [])[1] || '',
+      initObj:  /emailjs\.init\(\s*\{\s*publicKey/.test(src),
+      initBare: /emailjs\.init\(\s*EMAILJS_PUBLIC_KEY\s*\)/.test(src.replace(/catch[\s\S]*?\}/g, '')),
+      sendKey:  /publicKey:\s*EMAILJS_PUBLIC_KEY\s*\}\s*\)/.test(src),
+      facebook: /פייסבוק/.test(src),
+      knowsSaved: /_saved/.test(src),
+      checksOk: /_saved\s*=\s*_r\.ok/.test(src) && /if\s*\(_saved\)/.test(src)
+    };
+  });
+
+  const T = 'the contact form is wired to the library it loads';
+  if (r.sdkMajor !== '4') fail(T,
+    `the page loads EmailJS v${r.sdkMajor || '?'} - this check assumes 4`); else ok();
+  if (!r.initObj) fail(T,
+    'init is not called with { publicKey }, which is the only form v4 accepts'); else ok();
+  if (!r.sendKey) fail(T,
+    'the key is not passed to send() either, so a refused init is fatal'); else ok();
+  if (r.facebook) fail(T,
+    'the failure message still sends people to a Facebook channel that does not exist'); else ok();
+  if (!r.knowsSaved || !r.checksOk) fail(T,
+    'the Supabase copy is written without checking whether it worked, so a ' +
+    'message can vanish while the reader is told it failed'); else ok();
 }
 
 // ── the icons say the right thing ─────────────────────────────────────
