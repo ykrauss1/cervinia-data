@@ -234,11 +234,22 @@ input[type=file] { display: none !important; }
 .fl-fold > summary::after { content:'\25BE'; margin-inline-start:auto; color:#7b9ac4; font-size:0.8rem; }
 .fl-fold[open] > summary::after { content:'\25B4'; }
 .fl-sub { font-weight:400; font-size:0.69rem; color:#7b8a99; }
+/* The fare on the card is a button inside a button, and nothing said so:
+   the whole card lifted whether you were aiming at the card or at the
+   price. Hovering the fare now holds the card still and lights the fare
+   instead, so the two targets look like two targets. */
+.fl-teaser { border-radius:5px; padding:1px 3px; transition:background 0.15s, color 0.15s; }
+.fl-teaser:hover, .fl-teaser:focus { background:#0f6b3f; outline:none; }
+.fl-teaser:hover b, .fl-teaser:focus b { color:#fff !important; }
+.service-btn:has(.fl-teaser:hover) { transform:none !important;
+  box-shadow:0 1px 3px rgba(16,40,70,0.06) !important; }
 /* A star that breathes rather than blinks: a hard blink is hard to read
    past, and is exactly what a reader with prefers-reduced-motion asked
    not to be shown. */
-.fl-star { color:#e8a317; font-size:0.95rem; animation: flstar 2.4s ease-in-out infinite; }
-@keyframes flstar { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.45; transform:scale(.82); } }
+.fl-star { color:#e8a317; font-size:1.05rem; display:inline-block;
+  animation: flstar 1.5s ease-in-out infinite; }
+@keyframes flstar { 0%,100% { opacity:1; transform:scale(1); color:#e8a317; }
+                    50%     { opacity:.55; transform:scale(1.3); color:#f5c842; } }
 @media (prefers-reduced-motion: reduce) { .fl-star { animation:none; } }
 /* inside a panel's own header there is no corner to pin to */
 .panel-share.inline { position: static; margin-inline-end: 8px; opacity: 0.85; }
@@ -1543,7 +1554,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
         <select id="airport-select" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
           <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
-          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ · Ryanair</option>
+          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
           <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
         </select>
       </div>
@@ -1671,7 +1682,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
         <select id="airport-select-flight" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
           <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
-          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ · Ryanair</option>
+          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
           <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
         </select>
       </div>
@@ -1690,7 +1701,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
         <select id="airport-select-car" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
           <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
-          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ · Ryanair</option>
+          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
           <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
         </select>
       </div>
@@ -5181,7 +5192,10 @@ function _isoDay(d) {
 function _tripRangeLabel(a, b) {
   var M = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט',
            'ספטמבר','אוקטובר','נובמבר','דצמבר'];
-  var yy = function (d) { return String(d.getFullYear()).slice(-2); };
+  // Four digits, not two. "26-29 בדצמבר 26" puts a year that looks exactly
+  // like a day number at the end of a range of day numbers, and the eye
+  // reads three dates where there are two.
+  var yy = function (d) { return String(d.getFullYear()); };
   if (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()) {
     return a.getDate() + '-' + b.getDate() + ' ב' + M[a.getMonth()] + ' ' + yy(b);
   }
@@ -5347,17 +5361,11 @@ function saveTripSearch() {
 function loadTripSearch(id) {
   var rec = _tripSaves().filter(function (x) { return String(x.id) === String(id); })[0];
   if (!rec) return;
-  var el = document.getElementById('trip-dates');
-  if (el && rec.ci && rec.co) {
-    el.setAttribute('data-ci', rec.ci); el.setAttribute('data-co', rec.co);
-    if (el._flatpickr) el._flatpickr.setDate([rec.ci, rec.co], true);
-    else el.value = rec.ci + ' — ' + rec.co;
-  }
+  if (rec.ci && rec.co) setTripDates(rec.ci, rec.co);
   var q = document.getElementById('trip-free');
   if (q) { q.value = rec.q || ''; if (typeof growTripFree === 'function') growTripFree(q); }
   var air = document.getElementById('airport-select');
   if (air && rec.air) air.value = rec.air;
-  if (rec.ci && rec.co && typeof seasonHint === 'function') { try { seasonHint(rec.ci, rec.co); } catch (e) {} }
   renderTripSaves('');
 }
 
@@ -9204,14 +9212,7 @@ function _seasonISO(d) {
 // data-ci/data-co route the deep links use, so it works whether or not
 // flatpickr has loaded.
 function applySeasonShift(ci, co) {
-  var el = document.getElementById('trip-dates');
-  if (el) {
-    el.setAttribute('data-ci', ci);
-    el.setAttribute('data-co', co);
-    if (el._flatpickr) el._flatpickr.setDate([ci, co], true);
-    else el.value = ci + ' — ' + co;
-  }
-  try { seasonHint(ci, co); } catch (e) {}
+  setTripDates(ci, co);
   // whichever tab the reader is on is the one to re-run
   var tab = ['all', 'flight', 'car', 'hotel'].filter(function (t) {
     var b = document.getElementById('ttab-' + t);
@@ -11197,22 +11198,54 @@ async function paintTravelTeaser() {
 // The dates go in through the same data-ci/data-co that the free-text
 // search uses, which getDateRange reads as its safety net, so this works
 // whether or not flatpickr has loaded from the CDN yet.
+// Put a pair of dates into the planner so that the reader SEES them. The
+// first version set the hidden attributes and left the field blank, which
+// is how somebody could arrive at a results panel with no dates anywhere
+// on screen and no idea what had been searched.
+function setTripDates(ci, co) {
+  var el = document.getElementById('trip-dates');
+  if (!el) return;
+  el.setAttribute('data-ci', ci);
+  el.setAttribute('data-co', co);
+  // setDate(..., true) fires flatpickr's onChange, which writes the Hebrew
+  // label into the field, shows the nights strip and runs seasonHint.
+  if (el._flatpickr) { el._flatpickr.setDate([ci, co], true); return; }
+  // No flatpickr yet (the CDN is slow, or blocked): do the same by hand.
+  var a = new Date(ci + 'T00:00:00'), b = new Date(co + 'T00:00:00');
+  el.value = (typeof _tripRangeLabel === 'function')
+    ? _tripRangeLabel(a, b) : (ci + ' — ' + co);
+  var n = Math.round((b - a) / 86400000);
+  var nn = document.getElementById('trip-summary-nights');
+  if (nn) nn.textContent = n + (n === 1 ? ' לילה' : ' לילות');
+  var meta = document.getElementById('trip-dates-meta');
+  if (meta) meta.style.display = 'flex';
+  try { seasonHint(a, b); } catch (e) {}
+}
+
+// Open the planner on an offer. It fills the dates and goes to the flight
+// tab - and then STOPS. It used to run the search as well, which put the
+// engine links on screen without anybody pressing חפש, the very thing that
+// made that button look pointless. One rule: the links appear when the
+// reader asks for them.
 function openFlightDeal(o) {
   if (!o || !o.date || !o.ret) return;
-  var el = document.getElementById('trip-dates');
-  if (el) {
-    el.setAttribute('data-ci', o.date);
-    el.setAttribute('data-co', o.ret);
-    if (el._flatpickr) el._flatpickr.setDate([o.date, o.ret], true);
-    else el.value = o.date + ' — ' + o.ret;
-  }
-  var sel = document.getElementById('airport-select-flight');
-  if (sel && o.dest) sel.value = o.dest;
   openM('hotelModal');
   setTimeout(function () {
     switchTripTab('flight');
-    if (typeof searchFlight === 'function') searchFlight();
-  }, 120);
+    setTripDates(o.date, o.ret);
+    var sel = document.getElementById('airport-select-flight');
+    if (sel && o.dest) sel.value = o.dest;
+    // the stored price for these dates, so the panel is not empty - but no
+    // engine links until the button is pressed
+    loadFlights().then(function () {
+      var box = document.getElementById('fl-snapshot');
+      if (!box) return;
+      var pax = (document.getElementById('fl-adults') || {}).textContent || '2';
+      var html = flightForDatesHtml(o.dest, o.date, o.ret, pax);
+      box.innerHTML = html;
+      box.style.display = html ? 'block' : 'none';
+    });
+  }, 140);
 }
 
 // Painted into EVERY panel that has a slot for it. The modal opens on the
@@ -11375,16 +11408,21 @@ async function submitContactForm() {
   const btn = document.querySelector('#contact-form button');
   if (btn) { btn.textContent = '⏳ שולח...'; btn.disabled = true; }
 
-  // Save to Supabase as backup
+  // Two channels, and until now neither said whether it had worked: the
+  // copy to Supabase swallowed every error, so a message could vanish
+  // entirely while the reader was told to try Facebook.
+  var _saved = false;
   if (SUPABASE_URL && SUPABASE_KEY) {
     try {
-      await fetch(SUPABASE_URL + '/rest/v1/contact_messages', {
+      var _r = await fetch(SUPABASE_URL + '/rest/v1/contact_messages', {
         method: 'POST',
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
                    'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
         body: JSON.stringify({ name, email, subject, message, created_at: new Date().toISOString() })
       });
-    } catch(e) { /* silently fail */ }
+      _saved = _r.ok;
+      if (!_r.ok) console.error('contact_messages insert failed:', _r.status);
+    } catch (e) { console.error('contact_messages insert threw:', e); }
   }
 
   // Send via EmailJS
@@ -11396,7 +11434,12 @@ async function submitContactForm() {
   }
 
   try {
-    emailjs.init(EMAILJS_PUBLIC_KEY);
+    // EmailJS v4 takes an options OBJECT: init({ publicKey }). The page
+    // loads @emailjs/browser@4 and this line was still the v3 form - a
+    // bare string - so the library never had a public key and every send
+    // failed. That is the whole bug.
+    try { emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); }
+    catch (e0) { try { emailjs.init(EMAILJS_PUBLIC_KEY); } catch (e1) {} }
     const templateParams = {
       name:       name,
       email:      email,
@@ -11408,7 +11451,11 @@ async function submitContactForm() {
       reply_to:   email
     };
     // Send notification to site owner
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+    // The key is passed again here, as v4's fourth options argument. Local
+    // options beat the global ones, so this works even if the init above
+    // was refused - and v3 simply ignores an extra argument.
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams,
+                       { publicKey: EMAILJS_PUBLIC_KEY });
     // Replace modal content with success screen
     var modalContent = document.querySelector('#contactModal .modal-content');
     if (modalContent) {
@@ -11423,7 +11470,16 @@ async function submitContactForm() {
     }
   } catch(e) {
     console.error('EmailJS error:', e);
-    showCfMsg('שגיאה בשליחה — נסה שוב או פנה דרך הפייסבוק', false);
+    // There is no Facebook enquiry channel, and there never was - sending a
+    // reader somewhere that does not exist is worse than saying nothing.
+    // And when the copy to Supabase DID go through, the message is not lost
+    // at all: only the mail notification failed, which is ours to chase.
+    if (_saved) {
+      showCfMsg('✅ ההודעה התקבלה ונשמרה. נחזור אליך בהקדם.', true);
+    } else {
+      showCfMsg('ההודעה לא נשלחה. נסו שוב בעוד רגע — ואם זה חוזר, ' +
+                'ההודעה לא נשמרה ושווה לנסות שוב מאוחר יותר.', false);
+    }
   }
 
   if (btn) { btn.textContent = '📤 שלח הודעה'; btn.disabled = false; }
