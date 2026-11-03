@@ -298,6 +298,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         .result-link { display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid #e5e5e5; border-radius:9px; margin-bottom:7px; text-decoration:none; color:inherit; background:white; transition:box-shadow 0.15s; }
         .result-link:hover { box-shadow:0 2px 10px rgba(0,0,0,0.1); }
         .result-link .rl-icon { font-size:1.4rem; flex-shrink:0; }
+        .result-link .rl-ico-img { width:1.45rem; height:1.45rem; display:block; }
         .result-link .rl-body { flex:1; }
         .result-link .rl-title { font-weight:bold; font-size:0.88rem; }
         .result-link .rl-desc { font-size:0.75rem; color:#888; margin-top:2px; }
@@ -1486,7 +1487,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         </div>
         <!-- Passengers counter -->
         <div style="text-align:center;">
-          <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">✈️ נוסעים</label>
+          <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">👥 נוסעים</label>
           <div style="display:flex;align-items:center;gap:8px;border:1.5px solid #ddd;border-radius:10px;padding:8px 12px;background:white;">
             <button class="c-btn" onclick="adjField('fl-adults',-1,1)" style="width:26px;height:26px;">-</button>
             <b id="fl-adults" style="font-size:1.1rem;min-width:20px;text-align:center;">2</b>
@@ -1630,9 +1631,17 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         </div>
       </div>
 
-      <button onclick="searchAll()" style="width:100%;padding:13px;background:var(--accent);color:var(--dark);border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;margin-top:4px;">
+      <div style="display:flex;gap:8px;align-items:stretch;">
+      <button onclick="searchAll()" id="trip-go" style="flex:1;padding:13px;background:var(--accent);color:var(--dark);border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;margin-top:4px;">
         🔍 חפש הכל
       </button>
+        <button type="button" onclick="saveTripSearch()" id="trip-save"
+          title="שמירת החיפוש הזה במכשיר" aria-label="שמירת החיפוש הזה במכשיר"
+          style="flex:none;padding:13px 15px;background:#eef4fb;color:#1a3a6c;
+          border:1.5px solid #cfe0f2;border-radius:10px;font-size:0.95rem;
+          font-weight:bold;cursor:pointer;font-family:inherit;">💾</button>
+      </div>
+      <div id="trip-saved" style="display:none;margin-top:8px;"></div>
       <!-- Results area -->
       <div class="fl-offers" style="display:none;margin-top:14px;"></div>
       <div id="all-snapshot" style="display:none;margin-top:10px;"></div>
@@ -3456,7 +3465,8 @@ function openM(id) {
     var pmsg = document.getElementById('pass-match-msg'); if (pmsg) pmsg.textContent = '';
     showAuthTab('login');
   }
-  if (id === 'hotelModal') { setTimeout(initFlatpickr, 80); switchTripTab('all'); paintFlightOffers(); }
+  if (id === 'hotelModal') { setTimeout(initFlatpickr, 80); switchTripTab('all');
+    paintFlightOffers(); if (typeof renderTripSaves === 'function') renderTripSaves(''); }
   if (id === 'profileModal') { setTimeout(populateProfileModal, 0); return; }
   if (id === 'forecastModal') { fetchWttrForecast(); }
   if (id === 'parkingModal') switchParkTab('parking');
@@ -4693,7 +4703,10 @@ async function applyTripText(){
   }
   out.innerHTML = (local ? '<span style="color:#ef6c00;">\u26a0 \u05ea\u05e8\u05d2\u05d5\u05dd \u05de\u05e7\u05d5\u05de\u05d9 (\u05de\u05d5\u05d2\u05d1\u05dc) \u00b7 </span>' : '')
     + '<span style="color:#2e7d32;">\u2713 \u05d4\u05d1\u05e0\u05ea\u05d9: '+got.join(' \u00b7 ')+'</span>';
-  if(r.ci && r.co && typeof searchAll==='function'){ _skipResultScroll = true; searchAll(); }
+  // "הבן" used to run the search itself, which is why the engine buttons
+  // were on screen before anybody pressed חפש - and why that button looked
+  // like it did nothing. Understanding the sentence and acting on it are two
+  // steps, and the reader decides when to take the second.
 }
 
 document.addEventListener('keydown',function(e){
@@ -4766,6 +4779,15 @@ function discoverCarsUrl(code) {
   return 'https://www.discovercars.com/italy-mainland/' + city + '/' + code.toLowerCase();
 }
 
+// A drawing where a row expects an emoji. The sprite is already on the
+// page, so this costs nothing and keeps the Kosher Fly row wearing the same
+// two candles as the kashrut card rather than a single wax one.
+function _svcIcon(sym) {
+  var vb = (sym === 'ico-camera') ? '0 0 48 48' : '0 0 128 128';
+  return '<svg class="rl-ico-img" viewBox="' + vb + '" aria-hidden="true">'
+       + '<use href="#' + sym + '"/></svg>';
+}
+
 function makeResultLinks(links) {
   return '<div style="margin-top:4px;">' + links.map(l =>
     '<a href="' + l.url + '" target="_blank" class="result-link">'
@@ -4813,7 +4835,7 @@ function searchFlight() {
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
   const gfWithDates = gFlightsUrl('TLV', fCode, dr.ci, dr.co, pax);
   const links = [
-    { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
+    { icon: _svcIcon('ico-candle'), title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
     { icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך' + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
     { icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
@@ -5008,7 +5030,7 @@ function searchAll() {
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
   const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
   let links = [
-    { icon: '🕯️', title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
+    { icon: _svcIcon('ico-candle'), title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
     { icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך', url: gfUrl },
     { icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
     { icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
@@ -5269,12 +5291,102 @@ function initFlatpickr() {
   }
 }
 
+// ── saved searches ────────────────────────────────────────────────────
+// A trip is planned over days, not in one sitting: somebody works out that
+// the second week of January is the quiet one, closes the tab, and comes
+// back on Sunday to start again from nothing. Saved on this device only -
+// there is no account behind it and nothing leaves the browser.
+var TRIP_SAVE_KEY = 'cl_saved_trips';
+
+function _tripSaves() {
+  try { return JSON.parse(localStorage.getItem(TRIP_SAVE_KEY) || '[]') || []; }
+  catch (e) { return []; }
+}
+function _tripSavesPut(list) {
+  try { localStorage.setItem(TRIP_SAVE_KEY, JSON.stringify(list.slice(0, 8))); }
+  catch (e) {}
+}
+
+function saveTripSearch() {
+  var dr = (typeof getDateRange === 'function') ? getDateRange() : null;
+  var q  = (document.getElementById('trip-free') || {}).value || '';
+  if (!dr && !q.trim()) { renderTripSaves('בחרו תאריכים או כתבו משפט, ואז שמרו'); return; }
+  var air = document.getElementById('airport-select');
+  var rec = {
+    id: Date.now(),
+    ci: dr ? dr.ci : '', co: dr ? dr.co : '',
+    q: q.trim().slice(0, 120),
+    pax: (document.getElementById('fl-adults') || {}).textContent || '2',
+    air: air ? air.value : 'MXP'
+  };
+  var list = _tripSaves();
+  // the same dates twice is one saved search, not two
+  list = list.filter(function (x) { return !(x.ci === rec.ci && x.co === rec.co && x.q === rec.q); });
+  list.unshift(rec);
+  _tripSavesPut(list);
+  renderTripSaves('נשמר');
+}
+
+function loadTripSearch(id) {
+  var rec = _tripSaves().filter(function (x) { return String(x.id) === String(id); })[0];
+  if (!rec) return;
+  var el = document.getElementById('trip-dates');
+  if (el && rec.ci && rec.co) {
+    el.setAttribute('data-ci', rec.ci); el.setAttribute('data-co', rec.co);
+    if (el._flatpickr) el._flatpickr.setDate([rec.ci, rec.co], true);
+    else el.value = rec.ci + ' — ' + rec.co;
+  }
+  var q = document.getElementById('trip-free');
+  if (q) { q.value = rec.q || ''; if (typeof growTripFree === 'function') growTripFree(q); }
+  var air = document.getElementById('airport-select');
+  if (air && rec.air) air.value = rec.air;
+  if (rec.ci && rec.co && typeof seasonHint === 'function') { try { seasonHint(rec.ci, rec.co); } catch (e) {} }
+  renderTripSaves('');
+}
+
+function deleteTripSearch(id) {
+  _tripSavesPut(_tripSaves().filter(function (x) { return String(x.id) !== String(id); }));
+  renderTripSaves('');
+}
+
+function renderTripSaves(msg) {
+  var box = document.getElementById('trip-saved');
+  if (!box) return;
+  var list = _tripSaves();
+  if (!list.length && !msg) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  var rows = list.map(function (r) {
+    var label = (r.ci && r.co) ? (_flDay(r.ci) + '–' + _flDay(r.co)) : '';
+    var txt = r.q || label || 'חיפוש שמור';
+    return '<div style="display:flex;align-items:center;gap:7px;padding:5px 0;' +
+      'border-top:1px solid #eef2f7;">' +
+      '<button type="button" onclick="loadTripSearch(\'' + r.id + '\')" ' +
+        'style="flex:1;min-width:0;text-align:right;background:none;border:none;' +
+        'padding:3px 0;cursor:pointer;font-family:inherit;font-size:0.78rem;' +
+        'color:#1a3a6c;">' + esc(txt) +
+        (label && r.q ? ' <span style="color:#9aa5b1;font-size:0.72rem;">· ' +
+           esc(label) + '</span>' : '') + '</button>' +
+      '<span role="button" tabindex="0" onclick="deleteTripSearch(\'' + r.id + '\')" ' +
+        'title="מחיקה" style="flex:none;cursor:pointer;color:#b0bac6;padding:2px 5px;">✕</span>' +
+      '</div>';
+  }).join('');
+  box.innerHTML = '<div style="background:#fff;border:1.5px solid #dfe8f3;border-radius:10px;' +
+    'padding:8px 11px;">' +
+    '<div style="font-size:0.74rem;font-weight:bold;color:#1a3a6c;">💾 חיפושים שמורים' +
+    (msg ? ' <span style="font-weight:400;color:#0f6b3f;">· ' + esc(msg) + '</span>' : '') +
+    '</div>' + rows + '</div>';
+  box.style.display = 'block';
+}
+
 function resetTripDates() {
   const el = document.getElementById('trip-dates');
   if (el && el._flatpickr) el._flatpickr.clear();
   if (el) el.value = '';
   const meta = document.getElementById('trip-dates-meta');
   if (meta) meta.style.display = 'none';
+  // The free-text box is part of the search, so a "clear" that leaves the
+  // sentence sitting there has not cleared the search.
+  const q = document.getElementById('trip-free');
+  if (q) { q.value = ''; q.style.height = ''; }
   ['all-results','flight-results','car-results','hotel-results'].forEach(id => {
     const r = document.getElementById(id);
     if (r) { r.style.display = 'none'; r.innerHTML = ''; }
@@ -8963,27 +9075,41 @@ function _seasonDaysHe(n) {
 // The same trip, moved. A move that clears the crowd entirely is worth
 // suggesting; one that only thins it is worth suggesting in weaker words; and
 // when a fortnight either way changes nothing, saying so is the honest answer.
-function _seasonBetterShift(from, to) {
+// The nearest improvement in EACH direction, not whichever turns up first.
+// Yossi's point: later in the winter usually means better snow, so a reader
+// shown only "go a week earlier" is being steered by the search order rather
+// than by anything about skiing. Both are offered and they choose.
+function _seasonShiftOne(from, to, sign) {
   var base = _seasonTally(from, to);
   if (!base) return null;
-  var clean = null, easier = null;
-  for (var n = 1; n <= 14 && !clean; n++) {
-    [n, -n].forEach(function (k) {
-      if (clean) return;
-      var a = _seasonAsDate(from), b = _seasonAsDate(to);
-      a.setDate(a.getDate() + k); b.setDate(b.getDate() + k);
-      var t = _seasonTally(a, b);
-      if (!t || t.outside) return;
-      var hit = { days: Math.abs(k), dir: k > 0 ? 'fwd' : 'back',
-                  from: a, to: b, was: base.busy, now: t.busy };
-      if (t.busy === 0) { clean = hit; return; }
-      if (!easier && t.busy <= base.busy - 2) easier = hit;
-    });
+  var easier = null;
+  for (var n = 1; n <= 14; n++) {
+    var k = sign * n;
+    var a = _seasonAsDate(from), b = _seasonAsDate(to);
+    a.setDate(a.getDate() + k); b.setDate(b.getDate() + k);
+    var t = _seasonTally(a, b);
+    if (!t || t.outside) continue;
+    var hit = { days: n, dir: sign > 0 ? 'fwd' : 'back',
+                from: a, to: b, was: base.busy, now: t.busy };
+    if (t.busy === 0) { hit.clean = true; return hit; }
+    if (!easier && t.busy <= base.busy - 2) { hit.clean = false; easier = hit; }
   }
-  if (clean)  { clean.clean = true;  return clean; }
-  if (easier) { easier.clean = false; return easier; }
-  return null;
+  return easier;
 }
+
+function _seasonBetterShifts(from, to) {
+  var out = [];
+  var later   = _seasonShiftOne(from, to,  1);
+  var earlier = _seasonShiftOne(from, to, -1);
+  // Later first: deeper into the winter is the better bet for snow, so it
+  // is the one to read first when both work.
+  if (later)   out.push(later);
+  if (earlier) out.push(earlier);
+  return out;
+}
+
+// kept for anything still calling the old name
+function _seasonBetterShift(from, to) { return _seasonBetterShifts(from, to)[0] || null; }
 function seasonVerdict(from, to) {
   var se = window._texts && window._texts.season;
   var V  = se && se.verdict;
@@ -9023,19 +9149,60 @@ function seasonVerdict(from, to) {
 
   // Only worth suggesting a move when the dates are actually a problem.
   if (key === 'busy' || key === 'mixed') {
-    var sh = _seasonBetterShift(from, to);
+    var shifts = _seasonBetterShifts(from, to);
     html += '<div style="font-size:0.77rem;color:#444;line-height:1.75;margin-top:5px;'
-          + 'border-top:1px solid rgba(0,0,0,0.07);padding-top:5px;">'
-          + _fixNums(_aEsc(sh
-              ? _seasonFill(sh.clean
-                    ? (sh.dir === 'fwd' ? V.shift_fwd : V.shift_back)
-                    : (sh.dir === 'fwd' ? V.ease_fwd  : V.ease_back),
-                  { n: _seasonDaysHe(sh.days), was: sh.was, now: sh.now,
-                    from: _seasonHe(sh.from), to: _seasonHe(sh.to) })
-              : V.no_shift))
-          + '</div>';
+          + 'border-top:1px solid rgba(0,0,0,0.07);padding-top:5px;">';
+    if (!shifts.length) {
+      html += _fixNums(_aEsc(V.no_shift));
+    } else {
+      // A suggestion the reader has to retype is half a suggestion, so each
+      // one carries the button that moves the dates and runs the search.
+      html += shifts.map(function (sh) {
+        var line = _seasonFill(sh.clean
+              ? (sh.dir === 'fwd' ? V.shift_fwd : V.shift_back)
+              : (sh.dir === 'fwd' ? V.ease_fwd  : V.ease_back),
+            { n: _seasonDaysHe(sh.days), was: sh.was, now: sh.now,
+              from: _seasonHe(sh.from), to: _seasonHe(sh.to) });
+        return '<div style="display:flex;align-items:center;gap:8px;margin-top:4px;">'
+          + '<span style="flex:1;min-width:0;">' + _fixNums(_aEsc(line)) + '</span>'
+          + '<button type="button" onclick="applySeasonShift(\'' + _seasonISO(sh.from)
+          + '\',\'' + _seasonISO(sh.to) + '\')" '
+          + 'style="flex:none;padding:4px 11px;background:#1a73e8;color:#fff;border:none;'
+          + 'border-radius:7px;font-size:0.74rem;font-weight:bold;cursor:pointer;'
+          + 'font-family:inherit;white-space:nowrap;">🔍 חפש</button></div>';
+      }).join('');
+    }
+    html += '</div>';
   }
   return html + '</div>';
+}
+
+function _seasonISO(d) {
+  d = _seasonAsDate(d);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+       + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// Move the trip to the suggested dates and run the search again. The same
+// data-ci/data-co route the deep links use, so it works whether or not
+// flatpickr has loaded.
+function applySeasonShift(ci, co) {
+  var el = document.getElementById('trip-dates');
+  if (el) {
+    el.setAttribute('data-ci', ci);
+    el.setAttribute('data-co', co);
+    if (el._flatpickr) el._flatpickr.setDate([ci, co], true);
+    else el.value = ci + ' — ' + co;
+  }
+  try { seasonHint(ci, co); } catch (e) {}
+  // whichever tab the reader is on is the one to re-run
+  var tab = ['all', 'flight', 'car', 'hotel'].filter(function (t) {
+    var b = document.getElementById('ttab-' + t);
+    return b && b.classList.contains('ttab-active');
+  })[0] || 'all';
+  var run = { all: 'searchAll', flight: 'searchFlight',
+              car: 'searchCar', hotel: 'searchHotel' }[tab];
+  setTimeout(function () { try { window[run] && window[run](); } catch (e) {} }, 60);
 }
 
 function seasonHint(from, to) {
@@ -10849,44 +11016,53 @@ function flightForDatesHtml(dest, ci, co, pax) {
 // One offer per kind of trip, because "the cheapest flight of the winter"
 // says nothing to somebody who can only get away from Thursday to Sunday.
 var _FL_KIND = {
+  // The three bands answer the same KIND of question - which week - so they
+  // wear the same mark; a pair of ski boots beside two calendars read as a
+  // category of its own. The flag stays different on purpose: that row
+  // answers which airline, not which week.
   weekend: { t: 'סוף שבוע',        i: '📅' },
-  midweek: { t: 'אמצע שבוע',       i: '🎿' },
-  week:    { t: 'שבוע מלא',        i: '🗓️' },
+  midweek: { t: 'אמצע שבוע',       i: '📅' },
+  week:    { t: 'שבוע מלא',        i: '📅' },
   israeli: { t: 'בחברה ישראלית',   i: '🇮🇱' }
 };
 function flightOffersHtml() {
   if (!_FLIGHTS || !Array.isArray(_FLIGHTS.offers) || !_FLIGHTS.offers.length) return '';
-  var rows = _FLIGHTS.offers.map(function (o) {
+  var rows = _FLIGHTS.offers.map(function (o, i) {
     var k = _FL_KIND[o.kind] || { t: o.kind, i: '✈️' };
     var name = (_FLIGHTS.dests[o.dest] && _FLIGHTS.dests[o.dest].he) || o.dest;
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;' +
+    // Only the price is bold. It is the one figure a reader compares across
+    // the rows; a bold band name beside a bold price makes two things shout
+    // and neither win. The airline is named as an airline rather than left
+    // as a bare word that could be anything.
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;' +
       'border-top:1px solid #e3ebf4;">' +
       '<span style="font-size:1.1rem;flex:none;">' + k.i + '</span>' +
       '<span style="flex:1;min-width:0;">' +
-        '<b style="font-size:0.8rem;color:#16314f;">' + esc(k.t) + '</b>' +
+        '<span style="font-size:0.8rem;color:#16314f;">' + esc(k.t) + '</span>' +
         '<small style="display:block;font-size:0.71rem;color:#7b8a99;">' +
-          esc(o.carrier || 'ללא פירוט חברה') + ' · ' + esc(name) + ' · ' +
+          'חברת תעופה: ' + esc(o.carrier || 'ללא פירוט') + ' · ' + esc(name) + ' · ' +
           '<bdi>' + _flDay(o.date) + '–' + _flDay(o.ret) + '</bdi>' +
           (o.nights ? ' · ' + o.nights + ' לילות' : '') +
           (o.direct ? ' · ישירה' : '') + '</small></span>' +
-      '<b style="flex:none;font-size:0.92rem;color:#0f2a4a;"><bdi>' + o.price +
-        ' $</bdi></b></div>';
+      '<b style="flex:none;font-size:1rem;color:#0f2a4a;"><bdi>' + o.price +
+        ' $</bdi></b>' +
+      // The row names a flight on named dates and then left the reader to
+      // key them in by hand. This takes them there - to the search, not to
+      // a booking: we are not the ones selling the ticket, and a button
+      // that says "book" would be promising something we cannot do.
+      '<button type="button" data-fl-offer="' + i + '" ' +
+        'style="flex:none;padding:5px 10px;background:#1a73e8;color:#fff;border:none;' +
+        'border-radius:7px;font-size:0.72rem;font-weight:bold;cursor:pointer;' +
+        'font-family:inherit;white-space:nowrap;">חפש טיסה</button>' +
+      '</div>';
   }).join('');
-
-  // The Israeli-carrier line is here because of reliability, not kashrut:
-  // an airline that keeps flying when others cancel is worth money to
-  // anyone holding a lift pass already paid for. Written that way.
-  var note = _FLIGHTS.offers.some(function (o) { return o.kind === 'israeli'; })
-    ? '<div style="font-size:0.7rem;color:#7b8a99;margin-top:7px;line-height:1.5;">' +
-      'החברות הישראליות ממשיכות לטוס גם בתקופות מתוחות, אלא אם השמיים נסגרים בהוראת הממשלה.</div>'
-    : '';
 
   return '<div style="background:#fff;border:1.5px solid #dfe8f3;border-radius:11px;' +
     'padding:11px 13px;margin-bottom:12px;">' +
     '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">' +
       '<b style="font-size:0.78rem;color:#1a3a6c;">✈️ מה שנמצא העונה</b>' +
       '<small style="font-size:0.66rem;color:#9aa5b1;">' + esc(_flAge(_FLIGHTS.generated)) +
-      ' · לנוסע אחד</small></div>' + rows + note + '</div>';
+      ' · לנוסע אחד</small></div>' + rows + '</div>';
 }
 
 // ── the season, month by month ────────────────────────────────────────
@@ -10953,10 +11129,12 @@ function flightMonthsHtml() {
   return '<div style="background:#fff;border:1.5px solid #dfe8f3;border-radius:11px;' +
     'padding:10px 11px;margin-bottom:12px;">' +
     '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:6px;">' +
-      '📆 המחיר הרגיל בכל חודש</div>' +
+      '📆 חציון המחירים בכל חודש</div>' +
     '<div style="display:flex;gap:4px;">' + cells + '</div>' +
     '<div style="font-size:0.66rem;color:#9aa5b1;margin-top:6px;line-height:1.5;">' +
-      'המחיר האמצעי של החודש, ומתחתיו הזול ביותר שנמצא בו · לנוסע אחד</div></div>';
+      'חציון — מחצית הימים בחודש זולים ממנו ומחציתם יקרים. ממוצע היה נמשך ' +
+      'כלפי מעלה בגלל ימים בודדים יקרים מאוד. מתחת לכל חודש, הזול ביותר ' +
+      'שנמצא בו · לנוסע אחד</div></div>';
 }
 
 // A price on the home card, so the cheapest fare is visible without
@@ -11031,6 +11209,14 @@ async function paintFlightOffers() {
   hosts.forEach(function (h) {
     h.innerHTML = html;
     h.style.display = html ? 'block' : 'none';
+    // delegated after the paint: the rows are rebuilt on every repaint
+    [].slice.call(h.querySelectorAll('[data-fl-offer]')).forEach(function (b) {
+      b.onclick = function (e) {
+        e.stopPropagation();
+        var o = _FLIGHTS && _FLIGHTS.offers[+b.getAttribute('data-fl-offer')];
+        if (o) openFlightDeal(o);
+      };
+    });
   });
 }
 
