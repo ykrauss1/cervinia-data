@@ -2203,6 +2203,208 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'an anchor that is not a panel was treated as one'); else ok();
 }
 
+// ── the planner does what its buttons say ─────────────────────────────
+// Four things Yossi found by using it: the engine links were on screen
+// before anybody pressed חפש (because "הבן" ran the search itself, so the
+// button looked broken), "נקה" left the sentence in the box, an offer row
+// named a flight and left you to key the dates in by hand, and the price
+// was one of three bold things in a row.
+{
+  const r = await page.evaluate(async (t) => {
+    window._texts = t;
+    const out = {};
+    const results = () => ['all-results', 'flight-results', 'car-results', 'hotel-results']
+      .map(id => document.getElementById(id))
+      .filter(Boolean)
+      .filter(e => e.style.display !== 'none' && e.innerHTML.length > 40).length;
+
+    // understanding a sentence is not searching
+    const q = document.getElementById('trip-free');
+    if (q) q.value = 'מילאנו בחנוכה לשבוע';
+    ['all-results', 'flight-results', 'car-results', 'hotel-results'].forEach(id => {
+      const e = document.getElementById(id);
+      if (e) { e.innerHTML = ''; e.style.display = 'none'; }
+    });
+    out.understandSearches = /searchAll\(\)/.test(applyTripText.toString());
+
+    // "clear" clears the sentence too
+    if (q) q.value = 'מילאנו בחנוכה לשבוע';
+    resetTripDates();
+    out.afterClear = q ? q.value : '[no box]';
+    out.resultsAfterClear = results();
+
+    // an offer row: one bold thing, the airline named, and a way through
+    window._FLIGHTS = {
+      generated: new Date().toISOString(), nights: [3,4,5,6,7],
+      dests: { MXP: { he: 'מילאנו מלפנסה' } },
+      cal: { MXP: { 3:{}, 4:{}, 5:{}, 6:{}, 7:{} } },
+      rets: { MXP: { 3:{}, 4:{}, 5:{}, 6:{}, 7:{} } },
+      offers: [{ kind: 'midweek', dest: 'MXP', date: '2027-01-12', ret: '2027-01-17',
+                 nights: 5, price: 380, carrier: 'Wizz Air', direct: true }]
+    };
+    window._flTried = true;
+    const host = document.querySelector('.fl-offers');
+    await paintFlightOffers();
+    const html = host ? host.innerHTML : '';
+    // within the ROW, not the panel: the panel's own heading is bold and
+    // should be - an earlier version of this check counted it and read the
+    // row as having two bold things when it has one.
+    const row = host ? host.querySelector('[data-fl-offer]')?.closest('div') : null;
+    out.bolds = row ? row.querySelectorAll('b').length : -1;
+    out.saysAirline = /חברת תעופה:/.test(html);
+    out.offerBtn = !!(host && host.querySelector('[data-fl-offer]'));
+    out.skiBoot = /🎿/.test(html);
+
+    if (host && host.querySelector('[data-fl-offer]')) {
+      host.querySelector('[data-fl-offer]').click();
+      await new Promise(r2 => setTimeout(r2, 200));
+      const dt = document.getElementById('trip-dates');
+      out.btnCi = dt ? dt.getAttribute('data-ci') : '';
+    }
+
+    // saved searches
+    try { localStorage.removeItem('cl_saved_trips'); } catch (e) {}
+    const dt2 = document.getElementById('trip-dates');
+    if (dt2) { dt2.setAttribute('data-ci', '2027-01-10'); dt2.setAttribute('data-co', '2027-01-17'); }
+    if (q) q.value = 'מילאנו לשבוע';
+    saveTripSearch();
+    out.savedCount = JSON.parse(localStorage.getItem('cl_saved_trips') || '[]').length;
+    saveTripSearch();                       // the same search twice is one
+    out.savedTwice = JSON.parse(localStorage.getItem('cl_saved_trips') || '[]').length;
+    const box = document.getElementById('trip-saved');
+    out.savedShown = !!(box && box.style.display !== 'none' && /מילאנו/.test(box.innerHTML));
+    const id = JSON.parse(localStorage.getItem('cl_saved_trips'))[0].id;
+    resetTripDates();
+    loadTripSearch(id);
+    out.restored = q ? q.value : '';
+    out.restoredCi = dt2 ? dt2.getAttribute('data-ci') : '';
+    deleteTripSearch(id);
+    out.afterDelete = JSON.parse(localStorage.getItem('cl_saved_trips') || '[]').length;
+    try { localStorage.removeItem('cl_saved_trips'); } catch (e) {}
+    return out;
+  }, JSON.parse(fs.readFileSync(TEXTS, 'utf8')));
+
+  const T = 'the planner does what its buttons say';
+
+  if (r.understandSearches) fail(T,
+    '"הבן" still runs the search, so the engine links are on screen before ' +
+    'anybody presses חפש and that button appears to do nothing'); else ok();
+  if (r.afterClear !== '') fail(T,
+    `"נקה" left "${r.afterClear}" in the sentence box`); else ok();
+  if (r.resultsAfterClear !== 0) fail(T,
+    `"נקה" left ${r.resultsAfterClear} result block(s) on screen`); else ok();
+
+  if (r.bolds !== 1) fail(T,
+    `${r.bolds} bold things in an offer row - the price should be the only one`); else ok();
+  if (!r.saysAirline) fail(T,
+    'the carrier is a bare word with nothing saying it is an airline'); else ok();
+  if (r.skiBoot) fail(T,
+    'the ski boot is back beside the calendars'); else ok();
+  if (!r.offerBtn) fail(T,
+    'an offer names a flight and leaves the dates to be keyed in by hand'); else ok();
+  if (r.btnCi !== '2027-01-12') fail(T,
+    `the offer button filled "${r.btnCi}" instead of its own date`); else ok();
+
+  if (r.savedCount !== 1) fail(T, 'the search was not saved'); else ok();
+  if (r.savedTwice !== 1) fail(T,
+    `saving the same search twice made ${r.savedTwice} entries`); else ok();
+  if (!r.savedShown) fail(T, 'a saved search is not listed'); else ok();
+  if (r.restored !== 'מילאנו לשבוע' || r.restoredCi !== '2027-01-10') fail(T,
+    `restoring gave "${r.restored}" / ${r.restoredCi}`); else ok();
+  if (r.afterDelete !== 0) fail(T, 'a deleted search is still there'); else ok();
+}
+
+// ── the icons say the right thing ─────────────────────────────────────
+// The Kosher Fly row wore 🕯️, a single dripping wax candle, while the
+// kashrut card it belongs with wears two Shabbat candles. And the passenger
+// counter was headed by an aeroplane, which is the journey, not the people.
+{
+  const r = await page.evaluate(() => {
+    const row = _svcIcon('ico-candle');
+    const lab = [...document.querySelectorAll('label')]
+      .filter(l => /נוסעים/.test(l.textContent))[0];
+    const sprite = !!document.getElementById('ico-candle');
+    // the drawing must actually resolve against the sprite on the page
+    const probe = document.createElement('div');
+    probe.innerHTML = row;
+    document.body.appendChild(probe);
+    const used = probe.querySelector('use');
+    const href = used ? used.getAttribute('href') : '';
+    probe.remove();
+    return { row, href, sprite, label: lab ? lab.textContent.trim() : '' };
+  });
+
+  const T = 'the icons say the right thing';
+  if (!r.sprite) fail(T, 'there is no candle drawing in the sprite'); else ok();
+  if (r.href !== '#ico-candle') fail(T,
+    `the Kosher Fly row points at "${r.href}"`); else ok();
+  if (/ὖF|🕯/.test(r.row)) fail(T,
+    'the single wax candle is back on the Kosher Fly row'); else ok();
+  if (!/👥/.test(r.label)) fail(T,
+    `the passenger counter is headed "${r.label}" - it counts people`); else ok();
+  if (/✈/.test(r.label)) fail(T,
+    'the passenger counter still shows an aeroplane'); else ok();
+}
+
+// ── a crowded week is offered a way out in both directions ────────────
+// The old suggester returned whichever shift it happened to find first, so
+// a reader was steered by the search order rather than by anything about
+// skiing. Later in the winter usually means better snow, so both the later
+// and the earlier option are offered - later first - and each carries the
+// button that moves the dates rather than leaving them to retype them.
+{
+  const r = await page.evaluate((t) => {
+    window._texts = t;
+    const out = {};
+    // Christmas week: the busiest stretch of the season
+    const both = _seasonBetterShifts('2026-12-26', '2027-01-02');
+    out.dirs  = both.map(x => x.dir);
+    out.days  = both.map(x => x.days);
+    out.clean = both.map(x => !!x.clean);
+
+    seasonHint('2026-12-26', '2027-01-02');
+    const el = document.getElementById('season-hint');
+    out.html = el ? el.innerHTML : '';
+    out.buttons = el ? el.querySelectorAll('button[onclick^="applySeasonShift"]').length : 0;
+
+    // pressing one must actually move the dates
+    const b = el && el.querySelector('button[onclick^="applySeasonShift"]');
+    if (b) b.click();
+    const dt = document.getElementById('trip-dates');
+    out.ci = dt ? dt.getAttribute('data-ci') : '';
+    out.co = dt ? dt.getAttribute('data-co') : '';
+
+    // a quiet week needs no way out
+    seasonHint('2027-01-10', '2027-01-17');
+    out.quiet = document.getElementById('season-hint').innerHTML;
+    return out;
+  }, JSON.parse(fs.readFileSync(TEXTS, 'utf8')));
+
+  const T = 'a crowded week is offered a way out in both directions';
+
+  if (r.dirs.length < 2) fail(T,
+    `only ${r.dirs.length} way(s) out offered for Christmas week`); else ok();
+  if (r.dirs[0] !== 'fwd') fail(T,
+    'the later option is not offered first, though deeper into winter is the better snow'); else ok();
+  if (new Set(r.dirs).size !== r.dirs.length) fail(T,
+    'the same direction was offered twice'); else ok();
+  if (r.days.some(d => d < 1 || d > 14)) fail(T,
+    `a shift of ${r.days.join(', ')} days is outside the fortnight searched`); else ok();
+
+  if (r.buttons !== r.dirs.length) fail(T,
+    `${r.dirs.length} suggestions but ${r.buttons} buttons - one of them has to be retyped`); else ok();
+  if (!/חפש/.test(r.html)) fail(T, 'the button does not say what it does'); else ok();
+  if (!r.ci || !r.co) fail(T,
+    'pressing the button did not move the dates'); else ok();
+  if (!/^2026-|^2027-/.test(r.ci) || r.ci >= r.co) fail(T,
+    `the dates came out as ${r.ci}–${r.co}`); else ok();
+  if (r.ci === '2026-12-26') fail(T,
+    'the button put back the very dates it was offering to change'); else ok();
+
+  if (/applySeasonShift/.test(r.quiet)) fail(T,
+    'a quiet week is told to move anyway'); else ok();
+}
+
 // ── "when to travel" says when ────────────────────────────────────────
 // Every row carried from/to in the content file and not one of them reached
 // the screen: "the Snowboard Cross World Cup is on" with no date beside it
@@ -2410,8 +2612,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the page multiplied the fare out into a total nobody can check'); else ok();
 
   if (!/Wizz Air/.test(r.offers)) fail(T, 'the offers carry no airline'); else ok();
-  if (!/ממשיכות לטוס/.test(r.offers)) fail(T,
-    'the Israeli-carrier line is there without the reason it is there'); else ok();
+  // The explanatory line about Israeli carriers was removed at Yossi's
+  // request - "הישראלים יודעים את זה" - so its absence is now the check.
+  if (/ממשיכות לטוס|בהוראת הממשלה/.test(r.offers)) fail(T,
+    'the Israeli-carrier explanation is back'); else ok();
   // Only an UNESCAPED tag is the hole. The words "onerror=alert(1)" survive
   // inside the neutralised text and are harmless there, so testing for them
   // fails on correct output - which is exactly what it did.
@@ -2436,6 +2640,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   // and the cheapest month of all is marked, so the strip says something
   if (!/#0f6b3f/.test(r.months)) fail(T,
     'no month is marked as the cheapest, so the strip is just numbers'); else ok();
+  // "the middle price" is not a statistic anybody can check. It is the
+  // median, it is deliberately not the mean, and the panel says so.
+  if (!/חציון/.test(r.months)) fail(T,
+    'the strip does not name the statistic it is showing'); else ok();
+  if (/המחיר האמצעי/.test(r.months)) fail(T,
+    'the strip still calls it "the middle price"'); else ok();
   // A "from" price equal to the typical one is a discount tag with nothing
   // behind it. February in the fixture has a single price, so its cell must
   // not claim a range; January's 380 against a typical 450 must show one.
