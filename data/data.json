@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-03T01:20:59.220Z",
-  "temperature": -4.5,
+  "updated_at": "2026-11-03T02:01:11.455Z",
+  "temperature": -4.9,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 2,
   "lifts_total_global": 15,
@@ -12,9 +12,9 @@
   "slopes_total_local": 0,
   "snow_depth": "5 cm",
   "last_snowfall": "25/10/2026",
-  "wind_speed": 16.2,
+  "wind_speed": 15.1,
   "wind_gust": 20.5,
-  "humidity": null,
+  "humidity": 71,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Sereno",
@@ -50,7 +50,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Monday, November 2",
+    "date": "Tuesday, November 3",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -90,27 +90,6 @@
   },
   "forecast_next_days": [
     {
-      "date": "Wednesday, November 4",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "cloudy"
-        }
-      ]
-    },
-    {
       "date": "Thursday, November 5",
       "periods": [
         {
@@ -149,6 +128,27 @@
         {
           "label": "Notte\n(01.00 - 07.00)",
           "icon": "partially-cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Saturday, November 7",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "cloudy"
         }
       ]
     }
