@@ -1960,6 +1960,324 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'clearing the last topic emptied the list anyway'); else ok();
 }
 
+// ── a signed-in reader does not retype what we already know ───────────
+// Somebody who has given us their name and address should not have to type
+// them again to ask a question. Two things matter beyond that it works:
+// a half-written field is the person's and is never overwritten, and the
+// address never reaches localStorage - the session re-reads the profile on
+// every load, so writing it to the device buys nothing and leaves it there
+// long after they have signed out.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const name = () => document.getElementById('cf-name');
+    const mail = () => document.getElementById('cf-email');
+
+    // signed out: nothing is invented
+    const setUser = o => (0, eval)('user = ' + JSON.stringify(o));
+    // Each scenario starts from a form nobody has touched. Without this the
+    // scenarios run into each other: a name typed in one is - correctly -
+    // still the person's own in the next, and the test would be measuring
+    // its own leftovers rather than the behaviour.
+    const fresh = () => ['cf-name', 'cf-email', 'cf-message'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.value = ''; delete el.dataset.cfAuto; }
+    });
+    setUser(null);
+    openM('contactModal');
+    await new Promise(r2 => setTimeout(r2, 120));
+    out.outName = (name()?.value || ''); out.outMail = (mail()?.value || '');
+    closeM('contactModal');
+
+    // signed in
+    setUser({ name: 'יוסי', email: 'y@example.com', level: 3, sbId: 'abc' });
+    openM('contactModal');
+    await new Promise(r2 => setTimeout(r2, 120));
+    out.inName = (name()?.value || ''); out.inMail = (mail()?.value || '');
+
+    // a field the person has already started is theirs
+    // typing, as a person does it: setting .value in code fires nothing, and
+    // the mark that says "we filled this" is cleared by the input event
+    if (name()) { name().value = 'שם אחר'; name().dispatchEvent(new Event('input')); }
+    if (mail()) { mail().value = ''; mail().dispatchEvent(new Event('input')); }
+    prefillContactForm();
+    out.keptName = (name()?.value || '');
+    out.refilledMail = (mail()?.value || '');
+    closeM('contactModal');
+
+    // an account with no real address on file
+    fresh();
+    setUser({ name: 'דני', email: '', sbId: 'xyz' });
+    openM('contactModal');
+    await new Promise(r2 => setTimeout(r2, 120));
+    out.noMailName = (name()?.value || ''); out.noMailMail = (mail()?.value || '');
+    closeM('contactModal');
+
+    // signing out must take the identity with it
+    fresh();
+    setUser({ name: 'יוסי', email: 'y@example.com' });
+    openM('contactModal');
+    await new Promise(r2 => setTimeout(r2, 120));
+    const msg = document.getElementById('cf-message');
+    if (msg) msg.value = 'חצי הודעה';
+    setUser(null);
+    prefillContactForm();
+    out.afterSignOutName = (name()?.value || '');
+    out.afterSignOutMail = (mail()?.value || '');
+    out.draftKept = (msg?.value || '');
+    closeM('contactModal');
+
+    // what reaches the device
+    setUser({ name: 'יוסי', email: 'y@example.com', level: 3, sbId: 'abc' });
+    out.stored = JSON.stringify(_userForStore());
+    setUser(null);
+    return out;
+  });
+
+  const T = 'a signed-in reader does not retype what we already know';
+
+  if (r.outName || r.outMail) fail(T,
+    `signed out, the form came prefilled with "${r.outName}" / "${r.outMail}"`); else ok();
+  if (r.inName !== 'יוסי') fail(T,
+    `the name was not filled in (got "${r.inName}")`); else ok();
+  if (r.inMail !== 'y@example.com') fail(T,
+    `the address was not filled in (got "${r.inMail}")`); else ok();
+  if (r.keptName !== 'שם אחר') fail(T,
+    `a name the person had already typed was overwritten with "${r.keptName}"`); else ok();
+  if (r.refilledMail !== 'y@example.com') fail(T,
+    'an empty field beside a filled one was skipped'); else ok();
+  if (r.noMailName !== 'דני') fail(T,
+    'an account with no address on file got no name either'); else ok();
+  if (r.noMailMail !== '') fail(T,
+    `an account with no address was given "${r.noMailMail}" - on a shared ` +
+    `device that is the previous person's address`); else ok();
+  if (r.afterSignOutName || r.afterSignOutMail) fail(T,
+    `signing out left "${r.afterSignOutName}" / "${r.afterSignOutMail}" in the form`); else ok();
+  if (r.draftKept !== 'חצי הודעה') fail(T,
+    `a half-written message was thrown away: "${r.draftKept}"`); else ok();
+  if (/y@example\.com|"email"/.test(r.stored)) fail(T,
+    `the address is written to the device: ${r.stored}`); else ok();
+  if (!/יוסי/.test(r.stored)) fail(T,
+    'nothing at all is kept, so the reader is signed out on every reload'); else ok();
+}
+
+// ── a link opens one panel ────────────────────────────────────────────
+// Every panel here is a modal, so the whole site lived at one address:
+// "have a look at the kashrut section" meant "open the site, scroll, find
+// the card, tap it". Each panel now has a name a person can type from
+// memory out of a WhatsApp message.
+{
+  const r = await page.evaluate(async (t) => {
+    window._texts = t;
+    if (typeof _applyTexts === 'function') _applyTexts(t);
+    addPanelShares();
+    const out = {};
+
+    out.names = Object.keys(PANEL_LINKS);
+    out.kosher = PANEL_LINKS.kosher;
+    out.link = panelLink('kosherModal');
+
+    // EVERY link, not the two I happened to write a test for. Each one must
+    // open its own panel, and the panel must have something in it - a link
+    // that opens an empty box is worse than no link.
+    out.each = [];
+    for (const name of Object.keys(PANEL_LINKS)) {
+      const id = PANEL_LINKS[name];
+      location.hash = '#' + name;
+      openPanelFromHash();
+      await new Promise(r2 => setTimeout(r2, 90));
+      const el = document.getElementById(id);
+      out.each.push({
+        name, id,
+        open: !!(el && el.style.display === 'flex'),
+        chars: el ? el.textContent.replace(/\s+/g, ' ').trim().length : 0,
+        share: el ? el.querySelectorAll('.panel-share').length : 0
+      });
+      closeM(id);
+      await new Promise(r2 => setTimeout(r2, 40));
+    }
+
+    // Every modal in the page must be either linkable or deliberately not.
+    // This is the part that does not depend on anybody remembering: a new
+    // modal that appears in neither list fails the gate.
+    out.allModals = [...document.querySelectorAll('.modal[id]')].map(m => m.id);
+    out.linked = Object.values(PANEL_LINKS);
+    out.private = PANEL_PRIVATE.slice();
+
+    // arriving at the site on a link
+    location.hash = '#kosher';
+    openPanelFromHash();
+    await new Promise(r2 => setTimeout(r2, 150));
+    const km = document.getElementById('kosherModal');
+    out.openedByHash = !!(km && km.style.display === 'flex');
+
+    // the share button sits beside the close button, once
+    const sh = km ? km.querySelectorAll('.panel-share') : [];
+    out.shareCount = sh.length;
+    addPanelShares(); addPanelShares();
+    out.shareAfterTwice = km ? km.querySelectorAll('.panel-share').length : -1;
+    out.shareTitle = sh.length ? sh[0].getAttribute('title') : '';
+    const cb = km ? km.querySelector('.close-btn') : null;
+    // both pinned from the same physical edge, or they land in opposite corners
+    out.sameEdge = !!(cb && sh.length &&
+      getComputedStyle(cb).left !== 'auto' && getComputedStyle(sh[0]).left !== 'auto');
+
+    // following a link to a different panel closes the first
+    location.hash = '#pistes';
+    openPanelFromHash();
+    await new Promise(r2 => setTimeout(r2, 150));
+    out.switched = !!(document.getElementById('pisteModal')?.style.display === 'flex');
+    out.firstClosed = !!(km && km.style.display === 'none');
+
+    // opening a panel names it in the address bar; closing takes it out
+    closeM('pisteModal');
+    await new Promise(r2 => setTimeout(r2, 100));
+    out.hashAfterClose = location.hash;
+    openM('rentalModal');
+    await new Promise(r2 => setTimeout(r2, 100));
+    out.hashAfterOpen = location.hash;
+    closeM('rentalModal');
+
+    // an anchor that is not a panel is left alone
+    location.hash = '#some-other-anchor';
+    out.unknown = openPanelFromHash();
+    location.hash = '';
+    return out;
+  }, JSON.parse(fs.readFileSync(TEXTS, 'utf8')));
+
+  const T = 'a link opens one panel';
+
+  if (r.kosher !== 'kosherModal') fail(T,
+    'there is no #kosher link, which is the one that was asked for'); else ok();
+  if (r.names.length < 10) fail(T,
+    `only ${r.names.length} panels can be linked to`); else ok();
+  if (!/#kosher$/.test(r.link)) fail(T,
+    `the link came out as "${r.link}"`); else ok();
+  if (/\.html/.test(r.link) === false && !/^https?:|^file:/.test(r.link)) fail(T,
+    'the link is not a whole address somebody could paste'); else ok();
+
+  // every link, checked
+  const dead  = r.each.filter(e => !e.open);
+  // The alerts panel is legitimately near-empty when nothing is on the
+  // strip, which is most of the time and is the honest state - so it is
+  // the one panel not required to have content.
+  const empty = r.each.filter(e => e.open && e.chars < 120 && e.id !== 'alertModal');
+  const noSh  = r.each.filter(e => e.open && e.share !== 1);
+  if (dead.length) fail(T,
+    `these links open nothing: ${dead.map(e => '#' + e.name).join(', ')}`); else ok();
+  if (empty.length) fail(T,
+    `these links open an all-but-empty panel: ` +
+    empty.map(e => '#' + e.name + ' (' + e.chars + ' chars)').join(', ')); else ok();
+  if (noSh.length) fail(T,
+    `no copy-link button in: ${noSh.map(e => '#' + e.name).join(', ')}`); else ok();
+
+  // and the part that does not rely on remembering
+  const unclassified = r.allModals.filter(
+    id => r.linked.indexOf(id) < 0 && r.private.indexOf(id) < 0);
+  if (unclassified.length) fail(T,
+    `${unclassified.join(', ')} is neither linkable nor marked private - add it ` +
+    `to PANEL_LINKS so people can send a link to it, or to PANEL_PRIVATE if it ` +
+    `is a dialog nobody should land on cold`); else ok();
+  const both = r.linked.filter(id => r.private.indexOf(id) >= 0);
+  if (both.length) fail(T,
+    `${both.join(', ')} is listed as both linkable and private`); else ok();
+
+  if (!r.openedByHash) fail(T,
+    'arriving at #kosher did not open the kashrut panel'); else ok();
+  if (r.shareCount !== 1) fail(T,
+    `the panel carries ${r.shareCount} share buttons`); else ok();
+  if (r.shareAfterTwice !== 1) fail(T,
+    `running the pass again left ${r.shareAfterTwice} buttons`); else ok();
+  if (!/קישור/.test(r.shareTitle)) fail(T,
+    `the share button explains itself as "${r.shareTitle}"`); else ok();
+  if (!r.sameEdge) fail(T,
+    'the share and close buttons are not pinned from the same edge'); else ok();
+
+  if (!r.switched || !r.firstClosed) fail(T,
+    'following a link to another panel did not swap them'); else ok();
+  if (r.hashAfterOpen !== '#rental') fail(T,
+    `opening a panel put "${r.hashAfterOpen}" in the address bar`); else ok();
+  if (r.hashAfterClose) fail(T,
+    `closing a panel left "${r.hashAfterClose}" behind`); else ok();
+  if (r.unknown !== false) fail(T,
+    'an anchor that is not a panel was treated as one'); else ok();
+}
+
+// ── "when to travel" says when ────────────────────────────────────────
+// Every row carried from/to in the content file and not one of them reached
+// the screen: "the Snowboard Cross World Cup is on" with no date beside it
+// is the one thing a person planning a trip cannot use. And a date is only
+// true for the season it was checked in, so when the file's season has
+// passed an "annual" row must lose its dates rather than print last year's.
+{
+  const r = await page.evaluate((t) => {
+    window._texts = t;
+    renderSeason(t.season);
+    const box = document.getElementById('season-box');
+    const txt = box ? box.textContent.replace(/\s+/g, ' ') : '';
+
+    // the same panel, rendered as it will look once the season has turned
+    const future = JSON.parse(JSON.stringify(t.season));
+    future.season = '2020/21';
+    renderSeason(future);
+    const old = document.getElementById('season-box').textContent.replace(/\s+/g, ' ');
+    renderSeason(t.season);
+
+    return {
+      txt, old,
+      season: t.season.season,
+      rules: (t.season.periods || []).map(p => p.rule || ''),
+      spans: (t.season.periods || []).map(p => (p.from && p.to) ? 1 : 0),
+      // the season the page works out for itself, at three points in a year
+      names: [new Date(2026, 10, 2), new Date(2027, 2, 1), new Date(2027, 7, 1)]
+               .map(d => _currentSeason(d))
+    };
+  }, JSON.parse(fs.readFileSync(TEXTS, 'utf8')));
+
+  const T = '"when to travel" says when';
+
+  if (!r.season) fail(T,
+    'the content file does not say which season its dates were checked for'); else ok();
+  if (r.rules.some(x => x !== 'fixed' && x !== 'annual')) fail(T,
+    'a row does not say whether its dates repeat every year'); else ok();
+  if (r.spans.some(x => !x)) fail(T, 'a row carries no dates at all'); else ok();
+
+  // the dates themselves, on screen
+  if (!/11–13 בדצמבר/.test(r.txt)) fail(T,
+    'the World Cup is listed with no date beside it'); else ok();
+  if (!/30–31 בינואר/.test(r.txt)) fail(T,
+    'the Sant\'Orso fair does not show its two days'); else ok();
+  if (!/21 בנובמבר – 6 בינואר/.test(r.txt)) fail(T,
+    'a span that crosses a month is not written out'); else ok();
+
+  // once the season has turned
+  if (!/נבדקו לעונת/.test(r.old)) fail(T,
+    'a stale file says nothing about being stale'); else ok();
+  if (/11–13 בדצמבר/.test(r.old)) fail(T,
+    'a stale file still prints last season\'s race dates as fact'); else ok();
+  if (!/30–31 בינואר/.test(r.old)) fail(T,
+    'a date that repeats every year was dropped along with the rest'); else ok();
+  if (!/טרם אומת/.test(r.old)) fail(T,
+    'a row with no usable date says nothing in its place'); else ok();
+
+  // a season is named for the year it starts in
+  if (JSON.stringify(r.names) !== JSON.stringify(['2026/27', '2026/27', '2027/28']))
+    fail(T, `the season came out as ${JSON.stringify(r.names)}`); else ok();
+
+  // Not a failure: the page already degrades honestly on its own, and a gate
+  // that goes red every June would be a gate nobody reads. A warning is the
+  // reminder to go and look up next season's dates.
+  const nowSeason = (() => {
+    const d = new Date(), y = d.getFullYear() - (d.getMonth() < 6 ? 1 : 0);
+    return y + '/' + String((y + 1) % 100).padStart(2, '0');
+  })();
+  if (r.season !== nowSeason) {
+    warn(T, `the "when to travel" dates were checked for ${r.season} and we are ` +
+            `now in ${nowSeason} - the panel is hiding the ones that move. ` +
+            `Look up the new dates, update texts.json, and set season to ${nowSeason}.`);
+  } else ok();
+}
+
 // ── the flight snapshot answers from the file, never from the network ──
 // A live pricing call is about nine seconds and is metered per call, so a
 // reader who picks dates is answered out of data/flights.json. What is
@@ -2014,14 +2332,39 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // not stack a second price onto the same line
     const card = document.getElementById('svc-travel');
     const sub  = card && card.querySelector('.svc-txt small');
-    if (sub) sub.innerHTML = sub.innerHTML.replace(/<span class="fl-teaser">.*?<\/span>/g, '');
+    if (sub) [...sub.querySelectorAll('.fl-teaser')].forEach(e => e.remove());
     await paintTravelTeaser(); await paintTravelTeaser();
     out.teaser = sub ? sub.textContent : '';
     out.teaserTwice = sub ? sub.querySelectorAll('.fl-teaser').length : -1;
 
+    // the panel must reach the tab the modal actually opens on
+    openM('hotelModal');
+    await new Promise(r => setTimeout(r, 200));
+    const slots = [...document.querySelectorAll('.fl-offers')];
+    out.slots      = slots.length;
+    out.slotsFilled = slots.filter(h => h.innerHTML.length > 50).length;
+    const allPanel = document.getElementById('tpanel-all');
+    out.inAllTab   = !!(allPanel && allPanel.querySelector('.fl-offers'));
+    out.allSnapshotSlot = !!document.getElementById('all-snapshot');
+
+    // the teaser is a door: dates on hover, and a click that fills them in
+    const t = document.querySelector('.fl-teaser');
+    out.teaserTitle = t ? (t.getAttribute('title') || '') : '';
+    out.teaserRole  = t ? t.getAttribute('role') : '';
+    if (t) {
+      t.click();
+      await new Promise(r => setTimeout(r, 250));
+      const dt = document.getElementById('trip-dates');
+      out.filledCi = dt ? dt.getAttribute('data-ci') : '';
+      out.filledCo = dt ? dt.getAttribute('data-co') : '';
+      out.onFlightTab = !!document.getElementById('ttab-flight')
+        ?.classList.contains('ttab-active');
+    }
+    closeM('hotelModal');
+
     // no file at all: every surface must come back empty, not broken
     window._FLIGHTS = null;
-    if (sub) sub.innerHTML = sub.innerHTML.replace(/<span class="fl-teaser">.*?<\/span>/g, '');
+    if (sub) [...sub.querySelectorAll('.fl-teaser')].forEach(e => e.remove());
     await paintTravelTeaser();
     out.teaserBare = sub ? sub.querySelectorAll('.fl-teaser').length : -1;
     out.bareDates  = flightForDatesHtml('MXP', '2027-01-10', '2027-01-15', '2');
@@ -2106,6 +2449,28 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the strip makes a claim about variation it cannot support'); else ok();
   if (r.bareMonths !== '') fail(T,
     'with no snapshot the month strip still paints'); else ok();
+
+  // ── the panel is where people land, and the teaser is a door ──────
+  // The modal opens on the "הכל" tab. The offers lived only in the flight
+  // tab, so the one place nobody had to click was the one place they were
+  // not - Yossi searched, got the links, and never saw the panel.
+  if (r.slots < 2) fail(T,
+    `only ${r.slots} panel(s) have a slot for the offers`); else ok();
+  if (r.slotsFilled !== r.slots) fail(T,
+    `${r.slots - r.slotsFilled} of the slots were left empty`); else ok();
+  if (!r.inAllTab) fail(T,
+    'the tab the modal opens on has no offers panel'); else ok();
+  if (!r.allSnapshotSlot) fail(T,
+    'the combined tab has nowhere to show the stored price'); else ok();
+
+  if (!/יציאה/.test(r.teaserTitle) || !/לילות/.test(r.teaserTitle)) fail(T,
+    `hovering the card price says "${r.teaserTitle}" - it should name the dates`); else ok();
+  if (r.teaserRole !== 'button') fail(T,
+    'the card price does not announce itself as something to press'); else ok();
+  if (r.filledCi !== '2027-01-12' || r.filledCo !== '2027-01-17') fail(T,
+    `clicking it filled ${r.filledCi}–${r.filledCo}, not the offer's own dates`); else ok();
+  if (!r.onFlightTab) fail(T,
+    'clicking the price did not land on the flight tab'); else ok();
 
   if (r.bareDates !== '' || r.bareOffers !== '') fail(T,
     'with no snapshot the page still paints something'); else ok();
