@@ -217,6 +217,17 @@ input[type=file] { display: none !important; }
 /* Kept so the class is harmless wherever it still appears in the markup. */
 .service-btn.svc-wide { flex: 0 1 calc((100% - 20px) / 3); }
 .svc-ico-img { width: 26px; height: 26px; display: block; }
+.panel-share {
+  /* The close button is pinned with a PHYSICAL left, so this one must be
+     too: inset-inline-start flips in RTL and would throw the pair to
+     opposite corners of the panel. */
+  position: absolute; top: 15px; left: 54px;
+  font-size: 1.05rem; line-height: 1; cursor: pointer; opacity: 0.55;
+  user-select: none; transition: opacity 0.15s; padding: 4px;
+}
+.panel-share:hover, .panel-share:focus { opacity: 1; outline: none; }
+/* inside a panel's own header there is no corner to pin to */
+.panel-share.inline { position: static; margin-inline-end: 8px; opacity: 0.85; }
 .ttl-ico { width: 1.15em; height: 1.15em; vertical-align: -0.2em; margin-inline-end: 0.3em; display: inline-block; }
 .svc-ico {
   font-size: 1.7rem; line-height: 1; flex: none;
@@ -564,6 +575,7 @@ img, svg, video { max-width: 100%; }
     border-radius: 14px !important;
   }
   .close-btn { left: 12px !important; top: 10px !important; font-size: 1.4rem !important; }
+  .panel-share { left: 44px !important; top: 10px !important; }
 
   /* Tables on mobile - allow horizontal scroll */
   table { font-size: 0.82rem; }
@@ -1622,6 +1634,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         🔍 חפש הכל
       </button>
       <!-- Results area -->
+      <div class="fl-offers" style="display:none;margin-top:14px;"></div>
+      <div id="all-snapshot" style="display:none;margin-top:10px;"></div>
       <div id="all-results" style="display:none;margin-top:14px;"></div>
     </div>
 
@@ -1635,7 +1649,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
         </select>
       </div>
-      <div id="flight-offers" style="display:none;"></div>
+      <div id="flight-offers" class="fl-offers" style="display:none;"></div>
       <!-- מספר הנוסעים נקבע בשורה העליונה של המודאל (משותף לכל הלשוניות) -->
       <button onclick="searchFlight()" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;margin-bottom:8px;">
         🔍 חפש טיסות
@@ -3270,6 +3284,150 @@ window.addEventListener('resize', function () {
   if (_openModalId) _placeFloatX(document.getElementById(_openModalId));
 });
 
+// ── a link that opens one panel ───────────────────────────────────────
+// Every panel on this site is a modal, so until now the whole thing lived
+// at one address: you could send somebody the site, never a page of it.
+// "Have a look at the kashrut section" meant "open the site, scroll down,
+// find the card, tap it". Now each panel has a name of its own.
+//
+// Short, stable names rather than the internal ids - #kosher is something
+// a person can read in a WhatsApp message and type from memory, and it
+// stays the same if the element behind it is ever renamed.
+var PANEL_LINKS = {
+  kosher:   'kosherModal',   pistes:  'pisteModal',
+  webcams:  'webcamModal',   rental:  'rentalModal',
+  lessons:  'lessonsModal',  skipass: 'skipassModal',
+  parking:  'parkingModal',  maps:    'mapModal',
+  around:   'aroundModal',   trip:    'hotelModal',
+  why:      'whyModal',      about:   'aboutModal',
+  sources:  'sourcesModal',  contact: 'contactModal',
+  forecast: 'forecastModal', alerts:  'alertModal',
+  help:     'helpModal',     zermatt: 'zermattForecastModal',
+  summer:      'summerSkiModal',   'summer-hike':  'summerHikeModal',
+  'summer-bike': 'summerBikeModal', 'summer-cross': 'summerCrossModal'
+};
+
+// The panels that deliberately have NO link, and why. Everything here is a
+// dialog or somebody's own account - a link to it would either land the
+// reader on a locked door or on a form with no context. The pair of lists
+// is what makes the next new modal a decision rather than an oversight:
+// selfcheck fails on any modal that appears in neither.
+var PANEL_PRIVATE = ['authModal', 'profileModal', 'adminModal', 'cropperModal',
+                     'userInfoModal', 'avatarMenuModal', 'avatarCamModal'];
+function _panelHashOf(modalId) {
+  for (var k in PANEL_LINKS) if (PANEL_LINKS[k] === modalId) return k;
+  return '';
+}
+
+// replaceState, not location.hash: assigning to the hash pushes a history
+// entry for every panel somebody opens, and after five minutes the back
+// button is a walk through their afternoon.
+function _setPanelHash(h) {
+  try {
+    if (!history.replaceState) return;
+    history.replaceState(null, '', location.pathname + location.search + (h ? '#' + h : ''));
+  } catch (e) {}
+}
+
+function panelLink(modalId) {
+  var h = _panelHashOf(modalId);
+  return location.origin + location.pathname + (h ? '#' + h : '');
+}
+
+// The share button lives beside the close button, and is added once per
+// panel - the same idempotence the icon pass needs, for the same reason.
+function _addPanelShare(modalId) {
+  if (!_panelHashOf(modalId)) return;
+  var m = document.getElementById(modalId);
+  if (!m) return;
+  if (m.querySelector('.panel-share')) return;
+  // Most panels pin a .close-btn in the corner. The piste guide has a
+  // coloured header of its own with a bespoke ✕ inside it, so the button
+  // was simply never added there - the gate found that, not me. Fall back
+  // to whatever closes this panel, and sit in the flow beside it rather
+  // than in the absolute corner, which inside that header would land on
+  // top of the title.
+  var close = m.querySelector('.close-btn');
+  var inline = false;
+  if (!close) {
+    var all = [].slice.call(m.querySelectorAll('[onclick]'));
+    for (var i = 0; i < all.length; i++) {
+      if ((all[i].getAttribute('onclick') || '').indexOf("closeM('" + modalId + "'") >= 0) {
+        close = all[i]; inline = true; break;
+      }
+    }
+  }
+  if (!close) return;
+  var b = document.createElement('span');
+  b.className = 'panel-share' + (inline ? ' inline' : '');
+  b.setAttribute('role', 'button');
+  b.setAttribute('tabindex', '0');
+  b.setAttribute('title', 'העתקת קישור ישיר לעמוד הזה');
+  b.setAttribute('aria-label', 'העתקת קישור ישיר לעמוד הזה');
+  b.textContent = '🔗';
+  b.onclick = function (e) { e.stopPropagation(); copyPanelLink(modalId, b); };
+  b.onkeydown = function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copyPanelLink(modalId, b); }
+  };
+  close.parentNode.insertBefore(b, close);
+}
+function addPanelShares() { Object.keys(PANEL_LINKS).forEach(function (k) { _addPanelShare(PANEL_LINKS[k]); }); }
+
+function copyPanelLink(modalId, btn) {
+  var url = panelLink(modalId);
+  var done = function (ok) {
+    if (!btn) return;
+    var was = btn.textContent;
+    btn.textContent = ok ? '✓' : '!';
+    btn.setAttribute('title', ok ? 'הקישור הועתק' : url);
+    setTimeout(function () { btn.textContent = was;
+      btn.setAttribute('title', 'העתקת קישור ישיר לעמוד הזה'); }, 1800);
+  };
+  // The clipboard API needs a secure context and can still be refused, so
+  // the old selection trick stays as the fallback rather than leaving the
+  // reader with a button that silently does nothing.
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function () { done(true); },
+                                           function () { done(_copyFallback(url)); });
+  } else {
+    done(_copyFallback(url));
+  }
+}
+function _copyFallback(text) {
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', 'readonly');
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = document.execCommand && document.execCommand('copy');
+    document.body.removeChild(ta);
+    return !!ok;
+  } catch (e) { return false; }
+}
+
+// Opening the site AT a panel, and following a link to another one without
+// a reload. An unknown hash is left alone: the page has anchors of its own.
+function openPanelFromHash() {
+  var h = (location.hash || '').replace(/^#/, '').toLowerCase();
+  var id = PANEL_LINKS[h];
+  if (!id) return false;
+  // The summer panels are built the first time summer mode runs, so in
+  // winter a link to one points at an element that does not exist yet.
+  // Build them on demand rather than leaving the link dead - the gate
+  // found this; nothing about the markup suggested it.
+  if (!document.getElementById(id) && typeof _buildSummerModals === 'function' &&
+      /^summer/.test(id)) {
+    document.body.insertAdjacentHTML('beforeend', _buildSummerModals());
+  }
+  if (!document.getElementById(id)) return false;
+  if (_openModalId && _openModalId !== id) closeM(_openModalId);
+  openM(id);
+  return true;
+}
+window.addEventListener('hashchange', openPanelFromHash);
+
 function openM(id) {
   const m = document.getElementById(id);
   if (m) m.style.display = 'flex';
@@ -3279,9 +3437,15 @@ function openM(id) {
   // re-applied on every open. The function is idempotent and returns at once
   // when the icon is already there.
   if (typeof _applyModalIcon === 'function') _applyModalIcon(id);
+  if (typeof _addPanelShare === 'function') _addPanelShare(id);
+  // the address bar becomes the link worth sending
+  if (typeof _panelHashOf === 'function' && _panelHashOf(id)) _setPanelHash(_panelHashOf(id));
   // The sources panel is built from texts.json every time it opens, so it is
   // never stale and never blank if something opened it without openSources().
   if (id === 'sourcesModal' && typeof renderSources === 'function') renderSources();
+  if (id === 'contactModal' && typeof prefillContactForm === 'function') {
+    setTimeout(prefillContactForm, 30);   // after resetContactForm has rebuilt it
+  }
   if (id === 'authModal') {
     // נקה שדות בכל פתיחה
     ['login-name','login-pass','reg-name','reg-email','reg-pass','reg-pass2','forgot-email'].forEach(function(f) {
@@ -3292,7 +3456,7 @@ function openM(id) {
     var pmsg = document.getElementById('pass-match-msg'); if (pmsg) pmsg.textContent = '';
     showAuthTab('login');
   }
-  if (id === 'hotelModal') { setTimeout(initFlatpickr, 80); switchTripTab('all'); }
+  if (id === 'hotelModal') { setTimeout(initFlatpickr, 80); switchTripTab('all'); paintFlightOffers(); }
   if (id === 'profileModal') { setTimeout(populateProfileModal, 0); return; }
   if (id === 'forecastModal') { fetchWttrForecast(); }
   if (id === 'parkingModal') switchParkTab('parking');
@@ -3428,6 +3592,11 @@ function closeM(id) {
   var back = _modalReturn[id];
   delete _modalReturn[id];
   if (back && !_modalSuppressReturn) { openM(back); return; }
+  // Clear the panel's name from the address bar - but only when nothing is
+  // open any more. Closing a panel that returns to another one would
+  // otherwise wipe the hash that openM is about to set again.
+  if (typeof _setPanelHash === 'function' && !_openModalId &&
+      typeof _panelHashOf === 'function' && _panelHashOf(id)) _setPanelHash('');
   _unlockBodyScroll();
 }
 
@@ -4140,7 +4309,7 @@ function switchTripTab(tab) {
   });
   // init flatpickr לשדות הנפרדים אחרי שהם גלויים
   if (tab === 'car' || tab === 'hotel') setTimeout(initFlatpickr, 50);
-  if (tab === 'flight') paintFlightOffers();
+  paintFlightOffers();
 }
 
 var _skipResultScroll = false;   // החיפוש החופשי מדליק אותו לפעם אחת
@@ -4907,6 +5076,14 @@ function searchAll() {
                                                  : missing('🏨 לינה', '#f0fff8', '#9dc')) : '')
                + (hasCar ? (carLinks2.length ? section('🚗 השכרת רכב', '#fff8f0', '#dca', carLinks2)
                                              : missing('🚗 השכרת רכב', '#fff8f0', '#dca')) : '');
+  // the same stored price the flight tab shows, for the tab people land on
+  loadFlights().then(function () {
+    var box = document.getElementById('all-snapshot');
+    if (!box) return;
+    var html = flightForDatesHtml(airCode, dr.ci, dr.co, adults);
+    box.innerHTML = html;
+    box.style.display = html ? 'block' : 'none';
+  });
 }
 
 // One Hebrew locale for every picker on the page.
@@ -7984,7 +8161,7 @@ async function saveProfile() {
   user.discipline = disc;
   user.visits = visits;
   user.bio = bio;
-  try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
+  try { localStorage.setItem('skiUser', JSON.stringify(_userForStore())); } catch(e) {}
 
   // Sync to Supabase if connected — await to detect errors
   if (USE_SUPABASE && user.sbId) {
@@ -8254,7 +8431,7 @@ async function uploadAvatarBlob(blob) {
   await supabaseUpdateProfile(user.sbId, { avatar_url: publicUrl });
 
   user.avatar_url = publicUrl;
-  try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
+  try { localStorage.setItem('skiUser', JSON.stringify(_userForStore())); } catch(e) {}
   const users = getUsers();
   if (users[user.name]) {
     users[user.name].avatar_url = publicUrl;
@@ -8281,7 +8458,7 @@ async function deleteAvatar() {
       await supabaseUpdateProfile(user.sbId, { avatar_url: null });
     }
     user.avatar_url = null;
-    try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
+    try { localStorage.setItem('skiUser', JSON.stringify(_userForStore())); } catch(e) {}
     const users = getUsers();
     if (users[user.name]) {
       users[user.name].avatar_url = null;
@@ -8580,7 +8757,12 @@ async function checkSupabaseSession() {
     const prof = await supabaseGetProfile(session.user.id);
     if (prof) {
       user = { name: prof.username, level: prof.level, discipline: prof.discipline || 'ski', sbId: session.user.id, isAdmin: prof.is_admin === true, bio: prof.bio || '', avatar_url: prof.avatar_url || null, visits: prof.visits || null };
-      try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
+      // The real address, for prefilling a form the person is about to fill
+      // in by hand anyway. profiles.email is the address they gave; the
+      // separate internal_email is the synthetic one Supabase signs in with
+      // and must never be shown to anybody.
+      user.email = prof.email || '';
+      try { localStorage.setItem('skiUser', JSON.stringify(_userForStore())); } catch(e) {}
       renderHeader();
       renderPosts('');
       renderPostBtn();
@@ -8894,6 +9076,34 @@ function seasonHint(from, to) {
   }).join('');
 }
 
+// Which ski season today belongs to. A season is named for the year it
+// starts in, and it runs from the autumn to the following spring, so
+// anything before June still belongs to the season that began last year.
+function _currentSeason(now) {
+  var d = now || new Date();
+  var y = d.getFullYear() - (d.getMonth() < 6 ? 1 : 0);
+  return y + '/' + String((y + 1) % 100).padStart(2, '0');
+}
+
+function _seasonIsStale(se) {
+  return !!(se && se.season && se.season !== _currentSeason());
+}
+
+var _SEASON_MON = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי',
+                   'אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+// "11–13 בדצמבר", or "28 בדצמבר – 6 בינואר" when it crosses a month, or
+// the single day when from and to are the same.
+function _periodWhen(p, stale) {
+  if (!p || !p.from || !p.to) return '';
+  if (stale && p.rule !== 'fixed') return 'התאריך לעונה הקרובה טרם אומת';
+  var a = p.from.split('-'), b = p.to.split('-');
+  var am = _SEASON_MON[+a[1] - 1], bm = _SEASON_MON[+b[1] - 1];
+  if (p.from === p.to)   return '<bdi>' + (+a[2]) + ' ב' + am + '</bdi>';
+  if (a[1] === b[1])     return '<bdi>' + (+a[2]) + '–' + (+b[2]) + ' ב' + am + '</bdi>';
+  return '<bdi>' + (+a[2]) + ' ב' + am + ' – ' + (+b[2]) + ' ב' + bm + '</bdi>';
+}
+
 function renderSeason(se) {
   var box = document.getElementById('season-box');
   if (!box || !se) return;
@@ -8906,12 +9116,29 @@ function renderSeason(se) {
       + _fixNums(_aEsc(m.text)) + '</div></div>';
   }).join('');
 
+  // Every row carries dates in the content file and none of them reached the
+  // screen, so "the World Cup is on" sat there without saying when - which
+  // is the one thing a person planning a trip needs.
+  //
+  // And a date is only true for the season it was checked in. Each row says
+  // which kind it is: "fixed" repeats on the same calendar dates every year
+  // and its year can simply be rolled forward; "annual" is set afresh each
+  // season - a race the federation schedules, an Italian school holiday, a
+  // bridge whose length depends on which weekday the 8th of December falls
+  // on. Out of eleven rows exactly one is fixed. When the file's season has
+  // passed, an "annual" row keeps its text and loses its dates rather than
+  // printing last year's, because a confident wrong date is worse than none.
+  var stale = _seasonIsStale(se);
   var periods = (se.periods || []).map(function (p) {
     var c = SEASON_TINT[p.kind] || SEASON_TINT.special;
+    var when = _periodWhen(p, stale);
     return '<div style="display:flex;gap:9px;align-items:flex-start;padding:6px 0;">'
       + '<span style="flex-shrink:0;width:9px;height:9px;border-radius:50%;background:'
       + c.edge + ';margin-top:6px;"></span>'
-      + '<div><b style="font-size:0.8rem;color:' + c.ink + ';">' + _aEsc(p.label) + '</b>'
+      + '<div style="min-width:0;"><b style="font-size:0.8rem;color:' + c.ink + ';">'
+      + _aEsc(p.label) + '</b>'
+      + (when ? '<span style="font-size:0.72rem;color:#7b8a99;margin-inline-start:7px;'
+          + 'white-space:nowrap;">' + when + '</span>' : '')
       + '<div style="font-size:0.77rem;color:#555;line-height:1.7;">'
       + _fixNums(_aEsc(p.note)) + '</div></div></div>';
   }).join('');
@@ -8923,6 +9150,11 @@ function renderSeason(se) {
       + _aEsc(se.title || 'מתי כדאי לנסוע') + '</summary>'
     + (se.intro ? '<div style="font-size:0.78rem;color:#666;line-height:1.75;margin:8px 0 10px;">'
         + _fixNums(_aEsc(se.intro)) + '</div>' : '')
+    + (stale ? '<div style="font-size:0.75rem;color:#8a5a00;background:#fff6e5;'
+        + 'border:1px solid #f0dcb0;border-radius:8px;padding:7px 10px;margin-bottom:9px;'
+        + 'line-height:1.7;">התאריכים כאן נבדקו לעונת ' + _aEsc(se.season)
+        + '. החלוקה לתקופות נכונה גם לעונה הקרובה, אך התאריכים המדויקים '
+        + 'יתעדכנו עם פרסום לוח האירועים.</div>' : '')
     + (periods ? '<div style="margin-bottom:10px;">' + periods + '</div>' : '')
     + (months ? '<div style="border-top:1px solid #e8ecf2;padding-top:6px;">' + months + '</div>' : '')
     + (se.footer ? '<div style="font-size:0.74rem;color:#888;line-height:1.7;margin-top:9px;">'
@@ -10745,19 +10977,61 @@ async function paintTravelTeaser() {
   if (!host || host.querySelector('.fl-teaser')) return;
   var b = document.createElement('span');
   b.className = 'fl-teaser';
-  b.innerHTML = ' · <b style="color:#0f6b3f;">טיסה מ-<bdi>' + cheap.price + ' $</bdi></b>';
+  // A price with no dates behind it is a claim the reader cannot check, so
+  // hovering names them and a click opens the trip planner already filled
+  // in on those exact days. stopPropagation, or the card's own onclick
+  // would open the planner a second time on the tab it always opens on.
+  b.setAttribute('title', 'יציאה ' + _flDay(cheap.date) + ' · חזרה ' +
+    _flDay(cheap.ret) + ' · ' + cheap.nights + ' לילות · לחצו לפתיחה');
+  b.setAttribute('role', 'button');
+  b.setAttribute('tabindex', '0');
+  b.style.cursor = 'pointer';
+  b.onclick = function (e) { e.stopPropagation(); openFlightDeal(cheap); };
+  b.onkeydown = function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openFlightDeal(cheap); }
+  };
+  b.innerHTML = ' · <b style="color:#0f6b3f;text-decoration:underline;' +
+    'text-decoration-style:dotted;text-underline-offset:3px;">טיסה מ-<bdi>' +
+    cheap.price + ' $</bdi></b>';
   host.appendChild(b);
 }
 
 // Painted when the flight tab is opened, so the offers are there before
 // anybody searches anything.
+// Open the trip planner on an offer: its dates, its airport, its tab.
+// The dates go in through the same data-ci/data-co that the free-text
+// search uses, which getDateRange reads as its safety net, so this works
+// whether or not flatpickr has loaded from the CDN yet.
+function openFlightDeal(o) {
+  if (!o || !o.date || !o.ret) return;
+  var el = document.getElementById('trip-dates');
+  if (el) {
+    el.setAttribute('data-ci', o.date);
+    el.setAttribute('data-co', o.ret);
+    if (el._flatpickr) el._flatpickr.setDate([o.date, o.ret], true);
+    else el.value = o.date + ' — ' + o.ret;
+  }
+  var sel = document.getElementById('airport-select-flight');
+  if (sel && o.dest) sel.value = o.dest;
+  openM('hotelModal');
+  setTimeout(function () {
+    switchTripTab('flight');
+    if (typeof searchFlight === 'function') searchFlight();
+  }, 120);
+}
+
+// Painted into EVERY panel that has a slot for it. The modal opens on the
+// "הכל" tab, and the offers lived only in the flight tab - so the one place
+// nobody had to click was the one place they were not.
 async function paintFlightOffers() {
-  var host = document.getElementById('flight-offers');
-  if (!host) return;
+  var hosts = [].slice.call(document.querySelectorAll('.fl-offers'));
+  if (!hosts.length) return;
   await loadFlights();
   var html = flightMonthsHtml() + flightOffersHtml();
-  host.innerHTML = html;
-  host.style.display = html ? 'block' : 'none';
+  hosts.forEach(function (h) {
+    h.innerHTML = html;
+    h.style.display = html ? 'block' : 'none';
+  });
 }
 
 // ── טעינת texts.json ──
@@ -10777,7 +11051,10 @@ async function loadTexts() {
     _wireSourceChips();
     renderCommunity();
     applyModalIcons();
+    addPanelShares();
     paintTravelTeaser();
+    // After the texts are in, so a panel arrived at by link is never blank.
+    openPanelFromHash();
   } catch(e) {
     console.warn('⚠️ texts.json לא נמצא — משתמש בערכי ברירת מחדל:', e.message);
   }
@@ -10814,6 +11091,51 @@ document.addEventListener('DOMContentLoaded', function () {
   var mc = document.querySelector('#contactModal .modal-content');
   if (mc) _contactModalHtml = mc.innerHTML;
 });
+// What goes to disk. Everything the signed-in user object carries EXCEPT
+// the address: the session re-reads the profile on every load, so writing
+// an email into localStorage buys nothing and leaves it sitting on the
+// device long after the person has signed out on it.
+function _userForStore() {
+  if (!user) return user;
+  var copy = {};
+  for (var k in user) if (k !== 'email') copy[k] = user[k];
+  return copy;
+}
+
+// Somebody who has already told us their name and address should not have
+// to type them again to ask a question. Only ever into an EMPTY field -
+// a half-written message is the person's, not ours to overwrite - and
+// only from the account they are signed in to.
+// The form is never reset - closing it keeps whatever was in it, which as
+// a stale draft is merely odd, but with identity fields filled in is a
+// privacy fault: on a shared device the next person opens the form and
+// finds the previous one's name and address sitting in it.
+//
+// So a field we filled is MARKED, and only a marked field may be rewritten
+// or cleared. Anything the person typed themselves loses the mark on the
+// first keystroke and is never touched again - including a half-written
+// message, which resetting the whole form on close would have thrown away.
+function _cfIdentityFields() {
+  return [['cf-name', 'name'], ['cf-email', 'email']];
+}
+function prefillContactForm() {
+  var signedIn = (typeof user !== 'undefined') && user;
+  _cfIdentityFields().forEach(function (pr) {
+    var el = document.getElementById(pr[0]);
+    if (!el) return;
+    if (!el.dataset.cfWired) {
+      el.dataset.cfWired = '1';
+      el.addEventListener('input', function () { delete el.dataset.cfAuto; });
+    }
+    var ours = el.dataset.cfAuto === '1';
+    var typed = (el.value || '').trim() && !ours;
+    if (typed) return;                       // the person's own, leave it
+    var want = signedIn ? (user[pr[1]] || '') : '';
+    el.value = want;
+    if (want) el.dataset.cfAuto = '1'; else delete el.dataset.cfAuto;
+  });
+}
+
 function resetContactForm() {
   var mc = document.querySelector('#contactModal .modal-content');
   if (!mc || _contactModalHtml == null) return;
@@ -11455,7 +11777,7 @@ async function register() {
 }
 
 function saveAndClose() {
-  try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
+  try { localStorage.setItem('skiUser', JSON.stringify(_userForStore())); } catch(e) {}
   closeM('authModal');
   renderHeader();
   renderPosts('');
@@ -11470,7 +11792,7 @@ function quickLogin(name) {
     'שרה': { level: 'בינוני', discipline: 'snowboard' }
   };
   user = { name, ...(profiles[name] || {}) };
-  try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch(e) {}
+  try { localStorage.setItem('skiUser', JSON.stringify(_userForStore())); } catch(e) {}
   renderHeader();
   renderPosts('');
   renderPostBtn();
