@@ -226,6 +226,20 @@ input[type=file] { display: none !important; }
   user-select: none; transition: opacity 0.15s; padding: 4px;
 }
 .panel-share:hover, .panel-share:focus { opacity: 1; outline: none; }
+.fl-fold { border:1.5px solid #cfe0f2; border-radius:11px;
+  background:linear-gradient(135deg,#f3f9ff,#eef5fd); padding:9px 12px; margin-bottom:12px; }
+.fl-fold > summary { cursor:pointer; font-size:0.82rem; font-weight:700; color:#1a3a6c;
+  list-style:none; display:flex; align-items:center; gap:7px; }
+.fl-fold > summary::-webkit-details-marker { display:none; }
+.fl-fold > summary::after { content:'\25BE'; margin-inline-start:auto; color:#7b9ac4; font-size:0.8rem; }
+.fl-fold[open] > summary::after { content:'\25B4'; }
+.fl-sub { font-weight:400; font-size:0.69rem; color:#7b8a99; }
+/* A star that breathes rather than blinks: a hard blink is hard to read
+   past, and is exactly what a reader with prefers-reduced-motion asked
+   not to be shown. */
+.fl-star { color:#e8a317; font-size:0.95rem; animation: flstar 2.4s ease-in-out infinite; }
+@keyframes flstar { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.45; transform:scale(.82); } }
+@media (prefers-reduced-motion: reduce) { .fl-star { animation:none; } }
 /* inside a panel's own header there is no corner to pin to */
 .panel-share.inline { position: static; margin-inline-end: 8px; opacity: 0.85; }
 .ttl-ico { width: 1.15em; height: 1.15em; vertical-align: -0.2em; margin-inline-end: 0.3em; display: inline-block; }
@@ -759,7 +773,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
   border-radius: 0 !important;
   background: #fff !important;
 }
-.ftx{font-size:0.71rem;background:white;border:1px solid #cfe2f5;border-radius:20px;padding:3px 10px;cursor:pointer;color:#37474f;}
+/* Grey, because at full contrast a row of example sentences reads as
+   the search somebody has already made. */
+.ftx{font-size:0.71rem;background:white;border:1px solid #dde6f0;border-radius:20px;padding:3px 10px;cursor:pointer;color:#8d9aa8;}
 .ftx:hover{background:#0a192f;color:white;border-color:#0a192f;}
 </style>
 
@@ -1451,21 +1467,33 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <span class="close-btn" onclick="closeM('hotelModal')">×</span>
     <h3 style="margin:0 0 18px;font-size:1.15rem;">✈️ תכנון טיול לצ’רוויניה</h3>
 
+    <!-- "מתי כדאי לנסוע" first: it is what you want to KNOW before you
+         pick a date, not a footnote to a date already chosen. It is a
+         closed <details>, so it costs one line until somebody opens it. -->
+    <div id="season-box"></div>
+
     <!-- חיפוש בשפה חופשית -->
     <div style="background:linear-gradient(135deg,#eef6ff,#f6fbff);border:1.5px solid #cfe2f5;border-radius:12px;padding:12px 13px;margin-bottom:16px;">
       <div style="display:flex;gap:7px;align-items:stretch;">
-        <textarea id="trip-free" rows="2" oninput="growTripFree(this)" placeholder="מילאנו מראשון עד שישי החל 10 בינואר, 5 מבוגרים, כולל דירה ורכב אוטומטי בקבלה מהשדה"
-          style="flex:1;padding:10px 12px;border:1.5px solid #bcd;border-radius:9px;font-size:0.86rem;font-family:inherit;box-sizing:border-box;resize:vertical;min-height:52px;max-height:160px;line-height:1.5;overflow-y:auto;"></textarea>
+        <textarea id="trip-free" rows="1" oninput="growTripFree(this)" placeholder="לאן, מתי, כמה אנשים — במשפט אחד"
+          style="flex:1;padding:10px 12px;border:1.5px solid #bcd;border-radius:9px;font-size:0.86rem;font-family:inherit;box-sizing:border-box;resize:vertical;min-height:40px;max-height:160px;line-height:1.5;overflow-y:auto;"></textarea>
         <button onclick="applyTripText()" style="padding:10px 16px;background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;white-space:nowrap;">💬 הבן</button>
+        <button type="button" onclick="saveTripSearch()" id="trip-save"
+          title="שמירת החיפוש הזה במכשיר" aria-label="שמירת החיפוש הזה במכשיר"
+          style="padding:10px 12px;background:#fff;color:#1a3a6c;border:1.5px solid #cfe2f5;
+          border-radius:9px;font-size:0.95rem;cursor:pointer;font-family:inherit;">💾</button>
       </div>
       <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
         <span style="font-size:0.7rem;color:#90a4ae;align-self:center;">לדוגמה:</span>
+        <!-- Three, not four: the fourth wrapped onto a line of its own and
+             cost the search button a line of height. Bergamo is gone because
+             the daily price run found no flights there this season at all. -->
         <span class="ftx" onclick="fillTripText(this)">מילאנו בחנוכה לשבוע</span>
-        <span class="ftx" onclick="fillTripText(this)">משפחה לטורינו בפברואר</span>
-        <span class="ftx" onclick="fillTripText(this)">סופש בברגמו בעוד שבועיים עם רכב</span>
+        <span class="ftx" onclick="fillTripText(this)">משפחה בפברואר עם רכב</span>
         <span class="ftx" onclick="fillTripText(this)">מילאנו בחול המועד פסח ל-4 לילות</span>
       </div>
       <div id="trip-free-said" style="margin-top:7px;font-size:0.75rem;"></div>
+      <div id="trip-saved" style="display:none;margin-top:8px;"></div>
     </div>
 
     <!-- Date + passengers row -->
@@ -1500,9 +1528,6 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <!-- filled when the chosen dates fall in a known week -->
       <div id="season-hint"></div>
     </div>
-
-    <!-- מתי כדאי לנסוע -->
-    <div id="season-box"></div>
 
     <!-- Tabs: כולל / טיסה / רכב / לינה -->
     <div style="display:flex;gap:5px;margin-bottom:16px;">
@@ -1631,17 +1656,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         </div>
       </div>
 
-      <div style="display:flex;gap:8px;align-items:stretch;">
-      <button onclick="searchAll()" id="trip-go" style="flex:1;padding:13px;background:var(--accent);color:var(--dark);border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;margin-top:4px;">
+      <button onclick="searchAll()" id="trip-go" style="width:100%;padding:13px;background:var(--accent);color:var(--dark);border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;margin-top:4px;">
         🔍 חפש הכל
       </button>
-        <button type="button" onclick="saveTripSearch()" id="trip-save"
-          title="שמירת החיפוש הזה במכשיר" aria-label="שמירת החיפוש הזה במכשיר"
-          style="flex:none;padding:13px 15px;background:#eef4fb;color:#1a3a6c;
-          border:1.5px solid #cfe0f2;border-radius:10px;font-size:0.95rem;
-          font-weight:bold;cursor:pointer;font-family:inherit;">💾</button>
-      </div>
-      <div id="trip-saved" style="display:none;margin-top:8px;"></div>
       <!-- Results area -->
       <div class="fl-offers" style="display:none;margin-top:14px;"></div>
       <div id="all-snapshot" style="display:none;margin-top:10px;"></div>
@@ -11205,7 +11222,15 @@ async function paintFlightOffers() {
   var hosts = [].slice.call(document.querySelectorAll('.fl-offers'));
   if (!hosts.length) return;
   await loadFlights();
-  var html = flightMonthsHtml() + flightOffersHtml();
+  var inner = flightMonthsHtml() + flightOffersHtml();
+  // Two panels of numbers sitting open pushed the search button down the
+  // modal. Folded, they cost one line - and the line says what is behind
+  // it, because "what was found this season" on its own did not tell
+  // Yossi whether these were offers for the coming month or for the lot.
+  var html = inner ? ('<details class="fl-fold">' +
+      '<summary><span class="fl-star">\u2726</span> מידע טיסות והצעות מיוחדות' +
+      '<span class="fl-sub">הזול ביותר שנמצא בכל העונה</span></summary>' +
+      '<div style="margin-top:10px;">' + inner + '</div></details>') : '';
   hosts.forEach(function (h) {
     h.innerHTML = html;
     h.style.display = html ? 'block' : 'none';
