@@ -2246,6 +2246,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const host = document.querySelector('.fl-offers');
     await paintFlightOffers();
     const html = host ? host.innerHTML : '';
+    out.folded   = !!(host && host.querySelector('details.fl-fold'));
+    out.foldOpen = !!(host && host.querySelector('details.fl-fold[open]'));
+    out.foldTitle = host ? (host.querySelector('.fl-fold > summary')?.textContent || '') : '';
     // within the ROW, not the panel: the panel's own heading is bold and
     // should be - an earlier version of this check counted it and read the
     // row as having two bold things when it has one.
@@ -2302,6 +2305,15 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the ski boot is back beside the calendars'); else ok();
   if (!r.offerBtn) fail(T,
     'an offer names a flight and leaves the dates to be keyed in by hand'); else ok();
+  // folded away, because two open panels of numbers pushed the search
+  // button off the bottom of the modal
+  if (!r.folded) fail(T, 'the flight block is not folded away'); else ok();
+  if (r.foldOpen) fail(T, 'the fold starts open, which defeats the point'); else ok();
+  if (!/מידע טיסות/.test(r.foldTitle)) fail(T,
+    `the fold is headed "${r.foldTitle}"`); else ok();
+  // and it says what the offers actually are, which Yossi could not tell
+  if (!/כל העונה/.test(r.foldTitle)) fail(T,
+    'the heading does not say the offers span the whole season'); else ok();
   if (r.btnCi !== '2027-01-12') fail(T,
     `the offer button filled "${r.btnCi}" instead of its own date`); else ok();
 
