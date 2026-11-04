@@ -2395,6 +2395,72 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'message can vanish while the reader is told it failed'); else ok();
 }
 
+// ── the dashboard counts what is actually there ───────────────────────
+// It read `window.allPosts`, and `allPosts` is declared with `let` at the
+// top level of a classic script - a LEXICAL binding, which never becomes a
+// property of window. So the panel showed 0 posts and 0 replies however
+// busy the forum was, and the registered-user count was a hard-coded dash
+// with a note saying "Supabase later".
+{
+  const r = await page.evaluate(async () => {
+    if (typeof populateAdminStats !== 'function') return { unreachable: true };
+    const now = Date.now();
+    (0, eval)('allPosts = ' + JSON.stringify([
+      { id: 1, user: 'דני',  content: 'שלום',  timestamp: now, reactions: { like: 2, snow: 1 } },
+      { id: 2, user: 'רבקה', content: 'תודה',  timestamp: now, reactions: { like: 3 } },
+      { id: 3, user: 'אבי',  content: 'מעולה', timestamp: now - 9e8, reactions: {} }
+    ]));
+    await populateAdminStats();
+    await new Promise(r2 => setTimeout(r2, 120));
+    const txt = id => (document.getElementById(id) || {}).textContent || '';
+    const out = { posts: txt('stat-posts'), today: txt('stat-today-posts'),
+                  reactions: txt('stat-reactions'), users: txt('stat-users'),
+                  usesWindow: /window\.allPosts\s*\|\|/.test(populateAdminStats.toString()) };
+    // and the close control must be visible against its own header
+    // the user count, with the query answering and then refusing
+    const realFetch = window.sbFetch;
+    window.sbFetch = async () => new Array(7).fill(0).map((_, i) => ({ id: i }));
+    await _admCountUsers(); await new Promise(r2 => setTimeout(r2, 40));
+    out.usersOk = txt('stat-users');
+    window.sbFetch = async () => null;
+    await _admCountUsers(); await new Promise(r2 => setTimeout(r2, 40));
+    out.usersFail = txt('stat-users');
+    window.sbFetch = realFetch;
+
+    const x = document.querySelector('#adminModal .close-btn');
+    out.closeChar = x ? x.textContent.trim() : '';
+    out.closeBg   = x ? getComputedStyle(x).backgroundColor : '';
+    (0, eval)('allPosts = []');
+    return out;
+  });
+
+  const T = 'the dashboard counts what is actually there';
+  if (r.unreachable) { warn(T, 'populateAdminStats is not reachable from the page scope'); }
+  else {
+    if (r.usesWindow) fail(T,
+      'the stats read window.allPosts again - a top-level `let` is never on window'); else ok();
+    if (r.posts !== '3') fail(T,
+      `three posts in the forum, dashboard says "${r.posts}"`); else ok();
+    if (r.today !== '2') fail(T,
+      `two posts today, dashboard says "${r.today}"`); else ok();
+    if (r.reactions !== '6') fail(T,
+      `six reactions, dashboard says "${r.reactions}"`); else ok();
+    // Both branches, with sbFetch stubbed: the network is blocked in this
+    // container, so without a stub the catch always rescues and the real
+    // behaviour is never reached.
+    if (r.usersOk !== '7') fail(T,
+      `seven profiles, the dashboard says "${r.usersOk}"`); else ok();
+    if (r.usersFail !== '—') fail(T,
+      `a refused query shows "${r.usersFail}" - "no users" and "could not ` +
+      `ask" are different statements`); else ok();
+
+    if (r.closeChar !== '×') fail(T,
+      `the dashboard's close control reads "${r.closeChar}"`); else ok();
+    if (!/rgba\(0, 0, 0, 0\)|transparent/.test(r.closeBg)) fail(T,
+      `the close ✕ is white on a ${r.closeBg} disc - an empty circle`); else ok();
+  }
+}
+
 // ── the icons say the right thing ─────────────────────────────────────
 // The Kosher Fly row wore 🕯️, a single dripping wax candle, while the
 // kashrut card it belongs with wears two Shabbat candles. And the passenger
