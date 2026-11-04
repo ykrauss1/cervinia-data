@@ -1786,7 +1786,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       rowCount: rows.length,
       rowText: rows.map(x => x.textContent.trim()).join(' | '),
       anyEmptyRow: rows.some(x => !x.textContent.trim()),
-      leftATag: /<(p|b|img|script)[ >]/i.test(box.innerHTML),
+      // Not a scan for tag text: the dropdown writes its own <b> around a
+      // panel's name. What must never appear is an ELEMENT built out of a
+      // post's content.
+      leftATag: !!box.querySelector('p, img, script, iframe'),
       goesToPost: rows.some(x => /peekOpenPost/.test(x.getAttribute('onclick') || ''))
     };
 
@@ -2588,6 +2591,154 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.label) fail(T,
     'the header button says only "כניסה", so there is nothing telling a ' +
     'first-time visitor where to register'); else ok();
+}
+
+// ── the search box is a search box ────────────────────────────────────
+// Chrome kept offering the saved username and password on it. Every hint
+// that exists was already on the field; hints are advisory and the password
+// manager ignored them. It cannot offer anything on an element that is not
+// a form control, so neither box is an <input> any more - and the rest of
+// the page still reads them through .value.
+{
+  const r = await page.evaluate(() => {
+    const g = document.getElementById('global-search-input');
+    const f = document.getElementById('search-input');
+    if (!g || !f) return { missing: true };
+    const out = { gTag: g.tagName, fTag: f.tagName,
+                  gEditable: g.isContentEditable, fEditable: f.isContentEditable,
+                  gPh: g.getAttribute('data-ph') || '', fPh: f.getAttribute('data-ph') || '' };
+    // the shim the whole page depends on
+    if (typeof _asTextBox === 'function') { _asTextBox(g); _asTextBox(f); }
+    g.value = 'בדיקה';
+    out.readsBack = g.value;
+    out.inDom = g.textContent;
+    g.value = '';
+    out.cleared = g.value;
+    return out;
+  });
+  const T = 'the search box is a search box';
+  if (r.missing) warn(T, 'a search box is not on the page');
+  else {
+    if (r.gTag === 'INPUT' || r.fTag === 'INPUT') fail(T,
+      'a search box is still an <input>, which the password manager may ' +
+      'offer saved credentials on'); else ok();
+    if (!r.gEditable || !r.fEditable) fail(T,
+      'a search box cannot be typed into'); else ok();
+    if (!r.gPh || !r.fPh) fail(T,
+      'a search box has no placeholder, so it is a blank strip'); else ok();
+    if (r.readsBack !== 'בדיקה' || r.inDom !== 'בדיקה') fail(T,
+      `.value does not round-trip (read back "${r.readsBack}") - the forum ` +
+      `filter and half the page read these boxes that way`); else ok();
+    if (r.cleared !== '') fail(T, 'clearing the box leaves text behind'); else ok();
+  }
+}
+
+// ── search reaches inside the panels ──────────────────────────────────
+// The index was twenty-one hand-written rows, which is the buttons. A word
+// that lives inside a panel found nothing, and the dropdown rendered white
+// on white, so even what it did find looked like an empty box.
+{
+  const r = await page.evaluate(async () => {
+    if (typeof globalSearch !== 'function') return { missing: true };
+    const box = document.getElementById('global-search-results');
+    const out = {};
+
+    // a word taken from a panel's own text, so the test cannot drift
+    const idx = (typeof _panelTextIndex === 'function') ? _panelTextIndex(true) : [];
+    out.panels = idx.length;
+    const src = idx.find(p => p.text.length > 200);
+    let word = '';
+    if (src) {
+      const words = src.text.split(' ').filter(w => /^[֐-׿]{5,}$/.test(w));
+      word = words[Math.floor(words.length / 2)] || '';
+      out.word = word;
+      out.fromPanel = src.id;
+    }
+    if (word) {
+      globalSearch(word);
+      out.html = box.innerHTML;
+      out.shown = box.style.display;
+      const row = box.querySelector('div[onclick]');
+      out.rowText = row ? (row.textContent || '').trim() : '';
+      out.rowColor = row ? getComputedStyle(row).color : '';
+      out.boxColor = getComputedStyle(box).color;
+    }
+    globalSearch('סקי פס');
+    out.buttonHit = (box.textContent || '').indexOf('סקי פס') !== -1;
+    globalSearch('');
+    return out;
+  });
+
+  const T = 'search reaches inside the panels';
+  if (r.missing) warn(T, 'globalSearch is not on the page');
+  else {
+    if (r.panels < 10) fail(T,
+      `only ${r.panels} panels are indexed; the site has far more`); else ok();
+    if (!r.word) fail(T, 'no panel had enough text to search for'); else ok();
+    if (r.shown !== 'block') fail(T,
+      `a word taken from a panel ("${r.word}") produced no dropdown`); else ok();
+    if (!r.rowText || r.rowText.length < 3) fail(T,
+      'the result row carries an icon and no words'); else ok();
+    // white on white: the bug that made every result look blank
+    if (/rgb\(255, 255, 255\)/.test(r.rowColor || '')) fail(T,
+      'the result text is white, and the dropdown is white'); else ok();
+    if (/rgb\(255, 255, 255\)/.test(r.boxColor || '')) fail(T,
+      'the dropdown inherits white text from the header'); else ok();
+    if (!r.buttonHit) fail(T,
+      'the old button index stopped working'); else ok();
+  }
+}
+
+// ── a review has somewhere to go ──────────────────────────────────────
+// Five fixed categories in the code, and a browser alert when none was
+// chosen - the one that says "cervinialive.co.il says" above it.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    out.hasOther = REVIEW_CATS[REVIEW_CATS.length - 1] === REVIEW_CAT_OTHER;
+    out.count = REVIEW_CATS.length;
+
+    // an admin's list is honoured, "other" is not stored twice, and an
+    // empty list still leaves the reader somewhere to write
+    _setReviewCats(['🎿 ציוד', '🎿 ציוד', REVIEW_CAT_OTHER]);
+    out.afterSet = REVIEW_CATS.slice();
+    _setReviewCats([]);
+    out.afterEmpty = REVIEW_CATS.length;
+    _setReviewCats(['🎿 ציוד']);
+
+    // and the message is the site's, not the browser's
+    let alerted = false;
+    const realAlert = window.alert;
+    window.alert = () => { alerted = true; };
+    (0, eval)("user = { name: 'בודק', sbId: 'x', isAdmin: false }");
+    renderReviewWriteArea();
+    reviewDraft = { rating: 0, cat: '', text: '' };
+    await submitReview();
+    out.alerted = alerted;
+    out.msg = (document.getElementById('review-msg') || {}).textContent || '';
+    out.msgShown = ((document.getElementById('review-msg') || {}).style || {}).display;
+    window.alert = realAlert;
+    (0, eval)('user = null');
+    renderReviewWriteArea();
+    return out;
+  });
+
+  const T = 'a review has somewhere to go';
+  if (!r.hasOther) fail(T,
+    'there is no "other" category, so a subject outside the list has ' +
+    'nowhere to go'); else ok();
+  if (r.count < 8) fail(T,
+    `only ${r.count} categories - the list is still the short fixed one`); else ok();
+  if (r.afterSet.filter(c => c === '💬 אחר').length !== 1) fail(T,
+    '"other" appears twice when an admin saves a list that contains it'); else ok();
+  if (r.afterSet.filter(c => c === '🎿 ציוד').length !== 1) fail(T,
+    'a duplicate category is kept twice'); else ok();
+  if (r.afterEmpty < 2) fail(T,
+    'an empty list leaves the reader with no categories at all'); else ok();
+  if (r.alerted) fail(T,
+    'a missing category is still reported with a browser alert'); else ok();
+  if (!/קטגוריה/.test(r.msg) || r.msgShown !== 'block') fail(T,
+    `the page says "${r.msg}" instead of asking for a category`); else ok();
 }
 
 // ── forgetting a password actually works now ──────────────────────────
@@ -3422,191 +3573,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.doubled) fail(T, 'running the pass twice stacked two drawings'); else ok();
 }
 
-// ── the search box is not a login field ─────────────────────────────────
-// Chrome kept offering a saved credential over it - not autocomplete and
-// not form restoration, but the PASSWORD MANAGER, which is why type=search,
-// a name of its own and autocomplete=off all failed: those are hints. It
-// offers nothing on a readonly field, and the attribute comes off the
-// moment the reader touches it.
-{
-  const r = await page.evaluate(() => {
-    const el = document.getElementById('global-search-input');
-    if (!el) return { missing: true };
-    const before = el.hasAttribute('readonly');
-    el.dispatchEvent(new Event('focus'));
-    const afterFocus = el.hasAttribute('readonly');
-    el.dispatchEvent(new Event('blur'));
-    const afterBlur = el.hasAttribute('readonly');
-    return { before, afterFocus, afterBlur,
-             type: el.getAttribute('type'),
-             ignores: !!el.getAttribute('data-lpignore') && el.hasAttribute('data-1p-ignore') };
-  });
-
-  const T = 'the search box is not a login field';
-  if (r.missing) { fail(T, 'there is no search field'); }
-  else {
-    if (!r.before) fail(T,
-      'the field is writable before it is touched, so the password manager can offer on it'); else ok();
-    if (r.afterFocus) fail(T,
-      'the field stayed readonly after focus - nobody can type in it'); else ok();
-    if (!r.afterBlur) fail(T,
-      'the guard is not restored on blur, so it protects only the first visit'); else ok();
-    if (r.type !== 'search') fail(T, `type is "${r.type}"`); else ok();
-    if (!r.ignores) fail(T, 'the password-manager opt-outs are missing'); else ok();
-  }
-}
-
-// ── every card's picture is drawn, not typed ─────────────────────────────
-// An emoji character is a request, not a picture: the reader sees whatever
-// their system font draws. U+1F3BF is "skis and ski boot" in Unicode and
-// Windows renders it as something closer to a snowboard, which is a picture
-// arguing with its own label. These are Google's drawings of the same
-// characters, defined once as symbols and referenced by every card.
-{
-  const r = await page.evaluate(() => {
-    const cards = [...document.querySelectorAll('.services-grid .service-btn')];
-    const out = { cards: cards.length, noIcon: [], stillEmoji: [], broken: [], sizes: [] };
-    for (const c of cards) {
-      const ico = c.querySelector('.svc-ico');
-      if (!ico) { out.noIcon.push(c.id); continue; }
-      const use = ico.querySelector('svg use');
-      if (!use) {
-        // anything that is not a <use> reference is a bare character
-        if (ico.textContent.trim()) out.stillEmoji.push(c.id + ':' + ico.textContent.trim());
-        else out.noIcon.push(c.id);
-        continue;
-      }
-      const id = (use.getAttribute('href') || use.getAttribute('xlink:href') || '').replace('#', '');
-      if (!id || !document.getElementById(id)) { out.broken.push(c.id + '->' + id); continue; }
-      const box = ico.querySelector('svg').getBoundingClientRect();
-      out.sizes.push(Math.round(box.width));
-    }
-    // the sprite itself must take no space in the layout
-    const sprite = document.querySelector('svg[aria-hidden="true"][style*="width:0"]');
-    out.spriteHidden = !!sprite && Math.round(sprite.getBoundingClientRect().height) === 0;
-    out.symbols = sprite ? sprite.querySelectorAll('symbol').length : 0;
-    return out;
-  });
-
-  const T = "every card's picture is drawn, not typed";
-  if (r.cards < 8) fail(T, `only ${r.cards} cards`); else ok();
-  if (r.noIcon.length) fail(T, `cards with no icon at all: ${r.noIcon.join(', ')}`); else ok();
-  if (r.stillEmoji.length) fail(T,
-    `still drawing with a font character: ${r.stillEmoji.join(', ')}`); else ok();
-  if (r.broken.length) fail(T,
-    `a card points at a symbol that is not there: ${r.broken.join(', ')}`); else ok();
-  if (r.symbols < r.cards) fail(T,
-    `${r.symbols} symbols defined for ${r.cards} cards`); else ok();
-  if (!r.spriteHidden) fail(T,
-    'the sprite is taking up space in the page instead of hiding'); else ok();
-  if (r.sizes.some(w => w < 14 || w > 40)) fail(T,
-    `an icon rendered at ${Math.min(...r.sizes)}-${Math.max(...r.sizes)}px`); else ok();
-}
-
-// ── the cards promise what the panels hold ───────────────────────────────
-// The subtitles live in texts.json, and the markup carries a copy as the
-// fallback for when that file cannot be fetched. The two drifted: the piste
-// card still said "איפה אוכלים על ההר" in the markup weeks after the line
-// was taken out of the content file, and anyone whose texts.json failed to
-// load saw the old wording. Whatever the reason for a mismatch, it means one
-// of the two is wrong.
-{
-  // BOTH sides come off disk, and that is the whole point. The first version
-  // of this check read the live DOM - but _applyTexts runs near the top of
-  // this suite and rewrites every card from texts.json, so by the time the
-  // check ran it was comparing the content file against itself and passed
-  // whatever the markup said. It sat there green while index.html still
-  // carried "בשאלה אחת" and texts.json said "בשאילתא אחת".
-  const buttons = (JSON.parse(fs.readFileSync(TEXTS, 'utf8')).services || {}).buttons || [];
-  const pageSrc = fs.readFileSync(PAGE, 'utf8');
-  const r = (() => {
-    const out = { missing: [], drift: [], iconDrift: [], count: buttons.length };
-    for (const b of buttons) {
-      const re = new RegExp(
-        '<div id="' + b.id + '" class="service-btn[^"]*"[^>]*>\\s*' +
-        '(?:<!--[\\s\\S]*?-->\\s*)?<span class="svc-ico">([\\s\\S]*?)</span>[\\s\\S]*?' +
-        '<span class="svc-txt"><b>([\\s\\S]*?)</b>\\s*<small>([\\s\\S]*?)</small>');
-      const m = re.exec(pageSrc);
-      if (!m) { out.missing.push(b.id); continue; }
-      const norm = (x) => x.replace(/\s+/g, ' ').trim();
-      const I = norm(m[1]), L = norm(m[2]), S = norm(m[3]);
-      if (L !== String(b.label || '').trim() || S !== String(b.sub || '').trim()) {
-        out.drift.push({ id: b.id, markup: S, json: String(b.sub || '').trim() });
-      }
-      // The icon drifts the same way and is harder to notice: _applyTexts
-      // overwrites it from texts.json the moment the content file loads, so
-      // a stale emoji in the markup is invisible until the day that fetch
-      // fails - and then the card shows a different picture than everyone
-      // else sees.
-      if (I !== norm(String(b.icon || ''))) {
-        out.iconDrift.push({ id: b.id,
-          markup: I.slice(0, 40), json: norm(String(b.icon || '')).slice(0, 40) });
-      }
-    }
-    return out;
-  })();
-  const _unused = async (btns) => {
-    const out = { missing: [], drift: [], count: btns.length };
-    for (const b of btns) {
-      const el = document.getElementById(b.id);
-      if (!el) { out.missing.push(b.id); continue; }
-      const lab = el.querySelector('.svc-txt b');
-      const sub = el.querySelector('.svc-txt small');
-      const L = lab ? lab.textContent.trim() : '';
-      const S = sub ? sub.textContent.trim() : '';
-      if (L !== (b.label || '').trim() || S !== (b.sub || '').trim()) {
-        out.drift.push({ id: b.id, markup: S, json: (b.sub || '').trim() });
-      }
-    }
-    return out;
-  };
-
-  const T = 'the cards promise what the panels hold';
-  if (r.count < 8) fail(T, `only ${r.count} service buttons in texts.json`); else ok();
-  if (r.missing.length) fail(T,
-    `texts.json names cards the page does not have: ${r.missing.join(', ')}`); else ok();
-  if (r.drift.length) fail(T,
-    'markup and texts.json disagree: ' + r.drift.map(d =>
-      `${d.id} markup="${d.markup}" json="${d.json}"`).join(' ; ')); else ok();
-  if (r.iconDrift.length) fail(T,
-    'the icons disagree: ' + r.iconDrift.map(d =>
-      `${d.id} markup="${d.markup}" json="${d.json}"`).join(' ; ')); else ok();
-}
-
-// ── the search box in the header is a search box ─────────────────────────
-// It had no name and no type beyond "text", which is exactly the shape
-// Chrome decides is a "your name" field: it filled it with the saved name
-// and painted its own opaque background over a field that sits in a dark
-// header. autocomplete="off" does not stop that on its own.
-{
-  const r = await page.evaluate(() => {
-    const el = document.getElementById('global-search-input');
-    if (!el) return { missing: true };
-    // The raw stylesheet text, not the parsed rules: a browser that does not
-    // understand :-webkit-autofill drops the rule from cssRules entirely, and
-    // the guard would look missing when it is right there in the file.
-    const css = [...document.querySelectorAll('style')].map(n => n.textContent).join('\n');
-    return {
-      type: el.getAttribute('type'),
-      name: el.getAttribute('name') || '',
-      auto: el.getAttribute('autocomplete'),
-      label: el.getAttribute('aria-label') || '',
-      hasAutofillGuard: /#global-search-input:-webkit-autofill/.test(css)
-                        && /-webkit-box-shadow[^;]*inset/.test(css)
-    };
-  });
-
-  const T = 'the search box in the header is a search box';
-  if (r.missing) { fail(T, 'there is no #global-search-input at all'); }
-  else {
-    if (r.type !== 'search') fail(T, `type is "${r.type}", not search`); else ok();
-    if (!r.name) fail(T, 'the field still has no name, so the browser guesses'); else ok();
-    if (r.auto !== 'off') fail(T, `autocomplete is "${r.auto}"`); else ok();
-    if (!r.label) fail(T, 'the field has no accessible label'); else ok();
-    if (!r.hasAutofillGuard) fail(T,
-      'nothing covers the colour a browser paints when it autofills anyway'); else ok();
-  }
-}
+// The two blocks that used to live here tested the <input>: readonly on
+// blur, type=search, a name of its own, autocomplete=off, and a stylesheet
+// guard against the colour Chrome paints when it autofills anyway. Every
+// one of those is a hint, and the password manager went on ignoring all of
+// them. The field is not a form control any more, which is the thing those
+// five attributes were trying to approximate - see "the search box is a
+// search box", which tests that directly.
 
 // ── the forum opens on request, and closes again ─────────────────────────
 // It used to sit open on the home page directly under the strip that
