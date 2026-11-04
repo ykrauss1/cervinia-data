@@ -2368,7 +2368,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       sendKey:  /publicKey:\s*EMAILJS_PUBLIC_KEY\s*\}\s*\)/.test(src),
       facebook: /פייסבוק/.test(src),
       knowsSaved: /_saved/.test(src),
-      checksOk: /_saved\s*=\s*_r\.ok/.test(src) && /if\s*\(_saved\)/.test(src)
+      checksOk: /_saved\s*=\s*_r\.ok/.test(src) && /if\s*\(_saved\)/.test(src),
+      successText: (src.match(/ההודעה [^'"<]*/g) || []).join(' | ')
     };
   });
 
@@ -2381,6 +2382,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the key is not passed to send() either, so a refused init is fatal'); else ok();
   if (r.facebook) fail(T,
     'the failure message still sends people to a Facebook channel that does not exist'); else ok();
+  // "Sent successfully" is a claim about the post, and the post failed
+  // silently once already: EmailJS accepted the message and its Gmail
+  // connection then dropped it three times over. We can only say it
+  // reached us.
+  if (/ההודעה נשלחה/.test(r.successText)) fail(T,
+    'the form claims the message was SENT, which is more than we can see'); else ok();
+  if (!/ההודעה התקבלה/.test(r.successText)) fail(T,
+    `the success message reads "${r.successText}"`); else ok();
   if (!r.knowsSaved || !r.checksOk) fail(T,
     'the Supabase copy is written without checking whether it worked, so a ' +
     'message can vanish while the reader is told it failed'); else ok();
@@ -2625,6 +2634,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const t = document.querySelector('.fl-teaser');
     out.teaserTitle = t ? (t.getAttribute('title') || '') : '';
     out.teaserRole  = t ? t.getAttribute('role') : '';
+    out.teaserRects = t ? t.getClientRects().length : -1;
     if (t) {
       t.click();
       await new Promise(r => setTimeout(r, 250));
@@ -2747,6 +2757,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 
   if (!/יציאה/.test(r.teaserTitle) || !/לילות/.test(r.teaserTitle)) fail(T,
     `hovering the card price says "${r.teaserTitle}" - it should name the dates`); else ok();
+  // One box, not two: an inline highlight that wraps leaves a green stub at
+  // the end of the line above it, which is what Yossi photographed.
+  if (r.teaserRects !== 1) fail(T,
+    `the fare highlight is drawn as ${r.teaserRects} boxes - it has wrapped`); else ok();
   if (r.teaserRole !== 'button') fail(T,
     'the card price does not announce itself as something to press'); else ok();
   if (r.filledCi !== '2027-01-12' || r.filledCo !== '2027-01-17') fail(T,
