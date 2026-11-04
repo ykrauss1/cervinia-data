@@ -238,7 +238,11 @@ input[type=file] { display: none !important; }
    the whole card lifted whether you were aiming at the card or at the
    price. Hovering the fare now holds the card still and lights the fare
    instead, so the two targets look like two targets. */
-.fl-teaser { border-radius:5px; padding:1px 3px; transition:background 0.15s, color 0.15s; }
+/* inline-block and nowrap, or the highlight breaks across the line and
+   leaves a green stub at the end of the sentence above it */
+.fl-teaser { border-radius:5px; padding:1px 4px; display:inline-block;
+  white-space:nowrap; -webkit-box-decoration-break:clone; box-decoration-break:clone;
+  transition:background 0.15s, color 0.15s; }
 .fl-teaser:hover, .fl-teaser:focus { background:#0f6b3f; outline:none; }
 .fl-teaser:hover b, .fl-teaser:focus b { color:#fff !important; }
 .service-btn:has(.fl-teaser:hover) { transform:none !important;
@@ -11429,7 +11433,7 @@ async function submitContactForm() {
   if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
     // Dev mode — simulate success
     if (btn) { btn.textContent = '📤 שלח הודעה'; btn.disabled = false; }
-    showCfMsg('✅ ההודעה נשלחה! (מצב פיתוח — יש להגדיר EmailJS)', true);
+    showCfMsg('✅ ההודעה התקבלה! (מצב פיתוח — יש להגדיר EmailJS)', true);
     return;
   }
 
@@ -11463,7 +11467,12 @@ async function submitContactForm() {
         + '<span class="close-btn" onclick="closeM(\'contactModal\')">×</span>'
         + '<div style="text-align:center;padding:20px 0;">'
         + '<div style="font-size:3rem;margin-bottom:12px;">✅</div>'
-        + '<div style="font-weight:bold;font-size:1.1rem;margin-bottom:8px;">ההודעה נשלחה בהצלחה!</div>'
+        // "Sent successfully" is a claim about the post, and we cannot see
+        // the post. EmailJS accepted the message; whether its mail service
+        // then delivered it is a separate matter that has already failed
+        // once silently. What we DO know is that the message reached us,
+        // so that is what it says.
+        + '<div style="font-weight:bold;font-size:1.1rem;margin-bottom:8px;">ההודעה התקבלה!</div>'
         + '<div style="font-size:0.88rem;color:#666;margin-bottom:24px;">נחזור אליך בהקדם.</div>'
         + '<button onclick="resetContactForm()" style="padding:10px 24px;background:#1a3a6c;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-weight:bold;">📤 שלח הודעה נוספת</button>'
         + '</div>';
