@@ -11311,12 +11311,16 @@ async function loadTexts() {
 // ── צור קשר — EmailJS ──
 // הוראות הגדרה:
 // 1. הירשם ב-emailjs.com (חינם עד 200 מיילים/חודש)
-// 2. צור Service (Gmail / Outlook) וקבל SERVICE_ID
+// 2. צור Service (Zoho) וקבל SERVICE_ID
 // 3. צור Template עם משתנים: {{from_name}}, {{from_email}}, {{subject}}, {{message}}
 //    ובתבנית reply_to: {{from_email}} — כך השולח מקבל CC
 // 4. החלף את הערכים למטה
 const EMAILJS_PUBLIC_KEY  = 'm1ROEZZ7XSLtH2Pb8';   // ← החלף
-const EMAILJS_SERVICE_ID  = 'service_5gwuzep';   // ← החלף
+// Zoho, not Gmail. The Gmail connection was an OAuth grant, and Google
+// revoked it: EmailJS reported it had failed to send three times in a
+// row and the contact form went quiet. Zoho authenticates with an app
+// password, which does not expire on its own.
+const EMAILJS_SERVICE_ID  = 'service_s4q8qb9';
 const EMAILJS_TEMPLATE_ID = 'template_m32nf8s';  // ← החלף
 
 function showCfMsg(text, ok) {
