@@ -13726,6 +13726,55 @@ function switchAdminTab(tab) {
         openM('adminModal');
     }
 
+// The users tab was a placeholder reading "full user management will need
+// Supabase". Supabase has been there all along - this is one query. Shown
+// are the fields needed to manage people: who they are, what level they
+// ski, who is an admin, when they joined. NOT their addresses: this panel
+// is client-side, and an email list on a page is an email list.
+async function _admRenderUsers() {
+    var host = document.getElementById('admin-users-list');
+    if (!host) return;
+    host.innerHTML = '<div style="color:#aaa;font-size:0.82rem;text-align:center;' +
+        'padding:20px;">טוען…</div>';
+    var rows;
+    try {
+        rows = await sbFetch('profiles?select=username,level,discipline,is_admin,created_at&order=created_at.desc');
+    } catch (e) { rows = null; }
+
+    if (!Array.isArray(rows)) {
+        // "could not ask" is not "nobody registered"
+        host.innerHTML = '<div style="color:#b26a00;background:#fff8e1;border-radius:8px;' +
+            'padding:12px 14px;font-size:0.82rem;line-height:1.7;">לא הצלחנו לקרוא את ' +
+            'רשימת המשתמשים. ייתכן שאין חיבור, או שהרשאות הקריאה בטבלה חוסמות.</div>';
+        return;
+    }
+    if (!rows.length) {
+        host.innerHTML = '<div style="color:#aaa;font-size:0.82rem;text-align:center;' +
+            'padding:20px;">אין עדיין משתמשים רשומים</div>';
+        return;
+    }
+
+    var LVL = { beginner: 'מתחיל', intermediate: 'בינוני', advanced: 'מתקדם', expert: 'מומחה' };
+    host.innerHTML =
+        '<div style="font-size:0.78rem;color:#888;margin-bottom:8px;">' +
+          rows.length + ' משתמשים רשומים</div>' +
+        rows.map(function (u) {
+            var when = u.created_at ? String(u.created_at).slice(0, 10).split('-').reverse().join('.') : '';
+            var lvl = LVL[u.level] || u.level || '';
+            return '<div style="display:flex;align-items:center;gap:9px;padding:7px 0;' +
+              'border-bottom:1px solid #f0f0f0;font-size:0.82rem;">' +
+              '<b style="flex:1;min-width:0;color:#16314f;">' + esc(u.username || '—') + '</b>' +
+              (u.is_admin ? '<span style="flex:none;background:#4a1a6e;color:#fff;' +
+                 'border-radius:5px;padding:1px 7px;font-size:0.68rem;">מנהל</span>' : '') +
+              (lvl ? '<span style="flex:none;color:#7b8a99;font-size:0.74rem;">' +
+                 esc(lvl) + '</span>' : '') +
+              (u.discipline ? '<span style="flex:none;color:#9aa5b1;font-size:0.74rem;">' +
+                 (u.discipline === 'snowboard' ? 'סנובורד' : 'סקי') + '</span>' : '') +
+              '<span style="flex:none;color:#b0bac6;font-size:0.72rem;">' + esc(when) + '</span>' +
+              '</div>';
+        }).join('');
+}
+
     async function _admCountUsers() {
         const el = document.getElementById('stat-users');
         if (!el) return;
@@ -13796,8 +13845,7 @@ function switchAdminTab(tab) {
         ).join('') || '<div style="color:#aaa;">אין פוסטים</div>';
 
         // משתמשים
-        document.getElementById('admin-users-list').innerHTML =
-            '<div style="color:#aaa;font-size:0.82rem;text-align:center;padding:20px;">יצטרך Supabase לניהול משתמשים מלא</div>';
+        _admRenderUsers();
 
         // מערכת
         document.getElementById('admin-system-status').innerHTML = `
