@@ -8639,7 +8639,7 @@ async function showUserInfo(username) {
   let profile = null;
   if (USE_SUPABASE) {
     try {
-      const { data } = await _sb.from('profiles')
+      const { data } = await _sb.from('profiles_public')
         .select('username, level, discipline, visits, bio, avatar_url, created_at')
         .eq('username', username)
         .single();
@@ -8720,8 +8720,11 @@ function getSB() { return _sb; }
 async function supabaseRegister(username, email, password) {
   const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
   // בדוק שהשם לא תפוס
-  const { data: existing } = await sb.from('profiles').select('id').eq('username', username).single();
-  if (existing) return { error: 'שם משתמש זה כבר תפוס — בחר שם אחר' };
+  // Before this, the page asked the profiles table directly - and a query
+  // that works before anyone signs in is a query anyone can run, on every
+  // row. These three now go through functions that answer about ONE name.
+  const { data: taken } = await sb.rpc('cl_username_taken', { p_username: username });
+  if (taken) return { error: 'שם משתמש זה כבר תפוס — בחר שם אחר' };
   // צור מייל פנימי ייחודי
   const rand = Math.floor(Math.random() * 900000) + 100000;
   const base = username.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -8734,13 +8737,12 @@ async function supabaseRegister(username, email, password) {
   if (error) return { error: error.message };
   // שמור מייל אמיתי ומייל פנימי בפרופיל
   if (data.user) {
-    await sb.from('profiles').upsert({
-      id: data.user.id,
-      username,
-      email,
-      internal_email: internalEmail,
-      created_at: new Date().toISOString()
+    // Written by the server, not by the client: the browser has no
+    // permission to touch internal_email, and must not have one.
+    const { error: perr } = await sb.rpc('cl_register_profile', {
+      p_username: username, p_email: email, p_internal: internalEmail
     });
+    if (perr) console.warn('cl_register_profile:', perr.message);
   }
   return { data };
 }
@@ -8748,16 +8750,17 @@ async function supabaseRegister(username, email, password) {
 async function supabaseLogin(username, password) {
   const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
   // מצא את המייל הפנימי מהפרופיל
-  const { data: prof } = await sb.from('profiles').select('internal_email').eq('username', username).single();
-  if (!prof || !prof.internal_email) return { error: 'שם משתמש לא קיים במערכת' };
-  const { data, error } = await sb.auth.signInWithPassword({ email: prof.internal_email, password });
+  const { data: internalEmail } = await sb.rpc('cl_login_email', { p_username: username });
+  if (!internalEmail) return { error: 'שם משתמש לא קיים במערכת' };
+  const { data, error } = await sb.auth.signInWithPassword({ email: internalEmail, password });
   if (error) return { error: 'שם משתמש או סיסמא שגויים' };
   return { data };
 }
 
 async function supabaseSendPasswordReset(username) {
   const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
-  const { data: prof } = await sb.from('profiles').select('email, internal_email').eq('username', username).single();
+  const { data: rows } = await sb.rpc('cl_reset_email', { p_username: username });
+  const prof = Array.isArray(rows) ? rows[0] : rows;
   if (!prof) return { error: 'שם משתמש לא קיים במערכת' };
   if (!prof.email) return { error: 'לחשבון זה לא רשום מייל אמיתי — פנה למנהל האתר' };
   const { error } = await sb.auth.resetPasswordForEmail(prof.email, {
@@ -12894,6 +12897,23 @@ function isMine(item) {
 }
 
 // ── Forum Supabase REST ──
+// sbFetch below speaks with the publishable key, which every visitor holds.
+// Anything the server must decide per PERSON - who may read the registered
+// users and their addresses - has to arrive with that person's own token,
+// or RLS has nobody to judge. That is what this one is for.
+async function sbFetchAuth(path, opts) {
+  const token = await getAuthToken();
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+               'Accept': 'application/json', 'Content-Type': 'application/json',
+               ...(opts && opts.headers) },
+    ...opts
+  });
+  if (!res.ok) { console.warn('sbFetchAuth error', res.status, path); return null; }
+  const ct = res.headers.get('content-type') || '';
+  return ct.includes('json') ? res.json() : null;
+}
+
 async function sbFetch(path, opts) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Accept': 'application/json', 'Content-Type': 'application/json', ...(opts && opts.headers) },
@@ -12911,7 +12931,7 @@ async function sbFetch(path, opts) {
 var FORUM_AVATARS = {};
 async function loadForumAvatars() {
   try {
-    const rows = await sbFetch('profiles?select=username,avatar_url');
+    const rows = await sbFetch('profiles_public?select=username,avatar_url');
     if (!rows) return;
     const map = {};
     rows.forEach(function (r) { if (r.username) map[r.username] = r.avatar_url || null; });
@@ -13734,11 +13754,20 @@ function switchAdminTab(tab) {
 async function _admRenderUsers() {
     var host = document.getElementById('admin-users-list');
     if (!host) return;
+    // Addresses are in this list, so it is read with the signed-in person's
+    // own token and not with the key printed in the page. The check below is
+    // only courtesy - the one that counts runs in the database, and a
+    // stranger calling this gets nothing back whatever the page thinks.
+    if (!user || !user.isAdmin) {
+        host.innerHTML = '<div style="color:#7b8a99;font-size:0.82rem;text-align:center;' +
+            'padding:20px;">רשימת המשתמשים זמינה למנהלים בלבד</div>';
+        return;
+    }
     host.innerHTML = '<div style="color:#aaa;font-size:0.82rem;text-align:center;' +
         'padding:20px;">טוען…</div>';
     var rows;
     try {
-        rows = await sbFetch('profiles?select=username,level,discipline,is_admin,created_at&order=created_at.desc');
+        rows = await sbFetchAuth('profiles?select=username,email,level,discipline,is_admin,created_at&order=created_at.desc');
     } catch (e) { rows = null; }
 
     if (!Array.isArray(rows)) {
@@ -13761,9 +13790,17 @@ async function _admRenderUsers() {
         rows.map(function (u) {
             var when = u.created_at ? String(u.created_at).slice(0, 10).split('-').reverse().join('.') : '';
             var lvl = LVL[u.level] || u.level || '';
+            var mail = u.email
+              ? '<a href="mailto:' + esc(u.email) + '" dir="ltr" style="display:block;' +
+                'color:#1a73e8;text-decoration:none;font-size:0.72rem;' +
+                'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+                esc(u.email) + '</a>'
+              : '<span style="display:block;color:#c3ccd6;font-size:0.72rem;">אין מייל רשום</span>';
             return '<div style="display:flex;align-items:center;gap:9px;padding:7px 0;' +
               'border-bottom:1px solid #f0f0f0;font-size:0.82rem;">' +
-              '<b style="flex:1;min-width:0;color:#16314f;">' + esc(u.username || '—') + '</b>' +
+              '<span style="flex:1;min-width:0;">' +
+                '<b style="color:#16314f;">' + esc(u.username || '—') + '</b>' + mail +
+              '</span>' +
               (u.is_admin ? '<span style="flex:none;background:#4a1a6e;color:#fff;' +
                  'border-radius:5px;padding:1px 7px;font-size:0.68rem;">מנהל</span>' : '') +
               (lvl ? '<span style="flex:none;color:#7b8a99;font-size:0.74rem;">' +
@@ -13779,7 +13816,7 @@ async function _admRenderUsers() {
         const el = document.getElementById('stat-users');
         if (!el) return;
         try {
-            const rows = await sbFetch('profiles?select=id');
+            const rows = await sbFetch('profiles_public?select=id');
             el.textContent = Array.isArray(rows) ? rows.length : '—';
         } catch (e) {
             console.warn('user count failed:', e);
