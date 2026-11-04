@@ -2461,6 +2461,131 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── a pasted picture becomes an attachment ────────────────────────────
+// Ctrl+V on a screenshot did nothing, which reads as a broken page. The
+// picture is routed into the same file input the paperclip fills, so the
+// test is: does the input end up holding a file, and does the label say so.
+{
+  const r = await page.evaluate(async () => {
+    const ta = document.getElementById('new-post-text');
+    const fi = document.getElementById('new-post-file');
+    if (!ta || !fi) return { missing: true };
+    const out = {};
+
+    const png = new Blob([new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])],
+                         { type: 'image/png' });
+    const mk = (payload) => {
+      const dt = new DataTransfer();
+      if (payload === 'image') dt.items.add(new File([png], 'x.png', { type: 'image/png' }));
+      else dt.setData('text/plain', 'שלום');
+      return new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true });
+    };
+
+    // a picture, pasted into the post box
+    const ev = mk('image');
+    ta.dispatchEvent(ev);
+    await new Promise(r2 => setTimeout(r2, 30));
+    out.attached  = !!(fi.files && fi.files.length);
+    out.fileName  = fi.files && fi.files[0] ? fi.files[0].name : '';
+    out.fileType  = fi.files && fi.files[0] ? fi.files[0].type : '';
+    out.label     = (document.getElementById('new-post-file-name') || {}).textContent || '';
+    out.swallowed = ev.defaultPrevented;
+
+    // plain text must paste as text, as it always did
+    fi.value = '';
+    const ev2 = mk('text');
+    ta.dispatchEvent(ev2);
+    await new Promise(r2 => setTimeout(r2, 20));
+    out.textUntouched = !ev2.defaultPrevented && !(fi.files && fi.files.length);
+
+    // and a paste anywhere else must not reach into the forum's input
+    const other = document.createElement('textarea');
+    other.id = 'not-a-forum-box';
+    document.body.appendChild(other);
+    const ev3 = mk('image');
+    other.dispatchEvent(ev3);
+    await new Promise(r2 => setTimeout(r2, 20));
+    out.elsewhere = !(fi.files && fi.files.length);
+    other.remove();
+    fi.value = '';
+
+    // the name the upload will see must carry an extension the uploader allows
+    out.allowed = typeof FORUM_ALLOWED !== 'undefined' && FORUM_ALLOWED.test(out.fileName);
+    return out;
+  });
+
+  const T = 'a pasted picture becomes an attachment';
+  if (r.missing) warn(T, 'the post composer is not on the page');
+  else {
+    if (!r.attached) fail(T, 'the pasted picture never reached the file input'); else ok();
+    if (!r.swallowed) fail(T,
+      'the paste was not intercepted, so the picture also lands as junk text'); else ok();
+    if (!/^image\//.test(r.fileType)) fail(T,
+      `the attached file is "${r.fileType}" and not an image`); else ok();
+    if (!r.allowed) fail(T,
+      `the pasted file is named "${r.fileName}", which the uploader refuses`); else ok();
+    if (!r.label) fail(T,
+      'nothing on screen says a file is attached, so the writer cannot tell'); else ok();
+    if (!r.textUntouched) fail(T,
+      'pasting text now attaches a file or is swallowed'); else ok();
+    if (!r.elsewhere) fail(T,
+      'a paste outside the forum fills the forum attachment'); else ok();
+  }
+}
+
+// ── the password rule says what it actually enforces ──────────────────
+// The field said "at least 6 characters in English" while digits and
+// symbols were always accepted, and nothing told the writer that a capital
+// and a symbol are worth having. A rule that misstates itself teaches
+// people to ignore it.
+{
+  const r = await page.evaluate(async () => {
+    const inp = document.getElementById('reg-pass');
+    const msg = document.getElementById('pass-validity-msg');
+    if (!inp || !msg || typeof checkPassValidity !== 'function') return { missing: true };
+    const out = { placeholder: inp.getAttribute('placeholder') || '' };
+    const say = (v) => { inp.value = v; checkPassValidity(); return msg.textContent || ''; };
+    out.short  = say('abc');
+    out.hebrew = say('סיסמא123');
+    out.digits = say('123456');       // digits only - allowed, and must be ACCEPTED
+    out.weak   = say('abcdef');
+    out.strong = say('Abcdef!');
+    inp.value = ''; checkPassValidity();
+    return out;
+  });
+
+  const T = 'the password rule says what it actually enforces';
+  if (r.missing) warn(T, 'the registration password field is not on the page');
+  else {
+    if (/באנגלית/.test(r.placeholder)) fail(T,
+      `the field still says "${r.placeholder}" - digits and symbols are accepted too`); else ok();
+    if (!/6/.test(r.placeholder)) fail(T,
+      'the field no longer states the one rule there is'); else ok();
+    if (!/6 תווים/.test(r.short)) fail(T,
+      `three characters are answered with "${r.short}"`); else ok();
+    if (!/עברית/.test(r.hebrew)) fail(T,
+      'a Hebrew password is not caught, and signing in will fail later'); else ok();
+    if (/⚠️|❌/.test(r.digits)) fail(T,
+      `six digits are refused ("${r.digits}") though the code accepts them`); else ok();
+    if (!/מומלץ/.test(r.weak)) fail(T,
+      `a valid but plain password says "${r.weak}" and recommends nothing`); else ok();
+    if (/מומלץ/.test(r.strong) || !/✅/.test(r.strong)) fail(T,
+      `a password that already has a capital and a symbol is still nagged: "${r.strong}"`); else ok();
+  }
+}
+
+// ── the way in says it is also the way to join ────────────────────────
+{
+  const r = await page.evaluate(() => {
+    const src = document.documentElement.innerHTML;
+    return { label: /כניסה \/ הרשמה/.test(src) };
+  });
+  const T = 'the way in says it is also the way to join';
+  if (!r.label) fail(T,
+    'the header button says only "כניסה", so there is nothing telling a ' +
+    'first-time visitor where to register'); else ok();
+}
+
 // ── the users tab lists the users ─────────────────────────────────────
 // This tab was never built: it held a fixed line of text saying "full user
 // management will need Supabase", and Supabase has been wired in the whole
