@@ -182,6 +182,14 @@ input[type=file] { display: none !important; }
    colour they paint cannot be overridden with background-color, only covered
    by a very large inset shadow. The field sits in a dark header, so it also
    has to keep its white text. */
+/* a contenteditable box has no placeholder of its own */
+[contenteditable][data-ph]:empty:before {
+  content: attr(data-ph);
+  color: #aaa;
+  pointer-events: none;
+}
+#global-search-input[data-ph]:empty:before { color: rgba(255,255,255,0.6); }
+
 #global-search-input:-webkit-autofill,
 #global-search-input:-webkit-autofill:hover,
 #global-search-input:-webkit-autofill:focus,
@@ -884,17 +892,23 @@ details.fold > .fold-body { padding: 0 13px 12px; }
                not offer anything on a readonly field, and the attribute is
                dropped the moment the reader focuses it, before a key can be
                pressed. -->
-          <input id="global-search-input" type="search" name="cl-site-search" readonly
-            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-            data-lpignore="true" data-1p-ignore data-form-type="other"
-            aria-label="חיפוש באתר" placeholder="חיפוש..."
-            onfocus="this.removeAttribute('readonly');this.style.width='230px'"
-            onpointerdown="this.removeAttribute('readonly')"
-            oninput="globalSearch(this.value)"
-            style="background:none;border:none;outline:none;color:white;font-size:0.85rem;width:150px;direction:rtl;transition:width 0.15s;"
-            onblur="this.setAttribute('readonly','readonly');if(!this.value)this.style.width='150px'">
+          <!-- Not an <input>. Every hint there is was already on this field -
+               autocomplete="off", a name with no "user" in it, the readonly
+               trick - and Chrome went on offering the saved username and
+               password on it, because those are hints and the password
+               manager is entitled to ignore them. It does not offer anything
+               on an element that is not a form control at all. -->
+          <div id="global-search-input" contenteditable="true" role="searchbox"
+            spellcheck="false" aria-label="חיפוש באתר" data-ph="חיפוש..."
+            oninput="globalSearch(this.textContent)"
+            onfocus="this.style.width='230px'"
+            onblur="if(!this.textContent)this.style.width='150px'"
+            style="background:none;border:none;outline:none;color:white;font-size:0.85rem;width:150px;direction:rtl;transition:width 0.15s;white-space:nowrap;overflow:hidden;min-height:1.25em;line-height:1.25;"></div>
         </div>
-        <div id="global-search-results" style="display:none;position:absolute;z-index:9999;top:calc(100% + 6px);right:0;min-width:250px;background:white;border:1px solid #ddd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-height:320px;overflow-y:auto;"></div>
+        <!-- color is set here on purpose: this box hangs inside the dark
+             header, which colours its text white, and white on white is the
+             empty-looking dropdown this used to be. -->
+        <div id="global-search-results" style="display:none;position:absolute;z-index:9999;top:calc(100% + 6px);right:0;min-width:250px;max-width:min(92vw,380px);background:white;color:#16314f;border:1px solid #ddd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-height:320px;overflow-y:auto;text-align:right;direction:rtl;"></div>
       </div>
     </div>
 
@@ -1202,7 +1216,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="filter-area"></div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
-      <input id="search-input" type="text" autocomplete="off" name="forum-search-x" placeholder="חפש בפורום..." style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;">
+      <div id="search-input" contenteditable="true" role="searchbox" spellcheck="false"
+        aria-label="חיפוש בפורום" data-ph="חפש בפורום..."
+        style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;background:white;color:#333;white-space:nowrap;overflow:hidden;min-height:1.3em;line-height:1.3;"></div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:0.82rem;color:#888;white-space:nowrap;">מיון לפי:</span>
         <select id="forum-sort" onchange="filterPosts()" style="padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;color:#555;background:white;">
@@ -2910,6 +2926,24 @@ details.fold > .fold-body { padding: 0 13px 12px; }
                     <div style="font-size:0.7rem;color:#999;margin-top:7px;line-height:1.6;">
                         העריכה נשמרת אוטומטית בדפדפן הזה. הייצוא בודק את הקובץ לפני ההורדה ולא ייתן להוריד קובץ שבור.
                     </div>
+                </div>
+
+                <!-- קטגוריות הביקורות -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:4px;">⭐ קטגוריות הביקורות</div>
+                    <div style="font-size:0.7rem;color:#999;margin-bottom:9px;line-height:1.6;">
+                        הקטגוריות שהגולש בוחר מהן כשהוא כותב ביקורת. אפשר להוסיף אימוג'י בתחילת השם.
+                        "אחר" נוסף תמיד בסוף ואי אפשר למחוק אותו.
+                    </div>
+                    <div id="rc-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+                    <div style="display:flex;gap:7px;">
+                        <input id="rc-new" type="text" placeholder="קטגוריה חדשה — למשל 🎿 ציוד" dir="rtl"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();RC.add();}"
+                            style="flex:1;box-sizing:border-box;padding:9px 11px;border:1px solid #ddd;border-radius:9px;font-size:0.84rem;font-family:inherit;">
+                        <button onclick="RC.add()" style="padding:9px 16px;background:#eef3fb;color:#1a73e8;border:1px solid #cfe0f6;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;">הוספה</button>
+                    </div>
+                    <button onclick="RC.save(this)" style="width:100%;margin-top:9px;padding:10px;background:#0a7d4b;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;">שמירה</button>
+                    <div id="rc-msg" style="display:none;margin-top:9px;padding:9px 11px;border-radius:8px;font-size:0.8rem;line-height:1.6;"></div>
                 </div>
 
                 <!-- בדיקה עצמית -->
@@ -8208,7 +8242,26 @@ const REVIEWS_KEY = 'skiReviews';          // offline mirror only
 // No food category, on purpose. There is no kosher eating in Cervinia
 // itself, so a restaurants tab here would only collect reviews of places
 // this site's readers cannot use.
-const REVIEW_CATS = ['🏨 לינה','⛷️ מסלולים','🚡 רכבלים','👶 ילדים','🌤️ תנאים'];
+// The five categories were a constant in the code, so a reader whose
+// subject was not one of them had nowhere to put it - and nothing in the
+// list could ever change without a new upload. They are data now: the
+// defaults below, whatever the admin saved over them, and "other" always
+// last, because a closed list of five is a list that turns people away.
+const REVIEW_CATS_DEFAULT = ['🏨 לינה','⛷️ מסלולים','🚡 רכבלים','👶 ילדים','🌤️ תנאים',
+                             '🍽️ אוכל כשר','🎫 סקי פס','🚗 הגעה וחניה','🏫 הדרכה'];
+const REVIEW_CAT_OTHER = '💬 אחר';
+var REVIEW_CATS = REVIEW_CATS_DEFAULT.concat([REVIEW_CAT_OTHER]);
+
+// "other" is appended, never stored: an admin who deletes every category
+// still leaves the reader somewhere to write.
+function _setReviewCats(list) {
+  var clean = (list || []).map(function (c) { return String(c || '').trim(); })
+                          .filter(Boolean)
+                          .filter(function (c) { return c !== REVIEW_CAT_OTHER; });
+  var seen = {}, uniq = [];
+  clean.forEach(function (c) { if (!seen[c]) { seen[c] = 1; uniq.push(c); } });
+  REVIEW_CATS = (uniq.length ? uniq : REVIEW_CATS_DEFAULT).concat([REVIEW_CAT_OTHER]);
+}
 
 var _reviews = [];
 var _reviewsOnline = false;
@@ -8323,8 +8376,94 @@ function renderReviewWriteArea() {
     // text
     + '<textarea id="review-text" rows="3" placeholder="ספר על החוויה שלך..." style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;direction:rtl;resize:none;font-family:inherit;margin-bottom:10px;"></textarea>'
     + '<button onclick="submitReview()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">⭐ פרסם ביקורת</button>'
+    // A browser alert says "cervinialive.co.il says" above it and puts an OK
+    // button under it. It is the browser talking, not the site, and it looks
+    // it. The message belongs on the page, next to what it is about.
+    + '<div id="review-msg" style="display:none;margin-top:9px;padding:8px 11px;'
+    + 'border-radius:8px;font-size:0.83rem;line-height:1.6;"></div>'
     + '</div>';
 }
+
+// ── עריכת קטגוריות הביקורות, מלוח הבקרה ─────────────────────────────
+// The list lives in the settings row, which only an admin may update - the
+// policy decides that, not this panel. "Other" is never part of what gets
+// saved; it is added back on read, so no edit here can leave a reader with
+// nowhere to put his review.
+var RC = {
+  draft: null,
+  open: function () {
+    RC.draft = REVIEW_CATS.filter(function (c) { return c !== REVIEW_CAT_OTHER; });
+    RC.render();
+  },
+  render: function () {
+    var host = document.getElementById('rc-list');
+    if (!host) return;
+    if (!RC.draft) RC.open();
+    host.innerHTML = RC.draft.map(function (c, i) {
+      return '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;' +
+             'border:1.5px solid #ddd;border-radius:20px;font-size:0.8rem;background:#fff;">' +
+             esc(c) +
+             '<button onclick="RC.remove(' + i + ')" title="הסרה" style="border:none;background:none;' +
+             'color:#c0392b;cursor:pointer;font-size:0.9rem;line-height:1;padding:0;">×</button></span>';
+    }).join('') +
+    '<span style="display:inline-flex;align-items:center;padding:5px 10px;border:1.5px dashed #ccc;' +
+    'border-radius:20px;font-size:0.8rem;color:#888;">' + esc(REVIEW_CAT_OTHER) + ' · קבוע</span>';
+  },
+  add: function () {
+    var inp = document.getElementById('rc-new');
+    var v = (inp && inp.value || '').trim();
+    if (!v) return;
+    if (v === REVIEW_CAT_OTHER) { RC.msg('"אחר" נוסף תמיד ממילא', true); return; }
+    if (!RC.draft) RC.open();
+    if (RC.draft.indexOf(v) !== -1) { RC.msg('הקטגוריה כבר ברשימה', true); return; }
+    RC.draft.push(v);
+    if (inp) inp.value = '';
+    RC.msg('');
+    RC.render();
+  },
+  remove: function (i) { if (RC.draft) { RC.draft.splice(i, 1); RC.render(); } },
+  msg: function (text, bad) {
+    var el = document.getElementById('rc-msg');
+    if (!el) return;
+    if (!text) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.textContent = text;
+    el.style.background = bad ? '#fff3f3' : '#eefaf0';
+    el.style.color = bad ? '#c0392b' : '#217a44';
+  },
+  save: async function (btn) {
+    if (!RC.draft) RC.open();
+    var was = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'שומר…'; }
+    try {
+      var token = await getAuthToken();
+      var res = await fetch(SUPABASE_URL + '/rest/v1/settings?id=eq.1', {
+        method: 'PATCH',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+                   'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ review_cats: JSON.stringify(RC.draft) })
+      });
+      if (!res.ok) {
+        var txt = await res.text().catch(function () { return ''; });
+        // A column that was never added is a different problem from a
+        // refusal, and sending the admin to check permissions over a
+        // missing column wastes his evening.
+        RC.msg(/review_cats/.test(txt)
+          ? 'העמודה review_cats חסרה בטבלת settings. יש להריץ את ה-SQL שצורף.'
+          : 'השמירה נדחתה. ודאו שאתם מחוברים כמנהל.', true);
+        return;
+      }
+      _setReviewCats(RC.draft);
+      renderReviewWriteArea();
+      renderReviews();
+      RC.msg('נשמר. הקטגוריות החדשות כבר באתר.');
+    } catch (e) {
+      RC.msg('השמירה נכשלה. בדקו את החיבור.', true);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = was; }
+    }
+  }
+};
 
 function renderCatChips() {
   document.querySelectorAll('input[name="rev-cat"]').forEach(function(inp) {
@@ -8336,15 +8475,27 @@ function renderCatChips() {
   });
 }
 
+function reviewMsg(text, bad) {
+  const el = document.getElementById('review-msg');
+  if (!el) return;
+  if (!text) { el.style.display = 'none'; el.textContent = ''; return; }
+  el.style.display = 'block';
+  el.textContent = text;
+  el.style.background = bad ? '#fff3f3' : '#eefaf0';
+  el.style.border = '1px solid ' + (bad ? '#f0c6c6' : '#c6e8d0');
+  el.style.color = bad ? '#c0392b' : '#217a44';
+}
+
 async function submitReview() {
   const text = (document.getElementById('review-text')?.value || '').trim();
-  if (!reviewDraft.rating) { alert('בחר דירוג בכוכבים'); return; }
-  if (!reviewDraft.cat)    { alert('בחר קטגוריה'); return; }
-  if (text.length < 2)     { alert('כתוב ביקורת קצרה'); return; }
-  if (text.length > 1000)  { alert('הביקורת ארוכה מדי (עד 1000 תווים)'); return; }
+  reviewMsg('');
+  if (!reviewDraft.cat)    { reviewMsg('בחרו קטגוריה — באיזה נושא הביקורת?', true); return; }
+  if (!reviewDraft.rating) { reviewMsg('בחרו דירוג בכוכבים', true); return; }
+  if (text.length < 2)     { reviewMsg('כתבו משפט אחד לפחות', true); return; }
+  if (text.length > 1000)  { reviewMsg('הביקורת ארוכה מדי — עד 1000 תווים', true); return; }
 
   const sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
-  if (!sb || !user || !user.sbId) { alert('צריך להיות מחובר כדי לפרסם ביקורת'); return; }
+  if (!sb || !user || !user.sbId) { reviewMsg('צריך להיות מחובר כדי לפרסם ביקורת', true); return; }
 
   try {
     const res = await sb.from('reviews').insert({
@@ -8359,7 +8510,7 @@ async function submitReview() {
     renderReviews();
     renderReviewWriteArea();
   } catch (e) {
-    alert('הפרסום נכשל. בדוק חיבור ונסה שוב.');
+    reviewMsg('הפרסום נכשל. בדקו את החיבור ונסו שוב.', true);
   }
 }
 
@@ -12394,12 +12545,22 @@ var _logoTapCount = 0;
 
 async function _loadSeasonMode() {
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/settings?select=season_mode&id=eq.1', {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/settings?select=season_mode,review_cats&id=eq.1', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
     });
     const data = await res.json();
     if (data && data[0]) {
       _seasonOverride = data[0].season_mode || 'auto';
+      // The column may not exist yet on an older database; a missing value
+      // leaves the defaults standing rather than emptying the list.
+      if (data[0].review_cats) {
+        try { _setReviewCats(JSON.parse(data[0].review_cats)); }
+        catch (e) { console.warn('review_cats is not valid JSON'); }
+      }
+      if (typeof renderReviewWriteArea === 'function' &&
+          document.getElementById('review-write-area')) {
+        renderReviewWriteArea(); renderReviews();
+      }
     }
   } catch(e) {
     console.warn('Could not load season mode:', e.message);
@@ -13154,6 +13315,38 @@ const SEARCH_INDEX = [
   { text: "למה cervinia יתרונות", action: "openM('whyModal')", icon: "🏔️", label: "למה צ'רוויניה?" },
 ];
 
+// The rest of the page reads these boxes as if they were inputs - and so
+// does the forum's own filter, in half a dozen places. Rather than rewrite
+// every call site, the box is given the one property they all use.
+function _asTextBox(el) {
+  if (!el || el._isTextBox) return;
+  el._isTextBox = true;
+  Object.defineProperty(el, 'value', {
+    configurable: true,
+    get: function () { return el.textContent || ''; },
+    set: function (v) { el.textContent = (v == null) ? '' : String(v); }
+  });
+  // A line break inside a one-line box is a scrollbar nobody asked for.
+  el.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') e.preventDefault();
+  });
+  // Pasting from a web page otherwise brings its markup along, colours and
+  // all, straight into the search box.
+  el.addEventListener('paste', function (e) {
+    e.preventDefault();
+    var t = (e.clipboardData || window.clipboardData).getData('text') || '';
+    document.execCommand('insertText', false, t.replace(/\s+/g, ' '));
+  });
+}
+
+function _wireTextBoxes() {
+  _asTextBox(document.getElementById('global-search-input'));
+  _asTextBox(document.getElementById('search-input'));
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _wireTextBoxes);
+} else { _wireTextBoxes(); }
+
 function closeGlobalSearch() {
   var inp = document.getElementById('global-search-input');
   var box = document.getElementById('global-search-results');
@@ -13161,13 +13354,74 @@ function closeGlobalSearch() {
   if (box) box.style.display = 'none';
 }
 
+// What the panels actually say. SEARCH_INDEX is twenty-one hand-written
+// rows - the buttons, in other words - so searching for a word that lives
+// INSIDE a panel ("après ski", "הכפר") found nothing, while the answer was
+// sitting two clicks away. This reads the panels themselves.
+//
+// Built on first use, not at startup: the panels are filled from texts.json
+// after the page loads, and an index built too early is an index of empty
+// boxes.
+var _PANEL_TEXT = null;
+function _panelTextIndex(force) {
+  if (_PANEL_TEXT && !force) return _PANEL_TEXT;
+  var out = [];
+  for (var key in PANEL_LINKS) {
+    var id = PANEL_LINKS[key];
+    var m = document.getElementById(id);
+    if (!m) continue;
+    var h = m.querySelector('h3, h2');
+    var title = ((h && h.textContent) || '').replace(/\s+/g, ' ').trim();
+    var text = (m.textContent || '').replace(/\s+/g, ' ').trim();
+    if (text.length < 20) continue;
+    out.push({ id: id, title: title || id, text: text, low: text.toLowerCase() });
+  }
+  _PANEL_TEXT = out;
+  return out;
+}
+
+// The match itself, with enough either side to recognise it. A result that
+// shows the first fifty characters of a panel tells the reader nothing
+// about why it matched.
+function _searchSnippet(text, q) {
+  var i = text.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return text.slice(0, 70).trim() + '…';
+  var from = Math.max(0, i - 28);
+  var cut = text.slice(from, from + 90).trim();
+  return (from > 0 ? '…' : '') + cut + (from + 90 < text.length ? '…' : '');
+}
+function _titleIcon(title) {
+  var m = String(title || '').match(/^\s*([\u231A-\u27BF\uFE0F\u2600-\u26FF\uD83C-\uDBFF\uDC00-\uDFFF]+)/);
+  return m ? m[1] : '📄';
+}
+
 function globalSearch(q) {
   const box = document.getElementById('global-search-results');
+  q = String(q || '').trim();
   if (!q || q.length < 2) { box.style.display = 'none'; return; }
   const ql = q.toLowerCase();
   const indexResults = SEARCH_INDEX.filter(item =>
     item.text.includes(ql) || item.label.includes(q)
   ).map(item => ({ icon: item.icon, label: esc(item.label), action: item.action }));
+
+  // panels whose CONTENT matches, minus the ones already listed above
+  const already = {};
+  indexResults.forEach(function (r) {
+    var m = /openM\('([^']+)'\)/.exec(r.action || '');
+    if (m) already[m[1]] = 1;
+  });
+  const panelResults = _panelTextIndex()
+    .filter(function (p) { return !already[p.id] && p.low.indexOf(ql) !== -1; })
+    .slice(0, 5)
+    .map(function (p) {
+      return {
+        icon: _titleIcon(p.title),
+        label: '<b>' + esc(p.title.replace(/^\s*\S*\s*/, '').trim() || p.title) + '</b>' +
+               '<div style="color:#8a949f;font-size:0.78rem;white-space:normal;' +
+               'line-height:1.5;margin-top:2px;">' + esc(_searchSnippet(p.text, q)) + '</div>',
+        action: "openM('" + escJs(p.id) + "')"
+      };
+    });
   // A post's text is HTML. Slicing it at fifty characters cuts through a
   // tag as often as not, and the broken tag then swallows the rest of the
   // row - which is the blank white box this dropdown has been showing. The
@@ -13187,16 +13441,16 @@ function globalSearch(q) {
       action: "peekOpenPost('" + escJs(String(p.id)) + "')"
     };
   });
-  const results = [...indexResults, ...postResults];
+  const results = [...indexResults, ...panelResults, ...postResults];
   if (!results.length) {
     box.innerHTML = '<div style="padding:12px 16px;color:#aaa;font-size:0.85rem;">אין תוצאות</div>';
   } else {
     box.innerHTML = results.map(function(r) {
       return '<div onclick="' + r.action + ';closeGlobalSearch()"'
-        + ' style="display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.88rem;"'
+        + ' style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.88rem;color:#16314f;"'
         + ' onmouseover="this.style.background=\'#f5f8ff\'" onmouseout="this.style.background=\'\'">'
-        + '<span style="font-size:1.1rem;">' + r.icon + '</span>'
-        + '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
+        + '<span style="font-size:1.1rem;flex:none;">' + r.icon + '</span>'
+        + '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;">'
         + r.label + '</span>'
         + '</div>';
     }).join('');
@@ -13256,8 +13510,12 @@ function renderFilterChips() {
   ).join('');
   const si = document.getElementById('search-input');
   if (si) {
+    _asTextBox(si);                 // the box is a div now; this gives it .value
     si.value = '';   // הדפדפן משחזר ערכים ברענון — ללא זה נוצר סינון נסתר
-    si.addEventListener('input', function(e){ filterPosts(e.target.value); });
+    if (!si._filterWired) {
+      si._filterWired = true;       // renderFilterChips runs more than once
+      si.addEventListener('input', function (e) { filterPosts(e.target.value); });
+    }
   }
   document.querySelectorAll('.filter-chip input:checked').forEach(function(el){ el.checked = false; });
 }
@@ -14249,6 +14507,7 @@ function switchAdminTab(tab) {
         if (tab === 'content') {
             if (typeof CE !== 'undefined') { try { CE.open(); } catch (e) { console.warn(e); } }
             if (typeof AI !== 'undefined') { try { AI.load(); } catch (e) { console.warn(e); } }
+            if (typeof RC !== 'undefined') { try { RC.open(); } catch (e) { console.warn(e); } }
         }
         ['stats','content','users','system'].forEach(t => {
             const btn = document.getElementById('adtab-' + t);
