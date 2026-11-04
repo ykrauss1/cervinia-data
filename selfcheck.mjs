@@ -2689,6 +2689,208 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── a result says what it found, and opens at it ──────────────────────
+// The rows read "פס — צ'רוויניה" and "בצ'רוויניה": the title had its first
+// WORD stripped to drop the emoji, which ate a real word whenever the two
+// were not separated by a space. The ℹ️ in each row was the share button,
+// read out of the heading along with its text. And clicking a result
+// opened a long panel at the top, leaving the reader to find the word.
+{
+  const r = await page.evaluate(async () => {
+    if (typeof _panelTextIndex !== 'function') return { missing: true };
+    const box = document.getElementById('global-search-results');
+    const out = {};
+
+    // titles, as the rows will show them
+    const idx = _panelTextIndex(true);
+    out.titles = idx.map(p => _splitTitle(p.title).title);
+    out.icons  = idx.map(p => _splitTitle(p.title).icon);
+    out.withGlyph = out.titles.filter(t => /[✕×ℹ️🔗]/.test(t));
+    out.shortOnes = out.titles.filter(t => t.length < 4);
+
+    // a word that lives in a panel, searched for
+    const src = idx.find(p => p.text.length > 400);
+    const words = src.text.split(' ').filter(w => /^[֐-׿]{5,}$/.test(w));
+    const word = words[Math.floor(words.length / 2)] || '';
+    out.word = word;
+    globalSearch(word);
+    out.marked = /<mark class="cl-hit">/.test(box.innerHTML);
+    const row = [...box.querySelectorAll('div[onclick]')]
+      .find(x => /openPanelAtTerm/.test(x.getAttribute('onclick') || ''));
+    out.opensAtTerm = !!row;
+    out.rowTitle = row ? (row.querySelector('b') || {}).textContent || '' : '';
+
+    // and the click marks the word inside the panel and scrolls to it
+    if (row) {
+      eval(row.getAttribute('onclick').replace(';closeGlobalSearch()', ''));
+      await new Promise(r2 => setTimeout(r2, 320));
+      // scoped to the panels: the dropdown's own snippet marks the word
+      // too, and counting those made this look like a leak that was not one
+      const marks = document.querySelectorAll('.modal mark.cl-hit');
+      out.marksInPanel = marks.length;
+      out.markText = marks.length ? marks[0].textContent : '';
+      out.markHits = marks.length ? _wordHit(marks[0].textContent, word) : false;
+      // and they come off when the panel closes
+      // a hit inside a closed fold is a hit nobody sees
+      const firstMark = document.querySelector('.modal mark.cl-hit');
+      let fold = firstMark ? firstMark.parentNode : null, closedFold = false;
+      while (fold && fold.classList && !fold.classList.contains('modal')) {
+        if (fold.tagName === 'DETAILS' && !fold.open) closedFold = true;
+        fold = fold.parentNode;
+      }
+      out.closedFold = closedFold;
+
+      const openId = (typeof _openModalId !== 'undefined') ? _openModalId : '';
+      if (openId) closeM(openId);
+      out.marksAfterClose = document.querySelectorAll('.modal mark.cl-hit').length;
+    }
+    globalSearch('');
+    return out;
+  });
+
+  const T = 'a result says what it found, and opens at it';
+  if (r.missing) warn(T, 'the panel index is not on the page');
+  else {
+    if (r.withGlyph.length) fail(T,
+      `a result title carries the panel's own buttons: "${r.withGlyph[0]}"`); else ok();
+    if (r.shortOnes.length) fail(T,
+      `a title was cut down to "${r.shortOnes[0]}" - the emoji strip ate a word`); else ok();
+    if (!r.marked) fail(T,
+      'the searched word is not marked in the snippet, so the reader cannot ' +
+      'see why the row matched'); else ok();
+    if (!r.opensAtTerm) fail(T,
+      'a content hit still opens the panel at the top'); else ok();
+    if (!r.rowTitle || r.rowTitle.length < 4) fail(T,
+      `the row's title reads "${r.rowTitle}"`); else ok();
+    if (!r.marksInPanel) fail(T,
+      'opening the panel does not mark the word inside it'); else ok();
+    // not an exact string compare: the mark lands on the word AS WRITTEN -
+    // "המוצרים" for a search of "מוצרים" - and that is the point of it
+    if (r.markText && !r.markHits) fail(T,
+      `the mark landed on "${r.markText}", which is not the word searched ` +
+      `for ("${r.word}")`); else ok();
+    if (r.closedFold) fail(T,
+      'the word was marked inside a fold that is still shut, so the reader ' +
+      'lands on a panel with nothing visible'); else ok();
+    if (r.marksAfterClose) fail(T,
+      'the marks stay in the panel after it closes'); else ok();
+  }
+}
+
+// ── the search forgives how Hebrew is written ─────────────────────────
+// A literal substring match answers "מחירון" and loses "מחירונים", and
+// finds nothing at all for "מחירונ" while somebody is still typing.
+{
+  const r = await page.evaluate(() => {
+    if (typeof _wordHit !== 'function') return { missing: true };
+    const out = {};
+    out.sameWord   = _wordHit('מחירון', 'מחירון');
+    out.plural     = _wordHit('מחירונים', 'מחירון');   // the longer word is found
+    out.halfTyped  = _wordHit('מחירון', 'מחירונ');     // mid-typing
+    out.finalForm  = _wordHit('מחירון', 'מחירונ');     // ן vs נ
+    out.oneTypo    = _wordHit('מחירון', 'מחירן');      // a letter missed
+    out.notAnyTwo  = _wordHit('מחירון', 'מח');         // two letters must NOT match everything
+    out.different  = _wordHit('מסלול', 'מחירון');
+    out.latin      = _wordHit('Cervinia', 'cervin');
+    // and the whole query has to land, not just one word of it
+    out.bothWords  = _textHit('מחירון השכרה לעונה', 'מחירון השכרה');
+    out.oneMissing = _textHit('מחירון השכרה לעונה', 'מחירון חניה');
+    const hit = _firstHit('הנה המחירונים של העונה', 'מחירון');
+    out.hitWord = hit ? hit.word : '';
+    return out;
+  });
+
+  const T = 'the search forgives how Hebrew is written';
+  if (r.missing) warn(T, 'the matcher is not on the page');
+  else {
+    if (!r.sameWord) fail(T, 'a word does not match itself'); else ok();
+    if (!r.plural) fail(T,
+      'searching "מחירון" does not find "מחירונים"'); else ok();
+    if (!r.halfTyped) fail(T,
+      'a half-typed word finds nothing, so the dropdown stays empty while ' +
+      'the reader types'); else ok();
+    if (!r.oneTypo) fail(T, 'one missed letter loses the result'); else ok();
+    if (r.notAnyTwo) fail(T,
+      'two letters match a whole word - at that point every result matches'); else ok();
+    if (r.different) fail(T, 'two unrelated words match'); else ok();
+    if (!r.latin) fail(T, 'Latin text stopped matching'); else ok();
+    if (!r.bothWords) fail(T, 'a two-word query does not match'); else ok();
+    if (r.oneMissing) fail(T,
+      'a query matches when only one of its words is there'); else ok();
+    if (r.hitWord !== 'המחירונים') fail(T,
+      `the highlight lands on "${r.hitWord}" instead of the whole word`); else ok();
+  }
+}
+
+// ── writing a review, and living with it afterwards ───────────────────
+// The box sat under other people's reviews and looked like the end of the
+// last one; there was no way to correct a review once posted, and no way
+// to say anything about somebody else's.
+{
+  const r = await page.evaluate(async () => {
+    const panel = document.getElementById('reviews-panel');
+    if (!panel) return { missing: true };
+    const kids = [...panel.children].map(n => n.id);
+    const out = { order: kids };
+
+    (0, eval)("user = { name: 'בודק', sbId: 'u1', isAdmin: false }");
+    _reviews = [
+      { id: 'r1', user: 'בודק', cat: '🏨 לינה', rating: 4, text: 'דירה טובה',
+        timestamp: Date.now(), authorId: 'u1', reacts: { counts: {}, mine: {} } },
+      { id: 'r2', user: 'אחר', cat: '⛷️ מסלולים', rating: 5, text: 'מצוין',
+        timestamp: Date.now(), authorId: 'u2', reacts: { counts: { '👍': 2 }, mine: {} } }
+    ];
+    _reviewsOnline = true;
+    renderReviews();
+    const html = document.getElementById('reviews-list').innerHTML;
+    out.editOnMine   = /editReview\('r1'\)/.test(html);
+    out.editOnTheirs = /editReview\('r2'\)/.test(html);
+    out.reacts       = /reactReview\('r2','👍'\)/.test(html);
+    out.count        = /👍<span[^>]*>2</.test(html);
+
+    // the composer is a card of its own, not a white box among white boxes
+    renderReviewWriteArea();
+    const comp = document.getElementById('review-write-area').firstElementChild;
+    out.compBg = comp ? getComputedStyle(comp).backgroundColor : '';
+    out.compBorder = comp ? getComputedStyle(comp).borderTopWidth : '';
+
+    // editing opens on the card itself
+    editReview('r1');
+    const h2 = document.getElementById('reviews-list').innerHTML;
+    out.editBox = !!document.getElementById('rev-edit-text');
+    out.editText = (document.getElementById('rev-edit-text') || {}).value || '';
+    out.editCats = (h2.match(/_revEditDraft\.cat=/g) || []).length;
+    cancelEditReview();
+    out.closed = !document.getElementById('rev-edit-text');
+
+    _reviews = []; (0, eval)('user = null'); renderReviews(); renderReviewWriteArea();
+    return out;
+  });
+
+  const T = 'writing a review, and living with it afterwards';
+  if (r.missing) warn(T, 'the reviews panel is not on the page');
+  else {
+    if (r.order.indexOf('review-write-area') > r.order.indexOf('reviews-list')) fail(T,
+      'the composer still sits under the list, where it reads as the end of ' +
+      'the last review'); else ok();
+    if (!r.editOnMine) fail(T, 'there is no way to edit your own review'); else ok();
+    if (r.editOnTheirs) fail(T,
+      'the edit pencil is offered on somebody else\'s review'); else ok();
+    if (!r.reacts) fail(T, 'a review cannot be reacted to'); else ok();
+    if (!r.count) fail(T, 'the count of a reaction is not shown'); else ok();
+    if (!/rgb\(245, 249, 255\)/.test(r.compBg || '') ) fail(T,
+      `the composer has no card of its own (background ${r.compBg})`); else ok();
+    if (parseFloat(r.compBorder || '0') < 1) fail(T,
+      'the composer has no border, so it blends into the list'); else ok();
+    if (!r.editBox) fail(T, 'the edit form does not open'); else ok();
+    if (r.editText !== 'דירה טובה') fail(T,
+      `the edit form opens with "${r.editText}" instead of what was written`); else ok();
+    if (r.editCats < 5) fail(T,
+      'the edit form offers no categories to move the review to'); else ok();
+    if (!r.closed) fail(T, 'cancelling leaves the edit form open'); else ok();
+  }
+}
+
 // ── a review has somewhere to go ──────────────────────────────────────
 // Five fixed categories in the code, and a browser alert when none was
 // chosen - the one that says "cervinialive.co.il says" above it.
