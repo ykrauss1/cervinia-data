@@ -1888,7 +1888,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div style="margin-bottom:10px;">
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמא</label>
         <div style="position:relative;">
-          <input id="reg-pass" type="password" placeholder="לפחות 6 תווים באנגלית" autocomplete="new-password"
+          <input id="reg-pass" type="password" placeholder="לפחות 6 תווים — אותיות לועזיות, ספרות וסימנים" autocomplete="new-password"
             style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
             oninput="checkPassValidity()">
           <button type="button" onclick="togglePass('reg-pass')" tabindex="-1"
@@ -2893,7 +2893,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div style="padding:7px 0 0;">
         <input id="prof-pass-old" type="password" placeholder="סיסמא נוכחית"
           style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;margin-bottom:6px;font-size:0.87rem;direction:ltr;text-align:left;font-family:inherit;">
-        <input id="prof-pass-new" type="password" placeholder="סיסמא חדשה (לפחות 6 תווים באנגלית)"
+        <input id="prof-pass-new" type="password" placeholder="סיסמא חדשה — לפחות 6 תווים, לא בעברית"
           style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;font-size:0.87rem;direction:ltr;text-align:left;font-family:inherit;">
       </div>
     </details>
@@ -8814,21 +8814,28 @@ function checkPassValidity() {
   var msg = document.getElementById('pass-validity-msg');
   if (!msg) return;
   if (!p1) { msg.textContent = ''; return; }
-  // בדיקת תווים בעברית
+  // אותיות בעברית - הכשל שחוזר כשהמקלדת נשארה בעברית. הספרות והסימנים
+  // מותרים ותמיד היו, ולכן ההודעה לא אומרת עוד "באנגלית".
   if (/[\u0590-\u05FF]/.test(p1)) {
-    msg.textContent = '⚠️ הסיסמא חייבת להיות באנגלית (כיבוי מקש Caps Lock או החלפת שפה ל-EN)';
+    msg.textContent = '⚠️ אי אפשר אותיות בעברית — החלף שפה ל-EN';
     msg.style.color = '#c62828';
     return;
   }
-  // בדיקת אורך
   if (p1.length < 6) {
     msg.textContent = '⚠️ נדרשים לפחות 6 תווים (כרגע: ' + p1.length + ')';
     msg.style.color = '#c62828';
     return;
   }
-  // הכל תקין
-  msg.textContent = '✅ הסיסמא תקינה';
-  msg.style.color = '#2e7d32';
+  // מעבר לשש תווים זו כבר המלצה ולא דרישה: ההחלטה של הנרשם, אבל שיידע
+  // מה ההבדל. אין כאן חסימה, רק אמירה.
+  var strong = /[A-Z]/.test(p1) && /[^A-Za-z0-9]/.test(p1);
+  if (strong) {
+    msg.textContent = '✅ סיסמא חזקה';
+    msg.style.color = '#2e7d32';
+  } else {
+    msg.textContent = '✅ הסיסמא תקינה · מומלץ להוסיף אות גדולה וסימן כמו ! או #';
+    msg.style.color = '#2e7d32';
+  }
   // נבדוק שוב את ההתאמה אם כבר הקלידו אימות
   checkPassMatch();
 }
@@ -12787,7 +12794,7 @@ function renderPostBtn() {
   if (user) {
     area.innerHTML = `<button onclick="showNewPost()" style="padding:12px 28px;background:var(--accent);color:white;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-weight:bold;box-shadow:0 3px 10px rgba(76,201,240,0.35);transition:all 0.15s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">✏️ פוסט חדש</button>`;
   } else {
-    area.innerHTML = `<button onclick="openM('authModal')" class="service-btn" style="padding:8px 18px;">כניסה</button>`;
+    area.innerHTML = `<button onclick="openM('authModal')" class="service-btn" style="padding:8px 18px;">כניסה / הרשמה</button>`;
   }
 }
 
@@ -12812,6 +12819,53 @@ function clearAttachment(inputId, labelId) {
   if (lab) lab.textContent = '';
   if (clr) clr.style.display = 'none';
 }
+
+// People share a picture by copying it and pressing Ctrl+V; a paste that
+// does nothing reads as a broken site. The clipboard hands over a File of
+// exactly the kind the picker produces, so it is placed INTO the same file
+// input and travels the existing upload path - no second uploader, and
+// nothing new that can fail on the way up.
+function _forumPasteInput(el) {
+  if (!el || el.tagName !== 'TEXTAREA') return null;
+  if (el.id === 'new-post-text') return 'new-post-file';
+  var m = /^rtxt-(.+)$/.exec(el.id || '');
+  return m ? 'rfile-' + m[1] : null;
+}
+
+function _forumHandlePaste(e) {
+  var inputId = _forumPasteInput(e.target);
+  if (!inputId) return;
+  var input = document.getElementById(inputId);
+  if (!input) return;
+
+  var items = (e.clipboardData && e.clipboardData.items) || [];
+  var img = null;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].kind === 'file' && /^image\//.test(items[i].type)) {
+      img = items[i].getAsFile(); break;
+    }
+  }
+  // Copied text is still copied text. Only a picture is intercepted.
+  if (!img) return;
+  e.preventDefault();
+
+  var ext = (String(img.type).split('/')[1] || 'png').toLowerCase().replace('jpeg', 'jpg');
+  try {
+    var named = new File([img], 'pasted-' + Date.now() + '.' + ext, { type: img.type });
+    var dt = new DataTransfer();
+    dt.items.add(named);
+    input.files = dt.files;
+  } catch (err) {
+    // Older browsers will not let a script fill a file input.
+    forumMsg('הדפדפן הזה לא מאפשר הדבקת תמונה. אפשר לצרף אותה בכפתור 📎.', true);
+    return;
+  }
+  showPickedFile(inputId, inputId === 'new-post-file'
+    ? 'new-post-file-name'
+    : inputId.replace('rfile-', 'rfile-name-'));
+  forumMsg('התמונה צורפה. אפשר לכתוב ולשלוח.');
+}
+document.addEventListener('paste', _forumHandlePaste);
 
 function showPickedFile(inputId, labelId) {
   const inp = document.getElementById(inputId);
