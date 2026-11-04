@@ -182,6 +182,16 @@ input[type=file] { display: none !important; }
    colour they paint cannot be overridden with background-color, only covered
    by a very large inset shadow. The field sits in a dark header, so it also
    has to keep its white text. */
+/* the searched word, where it was found */
+mark.cl-hit {
+  background: #ffe9a8;
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 /* a contenteditable box has no placeholder of its own */
 [contenteditable][data-ph]:empty:before {
   content: attr(data-ph);
@@ -1254,10 +1264,13 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
     <!-- Reviews panel -->
     <div id="reviews-panel" style="display:none;">
-      <div id="reviews-list" style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px;"></div>
+      <!-- The composer sits ABOVE the reviews, like the forum's own box.
+           Underneath a list of other people's reviews it read as the end of
+           somebody else's card. -->
       <div id="review-write-area">
         <!-- shown only to logged-in users -->
       </div>
+      <div id="reviews-list" style="display:flex;flex-direction:column;gap:12px;margin-top:14px;"></div>
     </div>
 
   </div>
@@ -4093,6 +4106,9 @@ function openFrom(parentId, childId) {
   openM(childId);
 }
 function closeM(id) {
+  // The highlights belong to one search. Leaving them behind means the
+  // next reader finds a panel with somebody else's word lit up in it.
+  if (typeof clearSearchMarks === 'function') clearSearchMarks();
   const m = document.getElementById(id); if (m) m.style.display = 'none';
   var b = document.getElementById('modal-float-x'); if (b) b.classList.remove('on');
   if (_openModalId === id) _openModalId = null;
@@ -8291,6 +8307,18 @@ async function fetchReviews(quiet) {
       .order('created_at', { ascending: false })
       .limit(200);
     if (res.error) throw res.error;
+    // Reactions live in the same table the forum uses, under a key of their
+    // own - rev:<id>. One table, one set of policies, nothing new to guard.
+    var revReacts = {};
+    try {
+      var rr = await sbFetch('reactions?select=item_id,user,emoji&item_id=like.rev:*');
+      (rr || []).forEach(function (x) {
+        var k = String(x.item_id).slice(4);
+        if (!revReacts[k]) revReacts[k] = { counts: {}, mine: {} };
+        revReacts[k].counts[x.emoji] = (revReacts[k].counts[x.emoji] || 0) + 1;
+        revReacts[k].mine[x.user] = x.emoji;
+      });
+    } catch (e) { /* the reviews are worth showing without them */ }
     _reviews = (res.data || []).map(function (r) {
       return {
         id: String(r.id),
@@ -8299,7 +8327,8 @@ async function fetchReviews(quiet) {
         rating: r.rating || 0,
         text: r.text || '',
         timestamp: new Date(r.created_at).getTime(),
-        authorId: r.author_id || ''
+        authorId: r.author_id || '',
+        reacts: (revReacts[String(r.id)] || { counts: {}, mine: {} })
       };
     });
     _reviewsOnline = true;
@@ -8358,12 +8387,15 @@ function renderReviewWriteArea() {
   const area = document.getElementById('review-write-area');
   if (!area) return;
   if (!user) {
-    area.innerHTML = `<div style="text-align:center;color:#aaa;font-size:0.83rem;padding:12px;">להוספת ביקורת — <a href="#" onclick="openM('authModal')" style="color:var(--accent);">כניסה</a></div>`;
+    area.innerHTML = `<div style="background:#f5f9ff;border:1.5px solid #d8e6fb;border-radius:12px;text-align:center;color:#6b7a8c;font-size:0.85rem;padding:14px;">כדי לכתוב ביקורת — <a href="#" onclick="openM('authModal')" style="color:var(--accent);font-weight:bold;">כניסה או הרשמה</a></div>`;
     return;
   }
   reviewDraft = { rating: 0, cat: '', text: '' };
-  area.innerHTML = '<div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px;">'
-    + '<div style="font-weight:bold;font-size:0.88rem;margin-bottom:10px;">✍️ כתוב ביקורת</div>'
+  // A tinted card with a border of its own: under a row of white review
+  // cards, a box that looked like them read as part of the last one.
+  area.innerHTML = '<div style="background:#f5f9ff;border:1.5px solid #d8e6fb;'
+    + 'border-radius:12px;padding:14px;">'
+    + '<div style="font-weight:bold;font-size:0.92rem;margin-bottom:10px;color:#16314f;">✍️ כתבו ביקורת</div>'
     // category
     + '<div style="font-size:0.78rem;color:#888;margin-bottom:6px;">קטגוריה:</div>'
     + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">'
@@ -8375,7 +8407,7 @@ function renderReviewWriteArea() {
     + '<div style="margin-bottom:10px;" id="review-stars">' + starsHtml(0, true, 'setReviewStar') + '</div>'
     // text
     + '<textarea id="review-text" rows="3" placeholder="ספר על החוויה שלך..." style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;direction:rtl;resize:none;font-family:inherit;margin-bottom:10px;"></textarea>'
-    + '<button onclick="submitReview()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">⭐ פרסם ביקורת</button>'
+    + '<button onclick="submitReview()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">⭐ פרסמו ביקורת</button>'
     // A browser alert says "cervinialive.co.il says" above it and puts an OK
     // button under it. It is the browser talking, not the site, and it looks
     // it. The message belongs on the page, next to what it is about.
@@ -8553,8 +8585,13 @@ function renderReviews() {
     return;
   }
 
-  list.innerHTML = offlineNote + headerHtml + filterBtns + filtered.map(function(r) {
-    const canDel = !!(user && (user.isAdmin || (user.sbId && user.sbId === r.authorId)));
+  const listTitle = '<div style="font-weight:bold;font-size:0.92rem;color:#16314f;margin:4px 0 10px;">'
+    + '💬 מה כתבו הגולשים</div>';
+
+  list.innerHTML = offlineNote + listTitle + headerHtml + filterBtns + filtered.map(function(r) {
+    const mine   = !!(user && user.sbId && user.sbId === r.authorId);
+    const canDel = !!(user && (user.isAdmin || mine));
+    if (_revEditing === String(r.id)) return reviewEditHtml(r);
     return '<div style="padding:12px 14px;border:1px solid #eee;border-radius:10px;background:white;">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
       + '<span style="font-weight:bold;font-size:0.88rem;">' + escHtml(r.user) + '</span>'
@@ -8562,11 +8599,118 @@ function renderReviews() {
       + '</div>'
       + '<div style="margin-bottom:5px;">' + starsHtml(r.rating, false, '') + '</div>'
       + '<div style="font-size:0.85rem;color:#333;line-height:1.6;white-space:pre-wrap;">' + escHtml(r.text) + '</div>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px;flex-wrap:wrap;">'
+      + reviewReactsHtml(r)
+      + '<span style="display:flex;align-items:center;gap:10px;">'
       + '<span style="font-size:0.72rem;color:#bbb;">' + timeAgo(r.timestamp) + '</span>'
+      + (mine ? '<span style="font-size:0.78rem;color:#1a73e8;cursor:pointer;" onclick="editReview(\'' + escHtml(r.id) + '\')">✏️ עריכה</span>' : '')
       + (canDel ? '<span style="font-size:0.78rem;color:#e74c3c;cursor:pointer;" onclick="deleteReview(\'' + escHtml(r.id) + '\')">🗑 מחק</span>' : '')
+      + '</span>'
       + '</div></div>';
   }).join('');
+}
+
+// ── reacting to a review ──────────────────────────────────────────────
+// Two marks, not six: a review is somebody's opinion, and the useful
+// question about it is whether it helped, not which of six faces it
+// deserves.
+var REVIEW_EMOJIS = ['👍', '😕'];
+
+function reviewReactsHtml(r) {
+  var mine = (user && r.reacts && r.reacts.mine) ? r.reacts.mine[user.name] : null;
+  return '<span style="display:flex;gap:5px;">' + REVIEW_EMOJIS.map(function (e) {
+    var n = (r.reacts && r.reacts.counts && r.reacts.counts[e]) || 0;
+    var on = mine === e;
+    return '<span onclick="reactReview(\'' + escJs(String(r.id)) + '\',\'' + e + '\')"'
+      + ' title="' + (user ? '' : 'צריך להתחבר') + '"'
+      + ' style="cursor:pointer;font-size:0.9rem;padding:2px 8px;border-radius:8px;border:1.5px solid '
+      + (on ? '#93c5fd;background:#dbeafe;font-weight:bold;' : (n ? '#e5e7eb;background:#f3f4f6;' : 'transparent;opacity:0.55;'))
+      + '">' + e + (n ? '<span style="font-size:0.7rem;vertical-align:super;margin-right:2px;">' + n + '</span>' : '')
+      + '</span>';
+  }).join('') + '</span>';
+}
+
+async function reactReview(id, emoji) {
+  if (!user) { openM('authModal'); return; }
+  var r = (_reviews || []).find(function (x) { return String(x.id) === String(id); });
+  if (!r) return;
+  if (!r.reacts) r.reacts = { counts: {}, mine: {} };
+  var prev = r.reacts.mine[user.name] || null;
+  // clicking the same one again takes it back
+  if (prev) r.reacts.counts[prev] = Math.max(0, (r.reacts.counts[prev] || 0) - 1);
+  var next = (prev === emoji) ? null : emoji;
+  if (next) r.reacts.counts[next] = (r.reacts.counts[next] || 0) + 1;
+  if (next) r.reacts.mine[user.name] = next; else delete r.reacts.mine[user.name];
+  renderReviews();
+  try { await persistReaction('rev:' + id, next); } catch (e) { /* silent, as in the forum */ }
+}
+
+// ── editing your own review ───────────────────────────────────────────
+var _revEditing = null;
+var _revEditDraft = { rating: 0, cat: '', text: '' };
+
+function editReview(id) {
+  var r = (_reviews || []).find(function (x) { return String(x.id) === String(id); });
+  if (!r) return;
+  _revEditing = String(id);
+  _revEditDraft = { rating: r.rating, cat: r.cat, text: r.text };
+  renderReviews();
+}
+function cancelEditReview() { _revEditing = null; renderReviews(); }
+function setEditStar(n) { _revEditDraft.rating = n;
+  var box = document.getElementById('rev-edit-stars');
+  if (box) box.innerHTML = starsHtml(n, true, 'setEditStar'); }
+
+function reviewEditHtml(r) {
+  return '<div style="padding:12px 14px;border:1.5px solid #93c5fd;border-radius:10px;background:#f5f9ff;">'
+    + '<div style="font-weight:bold;font-size:0.86rem;margin-bottom:8px;color:#16314f;">✏️ עריכת הביקורת שלך</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">'
+    + REVIEW_CATS.map(function (c) {
+        var on = c === _revEditDraft.cat;
+        return '<span onclick="_revEditDraft.cat=' + JSON.stringify(c).replace(/"/g, '&quot;')
+          + ';renderReviews()" style="padding:5px 10px;border:1.5px solid '
+          + (on ? 'var(--accent);background:var(--accent);color:white;' : '#ddd;background:white;color:#444;')
+          + 'border-radius:20px;font-size:0.78rem;cursor:pointer;">' + escHtml(c) + '</span>';
+      }).join('')
+    + '</div>'
+    + '<div id="rev-edit-stars" style="margin-bottom:8px;">' + starsHtml(_revEditDraft.rating, true, 'setEditStar') + '</div>'
+    + '<textarea id="rev-edit-text" rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;direction:rtl;resize:none;font-family:inherit;">' + escHtml(_revEditDraft.text) + '</textarea>'
+    + '<div id="rev-edit-msg" style="display:none;margin-top:8px;padding:8px 11px;border-radius:8px;font-size:0.82rem;"></div>'
+    + '<div style="display:flex;gap:8px;margin-top:9px;">'
+    + '<button onclick="saveEditReview(\'' + escJs(String(r.id)) + '\')" style="flex:2;padding:9px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.86rem;font-weight:bold;cursor:pointer;">שמירה</button>'
+    + '<button onclick="cancelEditReview()" style="flex:1;padding:9px;background:white;border:1px solid #ddd;border-radius:9px;font-size:0.86rem;cursor:pointer;">ביטול</button>'
+    + '</div></div>';
+}
+
+async function saveEditReview(id) {
+  var txt = (document.getElementById('rev-edit-text') || {}).value || '';
+  txt = txt.trim();
+  var msg = document.getElementById('rev-edit-msg');
+  var say = function (t) {
+    if (!msg) return;
+    msg.style.display = 'block'; msg.textContent = t;
+    msg.style.background = '#fff3f3'; msg.style.color = '#c0392b';
+  };
+  if (!_revEditDraft.cat)  return say('בחרו קטגוריה');
+  if (!_revEditDraft.rating) return say('בחרו דירוג בכוכבים');
+  if (txt.length < 2)      return say('כתבו משפט אחד לפחות');
+  if (txt.length > 1000)   return say('הביקורת ארוכה מדי — עד 1000 תווים');
+
+  var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+  if (!sb) return say('אין חיבור לשרת');
+  try {
+    // Only the author's own row will pass - the policy decides that, not
+    // the fact that the pencil was only drawn on his own card.
+    var res = await sb.from('reviews')
+      .update({ cat: _revEditDraft.cat, rating: _revEditDraft.rating, text: txt })
+      .eq('id', id);
+    if (res.error) throw res.error;
+    _revEditing = null;
+    await fetchReviews(true);
+    renderReviews();
+  } catch (e) {
+    say('השמירה נכשלה. נסו שוב.');
+  }
 }
 
 function setRevFilter(btn) {
@@ -13363,6 +13507,32 @@ function closeGlobalSearch() {
 // after the page loads, and an index built too early is an index of empty
 // boxes.
 var _PANEL_TEXT = null;
+
+// The heading, without the furniture. A panel's <h3> also contains the ✕
+// and the ℹ️ share button that the page adds to it, and reading it whole
+// put those glyphs into the result row - which is the mark you asked
+// about. The clone is stripped before the text is taken.
+function _panelTitleOf(m) {
+  var h = m.querySelector('h3, h2');
+  if (!h) return '';
+  var c = h.cloneNode(true);
+  [].slice.call(c.querySelectorAll('button, .close-btn, .panel-share, [role="button"]'))
+    .forEach(function (n) { n.parentNode.removeChild(n); });
+  return (c.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
+// The leading emoji is pulled off ONCE, by length, and the rest of the
+// title is kept whole. The old version dropped the first "word", which ate
+// a real word whenever the emoji was not separated by a space - that is
+// how "סקי פס" became "פס" and a heading became "בצ'רוויניה".
+var _EMOJI_HEAD = /^(?:[\u2190-\u21FF\u2300-\u27BF\u2B00-\u2BFF\uFE0F\u200D\u20E3]|[\uD83C-\uDBFF][\uDC00-\uDFFF])+/;
+function _splitTitle(title) {
+  var m = _EMOJI_HEAD.exec(title || '');
+  var icon = m ? m[0].trim() : '';
+  var rest = (title || '').slice(m ? m[0].length : 0).trim();
+  return { icon: icon || '📄', title: rest || (title || '').trim() };
+}
+
 function _panelTextIndex(force) {
   if (_PANEL_TEXT && !force) return _PANEL_TEXT;
   var out = [];
@@ -13370,8 +13540,7 @@ function _panelTextIndex(force) {
     var id = PANEL_LINKS[key];
     var m = document.getElementById(id);
     if (!m) continue;
-    var h = m.querySelector('h3, h2');
-    var title = ((h && h.textContent) || '').replace(/\s+/g, ' ').trim();
+    var title = _panelTitleOf(m);
     var text = (m.textContent || '').replace(/\s+/g, ' ').trim();
     if (text.length < 20) continue;
     out.push({ id: id, title: title || id, text: text, low: text.toLowerCase() });
@@ -13380,19 +13549,198 @@ function _panelTextIndex(force) {
   return out;
 }
 
+// ── opening a panel AT the word ───────────────────────────────────────
+// A result that opens a long panel at the top and leaves the reader to
+// find the word himself is half a result. The word is marked where it
+// appears and scrolled to; the marks come off when the panel closes.
+var _MARKS = [];
+function clearSearchMarks() {
+  _MARKS.forEach(function (mk) {
+    if (!mk.parentNode) return;
+    var t = document.createTextNode(mk.textContent || '');
+    mk.parentNode.replaceChild(t, mk);
+    if (t.parentNode) t.parentNode.normalize();
+  });
+  _MARKS = [];
+}
+
+function _markInside(root, term, limit) {
+  if (!root || !term) return 0;
+  var found = 0;
+  var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: function (n) {
+      if (!n.nodeValue || !_firstHit(n.nodeValue, term)) return NodeFilter.FILTER_REJECT;
+      var p = n.parentNode;
+      // never inside a script, a style, or a mark we just made
+      while (p && p !== root) {
+        var tag = (p.tagName || '').toUpperCase();
+        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'MARK') return NodeFilter.FILTER_REJECT;
+        p = p.parentNode;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  var targets = [], n;
+  while ((n = walker.nextNode()) && targets.length < (limit || 12)) targets.push(n);
+  targets.forEach(function (node) {
+    var text = node.nodeValue, hit = _firstHit(text, term);
+    if (!hit) return;
+    var after = node.splitText(hit.index);
+    after.splitText(hit.word.length);
+    var mk = document.createElement('mark');
+    mk.className = 'cl-hit';
+    mk.textContent = after.nodeValue;
+    after.parentNode.replaceChild(mk, after);
+    _MARKS.push(mk);
+    found++;
+  });
+  return found;
+}
+
+// When the word is itself a heading inside the panel - a fold's summary,
+// a sub-title - that heading is what the reader is looking for, and the
+// row says so: "panel › section". Otherwise the snippet does the work.
+function _sectionFor(id, q) {
+  var m = document.getElementById(id);
+  if (!m || !q) return '';
+  var low = q.toLowerCase();
+  var nodes = m.querySelectorAll('summary, h4, h5, legend, strong, b');
+  for (var i = 0; i < nodes.length; i++) {
+    var t = (nodes[i].textContent || '').replace(/\s+/g, ' ').trim();
+    if (t && t.length <= 70 && _textHit(t, q)) return t;
+  }
+  return '';
+}
+
+function openPanelAtTerm(id, term) {
+  clearSearchMarks();
+  openM(id);
+  // after the panel is on screen and its own code has filled it
+  setTimeout(function () {
+    var m = document.getElementById(id);
+    if (!m) return;
+    var n = _markInside(m, term, 12);
+    // A hit inside a closed fold is a hit the reader cannot see. This site
+    // folds most of its detail away, so the fold holding the first mark is
+    // opened before anything is scrolled to.
+    if (n && _MARKS[0]) {
+      var up = _MARKS[0].parentNode;
+      while (up && up !== m) {
+        if (up.tagName === 'DETAILS') up.open = true;
+        up = up.parentNode;
+      }
+    }
+    if (n && _MARKS[0] && _MARKS[0].scrollIntoView) {
+      try { _MARKS[0].scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      catch (e) { _MARKS[0].scrollIntoView(); }
+    }
+  }, 160);
+}
+
 // The match itself, with enough either side to recognise it. A result that
 // shows the first fifty characters of a panel tells the reader nothing
 // about why it matched.
 function _searchSnippet(text, q) {
-  var i = text.toLowerCase().indexOf(q.toLowerCase());
+  var hit = _firstHit(text, q);
+  var i = hit ? hit.index : -1;
   if (i < 0) return text.slice(0, 70).trim() + '…';
   var from = Math.max(0, i - 28);
   var cut = text.slice(from, from + 90).trim();
   return (from > 0 ? '…' : '') + cut + (from + 90 < text.length ? '…' : '');
 }
-function _titleIcon(title) {
-  var m = String(title || '').match(/^\s*([\u231A-\u27BF\uFE0F\u2600-\u26FF\uD83C-\uDBFF\uDC00-\uDFFF]+)/);
-  return m ? m[1] : '📄';
+// ── a search that forgives ────────────────────────────────────────────
+// Hebrew inflects by suffix: מחירון, מחירונים, המחירון. A literal
+// substring match answers the first and loses the rest, and half a word -
+// "מחירונ" as somebody is still typing - matches nothing at all. Words are
+// compared after stripping niqqud and opening the final letters, and a
+// match counts when either word begins the other, or when they differ by a
+// single letter.
+function _norm(s) {
+  return String(s || '')
+    .replace(/[\u0591-\u05C7]/g, '')      // niqqud and cantillation
+    .replace(/[\u05F3\u05F4'"`]/g, '')    // geresh, gershayim, quotes
+    .replace(/ך/g, 'כ').replace(/ם/g, 'מ').replace(/ן/g, 'נ')
+    .replace(/ף/g, 'פ').replace(/ץ/g, 'צ')
+    .toLowerCase();
+}
+
+// one edit apart - a letter typed twice, missed, or swapped for its neighbour
+function _near(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  var i = 0, j = 0, diff = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++diff > 1) return false;
+    if (a.length > b.length) i++;
+    else if (b.length > a.length) j++;
+    else { i++; j++; }
+  }
+  return diff + (a.length - i) + (b.length - j) <= 1;
+}
+
+// Hebrew glues its little words to the front: ה, ו, ב, ל, כ, ש, מ, and
+// pairs of them. "המחירונים" and "מחירון" are the same word, and a reader
+// searching for one means the other. The stripped form is only tried when
+// what is left is still a word and not two letters.
+function _forms(w) {
+  var out = [w];
+  if (w.length >= 4 && /^[הובלכשמ]/.test(w)) out.push(w.slice(1));
+  if (w.length >= 5 && /^(?:וה|שה|מה|כש|ול|וב|ומ|לכ)/.test(w)) out.push(w.slice(2));
+  return out;
+}
+
+function _wordHit(word, q) {
+  var w = _norm(word), n = _norm(q);
+  if (!w || !n) return false;
+  var ws = _forms(w), ns = _forms(n);
+  for (var i = 0; i < ws.length; i++) {
+    for (var j = 0; j < ns.length; j++) {
+      var a = ws[i], b = ns[j];
+      if (a === b) return true;
+      // "מחירונ" finds מחירון, and מחירונים finds מחירון
+      if (b.length >= 3 && a.indexOf(b) === 0) return true;
+      if (a.length >= 3 && b.indexOf(a) === 0) return true;
+      // and one typo, once the word is long enough for that to be safe
+      if (b.length >= 5 && a.length >= 5 && _near(a, b)) return true;
+    }
+  }
+  return false;
+}
+
+// every word of the query has to land somewhere in the text
+function _textHit(text, q) {
+  var words = String(text || '').split(/[^\u0590-\u05FFa-zA-Z0-9]+/).filter(Boolean);
+  var terms = String(q || '').split(/\s+/).filter(Boolean);
+  if (!terms.length) return false;
+  return terms.every(function (t) {
+    return words.some(function (w) { return _wordHit(w, t); });
+  });
+}
+
+// where the first matching word sits, so the snippet and the jump land on it
+function _firstHit(text, q) {
+  var terms = String(q || '').split(/\s+/).filter(Boolean);
+  if (!terms.length) return null;
+  var re = /[\u0590-\u05FFa-zA-Z0-9]+/g, m;
+  while ((m = re.exec(text))) {
+    for (var i = 0; i < terms.length; i++) {
+      if (_wordHit(m[0], terms[i])) return { index: m.index, word: m[0] };
+    }
+  }
+  return null;
+}
+
+// The searched word, lit up inside the snippet. Escaped first, then the
+// mark is added - the other way round and a reader searching for "<" ends
+// up with markup of his own making.
+function _hilite(text, q) {
+  var hit = _firstHit(text, q);
+  if (!hit) return esc(text);
+  // the WHOLE word is lit, not the letters that happened to be typed:
+  // marking "מחירונ" inside "מחירונים" leaves a word cut in half
+  return esc(text.slice(0, hit.index)) +
+         '<mark class="cl-hit">' + esc(hit.word) + '</mark>' +
+         esc(text.slice(hit.index + hit.word.length));
 }
 
 function globalSearch(q) {
@@ -13401,7 +13749,8 @@ function globalSearch(q) {
   if (!q || q.length < 2) { box.style.display = 'none'; return; }
   const ql = q.toLowerCase();
   const indexResults = SEARCH_INDEX.filter(item =>
-    item.text.includes(ql) || item.label.includes(q)
+    item.text.includes(ql) || item.label.includes(q) ||
+    _textHit(item.text + ' ' + item.label, q)
   ).map(item => ({ icon: item.icon, label: esc(item.label), action: item.action }));
 
   // panels whose CONTENT matches, minus the ones already listed above
@@ -13411,15 +13760,20 @@ function globalSearch(q) {
     if (m) already[m[1]] = 1;
   });
   const panelResults = _panelTextIndex()
-    .filter(function (p) { return !already[p.id] && p.low.indexOf(ql) !== -1; })
+    .filter(function (p) { return !already[p.id] && _textHit(p.text, q); })
     .slice(0, 5)
     .map(function (p) {
+      var t = _splitTitle(p.title);
+      var sec = _sectionFor(p.id, q);
       return {
-        icon: _titleIcon(p.title),
-        label: '<b>' + esc(p.title.replace(/^\s*\S*\s*/, '').trim() || p.title) + '</b>' +
+        icon: t.icon,
+        label: '<b>' + esc(t.title) + '</b>' +
+               (sec ? '<span style="color:#8a949f;font-size:0.8rem;"> › ' +
+                      _hilite(sec, q) + '</span>' : '') +
                '<div style="color:#8a949f;font-size:0.78rem;white-space:normal;' +
-               'line-height:1.5;margin-top:2px;">' + esc(_searchSnippet(p.text, q)) + '</div>',
-        action: "openM('" + escJs(p.id) + "')"
+               'line-height:1.5;margin-top:2px;">' + _hilite(_searchSnippet(p.text, q), q) + '</div>',
+        // and it opens the panel AT the word, not at the top of it
+        action: "openPanelAtTerm('" + escJs(p.id) + "','" + escJs(q) + "')"
       };
     });
   // A post's text is HTML. Slicing it at fifty characters cuts through a
@@ -13430,7 +13784,7 @@ function globalSearch(q) {
   const plain = (t) => String(t || '').replace(/<[^>]*>/g, ' ')
                                       .replace(/\s+/g, ' ').trim();
   const postResults = allPosts.filter(p =>
-    plain(p.content).includes(q) || String(p.user || '').includes(q)
+    _textHit(plain(p.content) + ' ' + (p.user || ''), q)
   ).slice(0, 3).map(p => {
     const body = plain(p.content);
     return {
