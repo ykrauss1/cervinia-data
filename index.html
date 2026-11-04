@@ -1819,6 +1819,16 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <button onclick="searchHotel()" style="width:100%;padding:12px;background:#003580;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
         🔍 חפש לינה
       </button>
+      <!-- Most of the apartment stock in an Italian ski village never
+           reaches Booking at all. Somebody who searched and found little
+           is exactly the person who needs to know that. -->
+      <div style="margin-top:11px;text-align:center;">
+        <a href="#" onclick="openM('localStayModal');return false;"
+           style="font-size:0.83rem;color:var(--accent);text-decoration:none;
+                  border-bottom:1px dashed #bcd;">
+          🇮🇹 לא מצאתם? כך שוכרים דירה בצ'רוויניה מבלי לעבור דרך בוקינג
+        </a>
+      </div>
       <div id="hotel-results" style="display:none;margin-top:10px;"></div>
     </div>
 
@@ -1826,6 +1836,201 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 </div>
 
 
+
+<!-- ══ סיסמא חדשה, אחרי לחיצה על קישור האיפוס ══ -->
+<div id="pwResetModal" class="modal" style="z-index:10001;">
+  <div class="modal-content" style="max-width:420px;padding:26px 24px;">
+    <span class="close-btn" onclick="closeM('pwResetModal')">×</span>
+    <h3 style="margin:0 0 6px;font-size:1.1rem;">🔑 בחירת סיסמא חדשה</h3>
+    <p style="color:#888;font-size:0.82rem;margin:0 0 16px;line-height:1.7;">
+      הגעת לכאן מקישור האיפוס. הסיסמא החדשה תיכנס לתוקף מיד.
+    </p>
+    <div style="position:relative;margin-bottom:12px;">
+      <input id="pw-reset-new" type="password" placeholder="לפחות 6 תווים, לא בעברית"
+        autocomplete="new-password"
+        style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;
+               border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;">
+      <button type="button" onclick="togglePass('pw-reset-new')" tabindex="-1"
+        style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;
+               border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
+    </div>
+    <button id="pw-reset-btn" onclick="submitPasswordReset()"
+      style="width:100%;padding:12px;background:var(--accent);color:white;border:none;
+             border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+      שמירת הסיסמא
+    </button>
+    <div id="pw-reset-msg" style="display:none;margin-top:11px;font-size:0.84rem;line-height:1.6;"></div>
+  </div>
+</div>
+
+<!-- ══ הדרך המקומית לשכור דירה ══
+     Booking shows the part of the village that pays to be on Booking. The
+     rest - and in a ski village it is most of it - sits with four local
+     agencies and with the consortium, and is rented by email and telephone.
+     An Israeli reader has no way of knowing this and no Italian to ask in,
+     so the panel ends with a letter it writes for him. -->
+<div id="localStayModal" class="modal" onclick="if(event.target===this)closeM('localStayModal')">
+  <div class="modal-content" style="max-width:620px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
+    <span class="close-btn" onclick="closeM('localStayModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;">🇮🇹 לשכור דירה כמו מקומי</h3>
+    <p style="color:#888;font-size:0.82rem;margin:0 0 16px;">
+      סוכנויות מקומיות, הקונסורציום של הכפר, ולוחות המודעות האיטלקיים
+    </p>
+
+    <div style="background:#f3f7fd;border:1px solid #dce7f5;border-radius:10px;
+                padding:12px 14px;font-size:0.86rem;line-height:1.75;margin-bottom:16px;">
+      חלק גדול מדירות הנופש בצ'רוויניה אינו מופיע בבוקינג ובאיירבנב כלל.
+      הדירות שייכות לבעלים איטלקים, ומי שמנהל אותן הוא סוכנות מקומית שמשכירה
+      בטלפון ובמייל. אין עמלת פלטפורמה, ולרוב אפשר גם להשכיר לימים בודדים
+      ולא רק משבת לשבת.
+    </div>
+
+    <h4 style="margin:0 0 8px;font-size:0.95rem;">סוכנויות בכפר</h4>
+    <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:18px;">
+
+      <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;">
+        <div style="font-weight:bold;font-size:0.9rem;">Agenzia Il Cervino</div>
+        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+          Via Meynet 4 · מגדירה את עצמה כסוכנות ההשכרה הראשונה בצ'רוויניה
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;font-size:0.8rem;">
+          <a href="tel:+390166949510" dir="ltr" class="ls-chip">+39 0166 949510</a>
+          <a href="mailto:info@ilcervino.com" dir="ltr" class="ls-chip">info@ilcervino.com</a>
+          <a href="https://www.ilcervino.com" target="_blank" rel="noopener" class="ls-chip">ilcervino.com</a>
+        </div>
+      </div>
+
+      <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;">
+        <div style="font-weight:bold;font-size:0.9rem;">Immobiliare Monte Cervino</div>
+        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+          Via Circonvallazione 19 · דירות, בתים ושאלֶה — שבועי או לעונה שלמה
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;font-size:0.8rem;">
+          <a href="tel:+393338037483" dir="ltr" class="ls-chip">+39 333 8037483</a>
+          <a href="mailto:info@immobiliaremontecervino.it" dir="ltr" class="ls-chip">info@immobiliaremontecervino.it</a>
+          <a href="https://www.immobiliaremontecervino.it" target="_blank" rel="noopener" class="ls-chip">immobiliaremontecervino.it</a>
+        </div>
+      </div>
+
+      <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;">
+        <div style="font-weight:bold;font-size:0.9rem;">Housecervinia</div>
+        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+          בניין Fior di Roccia במרכז הכפר (Via Gorret 5) ובניין La Grand'Ourse
+          בצ'לו אלטו (Cielo Alto) · כתוב אצלם במפורש שאפשר להשכיר גם לימים בודדים
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;font-size:0.8rem;">
+          <a href="https://www.housecervinia.com" target="_blank" rel="noopener" class="ls-chip">housecervinia.com</a>
+        </div>
+      </div>
+
+      <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;">
+        <div style="font-weight:bold;font-size:0.9rem;">BlueMoon Maisons</div>
+        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+          דירות בצ'לו אלטו (Cielo Alto) צמוד למעלית הכיסא — סקי־אין וסקי־אאוט ·
+          לאורחים 20% הנחה על השכרת ציוד · ללוח הזמינות שלהם יש אתר הזמנות משלו
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;font-size:0.8rem;">
+          <a href="tel:+393423736373" dir="ltr" class="ls-chip">+39 342 3736373</a>
+          <a href="mailto:bluemoonmaisons@gmail.com" dir="ltr" class="ls-chip">bluemoonmaisons@gmail.com</a>
+          <a href="https://www.bluemoonmaisons.com" target="_blank" rel="noopener" class="ls-chip">bluemoonmaisons.com</a>
+        </div>
+      </div>
+    </div>
+
+    <h4 style="margin:0 0 8px;font-size:0.95rem;">הקונסורציום של הכפר</h4>
+    <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;margin-bottom:18px;">
+      <div style="font-weight:bold;font-size:0.9rem;">Cervino Tourism Management</div>
+      <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+        Via Circonvallazione 18 · ארגון של כ־120 עסקים מקומיים, ובהם בתי המלון
+        והדירות. הם אינם מנוע הזמנות — אבל פנייה אחת אליהם עם התאריכים מגיעה
+        לכולם, וזו הדרך המקומית לשאול מי פנוי.
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;font-size:0.8rem;">
+        <a href="tel:+390166940986" dir="ltr" class="ls-chip">+39 0166 940986</a>
+        <a href="mailto:info@breuil-cervinia.it" dir="ltr" class="ls-chip">info@breuil-cervinia.it</a>
+      </div>
+    </div>
+
+    <h4 style="margin:0 0 8px;font-size:0.95rem;">לוחות המודעות האיטלקיים</h4>
+    <div style="font-size:0.84rem;line-height:1.85;color:#444;margin-bottom:18px;">
+      <b>immobiliare.it</b> — פורטל הנדל"ן הגדול באיטליה. יש בו קטגוריית
+      <bdi dir="ltr">da privati</bdi>, כלומר ישירות מבעל הדירה בלי סוכן.<br>
+      <b>subito.it</b> — לוח מודעות כללי; יש בו השכרות לעונת הסקי.<br>
+      <b>casevacanza.it</b> — פורטל דירות נופש.<br>
+      <span style="color:#888;font-size:0.8rem;">
+        שלושתם באיטלקית בלבד. תרגום הדפדפן עובד עליהם היטב.
+      </span>
+    </div>
+
+    <!-- The letter. Without it the whole panel is advice a reader cannot
+         act on: the agencies answer in Italian, and the reader does not
+         write it. He fills in Hebrew; the Italian is produced beside it,
+         and the Hebrew version of the SAME letter is shown underneath, so
+         nobody sends words he has not read. -->
+    <h4 style="margin:0 0 8px;font-size:0.95rem;">✉️ מכתב הפנייה — ממלאים בעברית, יוצא באיטלקית</h4>
+    <div style="background:#fbfcfe;border:1px solid #e3ebf4;border-radius:10px;padding:13px;">
+      <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px;">
+        <div>
+          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;">תאריך הגעה</label>
+          <input type="date" id="ls-from" oninput="buildLocalStayMail()"
+            style="padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;">
+        </div>
+        <div>
+          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;">תאריך עזיבה</label>
+          <input type="date" id="ls-to" oninput="buildLocalStayMail()"
+            style="padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;">
+        </div>
+        <div>
+          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;">כמה נוסעים</label>
+          <input type="number" id="ls-guests" min="1" max="20" value="4" inputmode="numeric"
+            oninput="buildLocalStayMail()"
+            style="width:82px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:11px;font-size:0.82rem;">
+        <span style="color:#888;font-size:0.78rem;">שפת המכתב</span>
+        <label class="ls-opt"><input type="radio" name="ls-lang" value="it" checked onchange="buildLocalStayMail()"> איטלקית</label>
+        <label class="ls-opt"><input type="radio" name="ls-lang" value="en" onchange="buildLocalStayMail()"> אנגלית</label>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px;font-size:0.82rem;">
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-lift"    onchange="buildLocalStayMail()"> קרוב למעליות</label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-park"    onchange="buildLocalStayMail()"> חניה</label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-kitchen" onchange="buildLocalStayMail()"> מטבח בדירה</label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-linen"   onchange="buildLocalStayMail()"> מצעים ומגבות</label>
+      </div>
+
+      <div id="ls-out-label" style="font-size:0.74rem;color:#888;margin-bottom:5px;">הנוסח באיטלקית</div>
+      <textarea id="ls-it" readonly dir="ltr" rows="11"
+        style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #dde6f0;
+               border-radius:8px;background:white;font-size:0.84rem;line-height:1.65;
+               font-family:inherit;resize:vertical;"></textarea>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:9px 0 12px;">
+        <button onclick="copyLocalStay(this)"
+          style="padding:8px 16px;background:var(--accent);color:white;border:none;
+                 border-radius:8px;font-size:0.84rem;font-weight:bold;cursor:pointer;">
+          העתקת הנוסח
+        </button>
+        <a id="ls-send-cervino" href="#" class="ls-chip" style="padding:8px 13px;">שליחה ל־Il Cervino</a>
+        <a id="ls-send-monte"   href="#" class="ls-chip" style="padding:8px 13px;">שליחה ל־Monte Cervino</a>
+        <a id="ls-send-blue"    href="#" class="ls-chip" style="padding:8px 13px;">שליחה ל־BlueMoon</a>
+        <a id="ls-send-cons"    href="#" class="ls-chip" style="padding:8px 13px;">שליחה לקונסורציום</a>
+      </div>
+
+      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;">וזה בדיוק מה שכתוב שם</div>
+      <div id="ls-he" style="padding:11px;border:1px dashed #dde6f0;border-radius:8px;
+                             background:#fff;font-size:0.84rem;line-height:1.8;color:#444;
+                             white-space:pre-wrap;"></div>
+    </div>
+
+    <p style="font-size:0.78rem;color:#999;margin:14px 0 0;line-height:1.7;">
+      הסוכנויות עונות גם באנגלית. האיטלקית נותנת מענה מהיר יותר, ובעיקר מדייקת
+      את מה שנשאל: מחיר כולל, ומה נוסף עליו.
+    </p>
+  </div>
+</div>
 
 <!-- Auth Modal -->
 <div id="authModal" class="modal" onclick="if(event.target===this)closeM('authModal')">
@@ -2790,10 +2995,6 @@ details.fold > .fold-body { padding: 0 13px 12px; }
                 <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
                     <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:10px;">👥 משתמשים רשומים</div>
                     <div id="admin-users-list"></div>
-                    <div style="font-size:0.75rem;color:#aaa;margin-top:10px;text-align:center;">
-                        * בגרסה הנוכחית נתוני משתמשים ב-localStorage<br>
-                        בגרסה עם Supabase יהיה כאן ניהול מלא
-                    </div>
                 </div>
             </div>
 
@@ -3348,7 +3549,8 @@ var PANEL_LINKS = {
   forecast: 'forecastModal', alerts:  'alertModal',
   help:     'helpModal',     zermatt: 'zermattForecastModal',
   summer:      'summerSkiModal',   'summer-hike':  'summerHikeModal',
-  'summer-bike': 'summerBikeModal', 'summer-cross': 'summerCrossModal'
+  'summer-bike': 'summerBikeModal', 'summer-cross': 'summerCrossModal',
+  'stay-local': 'localStayModal'
 };
 
 // The panels that deliberately have NO link, and why. Everything here is a
@@ -3357,7 +3559,8 @@ var PANEL_LINKS = {
 // is what makes the next new modal a decision rather than an oversight:
 // selfcheck fails on any modal that appears in neither.
 var PANEL_PRIVATE = ['authModal', 'profileModal', 'adminModal', 'cropperModal',
-                     'userInfoModal', 'avatarMenuModal', 'avatarCamModal'];
+                     'userInfoModal', 'avatarMenuModal', 'avatarCamModal',
+                     'pwResetModal'];
 function _panelHashOf(modalId) {
   for (var k in PANEL_LINKS) if (PANEL_LINKS[k] === modalId) return k;
   return '';
@@ -3437,6 +3640,219 @@ function copyPanelLink(modalId, btn) {
     done(_copyFallback(url));
   }
 }
+// ── coming back from the reset link ───────────────────────────────────
+// Supabase signs the person in with a short-lived recovery session when
+// the link is opened. Without this, that session was all he got: a page
+// that looked ordinary, and no way to set a password. The box below is
+// the missing half of "I forgot my password".
+function _recoveryWanted() {
+  try {
+    var h = String(location.hash || '');
+    return /type=recovery/.test(h) || h === '#recovery';
+  } catch (e) { return false; }
+}
+
+async function openPasswordReset() {
+  openM('pwResetModal');
+  var m = document.getElementById('pw-reset-msg');
+  if (m) { m.textContent = ''; m.style.display = 'none'; }
+  var f = document.getElementById('pw-reset-new');
+  if (f) { f.value = ''; setTimeout(function () { f.focus(); }, 120); }
+}
+
+async function submitPasswordReset() {
+  var pass = (document.getElementById('pw-reset-new') || {}).value || '';
+  var msg  = document.getElementById('pw-reset-msg');
+  var say  = function (text, bad) {
+    if (!msg) return;
+    msg.style.display = 'block';
+    msg.textContent = text;
+    msg.style.color = bad ? '#c62828' : '#2e7d32';
+  };
+  if (pass.length < 6)              return say('נדרשים לפחות 6 תווים', true);
+  if (/[\u0590-\u05FF]/.test(pass)) return say('אי אפשר אותיות בעברית — החלף שפה ל-EN', true);
+
+  var sb = getSB();
+  if (!sb) return say('אין חיבור לשרת', true);
+  var btn = document.getElementById('pw-reset-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'שומר…'; }
+  var res = await sb.auth.updateUser({ password: pass });
+  if (btn) { btn.disabled = false; btn.textContent = 'שמירת הסיסמא'; }
+  if (res && res.error) {
+    // The recovery session lasts an hour. Saying so is more use than
+    // repeating whatever the server called it.
+    return say('לא הצלחנו לעדכן. ייתכן שהקישור כבר פג — בקש קישור חדש.', true);
+  }
+  say('✅ הסיסמא עודכנה. אפשר להיכנס איתה מעכשיו.');
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  setTimeout(function () { closeM('pwResetModal'); }, 2200);
+}
+
+// ── the letter the panel writes ───────────────────────────────────────
+// Dates go out as dd/mm/yyyy. An Italian reading 01/10 reads the first of
+// October, and an American writing it means the tenth of January; the only
+// safe thing is to send the format the RECIPIENT reads, not the one the
+// writer typed.
+function _lsDate(iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+  var p = iso.split('-');
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function _lsNights(a, b) {
+  if (!a || !b) return 0;
+  var d1 = new Date(a + 'T12:00:00'), d2 = new Date(b + 'T12:00:00');
+  var n = Math.round((d2 - d1) / 86400000);
+  return n > 0 ? n : 0;
+}
+
+var LS_AGENCIES = {
+  'ls-send-cervino': 'info@ilcervino.com',
+  'ls-send-monte':   'info@immobiliaremontecervino.it',
+  'ls-send-blue':    'bluemoonmaisons@gmail.com',
+  'ls-send-cons':    'info@breuil-cervinia.it'
+};
+
+function buildLocalStayMail() {
+  var from   = (document.getElementById('ls-from')   || {}).value || '';
+  var to     = (document.getElementById('ls-to')     || {}).value || '';
+  var guests = parseInt((document.getElementById('ls-guests') || {}).value, 10) || 0;
+  var on = function (id) { var el = document.getElementById(id); return !!(el && el.checked); };
+
+  var nights = _lsNights(from, to);
+  var dFrom  = _lsDate(from), dTo = _lsDate(to);
+  var when   = (dFrom && dTo)
+    ? 'dal ' + dFrom + ' al ' + dTo + (nights ? ' (' + nights + ' notti)' : '')
+    : '[date]';
+  var whenHe = (dFrom && dTo)
+    ? 'מ־' + dFrom + ' עד ' + dTo + (nights ? ' (' + nights + ' לילות)' : '')
+    : '[תאריכים]';
+  var ppl    = guests ? guests : '[n]';
+
+  // Every question here is one that decides the real price. "Quanto costa"
+  // alone comes back as a nightly rate with the cleaning, the tourist tax
+  // and the linen still outside it.
+  var lang = 'it';
+  var picked = document.querySelector('input[name="ls-lang"]:checked');
+  if (picked) lang = picked.value;
+
+  // The English dates are written out in words. dd/mm is unambiguous to an
+  // Italian but not to everyone who reads English, and the one thing this
+  // letter must not do is move the holiday by nine months.
+  var MON = ['January','February','March','April','May','June','July',
+             'August','September','October','November','December'];
+  var _long = function (iso) {
+    if (!iso) return '';
+    var p = iso.split('-');
+    return parseInt(p[2], 10) + ' ' + MON[parseInt(p[1], 10) - 1] + ' ' + p[0];
+  };
+  var whenEn = (from && to)
+    ? 'from ' + _long(from) + ' to ' + _long(to) + (nights ? ' (' + nights + ' nights)' : '')
+    : '[dates]';
+
+  var asks = [], asksEn = [], asksHe = [];
+  asks.push('il prezzo totale del soggiorno');
+  asksEn.push('the total price for the stay');
+  asksHe.push('המחיר הכולל לכל השהייה');
+  asks.push('le spese aggiuntive (pulizie finali, tassa di soggiorno, biancheria)');
+  asksEn.push('the additional charges (final cleaning, tourist tax, linen)');
+  asksHe.push('התוספות — ניקיון בסוף, מס תיירות, מצעים');
+  if (on('ls-opt-lift'))    { asks.push('la distanza dagli impianti di risalita');
+                              asksEn.push('how far it is from the ski lifts');
+                              asksHe.push('המרחק מהמעליות'); }
+  if (on('ls-opt-park'))    { asks.push('se è disponibile un posto auto');
+                              asksEn.push('whether a parking space is available');
+                              asksHe.push('אם יש מקום חניה'); }
+  if (on('ls-opt-kitchen')) { asks.push("se l'appartamento ha una cucina attrezzata");
+                              asksEn.push('whether the apartment has a fitted kitchen');
+                              asksHe.push('אם יש מטבח מאובזר'); }
+  if (on('ls-opt-linen'))   { asks.push('se biancheria e asciugamani sono inclusi');
+                              asksEn.push('whether linen and towels are included');
+                              asksHe.push('אם מצעים ומגבות כלולים'); }
+
+  var it;
+  if (lang === 'en') {
+    it = 'Subject: Apartment request for ' + ppl + ' people, ' +
+         (from ? _long(from) : '[date]') + '\n\n' +
+         'Hello,\n\n' +
+         'We are looking for an apartment for ' + ppl + ' people in Breuil-Cervinia ' +
+         whenEn + '.\n\n' +
+         'Do you have availability for those dates? I would be grateful if you could ' +
+         'let me know ' + asksEn.join(', ') + '.\n\n' +
+         'Thank you very much,\n';
+  } else {
+    it = 'Oggetto: Richiesta appartamento ' + ppl + ' persone, ' +
+         (dFrom ? dFrom : '[data]') + '\n\n' +
+         'Buongiorno,\n\n' +
+         'cerchiamo un appartamento per ' + ppl + ' persone a Breuil-Cervinia ' +
+         when + '.\n\n' +
+         'Avete disponibilità in quel periodo? Vi sarei grato se poteste indicarmi ' +
+         asks.join(', ') + '.\n\n' +
+         'Grazie mille,\n';
+  }
+
+  var he = 'נושא: בקשת דירה ל־' + ppl + ' אנשים, ' + (dFrom ? dFrom : '[תאריך]') + '\n\n' +
+           'שלום,\n\n' +
+           'אנחנו מחפשים דירה ל־' + ppl + ' אנשים בברויל־צ\'רוויניה ' + whenHe + '.\n\n' +
+           'האם יש לכם מקום פנוי בתאריכים האלה? אשמח אם תוכלו לציין את ' +
+           asksHe.join(', ') + '.\n\n' +
+           'תודה רבה,\n';
+
+  var lbl = document.getElementById('ls-out-label');
+  if (lbl) lbl.textContent = (lang === 'en') ? 'הנוסח באנגלית' : 'הנוסח באיטלקית';
+  var ta = document.getElementById('ls-it');
+  if (ta) ta.value = it;
+  var heBox = document.getElementById('ls-he');
+  if (heBox) heBox.textContent = he;
+
+  // mailto carries the letter itself, so the reader lands in his mail
+  // program with it already written rather than with an empty window.
+  var subject = (lang === 'en')
+    ? 'Apartment request for ' + ppl + ' people' + (from ? ', ' + _long(from) : '')
+    : 'Richiesta appartamento ' + ppl + ' persone' + (dFrom ? ', ' + dFrom : '');
+  var body    = it.replace(/^(Oggetto|Subject):.*\n\n/, '');
+  for (var id in LS_AGENCIES) {
+    var a = document.getElementById(id);
+    if (!a) continue;
+    a.href = 'mailto:' + LS_AGENCIES[id] +
+             '?subject=' + encodeURIComponent(subject) +
+             '&body=' + encodeURIComponent(body);
+  }
+}
+
+function copyLocalStay(btn) {
+  var ta = document.getElementById('ls-it');
+  var text = ta ? ta.value : '';
+  if (!text) return;
+  var done = function (ok) {
+    if (!btn) return;
+    var was = btn.textContent;
+    btn.textContent = ok ? '✓ הועתק' : 'לא הצלחנו להעתיק';
+    setTimeout(function () { btn.textContent = was; }, 1800);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () { done(true); },
+                                             function () { done(_copyFallback(text)); });
+  } else {
+    done(_copyFallback(text));
+  }
+}
+
+/* the panel's little link pills - one rule rather than a style attribute
+   repeated on twenty anchors */
+(function () {
+  var css = '.ls-chip{display:inline-block;padding:4px 10px;border:1px solid #dbe4ef;' +
+            'border-radius:7px;background:#f7fafd;color:#1a73e8;text-decoration:none;' +
+            'white-space:nowrap;}' +
+            '.ls-chip:hover{background:#eef4fb;}' +
+            '.ls-opt{display:flex;align-items:center;gap:6px;cursor:pointer;padding:6px 10px;' +
+            'border:1px solid #ddd;border-radius:8px;background:#fff;}';
+  try {
+    var st = document.createElement('style');
+    st.textContent = css;
+    document.head.appendChild(st);
+  } catch (e) {}
+})();
+
 function _copyFallback(text) {
   try {
     var ta = document.createElement('textarea');
@@ -3482,6 +3898,18 @@ function openM(id) {
   // when the icon is already there.
   if (typeof _applyModalIcon === 'function') _applyModalIcon(id);
   if (typeof _addPanelShare === 'function') _addPanelShare(id);
+  // The letter is written the moment the panel opens, and the dates the
+  // reader already typed into the planner are carried over - asking a
+  // person for the same dates twice is asking him to do our filing.
+  if (id === 'localStayModal' && typeof buildLocalStayMail === 'function') {
+    try {
+      var lf = document.getElementById('ls-from'), lt = document.getElementById('ls-to');
+      var pf = document.getElementById('checkin-date'), pt = document.getElementById('checkout-date');
+      if (lf && !lf.value && pf && pf.value) lf.value = pf.value;
+      if (lt && !lt.value && pt && pt.value) lt.value = pt.value;
+    } catch (e) {}
+    buildLocalStayMail();
+  }
   // the address bar becomes the link worth sending
   if (typeof _panelHashOf === 'function' && _panelHashOf(id)) _setPanelHash(_panelHashOf(id));
   // The sources panel is built from texts.json every time it opens, so it is
@@ -8277,21 +8705,42 @@ async function saveProfile() {
     users[user.name] = { joined: new Date().toLocaleDateString('he-IL') };
   }
 
-  // Password change (only relevant for local users with passHash)
+  // Password change. Until now this served only the old local accounts:
+  // anyone registered through Supabase - which is everybody now - was told
+  // "not available for this user" and had no way to change a password at
+  // all, here or anywhere else.
   if (newPass) {
-    if (!users[user.name].passHash) {
-      showProfileMsg('שינוי סיסמא לא זמין למשתמש זה', 'error'); return;
-    }
-    if (simpleHash(oldPass) !== users[user.name].passHash) {
-      showProfileMsg('סיסמא נוכחית שגויה', 'error'); return;
-    }
     if (newPass.length < 6) {
       showProfileMsg('הסיסמא חייבת להכיל לפחות 6 תווים', 'error'); return;
     }
     if (/[\u0590-\u05FF]/.test(newPass)) {
-      showProfileMsg('הסיסמא חייבת להיות באנגלית בלבד', 'error'); return;
+      showProfileMsg('אי אפשר אותיות בעברית בסיסמא — החלף שפה ל-EN', 'error'); return;
     }
-    users[user.name].passHash = simpleHash(newPass);
+    const sbNow = (typeof getSB === 'function') ? getSB() : null;
+    if (USE_SUPABASE && user.sbId && sbNow) {
+      // The current password is checked by signing in with it. Supabase
+      // does not ask for it, but a password field that accepts anything
+      // from an unattended screen is a password field worth nothing.
+      try {
+        const { data: { session } } = await sbNow.auth.getSession();
+        const loginEmail = session && session.user && session.user.email;
+        if (!loginEmail) { showProfileMsg('צריך להתחבר מחדש כדי לשנות סיסמא', 'error'); return; }
+        const check = await sbNow.auth.signInWithPassword({ email: loginEmail, password: oldPass || '' });
+        if (check.error) { showProfileMsg('סיסמא נוכחית שגויה', 'error'); return; }
+        const upd = await sbNow.auth.updateUser({ password: newPass });
+        if (upd.error) { showProfileMsg('הסיסמא לא עודכנה. נסה שוב.', 'error'); return; }
+      } catch (e) {
+        showProfileMsg('הסיסמא לא עודכנה. נסה שוב.', 'error'); return;
+      }
+    } else {
+      if (!users[user.name].passHash) {
+        showProfileMsg('שינוי סיסמא לא זמין למשתמש זה', 'error'); return;
+      }
+      if (simpleHash(oldPass) !== users[user.name].passHash) {
+        showProfileMsg('סיסמא נוכחית שגויה', 'error'); return;
+      }
+      users[user.name].passHash = simpleHash(newPass);
+    }
   }
 
   // Update local cache
@@ -8757,17 +9206,33 @@ async function supabaseLogin(username, password) {
   return { data };
 }
 
+// Two faults lived here, and both are fixed on the server side now.
+//
+// The first: this asked the database for the address belonging to a
+// username and got it. Anyone who guessed a name learned where that
+// person reads his mail.
+//
+// The second was quieter and worse. People register with an internal
+// address, username_123456@cervinialive.app, and THAT is the account
+// Supabase knows. This asked Supabase to reset the REAL address, which
+// belongs to no account - so nothing was ever sent, and the page said
+// it had been. The function builds the link on the account that exists
+// and mails it to the address the person actually reads.
+//
+// And the answer no longer depends on whether the name exists: a form
+// that says "no such user" is a form that tells a stranger who IS a user.
 async function supabaseSendPasswordReset(username) {
-  const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
-  const { data: rows } = await sb.rpc('cl_reset_email', { p_username: username });
-  const prof = Array.isArray(rows) ? rows[0] : rows;
-  if (!prof) return { error: 'שם משתמש לא קיים במערכת' };
-  if (!prof.email) return { error: 'לחשבון זה לא רשום מייל אמיתי — פנה למנהל האתר' };
-  const { error } = await sb.auth.resetPasswordForEmail(prof.email, {
-    redirectTo: window.location.origin + window.location.pathname
-  });
-  if (error) return { error: error.message };
-  return { realEmail: prof.email };
+  try {
+    await fetch(SUPABASE_URL + '/functions/v1/reset-password', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
+                 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username })
+    });
+  } catch (e) {
+    return { error: 'לא הצלחנו לשלוח. בדוק את החיבור ונסה שוב.' };
+  }
+  return { sent: true };
 }
 
 async function supabaseGetProfile(userId) {
@@ -8845,12 +9310,16 @@ async function sendPasswordReset() {
   const btn = document.getElementById('forgot-btn');
   if (!username) { showForgotMsg('אנא הכנס שם משתמש', 'error'); return; }
   if (btn) { btn.disabled = true; btn.textContent = '...שולח'; }
-  const { realEmail, error } = await supabaseSendPasswordReset(username);
+  const { error } = await supabaseSendPasswordReset(username);
   if (btn) { btn.disabled = false; btn.textContent = '📧 שלח קישור לאיפוס'; }
   if (error) {
     showForgotMsg('שגיאה: ' + error, 'error');
   } else {
-    showForgotMsg('✅ קישור לאיפוס נשלח למייל שלך (' + realEmail + ')', 'success');
+    // Deliberately the same sentence whether or not the name exists, and
+    // deliberately without the address: printing it back confirmed to
+    // whoever typed the name that this person is registered, and where.
+    showForgotMsg('✅ אם שם המשתמש קיים אצלנו, נשלח קישור לאיפוס ' +
+                  'לכתובת הרשומה בחשבון. בדוק גם בתיקיית הספאם.', 'success');
     if (btn) btn.disabled = true;
   }
 }
@@ -11533,6 +12002,11 @@ window.onload = async function() {
   loadForecast();
   initFlatpickr();
   if (USE_SUPABASE) await checkSupabaseSession();
+  // A person who followed the reset link is here to change a password and
+  // nothing else; the box opens by itself rather than leaving him to find
+  // it. It opens AFTER the session is read, because without the session
+  // there is nothing to update.
+  if (_recoveryWanted()) openPasswordReset();
   loadLatestAlert();
   fetchReviews(true);
   renderReviews();
