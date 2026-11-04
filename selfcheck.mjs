@@ -2471,16 +2471,25 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (typeof _admRenderUsers !== 'function') return { unreachable: true };
     const host = document.getElementById('admin-users-list');
     if (!host) return { noHost: true };
-    const real = window.sbFetch;
+    const real = window.sbFetchAuth, realAnon = window.sbFetch;
     const out = {};
+    // the anonymous helper must not be the one that fetches this list
+    window.sbFetch = async (q) => { out.anonQuery = q; return []; };
 
-    window.sbFetch = async (q) => { out.query = q; return [
-      { username: 'יוסי', level: 'advanced', discipline: 'ski',
-        is_admin: true,  created_at: '2026-10-02T08:00:00Z' },
-      { username: 'רבקה', level: 'beginner', discipline: 'snowboard',
-        is_admin: false, created_at: '2026-09-14T08:00:00Z' },
-      { username: '<img src=x onerror=alert(1)>', level: null,
-        discipline: null, is_admin: false, created_at: null }
+    // a visitor who is not an admin
+    (0, eval)('user = null');
+    await _admRenderUsers();
+    out.stranger = host.textContent;
+    out.strangerAsked = !!out.anonQuery;
+
+    (0, eval)("user = { name: 'יוסי', isAdmin: true }");
+    window.sbFetchAuth = async (q) => { out.query = q; return [
+      { username: 'יוסי', email: 'yossi@example.com', level: 'advanced',
+        discipline: 'ski', is_admin: true,  created_at: '2026-10-02T08:00:00Z' },
+      { username: 'רבקה', email: null, level: 'beginner',
+        discipline: 'snowboard', is_admin: false, created_at: '2026-09-14T08:00:00Z' },
+      { username: '<img src=x onerror=alert(1)>', email: '<img src=y>@x.com',
+        level: null, discipline: null, is_admin: false, created_at: null }
     ]; };
     await _admRenderUsers();
     out.full = host.innerHTML;
@@ -2490,19 +2499,34 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // The question is whether the typed name became an element at all.
     out.injected = host.querySelectorAll('img, script').length;
 
-    window.sbFetch = async () => [];
+    window.sbFetchAuth = async () => [];
     await _admRenderUsers();
     out.empty = host.textContent;
 
-    window.sbFetch = async () => null;
+    window.sbFetchAuth = async () => null;
     await _admRenderUsers();
     out.refused = host.textContent;
 
-    window.sbFetch = async () => { throw new Error('offline'); };
+    window.sbFetchAuth = async () => { throw new Error('offline'); };
     await _admRenderUsers();
     out.threw = host.textContent;
 
-    window.sbFetch = real;
+    window.sbFetchAuth = real; window.sbFetch = realAnon;
+    (0, eval)('user = null');
+
+    // what the page asks for WITHOUT a signed-in person must never be the
+    // table that holds the addresses
+    const src = document.documentElement.innerHTML;
+    out.anonTable  = /sbFetch\('profiles\?/.test(src) ||
+                     /from\('profiles'\)[\s\S]{0,80}\.select\('username, level/.test(src);
+    out.usesView   = /profiles_public\?select=username,avatar_url/.test(src);
+    out.viewCount  = /profiles_public\?select=id/.test(src);
+    out.loginRpc   = /rpc\('cl_login_email'/.test(src) &&
+                     !/from\('profiles'\)\.select\('internal_email'\)/.test(src);
+    out.takenRpc   = /rpc\('cl_username_taken'/.test(src);
+    out.resetRpc   = /rpc\('cl_reset_email'/.test(src);
+    out.regRpc     = /rpc\('cl_register_profile'/.test(src) &&
+                     !/upsert\(\{[\s\S]{0,120}internal_email/.test(src);
     out.stub = /יצטרך Supabase/.test(document.documentElement.innerHTML);
     return out;
   });
@@ -2515,9 +2539,31 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       'the placeholder text is still in the page - the tab was not rebuilt'); else ok();
     if (!/profiles\?select=/.test(r.query || '')) fail(T,
       `the list is built from "${r.query}" and not from the profiles table`); else ok();
-    if (/\bemail\b/.test(r.query || '')) fail(T,
-      'the query asks for email addresses - this panel is client-side, and a ' +
-      'list of addresses on a page is a list of addresses'); else ok();
+    if (!/\bemail\b/.test(r.query || '')) fail(T,
+      'the admin list no longer asks for the addresses'); else ok();
+    // and it must be the token-bearing helper that asks for them
+    if (r.anonQuery) fail(T,
+      `the addresses are fetched with the public key (${r.anonQuery}) - RLS ` +
+      `then has no person to judge, and the list answers anyone`); else ok();
+    if (!/למנהלים בלבד/.test(r.stranger || '')) fail(T,
+      `a visitor who is not an admin sees "${(r.stranger||'').trim().slice(0,50)}"`); else ok();
+    if (r.strangerAsked) fail(T,
+      'the page queries for the addresses before knowing who is asking'); else ok();
+    if (!/yossi@example\.com/.test(r.text)) fail(T,
+      'the address is not shown to the admin'); else ok();
+    if (!/אין מייל רשום/.test(r.text)) fail(T,
+      'a user with no address shows an empty gap instead of saying so'); else ok();
+    if (r.anonTable) fail(T,
+      'something still reads the profiles table itself without a token'); else ok();
+    if (!r.usesView || !r.viewCount) fail(T,
+      'the forum and the counter still read profiles instead of profiles_public'); else ok();
+    if (!r.loginRpc) fail(T,
+      'login still looks the internal address up in the table, which is a ' +
+      'query that works before anyone signs in'); else ok();
+    if (!r.takenRpc || !r.resetRpc) fail(T,
+      'the name-taken check or the reset lookup still reads the table'); else ok();
+    if (!r.regRpc) fail(T,
+      'registration still writes internal_email from the browser'); else ok();
     if (!/יוסי/.test(r.text) || !/רבקה/.test(r.text)) fail(T,
       'a registered name is missing from the list'); else ok();
     if (!/3 משתמשים/.test(r.text)) fail(T,
