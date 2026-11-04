@@ -2410,20 +2410,24 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       { id: 2, user: 'רבקה', content: 'תודה',  timestamp: now, reactions: { like: 3 } },
       { id: 3, user: 'אבי',  content: 'מעולה', timestamp: now - 9e8, reactions: {} }
     ]));
+    // The stub goes in BEFORE populateAdminStats, because that function
+    // fires _admCountUsers WITHOUT awaiting it. Stubbing afterwards left two
+    // calls in flight - the stubbed one and the real one - and whichever
+    // landed last won. On a loaded machine the real one (blocked network,
+    // so a dash) landed second and the check failed at random. A test that
+    // passes by timing is not a test.
+    const realFetch = window.sbFetch;
+    window.sbFetch = async () => new Array(7).fill(0).map((_, i) => ({ id: i }));
     await populateAdminStats();
-    await new Promise(r2 => setTimeout(r2, 120));
+    await new Promise(r2 => setTimeout(r2, 200));
     const txt = id => (document.getElementById(id) || {}).textContent || '';
     const out = { posts: txt('stat-posts'), today: txt('stat-today-posts'),
                   reactions: txt('stat-reactions'), users: txt('stat-users'),
                   usesWindow: /window\.allPosts\s*\|\|/.test(populateAdminStats.toString()) };
-    // and the close control must be visible against its own header
     // the user count, with the query answering and then refusing
-    const realFetch = window.sbFetch;
-    window.sbFetch = async () => new Array(7).fill(0).map((_, i) => ({ id: i }));
-    await _admCountUsers(); await new Promise(r2 => setTimeout(r2, 40));
     out.usersOk = txt('stat-users');
     window.sbFetch = async () => null;
-    await _admCountUsers(); await new Promise(r2 => setTimeout(r2, 40));
+    await _admCountUsers(); await new Promise(r2 => setTimeout(r2, 60));
     out.usersFail = txt('stat-users');
     window.sbFetch = realFetch;
 
@@ -2586,6 +2590,194 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'first-time visitor where to register'); else ok();
 }
 
+// ── forgetting a password actually works now ──────────────────────────
+// Three faults, all of them silent: the reset asked the database for the
+// address behind a username and printed it back; it then asked Supabase to
+// reset an address no account was registered with, so nothing was ever
+// sent while the page said it had been; and a Supabase user could not
+// change a password anywhere in the site.
+{
+  const r = await page.evaluate(async () => {
+    const src = document.documentElement.innerHTML;
+    const out = {
+      usesFn:    /functions\/v1\/reset-password/.test(src),
+      oldRpc:    /rpc\('cl_reset_email'/.test(src),
+      printsMail: /קישור לאיפוס נשלח למייל שלך/.test(src),
+      vague:     /אם שם המשתמש קיים/.test(src),
+      hasBox:    !!document.getElementById('pwResetModal'),
+      hasField:  !!document.getElementById('pw-reset-new'),
+      updates:   /auth\.updateUser\(\{ password/.test(src),
+      profileRefuses: /שינוי סיסמא לא זמין למשתמש זה/.test(src),
+      profileUpdates: /sbNow\.auth\.updateUser/.test(src),
+      checksOld: /signInWithPassword\(\{ email: loginEmail/.test(src)
+    };
+    // the reset form must say the same thing whatever name is typed
+    if (typeof supabaseSendPasswordReset === 'function') {
+      const realFetch = window.fetch;
+      let seen = null;
+      window.fetch = async (u, o) => { seen = { u: String(u), o: o }; return { ok: true, json: async () => ({ ok: true }) }; };
+      const res = await supabaseSendPasswordReset('מישהו');
+      window.fetch = realFetch;
+      out.called = seen ? seen.u : '';
+      out.body   = seen && seen.o ? String(seen.o.body || '') : '';
+      out.leaks  = !!(res && res.realEmail);
+    }
+    // and the new-password box must refuse a password the login would
+    if (typeof submitPasswordReset === 'function') {
+      const f = document.getElementById('pw-reset-new');
+      if (f) {
+        f.value = 'abc';
+        await submitPasswordReset();
+        out.shortMsg = (document.getElementById('pw-reset-msg') || {}).textContent || '';
+        f.value = 'סיסמא123';
+        await submitPasswordReset();
+        out.hebrewMsg = (document.getElementById('pw-reset-msg') || {}).textContent || '';
+        f.value = '';
+      }
+    }
+    return out;
+  });
+
+  const T = 'forgetting a password actually works now';
+  if (!r.usesFn) fail(T,
+    'the reset is still done from the browser; the address and the account ' +
+    'it belongs to are decided in the page'); else ok();
+  if (r.oldRpc) fail(T,
+    'the page still looks the address up by username'); else ok();
+  if (r.leaks || r.printsMail) fail(T,
+    'the form prints the address back, which tells whoever typed a name ' +
+    'that this person is registered and where he reads his mail'); else ok();
+  if (!r.vague) fail(T,
+    'the form still answers differently for a name that exists'); else ok();
+  if (!/\/functions\/v1\/reset-password$/.test(r.called || '')) fail(T,
+    `the reset posts to "${r.called}"`); else ok();
+  if (!/"username"/.test(r.body || '')) fail(T,
+    'the request carries no username'); else ok();
+  if (!r.hasBox || !r.hasField) fail(T,
+    'the reset link leads to a page with nowhere to set a new password'); else ok();
+  if (!r.updates) fail(T,
+    'the box does not actually update the password'); else ok();
+  if (!/6 תווים/.test(r.shortMsg || '')) fail(T,
+    `a three-character password is answered with "${r.shortMsg}"`); else ok();
+  if (!/עברית/.test(r.hebrewMsg || '')) fail(T,
+    'a Hebrew password is accepted here, and the login will then refuse it'); else ok();
+  if (r.profileRefuses && !r.profileUpdates) fail(T,
+    'the profile still tells a Supabase user that changing a password is ' +
+    'not available, which is everybody'); else ok();
+  if (!r.checksOld) fail(T,
+    'the profile changes the password without checking the current one'); else ok();
+}
+
+// ── the letter can be written in English too ──────────────────────────
+{
+  const r = await page.evaluate(async () => {
+    if (typeof buildLocalStayMail !== 'function') return { missing: true };
+    const pick = (v) => {
+      const el = document.querySelector('input[name="ls-lang"][value="' + v + '"]');
+      if (el) { el.checked = true; }
+    };
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    set('ls-from', '2027-01-10'); set('ls-to', '2027-01-15'); set('ls-guests', '5');
+    pick('en'); buildLocalStayMail();
+    const out = {
+      en:    (document.getElementById('ls-it') || {}).value || '',
+      enHe:  (document.getElementById('ls-he') || {}).textContent || '',
+      label: (document.getElementById('ls-out-label') || {}).textContent || '',
+      mail:  (document.getElementById('ls-send-cervino') || {}).href || ''
+    };
+    pick('it'); buildLocalStayMail();
+    out.it = (document.getElementById('ls-it') || {}).value || '';
+    return out;
+  });
+
+  const T = 'the letter can be written in English too';
+  if (r.missing) warn(T, 'the local-stay panel is not on the page');
+  else {
+    if (!/Hello,/.test(r.en) || !/Buongiorno/.test(r.it)) fail(T,
+      'the language switch does not change the letter'); else ok();
+    // Not 10/01 here: plenty of English readers would take that for October.
+    if (!/10 January 2027/.test(r.en)) fail(T,
+      'the English letter writes the date in digits, which half its readers ' +
+      'will read as another month'); else ok();
+    if (!/5 nights/.test(r.en) || !/5 people/.test(r.en)) fail(T,
+      'the English letter loses the nights or the number of people'); else ok();
+    if (!/total price/.test(r.en)) fail(T,
+      'the English letter does not ask for the total'); else ok();
+    if (!/אנגלית/.test(r.label)) fail(T,
+      `the label above the letter still says "${r.label}"`); else ok();
+    if (!/Apartment%20request/.test(r.mail)) fail(T,
+      'the send button keeps the Italian subject on an English letter'); else ok();
+    if (!/5 לילות/.test(r.enHe)) fail(T,
+      'the Hebrew mirror stops working when the language changes'); else ok();
+  }
+}
+
+// ── the letter to the local agencies ──────────────────────────────────
+// The panel's advice is worthless without it: the agencies answer in
+// Italian and the reader does not write it. So the letter has to carry the
+// dates in the form an Italian reads, say the same thing in Hebrew, and
+// arrive at the agency already written.
+{
+  const r = await page.evaluate(async () => {
+    if (typeof buildLocalStayMail !== 'function') return { missing: true };
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    const tick = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v; };
+    set('ls-from', '2027-01-10'); set('ls-to', '2027-01-15'); set('ls-guests', '5');
+    ['ls-opt-lift','ls-opt-park','ls-opt-kitchen','ls-opt-linen'].forEach(id => tick(id, false));
+    buildLocalStayMail();
+    const out = {
+      it: (document.getElementById('ls-it') || {}).value || '',
+      he: (document.getElementById('ls-he') || {}).textContent || '',
+      mail: (document.getElementById('ls-send-cervino') || {}).href || '',
+      cons: (document.getElementById('ls-send-cons') || {}).href || ''
+    };
+    tick('ls-opt-lift', true); tick('ls-opt-park', true);
+    buildLocalStayMail();
+    out.itLift = (document.getElementById('ls-it') || {}).value || '';
+    out.heLift = (document.getElementById('ls-he') || {}).textContent || '';
+    // an unfinished form must not produce a letter that looks finished
+    set('ls-from', ''); set('ls-to', '');
+    buildLocalStayMail();
+    out.empty = (document.getElementById('ls-it') || {}).value || '';
+    return out;
+  });
+
+  const T = 'the letter to the local agencies';
+  if (r.missing) warn(T, 'the local-stay panel is not on the page');
+  else {
+    // 10 January, not 1 October. The whole point of writing it out.
+    if (!/10\/01\/2027/.test(r.it) || /01\/10\/2027/.test(r.it)) fail(T,
+      'the date reaches an Italian reader as month/day, which is a different day'); else ok();
+    if (!/15\/01\/2027/.test(r.it)) fail(T, 'the departure date is missing'); else ok();
+    if (!/5 notti/.test(r.it)) fail(T,
+      '10-15 January is five nights; the letter does not say so'); else ok();
+    if (!/5 persone/.test(r.it)) fail(T, 'the letter does not say how many people'); else ok();
+    if (!/prezzo totale/.test(r.it) || !/pulizie finali/.test(r.it)) fail(T,
+      'the letter asks the price without asking what is added to it - cleaning ' +
+      'and the tourist tax are what turn a quote into a different number'); else ok();
+    // the Hebrew must be the same letter, not a decoration
+    if (!/10\/01\/2027/.test(r.he) || !/5 לילות/.test(r.he)) fail(T,
+      'the Hebrew version does not carry the same dates and nights'); else ok();
+    if (!/המחיר הכולל/.test(r.he)) fail(T,
+      'the Hebrew version does not say what the Italian one asks for'); else ok();
+    // a tick must change BOTH languages, or the reader is signing blind
+    if (!/impianti di risalita/.test(r.itLift) || !/posto auto/.test(r.itLift)) fail(T,
+      'ticking a question does not add it to the Italian'); else ok();
+    if (!/המרחק מהמעליות/.test(r.heLift) || !/מקום חניה/.test(r.heLift)) fail(T,
+      'ticking a question adds it to the Italian but not to the Hebrew, so the ' +
+      'reader sends a sentence he never read'); else ok();
+    // and it must arrive already written
+    if (!/^mailto:info@ilcervino\.com\?/.test(r.mail)) fail(T,
+      `the send button points at "${r.mail.slice(0, 60)}"`); else ok();
+    if (!/body=[^&]*Buongiorno/.test(decodeURIComponent(r.mail))) fail(T,
+      'the mail opens empty instead of carrying the letter'); else ok();
+    if (!/info@breuil-cervinia\.it/.test(r.cons)) fail(T,
+      'the consortium button does not point at the consortium'); else ok();
+    if (!/\[date\]|\[data\]/.test(r.empty)) fail(T,
+      'with no dates filled in, the letter still reads as though it had them'); else ok();
+  }
+}
+
 // ── the users tab lists the users ─────────────────────────────────────
 // This tab was never built: it held a fixed line of text saying "full user
 // management will need Supabase", and Supabase has been wired in the whole
@@ -2649,10 +2841,15 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.loginRpc   = /rpc\('cl_login_email'/.test(src) &&
                      !/from\('profiles'\)\.select\('internal_email'\)/.test(src);
     out.takenRpc   = /rpc\('cl_username_taken'/.test(src);
-    out.resetRpc   = /rpc\('cl_reset_email'/.test(src);
+    // The reset no longer asks the database at all - it goes to the edge
+    // function, which never hands the address back. This used to require
+    // the cl_reset_email RPC; requiring it now would be requiring the leak.
+    out.resetGone  = !/rpc\('cl_reset_email'/.test(src) &&
+                     /functions\/v1\/reset-password/.test(src);
     out.regRpc     = /rpc\('cl_register_profile'/.test(src) &&
                      !/upsert\(\{[\s\S]{0,120}internal_email/.test(src);
     out.stub = /יצטרך Supabase/.test(document.documentElement.innerHTML);
+    out.staleNote = /נתוני משתמשים ב-localStorage/.test(document.documentElement.innerHTML);
     return out;
   });
 
@@ -2662,6 +2859,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   else {
     if (r.stub) fail(T,
       'the placeholder text is still in the page - the tab was not rebuilt'); else ok();
+    // and the footnote that said the data lives in localStorage: it does not,
+    // and a caption that contradicts what the reader sees above it is worse
+    // than no caption.
+    if (r.staleNote) fail(T,
+      'the tab still carries the note saying the data lives in localStorage'); else ok();
     if (!/profiles\?select=/.test(r.query || '')) fail(T,
       `the list is built from "${r.query}" and not from the profiles table`); else ok();
     if (!/\bemail\b/.test(r.query || '')) fail(T,
@@ -2685,8 +2887,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!r.loginRpc) fail(T,
       'login still looks the internal address up in the table, which is a ' +
       'query that works before anyone signs in'); else ok();
-    if (!r.takenRpc || !r.resetRpc) fail(T,
-      'the name-taken check or the reset lookup still reads the table'); else ok();
+    if (!r.takenRpc) fail(T,
+      'the name-taken check still reads the table'); else ok();
+    if (!r.resetGone) fail(T,
+      'the password reset still looks an address up from the browser'); else ok();
     if (!r.regRpc) fail(T,
       'registration still writes internal_email from the browser'); else ok();
     if (!/יוסי/.test(r.text) || !/רבקה/.test(r.text)) fail(T,
