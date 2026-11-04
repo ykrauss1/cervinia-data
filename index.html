@@ -2615,7 +2615,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
         <!-- כותרת -->
         <div style="background:linear-gradient(160deg,#1a0a2e,#4a1a6e); padding:18px 20px 0; border-radius:20px 20px 0 0; flex-shrink:0;">
-            <span class="close-btn" onclick="closeM('adminModal')" style="color:white;opacity:0.7;top:12px;left:14px;">×</span>
+            <!-- .close-btn draws a white disc, and this one asked for a white
+                 ✕ on top of it: an empty circle in the corner. The header is
+                 dark, so the disc is not wanted here at all. -->
+            <span class="close-btn" onclick="closeM('adminModal')" style="color:white;opacity:0.75;top:12px;left:14px;background:transparent;">×</span>
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
                 <span style="font-size:1.8rem;">⚙️</span>
                 <div>
@@ -13723,9 +13726,25 @@ function switchAdminTab(tab) {
         openM('adminModal');
     }
 
-    function populateAdminStats() {
-        // פוסטים
-        const postsData = window.allPosts || [];
+    async function _admCountUsers() {
+        const el = document.getElementById('stat-users');
+        if (!el) return;
+        try {
+            const rows = await sbFetch('profiles?select=id');
+            el.textContent = Array.isArray(rows) ? rows.length : '—';
+        } catch (e) {
+            console.warn('user count failed:', e);
+            el.textContent = '—';
+        }
+    }
+
+    async function populateAdminStats() {
+        // `allPosts` is declared with `let` at the top level of a classic
+        // script, and a top-level `let` is a LEXICAL binding - it never
+        // becomes a property of window. So `window.allPosts` was undefined
+        // on every call and the dashboard read an empty array, however many
+        // posts the forum actually held.
+        const postsData = (typeof allPosts !== 'undefined' && allPosts) ? allPosts : [];
         const today = new Date().toDateString();
         const todayPosts = postsData.filter(p => p.timestamp && new Date(p.timestamp).toDateString() === today);
         const totalReactions = postsData.reduce((acc, p) => {
@@ -13736,7 +13755,11 @@ function switchAdminTab(tab) {
         document.getElementById('stat-posts').textContent = postsData.length;
         document.getElementById('stat-today-posts').textContent = todayPosts.length;
         document.getElementById('stat-reactions').textContent = totalReactions;
-        document.getElementById('stat-users').textContent = '—'; // Supabase בעתיד
+        // The registered-user count was a dash with a note saying "Supabase
+        // later". It is one query. If it is refused - RLS, or no network -
+        // the dash comes back rather than a confident zero, because "no
+        // users" and "could not ask" are different statements.
+        _admCountUsers();
 
         // פוסטים אחרונים
         const recentHtml = postsData.slice(0,5).map(p =>
