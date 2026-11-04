@@ -2461,6 +2461,87 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── the users tab lists the users ─────────────────────────────────────
+// This tab was never built: it held a fixed line of text saying "full user
+// management will need Supabase", and Supabase has been wired in the whole
+// time. Three branches matter here - people, nobody, and could-not-ask -
+// and the last two must not read the same.
+{
+  const r = await page.evaluate(async () => {
+    if (typeof _admRenderUsers !== 'function') return { unreachable: true };
+    const host = document.getElementById('admin-users-list');
+    if (!host) return { noHost: true };
+    const real = window.sbFetch;
+    const out = {};
+
+    window.sbFetch = async (q) => { out.query = q; return [
+      { username: 'יוסי', level: 'advanced', discipline: 'ski',
+        is_admin: true,  created_at: '2026-10-02T08:00:00Z' },
+      { username: 'רבקה', level: 'beginner', discipline: 'snowboard',
+        is_admin: false, created_at: '2026-09-14T08:00:00Z' },
+      { username: '<img src=x onerror=alert(1)>', level: null,
+        discipline: null, is_admin: false, created_at: null }
+    ]; };
+    await _admRenderUsers();
+    out.full = host.innerHTML;
+    out.text = host.textContent;
+    // Not a regex over innerHTML: the DOM re-serialises attributes with
+    // quotes, so `<img src=x` never matches and the check is toothless.
+    // The question is whether the typed name became an element at all.
+    out.injected = host.querySelectorAll('img, script').length;
+
+    window.sbFetch = async () => [];
+    await _admRenderUsers();
+    out.empty = host.textContent;
+
+    window.sbFetch = async () => null;
+    await _admRenderUsers();
+    out.refused = host.textContent;
+
+    window.sbFetch = async () => { throw new Error('offline'); };
+    await _admRenderUsers();
+    out.threw = host.textContent;
+
+    window.sbFetch = real;
+    out.stub = /יצטרך Supabase/.test(document.documentElement.innerHTML);
+    return out;
+  });
+
+  const T = 'the users tab lists the users';
+  if (r.unreachable) warn(T, '_admRenderUsers is not reachable from the page scope');
+  else if (r.noHost) fail(T, 'there is no #admin-users-list to fill');
+  else {
+    if (r.stub) fail(T,
+      'the placeholder text is still in the page - the tab was not rebuilt'); else ok();
+    if (!/profiles\?select=/.test(r.query || '')) fail(T,
+      `the list is built from "${r.query}" and not from the profiles table`); else ok();
+    if (/\bemail\b/.test(r.query || '')) fail(T,
+      'the query asks for email addresses - this panel is client-side, and a ' +
+      'list of addresses on a page is a list of addresses'); else ok();
+    if (!/יוסי/.test(r.text) || !/רבקה/.test(r.text)) fail(T,
+      'a registered name is missing from the list'); else ok();
+    if (!/3 משתמשים/.test(r.text)) fail(T,
+      'the list does not say how many people are registered'); else ok();
+    if (!/מנהל/.test(r.text)) fail(T,
+      'the admin is not marked as one'); else ok();
+    if (!/מתקדם/.test(r.text) || !/מתחיל/.test(r.text)) fail(T,
+      'the ski level is shown in English, or not at all'); else ok();
+    if (!/02\.10\.2026/.test(r.text)) fail(T,
+      'the join date is missing or still in ISO order'); else ok();
+    // A username is typed by whoever registered. It is rendered inside the
+    // panel's own HTML, so it goes through esc or it is a script tag.
+    if (r.injected) fail(T,
+      'a typed username became a live element in the panel - it is written ' +
+      'in unescaped'); else ok();
+    if (!/אין עדיין משתמשים/.test(r.empty)) fail(T,
+      `an empty table shows "${r.empty.trim().slice(0, 60)}"`); else ok();
+    if (/אין עדיין משתמשים/.test(r.refused) || !/לא הצלחנו לקרוא/.test(r.refused)) fail(T,
+      '"the query was refused" is shown as "nobody has registered"'); else ok();
+    if (!/לא הצלחנו לקרוא/.test(r.threw)) fail(T,
+      'a thrown request leaves the tab on "loading" for ever'); else ok();
+  }
+}
+
 // ── the icons say the right thing ─────────────────────────────────────
 // The Kosher Fly row wore 🕯️, a single dripping wax candle, while the
 // kashrut card it belongs with wears two Shabbat candles. And the passenger
