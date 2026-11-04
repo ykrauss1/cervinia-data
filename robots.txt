@@ -1,0 +1,13 @@
+# cervinialive.co.il
+User-agent: *
+Allow: /
+
+# Old copies of the site that are still reachable by their file name.
+# robots.txt asks a crawler not to index them; it does not stop anyone who
+# has the link. Deleting them from the repository is the real fix, and this
+# is only the belt beside that brace.
+Disallow: /home.html
+Disallow: /meteo.html
+Disallow: /webcams.html
+
+Sitemap: https://cervinialive.co.il/sitemap.xml
