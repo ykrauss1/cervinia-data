@@ -2957,6 +2957,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       oldRpc:    /rpc\('cl_reset_email'/.test(src),
       printsMail: /קישור לאיפוס נשלח למייל שלך/.test(src),
       vague:     /אם שם המשתמש קיים/.test(src),
+      namesUser: /לא נמצא משתמש/.test(src),
       hasBox:    !!document.getElementById('pwResetModal'),
       hasField:  !!document.getElementById('pw-reset-new'),
       updates:   /auth\.updateUser\(\{ password/.test(src),
@@ -3000,8 +3001,16 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.leaks || r.printsMail) fail(T,
     'the form prints the address back, which tells whoever typed a name ' +
     'that this person is registered and where he reads his mail'); else ok();
-  if (!r.vague) fail(T,
-    'the form still answers differently for a name that exists'); else ok();
+  // This used to require the opposite - one sentence for every name, so
+  // that the box could not be used to find out who is registered. The
+  // usernames are on every forum post anyway, so nothing was hidden, and
+  // the person who forgot his password was left unable to tell whether the
+  // name he typed had reached anything at all. The address still never
+  // comes back; only whether the name exists.
+  if (r.vague) fail(T,
+    'the form still answers "if this name exists", which answers nothing'); else ok();
+  if (!r.namesUser) fail(T,
+    'the form has no answer for a name that does not exist'); else ok();
   if (!/\/functions\/v1\/reset-password$/.test(r.called || '')) fail(T,
     `the reset posts to "${r.called}"`); else ok();
   if (!/"username"/.test(r.body || '')) fail(T,
@@ -3268,6 +3277,341 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!/לא הצלחנו לקרוא/.test(r.threw)) fail(T,
       'a thrown request leaves the tab on "loading" for ever'); else ok();
   }
+}
+
+// ── the category chips over the reviews actually filter ───────────────
+// They did nothing at all, and the reason was the order of two lines:
+// setRevFilter called renderReviews() first, which rebuilt the list and
+// threw away the very button that had been clicked, then added the active
+// class to an element no longer in the page - and the second render read
+// the choice back off the DOM, where nothing carried it. The choice is a
+// variable now.
+{
+  const r = await page.evaluate(async () => {
+    if (typeof renderReviews !== 'function' || typeof setRevFilter !== 'function')
+      return { missing: true };
+    const host = document.getElementById('reviews-list');
+    if (!host) return { noHost: true };
+    const keep = (typeof _reviews !== 'undefined') ? _reviews : [];
+    const now = Date.now();
+    const cats = REVIEW_CATS.slice(0, 2);
+    (0, eval)('_revCatFilter = "all"');
+    (0, eval)('_reviewsOnline = true');
+    _reviews = [
+      { id: '1', user: 'אבי',  rating: 5, cat: cats[0], text: 'ראשון',
+        timestamp: now, authorId: 'a', reacts: { counts: {}, mine: {} } },
+      { id: '2', user: 'בני',  rating: 4, cat: cats[1], text: 'שני',
+        timestamp: now, authorId: 'b', reacts: { counts: {}, mine: {} } },
+      { id: '3', user: 'גדי',  rating: 3, cat: 'קטגוריה שנמחקה', text: 'יתום',
+        timestamp: now, authorId: 'c', reacts: { counts: {}, mine: {} } }
+    ];
+    renderReviews();
+    const chips = () => [...host.querySelectorAll('.rev-filter-btn')];
+    const text  = () => host.textContent;
+    const out = {};
+    out.chipCount = chips().length;
+    out.allShowsEveryone = /אבי/.test(text()) && /בני/.test(text()) && /גדי/.test(text());
+
+    const first = chips().find(b => b.dataset.cat === cats[0]);
+    out.chipFound = !!first;
+    if (first) {
+      first.click();
+      out.afterClick = { a: /אבי/.test(text()), b: /בני/.test(text()) };
+      out.activeChip = (host.querySelector('.rev-filter-btn.rev-active') || {}).dataset?.cat;
+      out.chipsSurvive = chips().length;
+    }
+    // a review whose category was removed from the dashboard must still be
+    // reachable, not only under "all"
+    const other = chips().find(b => b.dataset.cat === REVIEW_CAT_OTHER);
+    if (other) { other.click(); out.orphanReachable = /גדי/.test(text()); }
+    // back to all
+    const all = chips().find(b => b.dataset.cat === 'all');
+    if (all) { all.click(); out.backToAll = /בני/.test(text()); }
+    // an empty category keeps the chips, or there is no way back. The page
+    // may be carrying a short category list, so the empty one is MADE here
+    // rather than hunted for among the chips.
+    _reviews = _reviews.filter(x => x.cat !== cats[0]);
+    renderReviews();
+    const nowEmpty = chips().find(b => b.dataset.cat === cats[0]);
+    if (nowEmpty) {
+      nowEmpty.click();
+      out.emptySays  = /אין ביקורות עדיין/.test(text());
+      out.emptyChips = chips().length;
+    } else { out.noEmptyChip = true; }
+    (0, eval)('_revCatFilter = "all"');
+    _reviews = keep;
+    renderReviews();
+    return out;
+  });
+
+  const T = 'the category chips over the reviews filter the list';
+  if (r.missing) warn(T, 'the reviews are not reachable from the page');
+  else if (r.noHost) fail(T, 'there is no #reviews-list');
+  else {
+    if (!r.chipCount || r.chipCount < 3) fail(T,
+      `only ${r.chipCount} chips are drawn`); else ok();
+    if (!r.allShowsEveryone) fail(T,
+      '"הכל" does not show every review'); else ok();
+    if (!r.chipFound) fail(T, 'a chip carries no category'); else ok();
+    if (!r.afterClick || !r.afterClick.a) fail(T,
+      'clicking a category hides the reviews that belong to it'); else ok();
+    if (!r.afterClick || r.afterClick.b) fail(T,
+      'clicking a category changes nothing - the other categories are still ' +
+      'listed'); else ok();
+    if (!r.activeChip) fail(T,
+      'after the click no chip is marked as the chosen one'); else ok();
+    if (!r.chipsSurvive || r.chipsSurvive < 3) fail(T,
+      'the chips disappear once one is clicked'); else ok();
+    if (!r.orphanReachable) fail(T,
+      'a review whose category was removed from the dashboard can no longer ' +
+      'be reached from any chip'); else ok();
+    if (!r.backToAll) fail(T,
+      '"הכל" does not bring the other reviews back'); else ok();
+    if (!r.emptySays) fail(T,
+      'an empty category shows a blank panel instead of saying it is empty'); else ok();
+    if (r.noEmptyChip) fail(T,
+      'the chosen category lost its chip once it had no reviews'); else ok();
+    if (!r.emptyChips || r.emptyChips < 3) fail(T,
+      'an empty category drops the chips, so there is no way back'); else ok();
+  }
+}
+
+// ── every link the trip planner builds reaches the page ───────────────
+// The three boxes were filled by filtering on the icon STRING: '✈️' went to
+// flights, '🏨' and '🏠' to lodging, '🚗' to the car. So the day Kosher Fly's
+// candle became an inline SVG, our own engine matched nothing, fell out of
+// all three and vanished from the results - and so, unnoticed, did the four
+// local agencies, whose icons were never in the list to begin with. A link
+// that matches no box is not shown and raises nothing. The planner now
+// routes on an explicit kind, and this counts the links in against the
+// links out.
+{
+  const r = await page.evaluate(async () => {
+    if (typeof searchAll !== 'function') return { missing: true };
+    const out = {};
+    const realRange = window.getDateRange;
+    window.getDateRange = () => ({ ci: '2027-01-10', co: '2027-01-15' });
+    const hotel = document.getElementById('all-hotel-check');
+    const car   = document.getElementById('all-car-check');
+    if (hotel) hotel.checked = true;
+    if (car)   car.checked   = true;
+    // A link that matches no box reaches makeResultLinks exactly as often as
+    // it reaches the page - never - so counting there compares the survivors
+    // with themselves. The planner itself is what knows: it reports a link
+    // with no kind, and that report is what we listen for.
+    const realErr = console.error;
+    const errs = [];
+    console.error = function () { errs.push([].slice.call(arguments).join(' ')); };
+    try { searchAll(); } catch (e) { out.err = String(e && e.message); }
+    console.error = realErr;
+    window.getDateRange = realRange;
+    out.orphans = errs.filter(m => /link with no kind/.test(m));
+
+    const host = document.getElementById('all-results');
+    out.shown  = host ? [...host.querySelectorAll('.rl-title')].map(t => t.textContent.trim()) : [];
+    out.hrefs  = host ? [...host.querySelectorAll('a.result-link')].map(a => a.getAttribute('href')) : [];
+    out.sections = host ? [...host.querySelectorAll(':scope > div')].length : 0;
+    return out;
+  });
+
+  const T = 'the trip planner shows every link it builds';
+  if (r.missing) warn(T, 'searchAll is not reachable from the page');
+  else if (r.err) fail(T, `searchAll threw: ${r.err}`);
+  else {
+    // our own engine, by the address it points at - a title can be renamed,
+    // the destination is the thing that matters
+    if (!r.hrefs.some(h => /ykrauss1\.github\.io\/trip-finder/.test(h))) fail(T,
+      `Kosher Fly is missing from the results; what is offered is ` +
+      `${r.shown.join(', ') || '(nothing)'}`); else ok();
+    // and it is offered FIRST, before the three foreign engines
+    if (!/trip-finder/.test(r.hrefs[0] || '')) fail(T,
+      `the first flight result points at "${(r.hrefs[0] || '').slice(0, 50)}" and ` +
+      `not at our own engine`); else ok();
+    if (!r.hrefs.some(h => /kayak\.com\/flights/.test(h))) fail(T,
+      'the flight box lost Kayak'); else ok();
+    // the local agencies travel with the lodging box or they are lost in the
+    // same silence
+    if (!r.hrefs.some(h => /immobiliaremontecervino|hellochalet/.test(h))) fail(T,
+      'the local lodging agencies are built but never shown'); else ok();
+    if (!r.hrefs.some(h => /kayak\.com\/cars/.test(h))) fail(T,
+      'the car box is empty although a car was asked for'); else ok();
+    // nothing may be dropped on the way from the array to the page
+    if (r.orphans && r.orphans.length) fail(T,
+      `a link reaches no box and is dropped without a word: ${r.orphans[0]}`); else ok();
+    // and the three boxes together must hold every flight, stay and car link
+    if (r.shown.length < 10) fail(T,
+      `only ${r.shown.length} links reached the page: ${r.shown.join(', ')}`); else ok();
+    if (r.sections < 3) fail(T,
+      `only ${r.sections} of the three boxes were drawn`); else ok();
+  }
+}
+
+// ── forgetting a password, and coming back from the link ──────────────
+// Four separate failures sat on this one road. The name typed into the
+// login box was not carried into the reset box. auth-err lives outside the
+// three panels, so a failed login left "יש למלא שם משתמש וסיסמא" sitting
+// under a form that asks for neither. The server answered every name with
+// the same "if this name exists" sentence, which told the person nothing.
+// And the link itself landed on a page that signed him in and said nothing
+// at all - because createClient reads the recovery hash and wipes it before
+// DOMContentLoaded, so the check for it always came up empty.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const src = document.documentElement.innerHTML;
+
+    // ── the flag has to be taken BEFORE the client is built, or the hash
+    //    it looks for is already gone
+    const iFlag   = src.indexOf('_CAME_FROM_RECOVERY =');
+    const iClient = src.indexOf('supabase.createClient(');
+    out.flagFirst = iFlag > -1 && iClient > -1 && iFlag < iClient;
+    // and _recoveryWanted must survive a wiped hash
+    try {
+      (0, eval)('_CAME_FROM_RECOVERY = true');
+      history.replaceState(null, '', location.pathname);
+      out.survives = _recoveryWanted() === true;
+      (0, eval)('_CAME_FROM_RECOVERY = false');
+      out.quietOtherwise = _recoveryWanted() === false;
+    } catch (e) { out.recErr = String(e && e.message); }
+    out.listens = /PASSWORD_RECOVERY/.test(src);
+
+    // ── the typed name travels to the reset box, and the stale red line goes
+    const login  = document.getElementById('login-name');
+    const forgot = document.getElementById('forgot-email');
+    const err    = document.getElementById('auth-err');
+    if (!login || !forgot || !err) { out.noForm = true; return out; }
+    forgot.value = '';
+    login.value = 'מוישה_זוכמיר';
+    err.textContent = 'יש למלא שם משתמש וסיסמא';
+    err.style.display = 'block';
+    showForgotPassword();
+    out.carried   = forgot.value;
+    out.staleGone = getComputedStyle(err).display === 'none' || err.textContent === '';
+
+    // ── what the box says back, for each of the four answers
+    const real = window.supabaseSendPasswordReset;
+    const say = async (status) => {
+      window.supabaseSendPasswordReset = async () => ({ status });
+      forgot.value = 'מוישה_זוכמיר';
+      const btn = document.getElementById('forgot-btn');
+      if (btn) btn.disabled = false;
+      await sendPasswordReset();
+      const m = document.getElementById('forgot-msg');
+      return { text: m ? m.textContent : '', red: m ? m.style.color : '' };
+    };
+    out.sent     = await say('sent');
+    out.noUser   = await say('no-user');
+    out.noEmail  = await say('no-email');
+    out.failed   = await say('send-failed');
+    window.supabaseSendPasswordReset = async () => ({ error: 'אין רשת' });
+    forgot.value = 'מוישה_זוכמיר';
+    await sendPasswordReset();
+    out.offline = (document.getElementById('forgot-msg') || {}).textContent || '';
+    window.supabaseSendPasswordReset = real;
+
+    // ── and the box at the end of the link says whose account it is
+    try {
+      (0, eval)("user = { name: 'מוישה_זוכמיר' }");
+      await openPasswordReset();
+      out.intro = (document.getElementById('pw-reset-intro') || {}).textContent || '';
+      out.introHtml = (document.getElementById('pw-reset-intro') || {}).innerHTML || '';
+      closeM('pwResetModal');
+      (0, eval)('user = null');
+    } catch (e) { out.introErr = String(e && e.message); }
+    return out;
+  });
+
+  const T = 'forgetting a password, and coming back from the link';
+  if (r.noForm) fail(T, 'the login or the reset form is not on the page');
+  else {
+    if (!r.flagFirst) fail(T,
+      'the recovery flag is read after createClient - by then the client has ' +
+      'already wiped the hash, so the reset box never opens'); else ok();
+    if (r.recErr) fail(T, `_recoveryWanted threw: ${r.recErr}`); else ok();
+    if (!r.survives) fail(T,
+      'with the hash gone, the page no longer knows the person came from the ' +
+      'reset link'); else ok();
+    if (!r.quietOtherwise) fail(T,
+      'the reset box would open for every ordinary visit'); else ok();
+    if (!r.listens) fail(T,
+      'nothing listens for PASSWORD_RECOVERY, so a link in another shape is ' +
+      'missed'); else ok();
+    if (r.carried !== 'מוישה_זוכמיר') fail(T,
+      `the name typed into the login box arrives as "${r.carried}" - he has to ` +
+      `type it again`); else ok();
+    if (!r.staleGone) fail(T,
+      'a failed login leaves its red line under the reset form, where it reads ' +
+      'as though the reset failed'); else ok();
+
+    // each answer has to be its own answer
+    if (!/שלחנו קישור/.test(r.sent.text)) fail(T,
+      `a sent link reports "${r.sent.text.slice(0, 60)}"`); else ok();
+    if (/^אם /.test(r.sent.text) || /אם שם המשתמש קיים/.test(r.sent.text)) fail(T,
+      'the box still answers "if this name exists", which answers nothing'); else ok();
+    if (!/לא נמצא משתמש/.test(r.noUser.text)) fail(T,
+      `an unknown name reports "${r.noUser.text.slice(0, 60)}"`); else ok();
+    if (/שלחנו/.test(r.noUser.text)) fail(T,
+      'an unknown name is told a link was sent, and will wait for mail that ' +
+      'is not coming'); else ok();
+    if (!/אין בחשבון כתובת מייל/.test(r.noEmail.text)) fail(T,
+      `a user with no address reports "${r.noEmail.text.slice(0, 60)}"`); else ok();
+    if (!/נכשלה/.test(r.failed.text)) fail(T,
+      `a failed send reports "${r.failed.text.slice(0, 60)}"`); else ok();
+    if (/שלחנו/.test(r.failed.text)) fail(T,
+      'a failed send is reported as a successful one'); else ok();
+    if (!/שגיאה/.test(r.offline) || /שלחנו/.test(r.offline)) fail(T,
+      `with no network the box says "${r.offline.slice(0, 60)}"`); else ok();
+    // the three bad answers must not be dressed in green
+    for (const [k, v] of [['no-user', r.noUser], ['no-email', r.noEmail],
+                          ['send-failed', r.failed]]) {
+      if (!/c62828|rgb\(198, 40, 40\)/.test(v.red)) fail(T,
+        `"${k}" is shown in the colour of a success`); else ok();
+    }
+
+    if (r.introErr) fail(T, `openPasswordReset threw: ${r.introErr}`); else ok();
+    if (!/מוישה_זוכמיר/.test(r.intro)) fail(T,
+      `the box at the end of the link says "${r.intro.trim().slice(0, 70)}" - it ` +
+      `never says whose account was opened`); else ok();
+    if (/<script|<img/i.test(r.introHtml)) fail(T,
+      'a username is written into the box unescaped'); else ok();
+  }
+}
+
+// ── the server says which of the four things happened ─────────────────
+{
+  const T = 'the reset function answers with what actually happened';
+  const f = near('supabase/functions/reset-password/index.ts');
+  if (!fs.existsSync(f)) warn(T, 'the edge function is not beside the page');
+  else {
+    const fn = fs.readFileSync(f, 'utf8');
+    for (const st of ['no-user', 'no-email', 'send-failed', 'sent']) {
+      if (!new RegExp(`ok\\('${st}'\\)`).test(fn)) fail(T,
+        `the function never answers "${st}"`); else ok();
+    }
+    // a bare ok() would fall back to 'sent' and report a failure as a success
+    if (/return ok\(\)/.test(fn)) fail(T,
+      'somewhere the function still answers with no status at all, which the ' +
+      'page reads as "sent"'); else ok();
+    if (!/ok: true, status/.test(fn)) fail(T,
+      'the status is not in the body the page reads'); else ok();
+  }
+}
+
+// ── the tab title ─────────────────────────────────────────────────────
+// It read "צ׳רוויניה לייב · CerviniaLive — מדריך הסקי לצ׳רוויניה בעברית":
+// the name twice, the place twice, and in a right-to-left tab the pieces
+// reorder into something that looks like a string of unrelated words.
+{
+  const T = 'the tab title is a name, not a pile of words';
+  const title = await page.title();
+  if (title.length > 42) fail(T,
+    `the title is ${title.length} characters: "${title}"`); else ok();
+  if ((title.match(/צ׳רוויניה|צ'רוויניה/g) || []).length > 1) fail(T,
+    `"צ׳רוויניה" appears twice in the title: "${title}"`); else ok();
+  if (/CerviniaLive/.test(title) && /צ׳רוויניה לייב/.test(title)) fail(T,
+    `the title carries the name in both languages: "${title}"`); else ok();
+  if (!/צ׳רוויניה לייב/.test(title)) fail(T,
+    `the title does not carry the site's name: "${title}"`); else ok();
 }
 
 // ── the icons say the right thing ─────────────────────────────────────
