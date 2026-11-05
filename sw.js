@@ -23,7 +23,8 @@ const FALLBACK = './index.html';
 // Precached at install so the map is there even for somebody who never opened
 // the maps panel while they still had a signal - which is most people.
 const STATIC = ['./manifest.json', './icon-192.png',
-                './img/piste-map.jpg', './img/logo.png'];
+                './img/piste-map.jpg', './img/logo.png',
+                './files/packing-list.pdf'];
 
 self.addEventListener('install', function (e) {
   // take over as soon as possible - an old worker serving a stale fallback is
@@ -53,14 +54,15 @@ self.addEventListener('fetch', function (e) {
   const req = e.request;
   if (req.method !== 'GET') return;
 
-  // ── pictures ───────────────────────────────────────────────────────────
+  // ── static files: pictures and the printable list ──────────────────────
   // Stale-while-revalidate: answer from the cache at once so the map opens
   // instantly and works with no signal, and fetch a fresh copy in the
   // background so replacing a picture still reaches people - on their next
   // visit rather than never.
   let url = null;
   try { url = new URL(req.url); } catch (err) { url = null; }
-  if (url && url.origin === self.location.origin && url.pathname.indexOf('/img/') !== -1) {
+  if (url && url.origin === self.location.origin &&
+      (url.pathname.indexOf('/img/') !== -1 || url.pathname.indexOf('/files/') !== -1)) {
     e.respondWith(
       caches.open(CACHE).then(function (c) {
         return c.match(req).then(function (hit) {
