@@ -3279,6 +3279,149 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── the boot is buckled from the top down, and loosely at the foot ──
+// This section is advice somebody follows at seven in the morning with cold
+// hands, so a sentence that drifts the wrong way is worse than no section.
+// Two things carry it, and both are counter-intuitive enough that an editor
+// might "correct" them: the order is top down, and the two buckles over the
+// foot are left loose. Reverse either and the reader gets a boot that holds
+// the heel forward all day, or numb toes by eleven. So the gate asks for the
+// claim AND refuses its opposite.
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const T = 'the boot is buckled from the top down, and loosely at the foot';
+
+  const i = src.indexOf('איך נועלים את המגף');
+  if (i < 0) { fail(T, 'the section on buckling the boot is gone'); }
+  else {
+    ok();
+    // tags out and whitespace flattened, so a line break inside a sentence
+    // cannot make a phrase look missing
+    const sec = src.slice(i, src.indexOf('מגלשיים</div>', i))
+      .replace(/<[^>]*>/g, '').replace(/\s+/g, ' ');
+
+    if (!/לסגור מלמעלה למטה/.test(sec)) fail(T,
+      'the section no longer says to buckle from the top down, which is the ' +
+      'one thing it exists to say'); else ok();
+    if (/לסגור מלמטה למעלה|קודם.{0,20}האבזמים שעל כף הרגל/.test(sec)) fail(T,
+      'the section now tells people to start at the foot, which locks the heel ' +
+      'forward for the day'); else ok();
+
+    if (!/האבזמים שעל כף הרגל — רפויים/.test(sec)) fail(T,
+      'nothing says the two buckles over the foot are left loose'); else ok();
+    if (/עצבים וכלי דם/.test(sec) && /אצבעות קרות/.test(sec)) ok(); else fail(T,
+      'the reason for leaving them loose - nerves and vessels over the instep, ' +
+      'and cold toes - has gone, so the instruction reads arbitrary');
+
+    if (!/האבזם השני מלמעלה הוא החשוב ביותר/.test(sec)) fail(T,
+      'the second buckle from the top is no longer named as the one that holds ' +
+      'the heel'); else ok();
+
+    // the heel has to be seated before anything is closed, or the rest is moot
+    const heel = sec.indexOf('להושיב את העקב');
+    const close = sec.indexOf('לסגור מלמעלה למטה');
+    if (heel < 0 || close < 0 || heel > close) fail(T,
+      'seating the heel no longer comes before closing the buckles'); else ok();
+
+    // at a break: ease the lower two, do not throw the boot open
+    if (!/לשחרר את שני האבזמים התחתונים בלבד/.test(sec)) fail(T,
+      'the advice for breaks and long lifts is gone'); else ok();
+    if (/לפתוח את המגף לגמרי בהפסקה|לפתוח הכל בהפסקה/.test(sec)) fail(T,
+      'the page now says to open the boot fully at a break, and the foot swells ' +
+      'and will not go back in'); else ok();
+
+    // this one is only safe because the socks section says one thin pair
+    if (!/בתוך המגף נמצאת רק הגרב/.test(sec)) fail(T,
+      'nothing says the sock is the only thing inside the boot'); else ok();
+  }
+}
+
+// ── the sock drawing is measured, not eyeballed ─────────────────────
+// The leg and boot were traced from a drawing, so its lines mean something
+// only as long as they sit where the arithmetic puts them. The drawing's own
+// sole (y=972 in the source image) and the hollow behind its knee (y=328) are
+// 46 cm apart on a person, which fixes 14.0 image pixels per cm; the tracer
+// then scaled the image by 1000/1024. Every marked height follows from that,
+// and if somebody nudges a line by eye to make the picture prettier the
+// numbers beside it stop being true. So the gate recomputes them.
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const T = 'the sock drawing is measured, not eyeballed';
+
+  const i = src.indexOf('class="sock-fig"');
+  if (i < 0) { fail(T, 'the sock drawing is gone from the page'); }
+  else {
+    ok();
+    const fig = src.slice(i, src.indexOf('</svg>', i));
+    const K = 1000 / 1024, S = (972 - 328) / 46;
+    const at = cm => Math.round((972 - cm * S) * K);
+
+    // Every horizontal rule in the figure, with the colour it is drawn in -
+    // the colour is what carries the meaning, so reading the row without it
+    // would pass even if the green and the red rule swapped places.
+    const rules = [...fig.matchAll(
+      /d="M[\d.]+ ([\d.]+)H[\d.]+"\s+stroke="(#[0-9a-f]{3,6})"/g)]
+      .map(m => ({ row: Math.round(+m[1]), ink: m[2] }));
+
+    for (const [cm, ink, what] of [[46, '#90a4b7', 'the knee'],
+                                   [42, '#0d7a42', 'the 40-45 cm sock'],
+                                   [30, '#b03024', 'the 30 cm sock']]) {
+      const want = at(cm);
+      const hit = rules.find(r => r.ink === ink);
+      if (!hit) fail(T, `${what} has no rule of its own in the figure`);
+      else if (Math.abs(hit.row - want) > 1) fail(T,
+        `${what} is drawn on row ${hit.row}; the measurement puts it on ${want}`);
+      else ok();
+    }
+
+    // The order is the whole point: the good height sits below the knee and
+    // clears the boot, the bad one is swallowed by it. Taken from the figure
+    // itself, not recomputed - recomputing only checks the arithmetic here.
+    const row = ink => (rules.find(r => r.ink === ink) || {}).row;
+    const cuff = Math.round(483 * K);   // where the drawing's dark shell starts
+    if (!(row('#90a4b7') < row('#0d7a42') && row('#0d7a42') < cuff &&
+          cuff < row('#b03024'))) fail(T,
+      `the figure no longer reads knee (${row('#90a4b7')}) then sock ` +
+      `(${row('#0d7a42')}) then the boot's cuff (${cuff}) then the short sock ` +
+      `(${row('#b03024')})`); else ok();
+
+    // The boot the drawing shows has to be a real ski boot on this same
+    // scale, or the scale is wrong and every line above it is wrong too.
+    const bootCm = (972 - 483) / S;
+    if (!(bootCm > 30 && bootCm < 38)) fail(T,
+      `on its own scale the drawn boot is ${bootCm.toFixed(1)} cm tall, which is ` +
+      'not a ski boot - so the heights marked on it cannot be trusted'); else ok();
+
+    if (!/40&#8211;45 ס&quot;מ|40–45 ס"מ/.test(fig)) fail(T,
+      'the figure no longer carries the height to look for'); else ok();
+    if (!/>30 ס&quot;מ|>30 ס"מ/.test(fig)) fail(T,
+      'the figure no longer shows what too short looks like'); else ok();
+  }
+
+  // The photograph beside it cannot be measured - the camera is low and close,
+  // so the boot is nearer the lens than the calf and comes out too big. Scale
+  // it and the sock appears to pass the knee, which it plainly does not. It is
+  // there to show what a ski sock looks like, and its caption must not claim
+  // a height or the two pictures contradict each other.
+  const j = src.indexOf('img/boot-sock.jpg');
+  if (j < 0) fail(T, 'the photograph is gone'); else {
+    ok();
+    const cap = src.slice(j, src.indexOf('</figure>', j));
+    if (/ברך|ס&quot;מ|ס"מ|סנטימ/.test(cap)) fail(T,
+      'the photograph\'s caption states a height or names the knee, and that ' +
+      'picture cannot be measured - the perspective makes the boot too big'); else ok();
+  }
+
+  // and the words around it must agree with the drawing
+  const prose = src.slice(src.indexOf('גרבי סקי — והמלכודת שבהן'),
+                          src.indexOf('בלי כותנה'));
+  if (!/40–45 ס"מ/.test(prose)) fail(T,
+    'the text no longer gives the height to look for in the product description');
+  else ok();
+  if (/מעל הברך/.test(prose)) fail(T,
+    'the text says the sock goes above the knee; it goes just below it'); else ok();
+}
+
 // ── the pictures are files, and they survive losing the signal ───────
 // They were base64 strings inside index.html: 1.1 MB, 47% of the page, and
 // because base64 of a JPEG does not compress, 68% of what every visitor
@@ -3299,7 +3442,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!/id="brand-logo"[^>]*src="\.\/img\/logo\.png"/.test(src)) fail(T,
     'the logo is not pointed at its file'); else ok();
 
-  for (const f of ['img/piste-map.jpg', 'img/logo.png']) {
+  for (const f of ['img/piste-map.jpg', 'img/logo.png', 'files/packing-list.pdf',
+                     'img/jacket-tag.jpg', 'img/boot-sock.jpg']) {
     const abs = near(f);
     if (!fs.existsSync(abs)) { fail(T, `${f} is referenced but not on disk`); continue; }
     ok();
@@ -3308,6 +3452,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       `the piste map is ${kb.toFixed(0)} KB - it was meant to come down from 619`); else ok();
     if (f.includes('logo') && kb > 30) fail(T,
       `the logo is ${kb.toFixed(0)} KB`); else ok();
+    if (f.includes('packing') && kb > 400) fail(T,
+      `the printable list is ${kb.toFixed(0)} KB`); else ok();
+    if (f.includes('jacket-tag') && kb > 120) fail(T,
+      `the jacket tag picture is ${kb.toFixed(0)} KB`); else ok();
+    if (f.includes('boot-sock') && kb > 60) fail(T,
+      `the sock photograph is ${kb.toFixed(0)} KB`); else ok();
   }
 
   // the worker has to keep them, or they are gone the moment the signal is
@@ -3318,6 +3468,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!/img\/piste-map\.jpg/.test(sw)) fail(T,
       'the service worker does not precache the piste map, so it is unavailable ' +
       'with no signal - which is when it is wanted'); else ok();
+    if (!/files\/packing-list\.pdf/.test(sw)) fail(T,
+      'the printable list is not precached, so it cannot be downloaded without ' +
+      'a signal'); else ok();
+    if (!/\/files\//.test(sw.split('addEventListener(\'fetch\'')[1] || '')) fail(T,
+      'the fetch handler has no rule for files/'); else ok();
     if (!/\/img\//.test(sw.split('addEventListener(\'fetch\'')[1] || '')) fail(T,
       'the fetch handler has no rule for img/, so the pictures are never ' +
       'served from the cache'); else ok();
@@ -3335,12 +3490,78 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!fs.existsSync(proj)) warn(T, 'sync/projects.json is not beside the page');
   else {
     const files = JSON.parse(fs.readFileSync(proj, 'utf8')).cervinia.Files;
-    for (const f of ['img/piste-map.jpg', 'img/logo.png']) {
+    for (const f of ['img/piste-map.jpg', 'img/logo.png', 'files/packing-list.pdf',
+                       'img/jacket-tag.jpg']) {
       if (!files.includes(f)) fail(T,
         `${f} is not in the upload list, so the page would go live pointing at ` +
         `a file that is not there`); else ok();
     }
   }
+}
+
+// ── Shabbat is the same two candles everywhere ───────────────────────
+// U+1F56F is one dripping wax candle, and every system draws it its own way.
+// The kashrut card has always carried a drawing of two Shabbat candles; the
+// rest of the site typed the emoji, so the same thing looked different from
+// one panel to the next.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const CANDLE = /\u{1F56F}/u;
+    const drawn = (el) => !!(el && el.querySelector('use[href="#ico-candle"]'));
+
+    openM('hotelModal');
+    const prep = document.getElementById('prep-fold');
+    const band = prep ? [...prep.querySelectorAll('.prep-group')]
+                          .find(d => /שבת/.test(d.textContent)) : null;
+    const fold = prep ? [...prep.querySelectorAll('summary')]
+                          .find(d => /מה להביא/.test(d.textContent)) : null;
+    out.bandDrawn = drawn(band);
+    out.foldDrawn = drawn(fold);
+    out.prepEmoji = prep ? CANDLE.test(prep.textContent) : false;
+    closeM('hotelModal');
+
+    openM('kosherModal');
+    const k = document.getElementById('kosherModal');
+    const h = k.querySelector('h1, h2, h3');
+    const btn = document.getElementById('kosher-btn-shabbat-label');
+    out.kosherTitleDrawn = drawn(h);
+    out.kosherBtnDrawn   = drawn(btn);
+    out.kosherBtnEmoji   = btn ? CANDLE.test(btn.textContent) : false;
+    closeM('kosherModal');
+
+    // The zmanim are built in script, so the only honest check is to build
+    // them and look. A regex over the source matched one shape of string and
+    // let another through - the sabotage passed and the check was worthless.
+    openM('kosherModal');
+    const kb = document.getElementById('kosher-btn-shabbat-label');
+    const clickable = kb && (kb.closest('button') || kb.closest('[onclick]'));
+    if (clickable) clickable.click();
+    await new Promise(r => setTimeout(r, 1200));
+    const kk = document.getElementById('kosherModal');
+    out.zmanimEmoji = CANDLE.test(kk.textContent);
+    out.zmanimDrawn = kk.querySelectorAll('use[href="#ico-candle"]').length;
+    closeM('kosherModal');
+    return out;
+  });
+
+  const T = 'Shabbat is the same two candles everywhere';
+  if (!r.bandDrawn) fail(T,
+    'the Shabbat band in the preparations still uses the emoji'); else ok();
+  if (!r.foldDrawn) fail(T,
+    'the Shabbat fold heading still uses the emoji'); else ok();
+  if (r.prepEmoji) fail(T,
+    'a candle emoji survives somewhere in the preparations'); else ok();
+  if (!r.kosherTitleDrawn) fail(T,
+    'the kashrut panel heading lost its drawing'); else ok();
+  if (!r.kosherBtnDrawn) fail(T,
+    'the Shabbat button in the kashrut panel does not carry the drawing'); else ok();
+  if (r.kosherBtnEmoji) fail(T,
+    'the Shabbat button shows the emoji as well as the drawing'); else ok();
+  if (r.zmanimEmoji) fail(T,
+    'the zmanim print the candle emoji instead of the drawing'); else ok();
+  if (!r.zmanimDrawn || r.zmanimDrawn < 3) fail(T,
+    `the zmanim show ${r.zmanimDrawn} drawn candles`); else ok();
 }
 
 // ── nothing offers a coupon that has expired ─────────────────────────
@@ -3399,21 +3620,26 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // Not the heading - the heading says "ספורט אתגרי" too, and an assertion
     // that the heading still exists is an assertion about nothing. What has
     // to survive is the claim: they are two separate extensions.
-    out.notExtreme    = /שתי הרחבות נפרדות/.test(ptext) &&
-                        /אינו כלול בהרחבה זו/.test(ptext) && /5\.5\.2/.test(ptext);
+    // The clause numbers and the quotes came out: they belong in the sources
+    // register, not in the middle of advice somebody is reading while they
+    // plan. What has to survive is the claim itself.
+    out.notExtreme    = /שתי הרחבות\s*\n?\s*נפרדות/.test(ptext) &&
+                        /אינו מכסה סקי/.test(ptext);
     out.rescue        = /חיפוש וחילוץ/.test(ptext);
     // Not a general caution - the policy's own wording, which is what makes
     // it worth printing. If it ever softens back into "most insurers do not
     // cover", the clause has been lost.
-    out.offPiste      = /מחוץ לאזורים המורשים/.test(ptext) && /5\.6\.1/.test(ptext);
-    out.clause58      = /6\.8/.test(ptext) && /אלא אם נרכשה ההרחבה/.test(ptext);
-    out.boardIncluded = /במגלשיים ובסנובורד כאחד/.test(ptext);
+    out.offPiste      = /מחוץ למסלולים המסומנים/.test(ptext) &&
+                        /אינה מכוסה/.test(ptext);
+    out.clause58      = /בלי הרחבת ספורט חורף/.test(ptext) &&
+                        /אינה מכוסה כלל/.test(ptext);
+    out.boardIncluded = /וגם סנובורד/.test(ptext);
     out.price         = /\$31\.9|\$63\.8/.test(ptext);
     // The free days on a credit card are the thing people assume covers them.
     // They cover the basic policy and the baggage, and nothing else.
-    out.cardDays      = /חמישה ימי ביטוח חינם/.test(ptext) &&
-                        /הוצאות רפואיות\) ועל הכבודה בלבד/.test(ptext) &&
-                        /כאל/.test(ptext) && /ישראכרט/.test(ptext);
+    out.cardDays      = /הכיסוי הבסיסי בלבד/.test(ptext) &&
+                        /תמיד תוספת בתשלום/.test(ptext) &&
+                        /היקר מבין השניים/.test(ptext);
 
     // the buying half
     out.lensCats = ['S0', 'S1', 'S2', 'S3', 'S4'].filter(c => ptext.includes(c)).length;
@@ -3424,10 +3650,16 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.threeKw  = /3 קילוואט/.test(ptext);
     out.plugL    = /סוג L/.test(ptext);
 
-    const shops = plan.querySelectorAll('#gear-shops a.result-link');
-    out.shopCount  = shops.length;
-    out.shopHrefs  = [...shops].map(a => a.getAttribute('href'));
+    const shopHost = document.getElementById('gear-shops');
+    const shopCards = shopHost ? shopHost.children : [];
+    out.shopCount  = shopCards.length;
+    out.shopHrefs  = shopHost ? [...shopHost.querySelectorAll('a[href^="https"]')]
+                                  .map(a => a.getAttribute('href')) : [];
     out.shopsHttps = out.shopHrefs.every(h => /^https:\/\//.test(h));
+    // A shop card with no telephone and no map is a name, not a shop
+    out.withTel    = shopHost ? shopHost.querySelectorAll('a[href^="tel:"]').length : 0;
+    out.withMap    = shopHost ? [...shopHost.querySelectorAll('a[href]')]
+                                  .filter(a => /google\.com\/maps/.test(a.href)).length : 0;
 
     const pl = document.getElementById('gear-packlist');
     out.inPlanner   = !!pl && plan.contains(pl);
@@ -3469,6 +3701,69 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.firstDays = /יגיע רחוק יותר בסקי/.test(htext);
 
     // reachable
+    // It sits at the top of the planner now, beside "when to travel" - not
+    // under the search boxes, where somebody picking flights has already
+    // scrolled past the moment when any of this can still be acted on.
+    const prep = document.getElementById('prep-fold');
+    const seasonBox = document.getElementById('season-box');
+    out.prepExists = !!prep;
+    out.prepHigh = !!(prep && seasonBox &&
+      (seasonBox.compareDocumentPosition(prep) & Node.DOCUMENT_POSITION_FOLLOWING));
+    out.groups = prep ? prep.querySelectorAll('.prep-group').length : 0;
+    out.subHeads = prep ? prep.querySelectorAll('.prep-h').length : 0;
+    // the words he did not know, and the ones that were wrong
+    out.edgeExplained  = /הקנט<\/b> הוא[\s\S]{0,60}פס המתכת/.test(plan.innerHTML);
+    out.balaclava      = /בָּלָקְלָבָה/.test(ptext) && /פתח לעיניים/.test(ptext);
+    out.neckName       = /מגן צוואר/.test(ptext);
+    out.warmers        = /חבילות חימום/.test(ptext) && /מתחמם מעצמו/.test(ptext);
+    out.noTelemark     = !/טלמרק/.test(ptext);
+    out.midLayer       = /לא תמיד/.test(ptext) && /פליז דק/.test(ptext);
+    out.fabricWeight   = /משקל הבד למטר מרובע/.test(ptext) && /לא משקל הבגד/.test(ptext);
+    out.whereToRead    = /תווית הנייר התלויה/.test(ptext);
+    const tag = plan.querySelector('img[src$="jacket-tag.jpg"]');
+    out.tagShown = !!tag && !!tag.getAttribute('alt') && tag.getAttribute('loading') === 'lazy';
+    out.tagCaption = /15,000 מ"מ/.test(ptext) && /80 g\/m²/.test(ptext);
+    out.passPocket     = /כיס אנכי צר בגובה החזה/.test(ptext);
+    out.shellWhy       = /מעיל לכל החורף/.test(ptext) && !/למי שחוזר<\/b> —/.test(plan.innerHTML);
+    out.italy          = /באיטליה, בדרך ממילאנו/.test(ptext) && /זול שם משמעותית/.test(ptext);
+    out.amazonOk       = /יש שם גוגלס טובים/.test(ptext);
+    out.aliFast        = /כשבועיים/.test(ptext);
+    // The height is the whole test, and "above the knee" was wrong - a ski
+    // sock stops just below it, over the bony bump at the top of the shin.
+    // That landmark is what makes the instruction checkable in a shop.
+    // The height is the whole test, and the checkable form of it is the word
+    // in the product description plus a figure in centimetres - not a
+    // description of the leg, which the reader cannot measure in a shop.
+    // The cuff used to be a written label. It is now the drawn boot itself,
+    // which is better - but it means the figure is only readable if the two
+    // heights and the knee are all marked on it, and if the sentence that
+    // explains them sits with it rather than somewhere else on the page.
+    out.sockFig        = (() => {
+      const f = plan.querySelector('svg.sock-fig');
+      if (!f) return false;
+      const t = f.textContent || '';
+      const box = f.closest('figure');
+      const cap = box?.querySelector('figcaption')?.textContent || '';
+      return /הברך/.test(t) && /40–45 ס"מ/.test(t) && /30 ס"מ/.test(t) &&
+             /גובה השוק/.test(cap) && /נבלעת בתוך המגף/.test(cap);
+    })();
+    out.sockPhoto      = (() => {
+      const im = plan.querySelector('img[src*="boot-sock"]');
+      if (!im) return false;
+      return (im.getAttribute('alt') || '').length > 20 &&
+             im.getAttribute('loading') === 'lazy';
+    })();
+    out.sockTest       = /ואינן כאלה/.test(ptext) &&
+                         /Over the Calf/.test(ptext) &&
+                         /40–45 ס"מ|40-45 ס"מ/.test(ptext) &&
+                         /עד ממש מתחת\s*\n?\s*לברך/.test(ptext) &&
+                         !/מעל הברך/.test(ptext);
+    out.sensors        = /חיישני תאורה אוטומטיים/.test(ptext);
+    out.finishEarly    = /14:00 לכל\s*\n?\s*המאוחר/.test(ptext) && /שעתיים/.test(ptext);
+    out.pdf            = !!plan.querySelector('a[href$="packing-list.pdf"][download]');
+    // and the duplicated "compare the two ways" line is gone
+    out.compareOnce    = (ptext.match(/היקר מבין השניים/g) || []).length === 1;
+
     out.hash   = PANEL_LINKS.gear === 'hotelModal';
     out.search = SEARCH_INDEX.filter(i => /hotelModal|rentalModal/.test(i.action)).length >= 4;
     out.gone   = !document.getElementById('gearModal') && !document.getElementById('svc-gear');
@@ -3523,6 +3818,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!r.shopCount || r.shopCount < 5) fail(T,
       `only ${r.shopCount} shops are listed`); else ok();
     if (!r.shopsHttps) fail(T, 'a shop link is not https'); else ok();
+    if (!r.withTel || r.withTel < 3) fail(T,
+      `only ${r.withTel} shops give a telephone number`); else ok();
+    if (!r.withMap || r.withMap < 3) fail(T,
+      `only ${r.withMap} shops give a map link`); else ok();
     if (!r.inPlanner) fail(T,
       'the packing list did not travel with the rest into the planner'); else ok();
     if (!r.packLen || r.packLen < 600) fail(T,
@@ -3557,6 +3856,66 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!r.firstDays) fail(T,
       'the first-days difference between ski and board is missing, and it is ' +
       'what decides which to hire for a short trip'); else ok();
+    if (!r.prepExists) fail(T, 'the preparations fold is gone'); else ok();
+    if (!r.prepHigh) fail(T,
+      'the preparations are no longer at the top of the planner, beside "when ' +
+      'to travel"'); else ok();
+    if (r.groups < 4) fail(T,
+      `only ${r.groups} group headings - the fold reads as one long run again`); else ok();
+    if (r.subHeads < 10) fail(T,
+      `only ${r.subHeads} sub-headings use the visible style`); else ok();
+    if (!r.edgeExplained) fail(T,
+      'the trousers mention the ski edge without saying what an edge is'); else ok();
+    if (!r.balaclava) fail(T,
+      'balaclava is named but never explained'); else ok();
+    if (!r.neckName) fail(T,
+      'the neck gaiter is not given its Hebrew name'); else ok();
+    if (!r.warmers) fail(T,
+      'hand warmers are listed without saying what they are'); else ok();
+    if (!r.noTelemark) fail(T,
+      'telemark is still in the text - a word almost no reader here knows, in ' +
+      'a box meant to be read fast'); else ok();
+    if (!r.midLayer) fail(T,
+      'the layers section still implies three layers are always needed'); else ok();
+    if (!r.fabricWeight) fail(T,
+      'the thermal "weight" is given without saying it is the fabric, not the ' +
+      'garment'); else ok();
+    if (!r.whereToRead) fail(T,
+      'nothing says where on the garment these numbers are found'); else ok();
+    if (!r.tagShown) fail(T,
+      'the picture of a real hang tag is gone, or it has no alt text, or it ' +
+      'loads eagerly inside a closed fold'); else ok();
+    if (!r.tagCaption) fail(T,
+      'the tag is shown without saying which numbers on it to read'); else ok();
+    if (!r.passPocket) fail(T,
+      'the ski-pass pocket is still described only as a clear window'); else ok();
+    if (!r.shellWhy) fail(T,
+      '"the right choice for somebody who comes back" is still there, or the ' +
+      'plain explanation that replaced it is not'); else ok();
+    if (!r.italy) fail(T,
+      'buying on the road from Milan is missing, and it is the cheapest of the ' +
+      'three ways'); else ok();
+    if (!r.amazonOk) fail(T,
+      'the page still tells people not to buy goggles online at all'); else ok();
+    if (!r.aliFast) fail(T,
+      'the delivery time from Asia is still given as three to six weeks'); else ok();
+    if (!r.sockTest) fail(T,
+      'nothing says how to tell a real ski sock from one that only says so'); else ok();
+    if (!r.sockFig) fail(T,
+      'the height diagram is gone, or it no longer carries the knee, both ' +
+      'heights and the sentence that explains them'); else ok();
+    if (!r.sockPhoto) fail(T,
+      'the photograph of a sock in a boot is gone, or it loads eagerly, or it ' +
+      'has no description for somebody who cannot see it'); else ok();
+    if (!r.sensors) fail(T,
+      'the Shabbat list asks about a mechanical key but not about automatic ' +
+      'light sensors'); else ok();
+    if (!r.finishEarly) fail(T,
+      'Friday is not given a finishing time, only a Shabbat time'); else ok();
+    if (!r.pdf) fail(T,
+      'there is no printable packing list to download'); else ok();
+    if (!r.compareOnce) fail(T,
+      'the "compare the two ways" advice appears more than once'); else ok();
     if (!r.hash) fail(T,
       'the old #gear link leads nowhere now'); else ok();
     if (!r.search) fail(T, 'the search no longer reaches this content'); else ok();
