@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <!-- version: 15.5 -->
-<title>צ׳רוויניה לייב · CerviniaLive — מדריך הסקי לצ׳רוויניה בעברית</title>
+<title>צ׳רוויניה לייב · מדריך הסקי בעברית</title>
 
 <!-- How the link looks when somebody forwards it. Without these, a share in
      WhatsApp is a bare URL with no title, no line of text and no picture -
@@ -1871,8 +1871,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
   <div class="modal-content" style="max-width:420px;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('pwResetModal')">×</span>
     <h3 style="margin:0 0 6px;font-size:1.1rem;">🔑 בחירת סיסמא חדשה</h3>
-    <p style="color:#888;font-size:0.82rem;margin:0 0 16px;line-height:1.7;">
-      הגעת לכאן מקישור האיפוס. הסיסמא החדשה תיכנס לתוקף מיד.
+    <p id="pw-reset-intro" style="color:#888;font-size:0.82rem;margin:0 0 16px;line-height:1.7;">
+      הגעת לכאן מקישור האיפוס. בחר סיסמא חדשה — היא תיכנס לתוקף מיד,
+      ואיתה תיכנס לאתר מכאן והלאה.
     </p>
     <div style="position:relative;margin-bottom:12px;">
       <input id="pw-reset-new" type="password" placeholder="לפחות 6 תווים, לא בעברית"
@@ -3693,6 +3694,7 @@ function copyPanelLink(modalId, btn) {
 // that looked ordinary, and no way to set a password. The box below is
 // the missing half of "I forgot my password".
 function _recoveryWanted() {
+  if (_CAME_FROM_RECOVERY) return true;
   try {
     var h = String(location.hash || '');
     return /type=recovery/.test(h) || h === '#recovery';
@@ -3701,6 +3703,18 @@ function _recoveryWanted() {
 
 async function openPasswordReset() {
   openM('pwResetModal');
+  // The recovery link signs the person in before the page draws, so by now
+  // we know whose account this is. Saying the name is the difference
+  // between "a password box appeared" and "this is your account".
+  var intro = document.getElementById('pw-reset-intro');
+  if (intro) {
+    var who = (typeof user !== 'undefined' && user && user.name) ? user.name : '';
+    intro.innerHTML = who
+      ? 'הגעת לכאן מקישור האיפוס, והחשבון שנפתח הוא <b>' + escHtml(who) + '</b>.<br>' +
+        'בחר סיסמא חדשה — היא תיכנס לתוקף מיד, ואיתה תיכנס לאתר מכאן והלאה.'
+      : 'הגעת לכאן מקישור האיפוס. בחר סיסמא חדשה — היא תיכנס לתוקף מיד, ' +
+        'ואיתה תיכנס לאתר מכאן והלאה.';
+  }
   var m = document.getElementById('pw-reset-msg');
   if (m) { m.textContent = ''; m.style.display = 'none'; }
   var f = document.getElementById('pw-reset-new');
@@ -5542,11 +5556,16 @@ function searchAll() {
   const gfUrl = gFlightsUrl('TLV', airCode, dr.ci, dr.co, adults);
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
   const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
+  // kind, not the icon, decides which box a link lands in. It used to be the
+  // icon string - and the day Kosher Fly's candle emoji became an inline SVG,
+  // our own engine stopped matching '🕯️', fell out of all three boxes and
+  // disappeared from the results, leaving only Google, Skyscanner and Kayak.
+  // Nothing in that change had anything to do with the trip planner.
   let links = [
-    { icon: _svcIcon('ico-candle'), title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
-    { icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך', url: gfUrl },
-    { icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
-    { icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
+    { kind: 'flight', icon: _svcIcon('ico-candle'), title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
+    { kind: 'flight', icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך', url: gfUrl },
+    { kind: 'flight', icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
+    { kind: 'flight', icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
   ];
   if (hasHotel) {
     const allHtlEl2 = document.getElementById('all-hotel-dates');
@@ -5554,13 +5573,13 @@ function searchAll() {
     const hco = (document.getElementById('hotel-diff-dates')?.checked && allHtlEl2?.getAttribute('data-co')) ? allHtlEl2.getAttribute('data-co') : dr.co;
     const f2 = _stayFilters();
     const bkUrl = _bookingUrl(hci, hco, hAdults, hKids, hRooms, null, accType, f2);
-    links.push({ icon: '🏨', title: 'Booking.com — לינה', desc: _stayDesc((accType==='apt'?'דירות':accType==='any'?'כל סוגי הלינה':'מלונות'), accType, f2) + (hci!==dr.ci?' · תאריכים שונים':''), url: bkUrl });
-    links.push({ icon: '🏠', title: 'Airbnb — דירות', desc: _stayDesc('דירות ובתי נופש', accType, f2), url: _airbnbUrl(hci, hco, hAdults, hKids, accType, f2) });
+    links.push({ kind: 'stay', icon: '🏨', title: 'Booking.com — לינה', desc: _stayDesc((accType==='apt'?'דירות':accType==='any'?'כל סוגי הלינה':'מלונות'), accType, f2) + (hci!==dr.ci?' · תאריכים שונים':''), url: bkUrl });
+    links.push({ kind: 'stay', icon: '🏠', title: 'Airbnb — דירות', desc: _stayDesc('דירות ובתי נופש', accType, f2), url: _airbnbUrl(hci, hco, hAdults, hKids, accType, f2) });
     // Beyond the two global platforms: the privately-owned apartments in
     // Cervinia are let through small local agencies, and most of that stock
     // never reaches Booking or Airbnb. None of these take dates in a URL, so
     // each card says plainly what it is rather than pretending to be a search.
-    localStays().forEach(function (l) { links.push(l); });
+    localStays().forEach(function (l) { links.push(Object.assign({ kind: 'stay' }, l)); });
   }
   if (hasCar) {
   const allCarEl2 = document.getElementById('all-car-dates');
@@ -5583,9 +5602,9 @@ function searchAll() {
                                    : 'השוואת מחירים')
       + (cci!==dr.ci ? ' · תאריכים שונים' : '');
   const carAirport = airCode === 'MXP' ? 'Milan+Malpensa+Airport' : airCode === 'BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
-    links.push({ icon: '🚗', title: 'Kayak', desc: kayakDesc,
+    links.push({ kind: 'car', icon: '🚗', title: 'Kayak', desc: kayakDesc,
                  url: kayakCarUrl(airCode, cci, cco, automatic, atTerminal) });
-    links.push({ icon: '🚗', title: 'Skyscanner', desc: carDesc, url: skyCarUrl(airCode, cci, cco) });
+    links.push({ kind: 'car', icon: '🚗', title: 'Skyscanner', desc: carDesc, url: skyCarUrl(airCode, cci, cco) });
   }
 
   // רנדר תוצאות בתיבות
@@ -5595,9 +5614,14 @@ function searchAll() {
       + '<div style="font-size:0.78rem;font-weight:bold;color:#333;margin-bottom:8px;">' + ttl + '</div>'
       + makeResultLinks(lnks) + '</div>';
   }
-  const flightLinks2 = links.filter(l => l.icon === '✈️' || l.icon === '🕯️');
-  const hotelLinks2  = links.filter(l => l.icon === '🏨' || l.icon === '🏠');
-  const carLinks2    = links.filter(l => l.icon === '🚗');
+  const flightLinks2 = links.filter(l => l.kind === 'flight');
+  const hotelLinks2  = links.filter(l => l.kind === 'stay');
+  const carLinks2    = links.filter(l => l.kind === 'car');
+  // A link with no kind would be silently dropped, exactly as before. It is
+  // cheap to notice, and the alternative is finding out from Yossi.
+  const orphans = links.filter(l => !l.kind);
+  if (orphans.length) console.error('searchAll: link with no kind:',
+                                    orphans.map(l => String(l.title).slice(0, 40)));
 
   function missing(ttl, bg, brd) {
     return '<div style="background:' + bg + ';border:1.5px solid ' + brd + ';border-radius:11px;'
@@ -8552,8 +8576,16 @@ function renderReviews() {
   const reviews = getReviews();
 
   // Category filter
-  const activeCat = document.querySelector('.rev-filter-btn.rev-active')?.dataset.cat || 'all';
-  const filtered = activeCat === 'all' ? reviews : reviews.filter(function(r){ return r.cat === activeCat; });
+  const activeCat = _revCatFilter || 'all';
+  // The categories are editable from the dashboard, so a review can carry a
+  // name that is no longer on any chip. Matching on the string alone would
+  // leave it reachable only under "הכל" - visible, but findable by nobody.
+  // Anything whose category is gone answers to "אחר".
+  const known = function (c) { return REVIEW_CATS.indexOf(c) > -1; };
+  const filtered = activeCat === 'all' ? reviews : reviews.filter(function (r) {
+    if (r.cat === activeCat) return true;
+    return activeCat === REVIEW_CAT_OTHER && !known(r.cat);
+  });
 
   // Average rating
   let headerHtml = '';
@@ -8570,7 +8602,7 @@ function renderReviews() {
   const filterBtns = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">'
     + allCats.map(function(c){
         const isActive = c === activeCat;
-        return '<button class="rev-filter-btn' + (isActive ? ' rev-active' : '') + '" data-cat="' + c + '" onclick="setRevFilter(this)"'
+        return '<button type="button" class="rev-filter-btn' + (isActive ? ' rev-active' : '') + '" data-cat="' + escHtml(c) + '" onclick="setRevFilter(this)"'
           + ' style="padding:4px 10px;border:1.5px solid ' + (isActive ? 'var(--accent)' : '#ddd') + ';border-radius:20px;background:' + (isActive ? 'var(--accent)' : 'white') + ';color:' + (isActive ? 'white' : '#555') + ';font-size:0.76rem;cursor:pointer;">'
           + (c === 'all' ? '🌐 הכל' : c) + '</button>';
       }).join('')
@@ -8581,7 +8613,8 @@ function renderReviews() {
     + '📡 אין חיבור — מוצגות הביקורות שנשמרו במכשיר</div>';
 
   if (!filtered.length) {
-    list.innerHTML = offlineNote + headerHtml + filterBtns + '<div style="color:#aaa;text-align:center;padding:20px;">אין ביקורות עדיין בקטגוריה זו</div>';
+    list.innerHTML = offlineNote + headerHtml + filterBtns
+      + '<div style="color:#aaa;text-align:center;padding:20px;">אין ביקורות עדיין בקטגוריה זו</div>';
     return;
   }
 
@@ -8646,6 +8679,7 @@ async function reactReview(id, emoji) {
 }
 
 // ── editing your own review ───────────────────────────────────────────
+var _revCatFilter = 'all';
 var _revEditing = null;
 var _revEditDraft = { rating: 0, cat: '', text: '' };
 
@@ -8713,10 +8747,13 @@ async function saveEditReview(id) {
   }
 }
 
-function setRevFilter(btn) {
-  renderReviews(); // will re-render; need to update active first
-  document.querySelectorAll('.rev-filter-btn').forEach(function(b){ b.classList.remove('rev-active'); });
-  btn.classList.add('rev-active');
+// The chip did nothing, and it was this: the first renderReviews() rebuilt
+// the whole list, which threw away the very button that had just been
+// clicked. The class was then added to an element no longer in the page,
+// and the second render read the active chip off the DOM - where nothing
+// carried it. The choice lives in a variable now; the DOM only draws it.
+function setRevFilter(cat) {
+  _revCatFilter = (cat && cat.dataset) ? (cat.dataset.cat || 'all') : String(cat || 'all');
   renderReviews();
 }
 
@@ -9448,10 +9485,36 @@ const USE_SUPABASE = true;
 // survived, because they hoist, but their variables came out undefined, so
 // unrelated parts of the page broke in ways that pointed nowhere near here.
 // Now the failure stays local: the backend is simply absent.
+// The reset link comes back as .../#recovery#access_token=…&type=recovery.
+// createClient below has detectSessionInUrl on by default: it reads that
+// hash, signs the person in and WIPES it - before DOMContentLoaded. So the
+// page checked location.hash and found nothing, the box never opened, and
+// what the person saw was the site with himself already logged in and no
+// explanation. The flag is taken here, one line above the client, which is
+// the last moment the hash still exists.
+var _CAME_FROM_RECOVERY = (function () {
+  try {
+    var h = String(location.hash || '');
+    var q = String(location.search || '');
+    return /type=recovery/.test(h) || /(^|[#&])recovery\b/.test(h) ||
+           /type=recovery/.test(q);
+  } catch (e) { return false; }
+})();
+
 var _sb = null;
 try {
   if (typeof supabase !== 'undefined' && supabase && supabase.createClient) {
     _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Second net, for the day the link arrives in a shape the test above
+    // does not know: Supabase itself says so when it reads the token.
+    try {
+      _sb.auth.onAuthStateChange(function (event) {
+        if (event === 'PASSWORD_RECOVERY') {
+          _CAME_FROM_RECOVERY = true;
+          if (typeof openPasswordReset === 'function') openPasswordReset();
+        }
+      });
+    } catch (e) {}
   } else {
     console.warn('Supabase לא נטען — האתר ימשיך לעבוד בלי החלקים שתלויים בו');
   }
@@ -9517,17 +9580,26 @@ async function supabaseLogin(username, password) {
 // And the answer no longer depends on whether the name exists: a form
 // that says "no such user" is a form that tells a stranger who IS a user.
 async function supabaseSendPasswordReset(username) {
+  // The server used to answer { ok:true } to every name alike, so that a
+  // stranger could not use this box to find out who is registered here.
+  // The usernames are on every forum post anyway, so the secret was not
+  // much of one - and it cost the person the only answer he needed: did
+  // this name reach anything. Now the server says which of four things
+  // happened, and the box says it back.
   try {
-    await fetch(SUPABASE_URL + '/functions/v1/reset-password', {
+    const r = await fetch(SUPABASE_URL + '/functions/v1/reset-password', {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
                  'Content-Type': 'application/json' },
       body: JSON.stringify({ username: username })
     });
+    let data = null;
+    try { data = await r.json(); } catch (e) {}
+    if (!r.ok) return { error: 'השרת החזיר שגיאה (' + r.status + '). נסה שוב בעוד רגע.' };
+    return { status: (data && data.status) || 'sent' };
   } catch (e) {
     return { error: 'לא הצלחנו לשלוח. בדוק את החיבור ונסה שוב.' };
   }
-  return { sent: true };
 }
 
 async function supabaseGetProfile(userId) {
@@ -9605,18 +9677,30 @@ async function sendPasswordReset() {
   const btn = document.getElementById('forgot-btn');
   if (!username) { showForgotMsg('אנא הכנס שם משתמש', 'error'); return; }
   if (btn) { btn.disabled = true; btn.textContent = '...שולח'; }
-  const { error } = await supabaseSendPasswordReset(username);
+  const { error, status } = await supabaseSendPasswordReset(username);
   if (btn) { btn.disabled = false; btn.textContent = '📧 שלח קישור לאיפוס'; }
-  if (error) {
-    showForgotMsg('שגיאה: ' + error, 'error');
-  } else {
-    // Deliberately the same sentence whether or not the name exists, and
-    // deliberately without the address: printing it back confirmed to
-    // whoever typed the name that this person is registered, and where.
-    showForgotMsg('✅ אם שם המשתמש קיים אצלנו, נשלח קישור לאיפוס ' +
-                  'לכתובת הרשומה בחשבון. בדוק גם בתיקיית הספאם.', 'success');
-    if (btn) btn.disabled = true;
+  if (error) { showForgotMsg('שגיאה: ' + error, 'error'); return; }
+
+  if (status === 'no-user') {
+    showForgotMsg('לא נמצא משתמש בשם ״' + username + '״. ' +
+                  'בדוק את האיות, או הירשם מחדש.', 'error');
+    return;
   }
+  if (status === 'no-email') {
+    showForgotMsg('המשתמש ״' + username + '״ קיים, אבל אין בחשבון כתובת מייל ' +
+                  'שאפשר לשלוח אליה. פנה אלינו דרך ״צור קשר״ ונסדר את זה.', 'error');
+    return;
+  }
+  if (status === 'send-failed') {
+    showForgotMsg('המשתמש נמצא, אבל שליחת המייל נכשלה. נסה שוב בעוד דקה, ' +
+                  'ואם זה חוזר — פנה אלינו דרך ״צור קשר״.', 'error');
+    return;
+  }
+  // The address itself still does not come back here - it is enough to say
+  // that it went, without printing where.
+  showForgotMsg('✅ שלחנו קישור לאיפוס לכתובת הרשומה בחשבון ״' + username + '״. ' +
+                'בדוק גם בתיקיית הספאם.', 'success');
+  if (btn) btn.disabled = true;
 }
 
 function showForgotMsg(text, type) {
@@ -9629,6 +9713,16 @@ function showForgotMsg(text, type) {
   msg.textContent = text;
 }
 
+// auth-err lives OUTSIDE the three panels, so a failed login left its red
+// line sitting under the reset form - and "יש למלא שם משתמש וסיסמא" under a
+// box that asks for neither reads like the reset itself failed.
+function clearAuthErr() {
+  const err = document.getElementById('auth-err');
+  if (err) { err.textContent = ''; err.style.display = 'none'; }
+  const fm = document.getElementById('forgot-msg');
+  if (fm) { fm.textContent = ''; fm.style.display = 'none'; }
+}
+
 function showForgotPassword() {
   document.querySelectorAll('[id^="auth-panel-"]').forEach(p => p.style.display = 'none');
   const fp = document.getElementById('auth-panel-forgot');
@@ -9636,9 +9730,22 @@ function showForgotPassword() {
   // הסתר tabs
   const tabs = document.getElementById('auth-tabs');
   if (tabs) tabs.style.display = 'none';
+  clearAuthErr();
+  // He already typed the name one box ago. Asking for it again is the kind
+  // of small rudeness that makes a form feel like it is not listening.
+  const fe = document.getElementById('forgot-email');
+  if (fe) {
+    const typed = (document.getElementById('login-name')?.value || '').trim() ||
+                  (document.getElementById('reg-name')?.value   || '').trim();
+    if (typed && !fe.value) fe.value = typed;
+    const btn = document.getElementById('forgot-btn');
+    if (btn) { btn.disabled = false; btn.textContent = '📧 שלח קישור לאיפוס'; }
+    setTimeout(function () { try { fe.focus(); fe.select(); } catch (e) {} }, 120);
+  }
 }
 
 function showAuthTab(tab) {
+  clearAuthErr();
   document.querySelectorAll('[id^="auth-panel-"]').forEach(p => p.style.display = 'none');
   const panel = document.getElementById('auth-panel-' + tab);
   if (panel) panel.style.display = 'block';
