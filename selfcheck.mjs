@@ -3279,50 +3279,68 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
-// ── the equipment panel ───────────────────────────────────────────────
-// Two of the things it says are not advice but Italian law, and a reader
-// who misses them is fined on the slope and loses his ski pass. They are
-// asserted by their substance, not by a word: a panel that quietly lost
-// the insurance paragraph would still contain the word "ביטוח".
+// ── what you buy before you go, and what you hire there ──────────────
+// This was one panel of its own; its two halves now live where each is
+// acted on - the buying, the insurance and the Shabbat list in the trip
+// planner, where somebody is still deciding; the heavy gear in the hire
+// panel, where the question is what to ask for at the counter. The checks
+// follow the content, and two of the things said here are not advice but
+// Italian law.
 {
   const r = await page.evaluate(async () => {
-    const m = document.getElementById('gearModal');
-    if (!m) return { missing: true };
-    openM('gearModal');
     const out = {};
-    const text = m.textContent;
-    out.text = text;
-    // The law goes in the box at the top, where it is read. Testing the whole
-    // panel let a sabotage of that box pass, because the helmet section lower
-    // down repeats the words - and nobody scrolling past the top would learn
-    // it. So these three are scoped to the box itself.
+    const plan = document.getElementById('hotelModal');
+    const hire = document.getElementById('rentalModal');
+    if (!plan || !hire) return { missing: true };
+    openM('hotelModal');
+    const ptext = plan.textContent;
+    const htext = hire.textContent;
+
+    // the law, in the box at the top of the preparations
     const law = document.getElementById('gear-law');
     const lawText = law ? law.textContent : '';
-    out.hasLawBox     = !!law;
+    out.hasLawBox     = !!law && plan.contains(law);
     out.helmetAllAges = /קסדה[\s\S]{0,40}לכל הגילים/.test(lawText) && /CE/.test(lawText);
-    out.insurance     = /צד שלישי/.test(lawText) && /100–150|100-150/.test(lawText);
+    out.liability     = /צד שלישי/.test(lawText) && /100–150|100-150/.test(lawText);
     out.notMedical    = /אינו ביטוח רפואי/.test(lawText);
-    // the goggle table is the thing most readers came for
-    out.lensCats = ['S0', 'S1', 'S2', 'S3', 'S4'].filter(c => text.includes(c)).length;
-    out.vlt      = /80–100%|43–80%|8–18%/.test(text);
-    // the three counter-intuitive facts, each of which costs a day if missed
-    out.oneSock  = /זוג אחד/.test(text) && /לא שניים/.test(text);
-    out.noCotton = /כותנה אסורה|לא כותנה/.test(text);
-    out.noWipe   = /לא לנגב את הצד הפנימי/.test(text);
-    out.threeKw  = /3 קילוואט/.test(text);
-    out.plugL    = /סוג L/.test(text);
-    // the shops are built from the array, and every one of them is a link
-    const shops = m.querySelectorAll('#gear-shops a.result-link');
-    out.shopCount = shops.length;
-    out.shopHrefs = [...shops].map(a => a.getAttribute('href'));
+
+    // winter-sports cover: the extension has to be named, and the trap with
+    // it - "extreme sports" is a different extension and does not cover skiing
+    out.winterNamed   = /ספורט חורף/.test(ptext);
+    // Not the heading - the heading says "ספורט אתגרי" too, and an assertion
+    // that the heading still exists is an assertion about nothing. What has
+    // to survive is the claim: they are two separate extensions.
+    out.notExtreme    = /שתי הרחבות נפרדות/.test(ptext) &&
+                        /סקי וסנובורד נמצאים תמיד תחת/.test(ptext);
+    out.rescue        = /חיפוש וחילוץ/.test(ptext);
+    out.offPiste      = /off-piste|מחוץ למסלול/.test(ptext);
+    out.price         = /\$31\.9|\$63\.8/.test(ptext);
+    // The free days on a credit card are the thing people assume covers them.
+    // They cover the basic policy and the baggage, and nothing else.
+    out.cardDays      = /חמישה ימי ביטוח חינם/.test(ptext) &&
+                        /הוצאות רפואיות\) ועל הכבודה בלבד/.test(ptext);
+
+    // the buying half
+    out.lensCats = ['S0', 'S1', 'S2', 'S3', 'S4'].filter(c => ptext.includes(c)).length;
+    out.vlt      = /80–100%|43–80%|8–18%/.test(ptext);
+    out.oneSock  = /זוג אחד/.test(ptext) && /לא שניים/.test(ptext);
+    out.noCotton = /כותנה אסורה|לא כותנה/.test(ptext);
+    out.noWipe   = /לא לנגב את הצד הפנימי/.test(ptext);
+    out.threeKw  = /3 קילוואט/.test(ptext);
+    out.plugL    = /סוג L/.test(ptext);
+
+    const shops = plan.querySelectorAll('#gear-shops a.result-link');
+    out.shopCount  = shops.length;
+    out.shopHrefs  = [...shops].map(a => a.getAttribute('href'));
     out.shopsHttps = out.shopHrefs.every(h => /^https:\/\//.test(h));
-    // the packing list reaches the page and carries the Shabbat half
+
     const pl = document.getElementById('gear-packlist');
-    out.packLen   = pl ? pl.textContent.length : 0;
+    out.inPlanner   = !!pl && plan.contains(pl);
+    out.packLen     = pl ? pl.textContent.length : 0;
     out.packShabbat = pl ? /שעון שבת/.test(pl.textContent) && /פלטה/.test(pl.textContent) : false;
-    out.packLaw   = pl ? /CE/.test(pl.textContent) && /צד שלישי/.test(pl.textContent) : false;
-    out.packPlugs = pl ? /מתאמים/.test(pl.textContent) : false;
-    // and the copy button does something
+    out.packLaw     = pl ? /CE/.test(pl.textContent) && /צד שלישי/.test(pl.textContent) : false;
+    out.packPlugs   = pl ? /מתאמים/.test(pl.textContent) : false;
+
     out.copied = null;
     if (typeof copyPackList === 'function') {
       const realNav = navigator.clipboard;
@@ -3339,61 +3357,109 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
                               { configurable: true, value: realNav });
       } catch (e) { out.copyErr = String(e && e.message); }
     }
-    // it must be reachable: a card, a link of its own, and the search
-    out.card   = !!document.getElementById('svc-gear');
-    out.hash   = PANEL_LINKS.gear === 'gearModal';
-    out.search = SEARCH_INDEX.some(i => /gearModal/.test(i.action));
-    closeM('gearModal');
+    closeM('hotelModal');
+
+    // the hiring half
+    out.hireTitle = (document.getElementById('rental-modal-title') || {}).textContent || '';
+    out.flex      = /פלקס/.test(htext) && /110–130|110-130/.test(htext);
+    out.mondo     = /Mondopoint/i.test(htext);
+    out.din       = /DIN/.test(htext) && /לעולם לא לכוון בעצמכם/.test(htext);
+    out.ownSocks  = /עם גרבי הסקי שלכם/.test(htext);
+    // snowboard
+    out.wrist     = /מגני פרקי כף יד/.test(htext);
+    out.regular   = /Regular/.test(htext) && /Goofy/.test(htext);
+    out.byWeight  = /לפי <b>משקל<\/b>|לפי משקל/.test(htext);
+    out.wide      = /wide/.test(htext);
+    out.dragLift  = /ט-בר|מושכי חבל/.test(htext);
+    out.firstDays = /יגיע רחוק יותר בסקי/.test(htext);
+
+    // reachable
+    out.hash   = PANEL_LINKS.gear === 'hotelModal';
+    out.search = SEARCH_INDEX.filter(i => /hotelModal|rentalModal/.test(i.action)).length >= 4;
+    out.gone   = !document.getElementById('gearModal') && !document.getElementById('svc-gear');
     return out;
   });
 
-  const T = 'the equipment panel';
-  if (r.missing) fail(T, 'there is no gearModal in the page');
+  const T = 'equipment: what to buy before, what to hire there';
+  if (r.missing) fail(T, 'the planner or the hire panel is gone');
   else {
+    if (!r.gone) fail(T,
+      'the old equipment panel or its card is still in the page as well - the ' +
+      'same content now lives in two places'); else ok();
     if (!r.hasLawBox) fail(T,
-      'the box that carries the two legal requirements is gone from the top ' +
-      'of the panel'); else ok();
+      'the box with the two legal requirements is not in the preparations'); else ok();
     if (!r.helmetAllAges) fail(T,
-      'the panel does not say a CE helmet is required at every age - the rule ' +
-      'that changed in 2025/26'); else ok();
-    if (!r.insurance) fail(T,
+      'it does not say a CE helmet is required at every age - the rule that ' +
+      'changed in 2025/26'); else ok();
+    if (!r.liability) fail(T,
       'third-party insurance is not stated with what it costs to skip it'); else ok();
     if (!r.notMedical) fail(T,
       'nothing separates the compulsory liability cover from medical and ' +
       'rescue cover, which it does not include'); else ok();
+    if (!r.winterNamed) fail(T,
+      'the winter-sports extension is never named, and it is the words on the ' +
+      'policy that decide whether a broken leg is covered'); else ok();
+    if (!r.notExtreme) fail(T,
+      'nothing warns that an "extreme sports" extension does not cover skiing'); else ok();
+    if (!r.rescue) fail(T,
+      'mountain search and rescue is not named, and it is the reason to buy ' +
+      'the extension at all'); else ok();
+    if (!r.offPiste) fail(T, 'the off-piste exclusion is missing'); else ok();
+    if (!r.price) fail(T, 'what the extension costs is not stated'); else ok();
+    if (!r.cardDays) fail(T,
+      'nothing says the free days on a credit card cover only the basic policy ' +
+      'and the baggage - which is what makes people think they are insured'); else ok();
     if (r.lensCats < 5) fail(T,
       `only ${r.lensCats} of the five lens categories are listed`); else ok();
     if (!r.vlt) fail(T,
-      'the categories are listed without the light they pass, which is the ' +
-      'only thing that makes them usable'); else ok();
-    if (!r.oneSock) fail(T,
-      'the one-pair-of-socks rule is missing - two pairs is the mistake ' +
-      'almost every first-timer makes'); else ok();
+      'the lens categories are listed without the light they pass'); else ok();
+    if (!r.oneSock) fail(T, 'the one-pair-of-socks rule is missing'); else ok();
     if (!r.noCotton) fail(T, 'nothing warns against cotton'); else ok();
     if (!r.noWipe) fail(T,
       'nothing says not to wipe the inside of a goggle lens'); else ok();
     if (!r.threeKw) fail(T,
-      'the 3 kW limit on an Italian flat is missing, and the plata and the urn ' +
-      'together trip it on Friday afternoon'); else ok();
+      'the 3 kW limit on an Italian flat is missing'); else ok();
     if (!r.plugL) fail(T, 'the Italian plug type is not named'); else ok();
     if (!r.shopCount || r.shopCount < 5) fail(T,
       `only ${r.shopCount} shops are listed`); else ok();
-    if (!r.shopsHttps) fail(T,
-      `a shop link is not https: ${r.shopHrefs.find(h => !/^https:/.test(h))}`); else ok();
+    if (!r.shopsHttps) fail(T, 'a shop link is not https'); else ok();
+    if (!r.inPlanner) fail(T,
+      'the packing list did not travel with the rest into the planner'); else ok();
     if (!r.packLen || r.packLen < 600) fail(T,
       `the packing list reaches the page as ${r.packLen} characters`); else ok();
     if (!r.packShabbat) fail(T,
-      'the packing list leaves out the Shabbat half, which is the half that ' +
-      'cannot be bought in the village'); else ok();
+      'the packing list leaves out the Shabbat half'); else ok();
     if (!r.packLaw) fail(T,
       'the packing list does not carry the two legal requirements'); else ok();
     if (!r.packPlugs) fail(T, 'the packing list forgets the plug adapters'); else ok();
     if (r.copyErr) fail(T, `the copy button threw: ${r.copyErr}`); else ok();
     if (!r.copied || r.copied < 600) fail(T,
       `the copy button put ${r.copied} characters on the clipboard`); else ok();
-    if (!r.card) fail(T, 'there is no card on the home page that opens it'); else ok();
-    if (!r.hash) fail(T, 'the panel has no link of its own'); else ok();
-    if (!r.search) fail(T, 'the search cannot reach the panel'); else ok();
+
+    if (!/ציוד והשכרה/.test(r.hireTitle)) fail(T,
+      `the hire panel is still titled "${r.hireTitle.trim()}"`); else ok();
+    if (!r.flex) fail(T, 'the boot flex scale is not in the hire panel'); else ok();
+    if (!r.mondo) fail(T, 'boot sizing in Mondopoint is not explained'); else ok();
+    if (!r.din) fail(T,
+      'the DIN setting is described without saying never to set it yourself'); else ok();
+    if (!r.ownSocks) fail(T,
+      'nothing says to bring your own ski socks to the fitting'); else ok();
+    if (!r.wrist) fail(T,
+      'wrist guards are missing - the commonest break in snowboarding'); else ok();
+    if (!r.regular) fail(T, 'regular and goofy are not explained'); else ok();
+    if (!r.byWeight) fail(T,
+      'board length is given without saying it follows weight, not height'); else ok();
+    if (!r.wide) fail(T,
+      'nothing says a large boot needs a wide board'); else ok();
+    if (!r.dragLift) fail(T,
+      'the drag lift, which is the thing nobody warns a snowboarder about, is ' +
+      'not mentioned'); else ok();
+    if (!r.firstDays) fail(T,
+      'the first-days difference between ski and board is missing, and it is ' +
+      'what decides which to hire for a short trip'); else ok();
+    if (!r.hash) fail(T,
+      'the old #gear link leads nowhere now'); else ok();
+    if (!r.search) fail(T, 'the search no longer reaches this content'); else ok();
   }
 }
 
@@ -4772,18 +4838,31 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.inHeader = !!(btn && btn.closest('#sticky-header'));
 
     openSideMenu();
-    await new Promise(res => setTimeout(res, 300));
     const menu = document.getElementById('side-menu');
-    out.onScreen = menu.getBoundingClientRect().right > 0
-                && menu.getBoundingClientRect().left < window.innerWidth
-                && menu.classList.contains('on');
+    // Waiting a fixed 300 ms for a CSS transition is a coin toss on a loaded
+    // machine: this check failed about one run in ten, which makes the whole
+    // gate untrustworthy. Wait for the drawer to actually arrive instead.
+    const onScreen = () => {
+      const b = menu.getBoundingClientRect();
+      return b.right > 0 && b.left < window.innerWidth && menu.classList.contains('on');
+    };
+    for (let i = 0; i < 60 && !onScreen(); i++) {
+      await new Promise(res => setTimeout(res, 50));
+    }
+    out.onScreen = onScreen();
     out.items = [...document.querySelectorAll('#side-menu-links button')].map(b => b.textContent.trim());
 
     // the drawer has to get out of the way before what it opens appears
     smGo('install');
-    await new Promise(res => setTimeout(res, 500));
+    // Both things have to happen: the drawer slides away AND the panel it
+    // chose opens. Waiting only for the drawer races the panel.
+    const help = document.getElementById('helpModal');
+    const settled = () => !menu.classList.contains('on') && help.style.display === 'flex';
+    for (let i = 0; i < 80 && !settled(); i++) {
+      await new Promise(res => setTimeout(res, 50));
+    }
     out.closedAfterGo = !menu.classList.contains('on');
-    out.helpOpen = document.getElementById('helpModal').style.display === 'flex';
+    out.helpOpen = help.style.display === 'flex';
     // and it has to land on the install block, not at the top of the panel
     const ins = document.getElementById('help-install');
     out.installFilled = !!(ins && ins.textContent.trim().length > 60);
