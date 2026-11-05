@@ -5,14 +5,25 @@
  *  1. Receive push messages and show them, even when the site is closed.
  *  2. Give the app something to open when there is no signal on the mountain.
  *
- * What it does NOT do is cache index.html aggressively. That file is ~1.8MB and
- * changes on most deploys; a cache-first worker would keep serving yesterday's
- * app and no amount of Ctrl+F5 would obviously fix it. So: network first,
- * always, and the cached copy is only a parachute.
+ * What it does NOT do is cache index.html aggressively. That file changes on
+ * most deploys; a cache-first worker would keep serving yesterday's app and no
+ * amount of Ctrl+F5 would obviously fix it. So: network first, always, and the
+ * cached copy is only a parachute.
+ *
+ * The one addition to that rule is img/. Those files are big, they never
+ * change under the same name, and the piste map is the single thing somebody
+ * most needs when the signal goes - so they are precached at install and
+ * answered from the cache, with a fresh copy fetched quietly for next time.
+ * Live data (Supabase, the scraper's data.json) is still never cached.
  */
 
-const CACHE = 'cervinia-v1';
+const CACHE = 'cervinia-v2';
 const FALLBACK = './index.html';
+
+// Precached at install so the map is there even for somebody who never opened
+// the maps panel while they still had a signal - which is most people.
+const STATIC = ['./manifest.json', './icon-192.png',
+                './img/piste-map.jpg', './img/logo.png'];
 
 self.addEventListener('install', function (e) {
   // take over as soon as possible - an old worker serving a stale fallback is
@@ -20,7 +31,12 @@ self.addEventListener('install', function (e) {
   self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE).then(function (c) {
-      return c.addAll(['./manifest.json', './icon-192.png']).catch(function () {});
+      // One addAll fails as a whole if any single file 404s, and then nothing
+      // at all is precached. Each on its own, so one missing picture cannot
+      // cost us the rest.
+      return Promise.all(STATIC.map(function (u) {
+        return c.add(u).catch(function () {});
+      }));
     })
   );
 });
@@ -36,6 +52,29 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   const req = e.request;
   if (req.method !== 'GET') return;
+
+  // ── pictures ───────────────────────────────────────────────────────────
+  // Stale-while-revalidate: answer from the cache at once so the map opens
+  // instantly and works with no signal, and fetch a fresh copy in the
+  // background so replacing a picture still reaches people - on their next
+  // visit rather than never.
+  let url = null;
+  try { url = new URL(req.url); } catch (err) { url = null; }
+  if (url && url.origin === self.location.origin && url.pathname.indexOf('/img/') !== -1) {
+    e.respondWith(
+      caches.open(CACHE).then(function (c) {
+        return c.match(req).then(function (hit) {
+          const net = fetch(req).then(function (res) {
+            if (res && res.ok) { c.put(req, res.clone()).catch(function () {}); }
+            return res;
+          }).catch(function () { return hit; });
+          return hit || net;
+        });
+      })
+    );
+    return;
+  }
+
   // Only page navigations get the parachute. Everything else is left alone, so
   // live data (Supabase, the scraper's data.json) is never served from a cache.
   if (req.mode !== 'navigate') return;
