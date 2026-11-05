@@ -3279,6 +3279,124 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── the equipment panel ───────────────────────────────────────────────
+// Two of the things it says are not advice but Italian law, and a reader
+// who misses them is fined on the slope and loses his ski pass. They are
+// asserted by their substance, not by a word: a panel that quietly lost
+// the insurance paragraph would still contain the word "ביטוח".
+{
+  const r = await page.evaluate(async () => {
+    const m = document.getElementById('gearModal');
+    if (!m) return { missing: true };
+    openM('gearModal');
+    const out = {};
+    const text = m.textContent;
+    out.text = text;
+    // The law goes in the box at the top, where it is read. Testing the whole
+    // panel let a sabotage of that box pass, because the helmet section lower
+    // down repeats the words - and nobody scrolling past the top would learn
+    // it. So these three are scoped to the box itself.
+    const law = document.getElementById('gear-law');
+    const lawText = law ? law.textContent : '';
+    out.hasLawBox     = !!law;
+    out.helmetAllAges = /קסדה[\s\S]{0,40}לכל הגילים/.test(lawText) && /CE/.test(lawText);
+    out.insurance     = /צד שלישי/.test(lawText) && /100–150|100-150/.test(lawText);
+    out.notMedical    = /אינו ביטוח רפואי/.test(lawText);
+    // the goggle table is the thing most readers came for
+    out.lensCats = ['S0', 'S1', 'S2', 'S3', 'S4'].filter(c => text.includes(c)).length;
+    out.vlt      = /80–100%|43–80%|8–18%/.test(text);
+    // the three counter-intuitive facts, each of which costs a day if missed
+    out.oneSock  = /זוג אחד/.test(text) && /לא שניים/.test(text);
+    out.noCotton = /כותנה אסורה|לא כותנה/.test(text);
+    out.noWipe   = /לא לנגב את הצד הפנימי/.test(text);
+    out.threeKw  = /3 קילוואט/.test(text);
+    out.plugL    = /סוג L/.test(text);
+    // the shops are built from the array, and every one of them is a link
+    const shops = m.querySelectorAll('#gear-shops a.result-link');
+    out.shopCount = shops.length;
+    out.shopHrefs = [...shops].map(a => a.getAttribute('href'));
+    out.shopsHttps = out.shopHrefs.every(h => /^https:\/\//.test(h));
+    // the packing list reaches the page and carries the Shabbat half
+    const pl = document.getElementById('gear-packlist');
+    out.packLen   = pl ? pl.textContent.length : 0;
+    out.packShabbat = pl ? /שעון שבת/.test(pl.textContent) && /פלטה/.test(pl.textContent) : false;
+    out.packLaw   = pl ? /CE/.test(pl.textContent) && /צד שלישי/.test(pl.textContent) : false;
+    out.packPlugs = pl ? /מתאמים/.test(pl.textContent) : false;
+    // and the copy button does something
+    out.copied = null;
+    if (typeof copyPackList === 'function') {
+      const realNav = navigator.clipboard;
+      let got = null;
+      try {
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: { writeText: (t) => { got = t; return Promise.resolve(); } }
+        });
+        copyPackList();
+        await new Promise(r2 => setTimeout(r2, 30));
+        out.copied = got ? got.length : 0;
+        Object.defineProperty(navigator, 'clipboard',
+                              { configurable: true, value: realNav });
+      } catch (e) { out.copyErr = String(e && e.message); }
+    }
+    // it must be reachable: a card, a link of its own, and the search
+    out.card   = !!document.getElementById('svc-gear');
+    out.hash   = PANEL_LINKS.gear === 'gearModal';
+    out.search = SEARCH_INDEX.some(i => /gearModal/.test(i.action));
+    closeM('gearModal');
+    return out;
+  });
+
+  const T = 'the equipment panel';
+  if (r.missing) fail(T, 'there is no gearModal in the page');
+  else {
+    if (!r.hasLawBox) fail(T,
+      'the box that carries the two legal requirements is gone from the top ' +
+      'of the panel'); else ok();
+    if (!r.helmetAllAges) fail(T,
+      'the panel does not say a CE helmet is required at every age - the rule ' +
+      'that changed in 2025/26'); else ok();
+    if (!r.insurance) fail(T,
+      'third-party insurance is not stated with what it costs to skip it'); else ok();
+    if (!r.notMedical) fail(T,
+      'nothing separates the compulsory liability cover from medical and ' +
+      'rescue cover, which it does not include'); else ok();
+    if (r.lensCats < 5) fail(T,
+      `only ${r.lensCats} of the five lens categories are listed`); else ok();
+    if (!r.vlt) fail(T,
+      'the categories are listed without the light they pass, which is the ' +
+      'only thing that makes them usable'); else ok();
+    if (!r.oneSock) fail(T,
+      'the one-pair-of-socks rule is missing - two pairs is the mistake ' +
+      'almost every first-timer makes'); else ok();
+    if (!r.noCotton) fail(T, 'nothing warns against cotton'); else ok();
+    if (!r.noWipe) fail(T,
+      'nothing says not to wipe the inside of a goggle lens'); else ok();
+    if (!r.threeKw) fail(T,
+      'the 3 kW limit on an Italian flat is missing, and the plata and the urn ' +
+      'together trip it on Friday afternoon'); else ok();
+    if (!r.plugL) fail(T, 'the Italian plug type is not named'); else ok();
+    if (!r.shopCount || r.shopCount < 5) fail(T,
+      `only ${r.shopCount} shops are listed`); else ok();
+    if (!r.shopsHttps) fail(T,
+      `a shop link is not https: ${r.shopHrefs.find(h => !/^https:/.test(h))}`); else ok();
+    if (!r.packLen || r.packLen < 600) fail(T,
+      `the packing list reaches the page as ${r.packLen} characters`); else ok();
+    if (!r.packShabbat) fail(T,
+      'the packing list leaves out the Shabbat half, which is the half that ' +
+      'cannot be bought in the village'); else ok();
+    if (!r.packLaw) fail(T,
+      'the packing list does not carry the two legal requirements'); else ok();
+    if (!r.packPlugs) fail(T, 'the packing list forgets the plug adapters'); else ok();
+    if (r.copyErr) fail(T, `the copy button threw: ${r.copyErr}`); else ok();
+    if (!r.copied || r.copied < 600) fail(T,
+      `the copy button put ${r.copied} characters on the clipboard`); else ok();
+    if (!r.card) fail(T, 'there is no card on the home page that opens it'); else ok();
+    if (!r.hash) fail(T, 'the panel has no link of its own'); else ok();
+    if (!r.search) fail(T, 'the search cannot reach the panel'); else ok();
+  }
+}
+
 // ── the category chips over the reviews actually filter ───────────────
 // They did nothing at all, and the reason was the order of two lines:
 // setRevFilter called renderReviews() first, which rebuilt the list and
