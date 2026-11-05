@@ -3279,6 +3279,70 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── the pictures are files, and they survive losing the signal ───────
+// They were base64 strings inside index.html: 1.1 MB, 47% of the page, and
+// because base64 of a JPEG does not compress, 68% of what every visitor
+// actually downloaded before seeing anything. As files they are fetched
+// once and cached on their own - but only if the service worker is told to,
+// because it handles navigations and leaves every other request alone. Left
+// as it was, moving them out would have taken the piste map offline exactly
+// when somebody is on the mountain with no signal.
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const T = 'the pictures are files, and they survive losing the signal';
+
+  const b64 = (src.match(/data:image\/[a-z+]+;base64,/g) || []).length;
+  if (b64) fail(T,
+    `${b64} picture(s) are still pasted into the page as base64`); else ok();
+  if (!/_pisteMapImg = "\.\/img\/piste-map\.jpg"/.test(src)) fail(T,
+    'the piste map is not pointed at its file'); else ok();
+  if (!/id="brand-logo"[^>]*src="\.\/img\/logo\.png"/.test(src)) fail(T,
+    'the logo is not pointed at its file'); else ok();
+
+  for (const f of ['img/piste-map.jpg', 'img/logo.png']) {
+    const abs = near(f);
+    if (!fs.existsSync(abs)) { fail(T, `${f} is referenced but not on disk`); continue; }
+    ok();
+    const kb = fs.statSync(abs).size / 1024;
+    if (f.includes('piste-map') && kb > 450) fail(T,
+      `the piste map is ${kb.toFixed(0)} KB - it was meant to come down from 619`); else ok();
+    if (f.includes('logo') && kb > 30) fail(T,
+      `the logo is ${kb.toFixed(0)} KB`); else ok();
+  }
+
+  // the worker has to keep them, or they are gone the moment the signal is
+  const swFile = near('sw.js');
+  if (!fs.existsSync(swFile)) warn(T, 'sw.js is not beside the page');
+  else {
+    const sw = fs.readFileSync(swFile, 'utf8');
+    if (!/img\/piste-map\.jpg/.test(sw)) fail(T,
+      'the service worker does not precache the piste map, so it is unavailable ' +
+      'with no signal - which is when it is wanted'); else ok();
+    if (!/\/img\//.test(sw.split('addEventListener(\'fetch\'')[1] || '')) fail(T,
+      'the fetch handler has no rule for img/, so the pictures are never ' +
+      'served from the cache'); else ok();
+    if (!/cervinia-v2/.test(sw)) fail(T,
+      'the cache name was not bumped, so browsers keep the old cache and never ' +
+      'precache the pictures'); else ok();
+    // and the rule that was there before must still hold
+    if (!/req\.mode !== 'navigate'/.test(sw)) fail(T,
+      'the worker no longer leaves non-navigation requests alone - live data ' +
+      'could now be served stale'); else ok();
+  }
+
+  // the upload script has to know about them or they never reach the site
+  const proj = near('sync/projects.json');
+  if (!fs.existsSync(proj)) warn(T, 'sync/projects.json is not beside the page');
+  else {
+    const files = JSON.parse(fs.readFileSync(proj, 'utf8')).cervinia.Files;
+    for (const f of ['img/piste-map.jpg', 'img/logo.png']) {
+      if (!files.includes(f)) fail(T,
+        `${f} is not in the upload list, so the page would go live pointing at ` +
+        `a file that is not there`); else ok();
+    }
+  }
+}
+
 // ── nothing offers a coupon that has expired ─────────────────────────
 // The Ski 2.0 discount was for the 2025/26 season. Taking out the picture
 // and the modal is easy to do and easy to half-do: a badge reading "discount
