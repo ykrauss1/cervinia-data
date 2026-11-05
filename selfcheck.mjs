@@ -3279,6 +3279,31 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── nothing offers a coupon that has expired ─────────────────────────
+// The Ski 2.0 discount was for the 2025/26 season. Taking out the picture
+// and the modal is easy to do and easy to half-do: a badge reading "discount
+// coupon" stayed on the shop card, promising something that no longer opens.
+{
+  const r = await page.evaluate(() => {
+    openM('rentalModal');
+    const t = document.getElementById('rentalModal').textContent;
+    const out = {
+      says: /קופון/.test(t),
+      wiring: typeof window.openCouponModal === 'function'
+           || typeof window._couponImg !== 'undefined'
+           || !!document.getElementById('coupon-modal')
+           || !!document.getElementById('coupon-thumb')
+    };
+    closeM('rentalModal');
+    return out;
+  });
+  const T = 'nothing offers a coupon that has expired';
+  if (r.says) fail(T,
+    'the hire panel still mentions a coupon'); else ok();
+  if (r.wiring) fail(T,
+    'the coupon modal or its image is still wired into the page'); else ok();
+}
+
 // ── what you buy before you go, and what you hire there ──────────────
 // This was one panel of its own; its two halves now live where each is
 // acted on - the buying, the insurance and the Shabbat list in the trip
@@ -3311,14 +3336,20 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // that the heading still exists is an assertion about nothing. What has
     // to survive is the claim: they are two separate extensions.
     out.notExtreme    = /שתי הרחבות נפרדות/.test(ptext) &&
-                        /סקי וסנובורד נמצאים תמיד תחת/.test(ptext);
+                        /אינו כלול בהרחבה זו/.test(ptext) && /5\.5\.2/.test(ptext);
     out.rescue        = /חיפוש וחילוץ/.test(ptext);
-    out.offPiste      = /off-piste|מחוץ למסלול/.test(ptext);
+    // Not a general caution - the policy's own wording, which is what makes
+    // it worth printing. If it ever softens back into "most insurers do not
+    // cover", the clause has been lost.
+    out.offPiste      = /מחוץ לאזורים המורשים/.test(ptext) && /5\.6\.1/.test(ptext);
+    out.clause58      = /6\.8/.test(ptext) && /אלא אם נרכשה ההרחבה/.test(ptext);
+    out.boardIncluded = /במגלשיים ובסנובורד כאחד/.test(ptext);
     out.price         = /\$31\.9|\$63\.8/.test(ptext);
     // The free days on a credit card are the thing people assume covers them.
     // They cover the basic policy and the baggage, and nothing else.
     out.cardDays      = /חמישה ימי ביטוח חינם/.test(ptext) &&
-                        /הוצאות רפואיות\) ועל הכבודה בלבד/.test(ptext);
+                        /הוצאות רפואיות\) ועל הכבודה בלבד/.test(ptext) &&
+                        /כאל/.test(ptext) && /ישראכרט/.test(ptext);
 
     // the buying half
     out.lensCats = ['S0', 'S1', 'S2', 'S3', 'S4'].filter(c => ptext.includes(c)).length;
@@ -3404,7 +3435,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!r.rescue) fail(T,
       'mountain search and rescue is not named, and it is the reason to buy ' +
       'the extension at all'); else ok();
-    if (!r.offPiste) fail(T, 'the off-piste exclusion is missing'); else ok();
+    if (!r.offPiste) fail(T,
+      'the off-piste exclusion is no longer quoted from the policy itself'); else ok();
+    if (!r.clause58) fail(T,
+      'the clause that excludes winter sports without the extension is not cited'); else ok();
+    if (!r.boardIncluded) fail(T,
+      'nothing says the winter-sports extension covers snowboarding too'); else ok();
     if (!r.price) fail(T, 'what the extension costs is not stated'); else ok();
     if (!r.cardDays) fail(T,
       'nothing says the free days on a credit card cover only the basic policy ' +
