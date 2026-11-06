@@ -810,18 +810,34 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.broken.length) fail('the search bar finds the newer sections',
     `an entry calls ${r.broken.join(', ')}, which does not exist`);
   else ok();
-  // and the one that has to travel two levels down really gets there
+  // The season table was a fold inside the planner's single column, and this
+  // checked that the search prised it open. It is a screen of its own now, so
+  // what matters is that the entry lands on that screen with the table on it -
+  // no fold left to open, and nothing else showing beside it.
   const deep = await page.evaluate(async () => {
     openWhenToGo();
     await new Promise(r => setTimeout(r, 400));
-    const d = document.querySelector('#season-box details');
-    const open = !!(d && d.open);
+    const pane = document.getElementById('pane-when');
+    const box  = document.getElementById('season-box');
+    const out = {
+      onScreen: !!(pane && getComputedStyle(pane).display !== 'none'),
+      hasTable: !!(box && box.textContent.trim().length > 200),
+      noFold:   !document.querySelector('#season-box details'),
+      alone:    ['pane-prep', 'pane-search'].every(id => {
+        const e = document.getElementById(id);
+        return e && getComputedStyle(e).display === 'none';
+      })
+    };
     closeM('hotelModal');
-    return open;
+    return out;
   });
-  if (!deep) fail('the search bar finds the newer sections',
-    '"when to go" opened the panel but left the card collapsed');
-  else ok();
+  const TW = 'the search bar finds the newer sections';
+  if (!deep.onScreen) fail(TW, '"when to go" no longer lands on its own screen'); else ok();
+  if (!deep.hasTable) fail(TW, '"when to go" lands on an empty screen'); else ok();
+  if (!deep.noFold) fail(TW,
+    'the season table is a fold again, so the screen opens showing a heading ' +
+    'and one closed row'); else ok();
+  if (!deep.alone) fail(TW, '"when to go" shows another screen alongside it'); else ok();
 }
 
 // ── the date picker's season hint ─────────────────────────────────────────
@@ -3676,6 +3692,118 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'earthing warning above still points at something real'); else ok();
 }
 
+// ── Shabbat is findable, and the free-text box explains itself ──────
+// Two things readers could not find. Shabbat was a band inside a fold inside
+// the packing section, three taps deep and filed under luggage; it now lives
+// beside the candle-lighting times, with a signpost where it used to be and a
+// card on the planner's menu. And the free-text box looked like an ordinary
+// search field, so nobody knew they could write a sentence or what the button
+// would do with it.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+
+    // Shabbat, where it lives now
+    openM('kosherModal');
+    const apt = document.getElementById('shabbat-apartment');
+    out.aptExists = !!apt;
+    const t = apt ? apt.textContent : '';
+    out.aptHasPower   = /חשמל/.test(t);
+    out.aptHasCandles = /נרות/.test(t);
+    out.aptHasFriday  = /14:00/.test(t);
+    // it has to sit in the Shabbat half of that panel, not the kashrut half
+    const panel = document.getElementById('kosh-main-panel-shabbat');
+    out.aptInShabbatPanel = !!(panel && apt && panel.contains(apt));
+    closeM('kosherModal');
+
+    // the two doors to it
+    openM('hotelModal');
+    const jump = document.querySelector('.prep-jump');
+    const card = document.querySelector('.plan-card-out');
+    out.jumpExists = !!jump;
+    out.jumpGoes = !!(jump && /openKosherShabbat/.test(jump.getAttribute('onclick') || ''));
+    out.cardGoes = !!(card && /openKosherShabbat/.test(card.getAttribute('onclick') || ''));
+    // And the old home holds no second copy. Tested on the substance - the
+    // Friday finishing rule and the light-sensor line - not on the words
+    // "שעון שבת", which the signpost's own blurb legitimately uses.
+    const prep = document.getElementById('prep-fold');
+    const ptxt = prep ? prep.textContent : '';
+    // The light sensors appear in both places on purpose: explained in the
+    // Shabbat panel, and again as a line to tick on the packing list. That is
+    // a checklist, not a second copy. The Friday rule and a Shabbat band are
+    // the real signals that the material came back.
+    out.noDuplicate = !!prep && !/14:00/.test(ptxt) &&
+                      ![...prep.querySelectorAll('.prep-group')]
+                        .some(d => /שבת/.test(d.textContent));
+
+    // the free-text box
+    planGo('search');
+    const free = document.getElementById('trip-free');
+    const card2 = free ? free.closest('div').parentElement : null;
+    out.freeLabelled = !!(card2 && /כתבו במילים שלכם/.test(card2.textContent));
+    out.freeExplains = !!(card2 && /משפט אחד/.test(card2.textContent));
+    const btn = card2 ? [...card2.querySelectorAll('button')]
+                          .find(b => /הבן/.test(b.textContent)) : null;
+    out.btnSaysWhat = !!(btn && /ומלא/.test(btn.textContent));
+
+    // and the answer is a card with chips, not a line of grey text
+    if (free) {
+      free.value = 'מילאנו בפברואר לשבוע, 2 מבוגרים ורכב';
+      try { await applyTripText(); } catch (e) {}
+      await new Promise(r => setTimeout(r, 300));
+    }
+    const said = document.getElementById('trip-free-said');
+    out.answerChips = said ? said.querySelectorAll('span').length : 0;
+    // "Is there a border anywhere in there" passed even when the card was
+    // reduced to a bare coloured line, because the chips inside carry borders
+    // of their own. What makes it a card is the box around them: the answer's
+    // own first element has to have a background and a border of its own.
+    const inner = said ? said.firstElementChild : null;
+    const cs = inner ? getComputedStyle(inner) : null;
+    out.answerBoxed = !!(inner && cs &&
+      !/^rgba\(0, 0, 0, 0\)$|^transparent$/.test(cs.backgroundColor) &&
+      parseFloat(cs.borderTopWidth || '0') > 0);
+    out.answerSaysFilled = !!(said && /מילאתי/.test(said.textContent));
+    closeM('hotelModal');
+    return out;
+  });
+
+  const T = 'Shabbat is findable, and the free-text box explains itself';
+  if (!r.aptExists) fail(T, 'the Shabbat-in-the-apartment material is gone'); else ok();
+  if (!r.aptInShabbatPanel) fail(T,
+    'it is no longer in the Shabbat half of the kashrut panel'); else ok();
+  for (const [got, what] of [[r.aptHasPower, 'the electricity advice'],
+                             [r.aptHasCandles, 'the candles'],
+                             [r.aptHasFriday, 'the Friday finishing time']]) {
+    if (!got) fail(T, `${what} did not come across with it`); else ok();
+  }
+  if (!r.jumpExists) fail(T,
+    'nothing is left where Shabbat used to be, so a reader in the packing ' +
+    'section will not know it exists'); else ok();
+  if (!r.jumpGoes) fail(T, 'the signpost does not open the Shabbat panel'); else ok();
+  if (!r.cardGoes) fail(T,
+    'the Shabbat card on the planner menu does not open the Shabbat panel'); else ok();
+  if (!r.noDuplicate) fail(T,
+    'the packing section holds a second copy of the Shabbat material, so the ' +
+    'two will drift apart'); else ok();
+
+  if (!r.freeLabelled) fail(T,
+    'the free-text box has no label, so it reads as an ordinary search field');
+  else ok();
+  if (!r.freeExplains) fail(T,
+    'nothing tells the reader to write one sentence'); else ok();
+  if (!r.btnSaysWhat) fail(T,
+    'the button says "understand" without saying it fills the fields below');
+  else ok();
+  if (r.answerChips < 3) fail(T,
+    `the answer shows ${r.answerChips} parts; it should list what it took from ` +
+    'the sentence'); else ok();
+  if (!r.answerBoxed) fail(T,
+    'the answer is a bare line again, and readers did not notice it'); else ok();
+  if (!r.answerSaysFilled) fail(T,
+    'the answer does not say that the fields below were filled in'); else ok();
+}
+
 // ── the planner opens on a menu, not on a wall of text ──────────────
 // It used to be one column holding three unrelated things: when to come,
 // what to bring, and where to book. The middle one runs to tens of thousands
@@ -3698,6 +3826,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // a card per screen, and the card says what is behind it
     const hub = document.getElementById('plan-hub');
     out.cards = hub ? hub.querySelectorAll('.plan-card').length : 0;
+    // three screens plus one door out, to Shabbat in the kashrut panel
+    out.cardsOut = hub ? hub.querySelectorAll('.plan-card-out').length : 0;
     out.cardsDescribe = hub
       ? [...hub.querySelectorAll('.plan-card')].every(c => (c.querySelector('small') || {}).textContent)
       : false;
@@ -3745,7 +3875,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'opening the planner no longer shows the menu - it is back to dropping the ' +
     'reader into the middle of a section'); else ok();
   if (!r.barHiddenOnMenu) fail(T, 'the back bar shows on the menu itself'); else ok();
-  if (r.cards !== 3) fail(T, `the menu offers ${r.cards} cards, not three`); else ok();
+  if (r.cards !== 4) fail(T, `the menu offers ${r.cards} cards, not four`); else ok();
+  if (r.cardsOut !== 1) fail(T,
+    'the menu no longer carries the door to Shabbat, which is the one thing ' +
+    'on it that is not a screen of the planner'); else ok();
   if (!r.cardsDescribe) fail(T,
     'a menu card no longer says what is behind it, so the menu is a guess'); else ok();
   if (!r.oneAtATime) fail(T,
@@ -3782,14 +3915,28 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const CANDLE = /\u{1F56F}/u;
     const drawn = (el) => !!(el && el.querySelector('use[href="#ico-candle"]'));
 
-    openM('hotelModal');
-    const prep = document.getElementById('prep-fold');
-    const band = prep ? [...prep.querySelectorAll('.prep-group')]
-                          .find(d => /שבת/.test(d.textContent)) : null;
-    const fold = prep ? [...prep.querySelectorAll('summary')]
-                          .find(d => /מה להביא/.test(d.textContent)) : null;
+    // Shabbat moved out of the packing section into the kashrut panel. The
+    // rule did not move with it: every place Shabbat is named wears the same
+    // two drawn candles, never the emoji. That is now three places - the
+    // heading in the panel, the signpost left behind in the packing section,
+    // and the card on the planner's menu.
+    openM('kosherModal');
+    const apt  = document.getElementById('shabbat-apartment');
+    const band = apt ? [...apt.querySelectorAll('.prep-group')]
+                         .find(d => /שבת/.test(d.textContent)) : null;
+    const fold = apt ? [...apt.querySelectorAll('summary')]
+                         .find(d => /מה להביא/.test(d.textContent)) : null;
     out.bandDrawn = drawn(band);
     out.foldDrawn = drawn(fold);
+    out.aptEmoji  = apt ? CANDLE.test(apt.textContent) : false;
+    closeM('kosherModal');
+
+    openM('hotelModal');
+    const prep = document.getElementById('prep-fold');
+    const jump = document.querySelector('.prep-jump');
+    const card = document.querySelector('.plan-card-out');
+    out.jumpDrawn = drawn(jump);
+    out.cardDrawn = drawn(card);
     out.prepEmoji = prep ? CANDLE.test(prep.textContent) : false;
     closeM('hotelModal');
 
@@ -4034,8 +4181,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
                          /40–45 ס"מ|40-45 ס"מ/.test(ptext) &&
                          /עד ממש מתחת\s*\n?\s*לברך/.test(ptext) &&
                          !/מעל הברך/.test(ptext);
-    out.sensors        = /חיישני תאורה אוטומטיים/.test(ptext);
-    out.finishEarly    = /14:00 לכל\s*\n?\s*המאוחר/.test(ptext) && /שעתיים/.test(ptext);
+    // Shabbat lives in the kashrut panel now, not in the packing section, so
+    // these two read it where it is. Both still have to exist somewhere a
+    // reader will meet them - that is what the signpost assertions below are
+    // for - but the words themselves belong to that panel.
+    const shabApt = document.getElementById('shabbat-apartment');
+    const stext = shabApt ? shabApt.textContent : '';
+    out.sensors        = /חיישני תאורה אוטומטיים/.test(stext);
+    out.finishEarly    = /14:00 לכל\s*\n?\s*המאוחר/.test(stext) && /שעתיים/.test(stext);
     out.pdf            = !!plan.querySelector('a[href$="packing-list.pdf"][download]');
     // and the duplicated "compare the two ways" line is gone
     out.compareOnce    = (ptext.match(/היקר מבין השניים/g) || []).length === 1;

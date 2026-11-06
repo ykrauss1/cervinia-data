@@ -54,6 +54,12 @@ def walk(o, p=''):
     elif isinstance(o, str):
         for m in URL.finditer(o):
             u = m.group(0)
+            # An XML namespace is not a link. One icon field holds a drawing
+            # rather than an emoji, and its xmlns is a name the parser
+            # matches on, never something anybody fetches.
+            if u.rstrip('/') in ('http://www.w3.org/2000/svg',
+                                 'http://www.w3.org/1999/xlink'):
+                continue
             sm = SHORTENERS.match(u)
             if sm:
                 code = sm.group(2)

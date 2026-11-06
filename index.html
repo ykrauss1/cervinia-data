@@ -724,19 +724,52 @@ details.fold { border: 1px solid #e6eaef; border-radius: 10px; background: #fafb
        One screen at a time. The bar is sticky inside the modal's scroller, so
        "back" is always one tap away however far down the reader has gone -
        which was the whole complaint about the old single column. */
-    #plan-hub { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+    /* The menu sits on a slab of mountain sky with a snowflake watermark, so it
+       reads as a front page rather than as the first four rows of a list. The
+       cards themselves stay white and plain - the background carries the
+       character, the cards carry the words. */
+    #plan-hub { display: flex; flex-direction: column; gap: 9px; margin-bottom: 4px;
+            padding: 13px; border-radius: 16px;
+            background:
+              radial-gradient(118% 82% at 86% -12%, rgba(255,255,255,.62) 0%, rgba(255,255,255,0) 58%),
+              linear-gradient(158deg, #dcebfb 0%, #eaf4fd 46%, #f6fbff 100%);
+            border: 1px solid #cadff3; position: relative; overflow: hidden; }
+    #plan-hub::before { content: ''; position: absolute; inset: auto -34px -46px auto;
+            width: 188px; height: 188px; pointer-events: none; opacity: .5;
+            background: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8cdee' \
+stroke-width='.85' stroke-linecap='round'><path d='M12 2v20M3.4 7l17.2 10M3.4 17l17.2-10\
+M12 5.6 9.6 3.2M12 5.6l2.4-2.4M12 18.4l-2.4 2.4M12 18.4l2.4 2.4\
+M6.1 8.5 5.2 5.3M6.1 8.5 2.9 9.4M17.9 15.5l.9 3.2M17.9 15.5l3.2-.9\
+M6.1 15.5l-3.2.9M6.1 15.5l-.9 3.2M17.9 8.5l3.2.9M17.9 8.5l.9-3.2'/></svg>") no-repeat center/contain; }
     .plan-card { display: flex; align-items: center; gap: 12px; width: 100%;
-            padding: 15px 14px; background: linear-gradient(135deg,#f3f9ff,#fbfdff);
-            border: 1.5px solid #cfe2f5; border-radius: 14px; cursor: pointer;
+            padding: 14px 13px; background: #fff; position: relative; z-index: 1;
+            border: 1px solid #d7e7f6; border-radius: 13px; cursor: pointer;
             font-family: inherit; text-align: right; color: #16314f;
+            box-shadow: 0 1px 2px rgba(16,58,98,.05);
             transition: border-color .15s, box-shadow .15s, transform .08s; }
-    .plan-card:hover { border-color: #8fbde8; box-shadow: 0 2px 10px rgba(26,115,232,.13); }
+    .plan-card:hover { border-color: #8fbde8; box-shadow: 0 3px 12px rgba(26,115,232,.16); }
     .plan-card:active { transform: scale(.985); }
-    .plan-ico { font-size: 1.7rem; line-height: 1; flex: 0 0 auto; }
+    /* the one card that leaves the planner instead of switching screens */
+    .plan-card-out { background: #fffdf5; border-color: #ecd9a8; }
+    .plan-card-out:hover { border-color: #d9bc72; box-shadow: 0 3px 12px rgba(180,140,40,.16); }
+    .plan-ico { display: flex; align-items: center; justify-content: center;
+            width: 42px; height: 42px; flex: 0 0 auto; border-radius: 11px;
+            background: #eef6fe; font-size: 1.45rem; line-height: 1; }
+    .plan-card-out .plan-ico { background: #fdf4e0; }
+    .plan-ico svg { width: 25px; height: 25px; }
     .plan-txt { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
-    .plan-txt b { font-size: 0.97rem; }
-    .plan-txt small { font-size: 0.75rem; color: #5d7790; }
-    .plan-arrow { font-size: 1.5rem; color: #9ec0e0; flex: 0 0 auto; line-height: 1; }
+    .plan-txt b { font-size: 0.95rem; }
+    .plan-txt small { font-size: 0.735rem; color: #5d7790; line-height: 1.45; }
+    /* the signpost left behind where Shabbat used to sit */
+    .prep-jump { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px;
+            padding: 12px 12px; background: #fffdf5; border: 1.5px solid #ecd9a8;
+            border-radius: 11px; text-decoration: none; color: #6b4e13; }
+    .prep-jump:hover { border-color: #d9bc72; background: #fffaeb; }
+    .prep-jump span { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+    .prep-jump small { font-size: 0.73rem; color: #8a7340; font-weight: normal; line-height: 1.45; }
+    .prep-jump-go { flex: 0 0 auto !important; font-size: 0.74rem; font-weight: bold;
+            color: #a5832c; white-space: nowrap; }
     #plan-bar { display: none; position: sticky; top: 0; z-index: 6;
             align-items: center; gap: 8px; flex-wrap: wrap;
             margin: 0 -24px 14px; padding: 10px 24px;
@@ -932,7 +965,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.3';
+  var v='v17.4';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1592,19 +1625,24 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <span class="plan-ico">📅</span>
         <span class="plan-txt"><b>מתי לנסוע</b>
           <small>עונות, שלג, חגים — ומתי יקר</small></span>
-        <span class="plan-arrow">‹</span>
-      </button>
+        </button>
       <button class="plan-card" onclick="planGo('prep')">
         <span class="plan-ico">🧳</span>
         <span class="plan-txt"><b>הכנות לפני הנסיעה</b>
           <small>ציוד, ביטוח, חשמל ושבת · רשימת אריזה</small></span>
-        <span class="plan-arrow">‹</span>
-      </button>
+        </button>
       <button class="plan-card" onclick="planGo('search')">
         <span class="plan-ico">🔍</span>
         <span class="plan-txt"><b>חיפוש טיסה, רכב ולינה</b>
           <small>תאריכים, נוסעים והשוואת מחירים</small></span>
-        <span class="plan-arrow">‹</span>
+      </button>
+      <!-- Not a screen of the planner: it opens the kashrut panel, where the
+           Shabbat material actually lives. It is on this menu because planning
+           a trip is when somebody thinks about it. -->
+      <button class="plan-card plan-card-out" onclick="closeM('hotelModal');openKosherShabbat();">
+        <span class="plan-ico"><svg viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg></span>
+        <span class="plan-txt"><b>שבת בצ'רוויניה</b>
+          <small>מה להביא לדירה, חשמל, ומתי להפסיק לגלוש בשישי</small></span>
       </button>
     </div>
 
@@ -2022,76 +2060,18 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         </details>
 
         <!-- ── 4. Shabbat ─────────────────────────────────────────────── -->
-        <div class="prep-group"><svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg> שבת בצ'רוויניה</div>
+        <!-- Shabbat moved out of here. Buried as a band inside a fold inside the
+             preparations, nobody was going to find it - and it is not a packing
+             topic, it is a Shabbat topic. It now lives in "כשרות ושבת" beside
+             the candle-lighting times, which is where somebody looking for it
+             would look. This stays behind as the signpost. -->
+        <a class="prep-jump" href="#" onclick="closeM('hotelModal');openKosherShabbat();return false;">
+          <svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg>
+          <span><b>שבת בצ'רוויניה</b>
+            <small>מה להביא לדירה, חשמל ושעון שבת, ומתי להפסיק לגלוש ביום שישי</small></span>
+          <span class="prep-jump-go">בכשרות ושבת ‹</span>
+        </a>
 
-        <div style="font-size:0.81rem;color:#555;line-height:1.8;margin-bottom:9px;">
-          זה החלק שאי אפשר להשלים במקום. בכפר אין בית כנסת, אין חנות שמוכרת פמוטים או
-          פלטה, והדירות אינן ערוכות לשבת בשום צורה. כל מה שברשימה הזו נוסע מהארץ,
-          ולכן הוא שייך לשלב התכנון ולא לרגע האריזה.
-        </div>
-
-        <details class="fold" style="margin-bottom:10px;background:#fffbf0;border-color:#fde8a0;">
-          <summary style="color:#7a5a00;"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg>מה להביא, ומה לוודא מול בעל הדירה</summary>
-          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
-            <div style="font-size:0.78rem;color:#7a5a00;margin-bottom:4px;">
-              זמני כניסת השבת ויציאתה, כשרות ומוצרים — בסעיף
-              <a href="#" onclick="closeM('hotelModal');openM('kosherModal');return false;" style="color:#1a73e8;font-weight:bold;">כשרות ושבת</a>.
-            </div>
-
-            <div class="prep-h">חשמל — לקרוא לפני שאורזים</div>
-            המתח זהה (230V), והשקע האיטלקי מקבל גם את התקע האירופי הדק
-            (Type C, "אירופלאג"). מכאן נובע ההבדל שחשוב להכיר:
-            <br>• <b>תקע ישראלי של שני פינים עגולים ודקים — נכנס.</b> זה התקע של כמעט כל
-            המטענים, המנורות והמכשירים הקטנים, והוא אותו תקע אירופי. אין צורך במתאם.<br>
-            • <b>תקע ישראלי של שלושה פינים — לא נכנס.</b> הפינים עבים יותר ומסודרים
-            במשולש, והשקע האיטלקי בנוי לשורה.<br>
-            • <b>הפתרון:</b> מתאם קטן שבצד אחד מקבל תקע ישראלי ובצד השני יש שני פינים
-            עגולים דקים. עולה שקלים בודדים, ונמכר בכל חנות חשמל.
-            <br><b>אבל שימו לב:</b> מתאם כזה <b>מוותר על ההארקה</b>. לכן הוא בסדר גמור
-            למטען, למנורה ולשעון שבת — <b>ולא</b> למיחם, לפלטה או לכל מכשיר חימום. לאלה
-            צריך מתאם מוארק ממש, או מכשיר עם תקע אירופי מלכתחילה.
-            <br><b>להביא יותר מאחד</b>, ולא לסמוך על זה שיימצא בדירה.
-            <br><b>והנקודה שמפתיעה כמעט כל משפחה:</b> אספקת החשמל הביתית באיטליה מוגבלת
-            לרוב ל-3 קילוואט לדירה. מיחם (<span dir="ltr">2,000W</span>) ופלטה
-            (<span dir="ltr">1,000–1,500W</span>) יחד חוצים את הגבול, והמפסק הראשי קופץ —
-            לפעמים בכניסת השבת. מפעילים אותם <b>לא בו-זמנית</b>, ומוודאים מראש היכן לוח החשמל.
-
-            <div class="prep-h">שתי שאלות לבעל הדירה — לפני שמשלמים</div>
-            • <b>מפתח מכני לדלת.</b> בדירות ובבתי מלון רבים באיטליה הכניסה היא בכרטיס
-            מגנטי או במנעול חשמלי. לבקש מפתח רגיל במפורש.<br>
-            • <b>חיישני תאורה אוטומטיים.</b> נפוצים מאוד בכניסות, במסדרונות, בחדרי מדרגות
-            ולפעמים בשירותים ובמחסן הציוד. לשאול היכן הם נמצאים ו<b>האם אפשר לנטרל אותם</b> —
-            לרוב יש מתג או נתיך ייעודי. אם אי אפשר, כדאי לברר מראש מול רב כיצד לנהוג,
-            ולבחור חדרים ומסלול הליכה שאינם עוברים דרכם.
-            <br>שתי השאלות האלה נכנסות גם למכתב המוכן לסוכנויות שבסעיף
-            <a href="#" onclick="closeM('hotelModal');openM('localStayModal');return false;" style="color:#1a73e8;font-weight:bold;">לשכור דירה כמו מקומי</a>.
-
-            <div class="prep-h">הרשימה</div>
-            • <b>פמוטים ונרות.</b> בדירות שכורות רבות אסורה אש גלויה; מניחים על מגש מתכת,
-            הרחק מווילון ומגלאי עשן. יש שמעדיפים נרות שמן קטנים או פנס שבת.<br>
-            • <b>פלטה חשמלית</b> קטנה, או מכסה מתכת על כיריים חשמליות.<br>
-            • <b>מיחם</b> או תרמוס גדול. תרמוס פותר גם את בעיית העומס בחשמל.<br>
-            • <b>שעון שבת</b> מכני, עם תקע מתאים לשקע האיטלקי.<br>
-            • <b>מנורת שבת</b> או כיסוי למנורה, לחדר שרוצים להחשיך.<br>
-            • <b>פנס קטן</b> לכל חדר שינה.<br>
-            • <b>נייר טואלט חתוך</b> ומגבות נייר.<br>
-            • <b>כלים חד-פעמיים</b> — חוסכים הדחה ומים חמים.<br>
-            • <b>סידור, חומש וספרי קודש.</b><br>
-            • <b>סרט נייר</b> לסימון ולהדבקה, ומדבקות לכיסוי מתגים וחיישנים.
-
-            <div class="prep-h">לסיים את יום שישי מוקדם — מוקדם יותר ממה שנדמה</div>
-            בינואר השבת נכנסת בכפר אחרי השעה ארבע אחר הצהריים, ומכאן קל להסיק שאפשר
-            לגלוש עד שלוש. זו טעות.
-            <br>אחרי הגלישה האחרונה צריך עוד: לרדת לכפר, להחזיר את הציוד בחנות, להגיע
-            לדירה, להתקלח, לסדר את האוכל והפלטה, להדליק נרות ולהתארגן. זה לא פחות משעתיים,
-            ולרוב יותר — במיוחד עם ילדים.
-            <br><b>הכלל המעשי:</b> כניסת שבת ב-16:30 פירושה <b>לסיים לגלוש ב-14:00 לכל
-            המאוחר</b>, ולהשאיר לפחות שעתיים פנויות מרגע שנגמרו כל ענייני הסקי.
-            יום שישי קצר הוא לא ויתור — הוא מה שמאפשר להיכנס לשבת רגועים.
-          </div>
-        </details>
-
-        <!-- ── 5. the list ────────────────────────────────────────────── -->
         <div class="prep-group">📋 רשימת אריזה</div>
 
         <details class="fold" style="margin-bottom:4px;background:#f5f9ff;border-color:#d8e6fb;">
@@ -2129,10 +2109,18 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
     <!-- חיפוש בשפה חופשית -->
     <div style="background:linear-gradient(135deg,#eef6ff,#f6fbff);border:1.5px solid #cfe2f5;border-radius:12px;padding:12px 13px;margin-bottom:16px;">
+      <!-- Nobody could tell this was a free-text box, or what "הבן" would do
+           with what they typed. The label says both: write a sentence, the
+           button reads it and fills the fields below. -->
+      <div style="font-weight:bold;font-size:0.84rem;color:#16314f;margin-bottom:3px;">
+        ✍️ כתבו במילים שלכם</div>
+      <div style="font-size:0.735rem;color:#5d7790;line-height:1.5;margin-bottom:8px;">
+        משפט אחד — לאן, מתי וכמה אנשים. הלחיצה על <b>הבן ומלא</b> תקרא אותו
+        ותמלא בשבילכם את התאריכים, הנוסעים והאפשרויות שלמטה.</div>
       <div style="display:flex;gap:7px;align-items:stretch;">
-        <textarea id="trip-free" rows="1" oninput="growTripFree(this)" placeholder="לאן, מתי, כמה אנשים — במשפט אחד"
+        <textarea id="trip-free" rows="1" oninput="growTripFree(this)" placeholder="למשל: מילאנו בחנוכה לשבוע, 2 מבוגרים ורכב"
           style="flex:1;padding:10px 12px;border:1.5px solid #bcd;border-radius:9px;font-size:0.86rem;font-family:inherit;box-sizing:border-box;resize:vertical;min-height:40px;max-height:160px;line-height:1.5;overflow-y:auto;"></textarea>
-        <button onclick="applyTripText()" style="padding:10px 16px;background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;white-space:nowrap;">💬 הבן</button>
+        <button onclick="applyTripText()" style="padding:10px 16px;background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.3;">💬 הבן<br>ומלא</button>
         <button type="button" onclick="saveTripSearch()" id="trip-save"
           title="שמירת החיפוש הזה במכשיר" aria-label="שמירת החיפוש הזה במכשיר"
           style="padding:10px 12px;background:#fff;color:#1a3a6c;border:1.5px solid #cfe2f5;
@@ -2147,7 +2135,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <span class="ftx" onclick="fillTripText(this)">משפחה בפברואר עם רכב</span>
         <span class="ftx" onclick="fillTripText(this)">מילאנו בחול המועד פסח ל-4 לילות</span>
       </div>
-      <div id="trip-free-said" style="margin-top:7px;font-size:0.75rem;"></div>
+      <div id="trip-free-said" style="margin-top:9px;font-size:0.8rem;"></div>
       <div id="trip-saved" style="display:none;margin-top:8px;"></div>
     </div>
 
@@ -3402,6 +3390,80 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <div id="kosh-main-panel-shabbat">
       <div id="shabbat-times-widget">
         <div style="text-align:center;color:#aaa;padding:20px;">טוען זמנים...</div>
+      </div>
+
+      <!-- Moved here from the packing section. Everything about keeping Shabbat
+           in the village belongs beside the times for it, not three folds deep
+           inside a list of ski gear. -->
+      <div id="shabbat-apartment" style="margin-top:18px;">
+<div class="prep-group"><svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg> שבת בצ'רוויניה</div>
+
+        <div style="font-size:0.81rem;color:#555;line-height:1.8;margin-bottom:9px;">
+          זה החלק שאי אפשר להשלים במקום. בכפר אין בית כנסת, אין חנות שמוכרת פמוטים או
+          פלטה, והדירות אינן ערוכות לשבת בשום צורה. כל מה שברשימה הזו נוסע מהארץ,
+          ולכן הוא שייך לשלב התכנון ולא לרגע האריזה.
+        </div>
+
+        <details class="fold" style="margin-bottom:10px;background:#fffbf0;border-color:#fde8a0;">
+          <summary style="color:#7a5a00;"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg>מה להביא, ומה לוודא מול בעל הדירה</summary>
+          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+            <div style="font-size:0.78rem;color:#7a5a00;margin-bottom:4px;">
+              זמני כניסת השבת ויציאתה, כשרות ומוצרים — בסעיף
+              <a href="#" onclick="closeM('hotelModal');openM('kosherModal');return false;" style="color:#1a73e8;font-weight:bold;">כשרות ושבת</a>.
+            </div>
+
+            <div class="prep-h">חשמל — לקרוא לפני שאורזים</div>
+            המתח זהה (230V), והשקע האיטלקי מקבל גם את התקע האירופי הדק
+            (Type C, "אירופלאג"). מכאן נובע ההבדל שחשוב להכיר:
+            <br>• <b>תקע ישראלי של שני פינים עגולים ודקים — נכנס.</b> זה התקע של כמעט כל
+            המטענים, המנורות והמכשירים הקטנים, והוא אותו תקע אירופי. אין צורך במתאם.<br>
+            • <b>תקע ישראלי של שלושה פינים — לא נכנס.</b> הפינים עבים יותר ומסודרים
+            במשולש, והשקע האיטלקי בנוי לשורה.<br>
+            • <b>הפתרון:</b> מתאם קטן שבצד אחד מקבל תקע ישראלי ובצד השני יש שני פינים
+            עגולים דקים. עולה שקלים בודדים, ונמכר בכל חנות חשמל.
+            <br><b>אבל שימו לב:</b> מתאם כזה <b>מוותר על ההארקה</b>. לכן הוא בסדר גמור
+            למטען, למנורה ולשעון שבת — <b>ולא</b> למיחם, לפלטה או לכל מכשיר חימום. לאלה
+            צריך מתאם מוארק ממש, או מכשיר עם תקע אירופי מלכתחילה.
+            <br><b>להביא יותר מאחד</b>, ולא לסמוך על זה שיימצא בדירה.
+            <br><b>והנקודה שמפתיעה כמעט כל משפחה:</b> אספקת החשמל הביתית באיטליה מוגבלת
+            לרוב ל-3 קילוואט לדירה. מיחם (<span dir="ltr">2,000W</span>) ופלטה
+            (<span dir="ltr">1,000–1,500W</span>) יחד חוצים את הגבול, והמפסק הראשי קופץ —
+            לפעמים בכניסת השבת. מפעילים אותם <b>לא בו-זמנית</b>, ומוודאים מראש היכן לוח החשמל.
+
+            <div class="prep-h">שתי שאלות לבעל הדירה — לפני שמשלמים</div>
+            • <b>מפתח מכני לדלת.</b> בדירות ובבתי מלון רבים באיטליה הכניסה היא בכרטיס
+            מגנטי או במנעול חשמלי. לבקש מפתח רגיל במפורש.<br>
+            • <b>חיישני תאורה אוטומטיים.</b> נפוצים מאוד בכניסות, במסדרונות, בחדרי מדרגות
+            ולפעמים בשירותים ובמחסן הציוד. לשאול היכן הם נמצאים ו<b>האם אפשר לנטרל אותם</b> —
+            לרוב יש מתג או נתיך ייעודי. אם אי אפשר, כדאי לברר מראש מול רב כיצד לנהוג,
+            ולבחור חדרים ומסלול הליכה שאינם עוברים דרכם.
+            <br>שתי השאלות האלה נכנסות גם למכתב המוכן לסוכנויות שבסעיף
+            <a href="#" onclick="closeM('hotelModal');openM('localStayModal');return false;" style="color:#1a73e8;font-weight:bold;">לשכור דירה כמו מקומי</a>.
+
+            <div class="prep-h">הרשימה</div>
+            • <b>פמוטים ונרות.</b> בדירות שכורות רבות אסורה אש גלויה; מניחים על מגש מתכת,
+            הרחק מווילון ומגלאי עשן. יש שמעדיפים נרות שמן קטנים או פנס שבת.<br>
+            • <b>פלטה חשמלית</b> קטנה, או מכסה מתכת על כיריים חשמליות.<br>
+            • <b>מיחם</b> או תרמוס גדול. תרמוס פותר גם את בעיית העומס בחשמל.<br>
+            • <b>שעון שבת</b> מכני, עם תקע מתאים לשקע האיטלקי.<br>
+            • <b>מנורת שבת</b> או כיסוי למנורה, לחדר שרוצים להחשיך.<br>
+            • <b>פנס קטן</b> לכל חדר שינה.<br>
+            • <b>נייר טואלט חתוך</b> ומגבות נייר.<br>
+            • <b>כלים חד-פעמיים</b> — חוסכים הדחה ומים חמים.<br>
+            • <b>סידור, חומש וספרי קודש.</b><br>
+            • <b>סרט נייר</b> לסימון ולהדבקה, ומדבקות לכיסוי מתגים וחיישנים.
+
+            <div class="prep-h">לסיים את יום שישי מוקדם — מוקדם יותר ממה שנדמה</div>
+            בינואר השבת נכנסת בכפר אחרי השעה ארבע אחר הצהריים, ומכאן קל להסיק שאפשר
+            לגלוש עד שלוש. זו טעות.
+            <br>אחרי הגלישה האחרונה צריך עוד: לרדת לכפר, להחזיר את הציוד בחנות, להגיע
+            לדירה, להתקלח, לסדר את האוכל והפלטה, להדליק נרות ולהתארגן. זה לא פחות משעתיים,
+            ולרוב יותר — במיוחד עם ילדים.
+            <br><b>הכלל המעשי:</b> כניסת שבת ב-16:30 פירושה <b>לסיים לגלוש ב-14:00 לכל
+            המאוחר</b>, ולהשאיר לפחות שעתיים פנויות מרגע שנגמרו כל ענייני הסקי.
+            יום שישי קצר הוא לא ויתור — הוא מה שמאפשר להיכנס לשבת רגועים.
+          </div>
+        </details>
       </div>
     </div>
 
@@ -6029,8 +6091,25 @@ async function applyTripText(){
     out.innerHTML='<span style="color:#ef6c00;">\u05dc\u05d0 \u05d6\u05d9\u05d4\u05d9\u05ea\u05d9 \u05d9\u05e2\u05d3 \u05d0\u05d5 \u05ea\u05d0\u05e8\u05d9\u05da. \u05e0\u05e1\u05d5 \u05dc\u05d4\u05d6\u05db\u05d9\u05e8 \u05e2\u05d9\u05e8 (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5 / \u05d1\u05e8\u05d2\u05de\u05d5 / \u05d8\u05d5\u05e8\u05d9\u05e0\u05d5) \u05d5\u05de\u05ea\u05d9 \u2014 \u05d7\u05d5\u05d3\u05e9, \u05ea\u05d0\u05e8\u05d9\u05da \u05d0\u05d5 \u05d7\u05d2.</span>';
     return;
   }
-  out.innerHTML = (local ? '<span style="color:#ef6c00;">\u26a0 \u05ea\u05e8\u05d2\u05d5\u05dd \u05de\u05e7\u05d5\u05de\u05d9 (\u05de\u05d5\u05d2\u05d1\u05dc) \u00b7 </span>' : '')
-    + '<span style="color:#2e7d32;">\u2713 \u05d4\u05d1\u05e0\u05ea\u05d9: '+got.join(' \u00b7 ')+'</span>';
+  // The answer used to be a grey line of the same size as the hint above it,
+  // and readers did not notice the machine had understood anything at all.
+  // It is now a card: what it took from the sentence, chip by chip.
+  out.innerHTML =
+    '<div style="background:#eaf7ec;border:1.5px solid #a8d8b0;border-radius:10px;'
+      + 'padding:9px 11px;">'
+    + '<div style="font-weight:bold;color:#1b6b2a;font-size:0.82rem;margin-bottom:6px;">'
+      + '\u2713 \u05d4\u05d1\u05e0\u05ea\u05d9, \u05d5\u05de\u05d9\u05dc\u05d0\u05ea\u05d9 \u05dc\u05de\u05d8\u05d4:</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:5px;">'
+    + got.map(function (g) {
+        return '<span style="background:#fff;border:1px solid #bfe0c6;border-radius:999px;'
+             + 'padding:3px 10px;font-size:0.78rem;color:#1b5e20;white-space:nowrap;">'
+             + g + '</span>';
+      }).join('')
+    + '</div>'
+    + (local ? '<div style="margin-top:7px;font-size:0.72rem;color:#9a6a1a;">'
+        + '\u26a0 \u05ea\u05e8\u05d2\u05d5\u05dd \u05de\u05e7\u05d5\u05de\u05d9 (\u05de\u05d5\u05d2\u05d1\u05dc) \u2014 '
+        + '\u05d1\u05d3\u05e7\u05d5 \u05d0\u05ea \u05d4\u05e9\u05d3\u05d5\u05ea \u05dc\u05de\u05d8\u05d4.</div>' : '')
+    + '</div>';
   // "הבן" used to run the search itself, which is why the engine buttons
   // were on screen before anybody pressed חפש - and why that button looked
   // like it did nothing. Understanding the sentence and acting on it are two
@@ -6922,6 +7001,19 @@ var PLAN_PANES = {
   search: { id: 'pane-search', icon: '🔍', title: 'חיפוש טיסה, רכב ולינה',    chip: 'חיפוש' }
 };
 
+// Shabbat lives in the kashrut panel now, and both doors into it - the
+// signpost in the packing section and the card on the planner's menu - want
+// the same thing: that modal, open on the Shabbat side, scrolled to the part
+// about the apartment rather than to the times.
+function openKosherShabbat() {
+  openM('kosherModal');
+  if (typeof switchKoshMain === 'function') switchKoshMain('shabbat');
+  setTimeout(function () {
+    var el = document.getElementById('shabbat-apartment');
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, 240);
+}
+
 function planGo(which) {
   var hub = document.getElementById('plan-hub');
   var bar = document.getElementById('plan-bar');
@@ -6956,15 +7048,9 @@ function openPlanner(which) {
   planGo(which || 'hub');
 }
 
-function openWhenToGo() {
-  openPlanner('when');
-  setTimeout(function () {
-    var box = document.getElementById('season-box');
-    if (!box) return;
-    var d = box.querySelector('details');
-    if (d) d.open = true;
-  }, 220);
-}
+// The season table used to be a fold that this had to prise open. It is a
+// whole screen of the planner now, so arriving there is all there is to do.
+function openWhenToGo() { openPlanner('when'); }
 function openParkEmergency() {
   openM('parkingModal');
   setTimeout(function(){ switchParkTab('emergency'); }, 50);
@@ -11212,11 +11298,15 @@ function renderSeason(se) {
       + _fixNums(_aEsc(p.note)) + '</div></div></div>';
   }).join('');
 
+  // No fold. This is a screen of the planner now, and it held exactly one
+  // collapsed row - so opening the screen showed a title and nothing else,
+  // and the reader had to tap twice to read one page of text.
   box.innerHTML =
-    '<details style="border:1.5px solid #e3e8ef;border-radius:11px;background:#fbfcfe;'
-      + 'padding:11px 13px;margin-bottom:16px;">'
-    + '<summary style="cursor:pointer;font-weight:bold;font-size:0.88rem;color:#1a3a6c;">'
-      + _aEsc(se.title || 'מתי כדאי לנסוע') + '</summary>'
+    '<div style="border:1.5px solid #e3e8ef;border-radius:11px;background:#fbfcfe;'
+      + 'padding:12px 13px;margin-bottom:16px;">'
+    + '<div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;'
+      + 'border-bottom:1.5px solid #e3e8ef;padding-bottom:7px;margin-bottom:4px;">'
+      + _aEsc(se.title || 'מתי כדאי לנסוע') + '</div>'
     + (se.intro ? '<div style="font-size:0.78rem;color:#666;line-height:1.75;margin:8px 0 10px;">'
         + _fixNums(_aEsc(se.intro)) + '</div>' : '')
     + (stale ? '<div style="font-size:0.75rem;color:#8a5a00;background:#fff6e5;'
@@ -11228,7 +11318,7 @@ function renderSeason(se) {
     + (months ? '<div style="border-top:1px solid #e8ecf2;padding-top:6px;">' + months + '</div>' : '')
     + (se.footer ? '<div style="font-size:0.74rem;color:#888;line-height:1.7;margin-top:9px;">'
         + _fixNums(_aEsc(se.footer)) + '</div>' : '')
-    + '</details>';
+    + '</div>';
 }
 
 // ──────────────────────────────────────────────────────────────────────────
