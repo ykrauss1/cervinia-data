@@ -3811,6 +3811,54 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the answer does not say that the fields below were filled in'); else ok();
 }
 
+// ── the date picker is handed dates, not strings ────────────────────
+// setTripDates passed flatpickr the ISO strings. Given a string, flatpickr
+// parses it with the instance's own dateFormat - here 'j בF', Hebrew and
+// with no year - which cannot read an ISO date. It then handed onChange an
+// empty selection, onChange took its else branch, and the field stayed
+// blank. So pressing a flight offer filled in nothing for every visitor
+// whose browser had actually loaded flatpickr; it only ever worked where
+// the CDN was blocked and the hand-written fallback ran instead. That is
+// also why it passed here for months and failed on the build machine.
+//
+// There is no flatpickr in this environment, so the check installs a stub
+// that records what it is given.
+{
+  const r = await page.evaluate(() => {
+    const el = document.getElementById('trip-dates');
+    if (!el) return { missing: true };
+    const seen = [];
+    const real = el._flatpickr;
+    el._flatpickr = {
+      selectedDates: [],
+      clear() {},
+      setDate(arg) {
+        seen.push((Array.isArray(arg) ? arg : [arg]).map(
+          x => x instanceof Date ? (isNaN(+x) ? 'Invalid Date' : 'Date') : typeof x));
+      }
+    };
+    setTripDates('2027-01-12', '2027-01-17');
+    if (real) el._flatpickr = real; else delete el._flatpickr;
+    return { seen, ci: el.getAttribute('data-ci'), co: el.getAttribute('data-co') };
+  });
+
+  const T = 'the date picker is handed dates, not strings';
+  if (r.missing) fail(T, 'the trip date field is gone'); else {
+    ok();
+    if (r.ci !== '2027-01-12' || r.co !== '2027-01-17') fail(T,
+      `setTripDates recorded ${r.ci}..${r.co} rather than the dates it was given`);
+    else ok();
+    if (!r.seen.length) fail(T,
+      'setTripDates never told the picker anything, so the calendar and the ' +
+      'field will disagree'); else ok();
+    const bad = r.seen.filter(call => call.some(t => t !== 'Date'));
+    if (bad.length) fail(T,
+      `the picker was handed ${JSON.stringify(bad[0])} - anything but a Date is ` +
+      "parsed with the field's Hebrew format, which has no year, and the " +
+      'selection comes back empty, so the date field stays blank'); else ok();
+  }
+}
+
 // ── the season switch does not reload the page under you ────────────
 // applySummerMode used to be a one-way function: it created banners and hid
 // things, and a second call produced two of everything. So switching the

@@ -965,7 +965,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.5';
+  var v='v17.6';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -13186,7 +13186,19 @@ function setTripDates(ci, co) {
   el.setAttribute('data-co', co);
   // setDate(..., true) fires flatpickr's onChange, which writes the Hebrew
   // label into the field, shows the nights strip and runs seasonHint.
-  if (el._flatpickr) { el._flatpickr.setDate([ci, co], true); return; }
+  //
+  // Date objects, not the ISO strings. Given strings, flatpickr parses them
+  // with the instance's own dateFormat - which here is 'j בF', Hebrew and
+  // without a year, and cannot read an ISO date at all. It then hands
+  // onChange an empty selection, onChange takes its else branch, and the
+  // field stays blank: pressing an offer filled nothing for anybody whose
+  // browser had actually loaded flatpickr. It worked only where the CDN was
+  // blocked and the hand-written fallback below ran instead.
+  if (el._flatpickr) {
+    el._flatpickr.setDate([new Date(ci + 'T00:00:00'),
+                           new Date(co + 'T00:00:00')], true);
+    return;
+  }
   // No flatpickr yet (the CDN is slow, or blocked): do the same by hand.
   var a = new Date(ci + 'T00:00:00'), b = new Date(co + 'T00:00:00');
   el.value = (typeof _tripRangeLabel === 'function')
