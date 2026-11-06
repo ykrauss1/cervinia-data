@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-06T16:01:51.185Z",
-  "temperature": -1.9,
+  "updated_at": "2026-11-06T16:40:59.889Z",
+  "temperature": -2.3,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 18,
@@ -12,9 +12,9 @@
   "slopes_total_local": 4,
   "snow_depth": "30 cm",
   "last_snowfall": "06/11/2026",
-  "wind_speed": null,
+  "wind_speed": 5.4,
   "wind_gust": 10.1,
-  "humidity": 94,
+  "humidity": 96,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso",
@@ -54,19 +54,19 @@
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow-low"
+        "icon": "cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "snow-low"
+        "icon": "cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "snow-low"
+        "icon": "cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "snow-low"
+        "icon": "cloudy"
       }
     ],
     "afternoon": [
@@ -76,17 +76,81 @@
       },
       {
         "name": "Valtournenche",
-        "icon": "cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Chamois",
-        "icon": "cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Torgnon",
-        "icon": "cloudy"
+        "icon": "snow-low"
       }
     ]
   },
-  "forecast_next_days": []
+  "forecast_next_days": [
+    {
+      "date": "Sunday, November 8",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "sun"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Monday, November 9",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "cloudy"
+        }
+      ]
+    },
+    {
+      "date": "Tuesday, November 10",
+      "periods": [
+        {
+          "label": "Morning\n(08.00 - 12.00)",
+          "icon": "snow"
+        },
+        {
+          "label": "Afternoon\n(13.00 - 17.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Evening\n(18.00 - 24.00)",
+          "icon": "partially-cloudy"
+        },
+        {
+          "label": "Notte\n(01.00 - 07.00)",
+          "icon": "sun"
+        }
+      ]
+    }
+  ]
 }
