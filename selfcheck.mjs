@@ -3279,6 +3279,123 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── four ways to buy, and the village is one of them ────────────────
+// It listed three and left out the one people actually end up using: walking
+// into a shop in Cervinia the morning after they land. Leaving it out made the
+// page read as if buying there were impossible, when the real point is that
+// the village sells a different shelf - big brands at list price in season -
+// so arriving without a jacket costs about three times what it costs at home.
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const T = 'four ways to buy, and the village is one of them';
+
+  const i = src.indexOf('דרכים לקנות');
+  if (i < 0) { fail(T, 'the section on where to buy is gone'); }
+  else {
+    ok();
+    const head = src.slice(i - 40, i + 40);
+    if (!/ארבע דרכים לקנות/.test(head)) fail(T,
+      `the heading still counts something other than four: "${head.replace(/<[^>]*>/g,'').trim()}"`);
+    else ok();
+
+    const sec = src.slice(i, src.indexOf('</details>', i)).replace(/\s+/g, ' ');
+    // the four, each by the words that name it
+    for (const [re_, what] of [[/בארץ, לפני הנסיעה/, 'buying at home'],
+                               [/באיטליה, בדרך ממילאנו/, 'buying on the road from Milan'],
+                               [/אונליין/, 'buying online'],
+                               [/בכפר, ברגע האחרון/, 'buying in the village']]) {
+      if (!re_.test(sec)) fail(T, `${what} is missing from the four`); else ok();
+    }
+
+    // the heading promises four; the body has to hold four
+    const ways = (sec.match(/class="prep-h"/g) || []).length;
+    if (ways !== 4) fail(T,
+      `the heading says four ways and the body has ${ways}`); else ok();
+
+    // and the village is only worth a section if it says what it costs
+    const vil = sec.slice(sec.indexOf('בכפר, ברגע האחרון'));
+    if (!/Helly Hansen/.test(vil) || !/450/.test(vil)) fail(T,
+      'the village section no longer carries a real price, so "expensive" is ' +
+      'just an adjective'); else ok();
+    if (!/מחירון/.test(vil)) fail(T,
+      'nothing says the village charges list price, which is the actual ' +
+      'mechanism'); else ok();
+
+    // the same jacket on both sides, or the comparison proves nothing
+    const ita = sec.slice(sec.indexOf('באיטליה, בדרך ממילאנו'));
+    if (!/QUECHUA 500/.test(ita) || !/WEDZE 500 AM/.test(ita)) fail(T,
+      'the Italy comparison no longer names the models, so it is not the same ' +
+      'jacket on both sides'); else ok();
+
+    // a converted price is only honest if the rate it used is on the page
+    if (/₪/.test(vil) && !/3\.45|3,45/.test(sec)) fail(T,
+      'euros are converted to shekels with no rate given'); else ok();
+  }
+
+  // Decathlon sells the jackets too - saying "base layers and accessories"
+  // sent people to a specialist shop to pay double for the same category.
+  const shops = src.slice(src.indexOf('function gearShops'),
+                          src.indexOf('var PACK_LIST'));
+  const dec = shops.slice(shops.indexOf("title: 'דקטלון'"), shops.indexOf("title: 'דקטלון'") + 400);
+  if (!/מעילים/.test(dec) || !/מכנסי סקי/.test(dec)) fail(T,
+    'the Decathlon entry still reads as if it only sold the small things'); else ok();
+}
+
+// ── a Hebrew term carries the English it is sold under ──────────────
+// Somebody stands in a shop or types into a search box, and what is printed
+// on the tag is English. The Hebrew word for a powder skirt or a pit zip is
+// one most readers have never met, so the pair travels together. These are
+// the ones that cost money to get wrong.
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const T = 'a Hebrew term carries the English it is sold under';
+  const plan = src.replace(/\s+/g, ' ');
+
+  for (const [he, en] of [['חצאית שלג', 'Powder skirt'],
+                          ['פתחי אוורור בבתי השחי', 'Pit zips'],
+                          ['תפרים מודבקים', 'Taped seams'],
+                          ['עמידות למים', 'Waterproof'],
+                          ['נשימות', 'Breathability'],
+                          ['שכבת בסיס', 'Base layer'],
+                          ['שכבה אמצעית', 'Mid layer'],
+                          ['כסיות', 'Mittens'],
+                          ['פוטוכרומית', 'Photochromic'],
+                          ['צמר מרינו', 'Merino']]) {
+    const at = plan.indexOf('<b>' + he + '</b>');
+    if (at < 0) { fail(T, `"${he}" is gone from the page`); continue; }
+    const after = plan.slice(at, at + he.length + 80);
+    if (!after.includes(en)) fail(T,
+      `"${he}" no longer carries "${en}", and that is the word on the tag`);
+    else ok();
+  }
+}
+
+// ── the header button says what it actually opens ───────────────────
+// It said "כניסה" and opened a window with two tabs, one of which is how you
+// register in the first place - so somebody with no account read the header as
+// "members only" and left. The label now names both, and the help text has to
+// name the button the same way or it sends people looking for one that is not
+// there.
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const T = 'the header button says what it actually opens';
+
+  const m = src.match(/class="signin-btn">([^<]*)<\/button>/);
+  if (!m) fail(T, 'the header sign-in button is gone'); else {
+    ok();
+    const label = m[1].replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n));
+    if (!/כניסה/.test(label) || !/הרשמה/.test(label)) fail(T,
+      `the button reads "${label}"; it has to name both, because somebody ` +
+      'without an account cannot tell that it is where they sign up'); else ok();
+
+    // and the help has to point at the button by the name on the button
+    const help = src.slice(src.indexOf('איך נרשמים?'), src.indexOf('איך נרשמים?') + 400)
+      .replace(/<[^>]*>/g, '');
+    if (!help.includes(label)) fail(T,
+      `the help tells people to press something other than "${label}"`); else ok();
+  }
+}
+
 // ── the boot is buckled from the top down, and loosely at the foot ──
 // This section is advice somebody follows at seven in the morning with cold
 // hands, so a sentence that drifts the wrong way is worse than no section.
@@ -3333,17 +3450,31 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // this one is only safe because the socks section says one thin pair
     if (!/בתוך המגף נמצאת רק הגרב/.test(sec)) fail(T,
       'nothing says the sock is the only thing inside the boot'); else ok();
+
+    // The trouser goes OVER the boot. Tucked in it builds a funnel straight
+    // onto the sock, and it is the mistake you can see on any piste - so the
+    // page has to say it outright, and say what the wrong way actually does.
+    if (!/המכנס יורד מעל המגף/.test(sec)) fail(T,
+      'nothing says the trouser goes over the boot'); else ok();
+    if (!/Inner gaiter/.test(sec)) fail(T,
+      'the inner gaiter is not named, so the reader cannot tell which part of ' +
+      'the trouser does go inside'); else ok();
+    if (!/משפך/.test(sec)) fail(T,
+      'the page no longer says what tucking the trouser in actually does'); else ok();
   }
 }
 
 // ── the sock drawing is measured, not eyeballed ─────────────────────
-// The leg and boot were traced from a drawing, so its lines mean something
-// only as long as they sit where the arithmetic puts them. The drawing's own
-// sole (y=972 in the source image) and the hollow behind its knee (y=328) are
-// 46 cm apart on a person, which fixes 14.0 image pixels per cm; the tracer
-// then scaled the image by 1000/1024. Every marked height follows from that,
-// and if somebody nudges a line by eye to make the picture prettier the
-// numbers beside it stop being true. So the gate recomputes them.
+// The figure faces LEFT, so the calf is the right-hand edge of the drawing.
+// Reading the left edge - the shin - once put the knee mark two thirds of the
+// way down the leg, and the whole picture said the wrong thing. Anchoring on
+// the sole (image row 972) and the hollow behind the knee (row 169, 46 cm up)
+// gives 17.46 px per cm; the tracer then scaled by 1000/1024.
+//
+// The cross-check below is what makes that trustworthy: on this scale the
+// drawing's own calf belly has to land where a real calf belly sits. It does,
+// at 32.4 cm. If somebody re-anchors the figure and that number walks off, the
+// scale is wrong and every line on it is wrong with it.
 {
   const src = fs.readFileSync(PAGE, 'utf8');
   const T = 'the sock drawing is measured, not eyeballed';
@@ -3353,45 +3484,47 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   else {
     ok();
     const fig = src.slice(i, src.indexOf('</svg>', i));
-    const K = 1000 / 1024, S = (972 - 328) / 46;
-    const at = cm => Math.round((972 - cm * S) * K);
+    const K = 1000 / 1024, SOLE = 972, KNEE = 169, CALF = 406;
+    const S = (SOLE - KNEE) / 46;
+    const at = cm => Math.round((SOLE - cm * S) * K);
 
-    // Every horizontal rule in the figure, with the colour it is drawn in -
-    // the colour is what carries the meaning, so reading the row without it
-    // would pass even if the green and the red rule swapped places.
+    // the calf belly is the whole reason the heights are where they are
+    const calfCm = (SOLE - CALF) / S;
+    if (!(calfCm > 29 && calfCm < 34)) fail(T,
+      `on its own scale the drawn calf belly sits ${calfCm.toFixed(1)} cm above ` +
+      'the floor, which is not where a calf is - so the scale is wrong'); else ok();
+
+    // every rule, with the colour that carries its meaning: reading the row
+    // alone would pass even if the green and the red swapped places
     const rules = [...fig.matchAll(
-      /d="M[\d.]+ ([\d.]+)H[\d.]+"\s+stroke="(#[0-9a-f]{3,6})"/g)]
+      /d="M[\d.]+ ([\d.]+)[Hh][\d.]+"\s+stroke="(#[0-9a-f]{3,6})"/g)]
       .map(m => ({ row: Math.round(+m[1]), ink: m[2] }));
+    const row = ink => (rules.find(r => r.ink === ink) || {}).row;
 
-    for (const [cm, ink, what] of [[46, '#90a4b7', 'the knee'],
-                                   [42, '#0d7a42', 'the 40-45 cm sock'],
-                                   [30, '#b03024', 'the 30 cm sock']]) {
-      const want = at(cm);
-      const hit = rules.find(r => r.ink === ink);
-      if (!hit) fail(T, `${what} has no rule of its own in the figure`);
-      else if (Math.abs(hit.row - want) > 1) fail(T,
-        `${what} is drawn on row ${hit.row}; the measurement puts it on ${want}`);
+    for (const [want, ink, what] of [[Math.round(KNEE * K), '#90a4b7', 'the knee'],
+                                     [at(42), '#0d7a42', 'the 40-45 cm sock'],
+                                     [at(30), '#b03024', 'the 30 cm sock'],
+                                     [Math.round(CALF * K), '#5c7a99', 'the calf belly']]) {
+      const got = row(ink);
+      if (got === undefined) fail(T, `${what} has no mark of its own in the figure`);
+      else if (Math.abs(got - want) > 1) fail(T,
+        `${what} is drawn on row ${got}; the measurement puts it on ${want}`);
       else ok();
     }
 
-    // The order is the whole point: the good height sits below the knee and
-    // clears the boot, the bad one is swallowed by it. Taken from the figure
-    // itself, not recomputed - recomputing only checks the arithmetic here.
-    const row = ink => (rules.find(r => r.ink === ink) || {}).row;
-    const cuff = Math.round(483 * K);   // where the drawing's dark shell starts
-    if (!(row('#90a4b7') < row('#0d7a42') && row('#0d7a42') < cuff &&
-          cuff < row('#b03024'))) fail(T,
-      `the figure no longer reads knee (${row('#90a4b7')}) then sock ` +
-      `(${row('#0d7a42')}) then the boot's cuff (${cuff}) then the short sock ` +
-      `(${row('#b03024')})`); else ok();
+    // the order IS the lesson: a good sock clears the calf belly, a short one
+    // stops on it. Read off the figure, not recomputed - recomputing would
+    // only be checking the arithmetic in this file.
+    if (!(row('#90a4b7') < row('#0d7a42') &&
+          row('#0d7a42') < row('#5c7a99') &&
+          row('#5c7a99') <= row('#b03024'))) fail(T,
+      `the figure no longer reads knee (${row('#90a4b7')}), then the good sock ` +
+      `(${row('#0d7a42')}), then the calf belly (${row('#5c7a99')}), then the ` +
+      `short one (${row('#b03024')})`); else ok();
 
-    // The boot the drawing shows has to be a real ski boot on this same
-    // scale, or the scale is wrong and every line above it is wrong too.
-    const bootCm = (972 - 483) / S;
-    if (!(bootCm > 30 && bootCm < 38)) fail(T,
-      `on its own scale the drawn boot is ${bootCm.toFixed(1)} cm tall, which is ` +
-      'not a ski boot - so the heights marked on it cannot be trusted'); else ok();
-
+    if (!/בליטת השוק/.test(fig)) fail(T,
+      'the calf belly is marked but not named, so the reader cannot tell what ' +
+      'the sock has to clear'); else ok();
     if (!/40&#8211;45 ס&quot;מ|40–45 ס"מ/.test(fig)) fail(T,
       'the figure no longer carries the height to look for'); else ok();
     if (!/>30 ס&quot;מ|>30 ס"מ/.test(fig)) fail(T,
@@ -3497,6 +3630,145 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
         `a file that is not there`); else ok();
     }
   }
+}
+
+// ── the plug advice, and the one line of it that is a safety line ───
+// The page used to say flatly that an Israeli plug does not fit. It does:
+// the two-pin one IS the europlug, and Italian sockets take it. Only the
+// three-pin one is stuck, and a few-shekel adapter solves it - except that
+// such an adapter drops the earth, and the things people carry for Shabbat
+// are an urn and a hotplate. That caveat is the reason this section exists.
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const T = 'the plug advice, and the one line of it that is a safety line';
+
+  const i = src.indexOf('חשמל — לקרוא לפני שאורזים');
+  if (i < 0) { fail(T, 'the electricity section is gone'); }
+  else {
+    ok();
+    const sec = src.slice(i, src.indexOf('שתי שאלות לבעל הדירה', i))
+      .replace(/<[^>]*>/g, '').replace(/\s+/g, ' ');
+
+    if (/תקע ישראלי אינו נכנס/.test(sec)) fail(T,
+      'the page is back to saying no Israeli plug fits, which sends people to ' +
+      'buy adapters they do not need'); else ok();
+    if (!/שני פינים/.test(sec) || !/נכנס/.test(sec)) fail(T,
+      'nothing says the two-pin plug goes straight in'); else ok();
+    if (!/שלושה פינים/.test(sec)) fail(T,
+      'nothing says which plug actually needs an adapter'); else ok();
+
+    // the safety line: an adapter that drops the earth, and the two
+    // appliances on this very page that must not lose it
+    if (!/הארקה/.test(sec)) fail(T,
+      'the adapter is recommended without saying it gives up the earth'); else ok();
+    if (!/מיחם/.test(sec) || !/פלטה/.test(sec)) fail(T,
+      'the warning does not name the urn and the hotplate - the two things the ' +
+      'Shabbat list tells people to bring, and the two that must stay earthed');
+    else ok();
+  }
+
+  // and the list below still asks for those two, which is what makes the
+  // warning above load-bearing rather than theoretical
+  const list = src.slice(src.indexOf('<div class="prep-h">הרשימה</div>'),
+                         src.indexOf('<div class="prep-h">הרשימה</div>') + 2500);
+  if (!/מיחם/.test(list) || !/פלטה חשמלית/.test(list)) fail(T,
+    'the Shabbat list no longer asks for the urn and hotplate, so check the ' +
+    'earthing warning above still points at something real'); else ok();
+}
+
+// ── the planner opens on a menu, not on a wall of text ──────────────
+// It used to be one column holding three unrelated things: when to come,
+// what to bring, and where to book. The middle one runs to tens of thousands
+// of words, so opening it buried the other two, and the only way back was to
+// scroll up past everything you had just opened. Now it opens on a menu and
+// shows one screen at a time, with a bar that stays on screen.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const vis = id => {
+      const e = document.getElementById(id);
+      return e ? getComputedStyle(e).display !== 'none' : null;
+    };
+    const panes = ['pane-when', 'pane-prep', 'pane-search'];
+
+    openM('hotelModal');
+    out.landsOnMenu = vis('plan-hub') === true && panes.every(p => vis(p) === false);
+    out.barHiddenOnMenu = vis('plan-bar') === false;
+
+    // a card per screen, and the card says what is behind it
+    const hub = document.getElementById('plan-hub');
+    out.cards = hub ? hub.querySelectorAll('.plan-card').length : 0;
+    out.cardsDescribe = hub
+      ? [...hub.querySelectorAll('.plan-card')].every(c => (c.querySelector('small') || {}).textContent)
+      : false;
+
+    // one screen at a time, and never two
+    out.oneAtATime = true;
+    out.barOnEveryPane = true;
+    for (const k of ['when', 'prep', 'search']) {
+      planGo(k);
+      const shown = panes.filter(p => vis(p));
+      if (shown.length !== 1 || shown[0] !== 'pane-' + k) out.oneAtATime = false;
+      if (!vis('plan-bar') || vis('plan-hub')) out.barOnEveryPane = false;
+    }
+
+    // the way out, and the way sideways, without going back to the menu
+    planGo('prep');
+    const bar = document.getElementById('plan-bar');
+    out.hasBack = !!(bar && bar.querySelector('.plan-back'));
+    out.chips = bar ? bar.querySelectorAll('.plan-chip').length : 0;
+    out.barNamesPane = /הכנות/.test(
+      (document.getElementById('plan-bar-title') || {}).textContent || '');
+
+    // the bar has to stay put while the reader scrolls, or it is just a heading
+    out.barSticky = bar ? getComputedStyle(bar).position === 'sticky' : false;
+
+    // going back really does put the menu up again
+    planGo('hub');
+    out.backToMenu = vis('plan-hub') === true && panes.every(p => vis(p) === false);
+
+    // the doors other panels open: each has to land on the right screen
+    openWhenToGo();
+    out.whenDeepLink = vis('pane-when') === true;
+    openPlanner('prep');
+    out.prepDeepLink = vis('pane-prep') === true;
+
+    // and the order of the screens still matches how a trip is planned
+    const w = document.getElementById('pane-when'), pr = document.getElementById('pane-prep');
+    out.order = !!(w && pr &&
+      (w.compareDocumentPosition(pr) & Node.DOCUMENT_POSITION_FOLLOWING));
+    return out;
+  });
+
+  const T = 'the planner opens on a menu, not on a wall of text';
+  if (!r.landsOnMenu) fail(T,
+    'opening the planner no longer shows the menu - it is back to dropping the ' +
+    'reader into the middle of a section'); else ok();
+  if (!r.barHiddenOnMenu) fail(T, 'the back bar shows on the menu itself'); else ok();
+  if (r.cards !== 3) fail(T, `the menu offers ${r.cards} cards, not three`); else ok();
+  if (!r.cardsDescribe) fail(T,
+    'a menu card no longer says what is behind it, so the menu is a guess'); else ok();
+  if (!r.oneAtATime) fail(T,
+    'the screens are no longer exclusive - two can be open at once, which is ' +
+    'the pile this replaced'); else ok();
+  if (!r.barOnEveryPane) fail(T, 'a screen shows with no bar on it'); else ok();
+  if (!r.hasBack) fail(T,
+    'there is no way back to the menu, so leaving a long screen means ' +
+    'scrolling all of it again'); else ok();
+  if (r.chips !== 2) fail(T,
+    `the bar offers ${r.chips} ways sideways; it should offer the other two ` +
+    'screens'); else ok();
+  if (!r.barNamesPane) fail(T, 'the bar does not say which screen you are on'); else ok();
+  if (!r.barSticky) fail(T,
+    'the bar scrolls away with the content, so on a long screen there is ' +
+    'again no way out without scrolling back'); else ok();
+  if (!r.backToMenu) fail(T, 'the back button does not restore the menu'); else ok();
+  if (!r.whenDeepLink) fail(T,
+    '"when to go" from elsewhere no longer lands on that screen'); else ok();
+  if (!r.prepDeepLink) fail(T,
+    'the preparations link from elsewhere no longer lands on that screen'); else ok();
+  if (!r.order) fail(T,
+    'the preparations screen now comes before "when to go"'); else ok();
 }
 
 // ── Shabbat is the same two candles everywhere ───────────────────────
@@ -3712,7 +3984,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.groups = prep ? prep.querySelectorAll('.prep-group').length : 0;
     out.subHeads = prep ? prep.querySelectorAll('.prep-h').length : 0;
     // the words he did not know, and the ones that were wrong
-    out.edgeExplained  = /הקנט<\/b> הוא[\s\S]{0,60}פס המתכת/.test(plan.innerHTML);
+    // The gloss in brackets after a Hebrew term is the house style now - the
+    // English is what is printed on the tag and typed into a search box - so
+    // the check has to step over it rather than break on it.
+    out.edgeExplained  = /הקנט<\/b>(\s*\([^)]{0,30}\))?\s*הוא[\s\S]{0,60}פס המתכת/.test(plan.innerHTML);
     out.balaclava      = /בָּלָקְלָבָה/.test(ptext) && /פתח לעיניים/.test(ptext);
     out.neckName       = /מגן צוואר/.test(ptext);
     out.warmers        = /חבילות חימום/.test(ptext) && /מתחמם מעצמו/.test(ptext);
@@ -3745,7 +4020,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       const box = f.closest('figure');
       const cap = box?.querySelector('figcaption')?.textContent || '';
       return /הברך/.test(t) && /40–45 ס"מ/.test(t) && /30 ס"מ/.test(t) &&
-             /גובה השוק/.test(cap) && /נבלעת בתוך המגף/.test(cap);
+             /בליטת השוק/.test(t) &&
+             /גובה השוק/.test(cap) && /בליטת שריר השוק/.test(cap);
     })();
     out.sockPhoto      = (() => {
       const im = plan.querySelector('img[src*="boot-sock"]');
