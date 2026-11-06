@@ -965,7 +965,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.6';
+  var v='v17.7';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6959,7 +6959,11 @@ function renderTripSaves(msg) {
 function resetTripDates() {
   const el = document.getElementById('trip-dates');
   if (el && el._flatpickr) el._flatpickr.clear();
-  if (el) el.value = '';
+  // The attributes are the other half of the answer: getDateRange falls back
+  // to them whenever flatpickr has no selection, which is exactly the state
+  // this function just created. Leaving them behind meant pressing "נקה"
+  // emptied the field on screen and then searched the old dates anyway.
+  if (el) { el.value = ''; el.removeAttribute('data-ci'); el.removeAttribute('data-co'); }
   const meta = document.getElementById('trip-dates-meta');
   if (meta) meta.style.display = 'none';
   // The free-text box is part of the search, so a "clear" that leaves the

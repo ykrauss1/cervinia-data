@@ -2246,6 +2246,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 
     // understanding a sentence is not searching
     const q = document.getElementById('trip-free');
+    const dt0 = document.getElementById('trip-dates');
     if (q) q.value = 'מילאנו בחנוכה לשבוע';
     ['all-results', 'flight-results', 'car-results', 'hotel-results'].forEach(id => {
       const e = document.getElementById(id);
@@ -2301,10 +2302,21 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       out.btnDrewLinks = results();
     }
 
+    // "נקה" has to clear the dates everywhere they are kept, not only the
+    // ones on screen - getDateRange falls back to the attributes, so a reset
+    // that leaves them behind searches the dates the reader just cleared
+    setTripDates('2027-02-01', '2027-02-08');
+    resetTripDates();
+    out.clearedRange = (typeof getDateRange === 'function') ? getDateRange() : 'no-fn';
+    out.clearedCi = dt0 ? dt0.getAttribute('data-ci') : 'no-el';
+
     // saved searches
     try { localStorage.removeItem('cl_saved_trips'); } catch (e) {}
+    // through the real entry point, not by poking the attributes: with a
+    // working picker the attributes are no longer the only source of truth,
+    // and setting them by hand left the picker holding the offer's dates
     const dt2 = document.getElementById('trip-dates');
-    if (dt2) { dt2.setAttribute('data-ci', '2027-01-10'); dt2.setAttribute('data-co', '2027-01-17'); }
+    setTripDates('2027-01-10', '2027-01-17');
     if (q) q.value = 'מילאנו לשבוע';
     saveTripSearch();
     out.savedCount = JSON.parse(localStorage.getItem('cl_saved_trips') || '[]').length;
@@ -2350,6 +2362,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   // and it says what the offers actually are, which Yossi could not tell
   if (!/כל העונה/.test(r.foldTitle)) fail(T,
     'the heading does not say the offers span the whole season'); else ok();
+  if (r.clearedRange !== null) fail(T,
+    `pressing "נקה" left ${JSON.stringify(r.clearedRange)} behind, so the next ` +
+    'search runs on the dates the reader just cleared'); else ok();
+  if (r.clearedCi) fail(T,
+    `"נקה" emptied the field but left data-ci="${r.clearedCi}" on it`); else ok();
   if (r.btnCi !== '2027-01-12') fail(T,
     `the offer button filled "${r.btnCi}" instead of its own date`); else ok();
   // A results panel with no dates anywhere on it is how somebody ends up
