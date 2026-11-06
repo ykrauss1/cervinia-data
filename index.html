@@ -225,8 +225,8 @@ mark.cl-hit {
 /* Sign-in sits in the dark header, so it is a pill, not a card. */
 .signin-btn {
   background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.28);
-  color: #fff; border-radius: 999px; padding: 6px 16px;
-  font-size: 0.84rem; font-weight: 600; font-family: inherit;
+  color: #fff; border-radius: 999px; padding: 6px 12px;
+  font-size: 0.8rem; font-weight: 600; font-family: inherit;
   cursor: pointer; white-space: nowrap; line-height: 1.3;
   transition: background 0.15s, border-color 0.15s;
 }
@@ -720,7 +720,48 @@ img, svg, video { max-width: 100%; }
    an arrow, so the panel opens on what the reader came for. */
 details.fold { border: 1px solid #e6eaef; border-radius: 10px; background: #fafbfc; }
 .ico-inline { width: 1.15em; height: 1.15em; vertical-align: -0.22em; }
-.sock-fig { width: 100%; height: auto; max-width: 300px; display: block; margin: 0 auto;
+/* ── the planner's own menu ──────────────────────────────────────────
+       One screen at a time. The bar is sticky inside the modal's scroller, so
+       "back" is always one tap away however far down the reader has gone -
+       which was the whole complaint about the old single column. */
+    #plan-hub { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+    .plan-card { display: flex; align-items: center; gap: 12px; width: 100%;
+            padding: 15px 14px; background: linear-gradient(135deg,#f3f9ff,#fbfdff);
+            border: 1.5px solid #cfe2f5; border-radius: 14px; cursor: pointer;
+            font-family: inherit; text-align: right; color: #16314f;
+            transition: border-color .15s, box-shadow .15s, transform .08s; }
+    .plan-card:hover { border-color: #8fbde8; box-shadow: 0 2px 10px rgba(26,115,232,.13); }
+    .plan-card:active { transform: scale(.985); }
+    .plan-ico { font-size: 1.7rem; line-height: 1; flex: 0 0 auto; }
+    .plan-txt { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+    .plan-txt b { font-size: 0.97rem; }
+    .plan-txt small { font-size: 0.75rem; color: #5d7790; }
+    .plan-arrow { font-size: 1.5rem; color: #9ec0e0; flex: 0 0 auto; line-height: 1; }
+    #plan-bar { display: none; position: sticky; top: 0; z-index: 6;
+            align-items: center; gap: 8px; flex-wrap: wrap;
+            margin: 0 -24px 14px; padding: 10px 24px;
+            background: rgba(255,255,255,.97); backdrop-filter: blur(6px);
+            border-bottom: 1px solid #e3eaf3; }
+    .plan-back { padding: 6px 12px; background: #eaf3fd; border: 1px solid #c6ddf3;
+            border-radius: 999px; cursor: pointer; font-family: inherit;
+            font-size: 0.8rem; font-weight: 700; color: #1a5fa8; white-space: nowrap; }
+    .plan-back:hover { background: #ddecfb; }
+    #plan-bar-title { font-weight: 700; color: #16314f; font-size: 0.92rem;
+            flex: 1 1 auto; min-width: 0; }
+    #plan-bar-chips { display: flex; gap: 6px; }
+    .plan-chip { padding: 5px 10px; background: #fff; border: 1px solid #dbe6f1;
+            border-radius: 999px; cursor: pointer; font-family: inherit;
+            font-size: 0.73rem; color: #4a6b8a; white-space: nowrap; }
+    .plan-chip:hover { background: #f3f9ff; border-color: #bcd8f0; }
+    .plan-pane { display: none; }
+    /* inside its own pane the preparations are the whole screen, so the fold's
+       own summary would just repeat the bar above it */
+    #pane-prep > #prep-fold { margin: 0; background: none; border: none; }
+    #pane-prep > #prep-fold > summary { display: none; }
+    @media (max-width: 420px) {
+      #plan-bar-title { flex: 1 0 100%; order: 3; font-size: 0.85rem; }
+    }
+    .sock-fig { width: 100%; height: auto; max-width: 300px; display: block; margin: 0 auto;
             font-family: inherit; }
     /* One box for both the drawing and the photograph, so the two read as a pair
        rather than as two unrelated pictures dropped into the text. */
@@ -1388,7 +1429,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <h3 style="margin:0 0 16px;font-size:1.1rem;">❓ עזרה</h3>
     <div style="color:#555;font-size:0.88rem;line-height:1.8;">
       <p><b>הנתונים לא מתעדכנים?</b><br>הנתונים מתעדכנים אוטומטית כל שעה. נסה לרענן את הדף.</p>
-      <p><b>איך נרשמים?</b><br>לחץ על "כניסה" בפינה העליונה ובחר "הרשמה".</p>
+      <p><b>איך נרשמים?</b><br>לחץ על "כניסה / הרשמה" בפינה העליונה, ובחלון שנפתח בחר בלשונית "הרשמה".</p>
       <p><b>מה אומרים המספרים בבאנר?</b><br>המספר הגדול הוא כל מרחב הסקי; הקטן בסוגריים הוא צ'רוויניה בלבד.</p>
       <p><b>מה זה חיבור לצ'רמט?</b><br>מעבר בין מרחב הסקי של צ'רוויניה לצ'רמט (שוויץ) דרך הקרחון. פתוח בתנאי מזג אוויר טובים בחורף.</p>
     </div>
@@ -1540,10 +1581,46 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <span class="close-btn" onclick="closeM('hotelModal')">×</span>
     <h3 style="margin:0 0 18px;font-size:1.15rem;">✈️ תכנון טיול לצ’רוויניה</h3>
 
+    <!-- The planner holds three things that have little to do with each other:
+         when to come, what to bring, and where to book. Stacked in one column
+         they ran to tens of thousands of words, so opening the middle one
+         buried the other two and closing it again meant scrolling back past
+         all of it. The planner now opens on a menu and shows one at a time,
+         with a bar that stays on screen to get back or step sideways. -->
+    <div id="plan-hub">
+      <button class="plan-card" onclick="planGo('when')">
+        <span class="plan-ico">📅</span>
+        <span class="plan-txt"><b>מתי לנסוע</b>
+          <small>עונות, שלג, חגים — ומתי יקר</small></span>
+        <span class="plan-arrow">‹</span>
+      </button>
+      <button class="plan-card" onclick="planGo('prep')">
+        <span class="plan-ico">🧳</span>
+        <span class="plan-txt"><b>הכנות לפני הנסיעה</b>
+          <small>ציוד, ביטוח, חשמל ושבת · רשימת אריזה</small></span>
+        <span class="plan-arrow">‹</span>
+      </button>
+      <button class="plan-card" onclick="planGo('search')">
+        <span class="plan-ico">🔍</span>
+        <span class="plan-txt"><b>חיפוש טיסה, רכב ולינה</b>
+          <small>תאריכים, נוסעים והשוואת מחירים</small></span>
+        <span class="plan-arrow">‹</span>
+      </button>
+    </div>
+
+    <div id="plan-bar">
+      <button class="plan-back" onclick="planGo('hub')">→ התפריט</button>
+      <span id="plan-bar-title"></span>
+      <span id="plan-bar-chips"></span>
+    </div>
+
+
     <!-- "מתי כדאי לנסוע" first: it is what you want to KNOW before you
          pick a date, not a footnote to a date already chosen. It is a
          closed <details>, so it costs one line until somebody opens it. -->
-    <div id="season-box"></div>
+    <section class="plan-pane" id="pane-when">
+      <div id="season-box"></div>
+    </section>
 
     <!-- ══ הכנות לפני הנסיעה ══
          Everything here happens at home, weeks before the flight, which is
@@ -1556,13 +1633,21 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          where the law ended and the shopping began. Five bands now: what the
          law requires, what to buy and where, the gear itself, Shabbat, and
          the list to pack from. -->
-    <details class="fold" id="prep-fold" style="margin:0 0 16px;background:#f5f9ff;border-color:#d8e6fb;">
+    <section class="plan-pane" id="pane-prep">
+    <details class="fold" id="prep-fold" open style="margin:0 0 16px;background:#f5f9ff;border-color:#d8e6fb;">
       <summary style="color:#0f3b66;font-weight:bold;">🧳 הכנות לפני הנסיעה — ציוד, ביטוח ושבת</summary>
       <div class="fold-body">
 
         <!-- ── 1. the law ─────────────────────────────────────────────── -->
         <div class="prep-group">⚖️ מה שחייבים לפי חוק</div>
 
+        <!-- Folded like its neighbours. It is the law, so it opens with a summary
+             that says so plainly rather than hiding behind a neutral label -
+             but a reader who already knows should not have to scroll a screen
+             of it to reach the rest. -->
+        <details class="fold" style="margin-bottom:10px;">
+          <summary style="color:#9a4a12;font-weight:bold;">🪖 קסדה וביטוח צד שלישי — מה החוק מחייב</summary>
+          <div class="fold-body" style="padding-top:2px;">
         <div id="gear-law" style="background:#fff4ec;border:1.5px solid #ffb98f;border-radius:11px;padding:4px 12px 12px;margin-bottom:10px;">
           <div style="background:white;border-radius:9px;padding:10px 12px;margin-top:10px;">
             <div style="font-weight:bold;font-size:0.9rem;color:#8a3b00;margin-bottom:3px;">🪖 קסדה — לכל הגילים</div>
@@ -1585,6 +1670,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             ושניהם נחוצים — ראו מיד למטה.
           </div>
         </div>
+          </div>
+        </details>
 
         <details class="fold" style="margin-bottom:10px;">
           <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-shield"/></svg>ביטוח ספורט חורף — ולמה "ספורט אתגרי" לא מספיק</summary>
@@ -1644,16 +1731,23 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         </div>
 
         <details class="fold" style="margin-bottom:10px;">
-          <summary>📍 שלוש דרכים לקנות — ומה ההבדל ביניהן</summary>
+          <summary>📍 ארבע דרכים לקנות — ומה ההבדל ביניהן</summary>
           <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
             <div class="prep-h">בארץ, לפני הנסיעה</div>
             המידה נמדדת בנחת, יש למי לחזור אם משהו לא מתאים, ונוחתים מצוידים —
-            אפשר לנסוע ישר לדירה בלי לחפש כלום. זו הדרך הרגועה, והיקרה מבין השלוש.
+            אפשר לנסוע ישר לדירה בלי לחפש כלום. זו הדרך הרגועה.
+            <br><b>דקטלון היא הזולה בארץ</b>, ויש בה הכל — לא רק שכבות ואביזרים אלא גם
+            מעילים ומכנסי סקי, בפער ניכר מחנויות הסקי המתמחות.
 
             <div class="prep-h">באיטליה, בדרך ממילאנו</div>
             על הכביש ממילאנו לעמק יש חנויות ספורט גדולות, <b>וזול שם משמעותית —
-            גם מהכפר וגם מהארץ</b>. זו הדרך המשתלמת ביותר לכפפות, גוגלס, ביגוד תרמי
-            וקרם הגנה.
+            גם מהכפר וגם מהארץ</b>. אותו מעיל בדיוק, בדקטלון:
+            <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin:7px 0;">
+              <tr style="background:#f3f6fa;"><th style="text-align:right;padding:4px 6px;">דגם</th><th style="text-align:right;padding:4px 6px;">בארץ</th><th style="text-align:right;padding:4px 6px;">באיטליה</th></tr>
+              <tr><td style="padding:4px 6px;border-top:1px solid #eee;">QUECHUA 500</td><td style="padding:4px 6px;border-top:1px solid #eee;">500 ₪</td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">100 €</span> ≈ 345 ₪</td></tr>
+              <tr><td style="padding:4px 6px;border-top:1px solid #eee;">WEDZE 500 AM</td><td style="padding:4px 6px;border-top:1px solid #eee;">660 ₪</td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">130 €</span> ≈ 450 ₪</td></tr>
+            </table>
+            זו גם הדרך המשתלמת ביותר לכפפות, גוגלס, ביגוד תרמי וקרם הגנה.
             <br><b>המחיר שמשלמים:</b> זמן ביום הנחיתה, ואי-ודאות — אי אפשר לדעת מראש
             מה יהיה במלאי ובאיזו מידה. לא לבנות על זה פריט שחובה שיהיה.
             <br>הרשימה והמיקומים — בסעיף
@@ -1667,6 +1761,25 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <br><b>אמזון</b> — יש שם גוגלס טובים של מותגים מוכרים, לרוב זול בהרבה מהארץ.
             שווה בהחלט. רק לוודא שכתובה קטגוריית העדשה (S1/S2/S3) ושהעדשה כפולה.
             <br><b>בכל מקרה</b>: להזמין מוקדם. חודש לפני הנסיעה, לא שבוע.
+
+            <!-- The fourth way, and the one people fall into rather than choose.
+                 The village shops are not expensive versions of Decathlon - they
+                 are a different shelf: Helly Hansen, Spyder, Dainese at list
+                 price in season. A cheap jacket is not sold there at all, which
+                 is the thing worth knowing before you land without one. -->
+            <div class="prep-h">בכפר, ברגע האחרון</div>
+            בצ'רוויניה יש חנויות ספורט, ואפשר לקנות בהן הכל — מעיל, מכנסיים, כפפות, גוגלס.
+            <br><b>אבל זה לא מדף אחר באותו מחיר, זו קטגוריה אחרת.</b> החנויות בכפר מחזיקות
+            מותגים גדולים (Helly Hansen, Spyder, Dainese) ומוכרות אותם בעונה
+            <b>במחיר המחירון המלא</b>. מעיל זול פשוט לא נמכר שם.
+            <br>להמחשה: מעיל <b>Helly Hansen Alpha</b> — מותג מהסוג שנמכר בחנויות בכפר —
+            עומד על <b><span dir="ltr">450 €</span></b> במחירון, כ-<b>1,550 ₪</b>.
+            מול 500–660 ₪ בדקטלון בארץ, ו-100–130 יורו לאותו מעיל דקטלון באיטליה.
+            <br><b>מתי בכל זאת:</b> כשמשהו נקרע, אבד או נשכח. זו רשת ביטחון, לא תוכנית.
+
+            <div style="font-size:0.72rem;color:#8795a4;margin-top:9px;">
+              המחירים נבדקו בנובמבר 2026. ההמרה לשקלים לפי כ-3.45 ₪ ליורו.
+            </div>
           </div>
         </details>
 
@@ -1704,7 +1817,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <b>הטעות הנפוצה:</b> לקנות את העדשה הכי כהה כי היא נראית מקצועית. ביום מעונן
             עם S3 פשוט לא רואים את השטח.
             <br><b>הפתרון המעשי</b> — אחד משניים: גוגלס עם <b>שתי עדשות מתחלפות</b>
-            (אחת S1–S2 לעננות, אחת S3 לשמש), או עדשה <b>פוטוכרומית</b> שמשנה כהות לפי האור.
+            (Interchangeable lens — אחת S1–S2 לעננות, אחת S3 לשמש), או עדשה <b>פוטוכרומית</b> (Photochromic) שמשנה כהות לפי האור.
             הפוטוכרומית יקרה יותר ומגיבה לאט יותר בקור, אבל אין מה להחליף באמצע היום.
 
             <div class="prep-h">עדשה כפולה — לא מותרות</div>
@@ -1714,8 +1827,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             האנטי-פוג, וניגוב אחד במגבת מוחק אותו לתמיד. מנערים, ומייבשים באוויר.
 
             <div class="prep-h">צורה, גוון ו-UV</div>
-            עדשה <b>כדורית</b> (מעוגלת בשני הצירים) נותנת שדה ראייה צדי רחב יותר ופחות
-            ערפול מ<b>גלילית</b> (מעוגלת לרוחב בלבד), ועולה יותר.
+            עדשה <b>כדורית</b> (Spherical) (מעוגלת בשני הצירים) נותנת שדה ראייה צדי רחב יותר ופחות
+            ערפול מ<b>גלילית</b> (Cylindrical) (מעוגלת לרוחב בלבד), ועולה יותר.
             <br>גוון <b>ענבר, ורוד או חום</b> מגביר ניגודיות ומחדד את קווי השטח באור שטוח.
             <b>אפור</b> שומר על צבעים טבעיים, לשמש חזקה.
             <br><b>UV:</b> כהות אינה הגנה. כל גוגלס ראוי מסנן 100% UV בכל הקטגוריות.
@@ -1731,10 +1844,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-jacket"/></svg>מעיל ומכנסי סקי</summary>
           <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
             <div class="prep-h">שני המספרים שעל התווית</div>
-            <b>עמידות למים</b>, במילימטרים — גובה עמוד המים שהבד עוצר לפני שהוא מרטיב.
+            <b>עמידות למים</b> (Waterproof), במילימטרים — גובה עמוד המים שהבד עוצר לפני שהוא מרטיב.
             5,000 מ"מ לשלג קל · <b>10,000–15,000 מ"מ — הטווח הנכון לסקי באתר</b> ·
             20,000 ומעלה לשלג רטוב ולישיבה על השלג.
-            <br><b>נשימות</b>, בגרמים למ"ר ל-24 שעות — כמה אדים הבד מוציא החוצה.
+            <br><b>נשימות</b> (Breathability), בגרמים למ"ר ל-24 שעות — כמה אדים הבד מוציא החוצה.
             5,000 למי שגולש לאט · <b>10,000–15,000 לסקי רגיל</b> · 20,000 ומעלה למי שמזיע הרבה.
             <br>מעיל אטום עם נשימות נמוכה מרטיב אתכם מבפנים במקום מבחוץ, ואת זה אי אפשר
             לתקן בשכבה נוספת.
@@ -1753,7 +1866,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             </figure>
 
             <div class="prep-h">מעיל מבודד או שֶׁל (Shell)</div>
-            <b>מבודד</b> — הבידוד תפור בתוך המעיל. חם מיד, פשוט, ולא דורש לחשוב על שכבות.
+            <b>מבודד</b> (Insulated) — הבידוד תפור בתוך המעיל. חם מיד, פשוט, ולא דורש לחשוב על שכבות.
             החיסרון: החום שלו קבוע. ביום אביבי של 5 מעלות מעל האפס הוא חם מדי, ואין מה
             לעשות בזה חוץ מלפתוח רוכסן.
             <br><b>של</b> — מעטפת אטומה לרוח ולמים, בלי בידוד. כל החום מגיע ממה שלובשים
@@ -1762,14 +1875,14 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <br><b>במילים אחרות:</b> מבודד הוא מעיל ליום קר. של הוא מעיל לכל החורף, במחיר
             של קצת חשיבה בבוקר. מי שנוסע פעם אחת — מבודד פשוט יותר. מי שמתכוון לחזור —
             של ישרת אותו שנים ובתנאים שונים.
-            <br>בידוד סינתטי של 60–80 גרם בגוף המעיל מספיק לאתר סקי. <b>פלומה</b> חמה יותר
+            <br>בידוד סינתטי של 60–80 גרם בגוף המעיל מספיק לאתר סקי. <b>פלומה</b> (Down) חמה יותר
             ביחס למשקל אבל מאבדת את ערכה כשהיא נרטבת.
 
             <div class="prep-h">הפרטים שמשנים ביום אמיתי</div>
-            • <b>חצאית שלג</b> — שרוול אלסטי בתחתית המעיל שנצמד למותניים. אחרי נפילה
+            • <b>חצאית שלג</b> (Powder skirt) — שרוול אלסטי בתחתית המעיל שנצמד למותניים. אחרי נפילה
             ראשונה מבינים למה.<br>
-            • <b>פתחי אוורור בבתי השחי</b> — ויסות חום בלי להוריד את המעיל.<br>
-            • <b>תפרים מודבקים</b> — "מודבק במלואו" עדיף על "בתפרים קריטיים".<br>
+            • <b>פתחי אוורור בבתי השחי</b> (Pit zips) — ויסות חום בלי להוריד את המעיל.<br>
+            • <b>תפרים מודבקים</b> (Taped seams) — "מודבק במלואו" עדיף על "בתפרים קריטיים".<br>
             • <b>ציפוי DWR</b> חיצוני דוחה מים, נשחק בכביסות ומתחדש בתרסיס ייעודי.<br>
             • <b>כיס לסקי פס.</b> ברוב המעילים היום זהו כיס אנכי צר בגובה החזה, והפס נשאר
             בו כל היום — השער קורא אותו דרך הבד. בדגמים אחרים הכיס נמצא בשרוול, לפעמים עם
@@ -1780,10 +1893,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <br><b>סלופט</b> (Bib) — מכנס עם כתפיות עד החזה. שלג לא נכנס למותניים גם בנפילה.
             עדיף למתחילים ולילדים, שנופלים הרבה.
             <br><b>רגיל</b> — נוח יותר, ודורש מעיל שמכסה אותו.
-            <br>חפשו <b>חיזוק בקרסול</b>: רצועת בד קשיחה בתחתית הרגל. <b>הקנט</b> הוא
+            <br>חפשו <b>חיזוק בקרסול</b>: רצועת בד קשיחה בתחתית הרגל. <b>הקנט</b> (Edge) הוא
             פס המתכת החד שלאורך שולי המגלש, וברגל אחת הוא עובר ממש ליד השנייה — בלי
             החיזוק הזה הוא חותך את המכנס תוך ימים.
-            <br>וכן <b>שרוול פנימי</b> עם גומי שיושב מעל המגף ומונע כניסת שלג, ופתחי אוורור בירך.
+            <br>וכן <b>שרוול פנימי</b> (Inner gaiter) עם גומי שיושב מעל המגף ומונע כניסת שלג, ופתחי אוורור בירך.
           </div>
         </details>
 
@@ -1791,20 +1904,20 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-socks"/></svg>שכבות: ביגוד תרמי וגרביים</summary>
           <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
             <div class="prep-h">כמה שכבות באמת צריך</div>
-            <b>שכבת בסיס</b> (תרמי) נצמדת לגוף ומנדפת זיעה — תמיד.
-            <b>שכבה חיצונית</b> עוצרת רוח ומים — תמיד.
-            <b>שכבה אמצעית</b> מחזיקה חום — <b>לא תמיד</b>.
+            <b>שכבת בסיס</b> (Base layer) (תרמי) נצמדת לגוף ומנדפת זיעה — תמיד.
+            <b>שכבה חיצונית</b> (Outer layer) עוצרת רוח ומים — תמיד.
+            <b>שכבה אמצעית</b> (Mid layer) מחזיקה חום — <b>לא תמיד</b>.
             <br>תרמי מתחת למעיל טוב הוא הרכב נכון לחלוטין ליום רגיל באתר, ולמי שלא קופא בקלות.
             השכבה האמצעית היא מה שמוסיפים כשקר במיוחד, כשיש רוח, או כשיושבים הרבה ברכבלים
-            פתוחים. היא יכולה להיות <b>פליז דק</b>, <b>חולצת מיקרו-פליז</b> או <b>אפודת פלומה
-            קלה</b> — ואפשר לשאת אותה בתיק ולהוסיף רק אם צריך.
+            פתוחים. היא יכולה להיות <b>פליז דק</b>, <b>חולצת מיקרו-פליז</b> (Micro-fleece) או <b>אפודת פלומה
+            קלה</b> (Down vest) — ואפשר לשאת אותה בתיק ולהוסיף רק אם צריך.
             <br><b>ואם המעיל מבודד</b>, השכבה האמצעית כבר בתוכו ואין טעם להוסיף עוד אחת.
             <br>הטעות הנפוצה היא להוסיף עוד שכבה עבה במקום להחליף שכבה נכונה.
             <br><b>כותנה אסורה בכל השכבות.</b> היא סופגת זיעה, נשארת רטובה ומקררת את הגוף.
             זו הסיבה מספר אחת לכך שאנשים קופאים על המסלול.
 
             <div class="prep-h">מרינו או סינתטי</div>
-            <b>צמר מרינו</b> — מחמם גם כשהוא לח, כמעט לא קולט ריח (אפשר ללבוש כמה ימים),
+            <b>צמר מרינו</b> (Merino) — מחמם גם כשהוא לח, כמעט לא קולט ריח (אפשר ללבוש כמה ימים),
             מתייבש לאט, יקר ועדין יותר.
             <br><b>סינתטי</b> (פוליאסטר) — מנדף ומתייבש מהר, עמיד, זול. קולט ריח.
 
@@ -1825,32 +1938,37 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             שנועד לרגל, מקטינה שליטה ומקררת.
             <br><b>הרבה גרביים נמכרות כ"גרבי סקי" ואינן כאלה.</b> כך בודקים לפני שקונים:
 
-            <!-- The leg and boot were traced from a drawing; the three lines are placed
-                 by measurement, not by eye. The drawing's own sole and knee are 46 cm
-                 apart, which fixes the scale at 14 px per cm, and on that scale its
-                 boot stands 34.9 cm - a real ski boot. So the heights can be trusted.
-                 The sentence that explains them is ordinary text below rather than more
-                 labels inside, so it scales with the page and reads as prose. -->
+            <!-- The leg and boot were traced from a drawing; the lines are placed by
+                 measurement, not by eye, and the measurement is taken off the BACK of
+                 the leg. The figure faces left, so the calf is the right-hand edge -
+                 reading the left edge put the knee mark two thirds of the way down the
+                 shin. Anchoring on the sole and the hollow behind the knee (46 cm)
+                 gives 17.46 px per cm, and on that scale the drawing's own calf belly
+                 lands at 32.4 cm above the floor, which is where a real one sits. That
+                 cross-check is what says the scale is right. The sentence explaining
+                 the lines is ordinary text below rather than more labels inside, so it
+                 scales with the page and reads as prose. -->
             <figure class="sock-fig-box">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="205 150 740 838" class="sock-fig" role="img" aria-label="ציור של רגל בתוך מגף סקי: קו ירוק של ארבעים עד ארבעים וחמישה סנטימטר ממש מתחת לברך, וקו אדום של שלושים סנטימטר בתוך המגף">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="170 108 880 862" class="sock-fig" role="img" aria-label="ציור של רגל בתוך מגף סקי. גרב של ארבעים עד ארבעים וחמישה סנטימטר עוברת את בליטת שריר השוק ונגמרת ממש מתחת לברך; גרב של שלושים סנטימטר נגמרת על הבליטה עצמה">
 <g opacity=".93"><g><path fill="#c5d3dc" fill-rule="evenodd" d="M784.2 467.3 L778.3 465.3 L615.2 466.3 L610.8 461.9 L611.8 458.0 L607.9 450.2 L608.9 441.4 L606.9 439.5 L607.9 435.5 L606.0 433.6 L606.9 428.7 L605.0 427.7 L606.0 422.9 L604.0 421.9 L605.0 417.0 L602.1 414.1 L603.0 404.3 L601.1 403.3 L602.1 397.5 L600.1 396.5 L601.1 391.6 L599.1 390.6 L600.1 383.8 L598.1 382.8 L599.1 377.9 L597.2 377.0 L598.1 370.1 L596.2 369.1 L597.2 363.3 L595.2 361.3 L597.2 356.4 L594.2 353.5 L596.2 347.7 L593.3 344.7 L595.2 338.9 L592.3 335.9 L594.2 330.1 L591.3 327.1 L593.3 321.3 L590.3 318.4 L591.3 312.5 L589.4 311.5 L590.3 306.6 L588.4 304.7 L589.4 297.9 L585.4 293.9 L585.4 284.2 L580.6 278.3 L581.5 268.6 L579.6 262.7 L573.7 257.8 L573.7 250.0 L563.0 229.5 L560.1 217.8 L555.2 211.9 L555.2 199.2 L552.2 197.3 L552.2 185.5 L549.3 183.6 L550.3 178.7 L548.3 177.7 L549.3 171.9 L547.4 169.9 L547.4 167.0 L549.3 165.0 L549.3 160.2 L546.4 155.3 L549.3 152.3 L549.3 140.6 L552.2 138.7 L551.3 129.9 L556.2 115.2 L556.2 107.4 L559.1 102.5 L557.1 100.6 L558.1 93.8 L556.2 92.8 L557.1 87.9 L554.2 81.1 L555.2 75.2 L553.2 74.2 L554.2 67.4 L552.2 66.4 L554.2 60.5 L551.3 58.6 L551.3 55.7 L553.2 53.7 L553.2 51.8 L550.3 49.8 L552.2 43.9 L549.3 41.0 L551.3 33.2 L547.4 30.3 L550.3 22.5 L546.4 18.6 L549.3 13.7 L549.3 9.8 L545.4 4.9 L546.9 1.5 L550.8 -0.5 L568.4 -0.5 L571.3 1.5 L605.5 1.5 L608.4 -0.5 L622.1 -0.5 L625.0 1.5 L760.7 1.5 L763.7 -0.5 L785.6 0.0 L782.7 4.9 L782.7 20.5 L779.8 23.4 L780.8 28.3 L778.8 38.1 L775.9 40.0 L774.9 43.9 L774.9 57.6 L772.0 59.6 L772.9 68.4 L771.0 74.2 L768.1 77.1 L768.1 87.9 L763.2 93.8 L764.2 100.6 L761.2 102.5 L762.2 107.4 L758.3 111.3 L759.3 117.2 L756.3 119.1 L757.3 127.0 L750.5 146.5 L749.5 155.3 L747.6 156.2 L748.5 163.1 L745.6 165.0 L748.5 173.8 L744.6 178.7 L745.6 182.6 L748.5 185.5 L748.5 189.5 L745.6 192.4 L745.6 195.3 L748.5 197.3 L747.6 203.1 L749.5 204.1 L750.5 210.0 L749.5 217.8 L753.4 221.7 L757.3 231.4 L755.4 235.4 L756.3 239.3 L762.2 245.1 L760.3 249.0 L764.2 252.9 L763.2 256.8 L769.0 263.7 L772.0 272.5 L770.0 276.4 L771.0 280.3 L775.9 285.2 L778.8 293.0 L777.8 301.8 L780.8 303.7 L780.8 314.5 L785.6 321.3 L789.6 342.8 L788.6 347.7 L790.5 348.6 L789.6 353.5 L791.5 354.5 L790.5 360.4 L792.5 364.3 L790.5 368.2 L793.5 370.1 L791.5 378.9 L795.4 382.8 L792.5 387.7 L792.5 418.0 L795.4 420.9 L795.4 423.8 L791.5 427.7 L791.5 431.6 L794.4 436.5 L790.5 439.5 L792.5 443.4 L792.5 446.3 L790.5 448.2 L791.5 454.1 L789.6 455.1 L790.5 460.9 L784.2 467.3Z"/><path fill="#8ba0b2" fill-rule="evenodd" d="M621.1 503.4 L617.7 502.0 L616.7 498.0 L603.0 418.9 L587.4 298.8 L577.6 264.6 L561.0 230.5 L556.2 215.8 L548.3 180.7 L547.4 149.4 L556.2 113.3 L557.1 97.7 L549.3 44.9 L546.4 0.0 L784.2 -0.5 L781.7 25.4 L774.9 59.6 L749.5 153.3 L747.6 168.0 L747.6 192.4 L754.4 226.6 L780.8 301.8 L791.5 351.6 L794.4 377.0 L795.4 414.1 L792.5 450.2 L789.6 464.8 L790.5 465.8 L789.1 467.3 L786.6 466.8 L785.6 463.9 L791.5 419.9 L791.5 387.7 L787.6 351.6 L776.9 302.7 L747.6 216.8 L743.7 189.5 L745.6 152.3 L769.0 67.4 L780.8 3.9 L779.3 2.4 L552.7 2.4 L550.3 3.9 L554.2 54.7 L561.0 97.7 L560.1 114.3 L551.3 149.4 L551.3 173.8 L561.0 217.8 L579.6 257.8 L591.3 297.9 L603.0 393.6 L618.7 487.3 L621.6 497.1 L621.1 503.4ZM782.2 556.2 L777.8 555.7 L778.8 548.8 L787.6 532.2 L793.9 524.9 L799.3 521.5 L799.3 487.3 L800.8 485.8 L802.2 487.3 L802.2 518.6 L805.2 521.5 L806.2 532.2 L809.1 535.2 L809.1 540.0 L806.2 543.0 L807.1 551.8 L804.7 554.2 L782.2 556.2ZM586.9 938.0 L582.0 935.1 L471.7 935.1 L448.2 932.1 L432.6 927.2 L427.7 930.2 L426.3 928.7 L426.3 923.8 L429.2 920.9 L429.2 916.0 L427.2 914.1 L427.2 910.2 L428.7 908.7 L434.6 908.7 L439.9 902.3 L437.0 896.5 L439.0 894.5 L439.0 890.6 L437.0 888.7 L438.0 877.0 L436.0 874.0 L440.9 861.3 L443.4 858.9 L446.3 858.9 L455.1 848.1 L458.0 848.1 L460.9 845.2 L464.8 844.2 L466.8 841.3 L483.4 834.5 L488.3 835.4 L493.2 841.3 L498.0 844.2 L506.8 843.3 L509.3 839.8 L502.4 822.3 L509.8 815.9 L521.5 826.7 L525.4 827.6 L530.3 825.7 L532.7 828.1 L524.9 835.0 L524.9 839.8 L536.6 871.1 L542.0 877.4 L558.6 881.3 L570.3 881.3 L574.2 879.4 L579.6 873.0 L579.6 864.3 L574.7 854.5 L557.1 823.2 L552.7 820.8 L544.9 823.7 L543.5 819.3 L549.3 813.5 L546.9 797.4 L572.3 784.7 L579.1 784.7 L584.0 779.8 L589.8 781.7 L597.2 793.0 L608.4 801.3 L615.2 799.3 L619.6 800.8 L619.6 805.7 L615.2 808.1 L613.8 811.5 L633.3 851.6 L637.7 856.9 L647.5 860.8 L668.9 860.8 L672.9 858.9 L679.2 849.6 L677.2 839.8 L642.6 793.5 L638.7 793.5 L632.8 797.4 L628.4 792.0 L634.3 784.2 L629.4 771.5 L621.6 762.7 L621.6 758.8 L625.0 757.3 L628.4 753.9 L629.4 750.0 L635.3 745.1 L634.3 738.3 L629.4 733.4 L631.3 728.5 L632.8 727.1 L641.6 728.0 L644.0 735.4 L648.4 737.8 L704.1 739.7 L710.9 735.8 L718.8 734.9 L721.2 731.4 L721.2 727.5 L722.7 726.1 L727.5 726.1 L730.0 735.4 L733.4 737.8 L784.2 740.7 L789.1 738.8 L795.4 732.4 L804.2 718.8 L807.1 710.0 L804.2 703.1 L796.9 697.8 L733.4 701.7 L730.0 704.1 L727.5 713.4 L722.7 713.4 L719.7 705.6 L711.9 704.6 L705.1 700.7 L646.5 700.7 L641.6 706.5 L631.8 705.6 L627.4 704.1 L627.4 696.3 L634.3 691.4 L635.3 687.5 L623.5 678.7 L622.6 668.9 L625.0 666.5 L630.9 666.5 L632.3 670.9 L635.7 674.3 L687.5 669.4 L692.4 668.5 L701.2 662.6 L705.1 662.6 L708.5 659.2 L707.5 654.3 L710.0 651.9 L714.8 651.9 L717.3 659.2 L720.7 661.6 L769.5 657.7 L776.4 654.8 L781.7 648.4 L788.6 633.8 L790.5 625.0 L788.6 620.1 L783.2 614.7 L775.4 612.8 L717.8 626.5 L712.4 630.9 L713.4 637.7 L709.0 640.1 L705.6 638.7 L703.6 632.8 L701.2 631.3 L693.4 632.3 L688.5 629.4 L684.6 629.4 L630.9 638.2 L627.4 641.6 L626.0 646.0 L622.1 646.0 L617.7 643.6 L618.7 638.7 L616.7 636.7 L617.7 632.8 L614.7 628.9 L614.7 622.1 L618.2 617.7 L624.0 616.7 L756.8 606.9 L791.0 603.0 L812.5 603.0 L812.0 608.4 L814.9 611.3 L813.0 615.2 L814.9 618.2 L814.0 623.0 L817.9 631.8 L816.9 635.7 L818.8 637.7 L817.9 641.6 L819.8 643.6 L818.8 647.5 L820.8 649.4 L819.8 653.3 L826.7 688.5 L828.6 691.4 L830.6 706.1 L833.5 711.9 L843.3 752.9 L845.2 755.9 L843.3 759.8 L845.2 768.6 L842.3 773.4 L842.3 779.3 L845.2 782.2 L843.3 788.1 L845.2 790.0 L846.2 798.8 L851.1 810.5 L854.0 831.1 L856.0 833.0 L855.0 837.9 L856.9 839.8 L854.0 851.6 L856.0 855.5 L856.0 858.4 L854.0 860.4 L856.0 865.2 L854.0 867.2 L855.0 871.1 L849.1 890.6 L850.6 893.1 L856.4 894.0 L860.8 897.5 L861.8 905.3 L858.9 908.2 L860.8 913.1 L857.9 916.0 L859.9 919.9 L857.4 922.4 L853.5 922.4 L829.1 933.1 L702.1 933.1 L680.7 932.1 L678.7 929.2 L672.9 929.2 L668.0 926.3 L663.1 926.3 L657.2 929.2 L649.4 928.2 L645.5 931.2 L643.6 929.2 L640.6 929.2 L637.7 932.1 L631.8 930.2 L628.9 933.1 L624.0 931.2 L620.1 934.1 L618.2 932.1 L615.2 932.1 L611.3 935.1 L609.4 933.1 L606.4 933.1 L602.5 936.0 L600.6 934.1 L597.7 934.1 L595.7 936.0 L589.8 935.1 L586.9 938.0ZM662.1 663.6 L651.9 663.1 L648.9 648.4 L649.9 644.5 L652.3 643.1 L679.7 640.1 L682.1 642.6 L684.1 658.2 L681.6 660.6 L662.1 663.6ZM695.3 730.0 L662.1 730.0 L660.6 728.5 L660.6 710.9 L662.1 709.5 L694.3 709.5 L696.8 711.9 L696.8 728.5 L695.3 730.0ZM762.2 812.5 L769.5 810.1 L775.9 803.7 L777.8 798.8 L777.8 791.0 L775.9 786.1 L769.5 779.8 L759.8 776.9 L752.9 778.8 L745.6 785.2 L742.7 792.0 L742.7 797.9 L745.6 804.7 L750.0 809.1 L755.9 812.0 L762.2 812.5Z"/><path fill="#556b7b" fill-rule="evenodd" d="M821.3 950.7 L698.2 947.8 L690.4 945.8 L679.7 932.1 L672.9 929.2 L656.2 929.2 L585.9 937.0 L581.1 939.0 L573.2 947.8 L566.4 949.7 L544.9 950.7 L465.8 949.7 L437.5 942.9 L430.7 939.9 L427.2 935.5 L426.3 913.1 L430.7 907.7 L438.0 905.3 L436.0 886.7 L437.0 870.1 L442.9 858.4 L449.2 852.1 L482.4 832.5 L492.2 822.8 L506.8 815.9 L508.3 814.5 L508.3 808.6 L511.7 805.2 L516.6 804.2 L523.4 808.1 L532.2 804.2 L534.7 801.8 L535.6 795.9 L540.0 793.5 L550.8 796.4 L582.0 780.8 L583.5 779.3 L583.5 772.5 L586.9 769.0 L591.8 768.1 L595.7 772.0 L601.6 770.0 L607.9 765.6 L606.9 758.8 L609.4 755.4 L616.2 754.4 L622.1 757.3 L629.4 750.0 L634.3 742.2 L634.3 739.3 L630.4 735.4 L629.4 729.5 L622.6 722.7 L622.6 706.1 L625.5 703.1 L626.5 696.3 L631.3 690.4 L632.3 686.5 L630.9 684.1 L624.5 680.7 L622.6 670.9 L616.2 667.5 L613.8 664.1 L611.8 647.5 L616.7 643.6 L614.7 624.0 L612.3 619.6 L607.4 619.6 L604.0 617.2 L602.1 607.4 L600.1 573.2 L603.5 568.8 L607.9 567.4 L607.9 563.5 L600.1 533.2 L599.1 510.7 L605.5 502.4 L621.1 501.5 L635.7 506.3 L656.2 518.1 L674.8 536.6 L677.7 537.6 L701.2 529.8 L717.8 520.0 L736.8 502.0 L748.0 487.8 L766.6 471.2 L776.4 466.3 L789.1 465.3 L793.9 467.3 L800.3 474.6 L801.3 518.6 L808.1 524.4 L809.1 550.8 L814.0 558.6 L815.9 585.0 L815.9 599.6 L814.0 602.5 L814.0 611.3 L816.9 631.8 L831.5 707.0 L845.2 756.8 L844.2 783.2 L856.9 841.8 L856.0 864.3 L850.1 891.6 L858.4 895.0 L861.8 899.4 L856.9 936.5 L852.5 940.9 L841.8 946.8 L821.3 950.7ZM792.5 552.7 L802.7 552.2 L804.2 550.8 L804.2 528.3 L801.8 524.9 L795.9 526.9 L792.5 530.3 L781.7 548.8 L782.2 553.2 L792.5 552.7ZM765.1 825.2 L772.5 822.8 L781.2 816.9 L806.6 797.4 L831.1 776.9 L839.4 768.6 L841.3 763.7 L822.8 688.5 L809.1 605.5 L793.0 605.0 L620.1 619.6 L618.7 624.0 L621.6 640.6 L624.0 643.1 L628.9 636.2 L682.6 627.4 L690.4 627.4 L695.3 630.4 L703.1 629.4 L705.6 630.9 L707.0 635.3 L710.0 636.2 L711.4 627.0 L715.8 624.5 L773.4 610.8 L783.2 611.8 L790.5 618.2 L792.5 623.0 L790.5 635.7 L781.7 653.3 L778.3 656.7 L771.5 659.7 L718.8 663.6 L715.3 661.1 L714.4 655.3 L710.9 654.8 L710.4 661.1 L707.0 664.6 L703.1 664.6 L696.3 669.4 L689.5 671.4 L633.8 676.3 L630.4 672.9 L629.9 669.4 L626.5 670.9 L628.4 676.8 L634.8 680.2 L637.2 684.6 L637.2 691.4 L631.3 697.3 L631.3 701.2 L633.8 703.6 L640.6 703.6 L644.5 698.7 L707.0 698.7 L713.9 702.6 L721.7 703.6 L723.1 710.0 L726.6 710.4 L727.1 704.1 L731.4 699.7 L756.8 698.7 L779.3 695.8 L798.8 695.8 L806.2 701.2 L809.1 708.0 L808.1 716.8 L797.4 734.4 L791.0 740.7 L786.1 742.7 L731.4 739.7 L727.1 735.4 L726.6 729.0 L723.1 729.5 L723.1 733.4 L720.7 736.8 L712.9 737.8 L706.1 741.7 L667.0 739.7 L658.2 739.7 L656.7 741.2 L679.7 754.4 L698.2 769.0 L741.2 819.8 L753.9 825.7 L765.1 825.2ZM660.6 661.1 L679.7 658.7 L681.2 657.2 L680.2 644.5 L676.8 642.1 L654.3 645.0 L651.9 647.5 L652.8 658.2 L655.3 661.6 L660.6 661.1ZM693.8 727.5 L694.8 713.9 L692.4 711.4 L665.0 711.4 L663.6 712.9 L663.6 726.6 L665.0 728.0 L693.8 727.5ZM641.1 734.4 L639.6 730.0 L634.3 731.4 L637.7 734.9 L641.1 734.4ZM588.4 932.6 L661.1 924.3 L676.8 925.3 L685.5 930.2 L827.1 931.2 L852.5 920.4 L856.0 916.0 L856.9 901.4 L852.5 897.9 L846.7 897.0 L845.2 894.5 L852.1 860.4 L852.1 836.9 L841.3 793.9 L840.3 778.3 L838.9 776.9 L836.9 777.8 L811.5 800.3 L779.3 824.7 L764.6 830.6 L754.9 830.6 L746.1 828.6 L736.3 822.8 L729.0 815.4 L705.6 784.2 L686.5 766.1 L663.1 750.5 L642.6 741.7 L625.5 760.7 L626.5 764.6 L631.3 769.5 L633.3 777.3 L637.2 784.2 L633.3 792.0 L642.6 790.5 L647.0 793.9 L679.2 837.9 L681.2 842.8 L681.2 851.6 L674.8 860.8 L670.9 862.8 L645.5 862.8 L635.7 858.9 L631.3 853.5 L611.8 813.5 L611.8 808.6 L615.7 803.7 L606.4 803.2 L597.2 796.9 L587.9 784.7 L584.0 784.7 L550.3 802.7 L550.3 809.6 L552.2 812.5 L551.3 818.4 L555.7 818.8 L559.1 821.3 L581.5 862.3 L581.5 875.0 L576.2 881.3 L572.3 883.3 L556.6 883.3 L540.0 879.4 L534.7 873.0 L522.0 838.9 L523.9 830.1 L519.5 828.6 L510.7 820.8 L507.8 820.8 L505.4 824.2 L511.2 837.9 L511.2 842.8 L508.8 845.2 L496.1 846.2 L491.2 843.3 L486.3 837.4 L483.4 837.4 L454.1 855.0 L444.8 864.3 L441.9 870.1 L440.9 891.6 L442.9 908.2 L440.4 910.6 L432.6 912.6 L431.2 915.0 L431.2 922.9 L435.5 926.3 L450.2 930.2 L473.6 933.1 L588.4 932.6ZM606.9 780.3 L615.7 773.4 L613.3 770.0 L610.4 770.0 L600.1 776.4 L602.5 780.8 L606.9 780.3ZM763.7 814.9 L751.0 813.0 L743.7 806.6 L740.7 799.8 L740.7 790.0 L743.7 783.2 L751.0 776.9 L757.8 774.9 L763.7 774.9 L771.5 777.8 L777.8 784.2 L779.8 789.1 L779.8 800.8 L777.8 805.7 L771.5 812.0 L763.7 814.9Z"/><path fill="#acc0cf" fill-rule="evenodd" d="M677.7 539.6 L674.8 539.6 L667.0 529.8 L649.4 516.1 L635.7 508.3 L622.1 504.4 L619.6 502.0 L615.7 493.2 L615.7 484.4 L613.8 482.4 L614.7 478.5 L612.8 476.6 L613.8 472.7 L610.8 465.8 L612.3 463.4 L778.3 464.4 L779.8 465.8 L778.3 468.3 L760.7 478.0 L735.8 504.9 L735.8 506.8 L721.7 520.0 L702.1 531.7 L677.7 539.6Z"/></g></g>
 <g fill="none" stroke-linecap="round">
- <path d="M300 320H592" stroke="#90a4b7" stroke-width="4" stroke-dasharray="9 9"/>
- <path d="M278 375H598" stroke="#0d7a42" stroke-width="8"/>
- <path d="M278 539H808" stroke="#fff" stroke-width="16"/>
- <path d="M278 539H808" stroke="#b03024" stroke-width="7" stroke-dasharray="15 10"/>
- <path d="M852 375h40M852 949h40M872 375V949" stroke="#0d7a42" stroke-width="4"/>
+ <path d="M300 165H548" stroke="#90a4b7" stroke-width="4" stroke-dasharray="9 9"/>
+ <path d="M250 233H563" stroke="#0d7a42" stroke-width="8"/>
+ <path d="M250 438H793" stroke="#fff" stroke-width="16"/>
+ <path d="M250 438H793" stroke="#b03024" stroke-width="7" stroke-dasharray="15 10"/>
+ <path d="M795 396h54" stroke="#5c7a99" stroke-width="4"/>
 </g>
 <g font-family="system-ui,'Segoe UI',Arial" text-anchor="start" xml:lang="he">
- <text id="t1" x="588" y="306" font-size="38" fill="#6b7f93">הברך</text>
- <text id="t2" x="588" y="425" font-size="56" font-weight="800" fill="#0d7a42">40&#8211;45 ס&quot;מ &#10004;</text>
- <text id="t3" x="588" y="517" font-size="56" font-weight="800" fill="#b03024">30 ס&quot;מ &#10008;</text>
- <text transform="translate(916,662) rotate(90)" text-anchor="middle" font-size="38" font-weight="700" fill="#0d7a42">40&#8211;45 ס&quot;מ</text>
+ <text x="540" y="149" font-size="40" fill="#6b7f93">הברך</text>
+ <text x="540" y="287" font-size="56" font-weight="800" fill="#0d7a42">40&#8211;45 ס&quot;מ &#10004;</text>
+ <text x="540" y="412" font-size="56" font-weight="800" fill="#b03024">30 ס&quot;מ &#10008;</text>
+ <text x="1046" y="409" font-size="38" font-weight="600" fill="#4a687f">בליטת השוק</text>
 </g>
 </svg>
               <figcaption>המספר שמופיע בתיאור הגרב הוא גובה השוק. <b>40&#8211;45 ס"מ</b>
-                מגיעה ממש מתחת לברך &#8211; זה מה שצריך. <b>30 ס"מ</b> נבלעת בתוך המגף,
-                ושפת המגף לוחצת ישר על העור.</figcaption>
+                עוברת את בליטת שריר השוק ונגמרת ממש מתחת לברך &#8211; שם היא נתפסת ולא
+                מחליקה. <b>30 ס"מ</b> נגמרת על הבליטה עצמה, מחליקה מטה לתוך המגף, ושפת
+                המגף לוחצת על העור.</figcaption>
             </figure>
             <figure class="sock-fig-box">
               <img src="./img/boot-sock.jpg" alt="צילום של רגל בגרב סקי כחולה בתוך מגף סקי, הגרב עולה הרבה מעל שפת המגף"
@@ -1862,7 +1980,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             מחפשים <b>Over the Calf</b> או <b>OTC</b>, ובמידת מבוגר <b>40–45 ס"מ</b>.
             <b>Crew</b> (כ-20 ס"מ) ו<b>Mid-calf</b> (כ-30) קצרות מדי — וזה המצב של חלק
             גדול מ"גרבי הסקי" בשוק. גרב שנעצרת באמצע השוק מחליקה מטה ונערמת בתוך המגף.<br>
-            • <b>ריפוד מעוצב</b> — ריפוד דק ומוגבה דווקא בעצם השוק ובגב הקרסול, לא ריפוד
+            • <b>ריפוד מעוצב</b> (Targeted padding) — ריפוד דק ומוגבה דווקא בעצם השוק ובגב הקרסול, לא ריפוד
             אחיד לכל אורך הגרב. גרב סקי אמיתית נראית שונה בחלקים שונים שלה.<br>
             • <b>בלי תפר על האצבעות</b>, או תפר שטוח.<br>
             • <b>דקה עד בינונית</b>. "גרב סקי עבה ומפנקת" היא סימן שזו לא גרב סקי.<br>
@@ -1874,10 +1992,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-gloves"/></svg>כפפות, צוואר והדברים הקטנים</summary>
           <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
             <div class="prep-h">כפפות או כסיות</div>
-            <b>כסיות</b> (בלי הפרדה בין האצבעות) חמות יותר — האצבעות מחממות זו את זו.
+            <b>כסיות</b> (Mittens) (בלי הפרדה בין האצבעות) חמות יותר — האצבעות מחממות זו את זו.
             המחיר: פחות שליטה בסגרים ובמקל.
-            <b>כפפות</b> נוחות יותר, קרות יותר. <b>שלוש אצבעות</b> הן פשרה טובה למי שידיו קרות.
-            <br>חפשו ממברנה אטומה בפנים, <b>רצועת פרק כף יד</b> (כפפה שנפלה מהרכבל נעלמה),
+            <b>כפפות</b> נוחות יותר, קרות יותר. <b>שלוש אצבעות</b> (3-finger / Lobster) הן פשרה טובה למי שידיו קרות.
+            <br>חפשו ממברנה אטומה בפנים, <b>רצועת פרק כף יד</b> (Wrist leash) (כפפה שנפלה מהרכבל נעלמה),
             ושרוול ארוך שעולה מעל שרוול המעיל או נכנס תחתיו.
             <br>בטנה נשלפת מאפשרת לייבש בלילה. כפפה רטובה בבוקר היא יום קר.
 
@@ -1893,13 +2011,13 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <div class="prep-h">דברים שעולים מעט ומצילים את היום</div>
             • <b>קרם הגנה SPF 50</b> ו<b>שפתון עם מקדם</b>. בגובה, עם ההחזר מהשלג, נשרפים
             גם ביום מעונן — וגם מתחת לסנטר ובתוך הנחיריים.<br>
-            • <b>חבילות חימום</b> — שקיות קטנות וחד-פעמיות בגודל חפיסת קלפים. פותחים את
+            • <b>חבילות חימום</b> (Hand / Toe warmers) — שקיות קטנות וחד-פעמיות בגודל חפיסת קלפים. פותחים את
             העטיפה, האוויר מפעיל חומר שמתחמם מעצמו לכ-50 מעלות, והן נשארות חמות שש עד
             שמונה שעות. מחליקים אחת לתוך הכפפה על גב כף היד, או לתוך המגף מעל האצבעות.
             עולות שקלים בודדות, ומשנות יום שלם למי שידיו או רגליו קרות. נמכרות בכל חנות
             ספורט ובאינטרנט, לפעמים בשם "מחמם ידיים" או hand warmers.<br>
             • <b>כובע דק</b> שנכנס תחת הקסדה, ו<b>כובע רגיל</b> לאחרי הסקי.<br>
-            • <b>תיק מגפיים</b>, ו<b>מייבש מגפיים</b> חשמלי קטן. מגף יבש בבוקר הוא הבדל אמיתי.
+            • <b>תיק מגפיים</b> (Boot bag), ו<b>מייבש מגפיים</b> (Boot dryer) חשמלי קטן. מגף יבש בבוקר הוא הבדל אמיתי.
           </div>
         </details>
 
@@ -1921,9 +2039,18 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             </div>
 
             <div class="prep-h">חשמל — לקרוא לפני שאורזים</div>
-            <b>השקע באיטליה אינו ישראלי.</b> המתח זהה (230V), אבל התקע שונה: איטליה
-            משתמשת בתקע מסוג L (שלושה פינים בשורה) ובשקעים שמקבלים גם C ו-F האירופיים.
-            תקע ישראלי אינו נכנס. <b>מתאמים — להביא מהארץ, ויותר מאחד.</b>
+            המתח זהה (230V), והשקע האיטלקי מקבל גם את התקע האירופי הדק
+            (Type C, "אירופלאג"). מכאן נובע ההבדל שחשוב להכיר:
+            <br>• <b>תקע ישראלי של שני פינים עגולים ודקים — נכנס.</b> זה התקע של כמעט כל
+            המטענים, המנורות והמכשירים הקטנים, והוא אותו תקע אירופי. אין צורך במתאם.<br>
+            • <b>תקע ישראלי של שלושה פינים — לא נכנס.</b> הפינים עבים יותר ומסודרים
+            במשולש, והשקע האיטלקי בנוי לשורה.<br>
+            • <b>הפתרון:</b> מתאם קטן שבצד אחד מקבל תקע ישראלי ובצד השני יש שני פינים
+            עגולים דקים. עולה שקלים בודדים, ונמכר בכל חנות חשמל.
+            <br><b>אבל שימו לב:</b> מתאם כזה <b>מוותר על ההארקה</b>. לכן הוא בסדר גמור
+            למטען, למנורה ולשעון שבת — <b>ולא</b> למיחם, לפלטה או לכל מכשיר חימום. לאלה
+            צריך מתאם מוארק ממש, או מכשיר עם תקע אירופי מלכתחילה.
+            <br><b>להביא יותר מאחד</b>, ולא לסמוך על זה שיימצא בדירה.
             <br><b>והנקודה שמפתיעה כמעט כל משפחה:</b> אספקת החשמל הביתית באיטליה מוגבלת
             לרוב ל-3 קילוואט לדירה. מיחם (<span dir="ltr">2,000W</span>) ופלטה
             (<span dir="ltr">1,000–1,500W</span>) יחד חוצים את הגבול, והמפסק הראשי קופץ —
@@ -1994,6 +2121,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
       </div>
     </details>
+    </section>
+
+    <section class="plan-pane" id="pane-search">
+
 
 
     <!-- חיפוש בשפה חופשית -->
@@ -2342,7 +2473,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     </div>
 
 
-  </div>
+  
+    </section>
+</div>
 </div>
 
 
@@ -2924,6 +3057,14 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         הרגל עוברים עצבים וכלי דם, והידוק שלהם הוא הסיבה הנפוצה ביותר לאצבעות קרות
         ולנימול. הקדמי ביותר הוא הרפוי מכולם.
 
+        <div style="font-weight:bold;color:#16314f;margin-top:11px;">המכנס — מעל המגף, תמיד</div>
+        זו הטעות הנפוצה ביותר, ורואים אותה בכל מסלול: מכנס שנדחף <b>לתוך</b> המגף.
+        <br>המכנס יורד <b>מעל</b> המגף ומכסה אותו. בתחתית המכנס יש שרוול פנימי עם גומי
+        (Inner gaiter) — הוא זה שנכנס פנימה ויושב על מעטפת המגף, בזמן שהבד החיצוני נשאר
+        בחוץ. כך השלג מחליק על המגף ולא לתוכו.
+        <br><b>מכנס שנדחף לתוך המגף</b> עושה בדיוק ההפך: הוא בונה משפך שמוביל שלג היישר
+        אל הגרב, מקמט את הבד תחת האבזמים ויוצר נקודות לחץ שכואבות אחרי שעה.
+
         <div style="font-weight:bold;color:#16314f;margin-top:11px;">הבדיקה שאומרת שנעלתם נכון</div>
         בעמידה זקופה האצבעות נוגעות קלות בקצה המגף. בכפיפה קדימה, בתנוחת גלישה, הן
         נסוגות מעט אחורה. אם בעמידה זקופה האצבעות כבר נלחצות — העקב לא ישב, או שהמגף
@@ -3054,7 +3195,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         🛒 <b>מה כדאי לקנות בדרך (ולא בכפר):</b><br>
         כפפות · גוגלס · גרביים תרמיות · Base Layer (בגד תחתון מנדף) · צוואריון · קרם הגנה לשמש+שלג · כדורי חימום ידיים
         <div style="margin-top:7px;">
-          <a href="#" onclick="closeM('rentalModal');openM('hotelModal');return false;"
+          <a href="#" onclick="closeM('rentalModal');openPlanner('prep');return false;"
              style="color:#1a73e8;font-weight:bold;text-decoration:none;">
             🧳 מה בדיוק לקנות, ואיך בוחרים — ב״הכנות לפני הנסיעה״ ←</a>
         </div>
@@ -4607,6 +4748,10 @@ function openM(id) {
   // re-applied on every open. The function is idempotent and returns at once
   // when the icon is already there.
   if (typeof _applyModalIcon === 'function') _applyModalIcon(id);
+  // The planner is three screens behind a menu. Opening it from anywhere
+  // lands on the menu; callers that want a particular screen call planGo
+  // straight after, which overrides this.
+  if (id === 'hotelModal' && typeof planGo === 'function') planGo('hub');
   if (typeof _addPanelShare === 'function') _addPanelShare(id);
   // The letter is written the moment the panel opens, and the dates the
   // reader already typed into the planner are carried over - asking a
@@ -6015,7 +6160,7 @@ function gearShops() {
       map: 'https://www.google.com/maps/search/' + encodeURIComponent('שרון סקי הסחלב 2 נשר'),
       url: 'https://skisharon.co.il/' },
     { icon: '\u{1F6D2}', title: 'דקטלון',
-      desc: 'הזול ביותר לשכבות בסיס, גרביים, כובעים ואביזרים · סניפים ברחבי הארץ',
+      desc: '<b>הזול בארץ — ולכל הפריטים</b>, כולל מעילים ומכנסי סקי · סניפים ברחבי הארץ',
       map: 'https://www.google.com/maps/search/' + encodeURIComponent('דקטלון'),
       url: 'https://www.decathlon.co.il/' },
     { icon: '\u{1F310}', title: 'XPASS — החנות המקוונת',
@@ -6765,14 +6910,59 @@ function openArrivalPlanner() {
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start' });
   }, 220);
 }
-function openWhenToGo() {
+// ── the planner's three screens ──────────────────────────────────────
+// The planner used to be one column holding when to come, what to bring and
+// where to book. Opening the middle one buried the rest, and the only way
+// back was to scroll past everything you had just opened. Now it opens on a
+// menu, shows one screen at a time, and keeps a bar on top to get back or
+// step sideways without returning to the menu first.
+var PLAN_PANES = {
+  when:   { id: 'pane-when',   icon: '📅', title: 'מתי לנסוע',               chip: 'מתי לנסוע' },
+  prep:   { id: 'pane-prep',   icon: '🧳', title: 'הכנות לפני הנסיעה',        chip: 'הכנות' },
+  search: { id: 'pane-search', icon: '🔍', title: 'חיפוש טיסה, רכב ולינה',    chip: 'חיפוש' }
+};
+
+function planGo(which) {
+  var hub = document.getElementById('plan-hub');
+  var bar = document.getElementById('plan-bar');
+  if (!hub || !bar) return;
+  var open = PLAN_PANES[which] || null;
+  Object.keys(PLAN_PANES).forEach(function (k) {
+    var el = document.getElementById(PLAN_PANES[k].id);
+    if (el) el.style.display = (open && k === which) ? 'block' : 'none';
+  });
+  hub.style.display = open ? 'none' : 'flex';
+  bar.style.display = open ? 'flex' : 'none';
+  if (open) {
+    var t = document.getElementById('plan-bar-title');
+    if (t) t.textContent = open.icon + ' ' + open.title;
+    var c = document.getElementById('plan-bar-chips');
+    if (c) c.innerHTML = Object.keys(PLAN_PANES)
+      .filter(function (k) { return k !== which; })
+      .map(function (k) {
+        return '<button class="plan-chip" onclick="planGo(\'' + k + '\')">' +
+               PLAN_PANES[k].icon + ' ' + PLAN_PANES[k].chip + '</button>';
+      }).join('');
+  }
+  // a new screen starts at its own top, not wherever the last one was left
+  var body = document.querySelector('#hotelModal .modal-content');
+  if (body) body.scrollTop = 0;
+}
+
+// Open the planner straight onto one of its screens. Everything that used to
+// call openM('hotelModal') and then hunt for a section goes through here.
+function openPlanner(which) {
   openM('hotelModal');
+  planGo(which || 'hub');
+}
+
+function openWhenToGo() {
+  openPlanner('when');
   setTimeout(function () {
     var box = document.getElementById('season-box');
     if (!box) return;
     var d = box.querySelector('details');
     if (d) d.open = true;
-    if (box.scrollIntoView) box.scrollIntoView({ block: 'start' });
   }, 220);
 }
 function openParkEmergency() {
@@ -12926,7 +13116,7 @@ function setTripDates(ci, co) {
 // reader asks for them.
 function openFlightDeal(o) {
   if (!o || !o.date || !o.ret) return;
-  openM('hotelModal');
+  openPlanner('search');
   setTimeout(function () {
     switchTripTab('flight');
     setTripDates(o.date, o.ret);
@@ -13812,7 +14002,7 @@ function renderHeader() {
   } else {
     // It used to borrow .service-btn, which is now a large card with an icon
     // tile - so the sign-in button grew into a white block in the header.
-    area.innerHTML = `<button onclick="openM('authModal')" class="signin-btn">&#1499;&#1504;&#1497;&#1505;&#1492;</button>`;
+    area.innerHTML = `<button onclick="openM('authModal')" class="signin-btn">כניסה / הרשמה</button>`;
   }
 }
 
@@ -14373,8 +14563,8 @@ const SEARCH_INDEX = [
   { text: 'עזרה שאלות תשובות', action: "openM('helpModal')", icon: '❓', label: 'עזרה' },
   { text: 'התקנה להתקין אפליקציה מסך הבית אופליין בלי אינטרנט pwa', action: "openM('helpModal')", icon: '📲', label: 'התקנת האפליקציה' },
   { text: "למה cervinia יתרונות", action: "openM('whyModal')", icon: "🏔️", label: "למה צ'רוויניה?" },
-  { text: 'ציוד גוגלס משקפי סקי מעיל מכנסיים ביגוד תרמי גרביים כפפות שכבות מה לקנות אריזה הכנות לפני הנסיעה', action: "openM('hotelModal')", icon: '🧳', label: 'הכנות לפני הנסיעה' },
-  { text: 'ביטוח ספורט חורף חובה צד שלישי קנס קסדה חוק איטליה חילוץ', action: "openM('hotelModal')", icon: '🛡️', label: 'ביטוח וקסדה — חובה בחוק' },
+  { text: 'ציוד גוגלס משקפי סקי מעיל מכנסיים ביגוד תרמי גרביים כפפות שכבות מה לקנות אריזה הכנות לפני הנסיעה', action: "openPlanner('prep')", icon: '🧳', label: 'הכנות לפני הנסיעה' },
+  { text: 'ביטוח ספורט חורף חובה צד שלישי קנס קסדה חוק איטליה חילוץ', action: "openPlanner('prep')", icon: '🛡️', label: 'ביטוח וקסדה — חובה בחוק' },
   { text: 'סנובורד גלשן מגני פרקי כף יד רגל קדמית regular goofy', action: "openM('rentalModal')", icon: '🏂', label: 'סנובורד' },
   { text: 'מגפי סקי מגלשיים פלקס מידה DIN מקלות השכרה', action: "openM('rentalModal')", icon: '🎿', label: 'הציוד הכבד' },
 ];
