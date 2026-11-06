@@ -3804,6 +3804,57 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the answer does not say that the fields below were filled in'); else ok();
 }
 
+// ── the season switch does not reload the page under you ────────────
+// applySummerMode used to be a one-way function: it created banners and hid
+// things, and a second call produced two of everything. So switching the
+// season override forced location.reload() - which fired on every first
+// visit whose override disagreed with the date. Those visitors downloaded
+// the whole page twice and watched it flash, and the reload raced this very
+// gate and destroyed its execution context, which is how it was found.
+//
+// The function now undoes its own last run. That property is the fix, so it
+// is what gets checked: three calls must leave the page exactly as one call
+// does, and switching back must restore what was there before.
+{
+  const r = await page.evaluate(() => {
+    const snap = () => ({
+      made: document.querySelectorAll('[data-season-made]').length,
+      hid:  document.querySelectorAll('[data-season-hid]').length,
+      grid: document.querySelectorAll('.services-grid > *').length
+    });
+    const before = snap();
+    const keep = _seasonOverride;
+
+    _seasonOverride = 'summer'; applySummerMode(); const once = snap();
+    applySummerMode(); applySummerMode();          const thrice = snap();
+    _seasonOverride = 'winter'; applySummerMode(); const back = snap();
+
+    _seasonOverride = keep; applySummerMode();
+    return { before, once, thrice, back };
+  });
+
+  const T = 'the season switch does not reload the page under you';
+  const same = (a, b) => a.made === b.made && a.hid === b.hid && a.grid === b.grid;
+
+  if (!(r.once.made > 0 && r.once.grid > r.before.grid)) fail(T,
+    'switching to summer changed nothing, so this is not testing anything');
+  else ok();
+  if (!same(r.once, r.thrice)) fail(T,
+    `three calls left ${r.thrice.made} created and ${r.thrice.grid} cards where ` +
+    `one call left ${r.once.made} and ${r.once.grid} - the function is building ` +
+    'up again, which is what the page reload used to paper over'); else ok();
+  if (!same(r.before, r.back)) fail(T,
+    `switching back left ${r.back.made} created and ${r.back.grid} cards, but the ` +
+    `page started with ${r.before.made} and ${r.before.grid} - summer is leaking ` +
+    'into winter'); else ok();
+
+  // and the reload itself has to stay gone
+  const src = fs.readFileSync(PAGE, 'utf8');
+  if (/seasonReloaded/.test(src)) fail(T,
+    'the sessionStorage reload flag is back, which means the page reloads ' +
+    'itself on load again'); else ok();
+}
+
 // ── the planner opens on a menu, not on a wall of text ──────────────
 // It used to be one column holding three unrelated things: when to come,
 // what to bring, and where to book. The middle one runs to tens of thousands

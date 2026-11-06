@@ -965,7 +965,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.4';
+  var v='v17.5';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -13513,16 +13513,12 @@ window.onload = async function() {
       var autoIsSummer = !((month < 5) || (month === 5 && day <= 3) || (month === 10 && day >= 25) || (month > 10)) && !(month === 10 && day >= 10 && day <= 24);
       var overrideIsSummer = _seasonOverride === 'summer';
       // רק אם ה-override מנוגד למה שהאוטומטי כבר הציג - רענון חד-פעמי
-      if (autoIsSummer !== overrideIsSummer) {
-        var already = false;
-        try { already = sessionStorage.getItem('seasonReloaded') === '1'; } catch(e) {}
-        if (!already) {
-          try { sessionStorage.setItem('seasonReloaded', '1'); } catch(e) {}
-          location.reload();
-        }
-      } else {
-        try { sessionStorage.removeItem('seasonReloaded'); } catch(e) {}
-      }
+      // applySummerMode now undoes its own last run, so the override is
+      // applied in place. This used to be a location.reload() guarded by a
+      // sessionStorage flag - which meant a fresh browser reloaded every
+      // single time, and a visitor whose override disagreed with the date
+      // downloaded the whole page twice and watched it flash.
+      if (autoIsSummer !== overrideIsSummer) applySummerMode();
     }
   });
 };
@@ -13537,6 +13533,32 @@ function _countdownBox(id, label, size, bold) {
 }
 
 function applySummerMode() {
+  // This used to be a one-way function: it created banners and hid things,
+  // and calling it twice produced two of everything. That is why switching
+  // the season override forced a full location.reload() - and that reload
+  // fired on EVERY first visit whose override disagreed with the date, so
+  // people downloaded the page twice and watched it flash. It also raced any
+  // automated check of the page and destroyed its execution context.
+  //
+  // So: everything created here is tagged, and everything hidden here
+  // remembers that it was hidden here. A second call takes the first call's
+  // work out before doing its own, and the reload is gone.
+  document.querySelectorAll('[data-season-made]').forEach(function (el) {
+    if (el.parentNode) el.parentNode.removeChild(el);
+  });
+  document.querySelectorAll('[data-season-hid]').forEach(function (el) {
+    el.style.display = el.getAttribute('data-season-hid') || '';
+    el.removeAttribute('data-season-hid');
+  });
+  var _seasonMade = function (el) { if (el) el.setAttribute('data-season-made', '1'); return el; };
+  var _seasonHide = function (el) {
+    if (!el) return el;
+    // remember what it was, so putting it back does not invent a value
+    el.setAttribute('data-season-hid', el.style.display || '');
+    el.style.display = 'none';
+    return el;
+  };
+
   var now = new Date();
   var month = now.getMonth() + 1;
   var day = now.getDate();
@@ -13577,6 +13599,7 @@ function applySummerMode() {
       + '<button onclick="openM(\'skipassModal\')" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;">🎫 סקי פס</button>'
       + '<button onclick="openM(\'mapModal\')" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;">🗺️ מפות</button>'
       + '</div>';
+    _seasonMade(banner);
     grid.parentNode.insertBefore(banner, grid);
 
     // בטרום העונה הכפתורים נשארים — זה בדיוק הזמן שבו מזמינים
@@ -13589,7 +13612,7 @@ function applySummerMode() {
   // הסתר כפתורי חורף
   ['svc-piste','svc-rental','svc-lessons','svc-skipass'].forEach(function(id) {
     var el = document.getElementById(id);
-    if (el) el.style.display = 'none';
+    _seasonHide(el);
   });
 
   // הסתר סמל חיבור לצ'רמט והחלף בנוף קייצי
@@ -13622,14 +13645,14 @@ function applySummerMode() {
 
   // הסתר כפתור תחזית לינק צ'רמט
   var zermattBtn = document.querySelector('button[onclick="openZermattForecast()"]');
-  if (zermattBtn) zermattBtn.style.display = 'none';
+  _seasonHide(zermattBtn);
   // ונשנה את תיבת ה-snow-points-row להציג רק top + מידע קרחון
   var snowRow = document.getElementById('snow-points-row');
   if (snowRow) {
     var midBox  = document.getElementById('snow-mid-depth');
     var baseBox = document.getElementById('snow-base-depth');
-    if (midBox && midBox.parentElement) midBox.parentElement.style.display = 'none';
-    if (baseBox && baseBox.parentElement) baseBox.parentElement.style.display = 'none';
+    if (midBox) _seasonHide(midBox.parentElement);
+    if (baseBox) _seasonHide(baseBox.parentElement);
   }
 
   // הוסף כפתורי קיץ
@@ -13646,6 +13669,7 @@ function applySummerMode() {
     el.className = 'service-btn';
     el.setAttribute('onclick', b.onclick);
     el.innerHTML = '<span style="font-size:1.3rem;">' + b.icon + '</span> ' + b.label;
+    _seasonMade(el);
     grid.appendChild(el);
   });
 
@@ -13675,6 +13699,7 @@ function applySummerMode() {
     + '<div style="background:white;height:100%;border-radius:20px;width:' + progressPct + '%;transition:width 1s;"></div>'
     + '</div>';
 
+  _seasonMade(summerBanner);
   grid.parentNode.insertBefore(summerBanner, grid);
 
   // הפעל ספירה לאחור חיה
