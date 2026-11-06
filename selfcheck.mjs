@@ -3828,6 +3828,251 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the answer does not say that the fields below were filled in'); else ok();
 }
 
+// ── pressing for Shabbat lands on Shabbat ───────────────────────────
+// The card on the planner's menu opened the kashrut panel at the top of the
+// times table, four screens above what the reader had pressed for, with no
+// sign it was there. It now lands on the section with the first fold open,
+// and a small chip floats at the side while there is still somewhere to go.
+//
+// All of it failed silently once already - a duplicate function name meant
+// every fix went into a copy nobody called - so the behaviour is checked,
+// not the code.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const box0 = document.querySelector('#kosherModal .modal-content');
+    const sec0 = document.getElementById('shabbat-apartment');
+    if (!box0 || !sec0) { out.missing = true; return out; }
+
+    // Give the panel a height first. With no network the times table never
+    // fills, so on a fresh open there is nothing to scroll and the deep link
+    // would "pass" by having nothing to do. Open every fold, then close the
+    // modal: the folds stay open, so the next open is tall.
+    openM('kosherModal');
+    switchKoshMain('shabbat');
+    document.querySelectorAll('#kosh-main-panel-shabbat details')
+      .forEach(d => { d.open = true; });
+    await new Promise(r2 => setTimeout(r2, 80));
+    out.scrollable = box0.scrollHeight > box0.clientHeight + 8;
+    box0.scrollTop = 0;
+    const relTop = () =>
+      sec0.getBoundingClientRect().top - box0.getBoundingClientRect().top;
+    out.farBefore = relTop() > box0.clientHeight - 48;
+    closeM('kosherModal');
+    await new Promise(r2 => setTimeout(r2, 60));
+
+    // Now the real thing, and nothing else: whatever the card on the planner
+    // menu calls, with no help from this check. Testing it by calling the
+    // scroll helper directly is what let the deep link quietly stop scrolling
+    // in the first place.
+    openKosherShabbat();
+    await new Promise(r2 => setTimeout(r2, 900));
+
+    const box = document.querySelector('#kosherModal .modal-content');
+    const sec = document.getElementById('shabbat-apartment');
+    const chip = document.getElementById('shabbat-jump');
+    out.hasChip = !!chip;
+    out.foldOpened = !!document.querySelector('#shabbat-apartment details[open]');
+    out.onScreenAfter =
+      sec.getBoundingClientRect().top - box.getBoundingClientRect().top
+      < box.clientHeight - 48;
+
+    // the chip knows whether it still has anywhere to take you
+    if (chip) {
+      box.scrollTop = 0;
+      box.dispatchEvent(new Event('scroll'));
+      out.chipShownAtTop = !chip.classList.contains('is-done');
+      _scrollToShabbatApartment();
+      box.dispatchEvent(new Event('scroll'));
+      out.chipGoneAtSection = chip.classList.contains('is-done');
+      out.chipLabel = chip.textContent.trim();
+      out.chipOverflows = chip.scrollWidth > chip.clientWidth + 2
+                       || chip.scrollHeight > chip.clientHeight + 2;
+      out.chipCandles = !!chip.querySelector('use[href="#ico-candle"]');
+    }
+    closeM('kosherModal');
+    return out;
+  });
+
+  const T = 'pressing for Shabbat lands on Shabbat';
+  if (r.missing) fail(T, 'the Shabbat section or its scroller is gone'); else {
+    ok();
+    if (!r.foldOpened) fail(T,
+      'arriving from the planner no longer opens what the reader pressed for, ' +
+      'so they land on a closed row'); else ok();
+    if (!r.scrollable) fail(T,
+      'the panel will not scroll even with every fold open - this check cannot ' +
+      'tell whether the jump works'); else ok();
+    if (!r.farBefore) fail(T,
+      'the section is already on screen from the top, so there is nothing for ' +
+      'the jump to do and this check proves nothing'); else ok();
+    if (!r.onScreenAfter) fail(T,
+      'opening from the planner card left the reader at the top of the times ' +
+      'table, with no sign that what they pressed for is four screens below - ' +
+      'which is exactly how this broke the first time, silently'); else ok();
+    if (!r.hasChip) fail(T,
+      'the chip that leads down to it is gone, so a reader who opened the ' +
+      'panel for the times has no way of knowing the rest is there'); else ok();
+    if (!r.chipShownAtTop) fail(T,
+      'the chip hides at the top of the panel, where it is the only signpost');
+    else ok();
+    if (!r.chipGoneAtSection) fail(T,
+      'the chip stays on screen once the section is reached, pointing at ' +
+      'something already in front of the reader'); else ok();
+    // It says what is down there and nothing more. "Everything you need to
+    // know" overclaimed - the times are already on screen above it - and
+    // repeating the section's own title said nothing the heading did not.
+    // The label wraps, so match the words rather than the spacing.
+    const label = (r.chipLabel || '').replace(/\s+/g, '');
+    if (!/התארגנות/.test(label) || !/לשבת/.test(label)) fail(T,
+      `the chip reads "${r.chipLabel}" - it has to say what it leads to`);
+    else ok();
+    if (r.chipOverflows) fail(T,
+      'the label no longer fits inside the chip'); else ok();
+    if (!r.chipCandles) fail(T,
+      'the chip does not wear the drawn candles the rest of Shabbat wears');
+    else ok();
+  }
+}
+
+// ── one name, one function ──────────────────────────────────────────
+// The whole app is one script, so two top-level `function foo()` declarations
+// are not two functions: declarations hoist, the last one wins for the entire
+// scope, and the earlier one is dead from the moment it is written - dead
+// including for callers that sit above it.
+//
+// It cost an hour. A second openKosherShabbat was added without checking the
+// name was free; every fix went into the copy nobody called, and the symptom
+// was simply that nothing happened. _seasonISO had been quietly doubled the
+// same way, the live one coping with a string argument and the dead one not.
+// Neither throws, neither warns, and nothing else here would have caught it.
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const T = 'one name, one function';
+  const names = [...src.matchAll(/^function ([A-Za-z_$][\w$]*)\s*\(/gm)]
+    .map(m => m[1]);
+  const seen = new Map();
+  for (const n of names) seen.set(n, (seen.get(n) || 0) + 1);
+  const dups = [...seen].filter(([, c]) => c > 1);
+
+  if (names.length < 100) fail(T,
+    `only ${names.length} top-level functions found - the scan is not reading ` +
+    'the file it thinks it is'); else ok();
+  if (dups.length) fail(T,
+    dups.map(([n, c]) => `${n}() is declared ${c} times`).join('; ') +
+    ' - the last declaration wins and the others are dead, including for ' +
+    'callers above them'); else ok();
+}
+
+// ── a push toggle may not disown the push ───────────────────────────
+// PUSH_TOPICS is the list of things this device will be woken for. The snow
+// row described itself as "not sent to the phone, only to the strip" - and
+// it is sent to the phone, as a fresh-snow notification arriving on one
+// proved. The same wrong belief sat as a comment beside the rule in
+// scrape.js. A toggle that misdescribes what it controls is worse than no
+// toggle: it decides for the reader on a false premise.
+//
+// Every row in this list is a push topic by definition, so none of them may
+// say otherwise.
+{
+  const r = await page.evaluate(() => {
+    if (typeof PUSH_TOPICS === 'undefined') return { missing: true };
+    return {
+      rows: PUSH_TOPICS.map(t => ({ k: t.k, label: t.label, sub: t.sub || '' })),
+      count: PUSH_TOPICS.length
+    };
+  });
+
+  const T = 'a push toggle may not disown the push';
+  if (r.missing) fail(T, 'the list of push topics is gone'); else {
+    ok();
+    if (r.count < 3) fail(T,
+      `only ${r.count} topics - the whole point is that somebody who wants ` +
+      'one kind of alert does not have to take all of them'); else ok();
+
+    // "not sent to the phone", "only on the strip", "will not be sent"
+    const disowns = /לא נשלח|לא יישלח|רק לסרגל|רק בסרגל|לא לטלפון/;
+    const liars = r.rows.filter(t => disowns.test(t.sub));
+    if (liars.length) fail(T,
+      `"${liars[0].label}" is a switch for what gets pushed to this phone, and ` +
+      `its own description says "${liars[0].sub}"`); else ok();
+
+    // and each one has to say what it will actually wake you for
+    const bare = r.rows.filter(t => t.sub.trim().length < 6);
+    if (bare.length) fail(T,
+      `"${bare[0].label}" has no description, so the reader is guessing what ` +
+      'they are turning off'); else ok();
+  }
+}
+
+// ── good news does not wear the colour of bad news ──────────────────
+// The crossing to Zermatt opening after a morning shut is the one alert
+// people actively wait for: somebody who read at nine that it was closed
+// has been checking ever since. It is urgent, and nothing is wrong - so it
+// has to catch the eye without looking like an emergency. Green, with a
+// glow rather than the danger pulse.
+{
+  const r = await page.evaluate(() => {
+    const strip = document.getElementById('alert-strip');
+    if (!strip) return { missing: true };
+    const realA = window.getLiveAlerts, realN = window.getLiveNotices;
+    const row = (key, severity) => ({
+      id: 'x-' + key, key, severity, kind: 'alert', auto: true,
+      text: 'בדיקה', user: 'צ׳רוויניה לייב',
+      ts: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 36e5).toISOString()
+    });
+    const classFor = (key, severity) => {
+      window.getLiveAlerts = () => [row(key, severity)];
+      window.getLiveNotices = () => [];
+      refreshAlertStrip();
+      return strip.className;
+    };
+    const out = {
+      open:   classFor('zermatt-open', 'info'),
+      closed: classFor('zermatt-closed', 'danger'),
+      shut:   classFor('zermatt-shut-today', 'warning')
+    };
+    window.getLiveAlerts = realA; window.getLiveNotices = realN;
+    refreshAlertStrip();
+
+    const css = [...document.styleSheets].flatMap(sh => {
+      try { return [...sh.cssRules]; } catch (e) { return []; }
+    }).filter(r2 => r2.selectorText && /severity-good/.test(r2.selectorText));
+    out.goodStyled = css.length > 0;
+    out.goodCss = css.map(r2 => r2.style.cssText).join(' ');
+    return out;
+  });
+
+  const T = 'good news does not wear the colour of bad news';
+  if (r.missing) fail(T, 'the alert strip is gone'); else {
+    ok();
+    if (!/severity-good/.test(r.open)) fail(T,
+      `the crossing opening renders as "${r.open}" - it is the one alert ` +
+      'people wait for, and it must not arrive looking like a problem'); else ok();
+    if (!/severity-danger/.test(r.closed)) fail(T,
+      `the crossing CLOSING renders as "${r.closed}" - that one really is bad ` +
+      'news and must keep its colour'); else ok();
+    if (/severity-good/.test(r.shut)) fail(T,
+      'a crossing shut all day is being shown as good news'); else ok();
+    if (!r.goodStyled) fail(T,
+      'severity-good has no styling, so the strip falls back to the default');
+    else ok();
+    // the browser normalises hex to rgb(), so match on the colour itself
+    // rather than on how it happened to be written
+    const rgb = (r.goodCss.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g) || [])
+      .map(c => c.match(/\d+/g).map(Number));
+    const green = rgb.some(([red, g, blue]) => g > red && g > blue);
+    if (!green) fail(T,
+      `severity-good has no colour where green leads: ${r.goodCss}`); else ok();
+    if (!/alertGlow/.test(r.goodCss)) fail(T,
+      'the good-news strip has no glow, so it reads as an ordinary notice ' +
+      'and the person waiting for it scrolls past'); else ok();
+    if (/alertPulse/.test(r.goodCss)) fail(T,
+      'the good-news strip uses the danger pulse'); else ok();
+  }
+}
+
 // ── the date picker is handed dates, not strings ────────────────────
 // setTripDates passed flatpickr the ISO strings. Given a string, flatpickr
 // parses it with the instance's own dateFormat - here 'j בF', Hebrew and

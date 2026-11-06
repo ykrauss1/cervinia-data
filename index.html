@@ -473,6 +473,17 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .alert-strip.severity-info    { background:#cff4fc; color:#055160; border-bottom:2px solid #0dcaf0; }
 /* A standing notice is not an emergency: no pulsing, calmer colours. */
 .alert-strip.severity-notice  { background:#e7f0fd; color:#0a3d7a; border-bottom:2px solid #0d6efd; }
+/* Good news that people are actively waiting for - the crossing to Zermatt
+   opening after a morning shut. It has to catch the eye like an alert,
+   because that is what it is, and it must not look like one, because there
+   is nothing wrong. So: green, and a glow rather than the danger pulse. */
+.alert-strip.severity-good    { background:#e3f8e8; color:#145a24; border-bottom:2px solid #28a745;
+                                animation: alertGlow 2.6s ease-in-out infinite; }
+@keyframes alertGlow {
+  0%, 100% { box-shadow: inset 0 0 0 rgba(40,167,69,0); }
+  50%      { box-shadow: inset 0 -3px 14px rgba(40,167,69,.33); }
+}
+@media (prefers-reduced-motion: reduce) { .alert-strip.severity-good { animation:none; } }
 .alert-close { position:absolute; left:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.1rem; opacity:0.6; background:none; border:none; color:inherit; }
 .alert-close:hover { opacity:1; }
 @keyframes alertPulse { 0%,100%{opacity:1} 50%{opacity:0.68} }
@@ -485,6 +496,28 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .amore-warning { background:#fff3cd; color:#856404; }
 .amore-info    { background:#cff4fc; color:#055160; }
 .amore-notice  { background:#e7f0fd; color:#0a3d7a; }
+.amore-good    { background:#e3f8e8; color:#145a24; }
+/* The way down to "what to bring" from the top of the Shabbat panel. Sticky
+   inside the modal's scroller rather than fixed to the window, so it rides
+   along with the panel and cannot stray over anything else. It fades out
+   once the section it points at is on screen - see _wireShabbatJump. */
+/* A circle, candles on top and the two words stacked under them. The pill
+   shape read as a banner across the table; the circle sits in the corner and
+   looks like what it is - a way down, not an announcement. */
+#shabbat-jump { position: sticky; bottom: 14px; float: left; z-index: 4;
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 3px;
+        width: 70px; height: 70px; margin: -70px 2px 0 0; padding: 0;
+        border: 1.5px solid #e6d29a; border-radius: 50%;
+        background: #fffbee; cursor: pointer; font-family: inherit;
+        color: #7a5f12; box-shadow: 0 3px 12px rgba(90,70,10,.2);
+        transition: opacity .25s, transform .15s; }
+#shabbat-jump:hover { transform: translateY(-2px); }
+#shabbat-jump svg { width: 21px; height: 21px; flex: 0 0 auto; }
+#shabbat-jump .sj-t { font-size: 0.6rem; font-weight: bold; line-height: 1.2;
+        text-align: center; }
+#shabbat-jump[hidden] { display: none; }
+#shabbat-jump.is-done { opacity: 0; pointer-events: none; }
 .alert-more-btn { font-size:0.72rem; font-weight:bold; background:rgba(0,0,0,0.12); padding:2px 8px; border-radius:10px; margin-right:6px; border:none; color:inherit; cursor:pointer; font-family:inherit; }
 .alert-more-btn:hover { background:rgba(0,0,0,0.2); }
 .amore-chev { display:inline-block; transition:transform 0.18s; }
@@ -965,7 +998,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.7';
+  var v='v17.8';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -3391,6 +3424,16 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div id="shabbat-times-widget">
         <div style="text-align:center;color:#aaa;padding:20px;">טוען זמנים...</div>
       </div>
+
+      <!-- A reader who opened this panel for the times has no way of knowing
+           that what to bring is below them. Not another full-width heading -
+           the panel already has two - but a small thing floating at the side
+           that takes them down, and gets out of the way once they are there. -->
+      <button id="shabbat-jump" type="button" onclick="_scrollToShabbatApartment()"
+              aria-label="מעבר למה להביא לשבת בדירה">
+        <svg viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg>
+        <span class="sj-t">התארגנות<br>לשבת</span>
+      </button>
 
       <!-- Moved here from the packing section. Everything about keeping Shabbat
            in the village belongs beside the times for it, not three folds deep
@@ -7009,13 +7052,67 @@ var PLAN_PANES = {
 // signpost in the packing section and the card on the planner's menu - want
 // the same thing: that modal, open on the Shabbat side, scrolled to the part
 // about the apartment rather than to the times.
-function openKosherShabbat() {
-  openM('kosherModal');
-  if (typeof switchKoshMain === 'function') switchKoshMain('shabbat');
-  setTimeout(function () {
-    var el = document.getElementById('shabbat-apartment');
-    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  }, 240);
+// Show the chip only while it has somewhere to take you. Once the section is
+// on screen it is noise, and a button that does nothing teaches people to
+// ignore the next one.
+function _wireShabbatJump() {
+  var btn = document.getElementById('shabbat-jump');
+  var box = document.querySelector('#kosherModal .modal-content');
+  var tgt = document.getElementById('shabbat-apartment');
+  if (!btn || !box || !tgt || btn._wired) return;
+  btn._wired = true;
+  var sync = function () {
+    // "on screen" means its top has come up into the lower half of the box -
+    // at that point the reader can see it and does not need telling
+    // visible at all, not three quarters of the way up: at 0.75 the heading
+    // sat on screen with the chip still pointing at it
+    var seen = tgt.getBoundingClientRect().top - box.getBoundingClientRect().top
+             < box.clientHeight - 48;
+    btn.classList.toggle('is-done', seen);
+  };
+  box.addEventListener('scroll', sync, { passive: true });
+  sync();
+}
+
+// The modal content is the scrolling box, not the window. Walk up to it and
+// move it by hand.
+function _scrollToShabbatApartment(afterOpen) {
+  var go = function () {
+    var el  = document.getElementById('shabbat-apartment');
+    var box = document.querySelector('#kosherModal .modal-content');
+    if (!el || !box) return false;
+    // Nothing to scroll yet: the times table is still "טוען זמנים…" and the
+    // panel is barely taller than the window. Checking clientHeight alone
+    // said "laid out" and stopped the retries, which is why this did
+    // nothing at all - the box was ready and the content was not.
+    if (box.scrollHeight <= box.clientHeight + 8) return false;
+    // offsetTop is measured against the offsetParent, which here is NOT the
+    // scrolling box - it read 1709 on a box that can only scroll to 1121, so
+    // every attempt "failed" and the retries ran out with the reader still at
+    // the top. Measure against the box itself.
+    var want = el.getBoundingClientRect().top
+             - box.getBoundingClientRect().top + box.scrollTop - 12;
+    want = Math.max(0, Math.min(want, box.scrollHeight - box.clientHeight));
+    if (!want) return false;
+    // Assigned rather than animated: scrollTo({behavior:'smooth'}) cannot be
+    // verified in the same frame, and this has to report whether it worked so
+    // the caller knows to stop trying.
+    box.scrollTop = want;
+    return Math.abs(box.scrollTop - want) < 4;
+  };
+  if (!afterOpen) { go(); return; }
+  // The modal is mid-open AND the times table is still fetching, so for the
+  // first moments the panel is barely taller than the window and there is
+  // nothing to scroll. Twenty-five animation frames was about 400ms and ran
+  // out long before the zmanim arrived, so every attempt found an unscrollable
+  // box and the reader stayed at the top. Keep trying on a timer, for as long
+  // as a slow connection plausibly takes, and stop the moment it works.
+  var tries = 0;
+  var tick = function () {
+    if (go() || ++tries > 60) return;
+    setTimeout(tick, 50);
+  };
+  tick();
 }
 
 function planGo(which) {
@@ -7085,6 +7182,8 @@ function switchKoshMain(tab) {
   });
   if (tab === 'shabbat' && window.renderShabbatTimes) renderShabbatTimes(0);
   if (tab === 'kosher') switchKoshTab('cervinia');
+  // the way down to "what to bring" belongs to the Shabbat side only
+  if (typeof _wireShabbatJump === 'function') setTimeout(_wireShabbatJump, 30);
 }
 
 function openKosherShabbat() {
@@ -7092,6 +7191,17 @@ function openKosherShabbat() {
   setTimeout(function() {
     switchKoshMain('shabbat');
     if (window.renderShabbatTimes) renderShabbatTimes(0);
+    // Whoever pressed for Shabbat was after what to bring, not the times -
+    // the times are what this panel opens on anyway. Land on the section,
+    // and put the way back to the top of the panel within reach.
+    _wireShabbatJump();
+    // Somebody who pressed "what to bring" came for the list, so open it.
+    // It also gives the panel something to scroll to: with every fold shut
+    // the section is short, the box runs out of travel, and the heading
+    // lands at the very bottom of the screen looking like an afterthought.
+    var first = document.querySelector('#shabbat-apartment details');
+    if (first) first.open = true;
+    _scrollToShabbatApartment(true);
   }, 50);
 }
 
@@ -9956,6 +10066,11 @@ function toggleAlertMore(ev) {
   refreshAlertStrip();
 }
 
+// Alerts that are urgent but not alarming: somebody has been refreshing the
+// page all morning waiting for exactly this one. Green and glowing on the
+// strip, never the red of something being wrong.
+var GOOD_NEWS_KEYS = ['zermatt-open', 'fresh-snow'];
+
 function refreshAlertStrip() {
   var strip  = document.getElementById('alert-strip');
   var textEl = document.getElementById('alert-strip-text');
@@ -9979,7 +10094,12 @@ function refreshAlertStrip() {
   }
 
   var a    = live[0];
-  var sev  = (a.kind === 'notice') ? 'notice' : (a.severity || 'warning');
+  // Keyed off the alert's key rather than its severity, so no migration is
+  // needed on the database's severity column - and because "good" is a
+  // property of this particular piece of news, not of a whole severity band.
+  var sev  = (a.kind === 'notice') ? 'notice'
+           : (GOOD_NEWS_KEYS.indexOf(a.key) !== -1 ? 'good'
+           : (a.severity || 'warning'));
   var rest = live.slice(1);
   if (!rest.length) _alertMoreOpen = false;
 
@@ -10015,7 +10135,9 @@ function refreshAlertStrip() {
   if (moreEl) {
     if (_alertMoreOpen && rest.length) {
       moreEl.innerHTML = rest.map(function (x) {
-        var s = (x.kind === 'notice') ? 'notice' : (x.severity || 'warning');
+        var s = (x.kind === 'notice') ? 'notice'
+              : (GOOD_NEWS_KEYS.indexOf(x.key) !== -1 ? 'good'
+              : (x.severity || 'warning'));
         return '<div class="amore-row amore-' + s + '">'
           + '<span style="flex:1;">' + (x.kind === 'notice' ? '📌 ' : '')
           + (x.auto ? '<span class="auto-chip">📡 מדידה אוטומטית</span> ' : '')
@@ -11027,10 +11149,11 @@ function _seasonAsDate(v) {
   var x = String(v).split('-');
   return x.length === 3 ? new Date(+x[0], +x[1] - 1, +x[2]) : new Date(v);
 }
-function _seasonISO(d) {
-  return d.getFullYear() + '-' + (d.getMonth() < 9 ? '0' : '') + (d.getMonth() + 1)
-       + '-' + (d.getDate() < 10 ? '0' : '') + d.getDate();
-}
+// _seasonISO used to be declared here as well. Function declarations hoist
+// and the last one wins for the whole scope, so this copy was never the one
+// that ran - every caller, including the ones above it, got the version
+// further down, which also copes with being handed a string. Dead code that
+// read as live.
 function _seasonHe(d) {
   var M = ['בינואר','בפברואר','במרץ','באפריל','במאי','ביוני','ביולי',
            'באוגוסט','בספטמבר','באוקטובר','בנובמבר','בדצמבר'];
@@ -17305,7 +17428,12 @@ var PUSH_TOPICS = [
   { k: 'zermatt',   ico: '🇨🇭', label: 'המעבר לצ׳רמט',  sub: 'נסגר, נפתח, או סגור כל היום' },
   { k: 'lifts',     ico: '🚡', label: 'מעליות',          sub: 'עצירה באמצע יום הסקי' },
   { k: 'weather',   ico: '💨', label: 'רוח ומפולות',     sub: 'משבים חזקים, דרגת סכנה' },
-  { k: 'snow',      ico: '❄️', label: 'שלג טרי',         sub: 'לא נשלח לטלפון, רק לסרגל' },
+  // It does reach the phone. This line said it did not, and so did a comment
+  // beside the rule in scrape.js - both written on the assumption that an
+  // "info" alert stays on the strip. It does not: cl_auto_alert pushes these,
+  // and a fresh-snow notification arriving on a phone is what proved it. A
+  // toggle that misdescribes what it controls is worse than no toggle.
+  { k: 'snow',      ico: '❄️', label: 'שלג טרי',         sub: 'הצטברות של 20 ס״מ ומעלה' },
   { k: 'community', ico: '💬', label: 'דיווחים מהשטח',   sub: 'מה שגולשים מדווחים' }
 ];
 var _pushTopicsCache = null;

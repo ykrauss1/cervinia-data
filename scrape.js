@@ -738,12 +738,21 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
   } else if (zPrev === 'CLOSED' && zNext === 'OPEN' && nowMin >= zOpenFrom) {
     // Opened after having been shut - worth telling the person who gave up
     // at nine. Before zOpenFrom this is just the morning timetable.
+    // The one alert people actively wait for. Somebody who read at nine that
+    // the crossing was shut has been checking all morning, so this is urgent
+    // in the ordinary sense of the word - it just is not alarming, and must
+    // not look alarming. The strip renders this key in green rather than the
+    // pale blue of an ordinary notice.
+    //
+    // It does reach the phone. The comment that used to sit here said info
+    // was "the strip, not the phone", and that was simply wrong: cl_auto_alert
+    // pushes these, as a fresh-snow alert arriving on a phone proved.
     out.push({
       key: 'zermatt-open',
-      severity: 'info',          // good news: the strip, not the phone
+      severity: 'info',
       hours: 5,
       cooldown: 8,
-      text: 'המעבר לצ׳רמט נפתח. אפשר לחצות.'
+      text: 'המעבר לצ׳רמט נפתח — אפשר לחצות לצ׳רמט.'
     });
   }
 
@@ -835,18 +844,31 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
   }
 
   // --- fresh snow ---------------------------------------------------------
-  // The one piece of good news worth a line on the strip. No push: nobody
-  // needs their phone to buzz about powder at four in the morning.
+  // The one piece of good news worth a line on the strip.
+  //
+  // It has to name the station. snow_depth is one number taken from Plan
+  // Maison, or from Plateau Rosa when Plan Maison is missing - and the
+  // mountain does not have one depth: on the morning this was written
+  // Plateau Rosa held 45 cm, Cime Bianche 40, Plan Maison 30 and Breuil 20.
+  // "30 cm" on its own reads as the depth of the resort, and sends somebody
+  // up expecting a third of what is actually at the top, or twice what is
+  // at the bottom.
   const sPrev = num(prev.snow_depth);
   const sNext = num(next.snow_depth);
   if (sPrev !== null && sNext !== null && sNext - sPrev >= 20) {
+    const pts = Array.isArray(next.snow_points) ? next.snow_points : [];
+    const at = pts.find(p => p.station === 'mid') || pts.find(p => p.station === 'top');
+    const where = at && at.name
+      ? ' ב-' + at.name + (at.altitude ? ' (' + at.altitude.toLocaleString('en-US') + ' מ׳)' : '')
+      : '';
     out.push({
       key: 'fresh-snow',
       severity: 'info',
       hours: 14,
       cooldown: 20,
-      text: 'ירד שלג טרי — ' + Math.round(sNext - sPrev) +
-            ' ס״מ נוספו, ועומק השלג כעת ' + Math.round(sNext) + ' ס״מ.'
+      text: 'ירד שלג טרי' + where + ' — ' + Math.round(sNext - sPrev) +
+            ' ס״מ נוספו, ו' + (where ? 'העומק שם' : 'עומק השלג') +
+            ' כעת ' + Math.round(sNext) + ' ס״מ.'
     });
   }
 
