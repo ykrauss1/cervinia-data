@@ -663,7 +663,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 // badge distinguishes the two.
 {
   const r = await page.evaluate(() => {
-    const read = () => document.getElementById('zermatt-status').textContent.trim();
+    // An exception here kills the whole run and hides every assertion after
+    // it - which is exactly what happened when the summer mode wiped this
+    // element and never put it back. A missing element is a finding, not a
+    // crash.
+    const read = () => {
+      const el = document.getElementById('zermatt-status');
+      return el ? el.textContent.trim() : '<<missing>>';
+    };
     const base = { temperature: 3, opening_hours: '08:00 - 16:45' };
     const out = {};
     renderLiveBar(Object.assign({}, base,
@@ -3824,13 +3831,21 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     });
     const before = snap();
     const keep = _seasonOverride;
+    let out_status_before, out_status_after;
+
+    // the Zermatt bar is repainted rather than created, and the element the
+    // live bar writes into lives inside the markup it replaces
+    const status = () => !!document.getElementById('zermatt-status');
+    out_status_before = status();
 
     _seasonOverride = 'summer'; applySummerMode(); const once = snap();
     applySummerMode(); applySummerMode();          const thrice = snap();
     _seasonOverride = 'winter'; applySummerMode(); const back = snap();
 
     _seasonOverride = keep; applySummerMode();
-    return { before, once, thrice, back };
+    out_status_after = status();
+    return { before, once, thrice, back,
+             statusBefore: out_status_before, statusAfter: out_status_after };
   });
 
   const T = 'the season switch does not reload the page under you';
@@ -3847,6 +3862,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `switching back left ${r.back.made} created and ${r.back.grid} cards, but the ` +
     `page started with ${r.before.made} and ${r.before.grid} - summer is leaking ` +
     'into winter'); else ok();
+
+  if (!r.statusBefore) fail(T,
+    'the live bar had no status element to begin with'); else ok();
+  if (!r.statusAfter) fail(T,
+    'leaving summer did not put the winter bar back, so #zermatt-status is ' +
+    'gone and the next live update throws'); else ok();
 
   // and the reload itself has to stay gone
   const src = fs.readFileSync(PAGE, 'utf8');

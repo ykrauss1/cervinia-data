@@ -13550,6 +13550,17 @@ function applySummerMode() {
     el.style.display = el.getAttribute('data-season-hid') || '';
     el.removeAttribute('data-season-hid');
   });
+  // The Zermatt bar is not created here, it is REPAINTED here - and the
+  // winter markup it replaces holds #zermatt-status, which the live bar
+  // writes into. Leaving summer without putting that markup back left the
+  // page with no status element at all, and the next render threw. The page
+  // reload used to hide this: it died before anybody noticed.
+  document.querySelectorAll('[data-season-was]').forEach(function (el) {
+    el.innerHTML = el.getAttribute('data-season-was');
+    el.removeAttribute('data-season-was');
+    el.style.cursor = '';
+    el.onclick = null;
+  });
   var _seasonMade = function (el) { if (el) el.setAttribute('data-season-made', '1'); return el; };
   var _seasonHide = function (el) {
     if (!el) return el;
@@ -13618,6 +13629,10 @@ function applySummerMode() {
   // הסתר סמל חיבור לצ'רמט והחלף בנוף קייצי
   var zermattBar = document.getElementById('bar-zermatt');
   if (zermattBar) {
+    // stash the winter markup once, so leaving summer can restore it
+    if (!zermattBar.hasAttribute('data-season-was')) {
+      zermattBar.setAttribute('data-season-was', zermattBar.innerHTML);
+    }
     zermattBar.innerHTML = `
       <svg width="90" height="80" viewBox="0 0 90 80" xmlns="http://www.w3.org/2000/svg">
         <!-- שמש -->
