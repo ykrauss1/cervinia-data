@@ -5414,6 +5414,70 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── the price box can be acted on, and says what it is ───────────────
+//
+// A big number on a dark card, with no airline, no link and nothing to
+// press. Yossi asked what it was for, which is the right question: it is a
+// daily scan, and the one thing in it anybody can use - a nearby date that
+// costs a third as much - was written as a sentence to be remembered and
+// typed back into the picker by hand.
+{
+  const T = 'the price box can be acted on, and says what it is';
+  const r = await page.evaluate(() => {
+    if (typeof flightForDatesHtml !== 'function') return { missing: true };
+    const real = _FLIGHTS;
+    window.WIN_FIX = {
+      generated: new Date().toISOString(),
+      nights: [3, 4, 7],
+      dests: { MXP: { he: 'מילאנו מלפנסה' } },
+      // within six days of the chosen date, which is as far as
+      // _flCheaperNearby looks
+      cal: { MXP: { '7': { '2026-12-08': 444, '2026-12-03': 145 } } }
+    };
+    (0, eval)('_FLIGHTS = WIN_FIX');
+    // The fixture is in the shape the real _flLookup reads, so nothing here
+    // is stubbed: the box is built by the page's own code.
+    const html = flightForDatesHtml('MXP', '2026-12-08', '2026-12-15', 2);
+    const box = document.createElement('div');
+    box.innerHTML = html;
+    const btn = box.querySelector('button[onclick*="setTripDates"]');
+    const out = {
+      says: box.textContent || '',
+      hasButton: !!btn,
+      onclick: btn ? btn.getAttribute('onclick') : '',
+      // the trip is seven nights, so the alternative must be seven too
+      nights: 7
+    };
+    window.WIN_REAL = real;
+    (0, eval)('_FLIGHTS = WIN_REAL');
+    return out;
+  });
+
+  if (r.missing) warn(T, 'the flight price box is not on this page');
+  else {
+    if (/הזול שנמצא/.test(r.says)) ok(); else fail(T,
+      `the box opens with "${r.says.trim().slice(0, 50)}" - a number this big ` +
+      `has to say what kind of number it is`);
+    if (/לא הזמנה/.test(r.says)) ok(); else fail(T,
+      'nothing says this is a scan rather than a seat - a price in a dark ' +
+      'card with no airline reads as an offer');
+    if (r.hasButton) ok(); else fail(T,
+      'the cheaper date is a sentence, not something to press: the reader has ' +
+      'to carry the date back to the picker themselves');
+    if (/2026-12-03/.test(r.onclick)) ok(); else fail(T,
+      `pressing it sets "${r.onclick}" - not the date it just named`);
+    // 3.12 + 7 nights = 10.12
+    if (/2026-12-10/.test(r.onclick)) ok(); else fail(T,
+      `the return date does not keep the trip at ${r.nights} nights: "${r.onclick}"`);
+    if (/145/.test(r.says) && /444/.test(r.says)) ok(); else fail(T,
+      'the box lost one of the two prices it is comparing');
+    // A button that reads only "on the 3rd it is $145" is still a sentence,
+    // whatever element it is made of - nothing on it says it can be pressed.
+    if (/עדכן לתאריכים/.test(r.says)) ok(); else fail(T,
+      'the cheaper date can be pressed but does not say so');
+  }
+}
+
 // ── somebody has to be told the notifications exist ───────────────────
 //
 // The offer to switch them on was written months ago, with good wording and

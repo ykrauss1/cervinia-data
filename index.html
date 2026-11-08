@@ -1010,7 +1010,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.12';
+  var v='v17.13';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6645,14 +6645,17 @@ function localStays() {
   return [
     { icon: '🔑', title: 'Immobiliare Monte Cervino — דירות שבועיות',
       desc: 'סוכנות מקומית · כ-15 דירות · <b>הזמנה אונליין</b> · אנגלית',
-      url: 'https://www.immobiliaremontecervino.it/en/weekly-rentals' },
-    { icon: '🔑', title: 'Immobiliare San Grato — דירות',
+      url: 'https://www.immobiliaremontecervino.it/en/' },
+    { icon: '📋', title: 'Immobiliare San Grato — דירות',
       desc: 'סוכנות ותיקה בכפר (מאז 1972) · שבועי ועונתי · פנייה בלבד · אנגלית',
       url: 'https://www.immobiliaresangrato.it/en/rentals/' },
     { icon: '🏔️', title: 'HelloChalet — בקתות ודירות',
       desc: 'חברה מקומית מוולטורננש · בקתות, דירות וחדרים · אנגלית',
       url: 'https://www.hellochalet.com/en/' },
-    { icon: '🇮🇹', title: 'מדריך האירוח הרשמי של צ\'רוויניה',
+    // Not a flag: Windows draws no flag emoji at all, it draws the two
+    // letters the flag is built from. "IT" in a box, which is what Yossi
+    // saw and read as a broken icon. It was one.
+    { icon: '📖', title: 'מדריך האירוח הרשמי של צ\'רוויניה',
       desc: 'מלונות ודירות ברשימת אתר הסקי עצמו · פנייה ישירה לבית המלון',
       url: 'https://www.cervinia.it/en/ospitalita-servizi' }
   ];
@@ -6920,12 +6923,25 @@ function searchAll() {
   }
 
   // רנדר תוצאות בתיבות
-  function section(ttl, bg, brd, lnks) {
+  function section(ttl, bg, brd, lnks, foot) {
     if (!lnks.length) return '';
     return '<div style="background:' + bg + ';border:1.5px solid ' + brd + ';border-radius:11px;padding:12px 14px;margin-bottom:10px;">'
       + '<div style="font-size:0.78rem;font-weight:bold;color:#333;margin-bottom:8px;">' + ttl + '</div>'
-      + makeResultLinks(lnks) + '</div>';
+      + makeResultLinks(lnks) + (foot || '') + '</div>';
   }
+
+  // Three of the agencies above answer only by email, in Italian. The site
+  // has had a letter writer for exactly that since the summer - fill it in
+  // in Hebrew, it comes out in Italian - behind a line of text inside the
+  // hotels panel. Yossi could not find it, and he wrote it. Here it is at
+  // the moment it is needed: under the agencies, in the search results the
+  // reader is already looking at.
+  const stayFoot =
+    '<div style="margin-top:9px;text-align:center;">'
+    + '<a href="#" onclick="openM(\'localStayModal\');return false;" '
+    + 'style="font-size:0.78rem;color:#0a6b4a;text-decoration:none;'
+    + 'border-bottom:1px dashed #9dc;">'
+    + '✉️ הסוכנויות עונות באיטלקית — כך כותבים להן</a></div>';
   const flightLinks2 = links.filter(l => l.kind === 'flight');
   const hotelLinks2  = links.filter(l => l.kind === 'stay');
   const carLinks2    = links.filter(l => l.kind === 'car');
@@ -6943,7 +6959,7 @@ function searchAll() {
   const res = document.getElementById('all-results');
   showResults(res);
   res.innerHTML = section('✈️ טיסות', '#f0f7ff', '#bcd', flightLinks2)
-               + (hasHotel ? (hotelLinks2.length ? section('🏨 לינה', '#f0fff8', '#9dc', hotelLinks2)
+               + (hasHotel ? (hotelLinks2.length ? section('🏨 לינה', '#f0fff8', '#9dc', hotelLinks2, stayFoot)
                                                  : missing('🏨 לינה', '#f0fff8', '#9dc')) : '')
                + (hasCar ? (carLinks2.length ? section('🚗 השכרת רכב', '#fff8f0', '#dca', carLinks2)
                                              : missing('🚗 השכרת רכב', '#fff8f0', '#dca')) : '');
@@ -7269,7 +7285,9 @@ function openArrivalPlanner() {
 var PLAN_PANES = {
   when:   { id: 'pane-when',   icon: '📅', title: 'מתי לנסוע',               chip: 'מתי לנסוע' },
   prep:   { id: 'pane-prep',   icon: '🧳', title: 'הכנות לפני הנסיעה',        chip: 'הכנות' },
-  search: { id: 'pane-search', icon: '🔍', title: 'חיפוש טיסה, רכב ולינה',    chip: 'חיפוש' }
+  // Not 'חיפוש': on a chip beside 'מתי לנסוע' it reads as the site's own
+  // search box, which is a different thing in a different place.
+  search: { id: 'pane-search', icon: '🔍', title: 'חיפוש טיסה, רכב ולינה',    chip: 'טיסה, רכב ולינה' }
 };
 
 // Shabbat lives in the kashrut panel now, and both doors into it - the
@@ -13426,23 +13444,45 @@ function flightForDatesHtml(dest, ci, co, pax) {
   var n2 = parseInt(pax, 10) || 1;
   var paxNote = 'המחיר לנוסע אחד' + (n2 > 1 ? ' · בחרת ' + n2 + ' נוסעים' : '');
 
+  // The hint was a sentence: "leaving on the 1st it costs 145". True, useful,
+  // and nothing to press - the reader had to read it, remember it, and go
+  // back up to the date picker to type it in. Pressed, it now sets the dates
+  // and the search runs on them. It is the one number in this box anybody
+  // can act on.
+  var jump = '';
+  if (cheaper) {
+    var co2 = new Date(Date.parse(cheaper.date + 'T00:00:00Z') + n * 86400000)
+                .toISOString().slice(0, 10);
+    jump = '<button type="button" onclick="setTripDates(\'' + cheaper.date + '\',\'' + co2 + '\')" ' +
+      'style="display:block;width:100%;margin-top:8px;font-size:0.76rem;text-align:right;' +
+      'background:rgba(255,255,255,.14);color:#fff;border:none;border-radius:7px;' +
+      'padding:7px 9px;cursor:pointer;font-family:inherit;line-height:1.5;">' +
+      '💡 ביציאה ב-' + _flDay(cheaper.date) + ' המחיר הוא <b><bdi>' + cheaper.price +
+      ' $</bdi></b> · <span style="text-decoration:underline;">עדכן לתאריכים האלה</span>' +
+      '</button>';
+  }
+
   return '<div style="background:linear-gradient(135deg,#0f2a4a,#1c4a7d);color:#fff;' +
     'border-radius:11px;padding:12px 14px;margin-bottom:10px;">' +
     '<div style="font-size:0.72rem;opacity:.75;margin-bottom:3px;">' +
-      'הלוך–חזור לתל אביב · ' + esc(name) + ' · ' + n + ' לילות</div>' +
+      'הזול שנמצא · הלוך–חזור לתל אביב · ' + esc(name) + ' · ' + n + ' לילות</div>' +
     '<div style="font-size:1.45rem;font-weight:800;line-height:1.1;">' +
       '<bdi>' + price + ' $</bdi></div>' +
     '<div style="font-size:0.7rem;opacity:.72;margin-top:3px;">' + esc(paxNote) +
       ' · ' + esc(_flAge(_FLIGHTS.generated)) + '</div>' +
-    (cheaper ? '<div style="margin-top:8px;font-size:0.76rem;background:rgba(255,255,255,.14);' +
-       'border-radius:7px;padding:6px 9px;">💡 ביציאה ב-' + _flDay(cheaper.date) +
-       ' המחיר הוא <b><bdi>' + cheaper.price + ' $</bdi></b></div>' : '') +
+    jump +
+    // Said once, here, because a big number in a dark box reads like an
+    // offer. It is a daily scan: no airline, no seat held, nothing booked.
+    '<div style="font-size:0.68rem;opacity:.6;margin-top:7px;line-height:1.5;">' +
+      'מחירון יומי להתרשמות, לא הזמנה · החיפוש למטה חי באתרים עצמם</div>' +
     '</div>';
 }
 
-// The three headline offers, shown before any dates are chosen. These are
-// the only figures that carry an airline name, because they are the only
-// ones that came from a real pricing call.
+// The headline offers, shown before any dates are chosen - four of them:
+// three trip shapes and one Israeli carrier. These are the only figures that
+// carry an airline name, because they are the only ones that came from a
+// real pricing call. (The comment said three for as long as there were
+// four, which is how Yossi came to go looking for a third one.)
 // One offer per kind of trip, because "the cheapest flight of the winter"
 // says nothing to somebody who can only get away from Thursday to Sunday.
 var _FL_KIND = {
