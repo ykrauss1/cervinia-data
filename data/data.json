@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-08T01:21:02.756Z",
-  "temperature": -6.5,
+  "updated_at": "2026-11-08T02:01:09.327Z",
+  "temperature": -7.5,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 19,
@@ -12,9 +12,9 @@
   "slopes_total_local": 5,
   "snow_depth": "30 cm",
   "last_snowfall": "06/11/2026",
-  "wind_speed": 8.3,
-  "wind_gust": 23.8,
-  "humidity": 59,
+  "wind_speed": 21.6,
+  "wind_gust": 25.6,
+  "humidity": 57,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -50,7 +50,7 @@
     }
   ],
   "forecast_today": {
-    "date": "Saturday, November 7",
+    "date": "Sunday, November 8",
     "morning": [
       {
         "name": "Breuil-Cervinia",
@@ -66,7 +66,7 @@
       },
       {
         "name": "Torgnon",
-        "icon": "cloudy"
+        "icon": "sun"
       }
     ],
     "afternoon": [
@@ -89,27 +89,6 @@
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Monday, November 9",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "cloudy"
-        }
-      ]
-    },
     {
       "date": "Tuesday, November 10",
       "periods": [
