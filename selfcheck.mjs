@@ -2593,7 +2593,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const out = { placeholder: inp.getAttribute('placeholder') || '' };
     const say = (v) => { inp.value = v; checkPassValidity(); return msg.textContent || ''; };
     out.short  = say('abc');
-    out.hebrew = say('סיסמא123');
+    out.hebrew = say('סיסמה123');
     out.digits = say('123456');       // digits only - allowed, and must be ACCEPTED
     out.weak   = say('abcdef');
     out.strong = say('Abcdef!');
@@ -3001,7 +3001,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       hasBox:    !!document.getElementById('pwResetModal'),
       hasField:  !!document.getElementById('pw-reset-new'),
       updates:   /auth\.updateUser\(\{ password/.test(src),
-      profileRefuses: /שינוי סיסמא לא זמין למשתמש זה/.test(src),
+      profileRefuses: /שינוי סיסמה לא זמין למשתמש זה/.test(src),
       profileUpdates: /sbNow\.auth\.updateUser/.test(src),
       checksOld: /signInWithPassword\(\{ email: loginEmail/.test(src)
     };
@@ -3023,7 +3023,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
         f.value = 'abc';
         await submitPasswordReset();
         out.shortMsg = (document.getElementById('pw-reset-msg') || {}).textContent || '';
-        f.value = 'סיסמא123';
+        f.value = 'סיסמה123';
         await submitPasswordReset();
         out.hebrewMsg = (document.getElementById('pw-reset-msg') || {}).textContent || '';
         f.value = '';
@@ -4903,7 +4903,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 // ── forgetting a password, and coming back from the link ──────────────
 // Four separate failures sat on this one road. The name typed into the
 // login box was not carried into the reset box. auth-err lives outside the
-// three panels, so a failed login left "יש למלא שם משתמש וסיסמא" sitting
+// three panels, so a failed login left "יש למלא שם משתמש וסיסמה" sitting
 // under a form that asks for neither. The server answered every name with
 // the same "if this name exists" sentence, which told the person nothing.
 // And the link itself landed on a page that signed him in and said nothing
@@ -4981,7 +4981,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!login || !forgot || !row || !hello || !err) { out.noForm = true; return out; }
     forgot.value = '';
     login.value = 'מוישה_זוכמיר';
-    err.textContent = 'יש למלא שם משתמש וסיסמא';
+    err.textContent = 'יש למלא שם משתמש וסיסמה';
     err.style.display = 'block';
     showForgotPassword();
     out.helloText  = hello.textContent || '';
@@ -5248,7 +5248,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 
     // the box at the end of the link
     if (r.introErr) fail(T, `openPasswordReset threw: ${r.introErr}`); else ok();
-    if (!/בחר סיסמא חדשה/.test(r.intro)) fail(T,
+    if (!/בחר סיסמה חדשה/.test(r.intro)) fail(T,
       `the box says "${r.intro.trim().slice(0, 70)}" instead of asking for the ` +
       `password`); else ok();
     if (/הגעת לכאן/.test(r.intro)) fail(T,
@@ -5285,7 +5285,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       'ordinary site with no word about the link he just clicked'); else ok();
     if (!/פג|נוצל/.test(r.spentText || '')) fail(T,
       `a spent link opens a box that says "${(r.spentText || '').slice(0, 60)}"`); else ok();
-    if (/בחר סיסמא חדשה/.test(r.spentText || '')) fail(T,
+    if (/בחר סיסמה חדשה/.test(r.spentText || '')) fail(T,
       'a spent link still invites him to choose a password it cannot save'); else ok();
     if (!r.spentLocked) fail(T,
       'the field is open on a link that cannot save what is typed into it'); else ok();
@@ -5296,7 +5296,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (r.deadErr) fail(T, `the expired-link path threw: ${r.deadErr}`); else ok();
     if (!r.liveBoxOpen) fail(T,
       'a live link opens a box with its fields locked'); else ok();
-    if (!/בחר סיסמא חדשה/.test(r.introAfterSpent || '')) fail(T,
+    if (!/בחר סיסמה חדשה/.test(r.introAfterSpent || '')) fail(T,
       `after a dead link the box keeps saying "${(r.introAfterSpent || '').slice(0, 50)}" ` +
       `over a link that is perfectly good`); else ok();
     if (!/פג/.test(r.deadMsg || '')) fail(T,
@@ -5334,15 +5334,16 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 
     // The letter. It explained that pressing the button would return him to
     // the site and that he would choose a password there - which is what a
-    // button called "בחירת סיסמא חדשה" already says, twice.
+    // button called "בחירת סיסמה חדשה" already says, twice.
     if (!/שלום \$\{name\},/.test(fn)) fail(T,
       'the letter no longer greets him by name'); else ok();
-    if (!/לבחירת סיסמא חדשה לחץ על הכפתור/.test(fn)) fail(T,
+    if (!/לבחירת סיסמה חדשה לחץ על הכפתור/.test(fn)) fail(T,
       'the letter does not say, in one line, what the button is for'); else ok();
     if (/תחזיר אותך לאתר|ושם תבחר/.test(fn)) fail(T,
       'the letter still narrates what will happen after the click'); else ok();
-    if (/סיסמה/.test(fn)) fail(T,
-      'the letter spells it "סיסמה" where the whole site spells it "סיסמא"'); else ok();
+    if (/סיסמא(?!ות)/.test(fn)) fail(T,
+      'the letter spells it "סיסמא" where the site settled on the standard ' +
+      '"סיסמה" - the plural "סיסמאות" is the one form that keeps the alef'); else ok();
     if (!/action_link/.test(fn)) fail(T,
       'the letter carries no link'); else ok();
   }

@@ -641,6 +641,39 @@ for i, ln in enumerate(d.get('kosher', {}).get('cervinia_products', [])):
             err('kosher.cervinia_products[%d] has Hebrew prose inside the '
                 'left-to-right product run: %r' % (i, m.group(0)[:40]))
 
+# ── spellings the site has settled on ───────────────────────────────────
+# Each of these was corrected by hand once already. A word that has been
+# fixed once will be typed the old way again, by whoever writes the next
+# line, unless something here remembers the decision.
+# The patterns are regular expressions, because one of them has to let the
+# plural through: "סיסמאות" is spelt that way whichever singular the site
+# settled on.
+HOUSE = [
+    (r'סקיים',        'סקי',   'the plural "סקיים" - the site says "סקי"'),
+    (r'ניענה',        'נענה',  '"ניענה" - a tsere takes no yod; the site says "נענה"'),
+    (r'סיסמא(?!ות)',  'סיסמה', '"סיסמא" - the Aramaic form; the site settled on '
+                               'the standard "סיסמה" (the plural "סיסמאות" stays)'),
+]
+
+def _house(blob, where):
+    for bad, good, why in HOUSE:
+        if re.search(bad, blob):
+            err('%s: %s (write %r)' % (where, why, good))
+
+_flat = []
+def _collect(o):
+    if isinstance(o, str):   _flat.append(o)
+    elif isinstance(o, dict):
+        for v in o.values(): _collect(v)
+    elif isinstance(o, list):
+        for v in o:          _collect(v)
+_collect(d)
+_house('\n'.join(_flat), 'texts.json')
+
+_idx = near('index.html')
+if os.path.exists(_idx):
+    _house(io.open(_idx, encoding='utf-8').read(), 'index.html')
+
 print('--- %s ---' % path)
 for e in ERR:  print('ERROR  ', e)
 for w in WARN: print('warn   ', w)
