@@ -4909,6 +4909,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 // And the link itself landed on a page that signed him in and said nothing
 // at all - because createClient reads the recovery hash and wipes it before
 // DOMContentLoaded, so the check for it always came up empty.
+//
+// Then a walk through the whole road on 7.11 found the rest: the name came
+// back inside an editable box, which is a question, and he had already
+// answered it; the button said "...שולח" with the dots on the Hebrew side;
+// the form that asked stayed on screen under the answer; the box at the end
+// of the link took the new password once, with no second field to catch a
+// typo; its Hebrew sat on the left; and when the link had expired, the
+// header still carried his name over a session that no longer existed.
 {
   const r = await page.evaluate(async () => {
     const out = {};
@@ -4929,49 +4937,206 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     } catch (e) { out.recErr = String(e && e.message); }
     out.listens = /PASSWORD_RECOVERY/.test(src);
 
-    // ── the typed name travels to the reset box, and the stale red line goes
+    // what Supabase actually sends back when the link is spent
+    try {
+      out.readsExpired = _readRecoveryError(
+        '#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired');
+      out.readsPlain   = _readRecoveryError('#access_token=abc&type=recovery');
+      out.readsNothing = _readRecoveryError('');
+      out.readsQuery   = _readRecoveryError('#&?error=server_error&error_code=unexpected_failure');
+    } catch (e) { out.readErr = String(e && e.message); }
+
+    // ⏏ has to end the session, not just our copy of it
+    try {
+      let signedOut = false;
+      (0, eval)('getSB = function () { return WIN_LOGOUT_SB; }');
+      window.WIN_LOGOUT_SB = { auth: { signOut: async () => { signedOut = true; return {}; } } };
+      (0, eval)("user = { name: 'מוישה_זוכמיר' }");
+      logout();
+      await new Promise((r) => setTimeout(r, 30));
+      out.logoutSignsOut = signedOut;
+      out.logoutClears   = (typeof user === 'undefined' || user === null);
+    } catch (e) { out.logoutErr = String(e && e.message); }
+
+    // the Hebrew placeholders in the registration box, which nothing
+    // reorders for them at open time
+    try {
+      showAuthTab('register');
+      for (const id of ['reg-pass', 'reg-pass2']) {
+        const el = document.getElementById(id);
+        if (!el) { out['dir_' + id] = 'missing'; continue; }
+        el.value = '';
+        out['dir_' + id] = getComputedStyle(el).direction;
+      }
+      showAuthTab('login');
+    } catch (e) { out.regDirErr = String(e && e.message); }
+
+    // ── the typed name travels to the reset box - as a sentence, not as a
+    //    question handed back to the person who just answered it
     const login  = document.getElementById('login-name');
     const forgot = document.getElementById('forgot-email');
+    const row    = document.getElementById('forgot-name-row');
+    const hello  = document.getElementById('forgot-hello');
     const err    = document.getElementById('auth-err');
-    if (!login || !forgot || !err) { out.noForm = true; return out; }
+    if (!login || !forgot || !row || !hello || !err) { out.noForm = true; return out; }
     forgot.value = '';
     login.value = 'מוישה_זוכמיר';
     err.textContent = 'יש למלא שם משתמש וסיסמא';
     err.style.display = 'block';
     showForgotPassword();
-    out.carried   = forgot.value;
-    out.staleGone = getComputedStyle(err).display === 'none' || err.textContent === '';
+    out.helloText  = hello.textContent || '';
+    out.helloHtml  = hello.innerHTML   || '';
+    out.rowHidden  = getComputedStyle(row).display === 'none';
+    out.staleGone  = getComputedStyle(err).display === 'none' || err.textContent === '';
+
+    // ── and when the page does NOT know the name, the box comes back
+    login.value = '';
+    const reg = document.getElementById('reg-name');
+    const regWas = reg ? reg.value : '';
+    if (reg) reg.value = '';
+    showForgotPassword();
+    out.rowShownWhenUnknown = getComputedStyle(row).display !== 'none';
+    out.helloWhenUnknown = hello.textContent || '';
+    if (reg) reg.value = regWas;
+
+    // ── the escape hatch: "not מוישה?" reopens the field
+    login.value = 'מוישה_זוכמיר';
+    showForgotPassword();
+    out.escapeOffered = /_forgotAskForName/.test(hello.innerHTML);
+    _forgotAskForName();
+    out.escapeWorks = getComputedStyle(row).display !== 'none';
 
     // ── what the box says back, for each of the four answers
     const real = window.supabaseSendPasswordReset;
     const say = async (status) => {
       window.supabaseSendPasswordReset = async () => ({ status });
-      forgot.value = 'מוישה_זוכמיר';
+      login.value = 'מוישה_זוכמיר';
+      showForgotPassword();                       // name known, field hidden
       const btn = document.getElementById('forgot-btn');
       if (btn) btn.disabled = false;
       await sendPasswordReset();
       const m = document.getElementById('forgot-msg');
-      return { text: m ? m.textContent : '', red: m ? m.style.color : '' };
+      const ask  = document.getElementById('forgot-ask');
+      const sent = document.getElementById('forgot-sent');
+      return {
+        text: m ? m.textContent : '',
+        red:  m ? m.style.color : '',
+        askGone:  ask  ? getComputedStyle(ask).display  === 'none'  : null,
+        sentShown: sent ? getComputedStyle(sent).display !== 'none' : null,
+        sentText: sent ? sent.textContent : ''
+      };
     };
     out.sent     = await say('sent');
     out.noUser   = await say('no-user');
+    // a wrong name has to bring the field back, or there is no way to fix it
+    out.noUserRowBack = getComputedStyle(row).display !== 'none';
     out.noEmail  = await say('no-email');
     out.failed   = await say('send-failed');
     window.supabaseSendPasswordReset = async () => ({ error: 'אין רשת' });
-    forgot.value = 'מוישה_זוכמיר';
+    login.value = 'מוישה_זוכמיר';
+    showForgotPassword();
     await sendPasswordReset();
     out.offline = (document.getElementById('forgot-msg') || {}).textContent || '';
-    window.supabaseSendPasswordReset = real;
 
-    // ── and the box at the end of the link says whose account it is
+    // ── the label while it is in flight. Hebrew reads right to left, so
+    //    dots written before the word land on its right.
+    let release = null;
+    window.supabaseSendPasswordReset = () =>
+      new Promise((res) => { release = () => res({ status: 'sent' }); });
+    login.value = 'מוישה_זוכמיר';
+    showForgotPassword();
+    const flight = sendPasswordReset();
+    out.sendingLabel = (document.getElementById('forgot-btn') || {}).textContent || '';
+    if (release) release();
+    await flight;
+    window.supabaseSendPasswordReset = real;
+    showForgotPassword();
+
+    // ── the box at the end of the link
     try {
       (0, eval)("user = { name: 'מוישה_זוכמיר' }");
       await openPasswordReset();
-      out.intro = (document.getElementById('pw-reset-intro') || {}).textContent || '';
-      out.introHtml = (document.getElementById('pw-reset-intro') || {}).innerHTML || '';
+      const intro = document.getElementById('pw-reset-intro');
+      const f1 = document.getElementById('pw-reset-new');
+      const f2 = document.getElementById('pw-reset-new2');
+      const hid = document.getElementById('pw-reset-user');
+      out.intro     = intro ? intro.textContent : '';
+      out.introDir  = intro ? getComputedStyle(intro).direction : '';
+      out.introAlign= intro ? getComputedStyle(intro).textAlign : '';
+      out.hasSecond = !!f2;
+      out.emptyDir  = f1 ? getComputedStyle(f1).direction : '';
+      // a latin password still types left to right once there is one
+      if (f1) { f1.value = 'Abc123!'; _pwDir(f1); out.filledDir = getComputedStyle(f1).direction; f1.value = ''; _pwDir(f1); }
+      out.hiddenUser   = hid ? hid.value : null;
+      out.hiddenUnseen = hid ? (hid.offsetHeight === 0 || getComputedStyle(hid).opacity === '0') : null;
+
+      // two different passwords must not be saved
+      if (f1 && f2) {
+        f1.value = 'Abc123!'; f2.value = 'Abc123?';
+        await submitPasswordReset();
+        const m = document.getElementById('pw-reset-msg');
+        out.mismatch = m ? m.textContent : '';
+        f1.value = ''; f2.value = '';
+      }
       closeM('pwResetModal');
-      (0, eval)('user = null');
+      (0, eval)('_pwResetOpen = false');
     } catch (e) { out.introErr = String(e && e.message); }
+
+    // ── a link that was already spent says so on arrival, instead of
+    //    taking a password it cannot save
+    try {
+      (0, eval)('_pwResetOpen = false');
+      (0, eval)("_RECOVERY_ERROR = 'expired'");
+      out.wantedOnError = _recoveryWanted() === true;
+      await openPasswordReset();
+      const di = document.getElementById('pw-reset-intro');
+      const db = document.getElementById('pw-reset-btn');
+      const d1 = document.getElementById('pw-reset-new');
+      out.spentText    = di ? di.textContent : '';
+      out.spentBtn     = db ? db.textContent : '';
+      out.spentLocked  = d1 ? d1.disabled : null;
+      closeM('pwResetModal');
+      (0, eval)("_RECOVERY_ERROR = ''");
+      (0, eval)('_pwResetOpen = false');
+    } catch (e) { out.spentErr = String(e && e.message); }
+
+    // ── an expired link must not leave his name in the header
+    try {
+      (0, eval)("user = { name: 'מוישה_זוכמיר' }");
+      renderHeader();
+      (0, eval)('_pwResetOpen = false');
+      let alive = true;
+      const fake = {
+        auth: {
+          updateUser: async () => ({ error: { message: 'invalid claim: missing sub claim' } }),
+          getSession: async () => ({ data: { session: alive ? { user: {} } : null } }),
+          signOut:    async () => ({})
+        }
+      };
+      (0, eval)('getSB = function () { return WIN_FAKE_SB; }');
+      window.WIN_FAKE_SB = fake;
+      await openPasswordReset();
+      out.liveBoxOpen = !document.getElementById('pw-reset-new').disabled;
+      out.introAfterSpent = (document.getElementById('pw-reset-intro') || {}).textContent || '';
+      alive = false;                               // the link dies mid-form
+      const f1 = document.getElementById('pw-reset-new');
+      const f2 = document.getElementById('pw-reset-new2');
+      f1.value = 'Abc123!'; f2.value = 'Abc123!';
+      await submitPasswordReset();
+      out.deadMsg    = (document.getElementById('pw-reset-msg') || {}).textContent || '';
+      out.deadLogged = (typeof user === 'undefined' || user === null);
+      out.deadHeader = (document.getElementById('auth-area') || {}).textContent || '';
+      // and a password the server merely refuses must NOT sign him out
+      (0, eval)("user = { name: 'מוישה_זוכמיר' }");
+      alive = true;
+      fake.auth.updateUser = async () => ({ error: { message: 'New password should be different from the old password.' } });
+      f1.value = 'Abc123!'; f2.value = 'Abc123!';
+      await submitPasswordReset();
+      out.sameMsg  = (document.getElementById('pw-reset-msg') || {}).textContent || '';
+      out.sameKept = !!(typeof user !== 'undefined' && user);
+      (0, eval)('user = null');
+      closeM('pwResetModal');
+    } catch (e) { out.deadErr = String(e && e.message); }
     return out;
   });
 
@@ -4990,44 +5155,162 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!r.listens) fail(T,
       'nothing listens for PASSWORD_RECOVERY, so a link in another shape is ' +
       'missed'); else ok();
-    if (r.carried !== 'מוישה_זוכמיר') fail(T,
-      `the name typed into the login box arrives as "${r.carried}" - he has to ` +
-      `type it again`); else ok();
+    if (r.readErr) fail(T, `_readRecoveryError threw: ${r.readErr}`); else ok();
+    if (r.readsExpired !== 'expired') fail(T,
+      `the hash Supabase sends back for a spent link is read as ` +
+      `"${r.readsExpired}" - so nothing tells him the link was spent`); else ok();
+    if (r.readsPlain !== '') fail(T,
+      `a good recovery hash is read as the error "${r.readsPlain}"`); else ok();
+    if (r.readsNothing !== '') fail(T,
+      `an ordinary visit is read as the error "${r.readsNothing}"`); else ok();
+    if (!r.readsQuery) fail(T,
+      'an error that is not otp_expired is read as no error at all'); else ok();
+
+    if (r.logoutErr) fail(T, `logout threw: ${r.logoutErr}`); else ok();
+    if (!r.logoutSignsOut) fail(T,
+      '⏏ clears our copy of the user and leaves the session itself alive, so ' +
+      'the name comes back by itself on the next load'); else ok();
+    if (!r.logoutClears) fail(T,
+      '⏏ leaves the page holding the user'); else ok();
+
+    if (r.regDirErr) fail(T, `the registration box threw: ${r.regDirErr}`); else ok();
+    for (const id of ['reg-pass', 'reg-pass2']) {
+      if (r['dir_' + id] !== 'rtl') fail(T,
+        `the Hebrew placeholder in ${id} runs ${r['dir_' + id]}, so it sits on ` +
+        `the left of the field`); else ok();
+    }
+
+    // the name: carried, said, and not asked again
+    if (!/מוישה_זוכמיר/.test(r.helloText)) fail(T,
+      `the reset box greets with "${r.helloText.slice(0, 60)}" - the name typed ` +
+      `one box ago never arrived`); else ok();
+    if (!r.rowHidden) fail(T,
+      'the name comes back inside a box that can be typed in, which asks him ' +
+      'again for what he just answered'); else ok();
+    if (/<script|<img/i.test(r.helloHtml)) fail(T,
+      'a username is written into the greeting unescaped'); else ok();
+    if (!r.rowShownWhenUnknown) fail(T,
+      'with no name to work from, the box to type one never appears'); else ok();
+    if (/שלום\s*$/.test(r.helloWhenUnknown.trim()) || /שלום <b><\/b>/.test(r.helloWhenUnknown)) fail(T,
+      `with no name it still greets: "${r.helloWhenUnknown.slice(0, 50)}"`); else ok();
+    if (!r.escapeOffered) fail(T,
+      'the greeting offers no way to correct a wrong name'); else ok();
+    if (!r.escapeWorks) fail(T,
+      'the way back to the name field does not open it'); else ok();
     if (!r.staleGone) fail(T,
       'a failed login leaves its red line under the reset form, where it reads ' +
       'as though the reset failed'); else ok();
 
-    // each answer has to be its own answer
-    if (!/שלחנו קישור/.test(r.sent.text)) fail(T,
-      `a sent link reports "${r.sent.text.slice(0, 60)}"`); else ok();
-    if (/^אם /.test(r.sent.text) || /אם שם המשתמש קיים/.test(r.sent.text)) fail(T,
-      'the box still answers "if this name exists", which answers nothing'); else ok();
+    // a sent link closes the question instead of sitting under the answer
+    if (!r.sent.sentShown) fail(T,
+      'after the link is sent nothing confirms it'); else ok();
+    if (!r.sent.askGone) fail(T,
+      'the form that asked stays on screen under the answer to it'); else ok();
+    if (!/שלחנו קישור/.test(r.sent.sentText)) fail(T,
+      `the confirmation reads "${r.sent.sentText.trim().slice(0, 60)}"`); else ok();
+    if (/מוישה_זוכמיר/.test(r.sent.sentText)) fail(T,
+      'the confirmation names him back at himself - he is the only person it ' +
+      'has been talking to'); else ok();
+    if (!/אישור/.test(r.sent.sentText)) fail(T,
+      'the confirmation has no way out of it'); else ok();
+
+    // the three failures keep the form, and say what went wrong
     if (!/לא נמצא משתמש/.test(r.noUser.text)) fail(T,
       `an unknown name reports "${r.noUser.text.slice(0, 60)}"`); else ok();
     if (/שלחנו/.test(r.noUser.text)) fail(T,
       'an unknown name is told a link was sent, and will wait for mail that ' +
       'is not coming'); else ok();
+    if (r.noUser.sentShown) fail(T,
+      'an unknown name is shown the confirmation of a link that was never ' +
+      'sent'); else ok();
+    if (!r.noUserRowBack) fail(T,
+      'the name was wrong and the field to fix it stays shut'); else ok();
     if (!/אין בחשבון כתובת מייל/.test(r.noEmail.text)) fail(T,
       `a user with no address reports "${r.noEmail.text.slice(0, 60)}"`); else ok();
     if (!/נכשלה/.test(r.failed.text)) fail(T,
       `a failed send reports "${r.failed.text.slice(0, 60)}"`); else ok();
-    if (/שלחנו/.test(r.failed.text)) fail(T,
+    if (/שלחנו/.test(r.failed.text) || r.failed.sentShown) fail(T,
       'a failed send is reported as a successful one'); else ok();
     if (!/שגיאה/.test(r.offline) || /שלחנו/.test(r.offline)) fail(T,
       `with no network the box says "${r.offline.slice(0, 60)}"`); else ok();
-    // the three bad answers must not be dressed in green
     for (const [k, v] of [['no-user', r.noUser], ['no-email', r.noEmail],
                           ['send-failed', r.failed]]) {
       if (!/c62828|rgb\(198, 40, 40\)/.test(v.red)) fail(T,
         `"${k}" is shown in the colour of a success`); else ok();
     }
 
+    // the in-flight label
+    if (!/שולח/.test(r.sendingLabel)) fail(T,
+      `while it sends the button reads "${r.sendingLabel}"`); else ok();
+    if (/^\s*[.…]/.test(r.sendingLabel)) fail(T,
+      `the button reads "${r.sendingLabel}" - dots written before a Hebrew ` +
+      `word land on its right, which is where English puts them`); else ok();
+
+    // the box at the end of the link
     if (r.introErr) fail(T, `openPasswordReset threw: ${r.introErr}`); else ok();
-    if (!/מוישה_זוכמיר/.test(r.intro)) fail(T,
-      `the box at the end of the link says "${r.intro.trim().slice(0, 70)}" - it ` +
-      `never says whose account was opened`); else ok();
-    if (/<script|<img/i.test(r.introHtml)) fail(T,
-      'a username is written into the box unescaped'); else ok();
+    if (!/בחר סיסמא חדשה/.test(r.intro)) fail(T,
+      `the box says "${r.intro.trim().slice(0, 70)}" instead of asking for the ` +
+      `password`); else ok();
+    if (/הגעת לכאן/.test(r.intro)) fail(T,
+      'the box explains where he came from, which he knows - he clicked the ' +
+      'link a second ago'); else ok();
+    if (r.intro.trim().length > 70) fail(T,
+      `the box opens with ${r.intro.trim().length} characters of explanation ` +
+      `over a field with one thing to do`); else ok();
+    if (r.introDir !== 'rtl') fail(T,
+      `the Hebrew in the box runs ${r.introDir}`); else ok();
+    if (r.introAlign !== 'right' && r.introAlign !== 'start') fail(T,
+      `the Hebrew in the box is aligned ${r.introAlign}, so it sits away from ` +
+      `the edge it is read from`); else ok();
+    if (!r.hasSecond) fail(T,
+      'the new password is typed once and never shown back - a typo becomes a ' +
+      'password he does not know'); else ok();
+    if (!/אינן תואמות/.test(r.mismatch || '')) fail(T,
+      `two different passwords were answered with "${(r.mismatch || '').slice(0, 50)}"`); else ok();
+    if (r.emptyDir !== 'rtl') fail(T,
+      'the Hebrew placeholder in the password field sits on the left'); else ok();
+    if (r.filledDir !== 'ltr') fail(T,
+      'a latin password is typed right to left'); else ok();
+    if (r.hiddenUser !== 'מוישה_זוכמיר') fail(T,
+      `the browser is told the password belongs to "${r.hiddenUser}" - with no ` +
+      `name beside the field it offers whichever account it has`); else ok();
+    if (!r.hiddenUnseen) fail(T,
+      'the field that tells the browser whose password this is shows on the ' +
+      'screen'); else ok();
+
+    // a link that was already spent
+    if (r.spentErr) fail(T, `the spent-link path threw: ${r.spentErr}`); else ok();
+    if (!r.wantedOnError) fail(T,
+      'a link that came back with an error opens nothing, so he lands on the ' +
+      'ordinary site with no word about the link he just clicked'); else ok();
+    if (!/פג|נוצל/.test(r.spentText || '')) fail(T,
+      `a spent link opens a box that says "${(r.spentText || '').slice(0, 60)}"`); else ok();
+    if (/בחר סיסמא חדשה/.test(r.spentText || '')) fail(T,
+      'a spent link still invites him to choose a password it cannot save'); else ok();
+    if (!r.spentLocked) fail(T,
+      'the field is open on a link that cannot save what is typed into it'); else ok();
+    if (!/קישור חדש/.test(r.spentBtn || '')) fail(T,
+      `the only button on a dead box reads "${r.spentBtn}" - it leads nowhere`); else ok();
+
+    // the expired link
+    if (r.deadErr) fail(T, `the expired-link path threw: ${r.deadErr}`); else ok();
+    if (!r.liveBoxOpen) fail(T,
+      'a live link opens a box with its fields locked'); else ok();
+    if (!/בחר סיסמא חדשה/.test(r.introAfterSpent || '')) fail(T,
+      `after a dead link the box keeps saying "${(r.introAfterSpent || '').slice(0, 50)}" ` +
+      `over a link that is perfectly good`); else ok();
+    if (!/פג/.test(r.deadMsg || '')) fail(T,
+      `an expired link reports "${(r.deadMsg || '').slice(0, 60)}"`); else ok();
+    if (!r.deadLogged) fail(T,
+      'the update failed and the page still holds him as signed in'); else ok();
+    if (/מוישה_זוכמיר/.test(r.deadHeader || '')) fail(T,
+      'the header keeps his name over a session that no longer exists, so the ' +
+      'screen says he is in and nothing he presses will agree'); else ok();
+    if (!/זהה לקודמת/.test(r.sameMsg || '')) fail(T,
+      `reusing the old password reports "${(r.sameMsg || '').slice(0, 60)}"`); else ok();
+    if (!r.sameKept) fail(T,
+      'a password the server merely refused signs him out of a session that is ' +
+      'still alive'); else ok();
   }
 }
 
@@ -5048,6 +5331,20 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       'page reads as "sent"'); else ok();
     if (!/ok: true, status/.test(fn)) fail(T,
       'the status is not in the body the page reads'); else ok();
+
+    // The letter. It explained that pressing the button would return him to
+    // the site and that he would choose a password there - which is what a
+    // button called "בחירת סיסמא חדשה" already says, twice.
+    if (!/שלום \$\{name\},/.test(fn)) fail(T,
+      'the letter no longer greets him by name'); else ok();
+    if (!/לבחירת סיסמא חדשה לחץ על הכפתור/.test(fn)) fail(T,
+      'the letter does not say, in one line, what the button is for'); else ok();
+    if (/תחזיר אותך לאתר|ושם תבחר/.test(fn)) fail(T,
+      'the letter still narrates what will happen after the click'); else ok();
+    if (/סיסמה/.test(fn)) fail(T,
+      'the letter spells it "סיסמה" where the whole site spells it "סיסמא"'); else ok();
+    if (!/action_link/.test(fn)) fail(T,
+      'the letter carries no link'); else ok();
   }
 }
 
@@ -5066,6 +5363,29 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `the title carries the name in both languages: "${title}"`); else ok();
   if (!/צ׳רוויניה לייב/.test(title)) fail(T,
     `the title does not carry the site's name: "${title}"`); else ok();
+
+  // Installed as an app, the window already carries the name from the
+  // manifest, and the page title said it again beside it. On the open web
+  // the title stays whole - that is the line Google shows - so the short
+  // one is set only when the page is actually running as an app.
+  const src2 = await page.content();
+  const sm = src2.match(/\(display-mode: standalone\)[\s\S]{0,300}?document\.title\s*=\s*'([^']+)'/);
+  if (!sm) fail(T,
+    'nothing shortens the title when the page runs as an installed app, so ' +
+    'the window bar carries the name twice'); else ok();
+  if (sm && /צ׳רוויניה|צ'רוויניה|CerviniaLive/.test(sm[1])) fail(T,
+    `as an app the page titles itself "${sm[1]}" - beside the app's own name ` +
+    `that is the brand twice`); else ok();
+
+  const mf = near('manifest.json');
+  if (!fs.existsSync(mf)) warn(T, 'manifest.json is not beside the page');
+  else {
+    const man = JSON.parse(fs.readFileSync(mf, 'utf8'));
+    if (/CerviniaLive/.test(man.name) && /צ׳רוויניה|צ'רוויניה/.test(man.name)) fail(T,
+      `the app installs itself as "${man.name}" - the name in both languages, ` +
+      `on a home screen with room for neither`); else ok();
+    if (!man.name) fail(T, 'the app has no name to install under'); else ok();
+  }
 }
 
 // ── the icons say the right thing ─────────────────────────────────────
