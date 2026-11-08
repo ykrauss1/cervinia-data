@@ -20,6 +20,9 @@ on:
       - 'selfcheck.mjs'
       - 'freshness.py'
       - 'verified_urls.json'
+      - 'alerts.mjs'
+      - 'alerts-test.mjs'
+      - 'scrape.js'
       - '.github/workflows/selfcheck.yml'
   pull_request:
   workflow_dispatch:        # להרצה ידנית מלשונית Actions
@@ -54,6 +57,12 @@ jobs:
       # numbers, no sideways overflow at seven phone widths.
       - name: בדיקת האתר
         run: node selfcheck.mjs
+
+      # The alert rules decide what buzzes on a stranger's phone. They need
+      # no browser and no network, so this runs first and fast - a broken
+      # rule should not wait behind a Playwright install to be reported.
+      - name: בדיקת כללי ההתראות
+        run: node alerts-test.mjs
 
       # A report, not a gate: which sources are due for a re-check.
       - name: רשימת הרענון החודשי
