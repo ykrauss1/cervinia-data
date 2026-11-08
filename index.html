@@ -1010,7 +1010,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.11';
+  var v='v17.12';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1090,6 +1090,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <button onclick="smGo('about')"><span>ℹ️</span>עלינו</button>
     <button onclick="smGo('contact')"><span>✉️</span>צור קשר</button>
     <button id="sm-install" onclick="smGo('install')"><span>📲</span>התקנת האפליקציה</button>
+    <button id="sm-push" onclick="smGo('push')"><span>🔔</span>התראות</button>
     <button onclick="smGo('help')"><span>❓</span>עזרה</button>
     <button onclick="smGo('sources')"><span>📚</span>מקורות ואמינות</button>
   </div>
@@ -1108,6 +1109,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
 
 <div class="container">
+
+  <!-- ההזמנה להתראות. ריקה עד ש-maybeOfferPush מחליטה שיש מה להציע. -->
+  <div id="push-invite"></div>
 
   <!-- בר נתונים חי -->
   <!-- The mountain sits behind the live bar rather than above it. A hero of
@@ -2518,9 +2522,18 @@ details.fold > .fold-body { padding: 0 13px 12px; }
   <div class="modal-content" dir="rtl" style="max-width:420px;padding:26px 24px;text-align:right;">
     <span class="close-btn" onclick="closeM('pwResetModal')">×</span>
     <h3 style="margin:0 0 6px;font-size:1.1rem;">🔑 בחירת סיסמה חדשה</h3>
-    <p id="pw-reset-intro" dir="rtl" style="color:#888;font-size:0.82rem;margin:0 0 16px;line-height:1.7;text-align:right;">
+    <p id="pw-reset-intro" dir="rtl" style="color:#888;font-size:0.82rem;margin:0 0 6px;line-height:1.7;text-align:right;">
       בחר סיסמה חדשה. היא תיכנס לתוקף מיד.
     </p>
+    <!-- The rule used to be the placeholder, which forced a choice between
+         two wrong things: Hebrew in a field pinned left to right, or - after
+         the first fix - a caret sitting on the right, inviting exactly the
+         letters the text was telling the reader not to use. Out here it is
+         readable, right-aligned, and still visible once typing starts, and
+         the field can be what a latin password needs. -->
+    <div dir="rtl" style="font-size:0.74rem;color:#9aa0a6;margin:0 0 10px;text-align:right;">
+      לפחות 6 תווים, באותיות לועזיות
+    </div>
     <!-- Chrome decides which saved password to offer by looking for a
          username next to the password field. With none here it offered
          whichever account it had for the site - the wrong one, under a
@@ -2530,10 +2543,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
            tabindex="-1" aria-hidden="true"
            style="position:absolute;opacity:0;height:0;width:0;padding:0;border:0;pointer-events:none;">
     <div style="position:relative;margin-bottom:10px;">
-      <input id="pw-reset-new" type="password" placeholder="לפחות 6 תווים, לא בעברית"
-        autocomplete="new-password" oninput="_pwDir(this);checkResetMatch()"
+      <input id="pw-reset-new" type="password" placeholder="••••••" aria-label="סיסמה חדשה"
+        autocomplete="new-password" oninput="checkResetMatch()"
         style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;
-               border-radius:9px;font-size:0.93rem;direction:rtl;text-align:right;font-family:inherit;">
+               border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;">
       <button type="button" onclick="togglePass('pw-reset-new')" tabindex="-1"
         style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;
                border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
@@ -2542,16 +2555,16 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          blind. Registration has asked twice from the start; the box that
          replaces a forgotten password had better ask twice too. -->
     <div style="position:relative;margin-bottom:6px;">
-      <input id="pw-reset-new2" type="password" placeholder="הקלד שוב לאימות"
-        autocomplete="new-password" oninput="_pwDir(this);checkResetMatch()"
+      <input id="pw-reset-new2" type="password" placeholder="••••••" aria-label="הקלד שוב לאימות"
+        autocomplete="new-password" oninput="checkResetMatch()"
         onkeydown="if(event.key==='Enter') submitPasswordReset()"
         style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;
-               border-radius:9px;font-size:0.93rem;direction:rtl;text-align:right;font-family:inherit;">
+               border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;">
       <button type="button" onclick="togglePass('pw-reset-new2')" tabindex="-1"
         style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;
                border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
     </div>
-    <div id="pw-reset-match" dir="rtl" style="font-size:0.74rem;margin:0 0 12px;min-height:16px;text-align:right;"></div>
+    <div id="pw-reset-match" dir="rtl" style="font-size:0.74rem;margin:0 0 12px;min-height:16px;text-align:right;color:#9aa0a6;">הקלד שוב לאימות</div>
     <button id="pw-reset-btn" onclick="submitPasswordReset()"
       style="width:100%;padding:12px;background:var(--accent);color:white;border:none;
              border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
@@ -2791,10 +2804,16 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       </div>
       <div style="margin-bottom:10px;">
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמה</label>
+        <!-- The rule sits beside the label, not inside the box. In the box
+             it had to choose between Hebrew sitting on the wrong side and a
+             caret inviting the letters it was warning against. -->
+        <div style="font-size:0.74rem;color:#9aa0a6;margin:0 0 5px;direction:rtl;text-align:right;">
+          לפחות 6 תווים — אותיות לועזיות, ספרות וסימנים
+        </div>
         <div style="position:relative;">
-          <input id="reg-pass" type="password" placeholder="לפחות 6 תווים — אותיות לועזיות, ספרות וסימנים" autocomplete="new-password"
-            style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;text-align:right;font-family:inherit;"
-            oninput="_pwDir(this);checkPassValidity()">
+          <input id="reg-pass" type="password" placeholder="••••••" aria-label="סיסמה" autocomplete="new-password"
+            style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
+            oninput="checkPassValidity()">
           <button type="button" onclick="togglePass('reg-pass')" tabindex="-1"
             style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
@@ -2803,9 +2822,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div style="margin-bottom:16px;">
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">אימות סיסמה</label>
         <div style="position:relative;">
-          <input id="reg-pass2" type="password" placeholder="הכנס שוב" autocomplete="new-password"
-            style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;text-align:right;font-family:inherit;"
-            onkeydown="if(event.key==='Enter') register()" oninput="_pwDir(this);checkPassMatch()">
+          <input id="reg-pass2" type="password" placeholder="••••••" aria-label="אימות סיסמה" autocomplete="new-password"
+            style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
+            onkeydown="if(event.key==='Enter') register()" oninput="checkPassMatch()">
           <button type="button" onclick="togglePass('reg-pass2')" tabindex="-1"
             style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
@@ -4655,23 +4674,19 @@ function _recoveryWanted() {
   } catch (e) { return false; }
 }
 
-// A Hebrew placeholder in a field forced to direction:ltr sits on the left,
-// where Hebrew is not read. The value is latin and belongs on the left; the
-// placeholder is Hebrew and belongs on the right. So the field follows
-// whichever of the two is on screen.
-function _pwDir(el) {
-  if (!el) return;
-  var has = !!el.value;
-  el.style.direction = has ? 'ltr' : 'rtl';
-  el.style.textAlign = has ? 'left' : 'right';
-}
+// _pwDir lived here. It flipped a password field to RTL while empty so a
+// Hebrew placeholder would sit on the right, and back to LTR once there was
+// a latin password in it. It solved the placeholder and created a worse
+// problem: the caret sat on the right, in the position that invites Hebrew,
+// under a line saying not to use it. The rules are outside the boxes now and
+// the boxes are plain left-to-right, so nothing needs flipping.
 
 function checkResetMatch() {
   var a = (document.getElementById('pw-reset-new')  || {}).value || '';
   var b = (document.getElementById('pw-reset-new2') || {}).value || '';
   var m = document.getElementById('pw-reset-match');
   if (!m) return;
-  if (!b) { m.textContent = ''; return; }
+  if (!b) { m.textContent = 'הקלד שוב לאימות'; m.style.color = '#9aa0a6'; return; }
   m.textContent  = (a === b) ? '✅ הסיסמאות תואמות' : '❌ הסיסמאות אינן תואמות';
   m.style.color  = (a === b) ? '#2e7d32' : '#c62828';
 }
@@ -4681,17 +4696,41 @@ function checkResetMatch() {
 // a box the reader had already closed.
 var _pwResetOpen = false;
 
+// And a second flag, which never goes back.
+//
+// _pwResetOpen answers "is the box open", and the success path set it back
+// to false when the box closed - correct for the question it asks, and
+// wrong for the job it was doing. Supabase emits PASSWORD_RECOVERY again
+// when it refreshes the token, a minute or two later, and with the guard
+// released the box reopened on somebody who had already chosen a password
+// and was reading the forum. There is nothing to do in it and no way to
+// understand why it is there.
+//
+// This one answers "are we finished with this", and once a password has
+// actually been saved the answer never changes back. It survives a reload
+// in the same tab, because the recovery session does too.
+var _pwResetDone = (function () {
+  try { return sessionStorage.getItem('cl.pwResetDone') === '1'; }
+  catch (e) { return false; }
+})();
+
+function _markPwResetDone() {
+  _pwResetDone = true;
+  _CAME_FROM_RECOVERY = false;
+  try { sessionStorage.setItem('cl.pwResetDone', '1'); } catch (e) {}
+}
+
 async function openPasswordReset() {
-  if (_pwResetOpen) return;
+  if (_pwResetDone || _pwResetOpen) return;
   _pwResetOpen = true;
   openM('pwResetModal');
   var m = document.getElementById('pw-reset-msg');
   if (m) { m.textContent = ''; m.style.display = 'none'; }
   var mm = document.getElementById('pw-reset-match');
-  if (mm) mm.textContent = '';
+  if (mm) { mm.textContent = 'הקלד שוב לאימות'; mm.style.color = '#9aa0a6'; }
   ['pw-reset-new', 'pw-reset-new2'].forEach(function (id) {
     var f = document.getElementById(id);
-    if (f) { f.value = ''; f.disabled = false; f.style.background = ''; _pwDir(f); }
+    if (f) { f.value = ''; f.disabled = false; f.style.background = ''; }
   });
   var btn0 = document.getElementById('pw-reset-btn');
   if (btn0) {
@@ -4809,8 +4848,9 @@ async function submitPasswordReset() {
     return say('לא הצלחנו לעדכן. נסה שוב בעוד רגע.', true);
   }
   say('✅ הסיסמה עודכנה. אפשר להיכנס איתה מעכשיו.');
+  _markPwResetDone();
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
-  setTimeout(function () { closeM('pwResetModal'); _pwResetOpen = false; }, 2200);
+  setTimeout(function () { closeM('pwResetModal'); }, 2200);
 }
 
 // ── the letter the panel writes ───────────────────────────────────────
@@ -5160,6 +5200,21 @@ var SIDE_MENU_ACTIONS = {
   contact: function () { openM('contactModal'); },
   help:    function () { openM('helpModal'); },
   sources: function () { openSources(); },
+  // The invitation at the top of the page shows once and is gone for good
+  // once it is turned down. Somebody who said "not now" in October and
+  // wants them in January needs a door that is always there - and the bell
+  // at the foot of the screen was not one anybody found, the site's own
+  // author included.
+  push:    function () { openAlertPanel(); setTimeout(function () {
+             var el = document.getElementById('push-row');
+             var box = document.querySelector('#alertModal .modal-content');
+             if (!el || !box) return;
+             try {
+               box.scrollTop = Math.max(0,
+                 el.getBoundingClientRect().top - box.getBoundingClientRect().top
+                 + box.scrollTop - 12);
+             } catch (e) {}
+           }, 120); },
   // The install prompt appears once and is gone after a tap. On a phone this
   // is the way back to it, so it gets a line of its own rather than hiding
   // behind "help" - and it opens the help panel already scrolled to it.
@@ -10238,7 +10293,7 @@ function toggleAlertMore(ev) {
 // Alerts that are urgent but not alarming: somebody has been refreshing the
 // page all morning waiting for exactly this one. Green and glowing on the
 // strip, never the red of something being wrong.
-var GOOD_NEWS_KEYS = ['zermatt-open', 'fresh-snow'];
+var GOOD_NEWS_KEYS = ['zermatt-open', 'fresh-snow', 'great-day'];
 
 function refreshAlertStrip() {
   var strip  = document.getElementById('alert-strip');
@@ -16594,7 +16649,10 @@ async function _admRenderUsers() {
         const el = document.getElementById('stat-users');
         if (!el) return;
         try {
-            const rows = await sbFetch('profiles_public?select=id');
+            // Not `id`: the public view deliberately does not carry it, nor
+            // is_admin - a stranger holding the public key has no business
+            // learning either. `username` is unique and already public.
+            const rows = await sbFetch('profiles_public?select=username');
             el.textContent = Array.isArray(rows) ? rows.length : '—';
         } catch (e) {
             console.warn('user count failed:', e);
@@ -17581,6 +17639,84 @@ function _isInstalled() {
       || navigator.standalone === true;
 }
 
+// ---- the invitation ----------------------------------------------------
+//
+// The offer to switch notifications on existed all along, with decent
+// wording and a working button - inside the alerts panel, behind the bell
+// at the foot of the screen. On 8.11 the person who built this site did not
+// know he had to go there to subscribe his own phone. A visitor has no
+// chance at all.
+//
+// So it is offered once, near the top of the page, where people already
+// are. Three rules keep it from becoming the thing everybody hates:
+// it waits until the reader has stayed a little, it never asks the browser
+// for permission by itself - that is the reader's press, and a prompt fired
+// on arrival is denied forever - and once it is turned down it never
+// appears again.
+var PUSH_INVITE_KEY = 'cl.pushInvite.v1';
+
+function dismissPushInvite() {
+  try { localStorage.setItem(PUSH_INVITE_KEY, String(Date.now())); } catch (e) {}
+  var el = document.getElementById('push-invite');
+  if (el) { el.style.opacity = '0'; setTimeout(function () { el.innerHTML = ''; }, 250); }
+}
+
+async function acceptPushInvite() {
+  dismissPushInvite();
+  // Open the panel too: the browser's own prompt appears over it, and when
+  // it is answered the reader lands somewhere that explains what they just
+  // switched on and lets them choose which categories.
+  try { if (typeof openAlertPanel === 'function') openAlertPanel(); } catch (e) {}
+  try { await togglePush(); } catch (e) {}
+}
+
+// Fifteen seconds. Long enough that it is not the first thing anybody
+// sees, short enough that somebody checking the snow before breakfast is
+// still there to see it. A service worker also needs a moment before
+// pushState can answer honestly.
+document.addEventListener('DOMContentLoaded', function () {
+  setTimeout(function () {
+    try { maybeOfferPush(); } catch (e) {}
+  }, 15000);
+});
+
+async function maybeOfferPush() {
+  var el = document.getElementById('push-invite');
+  if (!el) return;
+  try { if (localStorage.getItem(PUSH_INVITE_KEY)) return; } catch (e) {}
+
+  var st = await pushState();
+  // 'on' means they already have it, 'blocked' and 'unsupported' mean the
+  // question is settled and asking again is just noise.
+  if (st !== 'off' && st !== 'ios-install') return;
+
+  var ios = (st === 'ios-install');
+  var lead = ios
+    ? 'באייפון צריך קודם להוסיף את האתר למסך הבית: שתף ⬆️ ← הוסף למסך הבית.'
+    : 'המעבר לצ׳רמט נפתח, יורד שלג, רכבל נעצר — נודיע לך בטלפון, גם כשהאפליקציה סגורה.';
+
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;' +
+      'border:1.5px solid #cfe2ff;border-radius:12px;background:#f3f8ff;' +
+      'margin:0 0 14px;" dir="rtl">' +
+      '<span style="font-size:1.5rem;line-height:1;">🔔</span>' +
+      '<div style="flex:1;font-size:0.82rem;line-height:1.55;text-align:right;">' +
+        '<b>רוצה לדעת מה קורה בהר?</b><br>' +
+        '<span style="color:#666;">' + lead + '</span>' +
+      '</div>' +
+      (ios ? '' :
+        '<button type="button" onclick="acceptPushInvite()" ' +
+        'style="padding:8px 16px;border-radius:18px;border:none;background:#0d6efd;' +
+        'color:white;font-size:0.8rem;font-weight:bold;cursor:pointer;white-space:nowrap;">' +
+        'הפעל</button>') +
+      '<button type="button" onclick="dismissPushInvite()" aria-label="לא עכשיו" ' +
+      'style="background:none;border:none;color:#9aa0a6;font-size:1.1rem;' +
+      'cursor:pointer;padding:0 2px;line-height:1;">✕</button>' +
+    '</div>';
+  el.style.transition = 'opacity .25s';
+  el.style.opacity = '1';
+}
+
 // 'ios-install' | 'unsupported' | 'blocked' | 'on' | 'off'
 async function pushState() {
   // Check this before the generic support test: on iPhone, Safari hides
@@ -17691,7 +17827,7 @@ var PUSH_TOPICS = [
   // "info" alert stays on the strip. It does not: cl_auto_alert pushes these,
   // and a fresh-snow notification arriving on a phone is what proved it. A
   // toggle that misdescribes what it controls is worse than no toggle.
-  { k: 'snow',      ico: '❄️', label: 'שלג טרי',         sub: 'הצטברות של 20 ס״מ ומעלה' },
+  { k: 'snow',      ico: '❄️', label: 'שלג ותנאים טובים', sub: 'שלג טרי, ובוקר שההר כולו פתוח' },
   { k: 'community', ico: '💬', label: 'דיווחים מהשטח',   sub: 'מה שגולשים מדווחים' }
 ];
 var _pushTopicsCache = null;
@@ -17813,13 +17949,13 @@ async function renderPushRow(err) {
          + '<span style="color:#777;">לחץ על סמל המנעול שליד כתובת האתר ואפשר התראות.</span>';
   } else if (on) {
     body = '<b>התראות פעילות במכשיר הזה</b><br>'
-         + '<span style="color:#777;">תקבל הודעה על התראות דחופות, גם כשהאתר סגור.</span>';
+         + '<span style="color:#777;">תקבל הודעה על התראות דחופות, גם כשהאפליקציה סגורה.</span>';
     action = '<button type="button" id="push-btn" onclick="togglePush()" '
            + 'style="padding:6px 14px;border-radius:16px;border:1.5px solid #cfd4da;background:white;'
            + 'color:#666;font-size:0.76rem;cursor:pointer;white-space:nowrap;">בטל</button>';
   } else {
     body = '<b>קבל התראות דחופות לטלפון</b><br>'
-         + '<span style="color:#777;">מסלול שנסגר, רכבל שנעצר - גם כשהאתר סגור.</span>';
+         + '<span style="color:#777;">מסלול שנסגר, רכבל שנעצר - גם כשהאפליקציה סגורה.</span>';
     action = '<button type="button" id="push-btn" onclick="togglePush()" '
            + 'style="padding:6px 14px;border-radius:16px;border:none;background:#0d6efd;'
            + 'color:white;font-size:0.76rem;font-weight:bold;cursor:pointer;white-space:nowrap;">הפעל</button>';

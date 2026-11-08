@@ -220,6 +220,52 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
     });
   }
 
+  // --- a day worth getting up for ---------------------------------------
+  //
+  // Every other rule here is about something going wrong, or about a thing
+  // that was shut opening. That leaves the ordinary excellent day - the
+  // crossing open since breakfast, the whole mountain turning, nothing in
+  // the forecast - saying nothing at all, because nothing CHANGED. On 8.11
+  // every lift was running and the strip was empty.
+  //
+  // So this one rule reads a state rather than a transition. It is the only
+  // one that does, which is why it is fenced in on all sides: the first two
+  // hours of the day, once per day by its cooldown, and a bar set high
+  // enough that it stays worth reading. A green line that arrives every
+  // morning is a green line nobody sees.
+  {
+    // The first two hours of the operator's own day, whatever they are.
+    // skiDayWindow trims from both ends and cannot express "the first two
+    // hours", so this one is measured from the opening time directly.
+    const hrs = parseOpeningHours(next);
+    const goodWin = hrs ? [hrs[0], Math.min(hrs[0] + 120, hrs[1])] : [8 * 60, 10 * 60];
+    const oNow = liftsOpen(next);
+    const tNow = liftsTotal(next);
+    const av   = num(next.avalanche_level);
+    const gust = num(next.wind_gust);
+    // If the crossing has just opened, that line is already on the strip and
+    // already green. Two cheerful notifications in one minute is one too
+    // many, and the second says less than the first.
+    const alreadyGood = out.some(a => a.key === 'zermatt-open');
+    if (!alreadyGood &&
+        inWindow(goodWin, nowMin) &&
+        zNext === 'OPEN' &&
+        oNow !== null && tNow !== null && tNow > 0 &&
+        oNow >= 6 && oNow >= Math.ceil(tNow * 0.8) &&
+        (av === null || av <= 2) &&
+        (gust === null || gust < 50)) {
+      out.push({
+        key: 'great-day',
+        severity: 'info',
+        hours: 7,
+        cooldown: 20,
+        text: 'יום גלישה טוב — המעבר לצ׳רמט פתוח, ' + oNow + ' מתוך ' + tNow +
+              ' מעליות פועלות' +
+              (av !== null && av <= 1 ? ', והשלג יציב' : '') + '.'
+      });
+    }
+  }
+
   // --- lifts, inside the skiing day only --------------------------------
   if (inWindow(liftWin, nowMin)) {
     const oPrev = liftsOpen(prev);
@@ -325,22 +371,105 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
     const where = at && at.name
       ? ' ב-' + at.name + (at.altitude ? ' (' + at.altitude.toLocaleString('en-US') + ' מ׳)' : '')
       : '';
+    // Twenty centimetres and sixty are not the same news, and until now the
+    // same flat sentence carried both: "ירד שלג טרי — 30 ס״מ נוספו", in the
+    // register of a weather report. Forty is where it stops being a good
+    // morning and starts being the reason somebody drives four hours.
+    const added = Math.round(sNext - sPrev);
+    const lots  = added >= 40;
     out.push({
       key: 'fresh-snow',
       severity: 'info',
       hours: 14,
       cooldown: 20,
-      text: 'ירד שלג טרי' + where + ' — ' + Math.round(sNext - sPrev) +
-            ' ס״מ נוספו, ו' + (where ? 'העומק שם' : 'עומק השלג') +
-            ' כעת ' + Math.round(sNext) + ' ס״מ.'
+      text: (lots ? 'המון שלג טרי! ' : 'שלג טרי! ') +
+            added + ' ס״מ נוספו' + where + '. ' +
+            (where ? 'העומק כעת ' : 'עומק השלג כעת ') +
+            Math.round(sNext) + ' ס״מ.' +
+            (lots ? ' גלישה מהנה!' : '')
     });
   }
 
   return out;
 }
 
+// ------------------------------------------------------------
+//  Which switch each alert answers to
+//
+//  This is a MIRROR. The real decision is cl_alert_topic() in the database,
+//  because that is what cl_push_targets joins against. It is written out
+//  here so that the test suite can check one thing the database cannot:
+//  that every key the rules above can produce has a switch at all.
+//
+//  cl_alert_topic falls through to 'community' - the switch for what other
+//  skiers report - so a key nobody mapped does not go silent. It goes to
+//  the wrong people, under a heading that has nothing to do with it. That
+//  is what would have happened to great-day.
+//
+//  Change one of these and you must change the other. The test suite will
+//  tell you if you forget this half; nothing will tell you if you forget
+//  the SQL half, which is the honest weakness of keeping it in two places.
+// ------------------------------------------------------------
+const TOPIC_OF = {
+  'zermatt-closed':     'zermatt',
+  'zermatt-open':       'zermatt',
+  'zermatt-shut-today': 'zermatt',
+  'lifts-all-closed':   'lifts',
+  'lifts-mostly-closed':'lifts',
+  'wind-strong':        'weather',
+  'wind-severe':        'weather',
+  'avalanche-high':     'weather',
+  'fresh-snow':         'snow',
+  'great-day':          'snow'
+};
+
+// ------------------------------------------------------------
+//  The feed's placeholder
+//
+//  zermatt_link is not always OPEN or CLOSED. Between seasons, and between
+//  the operator's own updates, it reads "NEXT UPDATE" - and on 8.11 that
+//  landed in exactly the wrong place:
+//
+//      08:21  CLOSED
+//      09:01  NEXT UPDATE
+//      09:41  NEXT UPDATE
+//      11:01  OPEN
+//
+//  The rule that announces an opening asks for CLOSED -> OPEN. What it was
+//  handed was NEXT UPDATE -> OPEN, which is not that, so on a morning when
+//  the crossing opened late and every lift on the mountain was running,
+//  nobody was told. The time guard would have allowed it: 11:01 here is
+//  10:01 in Rome, past the half-nine cutoff that separates a late opening
+//  from the timetable.
+//
+//  So the baseline the rules compare against carries the last reading that
+//  actually said something, rather than the last reading. Rows come newest
+//  first; anything that is not a state is passed over.
+// ------------------------------------------------------------
+function lastKnownZermatt(rows) {
+  for (const r of (rows || [])) {
+    const z = upper(r && r.zermatt_link);
+    if (z === 'OPEN' || z === 'CLOSED') return z;
+  }
+  return '';
+}
+
+// Hand it the history, newest first, and it gives back the previous reading
+// with a zermatt_link worth comparing. Everything else is left alone: a
+// placeholder says nothing about the wind either, but the wind reading in
+// that same row is real.
+function baselineFrom(rows) {
+  const prev = (rows && rows[0]) || null;
+  if (!prev) return null;
+  const z = upper(prev.zermatt_link);
+  if (z === 'OPEN' || z === 'CLOSED') return prev;
+  const known = lastKnownZermatt(rows);
+  if (!known) return prev;
+  return Object.assign({}, prev, { zermatt_link: known });
+}
+
 export {
-  detectAutoAlerts,
+  detectAutoAlerts, lastKnownZermatt, baselineFrom, TOPIC_OF,
   romeMinutes, inWindow, skiDayWindow, parseOpeningHours,
   num, upper, liftsOpen, liftsTotal,
   LIFT_WINDOW, WIND_WINDOW, AVALANCHE_WINDOW

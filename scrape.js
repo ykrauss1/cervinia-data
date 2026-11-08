@@ -554,7 +554,7 @@ function saveToJson(data) {
 
 // The alert rules live in alerts.mjs, so that they can be exercised without
 // starting a scraper. See the header there.
-import { detectAutoAlerts } from './alerts.mjs';
+import { detectAutoAlerts, baselineFrom } from './alerts.mjs';
 
 // ------------------------------------------------------------
 //  Reading the baseline
@@ -586,16 +586,24 @@ function _describeReading(r) {
 async function readPreviousReading() {
   // 1. the table every run inserts into
   try {
+    // Forty-eight rows is a day of half-hourly readings. Only the newest is
+    // the baseline; the rest are there so that baselineFrom can look past a
+    // run of "NEXT UPDATE" to the last answer that meant something.
     const { data, error } = await supabase
       .from('ski_status_history')
       .select('*')
       .order('updated_at', { ascending: false })
-      .limit(1);
+      .limit(48);
     if (error) {
       console.warn('History baseline unavailable:', error.message);
     } else if (data && data.length) {
-      console.log('Baseline from ski_status_history: ' + _describeReading(data[0]));
-      return data[0];
+      const base = baselineFrom(data);
+      if (base && base.zermatt_link !== data[0].zermatt_link) {
+        console.log('Baseline zermatt carried forward: "' + data[0].zermatt_link +
+                    '" -> "' + base.zermatt_link + '"');
+      }
+      console.log('Baseline from ski_status_history: ' + _describeReading(base));
+      return base;
     } else {
       console.log('ski_status_history is empty.');
     }
@@ -676,6 +684,55 @@ async function raiseAutoAlerts(prev, next) {
 }
 
 // ============================================================
+//  DID ANYBODY ACTUALLY GET IT?
+//
+//  On 8.11 the push pipeline was dead for three days and the site showed
+//  no sign of it. Alerts appeared on the strip, green and correct, while
+//  every delivery failed with a 403 nobody could see: the webhook secret
+//  and the function's copy of it had drifted apart during a rotation, and
+//  the only record of the failure was pg_net's own response table.
+//
+//  It was found because a person said "I did not get a notification". That
+//  is not a monitoring strategy.
+//
+//  push-send stamps pushed_at BEFORE it sends, so an alert that should have
+//  gone out and still has an empty pushed_at never reached the function at
+//  all. Five minutes is long enough that nothing in flight is counted.
+//
+//  This runs last, after the data is safely written, and then makes the run
+//  go red - the scraper's job is done either way, but a red Action sends an
+//  email, and an email is the one channel that actually arrives.
+// ============================================================
+async function reportStuckPushes() {
+  try {
+    const { data, error } = await supabase.rpc('cl_push_stuck');
+    if (error) {
+      console.warn('Push health check unavailable:', error.message);
+      return;
+    }
+    if (!data || !data.length) {
+      console.log('Push health: nothing stuck.');
+      return;
+    }
+    console.error('');
+    console.error('=== PUSH IS NOT BEING DELIVERED ===');
+    console.error(data.length + ' alert(s) were raised, should have been pushed,');
+    console.error('and never reached push-send:');
+    for (const r of data) {
+      console.error('  ' + r.created_at + '  ' + r.auto_key);
+    }
+    console.error('');
+    console.error('Look at net._http_response for the status the webhook got.');
+    console.error('403 means the secret in cl_secrets and the one push-send');
+    console.error('reads have come apart. 503 means the row is missing.');
+    console.error('===================================');
+    process.exitCode = 1;
+  } catch (e) {
+    console.warn('Push health check failed:', e.message);
+  }
+}
+
+// ============================================================
 // MAIN
 //
 // The order matters in one place: the previous reading is fetched first,
@@ -689,3 +746,4 @@ console.log('SCRAPED DATA:', JSON.stringify(data, null, 2));
 saveToJson(data);
 await saveToSupabase(data);
 await raiseAutoAlerts(previous, data);
+await reportStuckPushes();

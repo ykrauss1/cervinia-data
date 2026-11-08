@@ -2590,7 +2590,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const inp = document.getElementById('reg-pass');
     const msg = document.getElementById('pass-validity-msg');
     if (!inp || !msg || typeof checkPassValidity !== 'function') return { missing: true };
-    const out = { placeholder: inp.getAttribute('placeholder') || '' };
+    // The rule used to live in the placeholder and now sits beside the
+    // label, because inside the box it dragged the caret to the Hebrew side
+    // of a field that only takes latin letters. Wherever it is, it has to
+    // be on screen and it has to be true.
+    const panel = document.getElementById('auth-panel-register');
+    const out = { placeholder: inp.getAttribute('placeholder') || '',
+                  rule: panel ? (panel.textContent || '') : '' };
     const say = (v) => { inp.value = v; checkPassValidity(); return msg.textContent || ''; };
     out.short  = say('abc');
     out.hebrew = say('סיסמה123');
@@ -2604,10 +2610,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const T = 'the password rule says what it actually enforces';
   if (r.missing) warn(T, 'the registration password field is not on the page');
   else {
-    if (/באנגלית/.test(r.placeholder)) fail(T,
-      `the field still says "${r.placeholder}" - digits and symbols are accepted too`); else ok();
-    if (!/6/.test(r.placeholder)) fail(T,
-      'the field no longer states the one rule there is'); else ok();
+    if (/באנגלית/.test(r.rule)) fail(T,
+      'the box still says "באנגלית" - digits and symbols are accepted too'); else ok();
+    if (!/6/.test(r.rule)) fail(T,
+      'nothing in the registration box states the one rule there is'); else ok();
+    if (!/לועזיות/.test(r.rule)) fail(T,
+      'the box does not say the letters have to be latin, which is the thing ' +
+      'a Hebrew keyboard gets wrong'); else ok();
     if (!/6 תווים/.test(r.short)) fail(T,
       `three characters are answered with "${r.short}"`); else ok();
     if (!/עברית/.test(r.hebrew)) fail(T,
@@ -3239,7 +3248,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.anonTable  = /sbFetch\('profiles\?/.test(src) ||
                      /from\('profiles'\)[\s\S]{0,80}\.select\('username, level/.test(src);
     out.usesView   = /profiles_public\?select=username,avatar_url/.test(src);
-    out.viewCount  = /profiles_public\?select=id/.test(src);
+    // Any column will do - the point is that the count comes from the view
+    // and not from the table. Pinning the column name made this fail the day
+    // `id` was taken out of the view for a reason that had nothing to do
+    // with counting, which is a check testing the wrong thing.
+    out.viewCount  = /profiles_public\?select=\w+/.test(src);
     out.loginRpc   = /rpc\('cl_login_email'/.test(src) &&
                      !/from\('profiles'\)\.select\('internal_email'\)/.test(src);
     out.takenRpc   = /rpc\('cl_username_taken'/.test(src);
@@ -4967,7 +4980,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
         if (!el) { out['dir_' + id] = 'missing'; continue; }
         el.value = '';
         out['dir_' + id] = getComputedStyle(el).direction;
+        out['ph_' + id]  = el.placeholder || '';
       }
+      const rp = document.getElementById('auth-panel-register');
+      out.regRuleShown = rp ? /לועזיות/.test(rp.textContent) : false;
       showAuthTab('login');
     } catch (e) { out.regDirErr = String(e && e.message); }
 
@@ -5065,8 +5081,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       out.introAlign= intro ? getComputedStyle(intro).textAlign : '';
       out.hasSecond = !!f2;
       out.emptyDir  = f1 ? getComputedStyle(f1).direction : '';
-      // a latin password still types left to right once there is one
-      if (f1) { f1.value = 'Abc123!'; _pwDir(f1); out.filledDir = getComputedStyle(f1).direction; f1.value = ''; _pwDir(f1); }
+      if (f1) { f1.value = 'Abc123!'; out.filledDir = getComputedStyle(f1).direction; f1.value = ''; }
+      // the rule has to be ON SCREEN, not inside the box: a placeholder is
+      // gone the moment typing starts, and in the box it dragged the caret
+      // to the Hebrew side
+      const mc = document.querySelector('#pwResetModal .modal-content');
+      out.ruleShown = mc ? /לועזיות/.test(mc.textContent) : false;
+      out.rulePlaceholder = f1 ? /עברית|לועזיות|תווים/.test(f1.placeholder || '') : false;
       out.hiddenUser   = hid ? hid.value : null;
       out.hiddenUnseen = hid ? (hid.offsetHeight === 0 || getComputedStyle(hid).opacity === '0') : null;
 
@@ -5081,6 +5102,55 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       closeM('pwResetModal');
       (0, eval)('_pwResetOpen = false');
     } catch (e) { out.introErr = String(e && e.message); }
+
+    // ── once a password has been chosen, the box is finished ────────
+    //
+    // It reopened on 8.11 on somebody who had already reset his password
+    // and was reading the forum: the success path released the guard, and
+    // Supabase emits PASSWORD_RECOVERY again when it refreshes the token.
+    try {
+      (0, eval)("sessionStorage.removeItem('cl.pwResetDone')");
+      (0, eval)('_pwResetDone = false; _pwResetOpen = false');
+      // As it is when the link has just been opened, so that clearing the
+      // flag afterwards is something the check can actually see. Left at
+      // false - as it is on an ordinary page - the assertion passed whether
+      // the line that clears it was there or not.
+      (0, eval)('_CAME_FROM_RECOVERY = true');
+      (0, eval)("user = { name: 'מוישה_זוכמיר' }");
+      let live = true;
+      window.WIN_DONE_SB = {
+        auth: {
+          updateUser: async () => ({ data: {}, error: null }),
+          getSession: async () => ({ data: { session: live ? { user: {} } : null } }),
+          signOut:    async () => ({})
+        }
+      };
+      (0, eval)('getSB = function () { return WIN_DONE_SB; }');
+      await openPasswordReset();
+      const f1 = document.getElementById('pw-reset-new');
+      const f2 = document.getElementById('pw-reset-new2');
+      f1.value = 'Abc123!'; f2.value = 'Abc123!';
+      await submitPasswordReset();
+      out.savedOk    = /עודכנה/.test((document.getElementById('pw-reset-msg') || {}).textContent || '');
+      out.doneFlag   = _pwResetDone === true;
+      out.doneSticks = (() => { try { return sessionStorage.getItem('cl.pwResetDone') === '1'; }
+                                catch (e) { return false; } })();
+      out.recoveryCleared = _CAME_FROM_RECOVERY === false;
+      // the modal closes on a timer; pretend that has happened
+      closeM('pwResetModal');
+      // ...and now the page is reloaded in the same tab, which is the case
+      // that _pwResetOpen cannot help with: it starts false again, and only
+      // the stored flag stands between the reader and a box asking for a
+      // password he set two minutes ago. Dropping _pwResetDone from the
+      // guard passed this check until the line below was added.
+      (0, eval)('_pwResetOpen = false');
+      await openPasswordReset();
+      const m = document.getElementById('pwResetModal');
+      out.stayedShut = !m || getComputedStyle(m).display === 'none';
+      (0, eval)("sessionStorage.removeItem('cl.pwResetDone')");
+      (0, eval)('_pwResetDone = false; _pwResetOpen = false; user = null');
+      closeM('pwResetModal');
+    } catch (e) { out.doneErr = String(e && e.message); }
 
     // ── a link that was already spent says so on arrival, instead of
     //    taking a password it cannot save
@@ -5175,10 +5245,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 
     if (r.regDirErr) fail(T, `the registration box threw: ${r.regDirErr}`); else ok();
     for (const id of ['reg-pass', 'reg-pass2']) {
-      if (r['dir_' + id] !== 'rtl') fail(T,
-        `the Hebrew placeholder in ${id} runs ${r['dir_' + id]}, so it sits on ` +
-        `the left of the field`); else ok();
+      if (r['dir_' + id] === 'ltr') ok(); else fail(T,
+        `${id} runs ${r['dir_' + id]}, so the caret waits on the Hebrew side ` +
+        `of a field that only takes latin letters`);
+      if (!/עברית|לועזיות|תווים/.test(r['ph_' + id] || '')) ok(); else fail(T,
+        `${id} keeps the rule in its placeholder: "${r['ph_' + id]}"`);
     }
+    if (r.regRuleShown) ok(); else fail(T,
+      'the registration box no longer says what the password has to look like');
 
     // the name: carried, said, and not asked again
     if (!/מוישה_זוכמיר/.test(r.helloText)) fail(T,
@@ -5267,16 +5341,42 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       'password he does not know'); else ok();
     if (!/אינן תואמות/.test(r.mismatch || '')) fail(T,
       `two different passwords were answered with "${(r.mismatch || '').slice(0, 50)}"`); else ok();
-    if (r.emptyDir !== 'rtl') fail(T,
-      'the Hebrew placeholder in the password field sits on the left'); else ok();
+    // Two goes at this. The field began left-to-right with a Hebrew
+    // placeholder stranded on the wrong side; flipping it while empty put
+    // the placeholder right and the caret with it - blinking on the Hebrew
+    // side of a box whose own text said "not in Hebrew". The rule moved out
+    // of the box instead, and the box is plainly latin from the start.
     if (r.filledDir !== 'ltr') fail(T,
       'a latin password is typed right to left'); else ok();
+    if (r.emptyDir === 'ltr') ok(); else fail(T,
+      `the empty password field runs ${r.emptyDir}, so the caret sits on the ` +
+      `Hebrew side of a box that only takes latin letters`);
+    if (r.ruleShown) ok(); else fail(T,
+      'nothing on screen says what the password has to look like'); 
+    if (!r.rulePlaceholder) ok(); else fail(T,
+      'the rule is back inside the placeholder, where it disappears at the ' +
+      'first keystroke and pulls the caret to the wrong side');
     if (r.hiddenUser !== 'מוישה_זוכמיר') fail(T,
       `the browser is told the password belongs to "${r.hiddenUser}" - with no ` +
       `name beside the field it offers whichever account it has`); else ok();
     if (!r.hiddenUnseen) fail(T,
       'the field that tells the browser whose password this is shows on the ' +
       'screen'); else ok();
+
+    // once a password has been chosen
+    if (r.doneErr) fail(T, `the finished-reset path threw: ${r.doneErr}`); else ok();
+    if (r.savedOk) ok(); else fail(T,
+      'a password that saved cleanly is not reported as saved');
+    if (r.doneFlag) ok(); else fail(T,
+      'nothing records that the reset is over, so the guard is whatever the ' +
+      'last caller left it at');
+    if (r.doneSticks) ok(); else fail(T,
+      'the record does not survive a reload, and the recovery session does');
+    if (r.recoveryCleared) ok(); else fail(T,
+      'the page still believes it arrived from a reset link');
+    if (r.stayedShut) ok(); else fail(T,
+      'the box reopens after the password was already changed - on a reader ' +
+      'who is signed in, with nothing to do in it and no way to tell why');
 
     // a link that was already spent
     if (r.spentErr) fail(T, `the spent-link path threw: ${r.spentErr}`); else ok();
@@ -5312,6 +5412,187 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       'a password the server merely refused signs him out of a session that is ' +
       'still alive'); else ok();
   }
+}
+
+// ── somebody has to be told the notifications exist ───────────────────
+//
+// The offer to switch them on was written months ago, with good wording and
+// a working button, and put inside the alerts panel behind the bell at the
+// foot of the screen. On 8.11 the person who built the site discovered he
+// had never subscribed his own phone, because he did not know he had to go
+// there. Nobody else was going to find it either.
+{
+  const T2 = 'the notifications have a door that is always open';
+  const menu = await page.evaluate(() => {
+    const btn = document.querySelector('#side-menu-links #sm-push');
+    return {
+      there: !!btn,
+      label: btn ? btn.textContent.trim() : '',
+      action: typeof SIDE_MENU_ACTIONS.push === 'function',
+      // and nowhere on the page may either earlier phrasing survive
+      stale: (document.documentElement.innerHTML
+                .match(/כשהאתר סגור|כשאינך באתר/g) || []).length,
+      // All three places say it the same way. Counted by their own wording,
+      // not by how many times the phrase occurs: the rendered card puts a
+      // fourth copy in the DOM, and a count cannot tell a source string
+      // from its own output.
+      said: [
+        /נודיע לך בטלפון, גם כשהאפליקציה סגורה/,
+        /תקבל הודעה על התראות דחופות, גם כשהאפליקציה סגורה/,
+        /רכבל שנעצר - גם כשהאפליקציה סגורה/
+      ].filter((re) => re.test(document.documentElement.innerHTML)).length
+    };
+  });
+  // The card at the top shows once and never returns once it is dismissed.
+  // Somebody who says "not now" in October and wants them in January has to
+  // have somewhere to go.
+  if (menu.there) ok(); else fail(T2,
+    'the side menu has no way to reach the notifications, so a reader who ' +
+    'turned the invitation down once can never turn them on again');
+  if (/התראות/.test(menu.label)) ok(); else fail(T2,
+    `the menu entry reads "${menu.label}"`);
+  if (menu.action) ok(); else fail(T2,
+    'the menu entry is wired to nothing');
+  if (menu.stale === 0) ok(); else fail(T2,
+    `an earlier, vaguer wording for "with the app shut" still appears ` +
+    `${menu.stale} time(s)`);
+  if (menu.said === 3) ok(); else fail(T2,
+    `only ${menu.said} of the three places say "כשהאפליקציה סגורה" - the ` +
+    `invitation, and the panel card both when notifications are on and off`);
+}
+
+{
+  const T = 'somebody has to be told the notifications exist';
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const el = document.getElementById('push-invite');
+    if (!el) { out.noSlot = true; return out; }
+
+    // The browser's own permission prompt must never be raised by the page
+    // on its own: fired without a press it is denied, and denied is forever.
+    let asked = 0;
+    const realAsk = window.Notification && Notification.requestPermission;
+    try { Notification.requestPermission = () => { asked++; return Promise.resolve('default'); }; } catch (e) {}
+
+    const show = async (state) => {
+      (0, eval)('pushState = async function () { return WIN_PUSH_STATE; }');
+      window.WIN_PUSH_STATE = state;
+      el.innerHTML = '';
+      try { localStorage.removeItem(PUSH_INVITE_KEY); } catch (e) {}
+      await maybeOfferPush();
+      return el.innerHTML;
+    };
+
+    out.offShown     = (await show('off')).length > 0;
+    out.offText      = el.textContent || '';
+    out.hasButton    = !!el.querySelector('button[onclick*="acceptPushInvite"]');
+    out.hasDismiss   = !!el.querySelector('button[onclick*="dismissPushInvite"]');
+
+    // iOS before the site is on the home screen: there is nothing to press,
+    // so it explains instead of offering a button that cannot work.
+    const iosHtml    = await show('ios-install');
+    out.iosShown     = iosHtml.length > 0;
+    out.iosText      = el.textContent || '';
+    out.iosNoButton  = !el.querySelector('button[onclick*="acceptPushInvite"]');
+
+    out.onHidden      = (await show('on')).length === 0;
+    out.blockedHidden = (await show('blocked')).length === 0;
+    out.unsupHidden   = (await show('unsupported')).length === 0;
+
+    // asked once and turned down: never again
+    await show('off');
+    dismissPushInvite();
+    await new Promise((res) => setTimeout(res, 320));
+    out.goneAfterDismiss = (el.innerHTML || '') === '';
+    out.remembered = !!localStorage.getItem(PUSH_INVITE_KEY);
+    el.innerHTML = '';
+    await maybeOfferPush();
+    out.staysGone = (el.innerHTML || '') === '';
+
+    out.askedOnItsOwn = asked;
+    try { localStorage.removeItem(PUSH_INVITE_KEY); } catch (e) {}
+    try { if (realAsk) Notification.requestPermission = realAsk; } catch (e) {}
+    return out;
+  });
+
+  if (r.noSlot) fail(T, 'there is nowhere on the page for the invitation to appear');
+  else {
+    if (r.offShown) ok(); else fail(T,
+      'a reader who could turn notifications on is never asked - the offer ' +
+      'stays behind the bell, where the site\'s own author did not find it');
+    if (/המעבר|שלג|רכבל/.test(r.offText)) ok(); else fail(T,
+      `the invitation says "${r.offText.trim().slice(0, 60)}" - it has to say ` +
+      `what they would actually be told about`);
+    if (r.hasButton) ok(); else fail(T, 'the invitation has nothing to press');
+    if (r.hasDismiss) ok(); else fail(T,
+      'the invitation cannot be turned down, so it is not an invitation');
+    if (r.iosShown) ok(); else fail(T,
+      'on an iPhone before the site is installed, nothing explains why there ' +
+      'are no notifications');
+    if (/מסך הבית/.test(r.iosText)) ok(); else fail(T,
+      `the iPhone wording does not say what to do: "${r.iosText.trim().slice(0, 60)}"`);
+    if (r.iosNoButton) ok(); else fail(T,
+      'the iPhone version offers a button that cannot work until the site is ' +
+      'on the home screen');
+    if (r.onHidden) ok(); else fail(T,
+      'somebody who already has notifications is asked to turn them on');
+    if (r.blockedHidden) ok(); else fail(T,
+      'a reader who blocked notifications in the browser is asked again, ' +
+      'which the page cannot do anything about');
+    if (r.unsupHidden) ok(); else fail(T,
+      'a browser that cannot do push at all is offered push');
+    if (r.goneAfterDismiss) ok(); else fail(T,
+      'pressing ✕ leaves the invitation on screen');
+    if (r.remembered) ok(); else fail(T,
+      'the refusal is not remembered, so it asks again on the next visit');
+    if (r.staysGone) ok(); else fail(T,
+      'it comes back after being turned down - the one behaviour that makes ' +
+      'people block notifications outright');
+    // Two attempts at this line. "גם כשהאתר סגור" reads, in a ski app, as
+    // the resort being shut - the opposite of what it means. "גם כשאינך
+    // באתר" fixed the ambiguity and said nothing concrete in its place.
+    // The longer "גם כשהאפליקציה סגורה" is the one a reader does not have
+    // to work out, and it is the word the menu already uses.
+    if (/כשהאפליקציה סגורה/.test(r.offText)) ok(); else fail(T,
+      `the invitation says "${r.offText.trim().slice(0, 70)}" - it has to say ` +
+      `plainly that the notification arrives with the app shut`);
+
+    if (r.askedOnItsOwn === 0) ok(); else fail(T,
+      `the page raised the browser's permission prompt ${r.askedOnItsOwn} time(s) ` +
+      `by itself; unasked it is denied, and denied cannot be undone from here`);
+  }
+}
+
+// ── the page asks the public view only for what it carries ───────────
+//
+// profiles_public was rebuilt without `id` and without `is_admin`, because a
+// stranger holding the public key has no business learning either. The page
+// had one call asking it for `id` - the user count on the admin panel - and
+// it broke silently, inside a try/catch, showing a dash. The view's shape
+// lives in a database this gate cannot reach, so it is written down here
+// instead: a column asked for and not listed is a 400 that nobody sees.
+{
+  const T = 'the page asks the public view only for what it carries';
+  const VIEW = ['username', 'level', 'discipline', 'visits', 'bio',
+                'avatar_url', 'created_at'];
+  const src = await page.content();
+  const asks = [...src.matchAll(/profiles_public\?select=([a-z_,]+)/g)].map(m => m[1])
+    .concat([...src.matchAll(/profiles_public'\)[\s\S]{0,60}?\.select\('([^']+)'/g)].map(m => m[1]));
+  if (asks.length >= 2) ok(); else fail(T,
+    `only ${asks.length} call(s) to the public view were found - either the ` +
+    `forum stopped showing faces, or this check looks in the wrong place`);
+  for (const a of asks) {
+    for (const col of a.split(',').map(c => c.trim()).filter(Boolean)) {
+      if (VIEW.includes(col)) ok();
+      else fail(T,
+        `the page asks profiles_public for "${col}", which the view does not ` +
+        `carry - the request comes back 400 and the caller shows a dash`);
+    }
+  }
+  if (!/profiles_public[^;]{0,120}is_admin/.test(src)) ok();
+  else fail(T,
+    'the page reads is_admin from the public view - admin status is read ' +
+    'from the table, for the reader own row, and nowhere else'); 
 }
 
 // ── the server says which of the four things happened ─────────────────

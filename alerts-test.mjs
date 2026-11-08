@@ -15,7 +15,8 @@
 //  because a rule that only ever fires is not a rule.
 // ============================================================
 import { detectAutoAlerts, parseOpeningHours, skiDayWindow, num, upper,
-         liftsOpen, LIFT_WINDOW } from './alerts.mjs';
+         liftsOpen, LIFT_WINDOW, lastKnownZermatt, baselineFrom,
+         TOPIC_OF } from './alerts.mjs';
 
 let pass = 0; const fails = [];
 const ok   = () => pass++;
@@ -82,8 +83,25 @@ expect('the crossing opens at ten, after a morning of being shut',
   keys(read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'OPEN' }), at(10)),
   ['zermatt-open']);
 
-expect('the crossing opens with the lifts, as it does every morning',
-  keys(read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'OPEN' }), at(8, 45)), []);
+// The good-day line can legitimately appear here, so this one asks only
+// what it meant to ask: that an opening at the opening hour is not news.
+if (!keys(read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'OPEN' }), at(8, 45))
+      .includes('zermatt-open')) ok();
+else fail('the crossing opens with the lifts, as it does every morning',
+  'an opening at the opening hour is announced as though it were late');
+
+// The live feed does not only say OPEN and CLOSED. On 8.11 it was reporting
+// "NEXT UPDATE" - the operator's placeholder between seasons. It matches
+// neither branch, so nothing fires, which is right: an unknown state is not
+// news. It is written down here because it was found in production rather
+// than imagined, and because a placeholder landing between a closure and an
+// opening breaks the transition the rules look for.
+expect('the feed\'s between-seasons placeholder is not a state',
+  keys(read({ zermatt_link: 'OPEN' }), read({ zermatt_link: 'NEXT UPDATE' }), at(11)), []);
+expect('and coming back from it is not an opening either',
+  keys(read({ zermatt_link: 'NEXT UPDATE' }), read({ zermatt_link: 'OPEN' }), at(11)), []);
+expect('nor does a placeholder look like a day-long closure',
+  keys(read({ zermatt_link: 'NEXT UPDATE' }), read({ zermatt_link: 'NEXT UPDATE' }), at(10)), []);
 
 expect('a crossing reported in lower case is the same crossing',
   keys(read({ zermatt_link: 'open' }), read({ zermatt_link: 'closed' }), at(11)),
@@ -170,8 +188,53 @@ expect('a first reading of 4 with no baseline level still warns',
     `resort, and the mountain does not have one depth`);
   if (/2,555/.test(t)) ok(); else fail('fresh snow gives the altitude',
     `"${t}" has no altitude beside the station`);
-  if (/30/.test(t)) ok(); else fail('fresh snow says how much fell', `"${t}"`);
+  if (/(^|\s)30 ס״מ נוספו/.test(t)) ok();
+  else fail('fresh snow says how much fell', `"${t}"`);
+  if (/שלג טרי/.test(t)) ok(); else fail('fresh snow says what it is', `"${t}"`);
 }
+// Forty centimetres is where the sentence changes register. Both halves are
+// tested, because a threshold with only one side tested is a constant.
+{
+  const pts = [{ station: 'top', name: 'Plateau Rosa', altitude: 3480 },
+               { station: 'mid', name: 'Plan Maison',  altitude: 2555 }];
+  const snowText = (from, to) => {
+    const a = detectAutoAlerts(read({ snow_depth: from }),
+                               read({ snow_depth: to, snow_points: pts }), at(7));
+    return ((a || []).find(x => x.key === 'fresh-snow') || {}).text || '';
+  };
+  const ordinary = snowText(100, 130);
+  const lots     = snowText(100, 145);
+  const edgeLow  = snowText(100, 139);
+  const edgeHigh = snowText(100, 140);
+
+  if (/^שלג טרי!/.test(ordinary)) ok();
+  else fail('a good morning sounds like one', `"${ordinary}"`);
+  if (!/המון|גלישה מהנה/.test(ordinary)) ok();
+  else fail('thirty centimetres is not a powder day', `"${ordinary}"`);
+  if (/^המון שלג טרי!/.test(lots)) ok();
+  else fail('a big fall sounds bigger', `"${lots}"`);
+  if (/גלישה מהנה/.test(lots)) ok();
+  else fail('the big one wishes them well', `"${lots}"`);
+  if (!/המון/.test(edgeLow)) ok();
+  else fail('39 cm is still the ordinary line', `"${edgeLow}"`);
+  if (/המון/.test(edgeHigh)) ok();
+  else fail('40 cm is where it changes', `"${edgeHigh}"`);
+  for (const [name, t] of [['the ordinary line', ordinary], ['the big one', lots]]) {
+    if (/Plan Maison/.test(t)) ok();
+    else fail(`${name} still names the station`, `"${t}"`);
+    if (/2,555/.test(t)) ok();
+    else fail(`${name} still gives the altitude`, `"${t}"`);
+    // With the number, not just the words: "העומק כעת  ס״מ" would have
+    // passed a check for the phrase alone, and did.
+    if (/העומק כעת \d+ ס״מ/.test(t)) ok();
+    else fail(`${name} still gives the depth`, `"${t}"`);
+    // And the amount that fell, anchored - a bare /30/ matched the 130 of
+    // the depth, so the check passed with the figure it was testing gone.
+    if (/(^|\s)\d+ ס״מ נוספו/.test(t)) ok();
+    else fail(`${name} still says how much fell`, `"${t}"`);
+  }
+}
+
 expect('19 cm is weather',
   keys(read({ snow_depth: 100 }), read({ snow_depth: 119 }), at(7)), []);
 expect('snow melting is not fresh snow',
@@ -179,7 +242,7 @@ expect('snow melting is not fresh snow',
 {
   const a = detectAutoAlerts(read({ snow_depth: 100 }), read({ snow_depth: 130 }), at(7));
   const t = (a[0] || {}).text || '';
-  if (a.length === 1 && !/ ב-/.test(t) && /עומק השלג/.test(t)) ok();
+  if (a.length === 1 && !/ ב-/.test(t) && /עומק השלג כעת/.test(t)) ok();
   else fail('with no station list it does not invent one',
     `"${t}" - the fallback wording has to stand on its own`);
 }
@@ -264,6 +327,171 @@ expect('a missing value upper-cases to empty', upper(null), '');
     `alert block goes quiet, so nobody is told anything at all`);
 }
 
+// ── the day worth getting up for ─────────────────────────────────────────
+//
+// The one rule here that reads a state instead of a transition, and so the
+// one that could arrive every single morning if its bar slipped. 8.11 is
+// the day it was written for: crossing open, nine lifts of nine, nothing in
+// the forecast, and an empty strip.
+{
+  const good = (o) => read(Object.assign({
+    zermatt_link: 'OPEN', lifts_open_local: 9, lifts_total_local: 9,
+    avalanche_level: 1, wind_gust: 20
+  }, o || {}));
+  const g = (o, min) => keys(good(o), good(o), min === undefined ? at(9) : min);
+
+  expect('8.11, the morning this was written for', g(), ['great-day']);
+
+  // A closed crossing at nine, with the mountain running, is its own alert -
+  // so this one asks only that the good-day line is not among them.
+  if (!g({ zermatt_link: 'CLOSED' }).includes('great-day')) ok();
+  else fail('a closed crossing is not a good day',
+    'the crossing is shut and the strip calls it a good day');
+  expect('nor is a placeholder, whatever else is true',
+    g({ zermatt_link: 'NEXT UPDATE' }), []);
+  expect('two lifts of two is not the mountain being open',
+    g({ lifts_open_local: 2, lifts_total_local: 2 }), []);
+  expect('six of seven is',
+    g({ lifts_open_local: 6, lifts_total_local: 7 }), ['great-day']);
+  expect('but seven of ten is most of a mountain, not all of it',
+    g({ lifts_open_local: 7, lifts_total_local: 10 }), []);
+  expect('a high avalanche bulletin ends it',
+    g({ avalanche_level: 3 }), []);
+  expect('and so does a gale',
+    g({ wind_gust: 60 }), []);
+  expect('an unknown bulletin does not block a day that is good by everything else',
+    g({ avalanche_level: null }), ['great-day']);
+
+  expect('it belongs to the morning', g({}, at(8, 30)), ['great-day']);
+  expect('and not to the afternoon', g({}, at(13)), []);
+  expect('nor to the night before', g({}, at(6)), []);
+
+  {
+    const a = detectAutoAlerts(good(), good(), at(9))[0];
+    if (a && a.severity === 'info') ok();
+    else fail('good news is not dressed as a warning', `severity ${a && a.severity}`);
+    if (a && a.cooldown >= 20) ok();
+    else fail('it arrives once a day at most',
+      `cooldown ${a && a.cooldown}h - a line that comes every half hour is noise`);
+    // Not just the numbers: "9 מתוך 9." on its own is not a sentence.
+    if (a && /9 מתוך 9 מעליות פועלות/.test(a.text)) ok();
+    else fail('it says how much of the mountain is running, in words',
+      `"${a && a.text}"`);
+    if (a && /צ׳רמט/.test(a.text)) ok();
+    else fail('it says the crossing is open', `"${a && a.text}"`);
+  }
+
+  // and it stands down when the opening has already said it
+  expect('the opening says it better, so this stays quiet',
+    keys(read({ zermatt_link: 'CLOSED', lifts_open_local: 9, lifts_total_local: 9,
+                avalanche_level: 1, wind_gust: 20 }),
+         good(), at(9, 45)), ['zermatt-open']);
+}
+
+// ── the placeholder no longer swallows the opening ───────────────────────
+//
+// This is 8.11 as it actually happened, read back out of ski_status_history.
+// The crossing was shut all night, the feed went quiet for two readings, and
+// by the time it said OPEN the rule had nothing to compare against. Every
+// lift on the mountain was running and nobody was told.
+{
+  const hist = (...zs) => zs.map(z => read({ zermatt_link: z }));
+
+  expect('the last answer that meant something is the one compared against',
+    baselineFrom(hist('NEXT UPDATE', 'NEXT UPDATE', 'CLOSED')).zermatt_link, 'CLOSED');
+  expect('a real reading is left exactly as it is',
+    baselineFrom(hist('CLOSED', 'OPEN')).zermatt_link, 'CLOSED');
+  expect('with nothing but placeholders behind it, nothing is invented',
+    baselineFrom(hist('NEXT UPDATE', 'NEXT UPDATE')).zermatt_link, 'NEXT UPDATE');
+  expect('no history at all is no baseline', baselineFrom([]), null);
+  expect('and neither is nothing', baselineFrom(null), null);
+  expect('the reader skips placeholders', lastKnownZermatt(hist('NEXT UPDATE', 'OPEN')), 'OPEN');
+  expect('and says so when there is no answer to find',
+    lastKnownZermatt(hist('NEXT UPDATE')), '');
+
+  // the rest of the row is untouched: a placeholder says nothing about the
+  // wind, but the wind in that row was measured
+  const rows = [read({ zermatt_link: 'NEXT UPDATE', wind_gust: 77 }),
+                read({ zermatt_link: 'CLOSED',      wind_gust: 10 })];
+  expect('only the crossing is carried, not the whole reading',
+    baselineFrom(rows).wind_gust, 77);
+
+  // and end to end: the morning of 8.11, at 10:01 Rome
+  const prev = baselineFrom([
+    read({ zermatt_link: 'NEXT UPDATE', lifts_open_local: 7 }),
+    read({ zermatt_link: 'NEXT UPDATE', lifts_open_local: 0 }),
+    read({ zermatt_link: 'CLOSED',      lifts_open_local: 0 })
+  ]);
+  expect('the morning of 8.11 is announced',
+    keys(prev, read({ zermatt_link: 'OPEN', lifts_open_local: 9 }), at(10, 1)),
+    ['zermatt-open']);
+  // without the carry-forward, which is what actually happened
+  expect('and without it, the morning passes in silence',
+    keys(read({ zermatt_link: 'NEXT UPDATE', lifts_open_local: 7 }),
+         read({ zermatt_link: 'OPEN', lifts_open_local: 9 }), at(10, 1)), []);
+}
+
+// ── every rule answers to a switch ───────────────────────────────────────
+//
+// The reader can turn push categories off. Which category an alert belongs
+// to is decided in SQL, by cl_alert_topic, matching on the start of the key
+// - and three of the keys do not start with their category's name. Worse,
+// the function ends in `else 'community'`, the switch for what other skiers
+// report: a key nobody mapped is not dropped, it is delivered to the wrong
+// people under the wrong heading. great-day was heading there.
+//
+// So this checks the one half that can be checked from here: that every key
+// the rules can emit has a category, and that the categories are the five
+// the site actually offers.
+{
+  const T = 'every rule answers to a switch';
+  const OFFERED = ['zermatt', 'lifts', 'weather', 'snow', 'community'];
+
+  // Every alert these rules can produce, gathered by firing each one.
+  const fired = [
+    detectAutoAlerts(read(), read({ zermatt_link: 'CLOSED' }), at(11)),
+    detectAutoAlerts(read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'OPEN' }), at(10)),
+    detectAutoAlerts(read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'CLOSED' }), at(10)),
+    detectAutoAlerts(read({ lifts_open_local: 18 }), read({ lifts_open_local: 0 }), at(11)),
+    detectAutoAlerts(read({ lifts_open_local: 20 }), read({ lifts_open_local: 6 }), at(11)),
+    detectAutoAlerts(read({ wind_gust: 40 }), read({ wind_gust: 78 }), at(11)),
+    detectAutoAlerts(read({ wind_gust: 40 }), read({ wind_gust: 105 }), at(11)),
+    detectAutoAlerts(read({ avalanche_level: 2 }), read({ avalanche_level: 4 }), at(18)),
+    detectAutoAlerts(read({ snow_depth: 100 }), read({ snow_depth: 130 }), at(7)),
+    detectAutoAlerts(read({ zermatt_link: 'OPEN', lifts_open_local: 9, lifts_total_local: 9,
+                            avalanche_level: 1, wind_gust: 20 }),
+                     read({ zermatt_link: 'OPEN', lifts_open_local: 9, lifts_total_local: 9,
+                            avalanche_level: 1, wind_gust: 20 }), at(9))
+  ].flat().map(a => a.key);
+
+  const seen = [...new Set(fired)];
+  if (seen.length >= 10) ok();
+  else fail(T, `only ${seen.length} distinct alerts could be produced; ` +
+               `a rule that no case here fires is a rule nobody is checking`);
+
+  for (const k of seen) {
+    if (TOPIC_OF[k]) ok();
+    else fail(T,
+      `"${k}" has no category, so cl_alert_topic drops it into 'community' ` +
+      `- it reaches the people who asked about field reports, and nobody who ` +
+      `asked about this`);
+  }
+  for (const [k, t] of Object.entries(TOPIC_OF)) {
+    if (OFFERED.includes(t)) ok();
+    else fail(T, `"${k}" is filed under "${t}", which is not a switch the site offers`);
+    if (seen.includes(k)) ok();
+    else fail(T, `"${k}" has a category but no rule produces it any more`);
+  }
+
+  // the prefix match in SQL works for two families and not for the rest;
+  // these are the ones that must be named explicitly over there
+  for (const k of ['wind-strong', 'wind-severe', 'avalanche-high', 'fresh-snow', 'great-day']) {
+    if (!k.startsWith(TOPIC_OF[k])) ok();
+    else fail(T, `"${k}" was thought to need naming in SQL, but its key does ` +
+                 `begin with "${TOPIC_OF[k]}" - this list is out of date`);
+  }
+}
+
 // ── the scraper and the rules have not drifted apart ─────────────────────
 //
 // Earlier this week a function declared twice in index.html cost four
@@ -285,6 +513,38 @@ try {
     if (!new RegExp(h).test(scr)) ok();
     else fail('the helpers are defined once', `scrape.js still declares ${h}`);
   }
+
+  // Two sabotage runs walked straight past these: every rule above can be
+  // right while the scraper hands them the wrong baseline, and nothing here
+  // was looking at what the scraper actually asks the database for.
+  // The push pipeline was dead for three days and nothing said so. The
+  // scraper is the only thing that runs on a schedule and can reach both
+  // the database and a channel that arrives - so it is the only thing that
+  // can notice.
+  // Defining the check is not running it: the first sabotage pass deleted
+  // the call and left the function, and this passed.
+  if (/cl_push_stuck/.test(scr)) ok();
+  else fail('the scraper notices when nothing is being delivered',
+    'nothing checks whether raised alerts actually reached push-send, so a ' +
+    'dead pipeline looks exactly like a quiet week');
+  if (/await\s+reportStuckPushes\(\)/.test(scr)) ok();
+  else fail('and the check is actually run',
+    'reportStuckPushes is defined but never called - the code reads as ' +
+    'though the pipeline is watched, and it is not');
+  if (/process\.exitCode\s*=\s*1/.test(scr)) ok();
+  else fail('and says so where it will be seen',
+    'the check reports into a log nobody reads; without a red run there is ' +
+    'no email, and without an email there is no notice');
+
+  if (/baselineFrom\(/.test(scr)) ok();
+  else fail('the scraper uses the carried baseline',
+    'scrape.js reads the newest row straight out of the history - so a run ' +
+    'of "NEXT UPDATE" swallows the opening again, exactly as on 8.11');
+  const lim = scr.match(/ski_status_history[\s\S]{0,240}?\.limit\((\d+)\)/);
+  if (lim && Number(lim[1]) >= 4) ok();
+  else fail('the scraper reads back far enough to find one',
+    `the history query asks for ${lim ? lim[1] : 'an unknown number of'} row(s); ` +
+    `with one there is nothing behind the placeholder to look at`);
 } catch (e) {
   fail('scrape.js can be read beside these rules', String(e && e.message));
 }
