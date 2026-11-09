@@ -1055,7 +1055,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.23';
+  var v='v17.24';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5076,8 +5076,17 @@ function setLocalStayDates(ci, co) {
   if (!el || !ci || !co) return;
   el.setAttribute('data-ci', ci);
   el.setAttribute('data-co', co);
-  if (el._flatpickr) el._flatpickr.setDate([ci, co], false);
-  else el.value = ci + ' — ' + co;
+  // flatpickr parses a STRING with the field's own dateFormat, which here is
+  // 'j בF' - so an ISO string silently fails to parse, selectedDates comes
+  // back empty and the field looks blank while the letter has the dates.
+  // Date objects skip the parser. Built from the parts, because new
+  // Date('2027-02-07') is UTC and can land on the day before.
+  var _mk = function (iso) {
+    var p = String(iso).split('-');
+    return new Date(+p[0], +p[1] - 1, +p[2]);
+  };
+  if (el._flatpickr) el._flatpickr.setDate([_mk(ci), _mk(co)], false);
+  if (!el.value) el.value = _flDay(ci) + ' — ' + _flDay(co);
   buildLocalStayMail();
 }
 

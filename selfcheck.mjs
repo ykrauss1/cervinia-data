@@ -769,6 +769,11 @@ const lsDates = await page.evaluate(() => {
   if (el.getAttribute('data-ci') !== '2027-02-07' ||
       el.getAttribute('data-co') !== '2027-02-14')
     return 'the field did not keep the dates it was given';
+  // It is no good having the dates only in the attributes: flatpickr parses
+  // a string with the field's own 'j בF' format, so an ISO string failed
+  // silently and the box sat empty while the letter carried the dates.
+  if (!el.value || !/\d/.test(el.value))
+    return 'the field shows nothing after being given dates: "' + el.value + '"';
   const it = document.getElementById('ls-it').value;
   if (it.indexOf('07/02/2027') === -1 || it.indexOf('14/02/2027') === -1)
     return 'the letter does not carry the picked dates';
