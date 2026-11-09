@@ -746,4 +746,39 @@ console.log('SCRAPED DATA:', JSON.stringify(data, null, 2));
 saveToJson(data);
 await saveToSupabase(data);
 await raiseAutoAlerts(previous, data);
+// ── has the Anthropic balance run out? ────────────────────────────────────
+// tf-translate leaves a mark in cl_ai_usage when Anthropic refuses on
+// billing. The site itself degrades quietly when that happens - the trip
+// search falls back to the local parser and the apartment letter keeps its
+// pre-written part - which is right for the reader and useless to Yossi.
+// So this run goes red instead, and the failure mail is the alert.
+//
+// Yossi's Max plan includes $100 a month in API credits that were never
+// claimed, so the fix is a button, not a payment. That is why the message
+// says which button.
+async function reportCreditOut() {
+  const since = new Date(Date.now() - 3 * 86400000).toISOString();
+  const { data, error } = await supabase
+    .from('cl_ai_usage')
+    .select('bucket, n, updated_at')
+    .like('bucket', 'credit-out:%')
+    .gte('updated_at', since)
+    .order('updated_at', { ascending: false });
+
+  if (error) { console.error('credit check failed:', error.message); return; }
+  if (!data || !data.length) return;
+
+  const total = data.reduce((a, r) => a + (r.n || 0), 0);
+  console.error('');
+  console.error('=== THE ANTHROPIC BALANCE HAS RUN OUT ===');
+  console.error('  ' + total + ' refusals since ' + since.slice(0, 10) +
+                ', last at ' + String(data[0].updated_at).slice(0, 16));
+  console.error('  The free-text trip search is running on the local parser,');
+  console.error('  and the apartment letter cannot translate a free sentence.');
+  console.error('  Claim the $100/month API credits: Console -> Billing -> Get started.');
+  console.error('');
+  process.exitCode = 1;
+}
+
 await reportStuckPushes();
+await reportCreditOut();

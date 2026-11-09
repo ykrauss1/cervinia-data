@@ -522,12 +522,15 @@ try {
   // the database and a channel that arrives - so it is the only thing that
   // can notice.
   // Defining the check is not running it: the first sabotage pass deleted
-  // the call and left the function, and this passed.
+  // the call and left the function, and this passed. The second pass, on
+  // 9 November, COMMENTED the call out - and this passed again, because the
+  // text was still in the file. Hence the line anchor: a commented call is
+  // not a call.
   if (/cl_push_stuck/.test(scr)) ok();
   else fail('the scraper notices when nothing is being delivered',
     'nothing checks whether raised alerts actually reached push-send, so a ' +
     'dead pipeline looks exactly like a quiet week');
-  if (/await\s+reportStuckPushes\(\)/.test(scr)) ok();
+  if (/^\s*await\s+reportStuckPushes\(\)/m.test(scr)) ok();
   else fail('and the check is actually run',
     'reportStuckPushes is defined but never called - the code reads as ' +
     'though the pipeline is watched, and it is not');
@@ -535,6 +538,80 @@ try {
   else fail('and says so where it will be seen',
     'the check reports into a log nobody reads; without a red run there is ' +
     'no email, and without an email there is no notice');
+
+  // ── the balance running out has to reach a person ──────────────────────
+  // When Anthropic refuses on billing, the site degrades quietly: the trip
+  // search falls back to the local parser and the letter keeps its
+  // pre-written part. Quiet is right for the reader and wrong for Yossi,
+  // who would otherwise find out weeks later. Same shape as the push check
+  // above, and the same trap: defining it is not running it.
+  if (/credit-out:/.test(scr)) ok();
+  else fail('the scraper notices when the Anthropic balance is gone',
+    'nothing reads the mark tf-translate leaves on a billing refusal, so an ' +
+    'empty balance looks exactly like a quiet week');
+  if (/^\s*await\s+reportCreditOut\(\)/m.test(scr)) ok();
+  else fail('and that check is actually run',
+    'reportCreditOut is defined but never called');
+  const credBlock = scr.slice(scr.indexOf('async function reportCreditOut'),
+                              scr.indexOf('await reportStuckPushes'));
+  if (/cl_ai_usage/.test(credBlock)) ok();
+  else fail('and it reads the table the mark is written to',
+    'reportCreditOut does not query cl_ai_usage, so it cannot see the mark');
+  if (/process\.exitCode\s*=\s*1/.test(credBlock)) ok();
+  else fail('and turns the run red, which is what sends the mail',
+    'reportCreditOut reports into a log nobody reads');
+
+  // ── the edge function keeps the doors it was given ─────────────────────
+  //
+  // tf-translate runs on Yossi's Anthropic key and answers a public URL with
+  // no apikey and no Authorization. It lived only in the Supabase editor
+  // until 9 November, and that is exactly how the hole reopened: he turned
+  // ALLOW_LEGACY off in the editor, a newer copy of the file still said
+  // true, it was pasted over his change, and the free-form door was open
+  // again with nobody meaning it. A setting that lives in an editor survives
+  // until the next paste. These read the file in the repo, which is now the
+  // only version that counts.
+  let fn = '';
+  try { fn = fs.readFileSync(near('supabase/functions/tf-translate/index.ts'), 'utf8'); }
+  catch (e) { fn = ''; }
+  if (fn) {
+    ok();
+    if (/^const ALLOW_LEGACY = false;/m.test(fn)) ok();
+    else fail('the free-form door stays shut',
+      'ALLOW_LEGACY is not false - tf-translate accepts any prompt again, ' +
+      'which makes it a general-purpose model on Yossi\'s key');
+
+    // It used to read `model: body?.model || MODEL`, so a caller could ask
+    // for the most expensive model there is.
+    if (!/\bbody[?.]*\.model\b/.test(fn)) ok();
+    else fail('the caller cannot choose the model',
+      'the model is taken from the request again');
+
+    // Matching the bare call was not enough: corsFor() contains the same
+    // text, so deleting the actual guard left this passing. What matters is
+    // that a wrong origin is REFUSED, so match the refusal.
+    if (/if \(!ALLOW_ORIGINS\.includes\(origin\)\)[\s\S]{0,160}?403/.test(fn)) ok();
+    else fail('a wrong origin is refused, not just echoed',
+      'nothing turns an origin outside the allowlist into a 403');
+
+    if (/if \(\/credit\|billing\|payment\|quota\/i\.test\(detail\)\) await noteCreditOut\(\);/.test(fn)) ok();
+    else fail('a billing refusal leaves a mark',
+      'noteCreditOut is not called when Anthropic refuses, so an empty ' +
+      'balance never reaches the scraper and never reaches Yossi');
+
+    // chagim is interpolated straight into a prompt.
+    if (/bad holiday table/.test(fn)) ok();
+    else fail('the holiday table cannot smuggle instructions',
+      'the chagim field goes into the prompt unvalidated');
+
+    if (!/sk-ant-/.test(fn)) ok();
+    else fail('no key in the file',
+      'an Anthropic key is written into a file in a public repository');
+  } else {
+    fail('the edge function is under version control',
+      'supabase/functions/tf-translate/index.ts is missing, so nothing here ' +
+      'can tell whether its doors are open or shut');
+  }
 
   if (/baselineFrom\(/.test(scr)) ok();
   else fail('the scraper uses the carried baseline',
