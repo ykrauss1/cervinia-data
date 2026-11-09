@@ -846,6 +846,44 @@ const routeButtons = await page.evaluate(() => {
 });
 if (routeButtons !== 'ok') fail('every drawn route has a button', routeButtons); else ok();
 
+// ── 12p. the route card shows the mountain, not a diagram ──────────────
+// It used to draw a schematic from OpenStreetMap polylines - an abstraction
+// with no mountain in it, sitting under a card that already carried the
+// length, the drop and the prose. Yossi: "במקום הציורים הפרימיטיביים".
+const routeCard = await page.evaluate(() => {
+  const rd = _texts.pistes.route_map.routes_drawn;
+  const bad = [];
+  for (const id of Object.keys(rd)) {
+    const html = _routeMapSvg({ id: id, title: rd[id].title });
+    if (!html) { bad.push(id + ': the card draws nothing'); continue; }
+    if (!html.includes('maps/route-' + id + '.jpg'))
+      bad.push(id + ': the card does not show its map crop');
+    if (!/routeToMap\('/.test(html))
+      bad.push(id + ': tapping the map does not open the full sheet');
+    if (!/גלישה/.test(html) || !/רכבל/.test(html))
+      bad.push(id + ': no colour legend under the map');
+  }
+  // the schematic is gone, not merely unused
+  if (/route_geom/.test(String(_routeMapSvg)))
+    bad.push('the card still projects the OpenStreetMap polylines');
+  return bad;
+});
+if (routeCard.length) fail('the route card shows the real map', routeCard.join(' · ')); else ok();
+
+// and the pictures it points at have to exist
+const routeImgs = await Promise.all(Object.keys(
+  JSON.parse(fs.readFileSync(TEXTS, 'utf8')).pistes.route_map.routes_drawn
+).map(async id => {
+  const f = near('maps/route-' + id + '.jpg');
+  if (!fs.existsSync(f)) return 'maps/route-' + id + '.jpg is missing';
+  const kb = fs.statSync(f).size / 1024;
+  if (kb < 20)  return 'maps/route-' + id + '.jpg is only ' + Math.round(kb) + ' KB';
+  if (kb > 400) return 'maps/route-' + id + '.jpg is ' + Math.round(kb) + ' KB - too heavy for a card';
+  return '';
+}));
+const imgBad = routeImgs.filter(Boolean);
+if (imgBad.length) fail('every route card has its picture', imgBad.join(' · ')); else ok();
+
 // ── 12m. the page never hands the model a prompt of its own ─────────────
 // tf-translate runs on Yossi's Anthropic key, it is called with no apikey
 // and no Authorization, and its URL is in the source of a public site. While
