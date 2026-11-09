@@ -675,10 +675,8 @@ const lsExtra = await page.evaluate(async () => {
   const it = document.getElementById('ls-it');
   const real = window._lsAsk;
   let asked = 0;
-  window._lsAsk = async (p) => {
-    asked++;
-    return /into Hebrew/.test(p) ? 'חזרה לעברית' : 'FRASE-TRADOTTA';
-  };
+  window._lsAsk = async (text, to) => { asked++;
+    return to === 'he' ? 'חזרה לעברית' : 'FRASE-TRADOTTA'; };
   const done = v => { window._lsAsk = real;
                       document.getElementById('localStayModal').style.display = 'none';
                       return v; };
@@ -730,6 +728,26 @@ const lsHead = await page.evaluate(() => {
   return 'ok';
 });
 if (lsHead !== 'ok') fail('the enquiry heading says what the panel does', lsHead); else ok();
+
+// ── 12m. the page never hands the model a prompt of its own ─────────────
+// tf-translate runs on Yossi's Anthropic key, it is called with no apikey
+// and no Authorization, and its URL is in the source of a public site. While
+// it accepted a free-form `prompt` it was an LLM proxy anybody could spend
+// his money through. The server owns both prompts now, and the page sends
+// only data - so a `prompt` field reappearing here is the hole reopening.
+const noPrompt = await page.evaluate(() => {
+  const bad = [];
+  ['cvTranslateLive', '_lsAsk'].forEach(name => {
+    const fn = window[name];
+    if (typeof fn !== 'function') { bad.push(name + ' is missing'); return; }
+    const src = fn.toString();
+    if (/prompt\s*:/.test(src)) bad.push(name + ' still posts a prompt');
+    if (!/kind\s*:/.test(src))  bad.push(name + ' does not say what kind of request it is');
+  });
+  if (typeof cvBuildPrompt === 'function') bad.push('cvBuildPrompt is still in the page');
+  return bad;
+});
+if (noPrompt.length) fail('the page sends data, not prompts', noPrompt.join(' · ')); else ok();
 
 // ── 13. the transport tab renders whole ──────────────────────────────────
 const tr = await page.evaluate(() => {

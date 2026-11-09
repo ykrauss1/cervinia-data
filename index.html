@@ -1010,7 +1010,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.15';
+  var v='v17.16';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5002,13 +5002,14 @@ function _lsLang() {
 // its contract, and intent.t is where the answer lands. The other shapes
 // below cost nothing and survive the day that function is rewritten; if
 // none of them carries text this says so rather than inventing a letter.
-async function _lsAsk(prompt) {
+async function _lsAsk(text, to) {
   var ctrl = new AbortController();
-  var to = setTimeout(function () { ctrl.abort(); }, 20000);
+  var t = setTimeout(function () { ctrl.abort(); }, 20000);
   try {
     var r = await fetch(CV_TRANSLATE_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt }), signal: ctrl.signal
+      body: JSON.stringify({ kind: 'translate', text: String(text).slice(0, 600), to: to }),
+      signal: ctrl.signal
     });
     var d = await r.json().catch(function () { return null; });
     if (!r.ok || !d) throw new Error('no answer');
@@ -5019,7 +5020,7 @@ async function _lsAsk(prompt) {
       if (c && typeof c === 'object' && typeof c.t === 'string' && c.t.trim()) return c.t.trim();
     }
     throw new Error('no text in the answer');
-  } finally { clearTimeout(to); }
+  } finally { clearTimeout(t); }
 }
 
 var _LS_NAME = { it: 'איטלקית', en: 'אנגלית' };
@@ -5031,21 +5032,12 @@ async function lsTranslateExtra(btn) {
   var txt = ta ? ta.value.trim() : '';
   if (!txt) return;
   var lang = _lsLang();
-  var full = (lang === 'en') ? 'English' : 'Italian';
   var was = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = 'מתרגם…'; }
   if (st) st.textContent = '';
   try {
-    var out = await _lsAsk(
-      'Translate the following Hebrew sentence into ' + full + '. It is one ' +
-      'question inside a polite enquiry to a holiday-apartment agency in ' +
-      'Breuil-Cervinia, Italy. Keep it polite and keep it a question. ' +
-      'Return ONLY valid JSON, no markdown: {"t":"<the ' + full + ' text>"}\n\n' + txt);
-    var back2 = await _lsAsk(
-      'Translate the following ' + full + ' sentence into Hebrew, as literally ' +
-      'as natural Hebrew allows. Do not improve it and do not fix mistakes - ' +
-      'the point is to show what it really says. Return ONLY valid JSON, no ' +
-      'markdown: {"t":"<the Hebrew text>"}\n\n' + out);
+    var out   = await _lsAsk(txt, lang);
+    var back2 = await _lsAsk(out, 'he');
     _lsExtra = { src: txt, lang: lang, out: out, back: back2 };
     if (back) {
       back.style.display = 'block';
@@ -6456,35 +6448,19 @@ function cvChagTable(){
   return out.join(' \u00b7 ');
 }
 
-function cvBuildPrompt(text){
-  var today=new Date().toISOString().slice(0,10);
-  var chagim=cvChagTable();
-  return '\u05ea\u05e8\u05d2\u05dd \u05d1\u05e7\u05e9\u05ea \u05ea\u05db\u05e0\u05d5\u05df \u05d8\u05d9\u05d5\u05dc \u05dc\u05e6\u2019\u05e8\u05d5\u05d5\u05d9\u05e0\u05d9\u05d4 (\u05d0\u05d9\u05d8\u05dc\u05d9\u05d4) \u05dc-JSON. \u05d4\u05d7\u05d6\u05e8 \u05d0\u05da \u05d5\u05e8\u05e7 JSON \u05ea\u05e7\u05d9\u05df \u2014 \u05d1\u05dc\u05d9 \u05d8\u05e7\u05e1\u05d8 \u05d5\u05d1\u05dc\u05d9 markdown.\n'
-    + '\u05d4\u05ea\u05d0\u05e8\u05d9\u05da \u05d4\u05d9\u05d5\u05dd: ' + today + '. \u05db\u05e9\u05d7\u05d5\u05d3\u05e9 \u05d0\u05d5 \u05d7\u05d2 \u05e0\u05d6\u05db\u05e8 \u05d1\u05dc\u05d9 \u05e9\u05e0\u05d4 \u2014 \u05d1\u05d7\u05e8 \u05d0\u05ea \u05d4\u05de\u05d5\u05e4\u05e2 \u05d4\u05e2\u05ea\u05d9\u05d3\u05d9 \u05d4\u05e7\u05e8\u05d5\u05d1.\n'
-    + '\u05ea\u05d0\u05e8\u05d9\u05db\u05d9 \u05d4\u05d7\u05d2\u05d9\u05dd \u05d4\u05d0\u05de\u05d9\u05ea\u05d9\u05d9\u05dd (\u05d4\u05e9\u05ea\u05de\u05e9 \u05d1\u05d4\u05dd, \u05d0\u05dc \u05ea\u05d7\u05e9\u05d1 \u05d1\u05e2\u05e6\u05de\u05da): ' + chagim + '\n'
-    + '\u05e9\u05d3\u05d5\u05ea:\n'
-    + '- airport: "MXP" (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5/\u05de\u05dc\u05e4\u05e0\u05e1\u05d4), "BGY" (\u05d1\u05e8\u05d2\u05de\u05d5), "TRN" (\u05d8\u05d5\u05e8\u05d9\u05e0\u05d5), \u05d0\u05d5 null \u05d0\u05dd \u05dc\u05d0 \u05e6\u05d5\u05d9\u05df\n'
-    + '- checkin / checkout: "YYYY-MM-DD" \u05d0\u05d5 null. \u05d0\u05dd \u05e6\u05d5\u05d9\u05df \u05d7\u05d5\u05d3\u05e9 \u05d1\u05dc\u05d1\u05d3 \u2014 \u05e7\u05d7 \u05d0\u05ea \u05d4-1 \u05d1\u05d7\u05d5\u05d3\u05e9\n'
-    + '- nights: \u05de\u05e1\u05e4\u05e8 \u05dc\u05d9\u05dc\u05d5\u05ea ("\u05e9\u05d1\u05d5\u05e2"=7, "\u05e1\u05d5\u05e4\u05e9"=2, "\u05e9\u05d1\u05d5\u05e2\u05d9\u05d9\u05dd"=14) \u05d0\u05d5 null\n'
-    + '\u05d0\u05dd \u05e6\u05d5\u05d9\u05e0\u05d5 \u05d9\u05de\u05d9 \u05e9\u05d1\u05d5\u05e2 ("\u05de\u05e8\u05d0\u05e9\u05d5\u05df \u05e2\u05d3 \u05e9\u05d9\u05e9\u05d9") \u2014 \u05d7\u05e9\u05d1 \u05d1\u05e2\u05e6\u05de\u05da \u05d0\u05ea \u05d4\u05ea\u05d0\u05e8\u05d9\u05db\u05d9\u05dd \u05d1\u05e4\u05d5\u05e2\u05dc: '
-    + 'checkin = \u05d9\u05d5\u05dd \u05d4\u05e9\u05d1\u05d5\u05e2 \u05d4\u05de\u05d1\u05d5\u05e7\u05e9 \u05d4\u05e8\u05d0\u05e9\u05d5\u05df \u05d1\u05ea\u05d0\u05e8\u05d9\u05da \u05e9\u05e6\u05d5\u05d9\u05df \u05d0\u05d5 \u05d0\u05d7\u05e8\u05d9\u05d5, '
-    + 'checkout = \u05d9\u05d5\u05dd \u05d4\u05d7\u05d6\u05e8\u05d4 \u05d4\u05de\u05d1\u05d5\u05e7\u05e9 \u05d4\u05e8\u05d0\u05e9\u05d5\u05df \u05d0\u05d7\u05e8\u05d9 checkin. \u05d0\u05dc \u05ea\u05e9\u05d0\u05d9\u05e8 \u05ea\u05d0\u05e8\u05d9\u05db\u05d9\u05dd \u05e8\u05d9\u05e7\u05d9\u05dd \u05db\u05e9\u05d0\u05e4\u05e9\u05e8 \u05dc\u05d7\u05e9\u05d1 \u05d0\u05d5\u05ea\u05dd.\n'
-    + '- adults / children: \u05de\u05e1\u05e4\u05e8\u05d9\u05dd \u05d0\u05d5 null. "\u05d6\u05d5\u05d2"=2 \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd, "\u05de\u05e9\u05e4\u05d7\u05d4"=2 \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd \u05d5-2 \u05d9\u05dc\u05d3\u05d9\u05dd\n'
-    + '- car: true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05e8\u05db\u05d1, \u05d0\u05d7\u05e8\u05ea null\n'
-    + '- hotel: false \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d1\u05dc\u05d9 \u05dc\u05d9\u05e0\u05d4, true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05dc\u05d9\u05e0\u05d4, \u05d0\u05d7\u05e8\u05ea null\n'
-    + '- accType: "apt" \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d3\u05d9\u05e8\u05d4/\u05d0\u05e4\u05e8\u05d8\u05de\u05e0\u05d8, "hotel" \u05d0\u05dd \u05de\u05dc\u05d5\u05df, "any" \u05d0\u05dd \u05db\u05dc \u05e1\u05d5\u05d2 \u05dc\u05d9\u05e0\u05d4, \u05d0\u05d7\u05e8\u05ea null\n'
-    + '- airportPickup: true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05dc\u05e7\u05d1\u05dc \u05d0\u05ea \u05d4\u05e8\u05db\u05d1 \u05d1\u05e9\u05d3\u05d4 \u05d4\u05ea\u05e2\u05d5\u05e4\u05d4, \u05d0\u05d7\u05e8\u05ea null\n'
-    + '- automatic: true \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d2\u05d9\u05e8 \u05d0\u05d5\u05d8\u05d5\u05de\u05d8\u05d9, false \u05d0\u05dd \u05d1\u05d9\u05e7\u05e9 \u05d9\u05d3\u05e0\u05d9, \u05d0\u05d7\u05e8\u05ea null\n'
-    + '- summary: \u05ea\u05e7\u05e6\u05d9\u05e8 \u05e2\u05d1\u05e8\u05d9 \u05e7\u05e6\u05e8 \u05e9\u05dc \u05de\u05d4 \u05e9\u05d4\u05d5\u05d1\u05df\n'
-    + '\u05d0\u05dc \u05ea\u05de\u05e6\u05d9\u05d0 \u05e2\u05e8\u05da \u05e9\u05dc\u05d0 \u05e0\u05db\u05ea\u05d1. \u05e4\u05dc\u05d8: {"airport":null,"checkin":null,"checkout":null,"nights":null,"adults":null,"children":null,"car":null,"hotel":null,"accType":null,"airportPickup":null,"automatic":null,"summary":""}\n'
-    + '\u05d4\u05d1\u05e7\u05e9\u05d4: "' + String(text).slice(0,400) + '"';
-}
+// The prompt for this used to be built here and posted whole. tf-translate
+// now owns both prompts, because a function that runs whatever text the
+// browser hands it is an LLM proxy on Yossi's Anthropic key, and the URL is
+// in the page source of a public site. The page sends the DATA; the server
+// decides what to ask. cvChagTable stays here - hebcal only runs in the page.
 
 async function cvTranslateLive(text){
   var ctrl=new AbortController(), to=setTimeout(function(){ ctrl.abort(); }, 20000);
   try{
     var r=await fetch(CV_TRANSLATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt:cvBuildPrompt(text)}),signal:ctrl.signal});
+      body:JSON.stringify({kind:'trip', text:String(text).slice(0,400),
+                           today:new Date().toISOString().slice(0,10),
+                           chagim:cvChagTable()}),signal:ctrl.signal});
     var d=await r.json().catch(function(){ return null; });
     if(!r.ok || !d || !d.ok || !d.intent) throw new Error('translate failed');
     return d.intent;
