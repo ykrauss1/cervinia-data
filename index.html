@@ -1055,7 +1055,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.21';
+  var v='v17.22';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -3940,9 +3940,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
            background:#f4f8fc;border:1px solid #d8e4f0;border-radius:7px;
            padding:7px 10px;margin-top:7px;line-height:1.75;">
         <span id="map-route-sub" style="font-weight:bold;color:#17324c;"></span><br>
-        <span style="color:#7c00d6;">▬</span><span style="color:#0f7a33;">▬</span> גלישה ·
-        <span style="color:#e8820c;">▬</span> רכבל ·
-        <span style="color:#c80078;">▬</span> יציאה חלופית
+        <span id="map-route-legend"></span>
         <br><span style="font-size:0.68rem;color:#93a3b3;">הקו עובר על המסלולים כפי שהם מצוירים במפה.</span>
       </div>
     </div>
@@ -5837,6 +5835,8 @@ function _mapMarkRouteBtns() {
   var rd2 = _mapRouteData();
   var r2  = rd2 && rd2.routes_drawn && rd2.routes_drawn[_mapRoute];
   if (sub) sub.textContent = r2 ? (r2.title + ' — ' + r2.sub) : '';
+  var leg = document.getElementById('map-route-legend');
+  if (leg) leg.innerHTML = r2 ? _mapKindLegend(r2.layers) : '';
 }
 
 function _mapPaintRoute() {
@@ -9587,15 +9587,32 @@ function _pisteCard(p, col) {
 // worth keeping. A file in the repo is cached by the service worker; the
 // PDF needs pdf.js from a CDN. Tapping it opens the full sheet, where the
 // route can be zoomed and panned.
+// The names, in one place, so the card and the maps panel cannot disagree.
+var _MAP_KIND = { ski: 'גלישה', lift: 'רכבל', alt: 'יציאה חלופית', mixed: 'המסלול' };
+
+function _mapKindLegend(layers) {
+  var seen = {}, out = [];
+  (layers || []).forEach(function (l) {
+    var name = _MAP_KIND[l.kind] || l.kind;
+    if (!seen[name]) { seen[name] = []; out.push(name); }
+    if (seen[name].indexOf(l.c) === -1) seen[name].push(l.c);
+  });
+  return out.map(function (name) {
+    return seen[name].map(function (c) {
+      return '<span style="color:' + c + ';">▬</span>';
+    }).join('') + ' ' + name;
+  }).join(' · ');
+}
+
 function _routeMapSvg(r) {
   var rm = (PISTES && PISTES.route_map) || null;
   var def = rm && rm.routes_drawn && rm.routes_drawn[r.id];
   if (!def) return '';
-  var legend = (def.layers || []).some(function (l) { return l.kind === 'lift'; })
-    ? '<span style="color:#7c00d6;">▬</span> גלישה · <span style="color:#e8820c;">▬</span> רכבל'
-    : '';
-  if ((def.layers || []).some(function (l) { return l.kind === 'alt'; }))
-    legend += ' · <span style="color:#c80078;">▬</span> יציאה חלופית';
+  // The legend is built FROM the layers, never written beside them. It was
+  // hardcoded purple for skiing, and the Ventina is drawn green - so the
+  // card told the reader the wrong colour. A legend that repeats a constant
+  // is a second source of truth, and the second one goes stale.
+  var legend = _mapKindLegend(def.layers);
   return '<button type="button" onclick="routeToMap(\'' + r.id + '\')" '
     + 'style="display:block;width:100%;padding:0;border:1px solid #dbe4f0;'
     + 'border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;'

@@ -827,6 +827,19 @@ if (routePaint !== 'ok') fail('the lines ride the sheet and only that sheet', ro
 const routeCaption = await page.evaluate(() => {
   const cap = document.getElementById('map-route-caption');
   if (!cap) return 'there is no caption';
+  // and the panel's own legend follows the route on screen, same rule
+  const rd = _texts.pistes.route_map.routes_drawn;
+  for (const id of Object.keys(rd)) {
+    mapShowRoute(id);
+    const leg = document.getElementById('map-route-legend').innerHTML;
+    for (const l of rd[id].layers) {
+      if (!leg.includes('color:' + l.c + ';'))
+        return id + ': the panel legend is missing ' + l.kind + ' in ' + l.c;
+    }
+    mapShowRoute(id);
+  }
+  // leave one lit: the legend only exists while a route is showing
+  mapShowRoute('grand_tour');
   const t = cap.textContent;
   // It used to have to say these were NOT the piste line. They are now, so
   // what it must explain instead is which colour means what.
@@ -860,8 +873,14 @@ const routeCard = await page.evaluate(() => {
       bad.push(id + ': the card does not show its map crop');
     if (!/routeToMap\('/.test(html))
       bad.push(id + ': tapping the map does not open the full sheet');
-    if (!/גלישה/.test(html) || !/רכבל/.test(html))
-      bad.push(id + ': no colour legend under the map');
+    // The legend has to name the colours THIS route is drawn in. It was
+    // hardcoded purple for skiing while the Ventina is green, so the card
+    // told the reader the wrong colour and every test still passed.
+    for (const l of rd[id].layers) {
+      if (!html.includes('color:' + l.c + ';'))
+        bad.push(id + ': the legend does not show ' + l.kind + ' in ' + l.c);
+    }
+    if (!/גלישה|המסלול/.test(html)) bad.push(id + ': no legend under the map');
   }
   // the schematic is gone, not merely unused
   if (/route_geom/.test(String(_routeMapSvg)))
