@@ -1055,7 +1055,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.18';
+  var v='v17.19';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -3922,18 +3922,28 @@ details.fold > .fold-body { padding: 0 13px 12px; }
            panorama; the caption says that is what they are. -->
       <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:8px 0 2px;">⛷️ סמן מסלול מומלץ:</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="service-btn map-route-btn" data-route="warmup"
+          style="flex:1;padding:9px 6px;font-size:0.76rem;min-width:105px;"
+          onclick="mapShowRoute('warmup')">⬆️ העלייה לפלאן מייזון</button>
         <button class="service-btn map-route-btn" data-route="grand_tour"
-          style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:120px;"
-          onclick="mapShowRoute('grand_tour')">🔴 הסיבוב הגדול</button>
+          style="flex:1;padding:9px 6px;font-size:0.76rem;min-width:105px;"
+          onclick="mapShowRoute('grand_tour')">⛷️ הסיבוב הגדול</button>
         <button class="service-btn map-route-btn" data-route="ventina"
-          style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:120px;"
-          onclick="mapShowRoute('ventina')">⚫ ה-Ventina</button>
+          style="flex:1;padding:9px 6px;font-size:0.76rem;min-width:105px;"
+          onclick="mapShowRoute('ventina')">🏔️ ה-Ventina</button>
       </div>
-      <div id="map-route-caption" style="display:none;font-size:0.72rem;color:#8a6a3a;
-           background:#fff8ee;border:1px solid #f0dfc4;border-radius:7px;
-           padding:7px 10px;margin-top:7px;line-height:1.6;">
-        המספרים מסמנים <b>באילו מסלולים לגלוש ובאיזה סדר</b> — הם יושבים על מספר
-        המסלול כפי שהוא מודפס במפה. זהו אינו קו הגלישה עצמו.
+      <!-- The caption used to apologise that the marks were not the line of
+           the piste. They are the line now: Yossi clicked each route on the
+           sheet and the drawing was fitted to the artwork between his
+           points, so what it has to explain is the colours. -->
+      <div id="map-route-caption" style="display:none;font-size:0.72rem;color:#5b6b7a;
+           background:#f4f8fc;border:1px solid #d8e4f0;border-radius:7px;
+           padding:7px 10px;margin-top:7px;line-height:1.75;">
+        <span id="map-route-sub" style="font-weight:bold;color:#17324c;"></span><br>
+        <span style="color:#7c00d6;">▬</span><span style="color:#0f7a33;">▬</span> גלישה ·
+        <span style="color:#e8820c;">▬</span> רכבל ·
+        <span style="color:#c80078;">▬</span> יציאה חלופית
+        <br><span style="font-size:0.68rem;color:#93a3b3;">הקו עובר על המסלולים כפי שהם מצוירים במפה.</span>
       </div>
     </div>
     <!-- toolbar: zoom + fullscreen + download (מוצג רק כשיש תוכן) -->
@@ -5823,6 +5833,10 @@ function _mapMarkRouteBtns() {
   });
   var cap = document.getElementById('map-route-caption');
   if (cap) cap.style.display = _mapRoute ? 'block' : 'none';
+  var sub = document.getElementById('map-route-sub');
+  var rd2 = _mapRouteData();
+  var r2  = rd2 && rd2.routes_drawn && rd2.routes_drawn[_mapRoute];
+  if (sub) sub.textContent = r2 ? (r2.title + ' — ' + r2.sub) : '';
 }
 
 function _mapPaintRoute() {
@@ -5839,34 +5853,23 @@ function _mapPaintRoute() {
     wrap.appendChild(svg);
   }
   var rd = _mapRouteData();
-  var stops = rd && rd.routes && rd.routes[_mapRoute];
-  if (!_mapRoute || !stops || !stops.length || _mapCurrentType !== rd.map) {
+  var route = rd && rd.routes_drawn && rd.routes_drawn[_mapRoute];
+  if (!_mapRoute || !route || _mapCurrentType !== rd.map) {
     svg.style.display = 'none';
     return;
   }
   // The canvas is centred while it fits and flush once it is wider, so its
-  // offset is read rather than assumed.
+  // offset is read rather than assumed. The viewBox is the pdf page itself,
+  // which is what makes the lines follow a zoom with no arithmetic here.
   svg.style.display = 'block';
   svg.style.left   = canvas.offsetLeft + 'px';
   svg.style.top    = canvas.offsetTop + 'px';
   svg.style.width  = canvas.style.width;
   svg.style.height = canvas.style.height;
   svg.setAttribute('viewBox', '0 0 ' + rd.page.w + ' ' + rd.page.h);
-
-  var g = '';
-  stops.forEach(function (st, i) {
-    var n = i + 1;
-    g += '<circle cx="' + st.x + '" cy="' + st.y + '" r="15" fill="none" '
-       + 'stroke="#fff" stroke-width="6" opacity="0.85"/>'
-       + '<circle cx="' + st.x + '" cy="' + st.y + '" r="15" fill="none" '
-       + 'stroke="#ff6a00" stroke-width="3"/>'
-       + '<circle cx="' + (st.x + 13) + '" cy="' + (st.y - 13) + '" r="9.5" '
-       + 'fill="#ff6a00" stroke="#fff" stroke-width="2"/>'
-       + '<text x="' + (st.x + 13) + '" y="' + (st.y - 9.5) + '" fill="#fff" '
-       + 'font-size="12" font-weight="bold" text-anchor="middle" '
-       + 'font-family="system-ui,sans-serif">' + n + '</text>';
-  });
-  svg.innerHTML = g;
+  svg.innerHTML = (route.layers || []).map(function (l) {
+    return '<path d="' + l.d + '" fill="' + l.c + '" fill-opacity="0.72"/>';
+  }).join('');
 }
 
 function _renderPdfPage(pageNum) {

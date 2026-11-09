@@ -754,42 +754,46 @@ const lsOrder = await page.evaluate(() => {
 });
 if (lsOrder !== 'ok') fail('the apartment panel opens on the part that does work', lsOrder); else ok();
 
-// ── 12o. the recommended routes are marked on the sheet ────────────────
-// The site described these two routes in words for months and drew them
-// nowhere. The piste map is a hand-made panorama, not a projection, so the
-// lon/lat in route_geom cannot be transformed onto it; what CAN be placed
-// exactly is the printed run badge. These pin the data and the painter.
+// ── 12o. the drawn routes match what Yossi marked ──────────────────────
+// The piste map is a hand-drawn panorama, not a projection, so nothing can
+// be computed onto it. Yossi clicked each route on the real sheet and the
+// line was fitted to the artwork between his points. These pin the data.
 const routeData = await page.evaluate(() => {
   const rm = _texts.pistes.route_map;
-  if (!rm || !rm.routes) return 'no route_map in texts.json';
-  const legs = {};
-  (_texts.pistes.routes || []).forEach(r => {
-    legs[r.id] = (r.legs || []).filter(l => l.type === 'piste')
-                   .reduce((a, l) => a.concat(l.geo || []), []);
-  });
-  for (const id of Object.keys(rm.routes)) {
-    const stops = rm.routes[id];
-    if (!legs[id]) return id + ' is marked on the map but is not a route';
-    // one mark per piste the route actually skis, in that order
-    if (stops.length !== legs[id].length)
-      return id + ' has ' + stops.length + ' marks for ' + legs[id].length + ' pistes';
-    for (const st of stops) {
-      if (!(st.x > 0 && st.x < rm.page.w && st.y > 0 && st.y < rm.page.h))
-        return id + ': a mark at ' + st.x + ',' + st.y + ' is off the page';
-      if (!st.run) return id + ': a mark names no run';
+  const rd = rm && rm.routes_drawn;
+  if (!rd) return 'no routes_drawn in texts.json';
+  const want = ['grand_tour', 'warmup', 'ventina'];
+  for (const id of want) {
+    const r = rd[id];
+    if (!r) return id + ' is missing';
+    if (!r.title || !r.sub) return id + ' has no title or subtitle';
+    if (!r.layers || !r.layers.length) return id + ' has no drawn layer';
+    for (const l of r.layers) {
+      if (!/^(ski|lift|alt|mixed)$/.test(l.kind)) return id + ': unknown layer kind ' + l.kind;
+      if (!/^#[0-9a-f]{6}$/i.test(l.c))           return id + ': ' + l.kind + ' has no colour';
+      if (!l.d || l.d.length < 60)                return id + ': ' + l.kind + ' has no path';
+      // every coordinate has to land on the sheet, or it draws off-map
+      const nums = l.d.match(/-?\d+(\.\d+)?/g).map(Number);
+      for (let i = 0; i < nums.length; i += 2) {
+        if (nums[i] < 0 || nums[i] > rm.page.w) return id + ': an x of ' + nums[i] + ' is off the page';
+        if (nums[i+1] < 0 || nums[i+1] > rm.page.h) return id + ': a y of ' + nums[i+1] + ' is off the page';
+      }
     }
   }
+  // the one that carries lifts, skiing and a branch
+  const kinds = rd.ventina.layers.map(l => l.kind).sort().join(',');
+  if (kinds !== 'alt,lift,ski') return 'the Ventina lost a layer: ' + kinds;
   return 'ok';
 });
-if (routeData !== 'ok') fail('every marked route matches the route it describes', routeData); else ok();
+if (routeData !== 'ok') fail('the drawn routes are whole and on the sheet', routeData); else ok();
 
 const routePaint = await page.evaluate(async () => {
-  // pdf.js is fetched from a CDN and this container has no network, so the
-  // canvas is stood in for. The painter only ever reads its box.
+  // pdf.js comes from a CDN and this container has no network, so the canvas
+  // is stood in for. The painter only ever reads its box.
   const wrap = document.getElementById('map-pdf-wrap');
   let c = document.getElementById('map-pdf-canvas');
   if (!c) { c = document.createElement('canvas'); c.id = 'map-pdf-canvas'; wrap.appendChild(c); }
-  c.style.width = '1818px'; c.style.height = '1459px';   // the sheet at 2x
+  c.style.width = '1818px'; c.style.height = '1459px';
   const rm = _texts.pistes.route_map;
   _mapCurrentType = rm.map;
   mapShowRoute('grand_tour');
@@ -797,35 +801,50 @@ const routePaint = await page.evaluate(async () => {
   if (!svg) return 'no overlay was created';
   if (svg.style.display === 'none') return 'the overlay stayed hidden on the right sheet';
   if (svg.getAttribute('viewBox') !== '0 0 ' + rm.page.w + ' ' + rm.page.h)
-    return 'the viewBox is not the pdf page, so the marks will not follow a zoom';
+    return 'the viewBox is not the pdf page, so the lines will not follow a zoom';
   if (svg.style.width !== c.style.width || svg.style.height !== c.style.height)
     return 'the overlay is not the size of the canvas';
-  const rings = svg.querySelectorAll('circle').length;
-  const want = rm.routes.grand_tour.length * 3;   // halo, ring, number disc
-  if (rings !== want) return 'drew ' + rings + ' circles for ' + want;
-  // a different sheet must not keep these marks
+  const n = svg.querySelectorAll('path').length;
+  if (n !== rm.routes_drawn.grand_tour.layers.length)
+    return 'drew ' + n + ' paths for ' + rm.routes_drawn.grand_tour.layers.length + ' layers';
+  // the subtitle has to follow the route that is showing
+  if (!document.getElementById('map-route-sub').textContent.includes(rm.routes_drawn.grand_tour.title))
+    return 'the caption does not name the route on screen';
+  mapShowRoute('ventina');
+  if (document.getElementById('map-route-layer').querySelectorAll('path').length
+      !== rm.routes_drawn.ventina.layers.length)
+    return 'switching route did not redraw the lines';
   _mapCurrentType = 'piste-swiss';
   _mapPaintRoute();
-  if (svg.style.display !== 'none')
-    return 'the marks stayed on after switching to another sheet';
-  _mapCurrentType = rm.map; mapShowRoute('grand_tour');   // pressing again clears
+  if (svg.style.display !== 'none') return 'the lines stayed on after switching sheet';
+  _mapCurrentType = rm.map; mapShowRoute('ventina');
   if (document.getElementById('map-route-layer').style.display !== 'none')
     return 'pressing the same route again did not clear it';
   return 'ok';
 });
-if (routePaint !== 'ok') fail('the marks ride the sheet and only that sheet', routePaint); else ok();
+if (routePaint !== 'ok') fail('the lines ride the sheet and only that sheet', routePaint); else ok();
 
 const routeCaption = await page.evaluate(() => {
   const cap = document.getElementById('map-route-caption');
   if (!cap) return 'there is no caption';
   const t = cap.textContent;
-  // A ringed badge says which run, not where the line goes. Claiming more
-  // than that on a ski map is the part that could get somebody lost.
-  if (!/אינו קו הגלישה|לא קו הגלישה/.test(t))
-    return 'the caption does not say these are not the line of the piste';
+  // It used to have to say these were NOT the piste line. They are now, so
+  // what it must explain instead is which colour means what.
+  if (/אינו קו הגלישה|לא קו הגלישה/.test(t))
+    return 'the caption still apologises for not being the piste line';
+  if (!/גלישה/.test(t) || !/רכבל/.test(t))
+    return 'the caption does not say which colour is skiing and which is a lift';
   return 'ok';
 });
-if (routeCaption !== 'ok') fail('the marks do not claim to be the piste line', routeCaption); else ok();
+if (routeCaption !== 'ok') fail('the caption explains the colours', routeCaption); else ok();
+
+const routeButtons = await page.evaluate(() => {
+  const ids = [...document.querySelectorAll('.map-route-btn')].map(b => b.getAttribute('data-route'));
+  const want = Object.keys(_texts.pistes.route_map.routes_drawn);
+  const missing = want.filter(w => !ids.includes(w));
+  return missing.length ? 'no button for: ' + missing.join(', ') : 'ok';
+});
+if (routeButtons !== 'ok') fail('every drawn route has a button', routeButtons); else ok();
 
 // ── 12m. the page never hands the model a prompt of its own ─────────────
 // tf-translate runs on Yossi's Anthropic key, it is called with no apikey
