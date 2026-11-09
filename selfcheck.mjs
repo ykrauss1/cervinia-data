@@ -409,6 +409,328 @@ const carHandoff = await page.evaluate(async () => {
 });
 if (carHandoff !== 'ok') fail('the car-search button opens the car tab', carHandoff); else ok();
 
+// ── 12c. the search asks what you want before it asks when ──────────────
+// The four tabs were always there and sat below the date form, so the first
+// thing anybody met was "בחר תאריכי יציאה וחזרה" and the car and lodging
+// searches were below the fold. Yossi, who wrote them, did not know they
+// existed. Order is the whole fix, so order is what this pins.
+const tabOrder = await page.evaluate(() => {
+  const tabs  = document.getElementById('ttab-all');
+  const dates = document.getElementById('trip-dates');
+  if (!tabs)  return 'the tab bar is gone';
+  if (!dates) return 'the date field is gone';
+  if (!(tabs.compareDocumentPosition(dates) & Node.DOCUMENT_POSITION_FOLLOWING))
+    return 'the date form comes before the tabs - the reader meets a form, not a choice';
+  return 'ok';
+});
+if (tabOrder !== 'ok') fail('the search asks what before it asks when', tabOrder); else ok();
+
+// ── 12d. one date picker per tab, never two ─────────────────────────────
+const oneDatePicker = await page.evaluate(async () => {
+  openM('hotelModal');
+  if (typeof planGo === 'function') planGo('search');
+  switchTripTab('car');
+  await new Promise(r => setTimeout(r, 80));
+  const common = document.getElementById('trip-common');
+  if (!common) return 'the shared date block is gone';
+  if (common.style.display !== 'none')
+    return 'the flight dates are still on screen on the car tab';
+  if (document.getElementById('tpanel-car').style.display === 'none')
+    return 'the car panel did not open';
+  switchTripTab('hotel');
+  await new Promise(r => setTimeout(r, 80));
+  if (document.getElementById('trip-common').style.display !== 'none')
+    return 'the flight dates are still on screen on the lodging tab';
+  switchTripTab('all');
+  await new Promise(r => setTimeout(r, 80));
+  if (document.getElementById('trip-common').style.display === 'none')
+    return 'going back to "הכל" left the dates hidden';
+  document.getElementById('hotelModal').style.display = 'none';
+  return 'ok';
+});
+if (oneDatePicker !== 'ok') fail('each tab shows one set of dates, not two', oneDatePicker); else ok();
+
+// ── 12e. the car tab still accepts the dates picked for the flight ──────
+// Hiding the flight form on the car tab is only safe because searchCar
+// falls back to it. If that fallback ever goes, somebody who picked dates
+// on "הכל" and then switched to רכב would be told to pick them again.
+const carFallback = await page.evaluate(async () => {
+  openM('hotelModal');
+  if (typeof planGo === 'function') planGo('search');
+  switchTripTab('all');
+  setTripDates('2027-01-10', '2027-01-17');
+  const carEl = document.getElementById('car-dates');
+  carEl.removeAttribute('data-ci');
+  carEl.removeAttribute('data-co');
+  if (carEl._flatpickr) carEl._flatpickr.clear();
+  switchTripTab('car');
+  await new Promise(r => setTimeout(r, 80));
+  searchCar();
+  await new Promise(r => setTimeout(r, 150));
+  const res = document.getElementById('car-results');
+  if (!res || res.style.display === 'none' || !res.innerHTML)
+    return 'no results - the car search did not fall back to the trip dates';
+  if (res.innerHTML.indexOf('2027-01-10') === -1)
+    return 'the car links do not carry the dates picked for the flight';
+  document.getElementById('hotelModal').style.display = 'none';
+  return 'ok';
+});
+if (carFallback !== 'ok') fail('the car tab uses the dates already picked', carFallback); else ok();
+
+// ── 12f. no fold hides a scroll ─────────────────────────────────────────
+// Folding is only an answer while each fold is about a screen. "הציוד הכבד"
+// had grown to 4,374 characters - three phone screens behind one summary -
+// so looking up pole length meant scrolling past the whole buckling
+// procedure. It is two folds now. This stops the next one growing back:
+// when a fold passes the limit it wants splitting, not a bigger limit.
+const FOLD_LIMIT = 3400;
+const fatFolds = await page.evaluate((limit) => {
+  document.querySelectorAll('div.modal[id]').forEach(d => { d.style.display = 'block'; });
+  const out = [];
+  const all = [...document.querySelectorAll('details')];
+  const was = all.map(d => d.open);
+  all.forEach(d => { d.open = true; });
+  all.forEach(d => {
+    const head = (d.querySelector('summary')?.innerText || '').replace(/\s+/g, ' ').trim();
+    const body = (d.innerText || '').replace(/\s+/g, ' ').trim();
+    // A fold that holds other folds is a drawer, not a scroll: what it costs
+    // the reader is its own prose, so the nested folds come back off. Counting
+    // them made the band "הכנות לפני הנסיעה" look like 14,000 characters when
+    // it shows six lines and a list of summaries.
+    let nested = 0;
+    d.querySelectorAll('details').forEach(k => {
+      nested += (k.innerText || '').replace(/\s+/g, ' ').trim().length;
+    });
+    const n = body.length - head.length - nested;
+    if (n > limit) out.push(head.slice(0, 45) + ' (' + n + ')');
+  });
+  all.forEach((d, i) => { d.open = was[i]; });
+  document.querySelectorAll('div.modal[id]').forEach(d => { d.style.display = 'none'; });
+  return out;
+}, FOLD_LIMIT);
+if (fatFolds.length)
+  fail('no fold hides more than ' + FOLD_LIMIT + ' characters',
+       'split these: ' + fatFolds.join(' · '));
+else ok();
+
+// ── 12g. a dead session is never mistaken for a missing permission ──────
+// On 9 November Yossi, an admin, could not delete posts from his phone -
+// not even his own. The page said "אין לך הרשאה". His permissions were
+// fine: getAuthToken() answered with the publishable key whenever there was
+// no session, so the DELETE left signed as a passing stranger and RLS
+// refused it, correctly. These pin the two halves: nothing unsigned goes
+// out, and the person is told what actually happened.
+const deadSession = await page.evaluate(async () => {
+  // The container has no Supabase client, so getSB() would return null and
+  // getAuthToken would answer from its first line - never reaching the line
+  // that held the bug. A stub client that reports NO session puts the page
+  // in exactly the state his phone was in, and makes the real line run.
+  const noClient = (typeof _sb === 'undefined') ? null : _sb;
+  _sb = { auth: { getSession: async () => ({ data: { session: null } }) } };
+  const tok = await getAuthToken();
+  if (tok !== '') {
+    _sb = noClient;
+    return 'getAuthToken answers with ' +
+      (tok === SUPABASE_KEY ? 'the publishable key' : 'something') +
+      ' when there is no session';
+  }
+
+  const sent = [];
+  const realFetch = window.fetch;
+  window.fetch = function (u, o) {
+    sent.push(String(u) + ' ' + ((o && o.method) || 'GET'));
+    return Promise.resolve({ ok: true, status: 200, json: async () => [],
+                             text: async () => '' });
+  };
+  const realOpen = window.openM; window.openM = function () {};
+  user = { name: 'דוד', sbId: 'abc', isAdmin: true };
+  try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch (e) {}
+
+  let box = document.getElementById('forum-msg');
+  if (!box) { box = document.createElement('div'); box.id = 'forum-msg';
+              document.body.appendChild(box); }
+  box.textContent = '';
+
+  try { await confirmDelPost('123'); } catch (e) { /* reported below */ }
+
+  const msg = box.textContent;
+  const writes = sent.filter(x => / (DELETE|PATCH|POST)$/.test(x));
+  window.fetch = realFetch; window.openM = realOpen; _sb = noClient;
+
+  if (writes.length)
+    return 'an unsigned write still went out: ' + writes.join(', ');
+  if (/הרשאה/.test(msg))
+    return 'the message still blames the permissions: ' + msg;
+  if (!/התחבר/.test(msg))
+    return 'the message does not say the session ended: ' + (msg || '(nothing)');
+  if (localStorage.getItem('skiUser'))
+    return 'the stored user outlived the session it depended on';
+  return 'ok';
+});
+if (deadSession !== 'ok')
+  fail('a dead session is not reported as a missing permission', deadSession);
+else ok();
+
+// ── 12h. every write travels as a named person ──────────────────────────
+// A write that calls getAuthToken directly is one that can still leave
+// unsigned. These four are the ones that bit him.
+const unsigned = await page.evaluate(() => {
+  const bad = [];
+  ['confirmDelPost', 'confirmDelReply', 'saveEditPost', 'saveEditReply', 'sbInsert']
+    .forEach(name => {
+      const fn = window[name];
+      if (typeof fn !== 'function') { bad.push(name + ' is missing'); return; }
+      const src = fn.toString();
+      if (src.indexOf('requireAuth') === -1) bad.push(name + ' does not require a session');
+    });
+  return bad;
+});
+if (unsigned.length) fail('every write travels as a named person', unsigned.join(' · '));
+else ok();
+
+// ── 12i. signed out when the session is gone, not when the signal is ────
+// Clearing the stored user on load is what stops the phone drawing admin
+// buttons nothing can sign. But this app is used on a mountain, and
+// getSession() also comes back empty when the refresh simply could not
+// reach Supabase. Logging somebody out of a gondola would be the worse bug.
+const offlineSafe = await page.evaluate(async () => {
+  const noClient = (typeof _sb === 'undefined') ? null : _sb;
+  const onlineDesc = Object.getOwnPropertyDescriptor(Navigator.prototype, 'onLine');
+  const setOnline = v => Object.defineProperty(navigator, 'onLine',
+                            { configurable: true, get: () => v });
+  const restore = () => {
+    try { delete navigator.onLine; } catch (e) {}
+    if (onlineDesc) Object.defineProperty(Navigator.prototype, 'onLine', onlineDesc);
+  };
+  _sb = { auth: { getSession: async () => ({ data: { session: null } }) } };
+  const seed = () => {
+    user = { name: 'דוד', sbId: 'abc', isAdmin: true };
+    try { localStorage.setItem('skiUser', JSON.stringify(user)); } catch (e) {}
+  };
+  let verdict = 'ok';
+
+  seed(); setOnline(true);
+  await checkSupabaseSession();
+  if (user) verdict = 'a stored user survived a session that is really gone';
+
+  if (verdict === 'ok') {
+    seed(); setOnline(false);
+    await checkSupabaseSession();
+    if (!user) verdict = 'going offline signed the person out';
+  }
+
+  restore(); _sb = noClient;
+  try { localStorage.removeItem('skiUser'); } catch (e) {}
+  user = null;
+  return verdict;
+});
+if (offlineSafe !== 'ok') fail('signed out by a dead session, not a dead signal', offlineSafe);
+else ok();
+
+// ── 12j. every checkbox in the enquiry actually asks something ──────────
+// Nine boxes, three languages. A box wired to nothing looks identical to a
+// box that works until the agency answers the wrong question.
+const lsBoxes = await page.evaluate(async () => {
+  openM('localStayModal');
+  const ids = [...document.querySelectorAll('#localStayModal input[id^="ls-opt-"]')]
+                .map(el => el.id);
+  if (ids.length < 9) return 'only ' + ids.length + ' boxes found';
+  const it = document.getElementById('ls-it');
+  const he = document.getElementById('ls-he');
+  ids.forEach(id => { document.getElementById(id).checked = false; });
+  buildLocalStayMail();
+  const base = { it: it.value.length, he: he.textContent.length };
+  const dead = [];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    el.checked = true; buildLocalStayMail();
+    const grewIt = it.value.length > base.it;
+    const grewHe = he.textContent.length > base.he;
+    el.checked = false;
+    if (!grewIt || !grewHe)
+      dead.push(id + (grewIt ? ' (Hebrew only)' : grewHe ? ' (foreign only)' : ''));
+  }
+  // and the Hebrew mirror must carry the same number of questions as the letter
+  ids.forEach(id => { document.getElementById(id).checked = true; });
+  buildLocalStayMail();
+  const nIt = (it.value.match(/,/g) || []).length;
+  const nHe = (he.textContent.match(/,/g) || []).length;
+  ids.forEach(id => { document.getElementById(id).checked = false; });
+  buildLocalStayMail();
+  document.getElementById('localStayModal').style.display = 'none';
+  if (dead.length) return 'these boxes change nothing: ' + dead.join(' · ');
+  if (Math.abs(nIt - nHe) > 1)
+    return 'the Hebrew mirror lists a different number of questions (' + nHe + ' vs ' + nIt + ')';
+  return 'ok';
+});
+if (lsBoxes !== 'ok') fail('every box in the apartment enquiry asks something', lsBoxes); else ok();
+
+// ── 12k. no sentence travels that the reader has not seen checked ───────
+// The pre-written Italian is right because it was written by hand. The
+// reader's own sentence is not, so it reaches the letter only while the
+// translation on file is of THAT text, INTO the language now chosen.
+const lsExtra = await page.evaluate(async () => {
+  openM('localStayModal');
+  const ta = document.getElementById('ls-extra');
+  const it = document.getElementById('ls-it');
+  const real = window._lsAsk;
+  let asked = 0;
+  window._lsAsk = async (p) => {
+    asked++;
+    return /into Hebrew/.test(p) ? 'חזרה לעברית' : 'FRASE-TRADOTTA';
+  };
+  const done = v => { window._lsAsk = real;
+                      document.getElementById('localStayModal').style.display = 'none';
+                      return v; };
+
+  document.querySelector('input[name="ls-lang"][value="it"]').checked = true;
+  ta.value = 'האם יש מיטת תינוק?';
+  _lsExtraChanged();
+  if (it.value.indexOf('FRASE-TRADOTTA') !== -1)
+    return done('an untranslated sentence is already in the letter');
+
+  await lsTranslateExtra(null);
+  if (asked < 2) return done('no back-translation was asked for');
+  if (it.value.indexOf('FRASE-TRADOTTA') === -1)
+    return done('the translated sentence never reached the letter');
+  const back = document.getElementById('ls-extra-back');
+  if (back.style.display === 'none' || back.textContent.indexOf('חזרה לעברית') === -1)
+    return done('the reader is never shown what the sentence says back in Hebrew');
+
+  // edited after translating - what is on file is no longer what is in the box
+  ta.value = 'האם יש מיטת תינוק, ובאיזה מחיר?';
+  _lsExtraChanged();
+  if (it.value.indexOf('FRASE-TRADOTTA') !== -1)
+    return done('an edited sentence still travels under the old translation');
+
+  // translated, then the language changed under it
+  ta.value = 'האם יש מיטת תינוק?';
+  _lsExtraChanged();
+  await lsTranslateExtra(null);
+  document.querySelector('input[name="ls-lang"][value="en"]').checked = true;
+  buildLocalStayMail();
+  if (it.value.indexOf('FRASE-TRADOTTA') !== -1)
+    return done('an Italian sentence travelled inside an English letter');
+
+  ta.value = ''; _lsExtraChanged();
+  document.querySelector('input[name="ls-lang"][value="it"]').checked = true;
+  buildLocalStayMail();
+  return done('ok');
+});
+if (lsExtra !== 'ok') fail('nothing travels unchecked in the apartment enquiry', lsExtra); else ok();
+
+// ── 12l. the heading describes what the panel does ──────────────────────
+// It used to say "ממלאים בעברית, יוצא באיטלקית". Nothing was filled in in
+// Hebrew: it was dates, a number, a radio and four boxes.
+const lsHead = await page.evaluate(() => {
+  const h = [...document.querySelectorAll('#localStayModal h4')]
+              .map(x => x.textContent).join(' | ');
+  if (/ממלאים בעברית/.test(h)) return 'the heading still claims the reader writes Hebrew';
+  if (!/פנייה/.test(h)) return 'no heading names the enquiry: ' + h;
+  return 'ok';
+});
+if (lsHead !== 'ok') fail('the enquiry heading says what the panel does', lsHead); else ok();
+
 // ── 13. the transport tab renders whole ──────────────────────────────────
 const tr = await page.evaluate(() => {
   const want = (window._texts.transport.groups || []).map(g => g.title);
@@ -1757,8 +2079,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const su = document.getElementById('kosher-products-title');
     const li = document.getElementById('kosher-products-list');
     const out = {
-      inJson: (t.kosher.cervinia_products || []).length,
-      items: li ? li.children.length : 0,
+      inJson: (t.kosher.cervinia_products || []).filter(
+                x => String(x).slice(0, 2) !== '##').length,
+      // The groups are folds now, so the product rows are no longer children
+      // of the list - counting children counted eight folds and called it
+      // eight products. Each rendered line carries k-prod, at any depth.
+      items: li ? li.querySelectorAll('.k-prod').length : 0,
+      groups: li ? li.querySelectorAll('details').length : 0,
       summaryHeight: su ? Math.round(su.getBoundingClientRect().height) : 0,
       summaryText: su ? su.textContent : '',
       marker: su ? getComputedStyle(su, '::before').content : '',
@@ -1775,6 +2102,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.inJson < 20) fail(T, `only ${r.inJson} products in the content file`); else ok();
   if (r.items < r.inJson) fail(T,
     `${r.items} rows rendered for ${r.inJson} products`); else ok();
+  if (r.groups < 5) fail(T,
+    `the list is not split into groups - ${r.groups} folds inside it`); else ok();
   if (r.summaryHeight < 10) fail(T,
     'the heading that opens the list is not on screen at all'); else ok();
   if (!r.isFold) fail(T,

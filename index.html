@@ -1010,7 +1010,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.13';
+  var v='v17.15';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1987,8 +1987,12 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           </div>
         </details>
 
+        <!-- Two folds, not one. Thermals and socks share a drawer in real
+             life but not a question: somebody checking whether to buy merino
+             had to scroll past the whole sock section with its calf diagram,
+             and somebody checking sock height had to scroll past the layers. -->
         <details class="fold" style="margin-bottom:10px;">
-          <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-socks"/></svg>שכבות: ביגוד תרמי וגרביים</summary>
+          <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-jacket"/></svg>שכבות: מה לובשים מתחת למעיל</summary>
           <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
             <div class="prep-h">כמה שכבות באמת צריך</div>
             <b>שכבת בסיס</b> (Base layer) (תרמי) נצמדת לגוף ומנדפת זיעה — תמיד.
@@ -2018,7 +2022,12 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             התפורה בצד הפנימי, ובדף המוצר באתר היצרן — שם זה הכי מלא. המספרים של המעיל
             (מ"מ ונשימות) מופיעים באותם מקומות.
 
-            <div class="prep-h">גרבי סקי — והמלכודת שבהן</div>
+          </div>
+        </details>
+
+        <details class="fold" style="margin-bottom:10px;">
+          <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-socks"/></svg>גרבי סקי — והמלכודת שבהן</summary>
+          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
             <b>זוג אחד. לא שניים.</b> שני זוגות יוצרים קפלים, הקפלים לוחצים, הלחץ חוסם
             את זרימת הדם — והתוצאה היא כף רגל קרה, לא חמה.
             <br><b>וגרב דקה, לא עבה.</b> המגף אמור להחזיק את הרגל; גרב עבה ממלאת את המקום
@@ -2156,6 +2165,26 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
 
 
+    <!-- ══ what are you looking for ══
+         The four searches have been here since the summer, but they sat
+         BELOW the date form: you opened the search, met "בחר תאריכי יציאה
+         וחזרה", and that looked like the whole screen. Yossi, who built
+         this, did not know the car and lodging tabs existed. So the
+         question comes first and the form second - nobody should have to
+         fill in flight dates to discover there is a car search. -->
+    <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;">מה מחפשים?</div>
+    <div style="display:flex;gap:5px;margin-bottom:16px;">
+      <button id="ttab-all"    onclick="switchTripTab('all')"    class="ttab-btn ttab-active">✨ הכל</button>
+      <button id="ttab-flight" onclick="switchTripTab('flight')" class="ttab-btn">✈️ טיסה</button>
+      <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn">🚗 רכב</button>
+      <button id="ttab-hotel"  onclick="switchTripTab('hotel')"  class="ttab-btn">🏨 לינה</button>
+    </div>
+
+    <!-- Dates, passengers and the free-text box belong to the two searches
+         that start from a flight. The car and lodging tabs carry their own
+         date fields, so showing this as well put two date pickers on one
+         screen and asked for flight dates from somebody who wants neither. -->
+    <div id="trip-common">
     <!-- חיפוש בשפה חופשית -->
     <div style="background:linear-gradient(135deg,#eef6ff,#f6fbff);border:1.5px solid #cfe2f5;border-radius:12px;padding:12px 13px;margin-bottom:16px;">
       <!-- Nobody could tell this was a free-text box, or what "הבן" would do
@@ -2194,7 +2223,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <!-- Date picker -->
         <div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;">
-            <label style="font-size:0.75rem;color:#888;">📅 תאריכי טיסה (יציאה — חזרה)</label>
+            <label id="trip-dates-label" style="font-size:0.75rem;color:#888;">📅 תאריכי הנסיעה (יציאה — חזרה)</label>
             <div id="trip-dates-meta" style="display:none;align-items:center;gap:6px;">
               <span id="trip-summary-nights" style="font-size:0.72rem;color:#2980b9;font-weight:600;background:#eaf4fd;padding:2px 9px;border-radius:11px;white-space:nowrap;"></span>
               <button onclick="resetTripDates()" title="נקה תאריכים והתחל מחדש" aria-label="נקה תאריכים והתחל מחדש"
@@ -2220,14 +2249,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <!-- filled when the chosen dates fall in a known week -->
       <div id="season-hint"></div>
     </div>
-
-    <!-- Tabs: כולל / טיסה / רכב / לינה -->
-    <div style="display:flex;gap:5px;margin-bottom:16px;">
-      <button id="ttab-all"    onclick="switchTripTab('all')"    class="ttab-btn ttab-active">✨ הכל</button>
-      <button id="ttab-flight" onclick="switchTripTab('flight')" class="ttab-btn">✈️ טיסה</button>
-      <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn">🚗 רכב</button>
-      <button id="ttab-hotel"  onclick="switchTripTab('hotel')"  class="ttab-btn">🏨 לינה</button>
     </div>
+
 
     <!-- === TAB: כולל (ALL) === -->
     <div id="tpanel-all">
@@ -2498,14 +2521,27 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       </button>
       <!-- Most of the apartment stock in an Italian ski village never
            reaches Booking at all. Somebody who searched and found little
-           is exactly the person who needs to know that. -->
-      <div style="margin-top:11px;text-align:center;">
-        <a href="#" onclick="openM('localStayModal');return false;"
-           style="font-size:0.83rem;color:var(--accent);text-decoration:none;
-                  border-bottom:1px dashed #bcd;">
-          🇮🇹 לא מצאתם? כך שוכרים דירה בצ'רוויניה מבלי לעבור דרך בוקינג
-        </a>
-      </div>
+           is exactly the person who needs to know that.
+
+           This was a dashed one-line link under the search button, opening
+           with a 🇮🇹 that Windows draws as the two bare letters "IT". Yossi
+           looked for it twice and did not find it; the only place he ever
+           met it was a cross-reference inside the Shabbat material, which
+           is why he thought it lived there. It is a card now, it says what
+           it is, and it carries no flag. -->
+      <button type="button" onclick="openM('localStayModal');return false;"
+        style="width:100%;margin-top:11px;display:flex;align-items:center;gap:11px;
+               text-align:right;background:#fbf7ef;border:1.5px solid #e6d9bd;
+               border-radius:11px;padding:11px 13px;cursor:pointer;font-family:inherit;">
+        <span style="font-size:1.35rem;line-height:1;">🗝️</span>
+        <span style="flex:1;min-width:0;">
+          <b style="font-size:0.87rem;color:#5b4418;display:block;">לשכור דירה כמו מקומי</b>
+          <small style="font-size:0.765rem;color:#7a6a4a;line-height:1.5;display:block;">
+            רוב דירות הנופש בכפר אינן בבוקינג ובאיירבנב · סוכנויות מקומיות,
+            בלי עמלת פלטפורמה · ומכתב פנייה מוכן באיטלקית</small>
+        </span>
+        <span style="color:#a08b5e;font-size:0.95rem;">‹</span>
+      </button>
       <div id="hotel-results" style="display:none;margin-top:10px;"></div>
     </div>
 
@@ -2584,7 +2620,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="localStayModal" class="modal" onclick="if(event.target===this)closeM('localStayModal')">
   <div class="modal-content" style="max-width:620px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('localStayModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.15rem;">🇮🇹 לשכור דירה כמו מקומי</h3>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;">🗝️ לשכור דירה כמו מקומי</h3>
     <p style="color:#888;font-size:0.82rem;margin:0 0 16px;">
       סוכנויות מקומיות, הקונסורציום של הכפר, ולוחות המודעות האיטלקיים
     </p>
@@ -2593,8 +2629,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
                 padding:12px 14px;font-size:0.86rem;line-height:1.75;margin-bottom:16px;">
       חלק גדול מדירות הנופש בצ'רוויניה אינו מופיע בבוקינג ובאיירבנב כלל.
       הדירות שייכות לבעלים איטלקים, ומי שמנהל אותן הוא סוכנות מקומית שמשכירה
-      בטלפון ובמייל. אין עמלת פלטפורמה, ולרוב אפשר גם להשכיר לימים בודדים
-      ולא רק משבת לשבת.
+      בטלפון ובמייל. אין עמלת פלטפורמה, ולרוב אפשר גם לשכור לימים בודדים
+      ולא רק שבוע שלם מסוף שבוע לסוף שבוע, כנהוג באלפים.
     </div>
 
     <h4 style="margin:0 0 8px;font-size:0.95rem;">סוכנויות בכפר</h4>
@@ -2628,7 +2664,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <div style="font-weight:bold;font-size:0.9rem;">Housecervinia</div>
         <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
           בניין Fior di Roccia במרכז הכפר (Via Gorret 5) ובניין La Grand'Ourse
-          בצ'לו אלטו (Cielo Alto) · כתוב אצלם במפורש שאפשר להשכיר גם לימים בודדים
+          בצ'לו אלטו (Cielo Alto) · כתוב אצלם במפורש שאפשר לשכור גם לימים בודדים
         </div>
         <div style="display:flex;gap:7px;flex-wrap:wrap;font-size:0.8rem;">
           <a href="https://www.housecervinia.com" target="_blank" rel="noopener" class="ls-chip">housecervinia.com</a>
@@ -2670,7 +2706,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <b>subito.it</b> — לוח מודעות כללי; יש בו השכרות לעונת הסקי.<br>
       <b>casevacanza.it</b> — פורטל דירות נופש.<br>
       <span style="color:#888;font-size:0.8rem;">
-        שלושתם באיטלקית בלבד. תרגום הדפדפן עובד עליהם היטב.
+        שלושתם באיטלקית בלבד — אבל הם אתרים רגילים, ולחיצה על "תרגם לעברית"
+        בדפדפן (בכרום: הסמל בשורת הכתובת) הופכת אותם לקריאים לגמרי.
       </span>
     </div>
 
@@ -2679,7 +2716,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          write it. He fills in Hebrew; the Italian is produced beside it,
          and the Hebrew version of the SAME letter is shown underneath, so
          nobody sends words he has not read. -->
-    <h4 style="margin:0 0 8px;font-size:0.95rem;">✉️ מכתב הפנייה — ממלאים בעברית, יוצא באיטלקית</h4>
+    <h4 style="margin:0 0 8px;font-size:0.95rem;">✉️ הכנת פנייה באיטלקית או באנגלית</h4>
     <div style="background:#fbfcfe;border:1px solid #e3ebf4;border-radius:10px;padding:13px;">
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px;">
         <div>
@@ -2706,12 +2743,46 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <label class="ls-opt"><input type="radio" name="ls-lang" value="en" onchange="buildLocalStayMail()"> אנגלית</label>
       </div>
 
+      <!-- Every one of these replaces a sentence somebody would otherwise
+           have to write and have machine-translated. The pre-written Italian
+           is the thing this panel can actually guarantee, so the more of the
+           question fits in here, the less of it rests on a translation
+           nobody in the room can read. -->
+      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;">מה עוד לשאול</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px;font-size:0.82rem;">
         <label class="ls-opt"><input type="checkbox" id="ls-opt-lift"    onchange="buildLocalStayMail()"> קרוב למעליות</label>
         <label class="ls-opt"><input type="checkbox" id="ls-opt-park"    onchange="buildLocalStayMail()"> חניה</label>
         <label class="ls-opt"><input type="checkbox" id="ls-opt-kitchen" onchange="buildLocalStayMail()"> מטבח בדירה</label>
         <label class="ls-opt"><input type="checkbox" id="ls-opt-linen"   onchange="buildLocalStayMail()"> מצעים ומגבות</label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-wash"    onchange="buildLocalStayMail()"> מכונת כביסה</label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-wifi"    onchange="buildLocalStayMail()"> אינטרנט אלחוטי</label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-elev"    onchange="buildLocalStayMail()"> מעלית בבניין</label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-mid"     onchange="buildLocalStayMail()"> כניסה באמצע השבוע</label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-card"    onchange="buildLocalStayMail()"> תשלום בכרטיס אשראי</label>
       </div>
+
+      <!-- Yossi, 8 November: "צריך להשאיר מקום לתוספת כיתוב חופשי".
+           It is deliberately a small box under the boxes rather than a mode
+           of its own: what goes in here is the only sentence in the letter
+           that a machine wrote, and it is shown as such. -->
+      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;">
+        משהו נוסף לשאול (לא חובה) — כתבו בעברית
+      </div>
+      <textarea id="ls-extra" rows="2" placeholder="למשל: האם אפשר להגיע עם תינוק, ויש מיטת תינוק?"
+        oninput="_lsExtraChanged()"
+        style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #ddd;
+               border-radius:9px;font-size:0.84rem;line-height:1.6;font-family:inherit;
+               resize:vertical;margin-bottom:8px;"></textarea>
+      <div id="ls-extra-row" style="display:none;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px;">
+        <button type="button" onclick="lsTranslateExtra(this)"
+          style="padding:7px 14px;background:#fff;border:1.5px solid var(--accent);
+                 color:var(--accent);border-radius:8px;font-size:0.8rem;font-weight:bold;
+                 cursor:pointer;font-family:inherit;">תרגמו את התוספת</button>
+        <span id="ls-extra-state" style="font-size:0.76rem;color:#888;"></span>
+      </div>
+      <div id="ls-extra-back" style="display:none;font-size:0.78rem;color:#6b5a2a;
+           background:#fffdf4;border:1px solid #eadfbe;border-radius:8px;padding:9px 11px;
+           margin-bottom:11px;line-height:1.7;"></div>
 
       <div id="ls-out-label" style="font-size:0.74rem;color:#888;margin-bottom:5px;">הנוסח באיטלקית</div>
       <textarea id="ls-it" readonly dir="ltr" rows="11"
@@ -2738,8 +2809,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     </div>
 
     <p style="font-size:0.78rem;color:#999;margin:14px 0 0;line-height:1.7;">
-      הסוכנויות עונות גם באנגלית. האיטלקית נותנת מענה מהיר יותר, ובעיקר מדייקת
-      את מה שנשאל: מחיר כולל, ומה נוסף עליו.
+      כל הסוכנויות ברשימה עונות גם באנגלית. האיטלקית נותנת מענה מהיר יותר,
+      ובעיקר מדייקת את מה שנשאל: מחיר כולל, ומה נוסף עליו.
     </p>
   </div>
 </div>
@@ -3112,12 +3183,19 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          for exactly that reason. -->
     <div style="border-top:1px solid #eee;padding-top:14px;margin-top:14px;">
       <div style="font-size:0.82rem;font-weight:bold;margin-bottom:8px;">🎿 מה לבקש בדלפק — ומה ההבדל בין דגם לדגם</div>
-<details class="fold" style="margin-bottom:10px;">
-      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-skiboots"/></svg>הציוד הכבד — מה באמת מקבלים בהשכרה</summary>
-      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
-        את זה שוכרים, ולכן השאלה אינה מה לקנות אלא מה לבקש בדלפק.
+    <!-- ══ the heavy gear, in three ══
+         This was one fold: three phone screens of prose behind a single
+         summary, the longest run anywhere on the site. Opening it to look
+         up pole length meant scrolling past the whole buckling procedure.
+         Three folds, each about a screen, and the one somebody actually
+         wants is the one they open. -->
+    <div style="font-size:0.78rem;color:#6b7f93;margin:2px 0 7px;">
+      את הציוד הכבד שוכרים, ולכן השאלה אינה מה לקנות אלא מה לבקש בדלפק.
+    </div>
 
-        <div style="font-weight:bold;color:#16314f;margin-top:4px;">מגפיים — הפריט היחיד שבאמת קובע</div>
+    <details class="fold" style="margin-bottom:10px;">
+      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-skiboots"/></svg>מגפיים — הפריט היחיד שבאמת קובע</summary>
+      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
         מגף לא מתאים הורס יום סקי יותר מכל דבר אחר, ומגף מתאים שווה יותר מכל שדרוג של מגלשיים.
         <br><b>פלקס</b> (Flex) — מידת הקשיחות. 60–80 רך, למתחילים ולילדים · 85–100 בינוני ·
         110–130 מתקדם · 130 ומעלה תחרותי. מגף קשיח מדי לא נכפף בכלל ברגל של מתחיל,
@@ -3190,7 +3268,12 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             באנגלית, עם כתוביות אוטומטיות בעברית (גלגל השיניים ← כתוביות ← תרגום אוטומטי).
           </div>
         </div>
+      </div>
+    </details>
 
+    <details class="fold" style="margin-bottom:10px;">
+      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-skipair"/></svg>מגלשיים, קשירה ומקלות</summary>
+      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
         <div style="font-weight:bold;color:#16314f;margin-top:11px;">מגלשיים</div>
         <b>אורך</b> ביחס לגובה: מתחיל — עד גובה הסנטר · בינוני — עד האף · מתקדם — מהמצח ומעלה.
         מגלש קצר יותר קל להסתובב איתו ופחות יציב במהירות.
@@ -3214,7 +3297,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <b>למתחיל:</b> לא. מגלש מתקדם קשיח יותר, דורש יותר כוח ומהירות כדי להתכופף,
         ובמהירות נמוכה הוא פשוט לא עובד. המדרגה הבסיסית תיתן יום טוב יותר.
         <br><b>לבינוני שגולש כל היום:</b> כן, וההבדל מורגש — יציבות במהירות ואחיזה בקנט.
-        <br><b>בכל רמה:</b> ההשפעה הגדולה ביותר להשכרה היא <b>מצב התחזוקה</b>, לא הדגם.
+        <br><b>בכל רמה:</b> בציוד מושכר, מה שמשפיע יותר מכול הוא <b>מצב התחזוקה</b>, לא הדגם.
         מגלש עם קנט מושחז ושעווה טרייה אוחז אחרת לגמרי ממגלש שעבר שלושים ימי השכרה בלי טיפול.
         מותר ונכון לבקש להחליף זוג שהקנט שלו עגול למגע.
       </div>
@@ -3556,7 +3639,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             לרוב יש מתג או נתיך ייעודי. אם אי אפשר, כדאי לברר מראש מול רב כיצד לנהוג,
             ולבחור חדרים ומסלול הליכה שאינם עוברים דרכם.
             <br>שתי השאלות האלה נכנסות גם למכתב המוכן לסוכנויות שבסעיף
-            <a href="#" onclick="closeM('hotelModal');openM('localStayModal');return false;" style="color:#1a73e8;font-weight:bold;">לשכור דירה כמו מקומי</a>.
+            <a href="#" onclick="closeM('hotelModal');openM('localStayModal');return false;" style="color:#1a73e8;font-weight:bold;">לשכור דירה כמו מקומי</a>,
+            שנמצא בתכנון הטיול תחת <b>חיפוש ← לינה</b>.
 
             <div class="prep-h">הרשימה</div>
             • <b>פמוטים ונרות.</b> בדירות שכורות רבות אסורה אש גלויה; מניחים על מגש מתכת,
@@ -4877,6 +4961,109 @@ var LS_AGENCIES = {
   'ls-send-cons':    'info@breuil-cervinia.it'
 };
 
+// ── the one sentence a machine wrote ───────────────────────────────────────
+// The checkboxes above produce Italian that was written once, by hand, and
+// is therefore right every time. Anything the reader adds in his own words
+// cannot have that guarantee - so it is translated on request, translated
+// BACK to Hebrew, and the round trip is shown to him before he sends it.
+// Yossi, 8 November: "איטלקית אני ממש לא יודע, וכך רוב האנשים". A second
+// opinion from the same model would only agree with itself; what he can
+// actually check is whether the Italian still says what he meant.
+var _lsExtra = { src: '', lang: '', out: '', back: '' };
+
+function _lsExtraChanged() {
+  var ta  = document.getElementById('ls-extra');
+  var row = document.getElementById('ls-extra-row');
+  var txt = ta ? ta.value.trim() : '';
+  if (row) row.style.display = txt ? 'flex' : 'none';
+  // Edited after translating: the translation on screen is no longer of
+  // what is in the box, so it goes rather than quietly misrepresenting it.
+  if (_lsExtra.out && txt !== _lsExtra.src) _lsExtraClear();
+  buildLocalStayMail();
+}
+
+function _lsExtraClear() {
+  _lsExtra = { src: '', lang: '', out: '', back: '' };
+  var back = document.getElementById('ls-extra-back');
+  if (back) { back.style.display = 'none'; back.innerHTML = ''; }
+  var st = document.getElementById('ls-extra-state');
+  if (st) st.textContent = '';
+}
+
+function _lsLang() {
+  var picked = document.querySelector('input[name="ls-lang"]:checked');
+  return (picked && picked.value === 'en') ? 'en' : 'it';
+}
+
+// tf-translate is Claude Haiku behind a thin edge function. Its source
+// (Yossi, 9 November) shows it takes any prompt, tells the model to answer
+// with one JSON object, parses that, and hands it back as `intent` - no
+// trip-specific validation anywhere. So asking it for {"t":"..."} is within
+// its contract, and intent.t is where the answer lands. The other shapes
+// below cost nothing and survive the day that function is rewritten; if
+// none of them carries text this says so rather than inventing a letter.
+async function _lsAsk(prompt) {
+  var ctrl = new AbortController();
+  var to = setTimeout(function () { ctrl.abort(); }, 20000);
+  try {
+    var r = await fetch(CV_TRANSLATE_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt }), signal: ctrl.signal
+    });
+    var d = await r.json().catch(function () { return null; });
+    if (!r.ok || !d) throw new Error('no answer');
+    var cand = [d.intent, d.text, d.result, d.output, d];
+    for (var i = 0; i < cand.length; i++) {
+      var c = cand[i];
+      if (typeof c === 'string' && c.trim()) return c.trim();
+      if (c && typeof c === 'object' && typeof c.t === 'string' && c.t.trim()) return c.t.trim();
+    }
+    throw new Error('no text in the answer');
+  } finally { clearTimeout(to); }
+}
+
+var _LS_NAME = { it: 'איטלקית', en: 'אנגלית' };
+
+async function lsTranslateExtra(btn) {
+  var ta  = document.getElementById('ls-extra');
+  var st  = document.getElementById('ls-extra-state');
+  var back= document.getElementById('ls-extra-back');
+  var txt = ta ? ta.value.trim() : '';
+  if (!txt) return;
+  var lang = _lsLang();
+  var full = (lang === 'en') ? 'English' : 'Italian';
+  var was = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'מתרגם…'; }
+  if (st) st.textContent = '';
+  try {
+    var out = await _lsAsk(
+      'Translate the following Hebrew sentence into ' + full + '. It is one ' +
+      'question inside a polite enquiry to a holiday-apartment agency in ' +
+      'Breuil-Cervinia, Italy. Keep it polite and keep it a question. ' +
+      'Return ONLY valid JSON, no markdown: {"t":"<the ' + full + ' text>"}\n\n' + txt);
+    var back2 = await _lsAsk(
+      'Translate the following ' + full + ' sentence into Hebrew, as literally ' +
+      'as natural Hebrew allows. Do not improve it and do not fix mistakes - ' +
+      'the point is to show what it really says. Return ONLY valid JSON, no ' +
+      'markdown: {"t":"<the Hebrew text>"}\n\n' + out);
+    _lsExtra = { src: txt, lang: lang, out: out, back: back2 };
+    if (back) {
+      back.style.display = 'block';
+      back.innerHTML = '<b>מה שהמשפט הזה אומר, בתרגום חזרה לעברית:</b><br>' +
+        '<span style="color:#444;">' + esc(back2) + '</span><br>' +
+        '<span style="font-size:0.74rem;color:#9a8b63;">אם זה לא מה שהתכוונתם — ' +
+        'נסחו מחדש בעברית ותרגמו שוב.</span>';
+    }
+    if (st) st.textContent = 'תורגם ל' + _LS_NAME[lang] + '.';
+  } catch (e) {
+    _lsExtraClear();
+    if (st) st.textContent = 'התרגום לא הצליח. אפשר לנסות שוב, או לשלוח בלי התוספת.';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = was; }
+    buildLocalStayMail();
+  }
+}
+
 function buildLocalStayMail() {
   var from   = (document.getElementById('ls-from')   || {}).value || '';
   var to     = (document.getElementById('ls-to')     || {}).value || '';
@@ -4899,6 +5086,24 @@ function buildLocalStayMail() {
   var lang = 'it';
   var picked = document.querySelector('input[name="ls-lang"]:checked');
   if (picked) lang = picked.value;
+
+  // The reader's own sentence rides along only when the translation on file
+  // is a translation OF WHAT IS IN THE BOX NOW and INTO THE LANGUAGE chosen
+  // now. Change either one and it drops out of the letter rather than
+  // travelling as a sentence nobody checked - and the state line says so,
+  // because a question that silently vanished is worse than no question.
+  var extraOut = '', extraHe = '';
+  var _ta = document.getElementById('ls-extra');
+  var _raw = _ta ? _ta.value.trim() : '';
+  var _st  = document.getElementById('ls-extra-state');
+  if (_raw && _lsExtra.out && _lsExtra.src === _raw && _lsExtra.lang === lang) {
+    extraOut = '\n\n' + _lsExtra.out;
+    extraHe  = '\n\n' + _raw;
+  } else if (_raw && _st && !_st.textContent) {
+    _st.textContent = 'התוספת עדיין לא בתוך המכתב — לחצו "תרגמו את התוספת".';
+  } else if (_raw && _lsExtra.out && _lsExtra.lang !== lang && _st) {
+    _st.textContent = 'שיניתם שפה — תרגמו את התוספת מחדש.';
+  }
 
   // The English dates are written out in words. dd/mm is unambiguous to an
   // Italian but not to everyone who reads English, and the one thing this
@@ -4933,6 +5138,25 @@ function buildLocalStayMail() {
   if (on('ls-opt-linen'))   { asks.push('se biancheria e asciugamani sono inclusi');
                               asksEn.push('whether linen and towels are included');
                               asksHe.push('אם מצעים ומגבות כלולים'); }
+  if (on('ls-opt-wash'))    { asks.push("se c'è una lavatrice nell'appartamento");
+                              asksEn.push('whether there is a washing machine in the apartment');
+                              asksHe.push('אם יש מכונת כביסה בדירה'); }
+  if (on('ls-opt-wifi'))    { asks.push('se è disponibile il wi-fi');
+                              asksEn.push('whether wi-fi is available');
+                              asksHe.push('אם יש אינטרנט אלחוטי'); }
+  if (on('ls-opt-elev'))    { asks.push("se il palazzo ha l'ascensore");
+                              asksEn.push('whether the building has a lift');
+                              asksHe.push('אם יש מעלית בבניין'); }
+  // Weekly lets in the Alps still run Saturday to Saturday by default, and
+  // for this site's readers that is the one arrangement that does not work.
+  if (on('ls-opt-mid'))     { asks.push("se è possibile arrivare e partire in giorni infrasettimanali, " +
+                                        'e non solo da sabato a sabato');
+                              asksEn.push('whether arrival and departure on weekdays are possible, ' +
+                                          'not only Saturday to Saturday');
+                              asksHe.push('אם אפשר להגיע ולעזוב באמצע השבוע, ולא רק משבת לשבת'); }
+  if (on('ls-opt-card'))    { asks.push('se si può pagare con carta di credito');
+                              asksEn.push('whether payment by credit card is possible');
+                              asksHe.push('אם אפשר לשלם בכרטיס אשראי'); }
 
   var it;
   if (lang === 'en') {
@@ -4942,7 +5166,7 @@ function buildLocalStayMail() {
          'We are looking for an apartment for ' + ppl + ' people in Breuil-Cervinia ' +
          whenEn + '.\n\n' +
          'Do you have availability for those dates? I would be grateful if you could ' +
-         'let me know ' + asksEn.join(', ') + '.\n\n' +
+         'let me know ' + asksEn.join(', ') + '.' + extraOut + '\n\n' +
          'Thank you very much,\n';
   } else {
     it = 'Oggetto: Richiesta appartamento ' + ppl + ' persone, ' +
@@ -4951,7 +5175,7 @@ function buildLocalStayMail() {
          'cerchiamo un appartamento per ' + ppl + ' persone a Breuil-Cervinia ' +
          when + '.\n\n' +
          'Avete disponibilità in quel periodo? Vi sarei grato se poteste indicarmi ' +
-         asks.join(', ') + '.\n\n' +
+         asks.join(', ') + '.' + extraOut + '\n\n' +
          'Grazie mille,\n';
   }
 
@@ -4959,7 +5183,7 @@ function buildLocalStayMail() {
            'שלום,\n\n' +
            'אנחנו מחפשים דירה ל־' + ppl + ' אנשים בברויל־צ\'רוויניה ' + whenHe + '.\n\n' +
            'האם יש לכם מקום פנוי בתאריכים האלה? אשמח אם תוכלו לציין את ' +
-           asksHe.join(', ') + '.\n\n' +
+           asksHe.join(', ') + '.' + extraHe + '\n\n' +
            'תודה רבה,\n';
 
   var lbl = document.getElementById('ls-out-label');
@@ -5830,6 +6054,7 @@ async function submitReply(targetId, postId) {
         parent_id: String(targetId) === String(postId) ? null : targetId,
         user: user.name, user_id: user.sbId || null, content: txt, file_url: fileUrl
       });
+      if (res.sessionExpired) return;
       if (!res.ok) {
         forumMsg('התגובה לא נשמרה. נסה להתנתק ולהתחבר מחדש.', true);
         return;
@@ -5974,6 +6199,18 @@ function switchTripTab(tab) {
     if (btn) { btn.classList.toggle('ttab-active', t === tab); }
     if (panel) panel.style.display = t === tab ? 'block' : 'none';
   });
+  // The shared block - free text, flight dates, passengers - serves the two
+  // searches that begin with a flight. The car and lodging tabs own their
+  // dates, and searchCar/searchHotel still fall back to the flight dates for
+  // a reader who picked them first, so hiding it loses nothing.
+  const common = document.getElementById('trip-common');
+  if (common) common.style.display = (tab === 'car' || tab === 'hotel') ? 'none' : 'block';
+  // "תאריכי טיסה" is the truth on the flight tab and a half-truth on "הכל",
+  // where the same dates drive the car and the room as well.
+  const lbl = document.getElementById('trip-dates-label');
+  if (lbl) lbl.textContent = tab === 'flight'
+    ? '📅 תאריכי טיסה (יציאה — חזרה)'
+    : '📅 תאריכי הנסיעה (יציאה — חזרה)';
   // init flatpickr לשדות הנפרדים אחרי שהם גלויים
   if (tab === 'car' || tab === 'hotel') setTimeout(initFlatpickr, 50);
   paintFlightOffers();
@@ -9930,7 +10167,8 @@ var RC = {
     var was = btn ? btn.textContent : '';
     if (btn) { btn.disabled = true; btn.textContent = 'שומר…'; }
     try {
-      var token = await getAuthToken();
+      var token = await requireAuth('לשמור את קטגוריות הביקורות');
+      if (!token) { if (btn) { btn.disabled = false; btn.textContent = was; } return; }
       var res = await fetch(SUPABASE_URL + '/rest/v1/settings?id=eq.1', {
         method: 'PATCH',
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
@@ -11300,18 +11538,65 @@ async function supabaseLogout() {
 }
 
 // Check if already logged in (page reload)
+// This used to answer with the publishable key whenever there was no
+// session, and every caller is a write or a per-person read. So on a device
+// whose session had died - Yossi's phone, the morning of 9 November - the
+// delete went out signed as a passing stranger, RLS turned it down exactly
+// as it should, and the page told him "אין לך הרשאה". His permissions were
+// never the problem. He could not delete his own posts either, because with
+// no session auth.uid() is null and even ownership cannot be established.
+// An empty answer now, and the caller decides what to say.
 async function getAuthToken() {
   const sb = getSB();
-  if (!sb) return SUPABASE_KEY;
+  if (!sb) return '';
   try {
     const { data: { session } } = await sb.auth.getSession();
-    return session?.access_token || SUPABASE_KEY;
-  } catch(e) { return SUPABASE_KEY; }
+    return session?.access_token || '';
+  } catch (e) { return ''; }
+}
+
+// For anything that must travel as a named person. Returns '' and says so
+// when the session is gone, instead of letting the request leave unsigned
+// and come back as a permissions error the person cannot act on.
+async function requireAuth(action) {
+  const token = await getAuthToken();
+  if (token) return token;
+  // The stored user is what made the buttons appear; it outlived the
+  // session, so it goes now and the header stops claiming a login.
+  try { localStorage.removeItem('skiUser'); } catch (e) {}
+  user = null;
+  try { renderHeader(); renderPostBtn(); } catch (e) {}
+  const what = action ? ' כדי ' + action : '';
+  const msg = 'ההתחברות פגה — יש להתחבר מחדש' + what + '.';
+  if (typeof forumMsg === 'function') forumMsg(msg, true);
+  else alert(msg);
+  try { openM('authModal'); } catch (e) {}
+  return '';
 }
 
 async function checkSupabaseSession() {
   const sb = getSB(); if (!sb) return;
   const { data: { session } } = await sb.auth.getSession();
+  // skiUser in localStorage never expires and was never checked against the
+  // session behind it. So a device whose session had died went on drawing
+  // the header, the post button and - for an admin - every delete button,
+  // all of them signed by nobody. That is what Yossi met on his phone.
+  //
+  // Offline is not the same as signed out, and this app is used on a
+  // mountain: getSession() can come back empty because the refresh could
+  // not reach Supabase, and logging somebody out of a gondola would be a
+  // worse bug than the one being fixed. So the stored user is dropped only
+  // when the device can actually talk to the world and still has no session.
+  if (!session?.user) {
+    var reachable = (typeof navigator === 'undefined') || navigator.onLine !== false;
+    if (user && reachable) {
+      console.warn('stored user without a session - signing out');
+      try { localStorage.removeItem('skiUser'); } catch (e) {}
+      user = null;
+      try { renderHeader(); renderPosts(''); renderPostBtn(); } catch (e) {}
+    }
+    return;
+  }
   if (session?.user) {
     const prof = await supabaseGetProfile(session.user.id);
     if (prof) {
@@ -12974,12 +13259,27 @@ function _applyTexts(t) {
       if (_prTitle && _nProducts) {
         _prTitle.textContent = (ko.cervinia_products_title || '') + ' · ' + _nProducts + ' מוצרים';
       }
-      if (prEl) prEl.innerHTML = ko.cervinia_products.map(function (ln) {
-        if (ln.slice(0, 2) === '##') {
-          return '<div style="font-weight:bold;color:#1a4b8c;margin:14px 0 6px;border-bottom:1px solid #dbe4f0;padding-bottom:3px;">' + ln.slice(2).trim() + '</div>';
-        }
-        return _kosherLine(_fixPhones(ln));
-      }).join('');
+      // The eight "##" lines were drawn as headings inside one long run, so
+      // the whole list - twelve phone screens - sat behind a single arrow and
+      // somebody after the coffee scrolled past forty chocolate brands to
+      // reach it. Each group is its own fold now. Whatever comes before the
+      // first "##" stays open: it is the preamble that says what the list is.
+      if (prEl) {
+        var _html = '', _openGroup = false;
+        ko.cervinia_products.forEach(function (ln) {
+          if (String(ln).slice(0, 2) === '##') {
+            if (_openGroup) _html += '</div></details>';
+            _openGroup = true;
+            _html += '<details class="fold" style="margin:7px 0;">'
+                   + '<summary style="color:#1a4b8c;">' + String(ln).slice(2).trim() + '</summary>'
+                   + '<div class="fold-body">';
+            return;
+          }
+          _html += '<div class="k-prod">' + _kosherLine(_fixPhones(ln)) + '</div>';
+        });
+        if (_openGroup) _html += '</div></details>';
+        prEl.innerHTML = _html;
+      }
     }
     if (ko.cervinia_tips) {
       var tipsEl = document.getElementById('kosher-tips-list');
@@ -14438,6 +14738,7 @@ async function _loadSeasonMode() {
 async function _saveSeasonMode(mode) {
   try {
     const _tok = await getAuthToken();
+    if (!_tok) return;
     const _r = await fetch(SUPABASE_URL + '/rest/v1/settings?id=eq.1', {
       method: 'PATCH',
       headers: {
@@ -15741,7 +16042,11 @@ async function uploadForumFile(file) {
 
 // הוספה עמידה: אם עמודה אופציונלית עדיין לא קיימת — נסה שוב בלעדיה
 async function sbInsert(table, body) {
-  const token = await getAuthToken();
+  const token = await requireAuth('לפרסם');
+  // requireAuth has already said what happened and opened the login box, so
+  // the callers must not paint a second, vaguer message over it.
+  if (!token) return { ok: false, status: 401, sessionExpired: true,
+                       text: async () => 'session expired' };
   const h = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
               'Content-Type': 'application/json', 'Prefer': 'return=representation' };
   const url = SUPABASE_URL + '/rest/v1/' + table;
@@ -15775,6 +16080,9 @@ function isMine(item) {
 // or RLS has nobody to judge. That is what this one is for.
 async function sbFetchAuth(path, opts) {
   const token = await getAuthToken();
+  // An unsigned read here comes back empty and looks like "no users", which
+  // is a different lie from the delete one but the same cause.
+  if (!token) { console.warn('sbFetchAuth: no session', path); return null; }
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
                'Accept': 'application/json', 'Content-Type': 'application/json',
@@ -15899,6 +16207,7 @@ async function submitPost() {
       const res = await sbInsert('posts', {
         user: user.name, user_id: user.sbId || null, content: txt, file_url: fileUrl
       });
+      if (res.sessionExpired) return;
       if (!res.ok) {
         forumMsg('לא הצלחנו לשמור את הפוסט. נסה להתנתק ולהתחבר מחדש.', true);
         return;
@@ -16062,6 +16371,7 @@ async function persistReaction(itemId, emoji) {
   if (!(SUPABASE_URL && SUPABASE_KEY) || !user) return;
   try {
     const token = await getAuthToken();
+    if (!token) return;
     const h = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
     await fetch(SUPABASE_URL + '/rest/v1/reactions?item_id=eq.' + encodeURIComponent(itemId)
       + '&user=eq.' + encodeURIComponent(user.name), { method: 'DELETE', headers: h });
@@ -16115,7 +16425,8 @@ async function saveEditReply(postId, replyId) {
   const txt = document.querySelector('.edit-area[data-edit-for="' + safeId(replyId) + '"] textarea')?.value.trim();
   if (!txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const token = await getAuthToken();
+    const token = await requireAuth('לערוך תגובה');
+    if (!token) return;
     const res = await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
       method: 'PATCH',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
@@ -16153,7 +16464,8 @@ function delReply(postId, replyId) {
 }
 async function confirmDelReply(postId, replyId) {
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const token = await getAuthToken();
+    const token = await requireAuth('למחוק תגובה');
+    if (!token) return;
     const res = await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
@@ -16198,7 +16510,8 @@ async function saveEditPost(id) {
   const txt = document.querySelector('.edit-area[data-edit-for="' + safeId(id) + '"] textarea')?.value.trim();
   if (!p || !txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const token = await getAuthToken();
+    const token = await requireAuth('לערוך פוסט');
+    if (!token) return;
     const res = await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
       method: 'PATCH',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
@@ -16230,7 +16543,8 @@ function delPost(id) {
 }
 async function confirmDelPost(id) {
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const token = await getAuthToken();
+    const token = await requireAuth('למחוק פוסט');
+    if (!token) return;
     await fetch(SUPABASE_URL + '/rest/v1/replies?post_id=eq.' + id, {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }

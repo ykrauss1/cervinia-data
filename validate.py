@@ -653,6 +653,15 @@ HOUSE = [
     (r'ניענה',        'נענה',  '"ניענה" - a tsere takes no yod; the site says "נענה"'),
     (r'סיסמא(?!ות)',  'סיסמה', '"סיסמא" - the Aramaic form; the site settled on '
                                'the standard "סיסמה" (the plural "סיסמאות" stays)'),
+    # The reader of this site is the one paying for the flat, the car or the
+    # skis. Only the owner lets them out. Written from the owner's side the
+    # sentence says the opposite of what it means, and it had slipped in
+    # twice - "אפשר גם להשכיר לימים בודדים" about apartments Yossi's readers
+    # are trying to rent. The noun (השכרה, להשכרה, חנות השכרה) is untouched:
+    # it names the transaction and belongs to neither side.
+    (r'(?:אפשר|ניתן|כדאי|עדיף|מומלץ|אוכל|נוכל|יכולים|אפשרות)\s+(?:גם\s+)?להשכיר',
+     'לשכור', 'the renter rents and only the owner lets - "אפשר להשכיר" '
+              'tells the reader to become the landlord'),
 ]
 
 def _house(blob, where):
