@@ -1055,7 +1055,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.17';
+  var v='v17.18';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -3914,6 +3914,27 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <button class="service-btn map-pick" data-map="piste-valtournenche" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-valtournenche')">🏔️ ולטורננש</button>
         <button class="service-btn map-pick" data-map="piste-swiss" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-swiss')"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> שוויץ</button>
       </div>
+
+      <!-- ══ the recommended routes, on the sheet ══
+           The site has described these two in words for months and drew
+           them nowhere. The marks ring the printed run badges in order,
+           which is the one thing that can be placed exactly on a hand-drawn
+           panorama; the caption says that is what they are. -->
+      <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:8px 0 2px;">⛷️ סמן מסלול מומלץ:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="service-btn map-route-btn" data-route="grand_tour"
+          style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:120px;"
+          onclick="mapShowRoute('grand_tour')">🔴 הסיבוב הגדול</button>
+        <button class="service-btn map-route-btn" data-route="ventina"
+          style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:120px;"
+          onclick="mapShowRoute('ventina')">⚫ ה-Ventina</button>
+      </div>
+      <div id="map-route-caption" style="display:none;font-size:0.72rem;color:#8a6a3a;
+           background:#fff8ee;border:1px solid #f0dfc4;border-radius:7px;
+           padding:7px 10px;margin-top:7px;line-height:1.6;">
+        המספרים מסמנים <b>באילו מסלולים לגלוש ובאיזה סדר</b> — הם יושבים על מספר
+        המסלול כפי שהוא מודפס במפה. זהו אינו קו הגלישה עצמו.
+      </div>
     </div>
     <!-- toolbar: zoom + fullscreen + download (מוצג רק כשיש תוכן) -->
     <div id="map-toolbar" style="display:none;align-items:center;gap:6px;margin-bottom:8px;flex-shrink:0;flex-wrap:wrap;">
@@ -5595,6 +5616,7 @@ function switchTab(tab) {
 // ── Map viewer ──
 var _mapZoomLevel = 1;
 var _mapCurrentPdf = null;
+var _mapCurrentType = '';
 var _mapCurrentPage = 1;
 
 // Load PDF.js lazily
@@ -5611,6 +5633,7 @@ function _loadPdfJs(cb) {
 
 // Which map the reader last asked for, so the button can say so.
 function _mapMarkPick(type) {
+  _mapCurrentType = type;   // the route overlay belongs to one sheet only
   document.querySelectorAll('.map-pick').forEach(function (b) {
     var on = b.getAttribute('data-map') === type;
     b.style.background   = on ? '#0a192f' : '';
@@ -5653,6 +5676,10 @@ function _mapReset() {
   var toolbar = document.getElementById('map-toolbar');
   if (imgWrap) imgWrap.style.display = 'none';
   if (pdfWrap) pdfWrap.style.display = 'none';
+  // The village photo and the other sheets carry no marks of their own, and
+  // the last sheet's marks would otherwise sit on them.
+  var _rl = document.getElementById('map-route-layer');
+  if (_rl) _rl.style.display = 'none';
   if (frame)  { frame.style.display = 'none'; frame.src = ''; }
   if (ph)     { ph.style.display = 'flex'; ph.innerHTML = '<span style="font-size:2rem;">⏳</span><span>טוען...</span>'; }
   if (toolbar) toolbar.style.display = 'none';
@@ -5749,6 +5776,99 @@ function loadMap(type) {
 
 var _mapRender = null;      // the render in flight, if any
 var _mapRenderGen = 0;
+// ── the recommended routes, drawn on the sheet ────────────────────────────
+//
+// The piste maps are PDFs rendered to a canvas, and the drawing is a hand
+// made panorama, not a projection - so the lon/lat in pistes.route_geom
+// cannot be transformed onto it by any formula. What CAN be placed exactly
+// is the printed run badge: the sheet prints a number on every run, the
+// sheet's own legend says what each number is (6 = Plateau Rosa-Bontadini,
+// 26 = Rocce Nere 1, 46 = Bontadini 2 ...), and the route data names its
+// legs by those same ids. So the overlay rings the badges in order.
+//
+// It says WHICH RUNS and in WHAT ORDER. It does not trace the line of the
+// piste, and the caption says so, because a confident wrong line on a ski
+// map is worse than no line at all.
+//
+// The coordinates are in the PDF page's own units and the <svg> carries the
+// page as its viewBox, so zooming the canvas scales the marks with it and
+// there is no arithmetic to get wrong.
+var _mapRoute = '';
+
+function _mapRouteData() {
+  try { return (_texts && _texts.pistes && _texts.pistes.route_map) || null; }
+  catch (e) { return null; }
+}
+
+function mapShowRoute(id) {
+  _mapRoute = (_mapRoute === id) ? '' : id;
+  var rd = _mapRouteData();
+  // Picking a route on the wrong sheet would silently draw nothing, so it
+  // loads the sheet the marks belong to.
+  if (_mapRoute && rd && rd.map && _mapCurrentType !== rd.map) {
+    loadMap(rd.map);
+    return;                      // the render calls back into the painter
+  }
+  _mapPaintRoute();
+  _mapMarkRouteBtns();
+}
+
+function _mapMarkRouteBtns() {
+  document.querySelectorAll('.map-route-btn').forEach(function (b) {
+    var on = b.getAttribute('data-route') === _mapRoute;
+    b.style.background  = on ? '#ff6a00' : '';
+    b.style.color       = on ? '#fff'    : '';
+    b.style.borderColor = on ? '#ff6a00' : '';
+    b.style.fontWeight  = on ? 'bold'    : '';
+  });
+  var cap = document.getElementById('map-route-caption');
+  if (cap) cap.style.display = _mapRoute ? 'block' : 'none';
+}
+
+function _mapPaintRoute() {
+  var wrap   = document.getElementById('map-pdf-wrap');
+  var canvas = document.getElementById('map-pdf-canvas');
+  if (!wrap || !canvas) return;
+  var svg = document.getElementById('map-route-layer');
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('id', 'map-route-layer');
+    svg.style.position = 'absolute';
+    svg.style.pointerEvents = 'none';
+    wrap.style.position = 'relative';
+    wrap.appendChild(svg);
+  }
+  var rd = _mapRouteData();
+  var stops = rd && rd.routes && rd.routes[_mapRoute];
+  if (!_mapRoute || !stops || !stops.length || _mapCurrentType !== rd.map) {
+    svg.style.display = 'none';
+    return;
+  }
+  // The canvas is centred while it fits and flush once it is wider, so its
+  // offset is read rather than assumed.
+  svg.style.display = 'block';
+  svg.style.left   = canvas.offsetLeft + 'px';
+  svg.style.top    = canvas.offsetTop + 'px';
+  svg.style.width  = canvas.style.width;
+  svg.style.height = canvas.style.height;
+  svg.setAttribute('viewBox', '0 0 ' + rd.page.w + ' ' + rd.page.h);
+
+  var g = '';
+  stops.forEach(function (st, i) {
+    var n = i + 1;
+    g += '<circle cx="' + st.x + '" cy="' + st.y + '" r="15" fill="none" '
+       + 'stroke="#fff" stroke-width="6" opacity="0.85"/>'
+       + '<circle cx="' + st.x + '" cy="' + st.y + '" r="15" fill="none" '
+       + 'stroke="#ff6a00" stroke-width="3"/>'
+       + '<circle cx="' + (st.x + 13) + '" cy="' + (st.y - 13) + '" r="9.5" '
+       + 'fill="#ff6a00" stroke="#fff" stroke-width="2"/>'
+       + '<text x="' + (st.x + 13) + '" y="' + (st.y - 9.5) + '" fill="#fff" '
+       + 'font-size="12" font-weight="bold" text-anchor="middle" '
+       + 'font-family="system-ui,sans-serif">' + n + '</text>';
+  });
+  svg.innerHTML = g;
+}
+
 function _renderPdfPage(pageNum) {
   if (!_mapCurrentPdf) return;
   var canvas  = document.getElementById('map-pdf-canvas');
@@ -5801,6 +5921,8 @@ function _renderPdfPage(pageNum) {
       if (pdfWrap) pdfWrap.style.display = 'block';
       var zl = document.getElementById('map-zoom-label');
       if (zl) zl.textContent = Math.round(_mapZoomLevel * 100) + '%';
+      _mapPaintRoute();        // the marks follow the canvas, zoom included
+      _mapMarkRouteBtns();
     }).catch(function () { /* cancelled on purpose */ });
   });
 }

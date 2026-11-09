@@ -3221,6 +3221,86 @@
         45.9449,
         "Bontadini"
       ]
+    },
+    "route_map": {
+      "_note": "Where each run of a recommended route sits on cerviniaslopesmap.pdf. x and y are in the PDF page’s own units (909.08 x 729.71 at scale 1), so the overlay rides the canvas through any zoom without arithmetic. Each point is the printed run badge, read off the sheet by eye - it marks WHICH RUN and in what order, not the line of the piste. The run ids come from the map’s own legend: 2=Cretaz, 5=Plan Maison-Cervinia, 6=Plateau Rosa-Bontadini, 6.0=Fornet 1, 6.00=Plan Maison, 7=Ventina Ghiacciaio, 7.0=Ventina Goillet, 7.00=Ventina Bardoney 1, 26=Rocce Nere 1, 46=Bontadini 2.",
+      "map": "piste-cervinia",
+      "page": {
+        "w": 909.08,
+        "h": 729.71
+      },
+      "routes": {
+        "grand_tour": [
+          {
+            "x": 279,
+            "y": 396,
+            "run": "26",
+            "name": "Rocce Nere 1"
+          },
+          {
+            "x": 374,
+            "y": 412,
+            "run": "6.00",
+            "name": "Plan Maison"
+          },
+          {
+            "x": 121,
+            "y": 204,
+            "run": "6",
+            "name": "Plateau Rosa – Bontadini"
+          },
+          {
+            "x": 71,
+            "y": 187,
+            "run": "46",
+            "name": "Bontadini 2"
+          },
+          {
+            "x": 201,
+            "y": 253,
+            "run": "6.0",
+            "name": "Fornet 1"
+          },
+          {
+            "x": 435,
+            "y": 450,
+            "run": "6.00",
+            "name": "Plan Maison"
+          },
+          {
+            "x": 442,
+            "y": 492,
+            "run": "5",
+            "name": "Plan Maison – Cervinia"
+          },
+          {
+            "x": 570,
+            "y": 682,
+            "run": "2",
+            "name": "Cretaz"
+          }
+        ],
+        "ventina": [
+          {
+            "x": 506,
+            "y": 201,
+            "run": "7",
+            "name": "Ventina Ghiacciaio"
+          },
+          {
+            "x": 516,
+            "y": 263,
+            "run": "7.0",
+            "name": "Ventina Goillet"
+          },
+          {
+            "x": 671,
+            "y": 505,
+            "run": "7.00",
+            "name": "Ventina Bardoney 1"
+          }
+        ]
+      }
     }
   },
   "ski_instructors": [
