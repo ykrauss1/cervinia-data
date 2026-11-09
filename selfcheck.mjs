@@ -721,13 +721,38 @@ if (lsExtra !== 'ok') fail('nothing travels unchecked in the apartment enquiry',
 // It used to say "ממלאים בעברית, יוצא באיטלקית". Nothing was filled in in
 // Hebrew: it was dates, a number, a radio and four boxes.
 const lsHead = await page.evaluate(() => {
-  const h = [...document.querySelectorAll('#localStayModal h4')]
+  // The headings are <summary> now that the panel is four drawers; the
+  // question this asks is the same one, so it reads both.
+  const h = [...document.querySelectorAll('#localStayModal h4, #localStayModal summary')]
               .map(x => x.textContent).join(' | ');
   if (/ממלאים בעברית/.test(h)) return 'the heading still claims the reader writes Hebrew';
   if (!/פנייה/.test(h)) return 'no heading names the enquiry: ' + h;
   return 'ok';
 });
 if (lsHead !== 'ok') fail('the enquiry heading says what the panel does', lsHead); else ok();
+
+// ── 12n. the useful drawer is the open one, and it is first ────────────
+// The panel was three phone screens with no fold anywhere, and the enquiry
+// generator - the only thing here a reader cannot get elsewhere - sat LAST,
+// under three lists of links. Order and default state are the whole fix.
+const lsOrder = await page.evaluate(() => {
+  openM('localStayModal');
+  const m = document.getElementById('localStayModal');
+  const folds = [...m.querySelectorAll(':scope .modal-content > details')];
+  if (folds.length < 4) return 'only ' + folds.length + ' drawers in the panel';
+  const head = folds.map(d => (d.querySelector('summary')?.textContent || '').trim());
+  if (!/פנייה/.test(head[0]))
+    return 'the enquiry is not first - first is: ' + head[0];
+  if (!folds[0].open) return 'the enquiry drawer starts closed';
+  if (folds.slice(1).some(d => d.open))
+    return 'a link list starts open as well, so the panel is still a scroll';
+  // opening one must not hide the others
+  const visible = folds.filter(d => d.querySelector('summary').offsetParent !== null).length;
+  if (visible < 4) return 'only ' + visible + ' headings are on screen at once';
+  m.style.display = 'none';
+  return 'ok';
+});
+if (lsOrder !== 'ok') fail('the apartment panel opens on the part that does work', lsOrder); else ok();
 
 // ── 12m. the page never hands the model a prompt of its own ─────────────
 // tf-translate runs on Yossi's Anthropic key, it is called with no apikey

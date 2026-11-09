@@ -681,7 +681,60 @@ _house('\n'.join(_flat), 'texts.json')
 
 _idx = near('index.html')
 if os.path.exists(_idx):
-    _house(io.open(_idx, encoding='utf-8').read(), 'index.html')
+    _idx_text = io.open(_idx, encoding='utf-8').read()
+    _house(_idx_text, 'index.html')
+
+    # ── the vendored library is not ours to edit ──────────────────────────
+    # @hebcal/hdate is 149 KB of minified third-party code on one line.
+    # On 9 November a blanket find-and-replace for flag emoji ran over the
+    # whole file and rewrote a flag INSIDE that line. Nothing noticed until
+    # the page stopped loading. A hash is the cheapest way to make the next
+    # careless pass loud instead of silent.
+    #
+    # If this fires because the library was deliberately UPGRADED, put the
+    # new digest here. If it fires for any other reason, something has
+    # edited vendored code, and the edit is the bug.
+    import hashlib
+    HEBCAL_SHA = 'e6e56a949a52333f7aa87af30c7113b70ce4b81d1af7f91a750812a15473c923'
+    _lib = [l for l in _idx_text.split('\n')
+            if '@hebcal/hdate' in l and len(l) > 100000]
+    if len(_lib) != 1:
+        err('index.html: expected exactly one vendored @hebcal/hdate line, '
+            'found %d' % len(_lib))
+    elif hashlib.sha256(_lib[0].encode()).hexdigest() != HEBCAL_SHA:
+        err('index.html: the minified @hebcal/hdate line has been edited. '
+            'Vendored code is not ours to change - if this was an upgrade, '
+            'update HEBCAL_SHA in validate.py; otherwise revert it')
+
+    # ── and no flag emoji comes back ──────────────────────────────────────
+    # Windows draws them as bare letters, which is why they were replaced
+    # with drawn SVG. The sprite's own comment is allowed to name them.
+    # The vendored library carries a flag of its own inside its minified
+    # code. It stays exactly where it is - that is the whole point of the
+    # hash above - so it is not searched here either.
+    _ours = '\n'.join(l for l in _idx_text.split('\n')
+                      if not ('@hebcal/hdate' in l and len(l) > 100000))
+    _body = _ours.split('══ three flags, drawn rather than typed ══')
+    _outside = _body[0] + ('-->'.join(_body[1].split('-->')[1:]) if len(_body) > 1 else '')
+    for _emo, _name in (('\U0001F1EE\U0001F1F9', 'Italian'),
+                        ('\U0001F1E8\U0001F1ED', 'Swiss'),
+                        ('\U0001F1EE\U0001F1F1', 'Israeli')):
+        if _emo in _outside:
+            err('index.html: a %s flag emoji is back - Windows draws it as '
+                'two bare letters. Use <svg class=fl-xx><use href=#flag-xx/>'
+                '</svg> instead' % _name)
+
+    # ── and the <use> is not self-closed ──────────────────────────────────
+    # An unquoted HTML attribute value runs to the next space or ">", so the
+    # slash in <use href=#flag-it/> becomes part of the value: the browser
+    # looks for an element with id "flag-it/", finds nothing, and draws an
+    # empty box. It rendered as a blank rectangle and every test still
+    # passed, because the markup was there and only the picture was missing.
+    import re as _re
+    if _re.search(r'<use href=#flag-(?:it|ch|il)/>', _idx_text):
+        err('index.html: a flag <use> is self-closed. With an unquoted href '
+            'the slash lands inside the value, so the flag draws empty - '
+            'write <use href=#flag-xx></use>')
 
 print('--- %s ---' % path)
 for e in ERR:  print('ERROR  ', e)
