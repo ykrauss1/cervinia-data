@@ -754,6 +754,30 @@ const lsOrder = await page.evaluate(() => {
 });
 if (lsOrder !== 'ok') fail('the apartment panel opens on the part that does work', lsOrder); else ok();
 
+// ── 12q. the stay is one range, not two boxes ──────────────────────────
+// Two <input type="date"> boxes knew nothing about each other: Yossi set
+// the arrival to January 2027 and the departure box still offered today.
+const lsDates = await page.evaluate(() => {
+  openM('localStayModal');
+  if (document.getElementById('ls-from') || document.getElementById('ls-to'))
+    return 'the two separate date boxes are back';
+  const el = document.getElementById('ls-dates');
+  if (!el) return 'there is no date field';
+  if (el.type !== 'text' || !el.readOnly)
+    return 'the range field is typed into rather than picked';
+  setLocalStayDates('2027-02-07', '2027-02-14');
+  if (el.getAttribute('data-ci') !== '2027-02-07' ||
+      el.getAttribute('data-co') !== '2027-02-14')
+    return 'the field did not keep the dates it was given';
+  const it = document.getElementById('ls-it').value;
+  if (it.indexOf('07/02/2027') === -1 || it.indexOf('14/02/2027') === -1)
+    return 'the letter does not carry the picked dates';
+  if (!/7 notti|7 nights/.test(it)) return 'the letter miscounts the nights';
+  document.getElementById('localStayModal').style.display = 'none';
+  return 'ok';
+});
+if (lsDates !== 'ok') fail('the stay is picked as one range', lsDates); else ok();
+
 // ── 12o. the drawn routes match what Yossi marked ──────────────────────
 // The piste map is a hand-drawn panorama, not a projection, so nothing can
 // be computed onto it. Yossi clicked each route on the real sheet and the
@@ -1814,6 +1838,17 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 {
   const r = await page.evaluate(async () => {
     const wait = (ms) => new Promise(res => setTimeout(res, ms));
+    // Fixed waits made this the one gate that cried wolf: 500 ms for an
+    // image to decode and 700 ms for a bad host to FAIL are both guesses,
+    // and on 9 November it reported red on a build that was fine. A gate
+    // nobody trusts is worse than no gate - the red was waved through.
+    // So it waits for the state it is about to assert, up to a generous
+    // ceiling, and the assertions below are unchanged.
+    const until = async (fn, ms) => {
+      const t0 = Date.now();
+      while (Date.now() - t0 < ms) { if (fn()) return true; await wait(40); }
+      return false;
+    };
     const card = document.getElementById('svc-webcam');
     const out = {};
     // a picture that loads
@@ -1822,7 +1857,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       + '<rect width="40" height="24" fill="#9fd0f5"/></svg>');
     SVC_CAM_URL = good;
     refreshServiceCam();
-    await wait(500);
+    await until(() => card.classList.contains('has-live'), 6000);
     out.live = card.classList.contains('has-live');
     out.layer = !!card.querySelector('.svc-live');
     out.dot = !!card.querySelector('.svc-livedot');
@@ -1834,9 +1869,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.layerZ = layerEl ? getComputedStyle(layerEl).zIndex : null;
     out.textZ = getComputedStyle(card.querySelector('.svc-txt')).zIndex;
     // and one that does not
+    // A host that cannot resolve fails whenever the resolver gets round to
+    // it, which is not a number anyone can pick in advance.
     SVC_CAM_URL = 'https://example.invalid/none.jpg';
     refreshServiceCam();
-    await wait(700);
+    await until(() => !card.classList.contains('has-live'), 12000);
     out.fellBack = !card.classList.contains('has-live');
     return out;
   });
@@ -3609,7 +3646,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       if (el) { el.checked = true; }
     };
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-    set('ls-from', '2027-01-10'); set('ls-to', '2027-01-15'); set('ls-guests', '5');
+    // one range field now, not two boxes that did not know about each other
+    setLocalStayDates('2027-01-10', '2027-01-15'); set('ls-guests', '5');
     pick('en'); buildLocalStayMail();
     const out = {
       en:    (document.getElementById('ls-it') || {}).value || '',
@@ -3654,7 +3692,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (typeof buildLocalStayMail !== 'function') return { missing: true };
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
     const tick = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v; };
-    set('ls-from', '2027-01-10'); set('ls-to', '2027-01-15'); set('ls-guests', '5');
+    // one range field now, not two boxes that did not know about each other
+    setLocalStayDates('2027-01-10', '2027-01-15'); set('ls-guests', '5');
     ['ls-opt-lift','ls-opt-park','ls-opt-kitchen','ls-opt-linen'].forEach(id => tick(id, false));
     buildLocalStayMail();
     const out = {
@@ -3668,7 +3707,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.itLift = (document.getElementById('ls-it') || {}).value || '';
     out.heLift = (document.getElementById('ls-he') || {}).textContent || '';
     // an unfinished form must not produce a letter that looks finished
-    set('ls-from', ''); set('ls-to', '');
+    const _ld = document.getElementById('ls-dates');
+    _ld.removeAttribute('data-ci'); _ld.removeAttribute('data-co'); _ld.value = '';
     buildLocalStayMail();
     out.empty = (document.getElementById('ls-it') || {}).value || '';
     return out;

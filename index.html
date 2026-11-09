@@ -1055,7 +1055,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.22';
+  var v='v17.23';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2695,15 +2695,17 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          nobody sends words he has not read. -->
     <div style="background:#fbfcfe;border:1px solid #e3ebf4;border-radius:10px;padding:13px;">
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px;">
-        <div>
-          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;">תאריך הגעה</label>
-          <input type="date" id="ls-from" oninput="buildLocalStayMail()"
-            style="padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;">
-        </div>
-        <div>
-          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;">תאריך עזיבה</label>
-          <input type="date" id="ls-to" oninput="buildLocalStayMail()"
-            style="padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;">
+        <!-- Two separate <input type=date> boxes knew nothing about each
+             other: Yossi picked January 2027 for the arrival and the
+             departure box still offered today. A range is one choice, so it
+             is one field - the same flatpickr range the flight, car and
+             lodging searches already use. The ISO dates live in data-ci and
+             data-co; the field itself shows Hebrew. -->
+        <div style="flex:1;min-width:210px;">
+          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;">תאריכי השהייה</label>
+          <input type="text" id="ls-dates" readonly placeholder="בחרו הגעה ועזיבה"
+            style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #ddd;
+                   border-radius:9px;font-size:0.85rem;font-family:inherit;background:#fff;cursor:pointer;">
         </div>
         <div>
           <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;">כמה נוסעים</label>
@@ -5068,6 +5070,37 @@ var LS_AGENCIES = {
 // actually check is whether the Italian still says what he meant.
 var _lsExtra = { src: '', lang: '', out: '', back: '' };
 
+// Set the field from ISO dates - used when the planner already has them.
+function setLocalStayDates(ci, co) {
+  var el = document.getElementById('ls-dates');
+  if (!el || !ci || !co) return;
+  el.setAttribute('data-ci', ci);
+  el.setAttribute('data-co', co);
+  if (el._flatpickr) el._flatpickr.setDate([ci, co], false);
+  else el.value = ci + ' — ' + co;
+  buildLocalStayMail();
+}
+
+function initLocalStayPicker() {
+  var el = document.getElementById('ls-dates');
+  if (!el || el._flatpickr || typeof flatpickr === 'undefined') return;
+  flatpickr(el, {
+    mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+    onChange: function (sel) {
+      if (sel.length === 2) {
+        // toISOString() shifts by the timezone and can land on the day
+        // before - build the date from its own local parts instead
+        el.setAttribute('data-ci', _isoDay(sel[0]));
+        el.setAttribute('data-co', _isoDay(sel[1]));
+      } else {
+        el.removeAttribute('data-ci');
+        el.removeAttribute('data-co');
+      }
+      buildLocalStayMail();
+    }
+  });
+}
+
 function _lsExtraChanged() {
   var ta  = document.getElementById('ls-extra');
   var row = document.getElementById('ls-extra-row');
@@ -5154,8 +5187,9 @@ async function lsTranslateExtra(btn) {
 }
 
 function buildLocalStayMail() {
-  var from   = (document.getElementById('ls-from')   || {}).value || '';
-  var to     = (document.getElementById('ls-to')     || {}).value || '';
+  var _d     = document.getElementById('ls-dates');
+  var from   = (_d && _d.getAttribute('data-ci')) || '';
+  var to     = (_d && _d.getAttribute('data-co')) || '';
   var guests = parseInt((document.getElementById('ls-guests') || {}).value, 10) || 0;
   var on = function (id) { var el = document.getElementById(id); return !!(el && el.checked); };
 
@@ -5384,11 +5418,13 @@ function openM(id) {
   // reader already typed into the planner are carried over - asking a
   // person for the same dates twice is asking him to do our filing.
   if (id === 'localStayModal' && typeof buildLocalStayMail === 'function') {
+    try { initLocalStayPicker(); } catch (e) {}
     try {
-      var lf = document.getElementById('ls-from'), lt = document.getElementById('ls-to');
+      var ld = document.getElementById('ls-dates');
       var pf = document.getElementById('checkin-date'), pt = document.getElementById('checkout-date');
-      if (lf && !lf.value && pf && pf.value) lf.value = pf.value;
-      if (lt && !lt.value && pt && pt.value) lt.value = pt.value;
+      if (ld && !ld.getAttribute('data-ci') && pf && pf.value && pt && pt.value) {
+        setLocalStayDates(pf.value, pt.value);
+      }
     } catch (e) {}
     buildLocalStayMail();
   }
