@@ -354,6 +354,9 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .filter-chip input { display:none; }
 .ttab-btn { flex:1; padding:8px 4px; border:1.5px solid #ddd; border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:bold; background:#f5f5f5; color:#555; transition:all 0.15s; }
         .ttab-active { background:var(--accent) !important; color:var(--dark) !important; border-color:var(--accent) !important; }
+        .ttab-btn.ttab-done::after { content:' ✓'; color:#1e8449; }
+        .trip-diff { font-size:0.72rem; color:#8a6d1b; background:#fff8e6; border-radius:7px; padding:4px 8px; margin-top:5px; line-height:1.6; }
+        .trip-diff a { color:#1a73e8; cursor:pointer; text-decoration:underline; }
         .result-link { display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid #e5e5e5; border-radius:9px; margin-bottom:7px; text-decoration:none; color:inherit; background:white; transition:box-shadow 0.15s; }
         .result-link:hover { box-shadow:0 2px 10px rgba(0,0,0,0.1); }
         .result-link .rl-icon { font-size:1.4rem; flex-shrink:0; }
@@ -1081,7 +1084,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.27';
+  var v='v17.28';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2270,6 +2273,32 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          question comes first and the form second - nobody should have to
          fill in flight dates to discover there is a car search. -->
     <div id="trip-steps">
+    <!-- The trip itself: dates and travellers, said once. Every search in the
+         frame starts from them and stays free to differ - see TRIP below. -->
+    <div id="trip-strip" style="background:#f4f8fc;border:1.5px solid #d6e4f0;border-radius:12px;padding:10px 12px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:0.8rem;color:#16314f;font-weight:bold;">🧳 הטיול</span>
+        <span id="strip-nights" style="font-size:0.72rem;color:#2980b9;font-weight:600;"></span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="strip-dates" readonly placeholder="מתי הטיול? הלוך — חזור"
+          style="flex:1;min-width:170px;padding:9px 12px;border:1.5px solid #cfdcea;border-radius:9px;font-size:0.86rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;box-sizing:border-box;">
+        <div style="display:flex;align-items:center;gap:5px;background:white;border:1.5px solid #cfdcea;border-radius:9px;padding:5px 8px;">
+          <span style="font-size:0.7rem;color:#888;">מבוגרים</span>
+          <button class="c-btn" onclick="adjStrip('adults',-1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
+          <b id="strip-adults">2</b>
+          <button class="c-btn" onclick="adjStrip('adults',1)" style="width:22px;height:22px;font-size:0.8rem;">+</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:white;border:1.5px solid #cfdcea;border-radius:9px;padding:5px 8px;">
+          <span style="font-size:0.7rem;color:#888;">ילדים</span>
+          <button class="c-btn" onclick="adjStrip('children',-1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
+          <b id="strip-children">0</b>
+          <button class="c-btn" onclick="adjStrip('children',1)" style="width:22px;height:22px;font-size:0.8rem;">+</button>
+        </div>
+      </div>
+      <div style="font-size:0.7rem;color:#7a8794;margin-top:6px;line-height:1.5;">
+        כל חיפוש מתחיל מכאן, ובכל אחד אפשר לשנות בנפרד.</div>
+    </div>
     <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;">שלבי התכנון</div>
     <div style="display:flex;gap:5px;margin-bottom:16px;">
       <button id="ttab-all"    onclick="switchTripTab('all')"    class="ttab-btn ttab-active">✨ הכל</button>
@@ -2548,7 +2577,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <!-- Only inside the trip frame is there a flight to differ from.
            _planFrame hides this on the lodging screen alone. -->
       <div id="hotel-vs-flight" style="background:#e8f8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;color:#1a5226;">
-        🏨 <b>תאריכי לינה</b> — ניתן לבחור לילות שונים מהטיסה
+        🏨 <b>תאריכי לינה</b> — מתחילים מתאריכי הטיול, ואפשר לבחור לילות אחרים
       </div>
       <input type="text" id="hotel-dates"
         placeholder="בחר תאריכי צ'ק-אין וצ'ק-אאוט"
@@ -6471,6 +6500,10 @@ function adjField(id, delta, min) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = Math.max(min, parseInt(el.textContent) + delta);
+  if (typeof TRIP_PAX !== 'undefined' && TRIP_PAX[id]) {
+    el.setAttribute('data-touched', '1');
+    _tripMarks();
+  }
 }
 
 function toggleCarDetails(id, on) {
@@ -6906,6 +6939,7 @@ async function applyTripText(){
   // car, no room, no gearbox - none of it is searched here, so reporting it
   // as understood would promise what the screen does not do. Children are
   // passengers on a plane, so there they go into the passenger count.
+  if(!_tripSolo() && (r.adults!=null || r.children)) _tripSetPax(r.adults, r.children||null);
   var flightOnly = _tripTab()==='flight';
   if(flightOnly && r.children){
     var fa=document.getElementById('fl-adults');
@@ -7244,6 +7278,7 @@ function localStays() {
 }
 
 function searchFlight() {
+  _tripStepDone('flight');
   const dr = getDateRange();
   if (!dr) { needDates(); return; }
   const adults = document.getElementById('fl-adults')?.textContent || '2';
@@ -7282,6 +7317,7 @@ function searchFlight() {
 }
 
 function searchCar() {
+  _tripStepDone('car');
   const carEl = document.getElementById('car-dates');
   const ci = carEl?.getAttribute('data-ci'); const co = carEl?.getAttribute('data-co');
   const dr = (ci && co) ? {ci, co} : getDateRange();
@@ -7394,6 +7430,7 @@ function _stayDesc(base, accType, f) {
 }
 
 function searchHotel() {
+  _tripStepDone('hotel');
   const htlEl = document.getElementById('hotel-dates');
   const ci = htlEl?.getAttribute('data-ci'); const co = htlEl?.getAttribute('data-co');
   const dr = (ci && co) ? {ci, co} : getDateRange();
@@ -7428,6 +7465,7 @@ function searchHotel() {
 
 
 function searchAll() {
+  _tripStepDone('all');
   const dr = getDateRange();
   if (!dr) { needDates(); return; }
   const adults = document.getElementById('fl-adults')?.textContent || '2';
@@ -7569,36 +7607,203 @@ var HE_FP = {
   }
 };
 
-// Lodging and the car happen inside the trip, not somewhere else in the year.
-// Once the flight dates are set, every other picker is bounded by them - so
-// the calendar cannot even offer October for a January trip - and anything
-// already chosen outside that window is dropped rather than quietly kept.
-function clampTripDependents(from, to) {
-  ['hotel-dates', 'car-dates', 'all-hotel-dates', 'all-car-dates'].forEach(function (id) {
+// ── the trip and its searches (design, 9 Nov: "same screens, two frames") ──
+//
+// The strip holds the trip: dates and travellers, said once. Every search in
+// the trip frame is BORN from it and is free from then on - lodging may be
+// four nights of seven, the car two days. What a hand has changed is never
+// overwritten: the strip writes only into fields nobody touched, and a field
+// that differs says so quietly, with a way back. A search alone (solo frame)
+// knows nothing of any of this.
+//
+// This replaces clampTripDependents, which bounded every picker by the flight
+// dates and CLEARED a choice outside them - the opposite of "what was changed
+// is not overwritten", and it bounded the lodging screen alone as well.
+var TRIP = { from: null, to: null, adults: 2, children: 0 };
+var TRIP_DATE_IDS = ['trip-dates', 'all-hotel-dates', 'all-car-dates', 'hotel-dates', 'car-dates'];
+// children fly, so the flight counter is everybody
+var TRIP_PAX = {
+  'fl-adults':      function (t) { return t.adults + t.children; },
+  'all-h-adults':   function (t) { return t.adults; },
+  'all-h-children': function (t) { return t.children; },
+  'h-adults':       function (t) { return t.adults; },
+  'h-children':     function (t) { return t.children; }
+};
+var _tripInjecting = false;
+
+// A hand or a program? flatpickr closes a range BEFORE it fires onChange, so
+// isOpen cannot tell. Opening the calendar can: only a person opens it.
+function _tripPickOpen(_s, _v, inst) { inst.input._picking = true; }
+function _tripPickClose(_s, _v, inst) {
+  setTimeout(function () { inst.input._picking = false; }, 0);
+}
+function _tripTouch(el) {
+  if (el && el._picking && !_tripInjecting) el.setAttribute('data-touched', '1');
+  _tripMarks();
+}
+function _tripSolo() { return window._planSolo === true; }
+
+function _tripRange(el) {
+  // The calendar's own selection first: the flight field keeps its dates
+  // there and writes the attributes only when a program sets it, so reading
+  // the attributes alone took a flight picked by hand for the trip's dates.
+  var sel = el && el._flatpickr && el._flatpickr.selectedDates;
+  if (sel && sel.length === 2) return { ci: _isoDay(sel[0]), co: _isoDay(sel[1]) };
+  var ci = el && el.getAttribute('data-ci'), co = el && el.getAttribute('data-co');
+  return (ci && co) ? { ci: ci, co: co } : null;
+}
+function _tripSame(el) {
+  var r = _tripRange(el);
+  return !!(r && TRIP.from && r.ci === _isoDay(TRIP.from) && r.co === _isoDay(TRIP.to));
+}
+
+// Write a range into one search without it counting as a hand.
+function _tripSetRange(el, from, to) {
+  var fp = el && el._flatpickr;
+  _tripInjecting = true;
+  try {
+    el.setAttribute('data-ci', _isoDay(from));
+    el.setAttribute('data-co', _isoDay(to));
+    // trip-dates draws its own label and nights from onChange, so it is the
+    // one that is told; the others only need the value flatpickr writes.
+    if (fp) fp.setDate([from, to], el.id === 'trip-dates');
+    else el.value = _isoDay(from) + ' \u2014 ' + _isoDay(to);
+  } finally { _tripInjecting = false; }
+}
+
+function stripSetDates(from, to) {
+  TRIP.from = from; TRIP.to = to;
+  var st = document.getElementById('strip-dates');
+  if (st) {
+    _tripInjecting = true;
+    try { if (st._flatpickr) st._flatpickr.setDate([from, to], false); } finally { _tripInjecting = false; }
+    st.value = _tripRangeLabel(from, to);
+  }
+  TRIP_DATE_IDS.forEach(function (id) {
     var el = document.getElementById(id);
-    var fp = el && el._flatpickr;
-    if (!fp) return;
-    if (!from || !to) {
-      fp.set('minDate', 'today');
-      fp.set('maxDate', null);
-      return;
-    }
-    var sel = fp.selectedDates.slice();
-    fp.set('minDate', from);
-    fp.set('maxDate', to);
-    var outside = sel.some(function (d) { return d < from || d > to; });
-    if (sel.length && outside) {
-      fp.clear();
-      el.removeAttribute('data-ci');
-      el.removeAttribute('data-co');
-    }
-    // nothing chosen yet: start it on the trip itself
-    if (!fp.selectedDates.length) {
-      fp.setDate([from, to], false);
-      el.setAttribute('data-ci', _isoDay(from));
-      el.setAttribute('data-co', _isoDay(to));
-    }
+    if (el && !el.getAttribute('data-touched')) _tripSetRange(el, from, to);
   });
+  _tripPaint();
+}
+
+function _tripSetPax(adults, children) {
+  if (adults != null) TRIP.adults = Math.max(1, adults);
+  if (children != null) TRIP.children = Math.max(0, children);
+  Object.keys(TRIP_PAX).forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el && !el.getAttribute('data-touched')) el.textContent = TRIP_PAX[id](TRIP);
+  });
+  _tripPaint();
+}
+function adjStrip(which, d) {
+  if (which === 'adults') _tripSetPax(TRIP.adults + d, null);
+  else _tripSetPax(null, TRIP.children + d);
+}
+
+// The flight field: in the trip frame a program writing it (a sentence read,
+// an offer pressed) is setting the trip; a hand writing it is choosing a
+// flight. Flights set the frame - but by offer, not by force, so a hand only
+// moves the trip when there was no trip yet.
+function _tripFromFlight(el, sel) {
+  if (_tripInjecting) return;
+  var user = !!el._picking;
+  if (user) el.setAttribute('data-touched', '1');
+  if (_tripSolo() || sel.length !== 2) { _tripMarks(); return; }
+  if (!user || !TRIP.from) {
+    el.removeAttribute('data-touched');
+    stripSetDates(sel[0], sel[1]);
+    return;
+  }
+  _tripMarks();
+}
+
+function _tripRejoin(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.removeAttribute('data-touched');
+  if (TRIP_PAX[id]) { el.textContent = TRIP_PAX[id](TRIP); }
+  else if (TRIP.from) _tripSetRange(el, TRIP.from, TRIP.to);
+  _tripMarks();
+}
+function _tripAdoptFlight() {
+  var el = document.getElementById('trip-dates'), r = _tripRange(el);
+  if (!r) return;
+  el.removeAttribute('data-touched');
+  stripSetDates(new Date(r.ci + 'T00:00:00'), new Date(r.co + 'T00:00:00'));
+}
+
+// Coming into the trip from a search alone: what was typed there goes on.
+function _tripEnterFrame(solo) {
+  if (!solo) {
+    if (!TRIP.from) {
+      // what a hand typed comes first - a flight field still holding an old
+      // offer must not win over the lodging dates somebody just picked
+      var cands = ['trip-dates', 'hotel-dates', 'car-dates', 'all-hotel-dates', 'all-car-dates']
+        .map(function (id) { return document.getElementById(id); })
+        .filter(function (el) { return _tripRange(el); });
+      var src = cands.filter(function (el) { return el.getAttribute('data-touched'); })[0] || cands[0];
+      if (src) {
+        var r = _tripRange(src);
+        src.removeAttribute('data-touched');
+        stripSetDates(new Date(r.ci + 'T00:00:00'), new Date(r.co + 'T00:00:00'));
+      }
+    }
+    var ha = document.getElementById('h-adults'), hc = document.getElementById('h-children');
+    var fa = document.getElementById('fl-adults');
+    if (ha && ha.getAttribute('data-touched') || hc && hc.getAttribute('data-touched')) {
+      ha.removeAttribute('data-touched'); hc.removeAttribute('data-touched');
+      _tripSetPax(+ha.textContent, +hc.textContent);
+    } else if (fa && fa.getAttribute('data-touched')) {
+      fa.removeAttribute('data-touched');
+      _tripSetPax(+fa.textContent, 0);
+    }
+  }
+  _tripPaint();
+}
+
+function _tripPaint() {
+  var n = document.getElementById('strip-nights');
+  if (n) {
+    var k = TRIP.from ? Math.round((TRIP.to - TRIP.from) / 86400000) : 0;
+    n.textContent = TRIP.from ? (k === 1 ? 'לילה אחד' : k + ' לילות') : '';
+  }
+  var a = document.getElementById('strip-adults'), c = document.getElementById('strip-children');
+  if (a) a.textContent = TRIP.adults;
+  if (c) c.textContent = TRIP.children;
+  _tripMarks();
+}
+
+// "תאריכים שונים מהטיול" under whatever a hand moved away from the trip.
+// Nothing in a search alone: there is no trip there to differ from.
+function _tripMarks() {
+  var solo = _tripSolo();
+  TRIP_DATE_IDS.concat(Object.keys(TRIP_PAX)).forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var isPax = !!TRIP_PAX[id];
+    var differs = !solo && !!el.getAttribute('data-touched') &&
+      (isPax ? +el.textContent !== TRIP_PAX[id](TRIP) : (TRIP.from !== null && !_tripSame(el)));
+    var host = isPax ? (el.closest('div[style*="border-radius"]') || el.parentElement) : el;
+    var mark = document.getElementById(id + '-diff');
+    if (!differs) { if (mark) mark.style.display = 'none'; return; }
+    if (!mark) {
+      mark = document.createElement('div');
+      mark.id = id + '-diff';
+      mark.className = 'trip-diff';
+      host.insertAdjacentElement('afterend', mark);
+    }
+    mark.innerHTML = (isPax ? 'שונה מהטיול' : 'תאריכים שונים מהטיול')
+      + ' · <a onclick="_tripRejoin(\'' + id + '\')">חזרה ' + (isPax ? 'למספר בטיול' : 'לתאריכי הטיול') + '</a>'
+      + (id === 'trip-dates' ? ' · <a onclick="_tripAdoptFlight()">עדכן את הטיול לפי הטיסה</a>' : '');
+    mark.style.display = 'block';
+  });
+}
+
+// A search that ran is a stage passed - the strip shows it on its tab.
+function _tripStepDone(tab) {
+  if (_tripSolo()) return;
+  var b = document.getElementById('ttab-' + tab);
+  if (b) b.classList.add('ttab-done');
 }
 
 function _isoDay(d) {
@@ -7639,7 +7844,8 @@ function initFlatpickr() {
       // dates looking swapped - and then said the same thing again underneath.
       dateFormat: 'j בF',
       locale: HE_FP,
-      onChange: function(selectedDates) {
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
+      onChange: function(selectedDates, _s, inst) {
         const summary = document.getElementById('trip-summary');
         const summDates = document.getElementById('trip-summary-dates');
         const summNights = document.getElementById('trip-summary-nights');
@@ -7649,13 +7855,24 @@ function initFlatpickr() {
           if (summNights) summNights.textContent = nights + (nights === 1 ? ' לילה' : ' לילות');
           if (meta) meta.style.display = 'flex';
           el.value = _tripRangeLabel(selectedDates[0], selectedDates[1]);
-          clampTripDependents(selectedDates[0], selectedDates[1]);
           seasonHint(selectedDates[0], selectedDates[1]);
         } else {
           if (meta) meta.style.display = 'none';
-          if (selectedDates.length === 0) clampTripDependents(null, null);
           seasonHint(null, null);
         }
+        _tripFromFlight(el, selectedDates);
+      }
+    });
+  }
+  // The trip's own dates. Only a hand sets them here; everything else in the
+  // frame is born from them (stripSetDates).
+  const stripEl = document.getElementById('strip-dates');
+  if (stripEl && !stripEl._flatpickr) {
+    flatpickr(stripEl, {
+      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onChange: function(sel) {
+        if (_tripInjecting || sel.length !== 2) return;
+        stripSetDates(sel[0], sel[1]);
       }
     });
   }
@@ -7664,7 +7881,9 @@ function initFlatpickr() {
   if (carEl && !carEl._flatpickr) {
     flatpickr(carEl, {
       mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
+        _tripTouch(carEl);
         if (sel.length === 2) {
           // toISOString() shifts by the timezone and can land on the day
           // before - build the date from its own local parts instead
@@ -7684,7 +7903,9 @@ function initFlatpickr() {
   if (htlEl && !htlEl._flatpickr) {
     flatpickr(htlEl, {
       mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
+        _tripTouch(htlEl);
         if (sel.length === 2) {
           // toISOString() shifts by the timezone and can land on the day
           // before - build the date from its own local parts instead
@@ -7704,7 +7925,9 @@ function initFlatpickr() {
   if (allHtlEl && !allHtlEl._flatpickr) {
     flatpickr(allHtlEl, {
       mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
+        _tripTouch(allHtlEl);
         if (sel.length === 2) {
           // toISOString() shifts by the timezone and can land on the day
           // before - build the date from its own local parts instead
@@ -7724,7 +7947,9 @@ function initFlatpickr() {
   if (allCarEl && !allCarEl._flatpickr) {
     flatpickr(allCarEl, {
       mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
+        _tripTouch(allCarEl);
         if (sel.length === 2) {
           // toISOString() shifts by the timezone and can land on the day
           // before - build the date from its own local parts instead
@@ -7828,7 +8053,7 @@ function resetTripDates() {
   // to them whenever flatpickr has no selection, which is exactly the state
   // this function just created. Leaving them behind meant pressing "נקה"
   // emptied the field on screen and then searched the old dates anyway.
-  if (el) { el.value = ''; el.removeAttribute('data-ci'); el.removeAttribute('data-co'); }
+  if (el) { el.value = ''; el.removeAttribute('data-ci'); el.removeAttribute('data-co'); el.removeAttribute('data-touched'); }
   const meta = document.getElementById('trip-dates-meta');
   if (meta) meta.style.display = 'none';
   // The free-text box is part of the search, so a "clear" that leaves the
@@ -7995,6 +8220,7 @@ function planGo(which) {
 // screen and nothing on it belongs to a trip the reader never asked to plan.
 function _planFrame(open) {
   var solo  = !!open.solo;
+  window._planSolo = solo;
   var strip = document.getElementById('trip-steps');
   if (strip) strip.style.display = solo ? 'none' : 'block';
   // The way up to the whole trip - offered only from a single search, because
@@ -8011,6 +8237,7 @@ function _planFrame(open) {
   // without it. Upward into the trip it stays: the trip covers everything.
   var said = document.getElementById('trip-free-said');
   if (said && solo) said.innerHTML = '';
+  _tripEnterFrame(solo);
 }
 
 // Open the planner straight onto one of its screens. Everything that used to

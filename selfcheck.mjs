@@ -7848,6 +7848,143 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `a sentence with no head count invented ${r.none[0]} adults`); else ok();
 }
 
+// ── the trip is said once; what a hand changed is never overwritten ──
+// Stage 2 of the planner redesign. The strip holds dates and travellers;
+// every search in the trip frame is born from it and free from then on.
+// "A hand" is simulated the way flatpickr sees one: the calendar was opened.
+// That needs the real calendar, which the page loads from a CDN this run
+// cannot reach - so this block loads the same version from node_modules
+// (selfcheck.yml installs it next to playwright) and builds the pickers.
+{
+  const fpPath = near('node_modules/flatpickr/dist/flatpickr.min.js');
+  if (!fs.existsSync(fpPath)) {
+    fail('the trip is said once; what a hand changed is never overwritten',
+      'flatpickr is not installed - run: npm install --no-save flatpickr@4.6.13');
+  } else {
+  await page.addScriptTag({ path: fpPath });
+  await page.evaluate(() => { initFlatpickr(); });
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const D = (y, m, d) => new Date(y, m - 1, d);
+    const $ = id => document.getElementById(id);
+    const ci = id => $(id).getAttribute('data-ci');
+    const shown = id => { const m = $(id + '-diff'); return !!m && m.style.display !== 'none'; };
+    const byHand = (id, a, b) => {
+      const el = $(id); el._picking = true;
+      el._flatpickr.setDate([a, b], true);
+      el._picking = false;
+    };
+    openM('hotelModal');
+    planGo('trip');
+    // a clean trip
+    TRIP.from = TRIP.to = null; TRIP.adults = 2; TRIP.children = 0;
+    TRIP_DATE_IDS.concat(Object.keys(TRIP_PAX)).forEach(id => $(id).removeAttribute('data-touched'));
+
+    out.stripShown = getComputedStyle($('trip-strip')).display !== 'none';
+
+    stripSetDates(D(2027, 1, 10), D(2027, 1, 17));
+    out.born = TRIP_DATE_IDS.map(id => [id, ci(id)]);
+    out.nights = $('strip-nights').textContent;
+
+    byHand('hotel-dates', D(2027, 1, 12), D(2027, 1, 16));
+    stripSetDates(D(2027, 1, 20), D(2027, 1, 27));
+    out.hotelKept = ci('hotel-dates');
+    out.carFollowed = ci('car-dates');
+    out.hotelMarked = shown('hotel-dates');
+    out.carMarked = shown('car-dates');
+    out.markText = ($('hotel-dates-diff') || {}).textContent || '';
+    _tripRejoin('hotel-dates');
+    out.hotelBack = ci('hotel-dates');
+    out.hotelUnmarked = !shown('hotel-dates');
+    // back means back: it follows the trip again from now on
+    stripSetDates(D(2027, 1, 21), D(2027, 1, 27));
+    out.hotelFollowsAgain = ci('hotel-dates');
+    stripSetDates(D(2027, 1, 20), D(2027, 1, 27));
+
+    adjStrip('adults', 1);
+    out.paxBorn = [$('h-adults').textContent, $('fl-adults').textContent];
+    adjField('h-children', 1, 0);
+    adjStrip('children', 2);
+    out.paxKept = $('h-children').textContent;
+    out.flightPax = $('fl-adults').textContent;
+    out.paxMarked = shown('h-children');
+
+    // a hand on the flight: no force, an offer
+    byHand('trip-dates', D(2027, 2, 1), D(2027, 2, 8));
+    out.tripAfterFlightHand = _isoDay(TRIP.from);
+    out.flightOffer = /עדכן את הטיול לפי הטיסה/.test(($('trip-dates-diff') || {}).textContent || '');
+    _tripAdoptFlight();
+    out.tripAfterAdopt = _isoDay(TRIP.from);
+    out.carAfterAdopt = ci('car-dates');
+    out.flightUnmarked = !shown('trip-dates');
+
+    // a program on the flight (an offer, a sentence) sets the trip
+    setTripDates('2027-03-07', '2027-03-14');
+    out.tripAfterProgram = _isoDay(TRIP.from);
+    out.flightUntouched = !$('trip-dates').getAttribute('data-touched');
+
+    // a stage passed
+    $('ttab-car').classList.remove('ttab-done');
+    switchTripTab('car'); searchCar();
+    out.carDone = $('ttab-car').classList.contains('ttab-done');
+
+    // a search alone: no strip, no marks, no bounds, no stage marks
+    byHand('car-dates', D(2027, 3, 1), D(2027, 3, 3));
+    planGo('car');
+    out.soloStrip = getComputedStyle($('trip-steps')).display !== 'none';
+    out.soloMarked = shown('car-dates');
+    out.soloMax = $('car-dates')._flatpickr.config.maxDate || null;
+    $('ttab-hotel').classList.remove('ttab-done');
+    planGo('hotel'); searchHotel();
+    out.soloDone = $('ttab-hotel').classList.contains('ttab-done');
+
+    // up from a search alone: what was typed goes on
+    TRIP.from = TRIP.to = null;
+    TRIP_DATE_IDS.forEach(id => $(id).removeAttribute('data-touched'));
+    byHand('hotel-dates', D(2027, 2, 3), D(2027, 2, 8));
+    planGo('trip');
+    out.carriedUp = TRIP.from ? _isoDay(TRIP.from) : null;
+    out.carriedCar = ci('car-dates');
+    closeM('hotelModal');
+    return out;
+  });
+
+  const T = 'the trip is said once; what a hand changed is never overwritten';
+  if (!r.stripShown) fail(T, 'the trip frame shows no strip'); else ok();
+  const notBorn = r.born.filter(([, v]) => v !== '2027-01-10').map(([id]) => id);
+  if (notBorn.length) fail(T, `not born from the strip: ${notBorn.join(', ')}`); else ok();
+  if (!/7 לילות/.test(r.nights)) fail(T, `the strip counts "${r.nights}", not 7 nights`); else ok();
+  if (r.hotelKept !== '2027-01-12') fail(T,
+    `lodging changed by hand was overwritten by the strip (now ${r.hotelKept})`); else ok();
+  if (r.carFollowed !== '2027-01-20') fail(T,
+    `the untouched car did not follow the strip (still ${r.carFollowed})`); else ok();
+  if (!r.hotelMarked || !/תאריכים שונים מהטיול/.test(r.markText)) fail(T,
+    'lodging differs from the trip and says nothing'); else ok();
+  if (r.carMarked) fail(T, 'a search that matches the trip is marked as different'); else ok();
+  if (r.hotelBack !== '2027-01-20' || !r.hotelUnmarked) fail(T,
+    '"חזרה לתאריכי הטיול" did not bring lodging back'); else ok();
+  if (r.hotelFollowsAgain !== '2027-01-21') fail(T,
+    'after "חזרה לתאריכי הטיול" lodging no longer follows the trip'); else ok();
+  if (r.paxBorn[0] !== '3' || r.paxBorn[1] !== '3') fail(T,
+    `travellers not born from the strip: lodging ${r.paxBorn[0]}, flight ${r.paxBorn[1]}`); else ok();
+  if (r.paxKept !== '1' || !r.paxMarked) fail(T,
+    `children changed by hand: now ${r.paxKept}, marked ${r.paxMarked}`); else ok();
+  if (r.flightPax !== '5') fail(T, `3 adults + 2 children flew as ${r.flightPax}`); else ok();
+  if (r.tripAfterFlightHand !== '2027-01-20' || !r.flightOffer) fail(T,
+    'a flight picked by hand moved the trip by force, or offered nothing'); else ok();
+  if (r.tripAfterAdopt !== '2027-02-01' || r.carAfterAdopt !== '2027-02-01' || !r.flightUnmarked) fail(T,
+    'taking the flight\'s dates did not move the trip and what follows it'); else ok();
+  if (r.tripAfterProgram !== '2027-03-07' || !r.flightUntouched) fail(T,
+    'an offer or a sentence writing the flight dates did not set the trip'); else ok();
+  if (!r.carDone) fail(T, 'a search that ran left no mark on its stage'); else ok();
+  if (r.soloStrip || r.soloMarked) fail(T, 'a search alone shows the trip or its marks'); else ok();
+  if (r.soloMax) fail(T, 'a search alone is still bounded by trip dates'); else ok();
+  if (r.soloDone) fail(T, 'a search alone marks a stage of a trip nobody planned'); else ok();
+  if (r.carriedUp !== '2027-02-03' || r.carriedCar !== '2027-02-03') fail(T,
+    `dates typed in a search alone did not carry up into the trip (${r.carriedUp})`); else ok();
+  }
+}
+
 await browser.close();
 
 // ── report ────────────────────────────────────────────────────────────────
