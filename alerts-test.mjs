@@ -604,6 +604,20 @@ try {
     else fail('the holiday table cannot smuggle instructions',
       'the chagim field goes into the prompt unvalidated');
 
+    // Kosher Fly (trip-finder) shares this function. Closing the free-prompt
+    // door on 9 Nov left it on its local fallback for a day, because nobody
+    // remembered it was a caller. Its own kind must stay, and must stay a
+    // kind - the page sends data, the prompt is built here.
+    if (/kind === "kosherfly"[\s\S]{0,500}?prompt = kosherFlyPrompt\(text, today\)/.test(fn) &&
+        /function kosherFlyPrompt\(text: string, today: string\)/.test(fn)) ok();
+    else fail('Kosher Fly keeps its door',
+      'the "kosherfly" kind is gone from tf-translate - every free-text search ' +
+      'on Kosher Fly falls back to the local parser with "unknown kind"');
+    if (/kind === "kosherfly"[\s\S]{0,200}?\.slice\(0, MAX_TEXT\.kosherfly\)/.test(fn) &&
+        /kosherfly: 600/.test(fn)) ok();
+    else fail('Kosher Fly\'s door is as narrow as the others',
+      'the kosherfly text is not capped - the endpoint is a general model again');
+
     if (!/sk-ant-/.test(fn)) ok();
     else fail('no key in the file',
       'an Anthropic key is written into a file in a public repository');
