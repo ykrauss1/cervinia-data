@@ -8224,9 +8224,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.freeFlights = COST.rows.flights.min;
     const ref = T.cost_ref;
     out.ref = ref;
-    out.food = [COST.rows.food.min, COST.rows.food.max, /הצעה ראשונית/.test(COST.rows.food.note)];
+    out.food = [COST.rows.food.min, COST.rows.food.max, /הערכה לפי ממוצעים/.test(COST.rows.food.note)];
     out.freeLodging = [COST.rows.lodging.min, COST.rows.lodging.max];
-    out.freeCar = [COST.rows.car.min, COST.rows.car.max, /הצעה ראשונית/.test(COST.rows.car.note)];
+    out.freeCar = [COST.rows.car.min, COST.rows.car.max, /הערכה לפי ממוצעים/.test(COST.rows.car.note)];
     // a car is one way of three: the transfer and the bus come from the transport card's data
     const PL = T.transport.planner, MX = PL.airports.find(a => a.id === 'mxp');
     out.waysShown = document.querySelectorAll('input[name="cost-transport"]').length;
@@ -8239,7 +8239,27 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.bus2 = [COST.rows.car.min, (PL.lines.mxp.price + PL.lines.blu.price) * 2 * 2, /שלישי וברביעי/.test(COST.rows.car.note)];
     out.busLabel = /הגעה ותחבורה/.test($('cost-row-car').textContent);
     _costTransport('car');
-    out.estimateSaid = /הערכה, לא הצעת מחיר/.test($('costModal').textContent);
+    out.estimateSaid = /הערכה, לא מחיר סופי/.test($('costModal').textContent);
+    // Yossi's review, 10.11
+    out.freeFlightsNote = /תכנון טיול שלם/.test(COST.rows.flights.note);
+    out.miscNote = /שיעורי סקי/.test(COST.rows.misc.note) && !/העברות/.test(COST.rows.misc.note);
+    out.babyLabel = /פעוטות וילדים עד 8/.test($('cost-inputs').textContent) && /חינם בסקי פס/.test($('cost-inputs').textContent);
+    out.placeholderRtl = $('cost-misc-min').getAttribute('dir') === 'rtl' && $('cost-misc-min').placeholder === 'מ-';
+    const totRect = $('cost-total').getBoundingClientRect();
+    out.totalOnScreen = totRect.height > 0 && totRect.bottom <= window.innerHeight + 1 && totRect.top < window.innerHeight;
+    out.totalMid = ($('cost-total-mid') || {}).textContent || '';
+    out.totalRange = ($('cost-total-eur') || {}).textContent || '';
+    // one currency for every field: shown in dollars, typed in dollars, kept in euros
+    $('cost-cur').value = 'USD'; $('cost-cur').dispatchEvent(new Event('change'));
+    out.usdShown = [$('cost-skipass-min').value, Math.round(COST.rows.skipass.min * 1.25)];
+    out.usdSym = [...document.querySelectorAll('.cost-sym')].every(e => e.textContent === '$');
+    out.usdTotal = /\$/.test(($('cost-total-mid') || {}).textContent) && /₪/.test(($('cost-total-ils') || {}).textContent);
+    const mi = $('cost-misc-min'); mi.value = '125'; mi.dispatchEvent(new Event('input'));
+    out.usdTypedKeptEur = COST.rows.misc.min;
+    _costReset('misc');
+    $('cost-cur').value = 'ILS'; $('cost-cur').dispatchEvent(new Event('change'));
+    out.ilsOther = /€/.test(($('cost-total-ils') || {}).textContent);
+    $('cost-cur').value = 'EUR'; $('cost-cur').dispatchEvent(new Event('change'));
 
     _costPass('zermatt');
     out.zermatt = COST.rows.skipass.min;
@@ -8303,7 +8323,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // no budget typed: the reference, by where each stay is
     hb.querySelector('.sf-min').value = ''; hb.querySelector('.sf-max').value = '';
     _costReset('lodging');
-    out.lodgingRef = [COST.rows.lodging.min, COST.rows.lodging.max, /הצעה ראשונית/.test(COST.rows.lodging.note)];
+    out.lodgingRef = [COST.rows.lodging.min, COST.rows.lodging.max, /הערכה לפי ממוצעים/.test(COST.rows.lodging.note)];
     out.lodgingRefExpect = [4 * ref.lodging_valley[0] + 2 * ref.lodging_city[0], 4 * ref.lodging_valley[1] + 2 * ref.lodging_city[1]];
     out.tripCar = [COST.rows.car.min, 7 * ref.car_day[0]];
     out.flights = [COST.rows.flights.min, COST.rows.flights.max];
@@ -8357,7 +8377,20 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `a transfer for 3 is not the operator's 3–8 price both ways: ${r.transfer3}`); else ok();
   if (!near1(r.bus2[0], r.bus2[1]) || !r.bus2[2]) fail(T,
     `the bus is not (Malpensa bus + Linea Blu) × 2 directions × people, or hides the days it does not run: ${r.bus2}`); else ok();
-  if (!r.estimateSaid) fail(T, 'the panel does not say it is an estimate'); else ok();
+  if (!r.estimateSaid) fail(T, 'the panel does not say "הערכה, לא מחיר סופי"'); else ok();
+  if (!r.freeFlightsNote) fail(T, 'the side-menu flights row does not say where the trip\'s price comes from'); else ok();
+  if (!r.miscNote) fail(T, '"שונות" still lists transfers, or not "שיעורי סקי"'); else ok();
+  if (!r.babyLabel) fail(T, 'the free bands are not named "פעוטות וילדים עד 8" and marked free on the pass'); else ok();
+  if (!r.placeholderRtl) fail(T, 'the amount fields read "-מ" instead of "מ-"'); else ok();
+  if (!r.totalOnScreen) fail(T, 'the total is not on screen when the panel opens'); else ok();
+  if (!/^כ-/.test(r.totalMid) || !/^בין .* ל-/.test(r.totalRange)) fail(T,
+    `the total does not lead with the middle and give the range under it: "${r.totalMid}" / "${r.totalRange}"`); else ok();
+  if (+r.usdShown[0] !== r.usdShown[1] || !r.usdSym) fail(T,
+    `in dollars the fields do not show dollars: ${r.usdShown}`); else ok();
+  if (!r.usdTotal) fail(T, 'in dollars the total is not in dollars with shekels under it'); else ok();
+  if (!near1(r.usdTypedKeptEur, 100)) fail(T,
+    `$125 typed at 1.25 was not kept as €100 (${r.usdTypedKeptEur})`); else ok();
+  if (!r.ilsOther) fail(T, 'in shekels the second line is not in euros'); else ok();
   if (r.handKept[0] !== 300 || r.handKept[1] !== 600) fail(T,
     `rows typed into were recomputed: ${r.handKept}`); else ok();
   if (!/לא נכלל:.*טיסות/.test(r.total) || !/₪/.test(r.total)) fail(T,
