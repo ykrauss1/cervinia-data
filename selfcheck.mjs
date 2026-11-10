@@ -4960,8 +4960,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.trip.ask !== false) fail(T,
     'the trip screen still offers the way up to the trip - there is nowhere ' +
     'to go, it is this screen'); else ok();
-  if (r.trip.chips < 1) fail(T,
-    'the trip screen offers no way sideways to the rest of the planner'); else ok();
+  // Decided 10/11: the step strip walks the stages; chips there as well would
+  // offer the same choice twice on one screen.
+  if (r.trip.chips !== 0) fail(T,
+    `the trip screen offers ${r.trip.chips} chips beside its own step strip - ` +
+    'the same choice twice on one screen'); else ok();
   if (!r.aliasLands) fail(T,
     "planGo('search') no longer reaches the combined screen, so every older " +
     'door into the planner is broken'); else ok();
@@ -4970,6 +4973,91 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'PLAN_PANES instead of a lookup'); else ok();
   if (!r.carDoor) fail(T,
     'the car door from the parking panel no longer lands on a screen of its own'); else ok();
+}
+
+// ── each screen speaks of its own business ───────────────────────────
+// A search on its own is about that search and nothing else: the flight
+// screen promises no car and no room, the lodging screen knows of no flight,
+// the car screen of neither. Read off what is actually on screen (innerText
+// skips hidden blocks), so a word that comes back anywhere visible fails.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const vis = id => {
+      const e = document.getElementById(id);
+      return e ? getComputedStyle(e).display !== 'none' : null;
+    };
+    const seen = () => (document.getElementById('pane-search') || {}).innerText || '';
+    openM('hotelModal');
+
+    planGo('flight');
+    const free = document.getElementById('trip-free');
+    out.flightText = seen();
+    out.flightHint = free ? free.placeholder : '';
+    out.flightEx = [...document.querySelectorAll('#trip-free-ex .ftx')].map(s => s.textContent);
+
+    // the sentence is read for the flight only, and children fly too
+    const cc = document.getElementById('all-car-check');
+    if (cc && cc.checked) { cc.checked = false; toggleCarDetails('all-car-details', false); }
+    if (free) {
+      free.value = 'משפחה בפברואר לשבוע עם רכב';
+      try { await applyTripText(); } catch (e) {}
+      await new Promise(res => setTimeout(res, 300));
+    }
+    out.flightSaid = (document.getElementById('trip-free-said') || {}).textContent || '';
+    out.flightCarTicked = !!(cc && cc.checked);
+    out.flightPax = +(document.getElementById('fl-adults') || {}).textContent;
+    if (free) free.value = '';
+    document.getElementById('trip-free-said').innerHTML = '';
+
+    planGo('hotel');
+    out.hotelText = seen();
+    out.hotelBanner = vis('hotel-vs-flight');
+
+    planGo('car');
+    out.carText = seen();
+
+    // inside the trip the same lodging screen does have a flight to differ from
+    planGo('trip');
+    switchTripTab('hotel');
+    out.tripHotelBanner = vis('hotel-vs-flight');
+    switchTripTab('all');
+    out.tripEx = [...document.querySelectorAll('#trip-free-ex .ftx')].map(s => s.textContent);
+    out.tripHint = free ? free.placeholder : '';
+    closeM('hotelModal');
+    return out;
+  });
+
+  const T = 'each screen speaks of its own business';
+  const STAY = /לינה|דירה|מלון|צ'ק-אין/, CAR = /רכב|השכרה/, FLY = /טיס|תעופה|✈/;
+  // the whole line, so a failure says where on the screen the word sits
+  const hit = (txt, re) => txt.split('\n').find(l => re.test(l)) || '';
+  let w;
+  if ((w = hit(r.flightText, CAR) || hit(r.flightText, STAY))) fail(T,
+    `the flight screen alone shows "${w}"`); else ok();
+  if ((w = hit(r.flightHint, CAR) || hit(r.flightHint, STAY))) fail(T,
+    `the flight screen's free-text hint offers "${w}"`); else ok();
+  if (r.flightEx.length !== 3) fail(T,
+    `the flight screen has ${r.flightEx.length} examples, not 3`); else ok();
+  if ((w = r.flightEx.find(s => CAR.test(s) || STAY.test(s)))) fail(T,
+    `a flight example promises more than a flight: "${w}"`); else ok();
+  if (CAR.test(r.flightSaid) || r.flightCarTicked) fail(T,
+    'the flight screen read "עם רכב" and reported or ticked a car it does not search for'); else ok();
+  if (!/מילאתי/.test(r.flightSaid)) fail(T,
+    'the flight screen understood nothing of a plain family sentence'); else ok();
+  if (r.flightPax !== 4) fail(T,
+    `a family of 2+2 came out as ${r.flightPax} passengers - children fly too`); else ok();
+  if ((w = hit(r.hotelText, FLY) || hit(r.hotelText, CAR))) fail(T,
+    `the lodging screen alone shows "${w}"`); else ok();
+  if (r.hotelBanner !== false) fail(T,
+    '"nights different from the flight" shows on the lodging screen alone'); else ok();
+  if ((w = hit(r.carText, FLY) || hit(r.carText, STAY))) fail(T,
+    `the car screen alone shows "${w}"`); else ok();
+  if (r.tripHotelBanner !== true) fail(T,
+    'inside the trip the lodging screen lost its note about differing from the flight'); else ok();
+  if (!r.tripEx.some(s => CAR.test(s)) || !CAR.test(r.tripHint)) fail(T,
+    'the whole-trip examples did not come back after the flight screen - the ' +
+    'trip is the one place a car belongs in the sentence'); else ok();
 }
 
 // ── Shabbat is the same two candles everywhere ───────────────────────

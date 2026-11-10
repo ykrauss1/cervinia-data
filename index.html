@@ -1081,7 +1081,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.25';
+  var v='v17.26';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2303,7 +2303,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           style="padding:10px 12px;background:#fff;color:#1a3a6c;border:1.5px solid #cfe2f5;
           border-radius:9px;font-size:0.95rem;cursor:pointer;font-family:inherit;">💾</button>
       </div>
-      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
+      <!-- Each screen speaks of its own business only. What is written here
+           is the whole-trip set; switchTripTab swaps in TRIP_FREE_EX[tab],
+           so the flight screen never promises a car it does not search for. -->
+      <div id="trip-free-ex" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
         <span style="font-size:0.7rem;color:#90a4ae;align-self:center;">לדוגמה:</span>
         <!-- Three, not four: the fourth wrapped onto a line of its own and
              cost the search button a line of height. Bergamo is gone because
@@ -2501,7 +2504,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <!-- === TAB: רכב === -->
     <div id="tpanel-car" style="display:none;">
       <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
+        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">📍 איסוף מ:</div>
         <select id="airport-select-car" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
           <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
           <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
@@ -2542,7 +2545,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
     <!-- === TAB: לינה === -->
     <div id="tpanel-hotel" style="display:none;">
-      <div style="background:#e8f8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;color:#1a5226;">
+      <!-- Only inside the trip frame is there a flight to differ from.
+           _planFrame hides this on the lodging screen alone. -->
+      <div id="hotel-vs-flight" style="background:#e8f8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;color:#1a5226;">
         🏨 <b>תאריכי לינה</b> — ניתן לבחור לילות שונים מהטיסה
       </div>
       <input type="text" id="hotel-dates"
@@ -6487,6 +6492,43 @@ function _refreshAllResults() {
 function adjHotel(f, d) { adjField('h-' + f, d, f === 'rooms' ? 1 : 0); }
 function adjAll(f, d) { adjField('all-' + f, d, f === 'rooms' ? 1 : 0); }
 
+// The free-text box shows on two screens and each gets its own examples.
+// The flight screen searches flights only, so nothing here may mention a car
+// or a room. 'משפחה' still works there: the local reader turns it into 2+2,
+// and on the flight screen the children are counted in as passengers.
+var TRIP_FREE_EX = {
+  flight: {
+    hint: 'למשל: מילאנו בחנוכה לשבוע, 2 מבוגרים',
+    ex: ['מילאנו בחנוכה לשבוע', 'משפחה בפברואר לשבוע', 'מילאנו בחול המועד פסח ל-4 לילות']
+  },
+  all: {
+    hint: 'למשל: מילאנו בחנוכה לשבוע, 2 מבוגרים ורכב',
+    ex: ['מילאנו בחנוכה לשבוע', 'משפחה בפברואר עם רכב', 'מילאנו בחול המועד פסח ל-4 לילות']
+  }
+};
+function _tripFreeExamples(tab) {
+  var set = TRIP_FREE_EX[tab];
+  if (!set) return;                       // car / lodging: the box is hidden
+  var box = document.getElementById('trip-free');
+  if (box) box.placeholder = set.hint;
+  var ex = document.getElementById('trip-free-ex');
+  if (ex) ex.innerHTML =
+    '<span style="font-size:0.7rem;color:#90a4ae;align-self:center;">לדוגמה:</span>' +
+    set.ex.map(function (s) {
+      return '<span class="ftx" onclick="fillTripText(this)">' + s + '</span>';
+    }).join('');
+}
+// Which of the four panels is on screen - the free-text reader needs it to
+// keep a flight-only search from filling in a car and a room.
+function _tripTab() {
+  var t = ['all', 'flight', 'car', 'hotel'];
+  for (var i = 0; i < t.length; i++) {
+    var p = document.getElementById('tpanel-' + t[i]);
+    if (p && p.style.display !== 'none') return t[i];
+  }
+  return 'all';
+}
+
 function switchTripTab(tab) {
   ['all','flight','car','hotel'].forEach(t => {
     const btn = document.getElementById('ttab-' + t);
@@ -6500,6 +6542,7 @@ function switchTripTab(tab) {
   // a reader who picked them first, so hiding it loses nothing.
   const common = document.getElementById('trip-common');
   if (common) common.style.display = (tab === 'car' || tab === 'hotel') ? 'none' : 'block';
+  _tripFreeExamples(tab);
   // "תאריכי טיסה" is the truth on the flight tab and a half-truth on "הכל",
   // where the same dates drive the car and the room as well.
   const lbl = document.getElementById('trip-dates-label');
@@ -6847,6 +6890,16 @@ async function applyTripText(){
     var c=document.getElementById('all-h-children'); if(c) c.textContent=r.children;
     if(r.children) got.push(r.children+' \u05d9\u05dc\u05d3\u05d9\u05dd');
   }
+  // On the flight screen alone the sentence is read for the flight only: no
+  // car, no room, no gearbox - none of it is searched here, so reporting it
+  // as understood would promise what the screen does not do. Children are
+  // passengers on a plane, so there they go into the passenger count.
+  var flightOnly = _tripTab()==='flight';
+  if(flightOnly && r.children){
+    var fa=document.getElementById('fl-adults');
+    if(fa) fa.textContent = (r.adults!=null ? r.adults : (+fa.textContent||0)) + r.children;
+  }
+  if(!flightOnly){
   if(r.car===true || r.airportPickup===true || r.automatic!=null){
     var cc=document.getElementById('all-car-check');
     if(cc && !cc.checked){ cc.checked=true; if(typeof toggleCarDetails==='function') toggleCarDetails('all-car-details',true); }
@@ -6869,6 +6922,7 @@ async function applyTripText(){
     var au=document.getElementById('all-automatic');
     if(au){ au.checked=!!r.automatic; got.push(r.automatic?'\u05d2\u05d9\u05e8 \u05d0\u05d5\u05d8\u05d5\u05de\u05d8\u05d9':'\u05d2\u05d9\u05e8 \u05d9\u05d3\u05e0\u05d9'); }
   }
+  }  // !flightOnly
 
   if(!got.length){
     out.innerHTML='<span style="color:#ef6c00;">\u05dc\u05d0 \u05d6\u05d9\u05d4\u05d9\u05ea\u05d9 \u05d9\u05e2\u05d3 \u05d0\u05d5 \u05ea\u05d0\u05e8\u05d9\u05da. \u05e0\u05e1\u05d5 \u05dc\u05d4\u05d6\u05db\u05d9\u05e8 \u05e2\u05d9\u05e8 (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5 / \u05d1\u05e8\u05d2\u05de\u05d5 / \u05d8\u05d5\u05e8\u05d9\u05e0\u05d5) \u05d5\u05de\u05ea\u05d9 \u2014 \u05d7\u05d5\u05d3\u05e9, \u05ea\u05d0\u05e8\u05d9\u05da \u05d0\u05d5 \u05d7\u05d2.</span>';
@@ -7909,8 +7963,10 @@ function planGo(which) {
     var c = document.getElementById('plan-bar-chips');
     // A single search is the only thing on its screen. Chips across to the
     // other two would rebuild the tab strip it was just promoted out of, so
-    // only panes that carry a chip are offered, and solo screens carry none.
-    if (c) c.innerHTML = open.solo ? '' : Object.keys(PLAN_PANES)
+    // only panes that carry a chip are offered, and search screens carry none.
+    // That includes the trip: its step strip already walks the stages, and
+    // chips there would offer the same choice twice on one screen.
+    if (c) c.innerHTML = open.id === 'pane-search' ? '' : Object.keys(PLAN_PANES)
       .filter(function (k) { return k !== which && PLAN_PANES[k].chip; })
       .map(function (k) {
         return '<button class="plan-chip" onclick="planGo(\'' + k + '\')">' +
@@ -7933,6 +7989,16 @@ function _planFrame(open) {
   // from the trip there is nowhere to go: it is this same screen.
   var ask = document.getElementById('trip-ask');
   if (ask) ask.style.display = solo ? 'flex' : 'none';
+  // "nights different from the flight" means something only where there is
+  // a flight; on the lodging screen alone it talks about a search not made.
+  var vs = document.getElementById('hotel-vs-flight');
+  if (vs) vs.style.display = solo ? 'none' : 'block';
+  // The "understood" card answers the last sentence read, and a sentence
+  // read for the whole trip says "with a car". Carried onto a search alone it
+  // reports what that screen does not search for, so a search alone starts
+  // without it. Upward into the trip it stays: the trip covers everything.
+  var said = document.getElementById('trip-free-said');
+  if (said && solo) said.innerHTML = '';
 }
 
 // Open the planner straight onto one of its screens. Everything that used to
