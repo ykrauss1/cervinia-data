@@ -8244,8 +8244,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     hb.querySelector('.sf-cur').value = 'EUR';
     window._FLIGHTS = { currency: 'USD', nights: [7], cal: { MXP: { '7': {
       '2027-01-08': 260, '2027-01-10': 200, '2027-01-12': 225 } } } };
+    // as on a fresh page: the panel has never been drawn, and the door is the trip
+    $('cost-rows').innerHTML = ''; COST.mode = 'free';
     $('strip-cost').click();
     await new Promise(res => setTimeout(res, 60));
+    out.tripMode = COST.mode;
     out.tripNights = COST.nights;
     out.tripAsksNot = !$('cost-nights');
     out.tripBands = [COST.bands.Adult, COST.bands.Junior];
@@ -8295,6 +8298,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!/לא נכלל:.*טיסות/.test(r.total) || !/₪/.test(r.total)) fail(T,
     `the total does not say what it leaves out, or has no shekels: "${r.total}"`); else ok();
   if (!r.resetBack || !near1(r.foodBack, r.foodBackExpect)) fail(T, '"↺" does not give the row back to the calculation'); else ok();
+  if (r.tripMode !== 'trip') fail(T,
+    'opened first from the trip strip, the calculator came up in side-menu mode'); else ok();
   if (r.tripNights !== 7 || !r.tripAsksNot) fail(T,
     'the trip door asks for nights the trip already has'); else ok();
   if (r.tripBands[0] !== 2 || r.tripBands[1] !== 1) fail(T,

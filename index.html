@@ -5576,7 +5576,7 @@ function openM(id) {
   // person for the same dates twice is asking him to do our filing.
   // #cost arrives here without openCost: fill the panel the way the side
   // menu would, asking for nights and people.
-  if (id === 'costModal' && typeof _costRender === 'function'
+  if (id === 'costModal' && typeof _costRender === 'function' && !COST.opening
       && !(document.getElementById('cost-rows') || {}).innerHTML) {
     COST.mode = 'free'; _costDefaults(); _costRecalc(); _costRender();
     _costRates().then(function () { _costRecalc(); _costRender(); }).catch(function () {});
@@ -8402,7 +8402,10 @@ function openCost(mode) {
   COST.mode = next;
   if (COST.mode === 'trip') COST.skiDays = null;
   _costDefaults();
-  openM('costModal');
+  // openM fills a panel that arrives by link as the side menu would; this is
+  // not that, and on a first open from the trip it switched the trip off
+  COST.opening = true;
+  try { openM('costModal'); } finally { COST.opening = false; }
   _costRecalc();
   _costRender();
   // the rate and the flight snapshot arrive late; the panel fills in when they do
