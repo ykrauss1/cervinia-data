@@ -1,5 +1,9 @@
 {
+<<<<<<< Updated upstream
   "updated_at": "2026-11-10T02:00:45.553Z",
+=======
+  "updated_at": "2026-11-10T02:00:57.267Z",
+>>>>>>> Stashed changes
   "temperature": 1.2,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
@@ -50,65 +54,43 @@
     }
   ],
   "forecast_today": {
-    "date": "Monday, November 9",
+    "date": "Tuesday, November 10",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "snow"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "rain"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "rain-snow"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "rain"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "cloudy"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "cloudy"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "cloudy"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "cloudy"
+        "icon": "partially-cloudy"
       }
     ]
   },
-  "forecast_next_days": [
-    {
-      "date": "Wednesday, November 11",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "partially-cloudy"
-        }
-      ]
-    }
-  ]
+  "forecast_next_days": []
 }
