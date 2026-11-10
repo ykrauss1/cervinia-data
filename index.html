@@ -1084,7 +1084,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.32';
+  var v='v17.33';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2572,6 +2572,20 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       </div>
       <button onclick="searchCar()" style="width:100%;padding:12px;background:#2c3e50;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
         🔍 חפש רכב
+      </button>
+      <!-- A car is one of three ways up the valley. Somebody about to hire
+           one for a week may not need it at all - the transport card has the
+           private transfer and the bus, with prices and times. -->
+      <button type="button" id="car-alt" onclick="openTransportFromPlanner()"
+        style="width:100%;margin-top:10px;display:flex;align-items:center;gap:10px;text-align:right;
+               background:#f4f8fc;border:1.5px solid #d6e4f0;border-radius:11px;padding:10px 12px;cursor:pointer;font-family:inherit;">
+        <span style="font-size:1.2rem;line-height:1;">🚐</span>
+        <span style="flex:1;min-width:0;">
+          <b style="font-size:0.85rem;color:#16314f;display:block;">אולי בלי רכב?</b>
+          <small style="font-size:0.75rem;color:#4a6b8a;line-height:1.5;display:block;">
+            הסעה פרטית מהשדה או אוטובוס — מחירים ושעות בכרטיס התחבורה</small>
+        </span>
+        <span style="color:#7a9cc0;">‹</span>
       </button>
       <div id="car-results" style="display:none;margin-top:10px;"></div>
     </div>
@@ -8134,14 +8148,14 @@ function _stayLetter() {
 // Rows with nothing to go on stay empty and say so, rather than carry a
 // number nobody collected.
 var COST = {
-  mode: 'free', nights: 7, skiDays: null, pass: 'cervinia',
+  mode: 'free', nights: 7, skiDays: null, pass: 'cervinia', transport: 'car',
   bands: null, bandsTouched: false,
   rows: {}, fx: null, fxTried: false
 };
 var COST_ROWS = [
   { key: 'flights', icon: '✈️', he: 'טיסות' },
   { key: 'lodging', icon: '🏨', he: 'אירוח' },
-  { key: 'car',     icon: '🚗', he: 'רכב' },
+  { key: 'car',     icon: '🚐', he: 'הגעה ותחבורה' },
   { key: 'skipass', icon: '🎫', he: 'סקי פס' },
   { key: 'gear',    icon: '🎿', he: 'ציוד' },
   { key: 'food',    icon: '🍞', he: 'אוכל' },
@@ -8194,6 +8208,23 @@ function _costBandInfo() {
   (sp.age_bands || []).forEach(function (b) { by[b.name] = b; });
   return by;
 }
+// Hebrew names for the tariff's bands, with the ages taken from the tariff.
+// The numbers are isolated: in a right-to-left line "8–15" otherwise comes
+// out as "15–8".
+function _costBandHe(k, withAges) {
+  var info = _costBandInfo();
+  var age = function (x) { var b = info[x]; return b && b.age; };
+  var iso = function (t) { return withAges ? ' <bdi dir="ltr">' + t + '</bdi>' : ''; };
+  switch (k) {
+    case 'Adult':  return 'מבוגרים';
+    case 'Junior': return 'ילדים' + (age('Baby') && age('Junior') ? iso(age('Baby') + '–' + (age('Junior') - 1)) : '');
+    case 'Young':  return 'צעירים' + (age('Junior') && age('Young') ? iso(age('Junior') + '–' + (age('Young') - 1)) : '');
+    case 'Senior': return 'גמלאים' + (age('Senior') ? iso(age('Senior') + '+') : '');
+    case 'Baby':   return 'פעוטות' + (age('Baby') && withAges ? ' עד ' + age('Baby') : '');
+    case 'Over 80': return 'מעל 80';
+  }
+  return k;
+}
 function _costPassPrice(pass, band, days) {
   var p = window._texts && window._texts.skipass && window._texts.skipass.prices;
   var t = p && p[pass];
@@ -8218,7 +8249,7 @@ function _costSkipass() {
     var one = _costPassPrice(COST.pass, k, S);
     if (one == null) { missing = true; return; }
     total += one * n;
-    who.push(n + ' ' + k);
+    who.push(n + ' ' + _costBandHe(k, false));
   });
   var name = COST.pass === 'zermatt' ? 'פס בינלאומי עם צ\'רמט' : 'פס צ\'רוויניה';
   if (!who.length && !missing) return { min: null, max: null, note: 'אין גולשים בחישוב' };
@@ -8343,8 +8374,36 @@ function _costLodging() {
     note: count + ' · ' + COST_SUGGEST + ' (חדר או דירה בחורף) · תקציב ללילה בחיפוש הלינה יחליף אותה' };
 }
 
-// ── the car: days × a daily range ──
+// ── getting there: a hired car, a private transfer, or the bus ──
+// The car is days × a daily range (a suggestion). The transfer and the bus
+// come from the transport card's own data (texts.json → transport.planner):
+// the local operator's price per vehicle per direction, and the Malpensa
+// bus to Châtillon plus Linea Blu up the valley, per person per direction.
+var COST_TRANSPORT = { car: 'רכב שכור', transfer: 'הסעה פרטית', bus: 'תחבורה ציבורית' };
+function _costPax() {
+  var b = COST.bands || {};
+  return COST_BANDS.reduce(function (a, k) { return a + (b[k] || 0); }, 0);
+}
 function _costCar() {
+  var way = COST.transport || 'car';
+  var pl = window._texts && window._texts.transport && window._texts.transport.planner;
+  var mxp = pl && (pl.airports || []).filter(function (a) { return a.id === 'mxp'; })[0];
+  var pax = _costPax();
+  if (way === 'transfer') {
+    if (!mxp || !pax) return { min: null, max: null, note: 'הזינו את מחיר ההסעה' };
+    var one = pax <= 2 ? mxp.t_small : mxp.t_big;
+    return { min: one * 2, max: one * 2,
+      note: 'הסעה פרטית ממלפנסה עד הכפר, הלוך וחזור · €' + one + ' לכיוון לרכב של '
+        + (pax <= 2 ? '1–2' : '3–8') + ' נוסעים · מחירון המפעיל המקומי בכרטיס התחבורה' };
+  }
+  if (way === 'bus') {
+    var L = pl && pl.lines, a = L && L.mxp && L.mxp.price, b2 = L && L.blu && L.blu.price;
+    if (!a || !b2 || !pax) return { min: null, max: null, note: 'הזינו את מחיר הנסיעה' };
+    var per = (a + b2) * 2;
+    return { min: per * pax, max: per * pax,
+      note: 'אוטובוס מלפנסה–שאטיון €' + a + ' וקו Linea Blu €' + String(b2).replace(/\.?0+$/, '')
+        + ' לכיוון, הלוך וחזור × ' + pax + ' · הזמנה מראש חובה, ואינו פועל בשלישי וברביעי' };
+  }
   var r = _costRef('car_day');
   var days = COST.nights, src = '';
   var cd = document.getElementById('car-dates');
@@ -8352,7 +8411,11 @@ function _costCar() {
   if (cr) { days = Math.max(1, Math.round((_stayD(cr.co) - _stayD(cr.ci)) / 86400000)); src = ' (לפי תאריכי הרכב)'; }
   if (!r) return { min: null, max: null, note: 'הזינו מה שמצאתם בחיפוש הרכב' };
   return { min: r[0] * days, max: r[1] * days,
-    note: days + ' ימים' + src + ' · רכב קטן עד בינוני ממלפנסה · ' + COST_SUGGEST + ' · בלי רכב — מחקו את השורה' };
+    note: days + ' ימים' + src + ' · רכב קטן עד בינוני ממלפנסה · ' + COST_SUGGEST };
+}
+function _costTransport(w) {
+  COST.transport = COST_TRANSPORT[w] ? w : 'car';
+  _costReset('car');
 }
 
 // ── food: people × days × a daily range ──
@@ -8402,7 +8465,7 @@ function openCost(mode) {
   var next = mode === 'trip' ? 'trip' : 'free';
   // People set by hand through one door belong to that door: the trip's
   // travellers must not be replaced by a family typed into the side menu.
-  if (next !== COST.mode) { COST.bands = null; COST.bandsTouched = false; }
+  if (next !== COST.mode) { COST.bands = null; COST.bandsTouched = false; COST.showBand = {}; }
   COST.mode = next;
   if (COST.mode === 'trip') COST.skiDays = null;
   _costDefaults();
@@ -8431,6 +8494,13 @@ function _costSet(what, v) {
   _costRecalc(); _costRender();
 }
 function _costPass(p) { COST.pass = p === 'zermatt' ? 'zermatt' : 'cervinia'; _costRecalc(); _costRender(); }
+function _costShowBand(k, on) {
+  COST.showBand = COST.showBand || {};
+  COST.showBand[k] = !!on;
+  // unticking a band takes its people out of the sum, not just off the screen
+  if (!on && COST.bands[k]) { COST.bands[k] = 0; COST.bandsTouched = true; _costRecalc(); }
+  _costRender();
+}
 function _costBand(k, d) {
   COST.bands[k] = Math.max(0, (COST.bands[k] || 0) + d);
   COST.bandsTouched = true;
@@ -8457,34 +8527,59 @@ function _costRender() {
   if (!inp) return;
   var info = _costBandInfo();
   var trip = COST.mode === 'trip' && TRIP.from;
-  var counter = function (label, k) {
-    return '<div style="display:flex;align-items:center;gap:5px;background:white;border:1px solid #dbe5ef;border-radius:8px;padding:4px 7px;">'
-      + '<span style="font-size:0.7rem;color:#666;">' + label + '</span>'
+  // Ages from the tariff's own bands, so a new season's cut-offs carry over.
+  var BAND_HE = {};
+  COST_BANDS.forEach(function (k) { BAND_HE[k] = _costBandHe(k, true); });
+  var tip = function (k) {
+    var b = info[k];
+    return b && typeof clAgeLabel === 'function' ? escHtml(clAgeLabel(b)) : k;
+  };
+  var counter = function (k) {
+    return '<div class="cost-band" data-band="' + k + '" title="' + tip(k) + '" style="display:inline-flex;align-items:center;gap:5px;background:white;border:1px solid #dbe5ef;border-radius:8px;padding:4px 7px;white-space:nowrap;">'
+      + '<span style="font-size:0.74rem;color:#555;">' + BAND_HE[k] + '</span>'
       + '<button class="c-btn" onclick="_costBand(\'' + k + '\',-1)" style="width:20px;height:20px;font-size:0.75rem;">-</button>'
       + '<b id="cost-band-' + k.replace(/\s/g, '') + '">' + (COST.bands[k] || 0) + '</b>'
       + '<button class="c-btn" onclick="_costBand(\'' + k + '\',1)" style="width:20px;height:20px;font-size:0.75rem;">+</button></div>';
   };
-  var bandLabel = function (k) {
-    var b = info[k];
-    return b && typeof clAgeLabel === 'function' ? escHtml(clAgeLabel(b)) : k;
-  };
+  // Most families are adults and children. The rest of the tariff's bands
+  // wait behind a box each, and open only when ticked - or when somebody
+  // is already counted in one.
+  var OTHER = ['Young', 'Senior', 'Baby', 'Over 80'];
+  COST.showBand = COST.showBand || {};
+  var others = OTHER.map(function (k) {
+    var on = COST.showBand[k] || (COST.bands[k] || 0) > 0;
+    return '<span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">'
+      + '<label style="font-size:0.74rem;color:#555;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">'
+      + '<input type="checkbox" class="cost-band-box" data-band="' + k + '"' + (on ? ' checked' : '')
+      + ' onchange="_costShowBand(\'' + k + '\',this.checked)"> ' + BAND_HE[k] + '</label>'
+      + (on ? counter(k) : '') + '</span>';
+  }).join('');
+  // Number fields are as wide as what goes in them: two digits, not a line.
+  var num2 = 'width:3.4em;padding:5px 6px;border:1.5px solid #cfdcea;border-radius:7px;font-family:inherit;text-align:center;';
+  var M = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
   inp.innerHTML =
-    '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:9px;">'
+    '<div style="display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;margin-bottom:9px;">'
     + (trip
-        ? '<span style="font-size:0.8rem;color:#16314f;"><b>' + COST.nights + ' לילות</b> מהטיול</span>'
-        : '<label style="font-size:0.78rem;color:#555;">לילות <input id="cost-nights" type="number" min="1" max="30" value="' + COST.nights
-          + '" oninput="_costSet(\'nights\',this.value)" dir="ltr" style="width:56px;padding:5px 7px;border:1.5px solid #cfdcea;border-radius:7px;font-family:inherit;"></label>')
-    + '<label style="font-size:0.78rem;color:#555;">ימי סקי <input id="cost-skidays" type="number" min="1" max="30" value="' + COST.skiDays
-      + '" oninput="_costSet(\'skiDays\',this.value)" dir="ltr" style="width:56px;padding:5px 7px;border:1.5px solid #cfdcea;border-radius:7px;font-family:inherit;"></label>'
-    + '<label class="ls-opt"><input type="radio" name="cost-pass" value="cervinia"' + (COST.pass === 'cervinia' ? ' checked' : '')
+        // say where the nights come from, not just that they come from somewhere
+        ? '<span style="font-size:0.8rem;color:#16314f;"><b>' + COST.nights + ' לילות</b> · לפי תאריכי הטיול, '
+          + _tripRangeLabel(TRIP.from, TRIP.to) + '</span>'
+        : '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">לילות <input id="cost-nights" type="number" min="1" max="30" value="' + COST.nights
+          + '" oninput="_costSet(\'nights\',this.value)" dir="ltr" style="' + num2 + '"></label>')
+    + '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">ימי סקי <input id="cost-skidays" type="number" min="1" max="30" value="' + COST.skiDays
+      + '" oninput="_costSet(\'skiDays\',this.value)" dir="ltr" style="' + num2 + '"></label>'
+    // The two passes are one choice: as one flex item they drop to the next
+    // line together, and only a screen too narrow for both side by side
+    // stacks them - never one up here and one down there.
+    + '<span id="cost-pass-group" style="display:flex;flex-wrap:wrap;gap:6px;">'
+    + '<label class="ls-opt" style="white-space:nowrap;"><input type="radio" name="cost-pass" value="cervinia"' + (COST.pass === 'cervinia' ? ' checked' : '')
       + ' onchange="_costPass(this.value)"> פס צ\'רוויניה</label>'
-    + '<label class="ls-opt"><input type="radio" name="cost-pass" value="zermatt"' + (COST.pass === 'zermatt' ? ' checked' : '')
+    + '<label class="ls-opt" style="white-space:nowrap;"><input type="radio" name="cost-pass" value="zermatt"' + (COST.pass === 'zermatt' ? ' checked' : '')
       + ' onchange="_costPass(this.value)"> בינלאומי עם צ\'רמט</label>'
+    + '</span>'
     + '</div>'
-    + '<div style="font-size:0.72rem;color:#7a8794;margin-bottom:5px;">גולשים לפי קבוצות הגיל של המחירון</div>'
-    + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
-    + COST_BANDS.map(function (k) { return counter(bandLabel(k), k); }).join('')
-    + '</div>';
+    + '<div style="font-size:0.72rem;color:#7a8794;margin-bottom:5px;">גולשים</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;">' + counter('Adult') + counter('Junior') + '</div>'
+    + '<div style="display:flex;gap:6px 12px;flex-wrap:wrap;align-items:center;">' + others + '</div>';
 
   var rows = document.getElementById('cost-rows');
   rows.innerHTML = COST_ROWS.map(function (r) {
@@ -8494,7 +8589,8 @@ function _costRender() {
     var field = function (which, ph) {
       return '<input id="cost-' + r.key + '-' + which + '" type="number" min="0" step="10" inputmode="numeric" dir="ltr" placeholder="' + ph + '"'
         + ' value="' + val(x[which]) + '" oninput="_costEdit(\'' + r.key + '\',\'' + which + '\',this.value)"'
-        + ' style="width:74px;padding:6px 7px;border:1.5px solid #dde4ec;border-radius:7px;font-size:0.84rem;font-family:inherit;">';
+        // five digits and no more - a sum in euros, not a sentence
+        + ' style="width:4.6em;padding:6px 5px;border:1.5px solid #dde4ec;border-radius:7px;font-size:0.84rem;font-family:inherit;text-align:center;">';
     };
     return '<div class="cost-row" id="cost-row-' + r.key + '" style="padding:9px 0;border-bottom:1px solid #eef2f6;">'
       + '<div style="display:flex;align-items:center;gap:8px;">'
@@ -8506,6 +8602,15 @@ function _costRender() {
       + '<button id="cost-reset-' + r.key + '" onclick="_costReset(\'' + r.key + '\')" title="חזרה לחישוב" aria-label="חזרה לחישוב"'
       + ' style="visibility:' + (x.touched ? 'visible' : 'hidden') + ';border:none;background:none;cursor:pointer;color:#1a73e8;font-size:0.9rem;">↺</button>'
       + '</div>'
+      + (r.key === 'car'
+          ? '<div id="cost-transport" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:5px;">'
+            + Object.keys(COST_TRANSPORT).map(function (w) {
+                return '<label style="font-size:0.75rem;color:#444;cursor:pointer;white-space:nowrap;">'
+                  + '<input type="radio" name="cost-transport" value="' + w + '"' + (COST.transport === w ? ' checked' : '')
+                  + ' onchange="_costTransport(this.value)"> ' + COST_TRANSPORT[w] + '</label>';
+              }).join('')
+            + '</div>'
+          : '')
       + '<div id="cost-note-' + r.key + '" style="font-size:0.72rem;color:#7a8794;margin-top:3px;line-height:1.5;">' + (x.note || '') + '</div>'
       + '</div>';
   }).join('');
@@ -9027,6 +9132,11 @@ function openPlanner(which) {
 // The season table used to be a fold that this had to prise open. It is a
 // whole screen of the planner now, so arriving there is all there is to do.
 function openWhenToGo() { openPlanner('when'); }
+// From the planner to the transport card, and back to the planner on close.
+function openTransportFromPlanner() {
+  openFrom('hotelModal', 'parkingModal');
+  setTimeout(function () { switchParkTab('transport'); }, 50);
+}
 function openParkEmergency() {
   openM('parkingModal');
   setTimeout(function(){ switchParkTab('emergency'); }, 50);

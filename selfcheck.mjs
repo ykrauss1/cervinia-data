@@ -5029,7 +5029,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   });
 
   const T = 'each screen speaks of its own business';
-  const STAY = /לינה|דירה|מלון|צ'ק-אין/, CAR = /רכב|השכרה/, FLY = /טיס|תעופה|✈/;
+  // "כרטיס" (card, ticket) carries the letters of "טיס" and is no flight
+  const STAY = /לינה|דירה|מלון|צ'ק-אין/, CAR = /רכב|השכרה/, FLY = /(?<!כר)טיס|תעופה|✈/;
   // the whole line, so a failure says where on the screen the word sits
   const hit = (txt, re) => txt.split('\n').find(l => re.test(l)) || '';
   let w;
@@ -8199,13 +8200,45 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.freeDays = COST.skiDays;
     out.skipass = [COST.rows.skipass.min, COST.rows.skipass.max, COST.rows.skipass.exact];
     out.gear = [COST.rows.gear.min, COST.rows.gear.max];
+    // the panel itself: short fields for short numbers, one choice wraps as one,
+    // adults and children first and the rest behind a box each
+    const sd = $('cost-skidays');
+    out.skiWidth = sd ? sd.getBoundingClientRect().width : 999;
+    const pr = [...document.querySelectorAll('input[name="cost-pass"]')].map(i => i.closest('label').getBoundingClientRect().top);
+    out.passTogether = pr.length === 2 && Math.abs(pr[0] - pr[1]) < 4;
+    // one flex item: the two passes cannot be split between two lines of the row
+    out.passNoWrap = $('cost-pass-group').parentElement === $('cost-skidays').closest('div')
+      && $('cost-pass-group').querySelectorAll('input[name="cost-pass"]').length === 2;
+    const shownBands = () => [...document.querySelectorAll('#cost-inputs .cost-band')].map(e => e.dataset.band);
+    out.bandsAtFirst = shownBands().join(',');
+    const box = document.querySelector('.cost-band-box[data-band="Senior"]');
+    box.checked = true; box.dispatchEvent(new Event('change'));
+    out.bandsAfterTick = shownBands().join(',');
+    _costBand('Senior', 1);
+    out.seniorCounted = /גמלאים/.test(COST.rows.skipass.note);
+    const box2 = document.querySelector('.cost-band-box[data-band="Senior"]');
+    box2.checked = false; box2.dispatchEvent(new Event('change'));
+    out.untickRemoves = (COST.bands.Senior || 0) === 0 && !shownBands().includes('Senior');
+    out.noEnglishBands = !/Adult|Junior/.test(COST.rows.skipass.note);
     out.gearCheaper = /זולות יותר/.test(COST.rows.gear.note) && /הנחה/.test(COST.rows.gear.note);
     out.freeFlights = COST.rows.flights.min;
     const ref = T.cost_ref;
     out.ref = ref;
     out.food = [COST.rows.food.min, COST.rows.food.max, /הצעה ראשונית/.test(COST.rows.food.note)];
     out.freeLodging = [COST.rows.lodging.min, COST.rows.lodging.max];
-    out.freeCar = [COST.rows.car.min, COST.rows.car.max, /בלי רכב/.test(COST.rows.car.note)];
+    out.freeCar = [COST.rows.car.min, COST.rows.car.max, /הצעה ראשונית/.test(COST.rows.car.note)];
+    // a car is one way of three: the transfer and the bus come from the transport card's data
+    const PL = T.transport.planner, MX = PL.airports.find(a => a.id === 'mxp');
+    out.waysShown = document.querySelectorAll('input[name="cost-transport"]').length;
+    _costTransport('transfer');
+    out.transfer2 = [COST.rows.car.min, MX.t_small * 2, /הלוך וחזור/.test(COST.rows.car.note)];
+    _costBand('Junior', 1);
+    out.transfer3 = [COST.rows.car.min, MX.t_big * 2];
+    _costBand('Junior', -1);
+    _costTransport('bus');
+    out.bus2 = [COST.rows.car.min, (PL.lines.mxp.price + PL.lines.blu.price) * 2 * 2, /שלישי וברביעי/.test(COST.rows.car.note)];
+    out.busLabel = /הגעה ותחבורה/.test($('cost-row-car').textContent);
+    _costTransport('car');
     out.estimateSaid = /הערכה, לא הצעת מחיר/.test($('costModal').textContent);
 
     _costPass('zermatt');
@@ -8230,6 +8263,19 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.foodBack = COST.rows.food.min;
     out.foodBackExpect = 2 * 7 * ref.food_person_day[0];
     closeM('costModal');
+
+    // ── the car tab knows the car is optional ──
+    openM('hotelModal'); planGo('car');
+    out.carAlt = !!$('car-alt') && getComputedStyle($('car-alt')).display !== 'none';
+    $('car-alt').click();
+    await new Promise(res => setTimeout(res, 120));
+    out.altOpens = getComputedStyle($('parkingModal')).display !== 'none'
+      && getComputedStyle($('hotelModal')).display === 'none';
+    const tb = $('park-tab-transport');
+    out.altTab = !!tb && /active|on|sel/.test(tb.className + ' ' + (tb.getAttribute('aria-selected') || ''));
+    closeM('parkingModal');
+    out.altBack = getComputedStyle($('hotelModal')).display !== 'none';
+    closeM('hotelModal');
 
     // ── door 2: the trip ──
     openM('hotelModal'); planGo('trip');
@@ -8286,6 +8332,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     '9 ski days got a price the tariff does not have'); else ok();
   if (!near1(r.gear[0], r.expect.gearLo) || !near1(r.gear[1], r.expect.gearHi)) fail(T,
     `gear is not the rental list's range: ${r.gear} vs ${r.expect.gearLo}-${r.expect.gearHi}`); else ok();
+  if (r.skiWidth > 64) fail(T, `the ski-days field is ${Math.round(r.skiWidth)}px wide for two digits`); else ok();
+  if (!r.passTogether || !r.passNoWrap) fail(T, 'the two passes are one choice and split across two lines'); else ok();
+  if (r.bandsAtFirst !== 'Adult,Junior') fail(T,
+    `the panel opens on every age band (${r.bandsAtFirst}), not adults and children`); else ok();
+  if (r.bandsAfterTick !== 'Adult,Junior,Senior' || !r.seniorCounted) fail(T,
+    `ticking a band does not open its counter or count it (${r.bandsAfterTick})`); else ok();
+  if (!r.untickRemoves) fail(T, 'unticking a band leaves its people in the sum'); else ok();
+  if (!r.noEnglishBands) fail(T, 'the ski-pass line names the bands in English'); else ok();
   if (!r.gearCheaper) fail(T,
     'gear is priced from one shop\'s list and does not say others cost less, or that a discount can be asked'); else ok();
   if (r.freeFlights != null) fail(T, 'the side-menu door invented a flight price with no dates'); else ok();
@@ -8294,13 +8348,24 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!near1(r.freeLodging[0], 7 * r.ref.lodging_valley[0]) || !near1(r.freeLodging[1], 7 * r.ref.lodging_valley[1])) fail(T,
     `the side-menu door's lodging is not nights × the valley reference: ${r.freeLodging}`); else ok();
   if (!near1(r.freeCar[0], 7 * r.ref.car_day[0]) || !near1(r.freeCar[1], 7 * r.ref.car_day[1]) || !r.freeCar[2]) fail(T,
-    `the car is not days × the daily reference, or does not say how to drop it: ${r.freeCar}`); else ok();
+    `the car is not days × the daily reference, or does not say it is a suggestion: ${r.freeCar}`); else ok();
+  if (r.waysShown !== 3 || !r.busLabel) fail(T,
+    'the transport row does not offer a hired car, a transfer and the bus'); else ok();
+  if (!near1(r.transfer2[0], r.transfer2[1]) || !r.transfer2[2]) fail(T,
+    `a transfer for 2 is not the operator's 1–2 price both ways: ${r.transfer2}`); else ok();
+  if (!near1(r.transfer3[0], r.transfer3[1])) fail(T,
+    `a transfer for 3 is not the operator's 3–8 price both ways: ${r.transfer3}`); else ok();
+  if (!near1(r.bus2[0], r.bus2[1]) || !r.bus2[2]) fail(T,
+    `the bus is not (Malpensa bus + Linea Blu) × 2 directions × people, or hides the days it does not run: ${r.bus2}`); else ok();
   if (!r.estimateSaid) fail(T, 'the panel does not say it is an estimate'); else ok();
   if (r.handKept[0] !== 300 || r.handKept[1] !== 600) fail(T,
     `rows typed into were recomputed: ${r.handKept}`); else ok();
   if (!/לא נכלל:.*טיסות/.test(r.total) || !/₪/.test(r.total)) fail(T,
     `the total does not say what it leaves out, or has no shekels: "${r.total}"`); else ok();
   if (!r.resetBack || !near1(r.foodBack, r.foodBackExpect)) fail(T, '"↺" does not give the row back to the calculation'); else ok();
+  if (!r.carAlt || !r.altOpens) fail(T, 'the car search does not point at the transfer and the bus'); else ok();
+  if (!r.altTab) fail(T, 'the car tab opens the transport card on the wrong tab'); else ok();
+  if (!r.altBack) fail(T, 'closing the transport card does not return to the car search'); else ok();
   if (r.tripMode !== 'trip') fail(T,
     'opened first from the trip strip, the calculator came up in side-menu mode'); else ok();
   if (r.tripNights !== 7 || !r.tripAsksNot) fail(T,
