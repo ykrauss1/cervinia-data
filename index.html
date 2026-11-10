@@ -8219,7 +8219,8 @@ function _costBandHe(k, withAges) {
     case 'Adult':  return 'מבוגרים';
     case 'Junior': return 'ילדים' + (age('Baby') && age('Junior') ? iso(age('Baby') + '–' + (age('Junior') - 1)) : '');
     case 'Young':  return 'צעירים' + (age('Junior') && age('Young') ? iso(age('Junior') + '–' + (age('Young') - 1)) : '');
-    case 'Senior': return 'גמלאים' + (age('Senior') ? iso(age('Senior') + '+') : '');
+    // in words: a bare "64+" flips to "+64" in a right-to-left line
+    case 'Senior': return 'גמלאים' + (age('Senior') && withAges ? ' מגיל ' + age('Senior') : '');
     case 'Baby':   return 'פעוטות' + (age('Baby') && withAges ? ' עד ' + age('Baby') : '');
     case 'Over 80': return 'מעל 80';
   }
