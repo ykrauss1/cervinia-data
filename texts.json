@@ -6414,5 +6414,25 @@
       "title": "צ׳רוויניה לגולש הדתי — קבוצת ווטסאפ",
       "sub": "תיאום מניין, סעודת שבת וקנייה משותפת — לדיון מהיר בין מי שנמצא שם עכשיו"
     }
+  },
+  "cost_ref": {
+    "_comment": "First suggestions for the calculator where nothing is collected per trip. Ranges in EUR, checked Nov 2026: lodging from Booking/Kayak/Likibu averages for Breuil-Cervinia in winter and Skyscanner/Kayak for Milan in January; car from Kayak/Momondo/Hertz for Malpensa; food from Italy budget guides. Orders of magnitude, not prices.",
+    "checked": "2026-11",
+    "lodging_valley": [
+      150,
+      350
+    ],
+    "lodging_city": [
+      100,
+      200
+    ],
+    "car_day": [
+      40,
+      110
+    ],
+    "food_person_day": [
+      20,
+      45
+    ]
   }
 }

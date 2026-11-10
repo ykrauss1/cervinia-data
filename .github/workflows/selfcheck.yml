@@ -44,7 +44,7 @@ jobs:
 
       - name: התקנת Playwright
         run: |
-          npm install --no-save playwright@1.49.1
+          npm install --no-save playwright@1.49.1 flatpickr@4.6.13
           npx playwright install --with-deps chromium
 
       # texts.json: parses, required sections present, coordinates sane,

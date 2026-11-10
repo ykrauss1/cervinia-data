@@ -354,6 +354,9 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .filter-chip input { display:none; }
 .ttab-btn { flex:1; padding:8px 4px; border:1.5px solid #ddd; border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:bold; background:#f5f5f5; color:#555; transition:all 0.15s; }
         .ttab-active { background:var(--accent) !important; color:var(--dark) !important; border-color:var(--accent) !important; }
+        .ttab-btn.ttab-done::after { content:' ✓'; color:#1e8449; }
+        .trip-diff { font-size:0.72rem; color:#8a6d1b; background:#fff8e6; border-radius:7px; padding:4px 8px; margin-top:5px; line-height:1.6; }
+        .trip-diff a { color:#1a73e8; cursor:pointer; text-decoration:underline; }
         .result-link { display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid #e5e5e5; border-radius:9px; margin-bottom:7px; text-decoration:none; color:inherit; background:white; transition:box-shadow 0.15s; }
         .result-link:hover { box-shadow:0 2px 10px rgba(0,0,0,0.1); }
         .result-link .rl-icon { font-size:1.4rem; flex-shrink:0; }
@@ -798,11 +801,37 @@ M6.1 15.5l-3.2.9M6.1 15.5l-.9 3.2M17.9 8.5l3.2.9M17.9 8.5l.9-3.2'/></svg>") no-r
     /* the one card that leaves the planner instead of switching screens */
     .plan-card-out { background: #fffdf5; border-color: #ecd9a8; }
     .plan-card-out:hover { border-color: #d9bc72; box-shadow: 0 3px 12px rgba(180,140,40,.16); }
+    /* The menu is two groups now - what you came to search for, and what you
+       read before searching - so each group needs a quiet name above it. */
+    .plan-grp { position: relative; z-index: 1; font-size: 0.72rem; font-weight: 700;
+            color: #5d7790; margin: 3px 3px -3px; }
+    .plan-grp + .plan-grp { margin-top: 10px; }
+    .plan-card + .plan-grp, .plan-strip + .plan-grp { margin-top: 9px; }
+    /* Not a fourth sibling of the three searches: it is those same three
+       screens with a frame around them, so it reads as a different kind of
+       thing. Wider, bordered, and set apart. */
+    .plan-strip { display: flex; align-items: center; gap: 12px; width: 100%;
+            padding: 13px; margin-top: 4px; position: relative; z-index: 1;
+            border: 1.5px solid #9cc6ec; border-radius: 13px; cursor: pointer;
+            font-family: inherit; text-align: right; color: #0f2c4d;
+            background: linear-gradient(135deg, #ffffff 0%, #e9f3fd 100%);
+            box-shadow: 0 1px 3px rgba(16,58,98,.08);
+            transition: border-color .15s, box-shadow .15s, transform .08s; }
+    .plan-strip:hover { border-color: #5fa3e0; box-shadow: 0 3px 14px rgba(26,115,232,.2); }
+    .plan-strip:active { transform: scale(.985); }
+    .plan-strip .plan-ico { background: #dceafa; }
+    /* the cards that explain rather than search - present, but not competing
+       with the three a visitor usually came for */
+    .plan-card-soft { padding: 11px 13px; box-shadow: none; }
+    .plan-card-soft:not(.plan-card-out) { background: #fbfdff; }
+    .plan-card-soft .plan-txt b { font-size: 0.88rem; }
     .plan-ico { display: flex; align-items: center; justify-content: center;
             width: 42px; height: 42px; flex: 0 0 auto; border-radius: 11px;
             background: #eef6fe; font-size: 1.45rem; line-height: 1; }
     .plan-card-out .plan-ico { background: #fdf4e0; }
     .plan-ico svg { width: 25px; height: 25px; }
+    .plan-card-soft .plan-ico { width: 34px; height: 34px; font-size: 1.15rem; border-radius: 9px; }
+    .plan-card-soft .plan-ico svg { width: 20px; height: 20px; }
     .plan-txt { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
     .plan-txt b { font-size: 0.95rem; }
     .plan-txt small { font-size: 0.735rem; color: #5d7790; line-height: 1.45; }
@@ -1055,7 +1084,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.24';
+  var v='v17.33';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1132,6 +1161,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
   </div>
   <div id="side-menu-links" role="navigation">
     <button onclick="smGo('why')"><span>🏔️</span>למה צ׳רוויניה? · קהילה וקישורים</button>
+    <button onclick="smGo('cost')"><span>💶</span>כמה תכל'ס יעלה לי?</button>
     <button onclick="smGo('about')"><span>ℹ️</span>עלינו</button>
     <button onclick="smGo('contact')"><span>✉️</span>צור קשר</button>
     <button id="sm-install" onclick="smGo('install')"><span>📲</span>התקנת האפליקציה</button>
@@ -1714,26 +1744,52 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          buried the other two and closing it again meant scrolling back past
          all of it. The planner now opens on a menu and shows one at a time,
          with a bar that stays on screen to get back or step sideways. -->
+    <!-- The menu asks what you came for before anything else. The three
+         searches used to be ONE card - "חיפוש טיסה, רכב ולינה" - with four tabs
+         inside it opening on "הכל", so somebody who wanted a flight went two
+         levels down and landed on a combined search he never asked for. They
+         are top-level now and each takes the whole screen.
+         The strip below them is not a fourth sibling: it is those same three
+         screens with a frame around them. -->
     <div id="plan-hub">
-      <button class="plan-card" onclick="planGo('when')">
+      <div class="plan-grp">מה מחפשים?</div>
+      <button class="plan-card" onclick="planGo('flight')">
+        <span class="plan-ico">✈️</span>
+        <span class="plan-txt"><b>טיסות</b>
+          <small>מילאנו וטורין · מחירים יומיים ומנועי הזמנה</small></span>
+      </button>
+      <button class="plan-card" onclick="planGo('hotel')">
+        <span class="plan-ico">🏨</span>
+        <span class="plan-txt"><b>לינה</b>
+          <small>דירות ומלונות · ופנייה ישירה לבעלי דירות בכפר</small></span>
+      </button>
+      <button class="plan-card" onclick="planGo('car')">
+        <span class="plan-ico">🚗</span>
+        <span class="plan-txt"><b>רכב</b>
+          <small>השכרה בשדה התעופה או בעמק · ומה צריך בשלג</small></span>
+      </button>
+
+      <button class="plan-strip" onclick="planGo('trip')">
+        <span class="plan-ico">✨</span>
+        <span class="plan-txt"><b>תכנון טיול שלם</b>
+          <small>שלושתם יחד — התאריכים והנוסעים נכנסים פעם אחת</small></span>
+      </button>
+
+      <div class="plan-grp">לפני שמחפשים</div>
+      <button class="plan-card plan-card-soft" onclick="planGo('when')">
         <span class="plan-ico">📅</span>
         <span class="plan-txt"><b>מתי לנסוע</b>
           <small>עונות, שלג, חגים — ומתי יקר</small></span>
         </button>
-      <button class="plan-card" onclick="planGo('prep')">
+      <button class="plan-card plan-card-soft" onclick="planGo('prep')">
         <span class="plan-ico">🧳</span>
         <span class="plan-txt"><b>הכנות לפני הנסיעה</b>
           <small>ציוד, ביטוח, חשמל ושבת · רשימת אריזה</small></span>
         </button>
-      <button class="plan-card" onclick="planGo('search')">
-        <span class="plan-ico">🔍</span>
-        <span class="plan-txt"><b>חיפוש טיסה, רכב ולינה</b>
-          <small>תאריכים, נוסעים והשוואת מחירים</small></span>
-      </button>
       <!-- Not a screen of the planner: it opens the kashrut panel, where the
            Shabbat material actually lives. It is on this menu because planning
            a trip is when somebody thinks about it. -->
-      <button class="plan-card plan-card-out" onclick="closeM('hotelModal');openKosherShabbat();">
+      <button class="plan-card plan-card-soft plan-card-out" onclick="closeM('hotelModal');openKosherShabbat();">
         <span class="plan-ico"><svg viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg></span>
         <span class="plan-txt"><b>שבת בצ'רוויניה</b>
           <small>מה להביא לדירה, חשמל, ומתי להפסיק לגלוש בשישי</small></span>
@@ -2217,12 +2273,43 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          this, did not know the car and lodging tabs existed. So the
          question comes first and the form second - nobody should have to
          fill in flight dates to discover there is a car search. -->
-    <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;">מה מחפשים?</div>
+    <div id="trip-steps">
+    <!-- The trip itself: dates and travellers, said once. Every search in the
+         frame starts from them and stays free to differ - see TRIP below. -->
+    <div id="trip-strip" style="background:#f4f8fc;border:1.5px solid #d6e4f0;border-radius:12px;padding:10px 12px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:0.8rem;color:#16314f;font-weight:bold;">🧳 הטיול</span>
+        <span id="strip-nights" style="font-size:0.72rem;color:#2980b9;font-weight:600;"></span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="strip-dates" readonly placeholder="מתי הטיול? הלוך — חזור"
+          style="flex:1;min-width:170px;padding:9px 12px;border:1.5px solid #cfdcea;border-radius:9px;font-size:0.86rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;box-sizing:border-box;">
+        <div style="display:flex;align-items:center;gap:5px;background:white;border:1.5px solid #cfdcea;border-radius:9px;padding:5px 8px;">
+          <span style="font-size:0.7rem;color:#888;">מבוגרים</span>
+          <button class="c-btn" onclick="adjStrip('adults',-1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
+          <b id="strip-adults">2</b>
+          <button class="c-btn" onclick="adjStrip('adults',1)" style="width:22px;height:22px;font-size:0.8rem;">+</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:white;border:1.5px solid #cfdcea;border-radius:9px;padding:5px 8px;">
+          <span style="font-size:0.7rem;color:#888;">ילדים</span>
+          <button class="c-btn" onclick="adjStrip('children',-1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
+          <b id="strip-children">0</b>
+          <button class="c-btn" onclick="adjStrip('children',1)" style="width:22px;height:22px;font-size:0.8rem;">+</button>
+        </div>
+      </div>
+      <div style="font-size:0.7rem;color:#7a8794;margin-top:6px;line-height:1.5;">
+        התאריכים והנוסעים עוברים לכל השלבים. ניתן לשנות כל שלב בנפרד.</div>
+      <button type="button" onclick="openCost('trip')" class="plan-chip" id="strip-cost"
+        style="margin-top:8px;background:#fff8e6;border-color:#ecd9a8;color:#7a5a1c;font-weight:700;">
+        💶 כמה תכל'ס יעלה?</button>
+    </div>
+    <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;">שלבי התכנון</div>
     <div style="display:flex;gap:5px;margin-bottom:16px;">
       <button id="ttab-all"    onclick="switchTripTab('all')"    class="ttab-btn ttab-active">✨ הכל</button>
       <button id="ttab-flight" onclick="switchTripTab('flight')" class="ttab-btn">✈️ טיסה</button>
-      <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn">🚗 רכב</button>
       <button id="ttab-hotel"  onclick="switchTripTab('hotel')"  class="ttab-btn">🏨 לינה</button>
+      <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn">🚗 רכב</button>
+    </div>
     </div>
 
     <!-- Dates, passengers and the free-text box belong to the two searches
@@ -2249,7 +2336,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           style="padding:10px 12px;background:#fff;color:#1a3a6c;border:1.5px solid #cfe2f5;
           border-radius:9px;font-size:0.95rem;cursor:pointer;font-family:inherit;">💾</button>
       </div>
-      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
+      <!-- Each screen speaks of its own business only. What is written here
+           is the whole-trip set; switchTripTab swaps in TRIP_FREE_EX[tab],
+           so the flight screen never promises a car it does not search for. -->
+      <div id="trip-free-ex" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
         <span style="font-size:0.7rem;color:#90a4ae;align-self:center;">לדוגמה:</span>
         <!-- Three, not four: the fourth wrapped onto a line of its own and
              cost the search button a line of height. Bergamo is gone because
@@ -2447,7 +2537,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <!-- === TAB: רכב === -->
     <div id="tpanel-car" style="display:none;">
       <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
+        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">📍 איסוף מ:</div>
         <select id="airport-select-car" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
           <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
           <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
@@ -2483,17 +2573,48 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <button onclick="searchCar()" style="width:100%;padding:12px;background:#2c3e50;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
         🔍 חפש רכב
       </button>
+      <!-- A car is one of three ways up the valley. Somebody about to hire
+           one for a week may not need it at all - the transport card has the
+           private transfer and the bus, with prices and times. -->
+      <button type="button" id="car-alt" onclick="openTransportFromPlanner()"
+        style="width:100%;margin-top:10px;display:flex;align-items:center;gap:10px;text-align:right;
+               background:#f4f8fc;border:1.5px solid #d6e4f0;border-radius:11px;padding:10px 12px;cursor:pointer;font-family:inherit;">
+        <span style="font-size:1.2rem;line-height:1;">🚐</span>
+        <span style="flex:1;min-width:0;">
+          <b style="font-size:0.85rem;color:#16314f;display:block;">אולי בלי רכב?</b>
+          <small style="font-size:0.75rem;color:#4a6b8a;line-height:1.5;display:block;">
+            הסעה פרטית מהשדה או אוטובוס — מחירים ושעות בכרטיס התחבורה</small>
+        </span>
+        <span style="color:#7a9cc0;">‹</span>
+      </button>
       <div id="car-results" style="display:none;margin-top:10px;"></div>
     </div>
 
     <!-- === TAB: לינה === -->
     <div id="tpanel-hotel" style="display:none;">
-      <div style="background:#e8f8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;color:#1a5226;">
-        🏨 <b>תאריכי לינה</b> — ניתן לבחור לילות שונים מהטיסה
+      <!-- Only inside the trip frame is there a flight to differ from.
+           _planFrame hides this on the lodging screen alone. -->
+      <div id="hotel-vs-flight" style="background:#e8f8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;color:#1a5226;">
+        🏨 <b>תאריכי לינה</b> — מתחילים מתאריכי הטיול, ואפשר לבחור לילות אחרים
       </div>
+      <!-- Lodging in a trip is a list of stays, not one date range: four
+           nights in Cervinia, two in Milan. The fields below edit the stay
+           picked here. Trip frame only - a search alone is one stay. -->
+      <div id="stay-list" style="display:none;margin-bottom:12px;"></div>
       <input type="text" id="hotel-dates"
         placeholder="בחר תאריכי צ'ק-אין וצ'ק-אאוט"
         style="width:100%;padding:10px 14px;border:1.5px solid #acd;border-radius:10px;box-sizing:border-box;font-size:0.88rem;cursor:pointer;background:#f0fff8;font-family:inherit;direction:rtl;margin-bottom:12px;" readonly>
+      <div id="stay-edit" style="display:none;margin-bottom:12px;background:#f8fbf9;border:1px solid #dcebe2;border-radius:10px;padding:10px 12px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <label style="font-size:0.78rem;color:#555;">📍 איפה
+            <select id="stay-place" onchange="_stayEdit()" style="margin-inline-start:6px;padding:6px 8px;border:1.5px solid #cfe0d6;border-radius:8px;font-size:0.83rem;font-family:inherit;background:white;cursor:pointer;"></select>
+          </label>
+          <span style="font-size:0.78rem;color:#555;">איך מחפשים</span>
+          <label class="ls-opt"><input type="radio" name="stay-way" value="site" onchange="_stayEdit()" checked> באתרים</label>
+          <label class="ls-opt" id="stay-way-direct-l"><input type="radio" name="stay-way" value="direct" onchange="_stayEdit()"> פנייה ישירה</label>
+        </div>
+        <div id="stay-way-note" style="display:none;font-size:0.72rem;color:#7a8794;margin-top:6px;"></div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
         <div style="background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
           <div style="font-size:0.72rem;color:#888;margin-bottom:5px;">מבוגרים</div>
@@ -2561,7 +2682,12 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           <input class="sf-kitchen" type="checkbox" onchange="_refreshAllResults()" style="width:15px;height:15px;"> 🍳 עם מטבח
         </label>
       </div>
-      <button onclick="searchHotel()" style="width:100%;padding:12px;background:#003580;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
+      <!-- A stay found by writing to an agency has no search to run: its
+           button writes the letter, for this stay's dates and people. -->
+      <button id="stay-letter-btn" onclick="_stayLetter()" style="display:none;width:100%;padding:12px;background:#7a5a1c;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;margin-bottom:0;">
+        ✉️ מכתב פנייה לשהייה הזו
+      </button>
+      <button id="hotel-search-btn" onclick="searchHotel()" style="width:100%;padding:12px;background:#003580;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
         🔍 חפש לינה
       </button>
       <!-- Most of the apartment stock in an Italian ski village never
@@ -2590,8 +2716,24 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div id="hotel-results" style="display:none;margin-top:10px;"></div>
     </div>
 
+      <!-- The next stage, at the foot of the results. On a phone the results
+           push the step strip off the top, so after a search the way on was
+           a scroll back up. Trip frame only, and only once this stage ran. -->
+      <div id="trip-next" style="display:none;margin:16px 0 2px;text-align:center;"></div>
 
-  
+      <!-- One way only. Whatever was typed is in the same DOM, so moving up
+           to the whole trip loses nothing; there is no bridge back, because
+           the trip frame IS this screen and there would be nowhere to land. -->
+      <div id="trip-ask" style="display:none;margin:20px 0 2px;padding:12px 14px;
+           background:#f7fbff;border:1px solid #dbe9f7;border-radius:11px;
+           align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:0.8rem;color:#4a6b8a;flex:1 1 auto;line-height:1.5;">
+          צריכים גם את השאר? בתכנון המלא התאריכים נכנסים פעם אחת.</span>
+        <button class="plan-chip" onclick="planGo('trip')"
+          style="background:#eaf3fd;border-color:#c6ddf3;color:#1a5fa8;font-weight:700;">
+          ✨ לתכנון טיול שלם ←</button>
+      </div>
+
     </section>
 </div>
 </div>
@@ -2662,6 +2804,26 @@ details.fold > .fold-body { padding: 0 13px 12px; }
      agencies and with the consortium, and is rented by email and telephone.
      An Israeli reader has no way of knowing this and no Italian to ask in,
      so the panel ends with a letter it writes for him. -->
+<!-- ══ כמה תכל'ס יעלה לי (stage 4) ══
+     Two doors, one panel: from the trip strip it reads the trip - nights,
+     people, stays - and from the side menu it asks for them. Exact where we
+     know (the ski pass, from the operator's own tariff), a range where we are
+     guessing, and empty where we have nothing to go on: a single precise
+     number would be a lie people plan by. -->
+<div id="costModal" class="modal" onclick="if(event.target===this)closeM('costModal')">
+  <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;padding:24px 22px;">
+    <span class="close-btn" onclick="closeM('costModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;">💶 כמה תכל'ס יעלה לי?</h3>
+    <p style="color:#8a6d1b;background:#fff8e6;border-radius:8px;padding:7px 10px;font-size:0.78rem;margin:0 0 14px;line-height:1.6;">
+      <b>הערכה, לא הצעת מחיר.</b> הסקי פס מחושב מהמחירון הרשמי; השאר טווח — חלקו הצעה ראשונית לפי ממוצעים — וכל שורה ניתנת לעריכה.</p>
+
+    <div id="cost-inputs" style="background:#f6f9fc;border:1px solid #e1eaf3;border-radius:11px;padding:11px 12px;margin-bottom:14px;"></div>
+    <div id="cost-rows"></div>
+    <div id="cost-coverage" style="display:none;font-size:0.78rem;line-height:1.6;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:#f8fbf9;border:1px solid #dcebe2;"></div>
+    <div id="cost-total" style="margin-top:14px;padding:12px 14px;border-radius:11px;background:#0a192f;color:white;"></div>
+  </div>
+</div>
+
 <div id="localStayModal" class="modal" onclick="if(event.target===this)closeM('localStayModal')">
   <div class="modal-content" style="max-width:620px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('localStayModal')">×</span>
@@ -3710,7 +3872,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             ולבחור חדרים ומסלול הליכה שאינם עוברים דרכם.
             <br>שתי השאלות האלה נכנסות גם למכתב המוכן לסוכנויות שבסעיף
             <a href="#" onclick="closeM('hotelModal');openM('localStayModal');return false;" style="color:#1a73e8;font-weight:bold;">לשכור דירה כמו מקומי</a>,
-            שנמצא בתכנון הטיול תחת <b>חיפוש ← לינה</b>.
+            שנמצא בתכנון הטיול תחת <b>לינה</b>.
 
             <div class="prep-h">הרשימה</div>
             • <b>פמוטים ונרות.</b> בדירות שכורות רבות אסורה אש גלויה; מניחים על מגש מתכת,
@@ -4747,7 +4909,7 @@ var PANEL_LINKS = {
   help:     'helpModal',     zermatt: 'zermattForecastModal',
   summer:      'summerSkiModal',   'summer-hike':  'summerHikeModal',
   'summer-bike': 'summerBikeModal', 'summer-cross': 'summerCrossModal',
-  'stay-local': 'localStayModal',
+  'stay-local': 'localStayModal', cost: 'costModal',
   // #gear was the equipment panel's own address before its two halves moved
   // into the planner and the hire panel. Links to it are already out there,
   // so it still opens - at the planner, where the buying half went.
@@ -5426,6 +5588,13 @@ function openM(id) {
   // The letter is written the moment the panel opens, and the dates the
   // reader already typed into the planner are carried over - asking a
   // person for the same dates twice is asking him to do our filing.
+  // #cost arrives here without openCost: fill the panel the way the side
+  // menu would, asking for nights and people.
+  if (id === 'costModal' && typeof _costRender === 'function' && !COST.opening
+      && !(document.getElementById('cost-rows') || {}).innerHTML) {
+    COST.mode = 'free'; _costDefaults(); _costRecalc(); _costRender();
+    _costRates().then(function () { _costRecalc(); _costRender(); }).catch(function () {});
+  }
   if (id === 'localStayModal' && typeof buildLocalStayMail === 'function') {
     try { initLocalStayPicker(); } catch (e) {}
     try {
@@ -5554,6 +5723,8 @@ var SIDE_MENU_ACTIONS = {
   // after a tap, and from the search box if you knew to look. Those links
   // are the only route to the community, so they get a standing door.
   why:     function () { openM('whyModal'); },
+  // The calculator's second door: no trip to read, so it asks.
+  cost:    function () { openCost('free'); },
   about:   function () { openM('aboutModal'); },
   contact: function () { openM('contactModal'); },
   help:    function () { openM('helpModal'); },
@@ -6401,6 +6572,10 @@ function adjField(id, delta, min) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = Math.max(min, parseInt(el.textContent) + delta);
+  if (typeof TRIP_PAX !== 'undefined' && TRIP_PAX[id]) {
+    el.setAttribute('data-touched', '1');
+    _tripMarks();
+  }
 }
 
 function toggleCarDetails(id, on) {
@@ -6422,6 +6597,43 @@ function _refreshAllResults() {
 function adjHotel(f, d) { adjField('h-' + f, d, f === 'rooms' ? 1 : 0); }
 function adjAll(f, d) { adjField('all-' + f, d, f === 'rooms' ? 1 : 0); }
 
+// The free-text box shows on two screens and each gets its own examples.
+// The flight screen searches flights only, so nothing here may mention a car
+// or a room. 'משפחה' still works there: the local reader turns it into 2+2,
+// and on the flight screen the children are counted in as passengers.
+var TRIP_FREE_EX = {
+  flight: {
+    hint: 'למשל: מילאנו בחנוכה לשבוע, 2 מבוגרים',
+    ex: ['מילאנו בחנוכה לשבוע', 'משפחה בפברואר לשבוע', 'מילאנו בחול המועד פסח ל-4 לילות']
+  },
+  all: {
+    hint: 'למשל: מילאנו בחנוכה לשבוע, 2 מבוגרים ורכב',
+    ex: ['מילאנו בחנוכה לשבוע', 'משפחה בפברואר עם רכב', 'מילאנו בחול המועד פסח ל-4 לילות']
+  }
+};
+function _tripFreeExamples(tab) {
+  var set = TRIP_FREE_EX[tab];
+  if (!set) return;                       // car / lodging: the box is hidden
+  var box = document.getElementById('trip-free');
+  if (box) box.placeholder = set.hint;
+  var ex = document.getElementById('trip-free-ex');
+  if (ex) ex.innerHTML =
+    '<span style="font-size:0.7rem;color:#90a4ae;align-self:center;">לדוגמה:</span>' +
+    set.ex.map(function (s) {
+      return '<span class="ftx" onclick="fillTripText(this)">' + s + '</span>';
+    }).join('');
+}
+// Which of the four panels is on screen - the free-text reader needs it to
+// keep a flight-only search from filling in a car and a room.
+function _tripTab() {
+  var t = ['all', 'flight', 'car', 'hotel'];
+  for (var i = 0; i < t.length; i++) {
+    var p = document.getElementById('tpanel-' + t[i]);
+    if (p && p.style.display !== 'none') return t[i];
+  }
+  return 'all';
+}
+
 function switchTripTab(tab) {
   ['all','flight','car','hotel'].forEach(t => {
     const btn = document.getElementById('ttab-' + t);
@@ -6435,6 +6647,8 @@ function switchTripTab(tab) {
   // a reader who picked them first, so hiding it loses nothing.
   const common = document.getElementById('trip-common');
   if (common) common.style.display = (tab === 'car' || tab === 'hotel') ? 'none' : 'block';
+  _tripFreeExamples(tab);
+  _tripNext();
   // "תאריכי טיסה" is the truth on the flight tab and a half-truth on "הכל",
   // where the same dates drive the car and the room as well.
   const lbl = document.getElementById('trip-dates-label');
@@ -6553,6 +6767,18 @@ function growTripFree(el) {
     if (mAd) o.adults = _num(mAd[1]);
     var mCh = txt.match(/(\d+|[֐-׿]+)\s*ילדים?/);
     if (mCh) o.children = _num(mCh[1]);
+    // "4 נוסעים" / "לשישה אנשים" - a head count with no adults/children split.
+    // When children are named as well it is the total: the rest are adults.
+    // _num strips the one-letter prefix, so "לארבעה" reads as four.
+    if (o.adults == null) {
+      var mPx = txt.match(/(\d+|[֐-׿]+)\s*(?:נוסעים|נוסעות|נוסע|אנשים|נפשות|איש)(?![֐-׿])/);
+      var nPx = mPx ? _num(mPx[1]) : null;
+      if (nPx != null && nPx > 0) {
+        o.adults = (o.children != null && nPx > o.children) ? nPx - o.children : nPx;
+      }
+    }
+    // the number after the noun: "נוסע אחד", "נוסעת אחת"
+    if (o.adults == null && /נוסע(?:ת)?\s+(?:אחד|אחת)(?![֐-׿])/.test(txt)) o.adults = 1;
     if (o.adults == null && /זוג/.test(txt)) o.adults = 2;
     if (o.adults == null && /משפחה/.test(txt)) { o.adults = 2; if (o.children == null) o.children = 2; }
 
@@ -6782,6 +7008,17 @@ async function applyTripText(){
     var c=document.getElementById('all-h-children'); if(c) c.textContent=r.children;
     if(r.children) got.push(r.children+' \u05d9\u05dc\u05d3\u05d9\u05dd');
   }
+  // On the flight screen alone the sentence is read for the flight only: no
+  // car, no room, no gearbox - none of it is searched here, so reporting it
+  // as understood would promise what the screen does not do. Children are
+  // passengers on a plane, so there they go into the passenger count.
+  if(!_tripSolo() && (r.adults!=null || r.children)) _tripSetPax(r.adults, r.children||null);
+  var flightOnly = _tripTab()==='flight';
+  if(flightOnly && r.children){
+    var fa=document.getElementById('fl-adults');
+    if(fa) fa.textContent = (r.adults!=null ? r.adults : (+fa.textContent||0)) + r.children;
+  }
+  if(!flightOnly){
   if(r.car===true || r.airportPickup===true || r.automatic!=null){
     var cc=document.getElementById('all-car-check');
     if(cc && !cc.checked){ cc.checked=true; if(typeof toggleCarDetails==='function') toggleCarDetails('all-car-details',true); }
@@ -6804,6 +7041,7 @@ async function applyTripText(){
     var au=document.getElementById('all-automatic');
     if(au){ au.checked=!!r.automatic; got.push(r.automatic?'\u05d2\u05d9\u05e8 \u05d0\u05d5\u05d8\u05d5\u05de\u05d8\u05d9':'\u05d2\u05d9\u05e8 \u05d9\u05d3\u05e0\u05d9'); }
   }
+  }  // !flightOnly
 
   if(!got.length){
     out.innerHTML='<span style="color:#ef6c00;">\u05dc\u05d0 \u05d6\u05d9\u05d4\u05d9\u05ea\u05d9 \u05d9\u05e2\u05d3 \u05d0\u05d5 \u05ea\u05d0\u05e8\u05d9\u05da. \u05e0\u05e1\u05d5 \u05dc\u05d4\u05d6\u05db\u05d9\u05e8 \u05e2\u05d9\u05e8 (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5 / \u05d1\u05e8\u05d2\u05de\u05d5 / \u05d8\u05d5\u05e8\u05d9\u05e0\u05d5) \u05d5\u05de\u05ea\u05d9 \u2014 \u05d7\u05d5\u05d3\u05e9, \u05ea\u05d0\u05e8\u05d9\u05da \u05d0\u05d5 \u05d7\u05d2.</span>';
@@ -7113,6 +7351,7 @@ function localStays() {
 }
 
 function searchFlight() {
+  _tripStepDone('flight');
   const dr = getDateRange();
   if (!dr) { needDates(); return; }
   const adults = document.getElementById('fl-adults')?.textContent || '2';
@@ -7151,6 +7390,7 @@ function searchFlight() {
 }
 
 function searchCar() {
+  _tripStepDone('car');
   const carEl = document.getElementById('car-dates');
   const ci = carEl?.getAttribute('data-ci'); const co = carEl?.getAttribute('data-co');
   const dr = (ci && co) ? {ci, co} : getDateRange();
@@ -7205,8 +7445,9 @@ function _stayFilters() {
            cur: (curEl && curEl.value) || 'EUR',
            kitchen: !!(kEl && kEl.checked) };
 }
-function _bookingUrl(ci, co, adults, kids, rooms, radius, accType, f) {
+function _bookingUrl(ci, co, adults, kids, rooms, radius, accType, f, place) {
   f = f || {min: null, max: null, kitchen: false, cur: 'EUR'};
+  place = place || STAY_PLACES.cervinia;
   var cur = f.cur || 'EUR';
   var nflt = [];
   if (accType === 'apt') nflt.push('ht_id=201');
@@ -7224,7 +7465,7 @@ function _bookingUrl(ci, co, adults, kids, rooms, radius, accType, f) {
     price = '&price=' + (f.min != null ? f.min : 0) + '-'
           + (f.max != null ? f.max : 100000) + '-' + cur;
   }
-  return 'https://www.booking.com/searchresults.he.html?ss=Breuil-Cervinia'
+  return 'https://www.booking.com/searchresults.he.html?ss=' + encodeURIComponent(place.q)
     + '&checkin=' + ci + '&checkout=' + co
     + '&group_adults=' + adults + '&group_children=' + (kids || 0)
     + '&no_rooms=' + (rooms || 1)
@@ -7232,9 +7473,10 @@ function _bookingUrl(ci, co, adults, kids, rooms, radius, accType, f) {
     + '&selected_currency=' + cur + price
     + (nflt.length ? '&nflt=' + encodeURIComponent(nflt.join(';')) : '');
 }
-function _airbnbUrl(ci, co, adults, kids, accType, f) {
+function _airbnbUrl(ci, co, adults, kids, accType, f, place) {
   f = f || {min: null, max: null, kitchen: false, cur: 'EUR'};
-  var u = 'https://www.airbnb.com/s/Breuil-Cervinia--Italy/homes'
+  place = place || STAY_PLACES.cervinia;
+  var u = 'https://www.airbnb.com/s/' + place.ab + '/homes'
     + '?checkin=' + ci + '&checkout=' + co
     + '&adults=' + adults + '&children=' + (kids || 0)
     + '&currency=' + (f.cur || 'EUR');
@@ -7263,6 +7505,7 @@ function _stayDesc(base, accType, f) {
 }
 
 function searchHotel() {
+  _tripStepDone('hotel');
   const htlEl = document.getElementById('hotel-dates');
   const ci = htlEl?.getAttribute('data-ci'); const co = htlEl?.getAttribute('data-co');
   const dr = (ci && co) ? {ci, co} : getDateRange();
@@ -7273,30 +7516,36 @@ function searchHotel() {
   const radius = document.getElementById('radius-val')?.textContent || '5';
   const accType = document.querySelector('input[name="acc-type"]:checked')?.value || 'hotel';
   const f = _stayFilters();
-  const bkUrl = _bookingUrl(dr.ci, dr.co, adults, kids, rooms, radius, accType, f);
-  const abUrl = _airbnbUrl(dr.ci, dr.co, adults, kids, accType, f);
+  const pl = _stayPlace();
+  const PQ = encodeURIComponent(pl.q);
+  const bkUrl = _bookingUrl(dr.ci, dr.co, adults, kids, rooms, radius, accType, f, pl);
+  const abUrl = _airbnbUrl(dr.ci, dr.co, adults, kids, accType, f, pl);
   const links = accType === 'hotel' ? [
     { icon: '🏨', title: 'Booking.com', desc: _stayDesc('מלונות, B&B, ספא בסביבת ' + radius + ' ק"מ', accType, f), url: bkUrl },
-    { icon: '🏨', title: 'Hotels.com', desc: 'השוואת מחירי מלונות', url: 'https://he.hotels.com/search.do?q-destination=Breuil-Cervinia&q-check-in=' + dr.ci + '&q-check-out=' + dr.co + '&q-rooms=1&q-room-0-adults=' + adults + '&q-room-0-children=' + kids },
-    { icon: '🏨', title: 'Expedia', desc: 'מלונות + חבילות נסיעה', url: 'https://www.expedia.co.il/Hotel-Search?destination=Breuil-Cervinia&startDate=' + dr.ci + '&endDate=' + dr.co + '&rooms=1&adults=' + adults },
+    { icon: '🏨', title: 'Hotels.com', desc: 'השוואת מחירי מלונות', url: 'https://he.hotels.com/search.do?q-destination=' + PQ + '&q-check-in=' + dr.ci + '&q-check-out=' + dr.co + '&q-rooms=1&q-room-0-adults=' + adults + '&q-room-0-children=' + kids },
+    { icon: '🏨', title: 'Expedia', desc: 'מלונות + חבילות נסיעה', url: 'https://www.expedia.co.il/Hotel-Search?destination=' + PQ + '&startDate=' + dr.ci + '&endDate=' + dr.co + '&rooms=1&adults=' + adults },
   ] : accType === 'apt' ? [
     { icon: '🏠', title: 'Airbnb', desc: _stayDesc('דירות, בקתות, וילות', accType, f), url: abUrl },
-    { icon: '🏠', title: 'VRBO', desc: 'בתי נופש להשכרה', url: 'https://www.vrbo.com/search?destination=Breuil-Cervinia&startDate=' + dr.ci + '&endDate=' + dr.co + '&adults=' + adults },
+    { icon: '🏠', title: 'VRBO', desc: 'בתי נופש להשכרה', url: 'https://www.vrbo.com/search?destination=' + PQ + '&startDate=' + dr.ci + '&endDate=' + dr.co + '&adults=' + adults },
     { icon: '🏠', title: 'Booking — דירות בלבד', desc: _stayDesc('מסוננות לדירות ואפרטמנטים', accType, f), url: bkUrl },
   ] : [
     { icon: '🏨', title: 'Booking.com', desc: _stayDesc('כל סוגי הלינה', accType, f), url: bkUrl },
     { icon: '🏠', title: 'Airbnb', desc: _stayDesc('דירות ובתי נופש', accType, f), url: abUrl },
-    { icon: '🏨', title: 'Hotels.com', desc: 'מלונות', url: 'https://he.hotels.com/search.do?q-destination=Breuil-Cervinia&q-check-in=' + dr.ci + '&q-check-out=' + dr.co + '&q-rooms=1&q-room-0-adults=' + adults },
-    { icon: '🏠', title: 'VRBO', desc: 'בתי נופש', url: 'https://www.vrbo.com/search?destination=Breuil-Cervinia&startDate=' + dr.ci + '&endDate=' + dr.co },
+    { icon: '🏨', title: 'Hotels.com', desc: 'מלונות', url: 'https://he.hotels.com/search.do?q-destination=' + PQ + '&q-check-in=' + dr.ci + '&q-check-out=' + dr.co + '&q-rooms=1&q-room-0-adults=' + adults },
+    { icon: '🏠', title: 'VRBO', desc: 'בתי נופש', url: 'https://www.vrbo.com/search?destination=' + PQ + '&startDate=' + dr.ci + '&endDate=' + dr.co },
   ];
   const res = document.getElementById('hotel-results');
   showResults(res);
-  res.innerHTML = '<div style="font-size:0.8rem;color:#888;margin-bottom:8px;">לחץ על אתר לפתיחה:</div>' + makeResultLinks(links);
+  // In a trip with more than one stay, say which one these links are for.
+  const which = (!_tripSolo() && TRIP.stays.length > 1)
+    ? 'שהייה ' + (TRIP.stayAt + 1) + ' · ' + _stayPlaceHtml(pl) + ' · ' : '';
+  res.innerHTML = '<div style="font-size:0.8rem;color:#888;margin-bottom:8px;">' + which + 'לחץ על אתר לפתיחה:</div>' + makeResultLinks(links);
 }
 
 
 
 function searchAll() {
+  _tripStepDone('all');
   const dr = getDateRange();
   if (!dr) { needDates(); return; }
   const adults = document.getElementById('fl-adults')?.textContent || '2';
@@ -7438,36 +7687,1004 @@ var HE_FP = {
   }
 };
 
-// Lodging and the car happen inside the trip, not somewhere else in the year.
-// Once the flight dates are set, every other picker is bounded by them - so
-// the calendar cannot even offer October for a January trip - and anything
-// already chosen outside that window is dropped rather than quietly kept.
-function clampTripDependents(from, to) {
-  ['hotel-dates', 'car-dates', 'all-hotel-dates', 'all-car-dates'].forEach(function (id) {
+// ── the trip and its searches (design, 9 Nov: "same screens, two frames") ──
+//
+// The strip holds the trip: dates and travellers, said once. Every search in
+// the trip frame is BORN from it and is free from then on - lodging may be
+// four nights of seven, the car two days. What a hand has changed is never
+// overwritten: the strip writes only into fields nobody touched, and a field
+// that differs says so quietly, with a way back. A search alone (solo frame)
+// knows nothing of any of this.
+//
+// This replaces clampTripDependents, which bounded every picker by the flight
+// dates and CLEARED a choice outside them - the opposite of "what was changed
+// is not overwritten", and it bounded the lodging screen alone as well.
+var TRIP = { from: null, to: null, adults: 2, children: 0, stays: [], stayAt: 0 };
+var TRIP_DATE_IDS = ['trip-dates', 'all-hotel-dates', 'all-car-dates', 'hotel-dates', 'car-dates'];
+// children fly, so the flight counter is everybody
+var TRIP_PAX = {
+  'fl-adults':      function (t) { return t.adults + t.children; },
+  'all-h-adults':   function (t) { return t.adults; },
+  'all-h-children': function (t) { return t.children; },
+  'h-adults':       function (t) { return t.adults; },
+  'h-children':     function (t) { return t.children; }
+};
+var _tripInjecting = false;
+
+// A hand or a program? flatpickr closes a range BEFORE it fires onChange, so
+// isOpen cannot tell. Opening the calendar can: only a person opens it.
+function _tripPickOpen(_s, _v, inst) { inst.input._picking = true; }
+function _tripPickClose(_s, _v, inst) {
+  setTimeout(function () { inst.input._picking = false; }, 0);
+}
+function _tripTouch(el) {
+  if (el && el._picking && !_tripInjecting) el.setAttribute('data-touched', '1');
+  if (el && el.id === 'hotel-dates') _staySync();
+  _tripMarks();
+}
+function _tripSolo() { return window._planSolo === true; }
+
+function _tripRange(el) {
+  // The calendar's own selection first: the flight field keeps its dates
+  // there and writes the attributes only when a program sets it, so reading
+  // the attributes alone took a flight picked by hand for the trip's dates.
+  var sel = el && el._flatpickr && el._flatpickr.selectedDates;
+  if (sel && sel.length === 2) return { ci: _isoDay(sel[0]), co: _isoDay(sel[1]) };
+  var ci = el && el.getAttribute('data-ci'), co = el && el.getAttribute('data-co');
+  return (ci && co) ? { ci: ci, co: co } : null;
+}
+function _tripSame(el) {
+  var r = _tripRange(el);
+  return !!(r && TRIP.from && r.ci === _isoDay(TRIP.from) && r.co === _isoDay(TRIP.to));
+}
+
+// Write a range into one search without it counting as a hand.
+function _tripSetRange(el, from, to) {
+  var fp = el && el._flatpickr;
+  _tripInjecting = true;
+  try {
+    el.setAttribute('data-ci', _isoDay(from));
+    el.setAttribute('data-co', _isoDay(to));
+    // trip-dates draws its own label and nights from onChange, so it is the
+    // one that is told; the others only need the value flatpickr writes.
+    if (fp) fp.setDate([from, to], el.id === 'trip-dates');
+    else el.value = _isoDay(from) + ' \u2014 ' + _isoDay(to);
+  } finally { _tripInjecting = false; }
+}
+
+function stripSetDates(from, to) {
+  TRIP.from = from; TRIP.to = to;
+  var st = document.getElementById('strip-dates');
+  if (st) {
+    _tripInjecting = true;
+    try { if (st._flatpickr) st._flatpickr.setDate([from, to], false); } finally { _tripInjecting = false; }
+    st.value = _tripRangeLabel(from, to);
+  }
+  TRIP_DATE_IDS.forEach(function (id) {
     var el = document.getElementById(id);
-    var fp = el && el._flatpickr;
-    if (!fp) return;
-    if (!from || !to) {
-      fp.set('minDate', 'today');
-      fp.set('maxDate', null);
-      return;
+    if (el && !el.getAttribute('data-touched')) _tripSetRange(el, from, to);
+  });
+  // a stay nobody touched is the trip's own nights, wherever it sits in the list
+  TRIP.stays.forEach(function (st) {
+    if (!st.touched) { st.ci = _isoDay(from); st.co = _isoDay(to); }
+  });
+  _tripPaint();
+}
+
+function _tripSetPax(adults, children) {
+  if (adults != null) TRIP.adults = Math.max(1, adults);
+  if (children != null) TRIP.children = Math.max(0, children);
+  Object.keys(TRIP_PAX).forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el && !el.getAttribute('data-touched')) el.textContent = TRIP_PAX[id](TRIP);
+  });
+  _tripPaint();
+}
+function adjStrip(which, d) {
+  if (which === 'adults') _tripSetPax(TRIP.adults + d, null);
+  else _tripSetPax(null, TRIP.children + d);
+}
+
+// The flight field: in the trip frame a program writing it (a sentence read,
+// an offer pressed) is setting the trip; a hand writing it is choosing a
+// flight. Flights set the frame - but by offer, not by force, so a hand only
+// moves the trip when there was no trip yet.
+function _tripFromFlight(el, sel) {
+  if (_tripInjecting) return;
+  var user = !!el._picking;
+  if (user) el.setAttribute('data-touched', '1');
+  if (_tripSolo() || sel.length !== 2) { _tripMarks(); return; }
+  if (!user || !TRIP.from) {
+    el.removeAttribute('data-touched');
+    stripSetDates(sel[0], sel[1]);
+    return;
+  }
+  _tripMarks();
+}
+
+function _tripRejoin(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.removeAttribute('data-touched');
+  if (TRIP_PAX[id]) { el.textContent = TRIP_PAX[id](TRIP); }
+  else if (TRIP.from) _tripSetRange(el, TRIP.from, TRIP.to);
+  if (id === 'hotel-dates') _staySync();
+  _tripMarks();
+}
+function _tripAdoptFlight() {
+  var el = document.getElementById('trip-dates'), r = _tripRange(el);
+  if (!r) return;
+  el.removeAttribute('data-touched');
+  stripSetDates(new Date(r.ci + 'T00:00:00'), new Date(r.co + 'T00:00:00'));
+}
+
+// Coming into the trip from a search alone: what was typed there goes on.
+function _tripEnterFrame(solo) {
+  if (!solo) {
+    if (!TRIP.from) {
+      // what a hand typed comes first - a flight field still holding an old
+      // offer must not win over the lodging dates somebody just picked
+      var cands = ['trip-dates', 'hotel-dates', 'car-dates', 'all-hotel-dates', 'all-car-dates']
+        .map(function (id) { return document.getElementById(id); })
+        .filter(function (el) { return _tripRange(el); });
+      var src = cands.filter(function (el) { return el.getAttribute('data-touched'); })[0] || cands[0];
+      if (src) {
+        var r = _tripRange(src);
+        src.removeAttribute('data-touched');
+        stripSetDates(new Date(r.ci + 'T00:00:00'), new Date(r.co + 'T00:00:00'));
+      }
     }
-    var sel = fp.selectedDates.slice();
-    fp.set('minDate', from);
-    fp.set('maxDate', to);
-    var outside = sel.some(function (d) { return d < from || d > to; });
-    if (sel.length && outside) {
-      fp.clear();
-      el.removeAttribute('data-ci');
-      el.removeAttribute('data-co');
+    var ha = document.getElementById('h-adults'), hc = document.getElementById('h-children');
+    var fa = document.getElementById('fl-adults');
+    if (ha && ha.getAttribute('data-touched') || hc && hc.getAttribute('data-touched')) {
+      ha.removeAttribute('data-touched'); hc.removeAttribute('data-touched');
+      _tripSetPax(+ha.textContent, +hc.textContent);
+    } else if (fa && fa.getAttribute('data-touched')) {
+      fa.removeAttribute('data-touched');
+      _tripSetPax(+fa.textContent, 0);
     }
-    // nothing chosen yet: start it on the trip itself
-    if (!fp.selectedDates.length) {
-      fp.setDate([from, to], false);
-      el.setAttribute('data-ci', _isoDay(from));
-      el.setAttribute('data-co', _isoDay(to));
+  }
+  _tripPaint();
+}
+
+function _tripPaint() {
+  _stayRender();
+  var n = document.getElementById('strip-nights');
+  if (n) {
+    var k = TRIP.from ? Math.round((TRIP.to - TRIP.from) / 86400000) : 0;
+    n.textContent = TRIP.from ? (k === 1 ? 'לילה אחד' : k + ' לילות') : '';
+  }
+  var a = document.getElementById('strip-adults'), c = document.getElementById('strip-children');
+  if (a) a.textContent = TRIP.adults;
+  if (c) c.textContent = TRIP.children;
+  _tripMarks();
+}
+
+// "תאריכים שונים מהטיול" under whatever a hand moved away from the trip.
+// Nothing in a search alone: there is no trip there to differ from.
+function _tripMarks() {
+  var solo = _tripSolo();
+  TRIP_DATE_IDS.concat(Object.keys(TRIP_PAX)).forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var isPax = !!TRIP_PAX[id];
+    var differs = !solo && !!el.getAttribute('data-touched') &&
+      !(id === 'hotel-dates' && TRIP.stays.length > 1) &&
+      (isPax ? +el.textContent !== TRIP_PAX[id](TRIP) : (TRIP.from !== null && !_tripSame(el)));
+    var host = isPax ? (el.closest('div[style*="border-radius"]') || el.parentElement) : el;
+    var mark = document.getElementById(id + '-diff');
+    if (!differs) { if (mark) mark.style.display = 'none'; return; }
+    if (!mark) {
+      mark = document.createElement('div');
+      mark.id = id + '-diff';
+      mark.className = 'trip-diff';
+      host.insertAdjacentElement('afterend', mark);
+      // A date field's bottom margin used to sit between it and the mark,
+      // so the mark hung over the travellers' counters below and read as
+      // theirs. The margin moves under the mark instead.
+      if (!isPax) {
+        var mb = parseFloat(getComputedStyle(el).marginBottom) || 0;
+        mark.style.marginTop = (4 - mb) + 'px';
+        mark.style.marginBottom = Math.max(mb, 10) + 'px';
+      }
+    }
+    mark.innerHTML = (isPax ? 'שונה מהטיול' : 'תאריכים שונים מהטיול')
+      + ' · <a onclick="_tripRejoin(\'' + id + '\')">חזרה ' + (isPax ? 'למספר בטיול' : 'לתאריכי הטיול') + '</a>'
+      + (id === 'trip-dates' ? ' · <a onclick="_tripAdoptFlight()">עדכן את הטיול לפי הטיסה</a>' : '');
+    mark.style.display = 'block';
+  });
+}
+
+// ── stays (stage 3) ─────────────────────────────────────────────────────
+// Lodging is a list of stays. Each carries its own nights, its own place and
+// its own way of being found - one from Booking, the next by a letter in
+// Italian - because the letter works on a stay and not on the trip. The
+// first stay is born from the strip and follows it until a hand moves it;
+// any stay added after it is a choice and keeps its dates.
+//
+// Place names carry their Latin spelling: that is what people type into
+// Booking and Maps.
+var STAY_PLACES = {
+  cervinia:      { he: "צ'רוויניה", q: 'Breuil-Cervinia', ab: 'Breuil-Cervinia--Italy', local: true },
+  valtournenche: { he: 'ולטורננש',  q: 'Valtournenche',   ab: 'Valtournenche--Italy',   local: true },
+  milano:        { he: 'מילאנו',    q: 'Milano',          ab: 'Milan--Italy',           local: false },
+  torino:        { he: 'טורינו',    q: 'Torino',          ab: 'Turin--Italy',           local: false }
+};
+var STAY_WAY = { site: 'באתרים', direct: 'פנייה ישירה' };
+// Hebrew and Latin side by side. In running text the Latin is isolated: left
+// bare, the bidi algorithm pulled "Breuil-Cervinia" across the separators
+// and scrambled the row around it.
+function _stayPlaceText(pl) { return pl.he + ' · ' + pl.q; }
+function _stayPlaceHtml(pl) { return pl.he + ' <bdi dir="ltr">' + pl.q + '</bdi>'; }
+
+function _stayD(iso) { var p = String(iso).split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function _stayDM(iso) { var p = String(iso).split('-'); return (+p[2]) + '.' + (+p[1]); }
+function _stayNights(st) { return Math.round((_stayD(st.co) - _stayD(st.ci)) / 86400000); }
+
+function _stayCur() { return TRIP.stays[TRIP.stayAt] || null; }
+function _stayPlace() {
+  var st = _tripSolo() ? null : _stayCur();
+  return STAY_PLACES[(st && st.place) || 'cervinia'];
+}
+
+// The trip frame always has at least one stay: the lodging field as it is.
+function _stayEnsure() {
+  if (TRIP.stays.length) return;
+  var el = document.getElementById('hotel-dates');
+  var r = _tripRange(el) || (TRIP.from ? { ci: _isoDay(TRIP.from), co: _isoDay(TRIP.to) } : null);
+  if (!r) return;
+  TRIP.stays.push({ ci: r.ci, co: r.co, place: 'cervinia', way: 'site',
+                    touched: !!(el && el.getAttribute('data-touched')) });
+  TRIP.stayAt = 0;
+}
+
+// The lodging field always shows the stay being edited - read it back in.
+function _staySync() {
+  if (_tripSolo()) return;
+  _stayEnsure();
+  var st = _stayCur(), el = document.getElementById('hotel-dates');
+  var r = _tripRange(el);
+  if (st && r) { st.ci = r.ci; st.co = r.co; st.touched = !!el.getAttribute('data-touched'); }
+  _stayRender();
+}
+
+function _stayLoad() {
+  var st = _stayCur(), el = document.getElementById('hotel-dates');
+  if (!st || !el) return;
+  _tripSetRange(el, _stayD(st.ci), _stayD(st.co));
+  if (st.touched) el.setAttribute('data-touched', '1'); else el.removeAttribute('data-touched');
+  var ps = document.getElementById('stay-place');
+  if (ps) ps.value = st.place;
+  document.querySelectorAll('input[name="stay-way"]').forEach(function (r) { r.checked = r.value === st.way; });
+  var res = document.getElementById('hotel-results');
+  if (res) { res.style.display = 'none'; res.innerHTML = ''; }
+  _tripMarks();
+  _stayRender();
+}
+
+function _stayPick(i) {
+  _staySync();
+  if (i < 0 || i >= TRIP.stays.length) return;
+  TRIP.stayAt = i;
+  _stayLoad();
+}
+
+// A new stay starts on the first night nobody covers yet - adding a stay is
+// almost always filling a hole. With no hole, it starts where the last ends.
+function _stayAdd() {
+  _staySync();
+  if (!TRIP.stays.length) return;
+  var cov = _stayCoverage();
+  var ci, co;
+  if (cov && cov.missing.length) {
+    ci = cov.missing[0];
+    var k = 1;
+    while (k < cov.missing.length &&
+           _stayD(cov.missing[k]) - _stayD(cov.missing[k - 1]) === 86400000) k++;
+    co = _isoDay(new Date(_stayD(cov.missing[k - 1]).getTime() + 86400000));
+  } else {
+    var last = TRIP.stays[TRIP.stays.length - 1];
+    ci = last.co;
+    co = _isoDay(new Date(_stayD(last.co).getTime() + 86400000));
+  }
+  var prev = _stayCur();
+  TRIP.stays.push({ ci: ci, co: co, place: prev ? prev.place : 'cervinia', way: 'site', touched: true });
+  TRIP.stayAt = TRIP.stays.length - 1;
+  _stayLoad();
+}
+
+function _stayDrop(i) {
+  if (TRIP.stays.length < 2) return;
+  _staySync();
+  TRIP.stays.splice(i, 1);
+  if (TRIP.stayAt >= TRIP.stays.length) TRIP.stayAt = TRIP.stays.length - 1;
+  else if (i < TRIP.stayAt) TRIP.stayAt--;
+  _stayLoad();
+}
+
+function _stayEdit() {
+  var st = _stayCur();
+  if (!st) return;
+  var ps = document.getElementById('stay-place');
+  if (ps && STAY_PLACES[ps.value]) st.place = ps.value;
+  var w = document.querySelector('input[name="stay-way"]:checked');
+  st.way = w ? w.value : 'site';
+  // the agencies the letter is written to are in the valley, not in Milan
+  if (!STAY_PLACES[st.place].local) st.way = 'site';
+  var res = document.getElementById('hotel-results');
+  if (res) { res.style.display = 'none'; res.innerHTML = ''; }
+  _stayRender();
+}
+
+// Night by night against the trip: which nights nobody covers, which are
+// paid twice, which fall outside the trip. The calculator (stage 4) reads
+// this - it is what lets it say "one night is missing".
+function _stayCoverage() {
+  if (!TRIP.from || !TRIP.stays.length) return null;
+  var nights = [], d = new Date(TRIP.from.getTime());
+  while (d < TRIP.to) { nights.push(_isoDay(d)); d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1); }
+  var count = {};
+  var outside = [];
+  TRIP.stays.forEach(function (st) {
+    var x = _stayD(st.ci), end = _stayD(st.co);
+    while (x < end) {
+      var k = _isoDay(x);
+      if (nights.indexOf(k) === -1) { if (outside.indexOf(k) === -1) outside.push(k); }
+      else count[k] = (count[k] || 0) + 1;
+      x = new Date(x.getFullYear(), x.getMonth(), x.getDate() + 1);
     }
   });
+  return {
+    tripNights: nights.length,
+    covered: nights.filter(function (k) { return count[k]; }).length,
+    missing: nights.filter(function (k) { return !count[k]; }),
+    doubled: nights.filter(function (k) { return count[k] > 1; }),
+    outside: outside.sort()
+  };
+}
+
+function _stayCoverageLine() {
+  var c = _stayCoverage();
+  if (!c) return '';
+  var list = function (a) {
+    return a.slice(0, 3).map(_stayDM).join(', ') + (a.length > 3 ? ' ועוד ' + (a.length - 3) : '');
+  };
+  var parts = [];
+  if (!c.missing.length && !c.doubled.length) {
+    parts.push('<span style="color:#1e8449;">✓ כל ' + c.tripNights + ' הלילות מכוסים</span>');
+  } else {
+    parts.push(c.tripNights + ' לילות בטיול, ' + c.covered + ' מכוסים');
+    if (c.missing.length) parts.push('<b style="color:#b9770e;">' +
+      (c.missing.length === 1 ? 'חסר לילה אחד: ' : 'חסרים ' + c.missing.length + ' לילות: ') +
+      list(c.missing) + '</b>');
+    if (c.doubled.length) parts.push('<b style="color:#b9770e;">' +
+      (c.doubled.length === 1 ? 'לילה אחד מכוסה פעמיים: ' : c.doubled.length + ' לילות מכוסים פעמיים: ') +
+      list(c.doubled) + '</b>');
+  }
+  if (c.outside.length) parts.push('<span style="color:#7a8794;">' +
+    (c.outside.length === 1 ? 'לילה אחד מחוץ לתאריכי הטיול' : c.outside.length + ' לילות מחוץ לתאריכי הטיול') + '</span>');
+  return parts.join(' · ');
+}
+
+function _stayRender() {
+  var box = document.getElementById('stay-list'), ed = document.getElementById('stay-edit');
+  var sb = document.getElementById('hotel-search-btn'), lb = document.getElementById('stay-letter-btn');
+  var solo = _tripSolo();
+  if (!solo) _stayEnsure();
+  var st = solo ? null : _stayCur();
+  if (box) {
+    if (solo || !st) { box.style.display = 'none'; box.innerHTML = ''; }
+    else {
+      var rows = TRIP.stays.map(function (x, i) {
+        var on = i === TRIP.stayAt, n = _stayNights(x);
+        return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
+          + '<button type="button" onclick="_stayPick(' + i + ')" class="stay-row' + (on ? ' stay-on' : '') + '" '
+          + 'style="flex:1;text-align:right;font-family:inherit;cursor:pointer;padding:7px 10px;border-radius:9px;'
+          + 'border:1.5px solid ' + (on ? '#2e9e6a' : '#dcebe2') + ';background:' + (on ? '#eafaf1' : 'white') + ';font-size:0.8rem;color:#22432f;">'
+          + '<b>' + (i + 1) + '</b> · <span dir="ltr">' + _stayDM(x.ci) + '–' + _stayDM(x.co) + '</span>'
+          + ' · ' + (n === 1 ? 'לילה אחד' : n + ' לילות')
+          + ' · ' + _stayPlaceHtml(STAY_PLACES[x.place])
+          + ' · ' + STAY_WAY[x.way] + '</button>'
+          + (TRIP.stays.length > 1
+              ? '<button type="button" onclick="_stayDrop(' + i + ')" aria-label="הסר שהייה" title="הסר שהייה" '
+                + 'style="border:1px solid #e5d3d3;background:#fff7f7;color:#a94442;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;">✕</button>'
+              : '')
+          + '</div>';
+      }).join('');
+      box.innerHTML = '<div style="font-size:0.8rem;font-weight:bold;color:#1a5226;margin-bottom:6px;">🏨 השהיות בטיול</div>'
+        + rows
+        + '<button type="button" onclick="_stayAdd()" class="plan-chip" style="margin-top:2px;">➕ הוסף שהייה</button>'
+        + '<div id="stay-coverage" style="font-size:0.76rem;color:#4a5a50;margin-top:8px;line-height:1.6;">'
+        + _stayCoverageLine() + '</div>';
+      box.style.display = 'block';
+    }
+  }
+  var ps = document.getElementById('stay-place');
+  if (ps && !ps.options.length) {
+    ps.innerHTML = Object.keys(STAY_PLACES).map(function (k) {
+      return '<option value="' + k + '">' + _stayPlaceText(STAY_PLACES[k]) + '</option>';
+    }).join('');
+  }
+  if (ed) ed.style.display = st ? 'block' : 'none';
+  if (st) {
+    if (ps) ps.value = st.place;
+    var local = STAY_PLACES[st.place].local;
+    var dl = document.getElementById('stay-way-direct-l');
+    if (dl) { dl.style.opacity = local ? '1' : '0.45'; dl.querySelector('input').disabled = !local; }
+    document.querySelectorAll('input[name="stay-way"]').forEach(function (r) { r.checked = r.value === st.way; });
+    var note = document.getElementById('stay-way-note');
+    if (note) {
+      note.textContent = local ? '' : 'פנייה ישירה היא לסוכנויות בעמק — במילאנו ובטורינו מחפשים באתרים.';
+      note.style.display = local ? 'none' : 'block';
+    }
+  }
+  var direct = !!(st && st.way === 'direct');
+  if (sb) sb.style.display = direct ? 'none' : 'block';
+  if (lb) lb.style.display = direct ? 'block' : 'none';
+}
+
+// The letter generator works on a stay: its nights and its people go in.
+function _stayLetter() {
+  _staySync();
+  var st = _stayCur();
+  if (!st) return;
+  _tripStepDone('hotel');
+  var g = document.getElementById('ls-guests');
+  var n = (+(document.getElementById('h-adults') || {}).textContent || 0)
+        + (+(document.getElementById('h-children') || {}).textContent || 0);
+  openM('localStayModal');
+  if (g && n) g.value = n;
+  setLocalStayDates(st.ci, st.co);
+}
+
+// ── כמה תכל'ס יעלה לי (stage 4) ─────────────────────────────────────────
+//
+// One panel, two doors. openCost('trip') reads the trip: nights from the
+// strip, people from it, lodging from the stays. openCost('free') - the side
+// menu - asks for nights and people and has no stays to read.
+//
+// Each row is a range [min, max] in euros. Exact rows have min === max.
+// A row the reader typed into is his and is not recomputed; "↺" gives it back.
+// Rows with nothing to go on stay empty and say so, rather than carry a
+// number nobody collected.
+var COST = {
+  mode: 'free', nights: 7, skiDays: null, pass: 'cervinia', transport: 'car',
+  bands: null, bandsTouched: false,
+  rows: {}, fx: null, fxTried: false
+};
+var COST_ROWS = [
+  { key: 'flights', icon: '✈️', he: 'טיסות' },
+  { key: 'lodging', icon: '🏨', he: 'אירוח' },
+  { key: 'car',     icon: '🚐', he: 'הגעה ותחבורה' },
+  { key: 'skipass', icon: '🎫', he: 'סקי פס' },
+  { key: 'gear',    icon: '🎿', he: 'ציוד' },
+  { key: 'food',    icon: '🍞', he: 'אוכל' },
+  { key: 'misc',    icon: '➕', he: 'שונות' }
+];
+
+function _costFmt(n) {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// ── exchange rates: euros are the unit, shekels the answer people want ──
+async function _costRates() {
+  if (COST.fxTried) return COST.fx;
+  COST.fxTried = true;
+  var tries = [
+    function () {
+      return fetch('https://api.frankfurter.app/latest?from=EUR&to=ILS,USD,CHF')
+        .then(function (r) { return r.json(); })
+        .then(function (j) { return j && j.rates && j.rates.ILS ? j.rates : null; });
+    },
+    function () {
+      return fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json')
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var e = j && j.eur;
+          return e && e.ils ? { ILS: e.ils, USD: e.usd, CHF: e.chf } : null;
+        });
+    }
+  ];
+  for (var i = 0; i < tries.length && !COST.fx; i++) {
+    try { COST.fx = await tries[i](); } catch (e) { COST.fx = null; }
+  }
+  return COST.fx;
+}
+// amount in `cur` -> euros, or null when there is no rate to do it with
+function _costToEur(v, cur) {
+  if (v == null) return null;
+  if (!cur || cur === 'EUR') return v;
+  var r = COST.fx && COST.fx[cur];
+  return r ? v / r : null;
+}
+
+// ── the ski pass, from Cervino S.p.A.'s own tariff ──
+// Bands as the tariff names them. Baby (under 8, with a paying adult) and
+// Over 80 ski free; the other four have a column.
+var COST_BANDS = ['Adult', 'Young', 'Junior', 'Senior', 'Baby', 'Over 80'];
+function _costBandInfo() {
+  var sp = (window._texts && window._texts.skipass) || {};
+  var by = {};
+  (sp.age_bands || []).forEach(function (b) { by[b.name] = b; });
+  return by;
+}
+// Hebrew names for the tariff's bands, with the ages taken from the tariff.
+// The numbers are isolated: in a right-to-left line "8–15" otherwise comes
+// out as "15–8".
+function _costBandHe(k, withAges) {
+  var info = _costBandInfo();
+  var age = function (x) { var b = info[x]; return b && b.age; };
+  var iso = function (t) { return withAges ? ' <bdi dir="ltr">' + t + '</bdi>' : ''; };
+  switch (k) {
+    case 'Adult':  return 'מבוגרים';
+    case 'Junior': return 'ילדים' + (age('Baby') && age('Junior') ? iso(age('Baby') + '–' + (age('Junior') - 1)) : '');
+    case 'Young':  return 'צעירים' + (age('Junior') && age('Young') ? iso(age('Junior') + '–' + (age('Young') - 1)) : '');
+    // in words: a bare "64+" flips to "+64" in a right-to-left line
+    case 'Senior': return 'גמלאים' + (age('Senior') && withAges ? ' מגיל ' + age('Senior') : '');
+    case 'Baby':   return 'פעוטות' + (age('Baby') && withAges ? ' עד ' + age('Baby') : '');
+    case 'Over 80': return 'מעל 80';
+  }
+  return k;
+}
+function _costPassPrice(pass, band, days) {
+  var p = window._texts && window._texts.skipass && window._texts.skipass.prices;
+  var t = p && p[pass];
+  if (!t) return null;
+  if (band === 'Baby' || band === 'Over 80') return 0;
+  var col = (p.columns || []).indexOf(band);
+  if (col < 0) return null;
+  var row = (t.rows || []).filter(function (r) {
+    var m = String(r[0]).match(/(\d+)\s*ימים/);
+    var d = m ? +m[1] : (/יום אחד/.test(r[0]) ? 1 : null);
+    return d === days;
+  })[0];
+  if (!row) return null;
+  var v = parseFloat(String(row[col + 1]).replace(/[^\d.]/g, ''));
+  return isFinite(v) ? v : null;
+}
+function _costSkipass() {
+  var S = COST.skiDays, b = COST.bands, total = 0, who = [], missing = false;
+  COST_BANDS.forEach(function (k) {
+    var n = b[k] || 0;
+    if (!n) return;
+    var one = _costPassPrice(COST.pass, k, S);
+    if (one == null) { missing = true; return; }
+    total += one * n;
+    who.push(n + ' ' + _costBandHe(k, false));
+  });
+  var name = COST.pass === 'zermatt' ? 'פס בינלאומי עם צ\'רמט' : 'פס צ\'רוויניה';
+  if (!who.length && !missing) return { min: null, max: null, note: 'אין גולשים בחישוב' };
+  if (missing) return { min: null, max: null,
+    note: S > 8 ? 'מעל 8 ימים אין במחירון פס רב-יומי — ראו "עונה מלאה" במחירון הסקי פס'
+                : 'אין במחירון מחיר לאחת הקבוצות' };
+  return { min: total, max: total, exact: true,
+    note: name + ' · ' + S + (S === 1 ? ' יום' : ' ימים') + ' · ' + who.join(', ')
+      + ' · מחירון רשמי 2026/27' + (b.Baby ? ' · עד גיל 8 חינם עם מבוגר מלווה' : '') };
+}
+
+// ── rental, from the Genzianella Sport price list on the site ──
+// The list gives 1, 3 and 6 days. Between and beyond them this interpolates,
+// which is why the row is a range and says "בערך".
+function _costRentFor(v, S) {
+  var v1 = v[0], v3 = v[1], v6 = v[2];
+  if (S <= 1) return v1;
+  if (S === 2) return Math.min(2 * v1, v3);
+  if (S === 3) return v3;
+  if (S < 6) return v3 + (S - 3) * (v6 - v3) / 3;
+  if (S === 6) return v6;
+  return v6 + (S - 6) * v6 / 6;
+}
+function _costGear() {
+  var rows = (window._texts && window._texts.rental && window._texts.rental.price_rows) || [];
+  var get = function (re) {
+    var r = rows.filter(function (x) { return re.test(x.label + ' ' + x.note); })[0];
+    return r ? r.v.map(function (s) { return parseFloat(String(s).replace(/[^\d.]/g, '')); }) : null;
+  };
+  var sup = get(/מבוגר.*Superior/), top = get(/מתקדם.*Top/), kid = get(/ילדים.*Junior/);
+  var helm = get(/קסדה/);
+  if (!sup || !top || !kid || !helm) return { min: null, max: null, note: 'מחירון ההשכרה לא נטען' };
+  var S = COST.skiDays, b = COST.bands;
+  var grown = (b.Adult || 0) + (b.Young || 0) + (b.Senior || 0) + (b['Over 80'] || 0);
+  var kids = (b.Junior || 0) + (b.Baby || 0);
+  if (!grown && !kids) return { min: null, max: null, note: 'אין גולשים בחישוב' };
+  // a helmet is required by law for children in Italy, so it is in both ends
+  var kidOne = _costRentFor(kid, S) + _costRentFor(helm, S);
+  var lo = grown * _costRentFor(sup, S) + kids * kidOne;
+  var hi = grown * (_costRentFor(top, S) + _costRentFor(helm, S)) + kids * kidOne;
+  return { min: lo, max: hi,
+    // Genzianella is the one shop that publishes a full list, which is why it
+    // is the yardstick - not because it is the cheapest. Yossi, 10.11: other
+    // shops cost less, and asking for a discount gets one.
+    note: 'סקי ומגפיים ל-' + S + (S === 1 ? ' יום' : ' ימים') + ', בערך · לפי המחירון המלא של Genzianella Sport'
+      + ' · יש חנויות זולות יותר, ובדרך כלל אפשר לבקש הנחה'
+      + ' · מי שמביא ציוד משלו — ערכו את השורה' };
+}
+
+// ── flights, from the daily snapshot the site already keeps ──
+function _costFlights() {
+  if (COST.mode !== 'trip' || !TRIP.from) return { min: null, max: null,
+    note: 'הזינו מה שמצאתם, או פתחו את המחשבון מתוך תכנון הטיול' };
+  var F = window._FLIGHTS;
+  var n = Math.round((TRIP.to - TRIP.from) / 86400000);
+  var cal = F && F.cal && F.cal.MXP && F.cal.MXP[String(n)];
+  var day = _isoDay(TRIP.from);
+  if (!cal || cal[day] == null) return { min: null, max: null,
+    note: 'אין מחיר יומי לתאריכים האלה' + (F ? ' (המחיר היומי מכסה טיולים של '
+      + (F.nights || []).join('–') + ' לילות)' : '') + ' — הזינו מה שמצאתם' };
+  // the day itself, and the most the same trip costs three days either side:
+  // prices move, and the snapshot is a day old
+  var lo = cal[day], hi = lo;
+  for (var k = -3; k <= 3; k++) {
+    var d = new Date(TRIP.from.getFullYear(), TRIP.from.getMonth(), TRIP.from.getDate() + k);
+    var v = cal[_isoDay(d)];
+    if (v != null && v > hi) hi = v;
+  }
+  var pax = TRIP.adults + TRIP.children;
+  var cur = F.currency || 'USD';
+  var eLo = _costToEur(lo * pax, cur), eHi = _costToEur(hi * pax, cur);
+  var per = (cur === 'USD' ? '$' : cur + ' ') + lo + (hi > lo ? '–' + hi : '');
+  if (eLo == null) return { min: null, max: null,
+    note: 'מלפנסה הלוך-חזור ' + per + ' לאדם · אין שער המרה כרגע, אז לא נכלל בסכום' };
+  return { min: eLo, max: eHi,
+    note: 'מלפנסה הלוך-חזור · ' + per + ' לאדם × ' + pax + ' · מחיר יומי, מתעדכן פעם ביום' };
+}
+
+// ── first suggestions, where nothing was collected for this trip ──
+// texts.json → cost_ref: orders of magnitude from booking-site averages and
+// budget guides (see its _comment). A suggestion says it is one; the reader's
+// own numbers - the lodging budget he typed, a row he edits - always win.
+function _costRef(k) {
+  var r = window._texts && window._texts.cost_ref;
+  var v = r && r[k];
+  return (v && v.length === 2) ? v : null;
+}
+var COST_SUGGEST = 'הצעה ראשונית, סדר גודל — כדאי לבדוק';
+
+// ── lodging: the stays, priced by the reader's budget or the reference ──
+function _costLodging() {
+  var box = document.querySelector('#tpanel-hotel .stay-filters');
+  var num = function (sel) {
+    var el = box && box.querySelector(sel), v = el ? parseInt(el.value, 10) : NaN;
+    return isFinite(v) && v > 0 ? v : null;
+  };
+  var rooms = Math.max(1, +((document.getElementById('h-rooms') || {}).textContent) || 1);
+  var trip = COST.mode === 'trip' && TRIP.stays.length;
+  var stays = trip ? TRIP.stays
+    : [{ ci: '2000-01-01', co: _isoDay(new Date(2000, 0, 1 + COST.nights)), place: 'cervinia' }];
+  var nights = stays.reduce(function (a, st) { return a + _stayNights(st); }, 0);
+  var count = nights + ' לילות' + (trip ? ' ב-' + (stays.length === 1 ? 'שהייה אחת' : stays.length + ' שהיות') : '')
+    + (rooms > 1 ? ' · ' + rooms + ' חדרים' : '');
+  var a = trip ? num('.sf-min') : null, b = trip ? num('.sf-max') : null;
+  if (a != null || b != null) {
+    var cur = (box && box.querySelector('.sf-cur') && box.querySelector('.sf-cur').value) || 'EUR';
+    var lo = _costToEur((a != null ? a : b) * nights * rooms, cur);
+    var hi = _costToEur((b != null ? b : a) * nights * rooms, cur);
+    if (lo == null) return { min: null, max: null, note: count + ' · אין שער המרה כרגע' };
+    return { min: lo, max: hi, note: count + ' · לפי התקציב ללילה שהוזן בחיפוש הלינה' };
+  }
+  // no budget given: the reference, by where each stay is
+  var lo2 = 0, hi2 = 0, ok = true;
+  stays.forEach(function (st) {
+    var pl = STAY_PLACES[st.place] || STAY_PLACES.cervinia;
+    var r = _costRef(pl.local ? 'lodging_valley' : 'lodging_city');
+    if (!r) { ok = false; return; }
+    lo2 += r[0] * _stayNights(st) * rooms; hi2 += r[1] * _stayNights(st) * rooms;
+  });
+  if (!ok) return { min: null, max: null, note: count + ' · הזינו סכום כולל ללינה' };
+  return { min: lo2, max: hi2,
+    note: count + ' · ' + COST_SUGGEST + ' (חדר או דירה בחורף) · תקציב ללילה בחיפוש הלינה יחליף אותה' };
+}
+
+// ── getting there: a hired car, a private transfer, or the bus ──
+// The car is days × a daily range (a suggestion). The transfer and the bus
+// come from the transport card's own data (texts.json → transport.planner):
+// the local operator's price per vehicle per direction, and the Malpensa
+// bus to Châtillon plus Linea Blu up the valley, per person per direction.
+var COST_TRANSPORT = { car: 'רכב שכור', transfer: 'הסעה פרטית', bus: 'תחבורה ציבורית' };
+function _costPax() {
+  var b = COST.bands || {};
+  return COST_BANDS.reduce(function (a, k) { return a + (b[k] || 0); }, 0);
+}
+function _costCar() {
+  var way = COST.transport || 'car';
+  var pl = window._texts && window._texts.transport && window._texts.transport.planner;
+  var mxp = pl && (pl.airports || []).filter(function (a) { return a.id === 'mxp'; })[0];
+  var pax = _costPax();
+  if (way === 'transfer') {
+    if (!mxp || !pax) return { min: null, max: null, note: 'הזינו את מחיר ההסעה' };
+    var one = pax <= 2 ? mxp.t_small : mxp.t_big;
+    return { min: one * 2, max: one * 2,
+      note: 'הסעה פרטית ממלפנסה עד הכפר, הלוך וחזור · €' + one + ' לכיוון לרכב של '
+        + (pax <= 2 ? '1–2' : '3–8') + ' נוסעים · מחירון המפעיל המקומי בכרטיס התחבורה' };
+  }
+  if (way === 'bus') {
+    var L = pl && pl.lines, a = L && L.mxp && L.mxp.price, b2 = L && L.blu && L.blu.price;
+    if (!a || !b2 || !pax) return { min: null, max: null, note: 'הזינו את מחיר הנסיעה' };
+    var per = (a + b2) * 2;
+    return { min: per * pax, max: per * pax,
+      note: 'אוטובוס מלפנסה–שאטיון €' + a + ' וקו Linea Blu €' + String(b2).replace(/\.?0+$/, '')
+        + ' לכיוון, הלוך וחזור × ' + pax + ' · הזמנה מראש חובה, ואינו פועל בשלישי וברביעי' };
+  }
+  var r = _costRef('car_day');
+  var days = COST.nights, src = '';
+  var cd = document.getElementById('car-dates');
+  var cr = COST.mode === 'trip' && cd ? _tripRange(cd) : null;
+  if (cr) { days = Math.max(1, Math.round((_stayD(cr.co) - _stayD(cr.ci)) / 86400000)); src = ' (לפי תאריכי הרכב)'; }
+  if (!r) return { min: null, max: null, note: 'הזינו מה שמצאתם בחיפוש הרכב' };
+  return { min: r[0] * days, max: r[1] * days,
+    note: days + ' ימים' + src + ' · רכב קטן עד בינוני ממלפנסה · ' + COST_SUGGEST };
+}
+function _costTransport(w) {
+  COST.transport = COST_TRANSPORT[w] ? w : 'car';
+  _costReset('car');
+}
+
+// ── food: people × days × a daily range ──
+function _costFood() {
+  var r = _costRef('food_person_day');
+  var b = COST.bands || {};
+  var ppl = COST_BANDS.reduce(function (a, k) { return a + (b[k] || 0); }, 0);
+  var days = COST.nights;
+  if (!r || !ppl) return { min: null, max: null, note: 'הזינו הערכה משלכם' };
+  return { min: r[0] * ppl * days, max: r[1] * ppl * days,
+    note: ppl + ' אנשים × ' + days + ' ימים · ' + COST_SUGGEST + ' · מי שמביא אוכל מהארץ יוציא פחות' };
+}
+
+var COST_CALC = {
+  flights: _costFlights,
+  lodging: _costLodging,
+  car:  _costCar,
+  skipass: _costSkipass,
+  gear: _costGear,
+  food: _costFood,
+  misc: function () { return { min: null, max: null, note: 'חניה, העברות, ביטוח, שיעורים…' }; }
+};
+
+// ── state in, state out ──
+function _costDefaults() {
+  if (COST.mode === 'trip' && TRIP.from) {
+    COST.nights = Math.round((TRIP.to - TRIP.from) / 86400000);
+  }
+  if (COST.skiDays == null) COST.skiDays = Math.max(1, Math.min(8, COST.nights - 1));
+  if (!COST.bands || (!COST.bandsTouched && COST.mode === 'trip')) {
+    COST.bands = { Adult: 2, Young: 0, Junior: 0, Senior: 0, Baby: 0, 'Over 80': 0 };
+    if (COST.mode === 'trip') { COST.bands.Adult = TRIP.adults; COST.bands.Junior = TRIP.children; }
+  }
+}
+
+function _costRecalc() {
+  COST_ROWS.forEach(function (r) {
+    var cur = COST.rows[r.key];
+    var calc = COST_CALC[r.key]();
+    if (cur && cur.touched) { cur.note = calc.note; cur.calc = calc; return; }
+    COST.rows[r.key] = { min: calc.min, max: calc.max, exact: !!calc.exact, note: calc.note,
+                         touched: false, calc: calc };
+  });
+}
+
+function openCost(mode) {
+  var next = mode === 'trip' ? 'trip' : 'free';
+  // People set by hand through one door belong to that door: the trip's
+  // travellers must not be replaced by a family typed into the side menu.
+  if (next !== COST.mode) { COST.bands = null; COST.bandsTouched = false; COST.showBand = {}; }
+  COST.mode = next;
+  if (COST.mode === 'trip') COST.skiDays = null;
+  _costDefaults();
+  // openM fills a panel that arrives by link as the side menu would; this is
+  // not that, and on a first open from the trip it switched the trip off
+  COST.opening = true;
+  try { openM('costModal'); } finally { COST.opening = false; }
+  _costRecalc();
+  _costRender();
+  // the rate and the flight snapshot arrive late; the panel fills in when they do
+  Promise.all([_costRates(), typeof loadFlights === 'function' ? loadFlights() : null])
+    .then(function () { _costRecalc(); _costRender(); })
+    .catch(function () {});
+}
+
+function _costSet(what, v) {
+  v = parseInt(v, 10);
+  if (what === 'nights' && isFinite(v) && v > 0) {
+    COST.nights = v;
+    COST.skiDays = Math.max(1, Math.min(8, v - 1));
+  } else if (what === 'skiDays' && isFinite(v) && v > 0) {
+    COST.skiDays = v;
+  } else if (what === 'pass') {
+    COST.pass = v === 1 || String(v) === 'zermatt' ? 'zermatt' : 'cervinia';
+  }
+  _costRecalc(); _costRender();
+}
+function _costPass(p) { COST.pass = p === 'zermatt' ? 'zermatt' : 'cervinia'; _costRecalc(); _costRender(); }
+function _costShowBand(k, on) {
+  COST.showBand = COST.showBand || {};
+  COST.showBand[k] = !!on;
+  // unticking a band takes its people out of the sum, not just off the screen
+  if (!on && COST.bands[k]) { COST.bands[k] = 0; COST.bandsTouched = true; _costRecalc(); }
+  _costRender();
+}
+function _costBand(k, d) {
+  COST.bands[k] = Math.max(0, (COST.bands[k] || 0) + d);
+  COST.bandsTouched = true;
+  _costRecalc(); _costRender();
+}
+// a row typed into belongs to the reader
+function _costEdit(key, which, v) {
+  var r = COST.rows[key];
+  var n = parseFloat(v);
+  r[which] = isFinite(n) && n >= 0 ? n : null;
+  r.touched = true; r.exact = false;
+  _costTotal();
+  var b = document.getElementById('cost-reset-' + key);
+  if (b) b.style.visibility = 'visible';
+}
+function _costReset(key) {
+  var c = COST_CALC[key]();
+  COST.rows[key] = { min: c.min, max: c.max, exact: !!c.exact, note: c.note, touched: false, calc: c };
+  _costRender();
+}
+
+function _costRender() {
+  var inp = document.getElementById('cost-inputs');
+  if (!inp) return;
+  var info = _costBandInfo();
+  var trip = COST.mode === 'trip' && TRIP.from;
+  // Ages from the tariff's own bands, so a new season's cut-offs carry over.
+  var BAND_HE = {};
+  COST_BANDS.forEach(function (k) { BAND_HE[k] = _costBandHe(k, true); });
+  var tip = function (k) {
+    var b = info[k];
+    return b && typeof clAgeLabel === 'function' ? escHtml(clAgeLabel(b)) : k;
+  };
+  var counter = function (k) {
+    return '<div class="cost-band" data-band="' + k + '" title="' + tip(k) + '" style="display:inline-flex;align-items:center;gap:5px;background:white;border:1px solid #dbe5ef;border-radius:8px;padding:4px 7px;white-space:nowrap;">'
+      + '<span style="font-size:0.74rem;color:#555;">' + BAND_HE[k] + '</span>'
+      + '<button class="c-btn" onclick="_costBand(\'' + k + '\',-1)" style="width:20px;height:20px;font-size:0.75rem;">-</button>'
+      + '<b id="cost-band-' + k.replace(/\s/g, '') + '">' + (COST.bands[k] || 0) + '</b>'
+      + '<button class="c-btn" onclick="_costBand(\'' + k + '\',1)" style="width:20px;height:20px;font-size:0.75rem;">+</button></div>';
+  };
+  // Most families are adults and children. The rest of the tariff's bands
+  // wait behind a box each, and open only when ticked - or when somebody
+  // is already counted in one.
+  var OTHER = ['Young', 'Senior', 'Baby', 'Over 80'];
+  COST.showBand = COST.showBand || {};
+  var others = OTHER.map(function (k) {
+    var on = COST.showBand[k] || (COST.bands[k] || 0) > 0;
+    return '<span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">'
+      + '<label style="font-size:0.74rem;color:#555;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">'
+      + '<input type="checkbox" class="cost-band-box" data-band="' + k + '"' + (on ? ' checked' : '')
+      + ' onchange="_costShowBand(\'' + k + '\',this.checked)"> ' + BAND_HE[k] + '</label>'
+      + (on ? counter(k) : '') + '</span>';
+  }).join('');
+  // Number fields are as wide as what goes in them: two digits, not a line.
+  var num2 = 'width:3.4em;padding:5px 6px;border:1.5px solid #cfdcea;border-radius:7px;font-family:inherit;text-align:center;';
+  var M = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  inp.innerHTML =
+    '<div style="display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;margin-bottom:9px;">'
+    + (trip
+        // say where the nights come from, not just that they come from somewhere
+        ? '<span style="font-size:0.8rem;color:#16314f;"><b>' + COST.nights + ' לילות</b> · לפי תאריכי הטיול, '
+          + _tripRangeLabel(TRIP.from, TRIP.to) + '</span>'
+        : '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">לילות <input id="cost-nights" type="number" min="1" max="30" value="' + COST.nights
+          + '" oninput="_costSet(\'nights\',this.value)" dir="ltr" style="' + num2 + '"></label>')
+    + '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">ימי סקי <input id="cost-skidays" type="number" min="1" max="30" value="' + COST.skiDays
+      + '" oninput="_costSet(\'skiDays\',this.value)" dir="ltr" style="' + num2 + '"></label>'
+    // The two passes are one choice: as one flex item they drop to the next
+    // line together, and only a screen too narrow for both side by side
+    // stacks them - never one up here and one down there.
+    + '<span id="cost-pass-group" style="display:flex;flex-wrap:wrap;gap:6px;">'
+    + '<label class="ls-opt" style="white-space:nowrap;"><input type="radio" name="cost-pass" value="cervinia"' + (COST.pass === 'cervinia' ? ' checked' : '')
+      + ' onchange="_costPass(this.value)"> פס צ\'רוויניה</label>'
+    + '<label class="ls-opt" style="white-space:nowrap;"><input type="radio" name="cost-pass" value="zermatt"' + (COST.pass === 'zermatt' ? ' checked' : '')
+      + ' onchange="_costPass(this.value)"> בינלאומי עם צ\'רמט</label>'
+    + '</span>'
+    + '</div>'
+    + '<div style="font-size:0.72rem;color:#7a8794;margin-bottom:5px;">גולשים</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;">' + counter('Adult') + counter('Junior') + '</div>'
+    + '<div style="display:flex;gap:6px 12px;flex-wrap:wrap;align-items:center;">' + others + '</div>';
+
+  var rows = document.getElementById('cost-rows');
+  rows.innerHTML = COST_ROWS.map(function (r) {
+    var x = COST.rows[r.key] || {};
+    // an exact row keeps its cents - €912.50 is what the tariff says
+    var val = function (v) { return v == null ? '' : (x.exact ? Math.round(v * 100) / 100 : Math.round(v)); };
+    var field = function (which, ph) {
+      return '<input id="cost-' + r.key + '-' + which + '" type="number" min="0" step="10" inputmode="numeric" dir="ltr" placeholder="' + ph + '"'
+        + ' value="' + val(x[which]) + '" oninput="_costEdit(\'' + r.key + '\',\'' + which + '\',this.value)"'
+        // five digits and no more - a sum in euros, not a sentence
+        + ' style="width:4.6em;padding:6px 5px;border:1.5px solid #dde4ec;border-radius:7px;font-size:0.84rem;font-family:inherit;text-align:center;">';
+    };
+    return '<div class="cost-row" id="cost-row-' + r.key + '" style="padding:9px 0;border-bottom:1px solid #eef2f6;">'
+      + '<div style="display:flex;align-items:center;gap:8px;">'
+      + '<span style="flex:1;font-size:0.88rem;"><b>' + r.icon + ' ' + r.he + '</b>'
+      + (x.exact ? ' <span style="font-size:0.68rem;color:#1e8449;background:#eafaf1;border-radius:6px;padding:1px 6px;">מדויק</span>' : '')
+      + '</span>'
+      + '<span style="font-size:0.75rem;color:#888;">€</span>' + field('min', 'מ-')
+      + '<span style="color:#aaa;">–</span>' + field('max', 'עד')
+      + '<button id="cost-reset-' + r.key + '" onclick="_costReset(\'' + r.key + '\')" title="חזרה לחישוב" aria-label="חזרה לחישוב"'
+      + ' style="visibility:' + (x.touched ? 'visible' : 'hidden') + ';border:none;background:none;cursor:pointer;color:#1a73e8;font-size:0.9rem;">↺</button>'
+      + '</div>'
+      + (r.key === 'car'
+          ? '<div id="cost-transport" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:5px;">'
+            + Object.keys(COST_TRANSPORT).map(function (w) {
+                return '<label style="font-size:0.75rem;color:#444;cursor:pointer;white-space:nowrap;">'
+                  + '<input type="radio" name="cost-transport" value="' + w + '"' + (COST.transport === w ? ' checked' : '')
+                  + ' onchange="_costTransport(this.value)"> ' + COST_TRANSPORT[w] + '</label>';
+              }).join('')
+            + '</div>'
+          : '')
+      + '<div id="cost-note-' + r.key + '" style="font-size:0.72rem;color:#7a8794;margin-top:3px;line-height:1.5;">' + (x.note || '') + '</div>'
+      + '</div>';
+  }).join('');
+
+  var cv = document.getElementById('cost-coverage');
+  var line = trip && typeof _stayCoverageLine === 'function' ? _stayCoverageLine() : '';
+  if (cv) {
+    cv.innerHTML = line ? '🏨 בדיקת האירוח: ' + line : '';
+    cv.style.display = line ? 'block' : 'none';
+  }
+  _costTotal();
+}
+
+function _costTotal() {
+  var lo = 0, hi = 0, any = false, left = [];
+  COST_ROWS.forEach(function (r) {
+    var x = COST.rows[r.key] || {};
+    var a = x.min, b = x.max;
+    if (a == null && b == null) { left.push(r.he); return; }
+    any = true;
+    lo += (a != null ? a : b);
+    hi += (b != null ? b : a);
+  });
+  var box = document.getElementById('cost-total');
+  if (!box) return;
+  if (!any) { box.innerHTML = '<span style="opacity:0.8;">אין עדיין סכום — מלאו שורה אחת לפחות</span>'; return; }
+  var eur = '€' + _costFmt(lo) + (hi > lo ? '–€' + _costFmt(hi) : '');
+  var ils = COST.fx && COST.fx.ILS
+    ? '≈ ₪' + _costFmt(lo * COST.fx.ILS) + (hi > lo ? '–₪' + _costFmt(hi * COST.fx.ILS) : '')
+    : 'שער השקל לא זמין כרגע';
+  box.innerHTML = '<div style="font-size:0.78rem;opacity:0.75;margin-bottom:3px;">סה"כ משוער</div>'
+    + '<div id="cost-total-eur" dir="ltr" style="font-size:1.35rem;font-weight:800;text-align:right;">' + eur + '</div>'
+    // numbers run left to right; the sentence saying there is no rate does not
+    + '<div id="cost-total-ils"' + (COST.fx && COST.fx.ILS ? ' dir="ltr"' : '') + ' style="font-size:0.95rem;opacity:0.9;text-align:right;">' + ils + '</div>'
+    + (left.length ? '<div id="cost-left" style="font-size:0.72rem;opacity:0.7;margin-top:6px;">לא נכלל: ' + left.join(' · ') + '</div>' : '');
+}
+
+// A search that ran is a stage passed - the strip shows it on its tab.
+function _tripStepDone(tab) {
+  if (_tripSolo()) return;
+  var b = document.getElementById('ttab-' + tab);
+  if (b) b.classList.add('ttab-done');
+  _tripNext();
+}
+
+// The order a trip is usually put together in: the flight fixes the days,
+// then a bed, then a car. "הכל" did all three at once, so nothing follows it.
+var TRIP_ORDER = ['flight', 'hotel', 'car'];
+var TRIP_STAGE_NAME = { flight: '✈️ טיסה', hotel: '🏨 לינה', car: '🚗 רכב' };
+function _tripNext() {
+  var box = document.getElementById('trip-next');
+  if (!box) return;
+  var cur = (typeof _tripTab === 'function') ? _tripTab() : 'all';
+  var done = function (t) {
+    var b = document.getElementById('ttab-' + t);
+    return !!b && b.classList.contains('ttab-done');
+  };
+  var next = null;
+  if (!_tripSolo() && cur !== 'all' && done(cur)) {
+    var i = TRIP_ORDER.indexOf(cur);
+    next = TRIP_ORDER.slice(i + 1).concat(TRIP_ORDER.slice(0, i))
+      .filter(function (t) { return !done(t); })[0] || null;
+  }
+  if (!next) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.innerHTML = '<button class="plan-chip" onclick="_tripGoNext(\'' + next + '\')" '
+    + 'style="background:#eaf3fd;border-color:#c6ddf3;color:#1a5fa8;font-weight:700;">'
+    + 'השלב הבא: ' + TRIP_STAGE_NAME[next] + ' ←</button>';
+  box.style.display = 'block';
+}
+function _tripGoNext(t) {
+  switchTripTab(t);
+  var top = document.getElementById('trip-strip');
+  if (top && top.scrollIntoView) top.scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
 
 function _isoDay(d) {
@@ -7508,7 +8725,8 @@ function initFlatpickr() {
       // dates looking swapped - and then said the same thing again underneath.
       dateFormat: 'j בF',
       locale: HE_FP,
-      onChange: function(selectedDates) {
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
+      onChange: function(selectedDates, _s, inst) {
         const summary = document.getElementById('trip-summary');
         const summDates = document.getElementById('trip-summary-dates');
         const summNights = document.getElementById('trip-summary-nights');
@@ -7518,13 +8736,24 @@ function initFlatpickr() {
           if (summNights) summNights.textContent = nights + (nights === 1 ? ' לילה' : ' לילות');
           if (meta) meta.style.display = 'flex';
           el.value = _tripRangeLabel(selectedDates[0], selectedDates[1]);
-          clampTripDependents(selectedDates[0], selectedDates[1]);
           seasonHint(selectedDates[0], selectedDates[1]);
         } else {
           if (meta) meta.style.display = 'none';
-          if (selectedDates.length === 0) clampTripDependents(null, null);
           seasonHint(null, null);
         }
+        _tripFromFlight(el, selectedDates);
+      }
+    });
+  }
+  // The trip's own dates. Only a hand sets them here; everything else in the
+  // frame is born from them (stripSetDates).
+  const stripEl = document.getElementById('strip-dates');
+  if (stripEl && !stripEl._flatpickr) {
+    flatpickr(stripEl, {
+      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onChange: function(sel) {
+        if (_tripInjecting || sel.length !== 2) return;
+        stripSetDates(sel[0], sel[1]);
       }
     });
   }
@@ -7533,7 +8762,9 @@ function initFlatpickr() {
   if (carEl && !carEl._flatpickr) {
     flatpickr(carEl, {
       mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
+        _tripTouch(carEl);
         if (sel.length === 2) {
           // toISOString() shifts by the timezone and can land on the day
           // before - build the date from its own local parts instead
@@ -7553,7 +8784,9 @@ function initFlatpickr() {
   if (htlEl && !htlEl._flatpickr) {
     flatpickr(htlEl, {
       mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
+        _tripTouch(htlEl);
         if (sel.length === 2) {
           // toISOString() shifts by the timezone and can land on the day
           // before - build the date from its own local parts instead
@@ -7573,7 +8806,9 @@ function initFlatpickr() {
   if (allHtlEl && !allHtlEl._flatpickr) {
     flatpickr(allHtlEl, {
       mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
+        _tripTouch(allHtlEl);
         if (sel.length === 2) {
           // toISOString() shifts by the timezone and can land on the day
           // before - build the date from its own local parts instead
@@ -7593,7 +8828,9 @@ function initFlatpickr() {
   if (allCarEl && !allCarEl._flatpickr) {
     flatpickr(allCarEl, {
       mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
+        _tripTouch(allCarEl);
         if (sel.length === 2) {
           // toISOString() shifts by the timezone and can land on the day
           // before - build the date from its own local parts instead
@@ -7697,7 +8934,7 @@ function resetTripDates() {
   // to them whenever flatpickr has no selection, which is exactly the state
   // this function just created. Leaving them behind meant pressing "נקה"
   // emptied the field on screen and then searched the old dates anyway.
-  if (el) { el.value = ''; el.removeAttribute('data-ci'); el.removeAttribute('data-co'); }
+  if (el) { el.value = ''; el.removeAttribute('data-ci'); el.removeAttribute('data-co'); el.removeAttribute('data-touched'); }
   const meta = document.getElementById('trip-dates-meta');
   if (meta) meta.style.display = 'none';
   // The free-text box is part of the search, so a "clear" that leaves the
@@ -7736,10 +8973,21 @@ function openArrivalPlanner() {
 var PLAN_PANES = {
   when:   { id: 'pane-when',   icon: '📅', title: 'מתי לנסוע',               chip: 'מתי לנסוע' },
   prep:   { id: 'pane-prep',   icon: '🧳', title: 'הכנות לפני הנסיעה',        chip: 'הכנות' },
-  // Not 'חיפוש': on a chip beside 'מתי לנסוע' it reads as the site's own
-  // search box, which is a different thing in a different place.
-  search: { id: 'pane-search', icon: '🔍', title: 'חיפוש טיסה, רכב ולינה',    chip: 'טיסה, רכב ולינה' }
+  // Four keys, one pane. The three searches and the whole trip are the SAME
+  // screen in two different frames - solo takes it over completely, the trip
+  // keeps the step strip on top. Building them as separate panes would mean
+  // two lodging searches to keep in step, and that is the kind of duplication
+  // that comes back to bite a month later.
+  flight: { id: 'pane-search', icon: '✈️', title: 'חיפוש טיסות', tab: 'flight', solo: true },
+  hotel:  { id: 'pane-search', icon: '🏨', title: 'חיפוש לינה',  tab: 'hotel',  solo: true },
+  car:    { id: 'pane-search', icon: '🚗', title: 'חיפוש רכב',   tab: 'car',    solo: true },
+  trip:   { id: 'pane-search', icon: '✨', title: 'תכנון טיול שלם', tab: 'all', chip: 'טיול שלם' }
 };
+
+// Everything that used to say planGo('search') meant the combined screen.
+// A lookup and not a second key: anything that walks PLAN_PANES walks keys,
+// and an alias sitting in there offered the same screen twice in the bar.
+var PLAN_ALIAS = { search: 'trip' };
 
 // Shabbat lives in the kashrut panel now, and both doors into it - the
 // signpost in the packing section and the card on the planner's menu - want
@@ -7812,19 +9060,32 @@ function planGo(which) {
   var hub = document.getElementById('plan-hub');
   var bar = document.getElementById('plan-bar');
   if (!hub || !bar) return;
+  which = PLAN_ALIAS[which] || which;
   var open = PLAN_PANES[which] || null;
-  Object.keys(PLAN_PANES).forEach(function (k) {
-    var el = document.getElementById(PLAN_PANES[k].id);
-    if (el) el.style.display = (open && k === which) ? 'block' : 'none';
+  // Hide by PANE id, not by key: four keys share #pane-search, so keyed, the
+  // 'hotel' pass would hide the very pane the 'flight' pass had just shown.
+  var want = open ? open.id : '';
+  var ids = {};
+  Object.keys(PLAN_PANES).forEach(function (k) { ids[PLAN_PANES[k].id] = 1; });
+  Object.keys(ids).forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = (id === want) ? 'block' : 'none';
   });
   hub.style.display = open ? 'none' : 'flex';
   bar.style.display = open ? 'flex' : 'none';
   if (open) {
+    if (open.tab && typeof switchTripTab === 'function') switchTripTab(open.tab);
+    _planFrame(open);
     var t = document.getElementById('plan-bar-title');
     if (t) t.textContent = open.icon + ' ' + open.title;
     var c = document.getElementById('plan-bar-chips');
-    if (c) c.innerHTML = Object.keys(PLAN_PANES)
-      .filter(function (k) { return k !== which; })
+    // A single search is the only thing on its screen. Chips across to the
+    // other two would rebuild the tab strip it was just promoted out of, so
+    // only panes that carry a chip are offered, and search screens carry none.
+    // That includes the trip: its step strip already walks the stages, and
+    // chips there would offer the same choice twice on one screen.
+    if (c) c.innerHTML = open.id === 'pane-search' ? '' : Object.keys(PLAN_PANES)
+      .filter(function (k) { return k !== which && PLAN_PANES[k].chip; })
       .map(function (k) {
         return '<button class="plan-chip" onclick="planGo(\'' + k + '\')">' +
                PLAN_PANES[k].icon + ' ' + PLAN_PANES[k].chip + '</button>';
@@ -7833,6 +9094,33 @@ function planGo(which) {
   // a new screen starts at its own top, not wherever the last one was left
   var body = document.querySelector('#hotelModal .modal-content');
   if (body) body.scrollTop = 0;
+}
+
+// Same screens, two frames. The step strip IS the trip frame: with it the
+// three searches are stages of one plan; without it each one is the whole
+// screen and nothing on it belongs to a trip the reader never asked to plan.
+function _planFrame(open) {
+  var solo  = !!open.solo;
+  window._planSolo = solo;
+  var strip = document.getElementById('trip-steps');
+  if (strip) strip.style.display = solo ? 'none' : 'block';
+  // The way up to the whole trip - offered only from a single search, because
+  // from the trip there is nowhere to go: it is this same screen.
+  var ask = document.getElementById('trip-ask');
+  if (ask) ask.style.display = solo ? 'flex' : 'none';
+  // "nights different from the flight" means something only where there is
+  // a flight; on the lodging screen alone it talks about a search not made.
+  var vs = document.getElementById('hotel-vs-flight');
+  if (vs) vs.style.display = solo ? 'none' : 'block';
+  // The "understood" card answers the last sentence read, and a sentence
+  // read for the whole trip says "with a car". Carried onto a search alone it
+  // reports what that screen does not search for, so a search alone starts
+  // without it. Upward into the trip it stays: the trip covers everything.
+  var said = document.getElementById('trip-free-said');
+  if (said && solo) said.innerHTML = '';
+  _tripEnterFrame(solo);
+  _tripNext();
+  _stayRender();
 }
 
 // Open the planner straight onto one of its screens. Everything that used to
@@ -7845,6 +9133,11 @@ function openPlanner(which) {
 // The season table used to be a fold that this had to prise open. It is a
 // whole screen of the planner now, so arriving there is all there is to do.
 function openWhenToGo() { openPlanner('when'); }
+// From the planner to the transport card, and back to the planner on close.
+function openTransportFromPlanner() {
+  openFrom('hotelModal', 'parkingModal');
+  setTimeout(function () { switchParkTab('transport'); }, 50);
+}
 function openParkEmergency() {
   openM('parkingModal');
   setTimeout(function(){ switchParkTab('emergency'); }, 50);
@@ -12259,8 +13552,10 @@ function _apField(label, control) {
 // growing a second search of its own.
 function openCarSearch() {
   openFrom('parkingModal', 'hotelModal');
+  // Through planGo, so the car search arrives with its own frame - alone on
+  // the screen - instead of as the third tab of a combined search.
   setTimeout(function () {
-    if (typeof switchTripTab === 'function') switchTripTab('car');
+    if (typeof planGo === 'function') planGo('car');
   }, 60);
 }
 
@@ -14140,9 +15435,8 @@ function setTripDates(ci, co) {
 // reader asks for them.
 function openFlightDeal(o) {
   if (!o || !o.date || !o.ret) return;
-  openPlanner('search');
+  openPlanner('flight');
   setTimeout(function () {
-    switchTripTab('flight');
     setTripDates(o.date, o.ret);
     var sel = document.getElementById('airport-select-flight');
     if (sel && o.dest) sel.value = o.dest;

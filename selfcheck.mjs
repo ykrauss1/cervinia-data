@@ -4779,6 +4779,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       return e ? getComputedStyle(e).display !== 'none' : null;
     };
     const panes = ['pane-when', 'pane-prep', 'pane-search'];
+    out.strips = document.querySelectorAll('#plan-hub .plan-strip').length;
 
     openM('hotelModal');
     out.landsOnMenu = vis('plan-hub') === true && panes.every(p => vis(p) === false);
@@ -4836,7 +4837,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'opening the planner no longer shows the menu - it is back to dropping the ' +
     'reader into the middle of a section'); else ok();
   if (!r.barHiddenOnMenu) fail(T, 'the back bar shows on the menu itself'); else ok();
-  if (r.cards !== 4) fail(T, `the menu offers ${r.cards} cards, not four`); else ok();
+  if (r.cards !== 6) fail(T, `the menu offers ${r.cards} cards, not six`); else ok();
+  if (r.strips !== 1) fail(T,
+    `the menu carries ${r.strips} whole-trip strips, not one - the trip is a ` +
+    'different kind of thing from the three searches and has to look like it'); else ok();
   if (r.cardsOut !== 1) fail(T,
     'the menu no longer carries the door to Shabbat, which is the one thing ' +
     'on it that is not a screen of the planner'); else ok();
@@ -4863,6 +4867,198 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the preparations link from elsewhere no longer lands on that screen'); else ok();
   if (!r.order) fail(T,
     'the preparations screen now comes before "when to go"'); else ok();
+}
+
+// ── a single search is the whole screen ───────────────────────
+// The three searches used to be tabs inside one card of the menu, opening on
+// "הכל" - so somebody who came for a flight went two levels down and landed
+// on a combined search he never asked for. They are screens of the menu now.
+// The strip of steps is what makes the three into a trip: without it each is
+// alone on the screen, and nothing on it belongs to a plan the reader did not
+// ask to make. Same screens, two frames.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const vis = id => {
+      const e = document.getElementById(id);
+      return e ? getComputedStyle(e).display !== 'none' : null;
+    };
+    const panel = t => vis('tpanel-' + t);
+
+    openM('hotelModal');
+    const hub = document.getElementById('plan-hub');
+    const txt = [...hub.querySelectorAll('.plan-card b')].map(b => b.textContent.trim());
+    out.namesThree = ['טיסות', 'לינה', 'רכב'].every(n => txt.includes(n));
+    out.noOldCard = !txt.some(t => /^חיפוש טיסה/.test(t));
+
+    out.solo = {};
+    for (const k of ['flight', 'hotel', 'car']) {
+      planGo(k);
+      out.solo[k] = {
+        onSearch: vis('pane-search') === true,
+        panel: panel(k) === true,
+        others: ['all', 'flight', 'car', 'hotel'].filter(x => x !== k && panel(x)).length,
+        steps: vis('trip-steps'),
+        ask: vis('trip-ask'),
+        chips: document.querySelectorAll('#plan-bar-chips .plan-chip').length,
+        title: (document.getElementById('plan-bar-title') || {}).textContent || ''
+      };
+    }
+
+    planGo('trip');
+    out.trip = {
+      onSearch: vis('pane-search') === true,
+      all: panel('all') === true,
+      steps: vis('trip-steps'),
+      ask: vis('trip-ask'),
+      chips: document.querySelectorAll('#plan-bar-chips .plan-chip').length
+    };
+
+    // the older name still has to reach the combined screen, and must not put
+    // the same screen into the bar twice
+    planGo('search');
+    out.aliasLands = panel('all') === true && vis('trip-steps') === true;
+    const chipTxt = [...document.querySelectorAll('#plan-bar-chips .plan-chip')]
+      .map(c => c.textContent.trim());
+    out.aliasNoDup = new Set(chipTxt).size === chipTxt.length;
+
+    // the door from the parking panel lands on a screen of its own
+    planGo('hub');
+    openCarSearch();
+    await new Promise(res => setTimeout(res, 150));
+    out.carDoor = panel('car') === true && vis('trip-steps') === false;
+    return out;
+  });
+
+  const T = 'one search is the whole screen; the trip is the frame around it';
+  if (!r.namesThree) fail(T,
+    'the planner menu no longer offers flights, lodging and the car by name - ' +
+    'they are back behind one card, which is the two-levels-down this fixed'); else ok();
+  if (!r.noOldCard) fail(T,
+    'the old combined search card is on the menu again'); else ok();
+  for (const k of ['flight', 'hotel', 'car']) {
+    const g = r.solo[k];
+    if (!g.onSearch || !g.panel) fail(T,
+      `the ${k} card does not land on the ${k} search`); else ok();
+    if (g.others !== 0) fail(T,
+      `${g.others} other search panels are on screen beside ${k}`); else ok();
+    if (g.steps !== false) fail(T,
+      `the step strip shows on the ${k} search alone - the reader is being ` +
+      'shown a trip he never asked to plan'); else ok();
+    if (g.ask !== true) fail(T,
+      `the ${k} search offers no way up to the whole trip`); else ok();
+    if (g.chips !== 0) fail(T,
+      `the bar offers ${g.chips} chips on the ${k} search alone, rebuilding ` +
+      'the tab strip it was promoted out of'); else ok();
+    if (!g.title.trim()) fail(T, `the bar does not name the ${k} search`); else ok();
+  }
+  if (!r.trip.onSearch || !r.trip.all) fail(T,
+    'the whole-trip strip does not land on the combined search'); else ok();
+  if (r.trip.steps !== true) fail(T,
+    'the whole trip shows without its step strip, so the three searches are ' +
+    'no longer stages of one plan'); else ok();
+  if (r.trip.ask !== false) fail(T,
+    'the trip screen still offers the way up to the trip - there is nowhere ' +
+    'to go, it is this screen'); else ok();
+  // Decided 10/11: the step strip walks the stages; chips there as well would
+  // offer the same choice twice on one screen.
+  if (r.trip.chips !== 0) fail(T,
+    `the trip screen offers ${r.trip.chips} chips beside its own step strip - ` +
+    'the same choice twice on one screen'); else ok();
+  if (!r.aliasLands) fail(T,
+    "planGo('search') no longer reaches the combined screen, so every older " +
+    'door into the planner is broken'); else ok();
+  if (!r.aliasNoDup) fail(T,
+    'the bar offers the same screen twice - the alias is a second key in ' +
+    'PLAN_PANES instead of a lookup'); else ok();
+  if (!r.carDoor) fail(T,
+    'the car door from the parking panel no longer lands on a screen of its own'); else ok();
+}
+
+// ── each screen speaks of its own business ───────────────────────────
+// A search on its own is about that search and nothing else: the flight
+// screen promises no car and no room, the lodging screen knows of no flight,
+// the car screen of neither. Read off what is actually on screen (innerText
+// skips hidden blocks), so a word that comes back anywhere visible fails.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const vis = id => {
+      const e = document.getElementById(id);
+      return e ? getComputedStyle(e).display !== 'none' : null;
+    };
+    const seen = () => (document.getElementById('pane-search') || {}).innerText || '';
+    openM('hotelModal');
+
+    planGo('flight');
+    const free = document.getElementById('trip-free');
+    out.flightText = seen();
+    out.flightHint = free ? free.placeholder : '';
+    out.flightEx = [...document.querySelectorAll('#trip-free-ex .ftx')].map(s => s.textContent);
+
+    // the sentence is read for the flight only, and children fly too
+    const cc = document.getElementById('all-car-check');
+    if (cc && cc.checked) { cc.checked = false; toggleCarDetails('all-car-details', false); }
+    if (free) {
+      free.value = 'משפחה בפברואר לשבוע עם רכב';
+      try { await applyTripText(); } catch (e) {}
+      await new Promise(res => setTimeout(res, 300));
+    }
+    out.flightSaid = (document.getElementById('trip-free-said') || {}).textContent || '';
+    out.flightCarTicked = !!(cc && cc.checked);
+    out.flightPax = +(document.getElementById('fl-adults') || {}).textContent;
+    if (free) free.value = '';
+    document.getElementById('trip-free-said').innerHTML = '';
+
+    planGo('hotel');
+    out.hotelText = seen();
+    out.hotelBanner = vis('hotel-vs-flight');
+
+    planGo('car');
+    out.carText = seen();
+
+    // inside the trip the same lodging screen does have a flight to differ from
+    planGo('trip');
+    switchTripTab('hotel');
+    out.tripHotelBanner = vis('hotel-vs-flight');
+    switchTripTab('all');
+    out.tripEx = [...document.querySelectorAll('#trip-free-ex .ftx')].map(s => s.textContent);
+    out.tripHint = free ? free.placeholder : '';
+    closeM('hotelModal');
+    return out;
+  });
+
+  const T = 'each screen speaks of its own business';
+  // "כרטיס" (card, ticket) carries the letters of "טיס" and is no flight
+  const STAY = /לינה|דירה|מלון|צ'ק-אין/, CAR = /רכב|השכרה/, FLY = /(?<!כר)טיס|תעופה|✈/;
+  // the whole line, so a failure says where on the screen the word sits
+  const hit = (txt, re) => txt.split('\n').find(l => re.test(l)) || '';
+  let w;
+  if ((w = hit(r.flightText, CAR) || hit(r.flightText, STAY))) fail(T,
+    `the flight screen alone shows "${w}"`); else ok();
+  if ((w = hit(r.flightHint, CAR) || hit(r.flightHint, STAY))) fail(T,
+    `the flight screen's free-text hint offers "${w}"`); else ok();
+  if (r.flightEx.length !== 3) fail(T,
+    `the flight screen has ${r.flightEx.length} examples, not 3`); else ok();
+  if ((w = r.flightEx.find(s => CAR.test(s) || STAY.test(s)))) fail(T,
+    `a flight example promises more than a flight: "${w}"`); else ok();
+  if (CAR.test(r.flightSaid) || r.flightCarTicked) fail(T,
+    'the flight screen read "עם רכב" and reported or ticked a car it does not search for'); else ok();
+  if (!/מילאתי/.test(r.flightSaid)) fail(T,
+    'the flight screen understood nothing of a plain family sentence'); else ok();
+  if (r.flightPax !== 4) fail(T,
+    `a family of 2+2 came out as ${r.flightPax} passengers - children fly too`); else ok();
+  if ((w = hit(r.hotelText, FLY) || hit(r.hotelText, CAR))) fail(T,
+    `the lodging screen alone shows "${w}"`); else ok();
+  if (r.hotelBanner !== false) fail(T,
+    '"nights different from the flight" shows on the lodging screen alone'); else ok();
+  if ((w = hit(r.carText, FLY) || hit(r.carText, STAY))) fail(T,
+    `the car screen alone shows "${w}"`); else ok();
+  if (r.tripHotelBanner !== true) fail(T,
+    'inside the trip the lodging screen lost its note about differing from the flight'); else ok();
+  if (!r.tripEx.some(s => CAR.test(s)) || !CAR.test(r.tripHint)) fail(T,
+    'the whole-trip examples did not come back after the flight screen - the ' +
+    'trip is the one place a car belongs in the sentence'); else ok();
 }
 
 // ── Shabbat is the same two candles everywhere ───────────────────────
@@ -7625,6 +7821,572 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     "a person's report is labelled a measurement"); else ok();
 }
 
+// ── the local reader knows a head count ──────────────────────────────
+// It is the fallback when the model call fails, and it understood "2 מבוגרים"
+// and "משפחה" but not the commonest way anyone writes it: "4 נוסעים".
+{
+  const r = await page.evaluate(() => {
+    const P = t => { const o = window.parseTripText(t); return [o.adults, o.children]; };
+    return {
+      digits:   P('מילאנו בחנוכה לשבוע, 4 נוסעים'),
+      word:     P('מילאנו בחנוכה לשבוע, לארבעה אנשים'),
+      one:      P('מילאנו בחנוכה, נוסע אחד'),
+      total:    P('מילאנו בחנוכה, 5 נוסעים מהם 2 ילדים'),
+      explicit: P('מילאנו בחנוכה, 2 מבוגרים ו-2 ילדים'),
+      none:     P('מילאנו בחנוכה לשבוע')
+    };
+  });
+  const T = 'the local reader knows a head count';
+  const eq = (a, b) => a[0] === b[0] && a[1] === b[1];
+  if (r.digits[0] !== 4) fail(T, `"4 נוסעים" read as ${r.digits[0]} passengers`); else ok();
+  if (r.word[0] !== 4)   fail(T, `"לארבעה אנשים" read as ${r.word[0]} passengers`); else ok();
+  if (r.one[0] !== 1) fail(T, `"נוסע אחד" read as ${r.one[0]} passengers`); else ok();
+  if (r.total[0] !== 3 || r.total[1] !== 2) fail(T,
+    `"5 נוסעים מהם 2 ילדים" read as ${r.total} - should be 3 adults and 2 children`); else ok();
+  if (!eq(r.explicit, [2, 2])) fail(T,
+    `an explicit 2 adults + 2 children read as ${r.explicit}`); else ok();
+  if (r.none[0] != null) fail(T,
+    `a sentence with no head count invented ${r.none[0]} adults`); else ok();
+}
+
+// ── the trip is said once; what a hand changed is never overwritten ──
+// Stage 2 of the planner redesign. The strip holds dates and travellers;
+// every search in the trip frame is born from it and free from then on.
+// "A hand" is simulated the way flatpickr sees one: the calendar was opened.
+// That needs the real calendar, which the page loads from a CDN this run
+// cannot reach - so this block loads the same version from node_modules
+// (selfcheck.yml installs it next to playwright) and builds the pickers.
+{
+  const fpPath = near('node_modules/flatpickr/dist/flatpickr.min.js');
+  if (!fs.existsSync(fpPath)) {
+    fail('the trip is said once; what a hand changed is never overwritten',
+      'flatpickr is not installed - run: npm install --no-save flatpickr@4.6.13');
+  } else {
+  await page.addScriptTag({ path: fpPath });
+  await page.evaluate(() => { initFlatpickr(); });
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const D = (y, m, d) => new Date(y, m - 1, d);
+    const $ = id => document.getElementById(id);
+    const ci = id => $(id).getAttribute('data-ci');
+    const shown = id => { const m = $(id + '-diff'); return !!m && m.style.display !== 'none'; };
+    const byHand = (id, a, b) => {
+      const el = $(id); el._picking = true;
+      el._flatpickr.setDate([a, b], true);
+      el._picking = false;
+    };
+    openM('hotelModal');
+    planGo('trip');
+    // a clean trip
+    TRIP.from = TRIP.to = null; TRIP.adults = 2; TRIP.children = 0;
+    TRIP_DATE_IDS.concat(Object.keys(TRIP_PAX)).forEach(id => $(id).removeAttribute('data-touched'));
+
+    out.stripShown = getComputedStyle($('trip-strip')).display !== 'none';
+
+    stripSetDates(D(2027, 1, 10), D(2027, 1, 17));
+    out.born = TRIP_DATE_IDS.map(id => [id, ci(id)]);
+    out.nights = $('strip-nights').textContent;
+
+    byHand('hotel-dates', D(2027, 1, 12), D(2027, 1, 16));
+    stripSetDates(D(2027, 1, 20), D(2027, 1, 27));
+    out.hotelKept = ci('hotel-dates');
+    out.carFollowed = ci('car-dates');
+    out.hotelMarked = shown('hotel-dates');
+    out.carMarked = shown('car-dates');
+    out.markText = ($('hotel-dates-diff') || {}).textContent || '';
+    _tripRejoin('hotel-dates');
+    out.hotelBack = ci('hotel-dates');
+    out.hotelUnmarked = !shown('hotel-dates');
+    // back means back: it follows the trip again from now on
+    stripSetDates(D(2027, 1, 21), D(2027, 1, 27));
+    out.hotelFollowsAgain = ci('hotel-dates');
+    stripSetDates(D(2027, 1, 20), D(2027, 1, 27));
+
+    adjStrip('adults', 1);
+    out.paxBorn = [$('h-adults').textContent, $('fl-adults').textContent];
+    adjField('h-children', 1, 0);
+    adjStrip('children', 2);
+    out.paxKept = $('h-children').textContent;
+    out.flightPax = $('fl-adults').textContent;
+    out.paxMarked = shown('h-children');
+
+    // a hand on the flight: no force, an offer
+    byHand('trip-dates', D(2027, 2, 1), D(2027, 2, 8));
+    out.tripAfterFlightHand = _isoDay(TRIP.from);
+    out.flightOffer = /עדכן את הטיול לפי הטיסה/.test(($('trip-dates-diff') || {}).textContent || '');
+    _tripAdoptFlight();
+    out.tripAfterAdopt = _isoDay(TRIP.from);
+    out.carAfterAdopt = ci('car-dates');
+    out.flightUnmarked = !shown('trip-dates');
+
+    // a program on the flight (an offer, a sentence) sets the trip
+    setTripDates('2027-03-07', '2027-03-14');
+    out.tripAfterProgram = _isoDay(TRIP.from);
+    out.flightUntouched = !$('trip-dates').getAttribute('data-touched');
+
+    // a stage passed, and the way on from the foot of its results
+    ['all', 'flight', 'hotel', 'car'].forEach(t => $('ttab-' + t).classList.remove('ttab-done'));
+    switchTripTab('car');
+    out.nextBefore = getComputedStyle($('trip-next')).display !== 'none';
+    searchCar();
+    out.carDone = $('ttab-car').classList.contains('ttab-done');
+    out.nextAfterCar = $('trip-next').textContent;
+    $('ttab-flight').classList.add('ttab-done');
+    switchTripTab('car');
+    out.nextSkipsDone = $('trip-next').textContent;
+    $('trip-next').querySelector('button').click();
+    out.wentTo = _tripTab();
+    ['flight', 'hotel', 'car'].forEach(t => $('ttab-' + t).classList.add('ttab-done'));
+    switchTripTab('car');
+    out.nextWhenAllDone = getComputedStyle($('trip-next')).display !== 'none';
+
+    // a search alone: no strip, no marks, no bounds, no stage marks
+    byHand('car-dates', D(2027, 3, 1), D(2027, 3, 3));
+    planGo('car');
+    out.soloStrip = getComputedStyle($('trip-steps')).display !== 'none';
+    out.soloMarked = shown('car-dates');
+    out.soloMax = $('car-dates')._flatpickr.config.maxDate || null;
+    $('ttab-hotel').classList.remove('ttab-done');
+    planGo('hotel'); searchHotel();
+    out.soloDone = $('ttab-hotel').classList.contains('ttab-done');
+    out.soloNext = getComputedStyle($('trip-next')).display !== 'none';
+
+    // up from a search alone: what was typed goes on
+    TRIP.from = TRIP.to = null;
+    TRIP_DATE_IDS.forEach(id => $(id).removeAttribute('data-touched'));
+    byHand('hotel-dates', D(2027, 2, 3), D(2027, 2, 8));
+    planGo('trip');
+    out.carriedUp = TRIP.from ? _isoDay(TRIP.from) : null;
+    out.carriedCar = ci('car-dates');
+    closeM('hotelModal');
+    return out;
+  });
+
+  const T = 'the trip is said once; what a hand changed is never overwritten';
+  if (!r.stripShown) fail(T, 'the trip frame shows no strip'); else ok();
+  const notBorn = r.born.filter(([, v]) => v !== '2027-01-10').map(([id]) => id);
+  if (notBorn.length) fail(T, `not born from the strip: ${notBorn.join(', ')}`); else ok();
+  if (!/7 לילות/.test(r.nights)) fail(T, `the strip counts "${r.nights}", not 7 nights`); else ok();
+  if (r.hotelKept !== '2027-01-12') fail(T,
+    `lodging changed by hand was overwritten by the strip (now ${r.hotelKept})`); else ok();
+  if (r.carFollowed !== '2027-01-20') fail(T,
+    `the untouched car did not follow the strip (still ${r.carFollowed})`); else ok();
+  if (!r.hotelMarked || !/תאריכים שונים מהטיול/.test(r.markText)) fail(T,
+    'lodging differs from the trip and says nothing'); else ok();
+  if (r.carMarked) fail(T, 'a search that matches the trip is marked as different'); else ok();
+  if (r.hotelBack !== '2027-01-20' || !r.hotelUnmarked) fail(T,
+    '"חזרה לתאריכי הטיול" did not bring lodging back'); else ok();
+  if (r.hotelFollowsAgain !== '2027-01-21') fail(T,
+    'after "חזרה לתאריכי הטיול" lodging no longer follows the trip'); else ok();
+  if (r.paxBorn[0] !== '3' || r.paxBorn[1] !== '3') fail(T,
+    `travellers not born from the strip: lodging ${r.paxBorn[0]}, flight ${r.paxBorn[1]}`); else ok();
+  if (r.paxKept !== '1' || !r.paxMarked) fail(T,
+    `children changed by hand: now ${r.paxKept}, marked ${r.paxMarked}`); else ok();
+  if (r.flightPax !== '5') fail(T, `3 adults + 2 children flew as ${r.flightPax}`); else ok();
+  if (r.tripAfterFlightHand !== '2027-01-20' || !r.flightOffer) fail(T,
+    'a flight picked by hand moved the trip by force, or offered nothing'); else ok();
+  if (r.tripAfterAdopt !== '2027-02-01' || r.carAfterAdopt !== '2027-02-01' || !r.flightUnmarked) fail(T,
+    'taking the flight\'s dates did not move the trip and what follows it'); else ok();
+  if (r.tripAfterProgram !== '2027-03-07' || !r.flightUntouched) fail(T,
+    'an offer or a sentence writing the flight dates did not set the trip'); else ok();
+  if (!r.carDone) fail(T, 'a search that ran left no mark on its stage'); else ok();
+  if (r.nextBefore) fail(T, '"השלב הבא" shows before the stage was searched'); else ok();
+  if (!/השלב הבא: ✈️ טיסה/.test(r.nextAfterCar)) fail(T,
+    `after the car the next stage offered is "${r.nextAfterCar}", not the flight`); else ok();
+  if (!/השלב הבא: 🏨 לינה/.test(r.nextSkipsDone) || r.wentTo !== 'hotel') fail(T,
+    `"השלב הבא" does not skip a stage already done, or does not go there (${r.nextSkipsDone} → ${r.wentTo})`); else ok();
+  if (r.nextWhenAllDone) fail(T, '"השלב הבא" still offered when every stage is done'); else ok();
+  if (r.soloNext) fail(T, 'a search alone offers a next stage of a trip nobody planned'); else ok();
+  if (r.soloStrip || r.soloMarked) fail(T, 'a search alone shows the trip or its marks'); else ok();
+  if (r.soloMax) fail(T, 'a search alone is still bounded by trip dates'); else ok();
+  if (r.soloDone) fail(T, 'a search alone marks a stage of a trip nobody planned'); else ok();
+  if (r.carriedUp !== '2027-02-03' || r.carriedCar !== '2027-02-03') fail(T,
+    `dates typed in a search alone did not carry up into the trip (${r.carriedUp})`); else ok();
+  }
+}
+
+// ── lodging is a list of stays ───────────────────────────────────────
+// Stage 3. Four nights in Cervinia and two in Milan are two stays, each
+// with its own nights, place and way of being found; the letter works on a
+// stay, not on the trip; and the list says when a night is missing.
+{
+  const fpPath3 = near('node_modules/flatpickr/dist/flatpickr.min.js');
+  if (!fs.existsSync(fpPath3)) {
+    fail('lodging is a list of stays',
+      'flatpickr is not installed - run: npm install --no-save flatpickr@4.6.13');
+  } else {
+  const r = await page.evaluate(async () => {
+    if (typeof flatpickr === 'undefined') return { noFp: true };
+    const out = {};
+    const D = (y, m, d) => new Date(y, m - 1, d);
+    const $ = id => document.getElementById(id);
+    const vis = id => !!$(id) && getComputedStyle($(id)).display !== 'none';
+    const cov = () => ($('stay-coverage') || {}).textContent || '';
+    const byHand = (id, a, b) => {
+      const el = $(id); el._picking = true;
+      el._flatpickr.setDate([a, b], true);
+      el._picking = false;
+    };
+    initFlatpickr();
+    openM('hotelModal');
+    planGo('trip');
+    TRIP.from = TRIP.to = null; TRIP.adults = 2; TRIP.children = 1;
+    TRIP.stays = []; TRIP.stayAt = 0;
+    TRIP_DATE_IDS.concat(Object.keys(TRIP_PAX)).forEach(id => $(id).removeAttribute('data-touched'));
+    stripSetDates(D(2027, 1, 10), D(2027, 1, 17));
+    _tripSetPax(2, 1);
+    switchTripTab('hotel');
+
+    out.listShown = vis('stay-list');
+    out.first = JSON.stringify(TRIP.stays.map(s => [s.ci, s.co]));
+    stripSetDates(D(2027, 1, 11), D(2027, 1, 18));
+    out.firstFollows = TRIP.stays[0] && TRIP.stays[0].ci;
+    stripSetDates(D(2027, 1, 10), D(2027, 1, 17));
+
+    byHand('hotel-dates', D(2027, 1, 10), D(2027, 1, 14));
+    out.firstByHand = TRIP.stays[0].co + '/' + TRIP.stays[0].touched;
+    out.covHole = cov();
+
+    _stayAdd();
+    out.added = TRIP.stays[1] ? TRIP.stays[1].ci + '/' + TRIP.stays[1].co : null;
+    out.addedActive = TRIP.stayAt;
+    out.fieldShowsNew = $('hotel-dates').getAttribute('data-ci');
+    out.covFull = cov();
+
+    byHand('hotel-dates', D(2027, 1, 14), D(2027, 1, 16));
+    out.covMissing = cov();
+
+    $('stay-place').value = 'milano'; _stayEdit();
+    searchHotel();
+    const links = [...$('hotel-results').querySelectorAll('a')].map(a => a.href);
+    out.milanLinks = {
+      booking: links.some(h => /booking\.com.*ss=Milano/.test(h)),
+      airbnb: links.length === 0 || true,
+      notCervinia: !links.some(h => /Breuil-Cervinia/.test(h)),
+      header: /שהייה 2/.test($('hotel-results').textContent)
+    };
+    document.querySelector('input[name="stay-way"][value="direct"]').checked = true;
+    _stayEdit();
+    out.milanDirectRefused = TRIP.stays[1].way;
+
+    // stay 1: by letter
+    _stayPick(0);
+    out.pickedField = $('hotel-dates').getAttribute('data-ci') + '/' + $('hotel-dates').getAttribute('data-co');
+    out.pickedPlace = $('stay-place').value;
+    document.querySelector('input[name="stay-way"][value="direct"]').checked = true;
+    _stayEdit();
+    out.letterBtn = vis('stay-letter-btn');
+    out.searchBtn = vis('hotel-search-btn');
+    $('stay-letter-btn').click();
+    await new Promise(res => setTimeout(res, 50));
+    const ld = $('ls-dates');
+    out.letter = {
+      open: getComputedStyle($('localStayModal')).display !== 'none',
+      dates: ld.getAttribute('data-ci') + '/' + ld.getAttribute('data-co'),
+      guests: $('ls-guests').value
+    };
+    closeM('localStayModal');
+
+    // the strip moves; stays a hand set do not
+    stripSetDates(D(2027, 1, 11), D(2027, 1, 18));
+    out.handStaysKept = TRIP.stays.map(s => s.ci).join(',');
+    stripSetDates(D(2027, 1, 10), D(2027, 1, 17));
+
+    // two stays on one night
+    _stayPick(1);
+    byHand('hotel-dates', D(2027, 1, 13), D(2027, 1, 17));
+    out.covDouble = cov();
+
+    _stayDrop(1);
+    out.afterDrop = TRIP.stays.length + '/' + TRIP.stayAt + '/' + $('hotel-dates').getAttribute('data-ci');
+
+    // a search alone is one stay, in Cervinia, found on the sites
+    TRIP.stays[0].place = 'milano';
+    TRIP.stays[0].way = 'direct';
+    planGo('hotel');
+    out.solo = {
+      list: vis('stay-list'), edit: vis('stay-edit'),
+      search: vis('hotel-search-btn'), letter: vis('stay-letter-btn')
+    };
+    searchHotel();
+    out.soloCervinia = [...$('hotel-results').querySelectorAll('a')]
+      .some(a => /booking\.com.*ss=Breuil-Cervinia/.test(a.href));
+    TRIP.stays[0].place = 'cervinia'; TRIP.stays[0].way = 'site';
+    closeM('hotelModal');
+    return out;
+  });
+
+  const T = 'lodging is a list of stays';
+  if (r.noFp) { fail(T, 'flatpickr did not load'); }
+  else {
+  if (!r.listShown) fail(T, 'the trip\'s lodging screen shows no list of stays'); else ok();
+  if (r.first !== '[["2027-01-10","2027-01-17"]]') fail(T,
+    `the first stay was not born from the trip: ${r.first}`); else ok();
+  if (r.firstFollows !== '2027-01-11') fail(T,
+    'the first stay, untouched, did not follow the strip'); else ok();
+  if (r.firstByHand !== '2027-01-14/true') fail(T,
+    `the lodging field moved by hand did not move its stay (${r.firstByHand})`); else ok();
+  if (!/חסרים 3 לילות/.test(r.covHole)) fail(T,
+    `a stay of 4 nights in a 7-night trip does not say 3 are missing: "${r.covHole}"`); else ok();
+  if (r.added !== '2027-01-14/2027-01-17' || r.addedActive !== 1 || r.fieldShowsNew !== '2027-01-14') fail(T,
+    `"הוסף שהייה" did not open on the first uncovered nights (${r.added}, active ${r.addedActive})`); else ok();
+  if (!/כל 7 הלילות מכוסים/.test(r.covFull)) fail(T,
+    `two stays covering the trip do not say so: "${r.covFull}"`); else ok();
+  if (!/חסר לילה אחד: 16\.1/.test(r.covMissing)) fail(T,
+    `one night left uncovered is not named: "${r.covMissing}"`); else ok();
+  if (!r.milanLinks.booking || !r.milanLinks.notCervinia) fail(T,
+    'a stay in Milan still searches Breuil-Cervinia'); else ok();
+  if (!r.milanLinks.header) fail(T, 'the results do not say which stay they are for'); else ok();
+  if (r.milanDirectRefused !== 'site') fail(T,
+    'a stay in Milan took "פנייה ישירה" - the letter is for agencies in the valley'); else ok();
+  if (r.pickedField !== '2027-01-10/2027-01-14' || r.pickedPlace !== 'cervinia') fail(T,
+    `picking stay 1 did not bring its own dates and place back (${r.pickedField}, ${r.pickedPlace})`); else ok();
+  if (!r.letterBtn || r.searchBtn) fail(T,
+    'a stay found by letter still shows a search, or no letter'); else ok();
+  if (!r.letter.open || r.letter.dates !== '2027-01-10/2027-01-14' || r.letter.guests !== '3') fail(T,
+    `the letter is not for this stay: ${JSON.stringify(r.letter)}`); else ok();
+  if (r.handStaysKept !== '2027-01-10,2027-01-14') fail(T,
+    `stays set by hand moved with the strip (${r.handStaysKept})`); else ok();
+  if (!/לילה אחד מכוסה פעמיים: 13\.1/.test(r.covDouble)) fail(T,
+    `a night booked twice is not named: "${r.covDouble}"`); else ok();
+  if (r.afterDrop !== '1/0/2027-01-10') fail(T,
+    `removing stay 2 left the wrong stay on screen (${r.afterDrop})`); else ok();
+  if (r.solo.list || r.solo.edit || !r.solo.search || r.solo.letter) fail(T,
+    `a search alone shows the trip's stays (${JSON.stringify(r.solo)})`); else ok();
+  if (!r.soloCervinia) fail(T,
+    'a search alone took its place from a stay in the trip'); else ok();
+  }
+  }
+}
+
+// ── how much it really costs ─────────────────────────────────────────
+// Stage 4. Exact where we know (the ski pass, from the operator's tariff),
+// a range where we guess (gear, flights, lodging), empty where we have
+// nothing (food) - and every row the reader's to change. Two doors, one
+// panel: the side menu asks; the trip strip reads the trip.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const $ = id => document.getElementById(id);
+    const T = window._texts;
+    const P = T.skipass.prices, cols = P.columns;
+    const price = (pass, band, days) => {
+      const row = P[pass].rows.find(x => { const m = String(x[0]).match(/(\d+)\s*ימים/); return (m ? +m[1] : (/יום אחד/.test(x[0]) ? 1 : 0)) === days; });
+      return parseFloat(row[cols.indexOf(band) + 1]);
+    };
+    const rent = T.rental.price_rows;
+    const rv = re => rent.find(x => re.test(x.label + ' ' + x.note)).v.map(v => parseFloat(v.replace(/[^\d.]/g, '')));
+    out.expect = {
+      adult6: 2 * price('cervinia', 'Adult', 6),
+      zermatt6: 2 * price('zermatt', 'Adult', 6),
+      gearLo: 2 * rv(/מבוגר.*Superior/)[2],
+      gearHi: 2 * (rv(/מתקדם.*Top/)[2] + rv(/קסדה/)[2])
+    };
+    // no network here: a rate and a snapshot of our own
+    COST.fx = { ILS: 4, USD: 1.25, CHF: 1 }; COST.fxTried = true;
+    // a trip on file and a snapshot that prices it - the side-menu door must
+    // still not use them: it was not asked about that trip
+    window._flTried = true;
+    TRIP.from = new Date(2027, 0, 10); TRIP.to = new Date(2027, 0, 17);
+    window._FLIGHTS = { currency: 'USD', nights: [7], cal: { MXP: { '7': { '2027-01-10': 200 } } } };
+    COST.rows = {}; COST.bands = null; COST.bandsTouched = false; COST.pass = 'cervinia'; COST.skiDays = null;
+
+    // ── door 1: the side menu ──
+    out.inMenu = !![...document.querySelectorAll('#side-menu-links button')].find(b => /כמה תכל'ס יעלה/.test(b.textContent));
+    SIDE_MENU_ACTIONS.cost();
+    await new Promise(res => setTimeout(res, 60));
+    out.freeOpen = getComputedStyle($('costModal')).display !== 'none';
+    out.freeAsks = !!$('cost-nights');
+    out.freeDays = COST.skiDays;
+    out.skipass = [COST.rows.skipass.min, COST.rows.skipass.max, COST.rows.skipass.exact];
+    out.gear = [COST.rows.gear.min, COST.rows.gear.max];
+    // the panel itself: short fields for short numbers, one choice wraps as one,
+    // adults and children first and the rest behind a box each
+    const sd = $('cost-skidays');
+    out.skiWidth = sd ? sd.getBoundingClientRect().width : 999;
+    const pr = [...document.querySelectorAll('input[name="cost-pass"]')].map(i => i.closest('label').getBoundingClientRect().top);
+    out.passTogether = pr.length === 2 && Math.abs(pr[0] - pr[1]) < 4;
+    // one flex item: the two passes cannot be split between two lines of the row
+    out.passNoWrap = $('cost-pass-group').parentElement === $('cost-skidays').closest('div')
+      && $('cost-pass-group').querySelectorAll('input[name="cost-pass"]').length === 2;
+    const shownBands = () => [...document.querySelectorAll('#cost-inputs .cost-band')].map(e => e.dataset.band);
+    out.bandsAtFirst = shownBands().join(',');
+    const box = document.querySelector('.cost-band-box[data-band="Senior"]');
+    box.checked = true; box.dispatchEvent(new Event('change'));
+    out.bandsAfterTick = shownBands().join(',');
+    _costBand('Senior', 1);
+    out.seniorCounted = /גמלאים/.test(COST.rows.skipass.note);
+    const box2 = document.querySelector('.cost-band-box[data-band="Senior"]');
+    box2.checked = false; box2.dispatchEvent(new Event('change'));
+    out.untickRemoves = (COST.bands.Senior || 0) === 0 && !shownBands().includes('Senior');
+    out.noEnglishBands = !/Adult|Junior/.test(COST.rows.skipass.note);
+    out.gearCheaper = /זולות יותר/.test(COST.rows.gear.note) && /הנחה/.test(COST.rows.gear.note);
+    out.freeFlights = COST.rows.flights.min;
+    const ref = T.cost_ref;
+    out.ref = ref;
+    out.food = [COST.rows.food.min, COST.rows.food.max, /הצעה ראשונית/.test(COST.rows.food.note)];
+    out.freeLodging = [COST.rows.lodging.min, COST.rows.lodging.max];
+    out.freeCar = [COST.rows.car.min, COST.rows.car.max, /הצעה ראשונית/.test(COST.rows.car.note)];
+    // a car is one way of three: the transfer and the bus come from the transport card's data
+    const PL = T.transport.planner, MX = PL.airports.find(a => a.id === 'mxp');
+    out.waysShown = document.querySelectorAll('input[name="cost-transport"]').length;
+    _costTransport('transfer');
+    out.transfer2 = [COST.rows.car.min, MX.t_small * 2, /הלוך וחזור/.test(COST.rows.car.note)];
+    _costBand('Junior', 1);
+    out.transfer3 = [COST.rows.car.min, MX.t_big * 2];
+    _costBand('Junior', -1);
+    _costTransport('bus');
+    out.bus2 = [COST.rows.car.min, (PL.lines.mxp.price + PL.lines.blu.price) * 2 * 2, /שלישי וברביעי/.test(COST.rows.car.note)];
+    out.busLabel = /הגעה ותחבורה/.test($('cost-row-car').textContent);
+    _costTransport('car');
+    out.estimateSaid = /הערכה, לא הצעת מחיר/.test($('costModal').textContent);
+
+    _costPass('zermatt');
+    out.zermatt = COST.rows.skipass.min;
+    _costPass('cervinia');
+    _costBand('Baby', 1);
+    out.babyFree = COST.rows.skipass.min === out.expect.adult6 && /עד גיל 8 חינם/.test(COST.rows.skipass.note);
+    _costBand('Baby', -1);
+    _costSet('skiDays', 9);
+    out.over8 = [COST.rows.skipass.min, /מעל 8 ימים/.test(COST.rows.skipass.note)];
+    _costSet('skiDays', 6);
+
+    // a row typed into is the reader's
+    _costEdit('food', 'min', '300'); _costEdit('food', 'max', '500');
+    _costEdit('skipass', 'min', '600'); _costEdit('skipass', 'max', '600');
+    _costSet('skiDays', 5);
+    out.handKept = [COST.rows.food.min, COST.rows.skipass.min];
+    out.total = $('cost-total').innerText;
+    _costReset('skipass');
+    out.resetBack = COST.rows.skipass.exact && COST.rows.skipass.min === 2 * price('cervinia', 'Adult', 5);
+    _costReset('food');
+    out.foodBack = COST.rows.food.min;
+    out.foodBackExpect = 2 * 7 * ref.food_person_day[0];
+    closeM('costModal');
+
+    // ── the car tab knows the car is optional ──
+    openM('hotelModal'); planGo('car');
+    out.carAlt = !!$('car-alt') && getComputedStyle($('car-alt')).display !== 'none';
+    $('car-alt').click();
+    await new Promise(res => setTimeout(res, 120));
+    out.altOpens = getComputedStyle($('parkingModal')).display !== 'none'
+      && getComputedStyle($('hotelModal')).display === 'none';
+    const tb = $('park-tab-transport');
+    out.altTab = !!tb && /active|on|sel/.test(tb.className + ' ' + (tb.getAttribute('aria-selected') || ''));
+    closeM('parkingModal');
+    out.altBack = getComputedStyle($('hotelModal')).display !== 'none';
+    closeM('hotelModal');
+
+    // ── door 2: the trip ──
+    openM('hotelModal'); planGo('trip');
+    TRIP.stays = []; TRIP.stayAt = 0;
+    TRIP_DATE_IDS.concat(Object.keys(TRIP_PAX)).forEach(id => $(id).removeAttribute('data-touched'));
+    stripSetDates(new Date(2027, 0, 10), new Date(2027, 0, 17));
+    _tripSetPax(2, 1);
+    switchTripTab('hotel');
+    TRIP.stays = [{ ci: '2027-01-10', co: '2027-01-14', place: 'cervinia', way: 'site', touched: true },
+                  { ci: '2027-01-14', co: '2027-01-16', place: 'milano', way: 'site', touched: true }];
+    const hb = document.querySelector('#tpanel-hotel .stay-filters');
+    hb.querySelector('.sf-min').value = '100'; hb.querySelector('.sf-max').value = '150';
+    hb.querySelector('.sf-cur').value = 'EUR';
+    window._FLIGHTS = { currency: 'USD', nights: [7], cal: { MXP: { '7': {
+      '2027-01-08': 260, '2027-01-10': 200, '2027-01-12': 225 } } } };
+    // as on a fresh page: the panel has never been drawn, and the door is the trip
+    $('cost-rows').innerHTML = ''; COST.mode = 'free';
+    $('strip-cost').click();
+    await new Promise(res => setTimeout(res, 60));
+    out.tripMode = COST.mode;
+    out.tripNights = COST.nights;
+    out.tripAsksNot = !$('cost-nights');
+    out.tripBands = [COST.bands.Adult, COST.bands.Junior];
+    out.lodging = [COST.rows.lodging.min, COST.rows.lodging.max];
+    // no budget typed: the reference, by where each stay is
+    hb.querySelector('.sf-min').value = ''; hb.querySelector('.sf-max').value = '';
+    _costReset('lodging');
+    out.lodgingRef = [COST.rows.lodging.min, COST.rows.lodging.max, /הצעה ראשונית/.test(COST.rows.lodging.note)];
+    out.lodgingRefExpect = [4 * ref.lodging_valley[0] + 2 * ref.lodging_city[0], 4 * ref.lodging_valley[1] + 2 * ref.lodging_city[1]];
+    out.tripCar = [COST.rows.car.min, 7 * ref.car_day[0]];
+    out.flights = [COST.rows.flights.min, COST.rows.flights.max];
+    out.coverage = ($('cost-coverage').textContent || '');
+    out.ils = $('cost-total-ils') ? $('cost-total-ils').textContent : '';
+    window._FLIGHTS = { currency: 'USD', nights: [3, 4], cal: { MXP: {} } };
+    _costReset('flights');
+    out.noSnapshot = [COST.rows.flights.min, /אין מחיר יומי/.test(COST.rows.flights.note)];
+    closeM('costModal'); closeM('hotelModal');
+    hb.querySelector('.sf-min').value = ''; hb.querySelector('.sf-max').value = '';
+    TRIP.stays = []; window._FLIGHTS = null;
+    return out;
+  });
+
+  const T = 'how much it really costs';
+  const near1 = (a, b) => a != null && Math.abs(a - b) < 0.6;
+  if (!r.inMenu) fail(T, 'the side menu has no way to the calculator'); else ok();
+  if (!r.freeOpen || !r.freeAsks) fail(T, 'the side-menu door does not open a panel that asks for nights'); else ok();
+  if (r.freeDays !== 6) fail(T, `7 nights default to ${r.freeDays} ski days, not 6`); else ok();
+  if (!near1(r.skipass[0], r.expect.adult6) || r.skipass[0] !== r.skipass[1] || !r.skipass[2]) fail(T,
+    `the ski pass is not the tariff's exact price: ${r.skipass} vs ${r.expect.adult6}`); else ok();
+  if (!near1(r.zermatt, r.expect.zermatt6)) fail(T,
+    `the international pass is not priced from the Zermatt table (${r.zermatt})`); else ok();
+  if (!r.babyFree) fail(T, 'a child under 8 is charged, or the panel does not say why it is free'); else ok();
+  if (r.over8[0] != null || !r.over8[1]) fail(T,
+    '9 ski days got a price the tariff does not have'); else ok();
+  if (!near1(r.gear[0], r.expect.gearLo) || !near1(r.gear[1], r.expect.gearHi)) fail(T,
+    `gear is not the rental list's range: ${r.gear} vs ${r.expect.gearLo}-${r.expect.gearHi}`); else ok();
+  if (r.skiWidth > 64) fail(T, `the ski-days field is ${Math.round(r.skiWidth)}px wide for two digits`); else ok();
+  if (!r.passTogether || !r.passNoWrap) fail(T, 'the two passes are one choice and split across two lines'); else ok();
+  if (r.bandsAtFirst !== 'Adult,Junior') fail(T,
+    `the panel opens on every age band (${r.bandsAtFirst}), not adults and children`); else ok();
+  if (r.bandsAfterTick !== 'Adult,Junior,Senior' || !r.seniorCounted) fail(T,
+    `ticking a band does not open its counter or count it (${r.bandsAfterTick})`); else ok();
+  if (!r.untickRemoves) fail(T, 'unticking a band leaves its people in the sum'); else ok();
+  if (!r.noEnglishBands) fail(T, 'the ski-pass line names the bands in English'); else ok();
+  if (!r.gearCheaper) fail(T,
+    'gear is priced from one shop\'s list and does not say others cost less, or that a discount can be asked'); else ok();
+  if (r.freeFlights != null) fail(T, 'the side-menu door invented a flight price with no dates'); else ok();
+  if (!r.ref || !near1(r.food[0], 2 * 7 * r.ref.food_person_day[0]) || !near1(r.food[1], 2 * 7 * r.ref.food_person_day[1]) || !r.food[2]) fail(T,
+    `food is not people × days × the reference, or does not say it is a suggestion: ${r.food}`); else ok();
+  if (!near1(r.freeLodging[0], 7 * r.ref.lodging_valley[0]) || !near1(r.freeLodging[1], 7 * r.ref.lodging_valley[1])) fail(T,
+    `the side-menu door's lodging is not nights × the valley reference: ${r.freeLodging}`); else ok();
+  if (!near1(r.freeCar[0], 7 * r.ref.car_day[0]) || !near1(r.freeCar[1], 7 * r.ref.car_day[1]) || !r.freeCar[2]) fail(T,
+    `the car is not days × the daily reference, or does not say it is a suggestion: ${r.freeCar}`); else ok();
+  if (r.waysShown !== 3 || !r.busLabel) fail(T,
+    'the transport row does not offer a hired car, a transfer and the bus'); else ok();
+  if (!near1(r.transfer2[0], r.transfer2[1]) || !r.transfer2[2]) fail(T,
+    `a transfer for 2 is not the operator's 1–2 price both ways: ${r.transfer2}`); else ok();
+  if (!near1(r.transfer3[0], r.transfer3[1])) fail(T,
+    `a transfer for 3 is not the operator's 3–8 price both ways: ${r.transfer3}`); else ok();
+  if (!near1(r.bus2[0], r.bus2[1]) || !r.bus2[2]) fail(T,
+    `the bus is not (Malpensa bus + Linea Blu) × 2 directions × people, or hides the days it does not run: ${r.bus2}`); else ok();
+  if (!r.estimateSaid) fail(T, 'the panel does not say it is an estimate'); else ok();
+  if (r.handKept[0] !== 300 || r.handKept[1] !== 600) fail(T,
+    `rows typed into were recomputed: ${r.handKept}`); else ok();
+  if (!/לא נכלל:.*טיסות/.test(r.total) || !/₪/.test(r.total)) fail(T,
+    `the total does not say what it leaves out, or has no shekels: "${r.total}"`); else ok();
+  if (!r.resetBack || !near1(r.foodBack, r.foodBackExpect)) fail(T, '"↺" does not give the row back to the calculation'); else ok();
+  if (!r.carAlt || !r.altOpens) fail(T, 'the car search does not point at the transfer and the bus'); else ok();
+  if (!r.altTab) fail(T, 'the car tab opens the transport card on the wrong tab'); else ok();
+  if (!r.altBack) fail(T, 'closing the transport card does not return to the car search'); else ok();
+  if (r.tripMode !== 'trip') fail(T,
+    'opened first from the trip strip, the calculator came up in side-menu mode'); else ok();
+  if (r.tripNights !== 7 || !r.tripAsksNot) fail(T,
+    'the trip door asks for nights the trip already has'); else ok();
+  if (r.tripBands[0] !== 2 || r.tripBands[1] !== 1) fail(T,
+    `the trip's 2 adults and 1 child came in as ${r.tripBands}`); else ok();
+  if (!near1(r.lodging[0], 600) || !near1(r.lodging[1], 900)) fail(T,
+    `6 nights in two stays at €100-150 came out ${r.lodging}`); else ok();
+  if (!near1(r.lodgingRef[0], r.lodgingRefExpect[0]) || !near1(r.lodgingRef[1], r.lodgingRefExpect[1]) || !r.lodgingRef[2]) fail(T,
+    `with no budget, 4 valley nights and 2 city nights are not priced from the reference: ${r.lodgingRef} vs ${r.lodgingRefExpect}`); else ok();
+  if (!near1(r.tripCar[0], r.tripCar[1])) fail(T,
+    `the car in the trip is not the car's 7 days × the reference: ${r.tripCar}`); else ok();
+  if (!near1(r.flights[0], 200 * 3 / 1.25) || !near1(r.flights[1], 260 * 3 / 1.25)) fail(T,
+    `flights are not the snapshot's day and its week around, for 3, in euros: ${r.flights}`); else ok();
+  if (!/חסר לילה אחד: 16\.1/.test(r.coverage)) fail(T,
+    `the calculator does not see the night nobody covers: "${r.coverage}"`); else ok();
+  if (!/₪/.test(r.ils)) fail(T, 'no shekels in the total'); else ok();
+  if (r.noSnapshot[0] != null || !r.noSnapshot[1]) fail(T,
+    'with no snapshot for the dates, flights still show a number'); else ok();
+}
+
 await browser.close();
 
 // ── report ────────────────────────────────────────────────────────────────
@@ -7636,3 +8398,4 @@ for (const f of fails) console.log(`✗ ${f.test}\n   ${f.detail}`);
 for (const w of warns) console.log(`⚠ ${w.test}\n   ${w.detail}`);
 if (!fails.length && !warns.length) console.log('הכול תקין.');
 process.exit(fails.length ? 1 : 0);
+
