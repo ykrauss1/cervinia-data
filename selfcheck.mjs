@@ -7923,10 +7923,21 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.tripAfterProgram = _isoDay(TRIP.from);
     out.flightUntouched = !$('trip-dates').getAttribute('data-touched');
 
-    // a stage passed
-    $('ttab-car').classList.remove('ttab-done');
-    switchTripTab('car'); searchCar();
+    // a stage passed, and the way on from the foot of its results
+    ['all', 'flight', 'hotel', 'car'].forEach(t => $('ttab-' + t).classList.remove('ttab-done'));
+    switchTripTab('car');
+    out.nextBefore = getComputedStyle($('trip-next')).display !== 'none';
+    searchCar();
     out.carDone = $('ttab-car').classList.contains('ttab-done');
+    out.nextAfterCar = $('trip-next').textContent;
+    $('ttab-flight').classList.add('ttab-done');
+    switchTripTab('car');
+    out.nextSkipsDone = $('trip-next').textContent;
+    $('trip-next').querySelector('button').click();
+    out.wentTo = _tripTab();
+    ['flight', 'hotel', 'car'].forEach(t => $('ttab-' + t).classList.add('ttab-done'));
+    switchTripTab('car');
+    out.nextWhenAllDone = getComputedStyle($('trip-next')).display !== 'none';
 
     // a search alone: no strip, no marks, no bounds, no stage marks
     byHand('car-dates', D(2027, 3, 1), D(2027, 3, 3));
@@ -7937,6 +7948,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     $('ttab-hotel').classList.remove('ttab-done');
     planGo('hotel'); searchHotel();
     out.soloDone = $('ttab-hotel').classList.contains('ttab-done');
+    out.soloNext = getComputedStyle($('trip-next')).display !== 'none';
 
     // up from a search alone: what was typed goes on
     TRIP.from = TRIP.to = null;
@@ -7977,6 +7989,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.tripAfterProgram !== '2027-03-07' || !r.flightUntouched) fail(T,
     'an offer or a sentence writing the flight dates did not set the trip'); else ok();
   if (!r.carDone) fail(T, 'a search that ran left no mark on its stage'); else ok();
+  if (r.nextBefore) fail(T, '"השלב הבא" shows before the stage was searched'); else ok();
+  if (!/השלב הבא: ✈️ טיסה/.test(r.nextAfterCar)) fail(T,
+    `after the car the next stage offered is "${r.nextAfterCar}", not the flight`); else ok();
+  if (!/השלב הבא: 🏨 לינה/.test(r.nextSkipsDone) || r.wentTo !== 'hotel') fail(T,
+    `"השלב הבא" does not skip a stage already done, or does not go there (${r.nextSkipsDone} → ${r.wentTo})`); else ok();
+  if (r.nextWhenAllDone) fail(T, '"השלב הבא" still offered when every stage is done'); else ok();
+  if (r.soloNext) fail(T, 'a search alone offers a next stage of a trip nobody planned'); else ok();
   if (r.soloStrip || r.soloMarked) fail(T, 'a search alone shows the trip or its marks'); else ok();
   if (r.soloMax) fail(T, 'a search alone is still bounded by trip dates'); else ok();
   if (r.soloDone) fail(T, 'a search alone marks a stage of a trip nobody planned'); else ok();

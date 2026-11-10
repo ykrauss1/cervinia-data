@@ -1084,7 +1084,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.28';
+  var v='v17.30';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2297,14 +2297,14 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         </div>
       </div>
       <div style="font-size:0.7rem;color:#7a8794;margin-top:6px;line-height:1.5;">
-        כל חיפוש מתחיל מכאן, ובכל אחד אפשר לשנות בנפרד.</div>
+        התאריכים והנוסעים עוברים לכל השלבים. ניתן לשנות כל שלב בנפרד.</div>
     </div>
     <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;">שלבי התכנון</div>
     <div style="display:flex;gap:5px;margin-bottom:16px;">
       <button id="ttab-all"    onclick="switchTripTab('all')"    class="ttab-btn ttab-active">✨ הכל</button>
       <button id="ttab-flight" onclick="switchTripTab('flight')" class="ttab-btn">✈️ טיסה</button>
-      <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn">🚗 רכב</button>
       <button id="ttab-hotel"  onclick="switchTripTab('hotel')"  class="ttab-btn">🏨 לינה</button>
+      <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn">🚗 רכב</button>
     </div>
     </div>
 
@@ -2677,6 +2677,11 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       </button>
       <div id="hotel-results" style="display:none;margin-top:10px;"></div>
     </div>
+
+      <!-- The next stage, at the foot of the results. On a phone the results
+           push the step strip off the top, so after a search the way on was
+           a scroll back up. Trip frame only, and only once this stage ran. -->
+      <div id="trip-next" style="display:none;margin:16px 0 2px;text-align:center;"></div>
 
       <!-- One way only. Whatever was typed is in the same DOM, so moving up
            to the whole trip loses nothing; there is no bridge back, because
@@ -6576,6 +6581,7 @@ function switchTripTab(tab) {
   const common = document.getElementById('trip-common');
   if (common) common.style.display = (tab === 'car' || tab === 'hotel') ? 'none' : 'block';
   _tripFreeExamples(tab);
+  _tripNext();
   // "תאריכי טיסה" is the truth on the flight tab and a half-truth on "הכל",
   // where the same dates drive the car and the room as well.
   const lbl = document.getElementById('trip-dates-label');
@@ -7791,6 +7797,14 @@ function _tripMarks() {
       mark.id = id + '-diff';
       mark.className = 'trip-diff';
       host.insertAdjacentElement('afterend', mark);
+      // A date field's bottom margin used to sit between it and the mark,
+      // so the mark hung over the travellers' counters below and read as
+      // theirs. The margin moves under the mark instead.
+      if (!isPax) {
+        var mb = parseFloat(getComputedStyle(el).marginBottom) || 0;
+        mark.style.marginTop = (4 - mb) + 'px';
+        mark.style.marginBottom = Math.max(mb, 10) + 'px';
+      }
     }
     mark.innerHTML = (isPax ? 'שונה מהטיול' : 'תאריכים שונים מהטיול')
       + ' · <a onclick="_tripRejoin(\'' + id + '\')">חזרה ' + (isPax ? 'למספר בטיול' : 'לתאריכי הטיול') + '</a>'
@@ -7804,6 +7818,37 @@ function _tripStepDone(tab) {
   if (_tripSolo()) return;
   var b = document.getElementById('ttab-' + tab);
   if (b) b.classList.add('ttab-done');
+  _tripNext();
+}
+
+// The order a trip is usually put together in: the flight fixes the days,
+// then a bed, then a car. "הכל" did all three at once, so nothing follows it.
+var TRIP_ORDER = ['flight', 'hotel', 'car'];
+var TRIP_STAGE_NAME = { flight: '✈️ טיסה', hotel: '🏨 לינה', car: '🚗 רכב' };
+function _tripNext() {
+  var box = document.getElementById('trip-next');
+  if (!box) return;
+  var cur = (typeof _tripTab === 'function') ? _tripTab() : 'all';
+  var done = function (t) {
+    var b = document.getElementById('ttab-' + t);
+    return !!b && b.classList.contains('ttab-done');
+  };
+  var next = null;
+  if (!_tripSolo() && cur !== 'all' && done(cur)) {
+    var i = TRIP_ORDER.indexOf(cur);
+    next = TRIP_ORDER.slice(i + 1).concat(TRIP_ORDER.slice(0, i))
+      .filter(function (t) { return !done(t); })[0] || null;
+  }
+  if (!next) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.innerHTML = '<button class="plan-chip" onclick="_tripGoNext(\'' + next + '\')" '
+    + 'style="background:#eaf3fd;border-color:#c6ddf3;color:#1a5fa8;font-weight:700;">'
+    + 'השלב הבא: ' + TRIP_STAGE_NAME[next] + ' ←</button>';
+  box.style.display = 'block';
+}
+function _tripGoNext(t) {
+  switchTripTab(t);
+  var top = document.getElementById('trip-strip');
+  if (top && top.scrollIntoView) top.scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
 
 function _isoDay(d) {
@@ -8238,6 +8283,7 @@ function _planFrame(open) {
   var said = document.getElementById('trip-free-said');
   if (said && solo) said.innerHTML = '';
   _tripEnterFrame(solo);
+  _tripNext();
 }
 
 // Open the planner straight onto one of its screens. Everything that used to
