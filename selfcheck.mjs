@@ -8420,6 +8420,88 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'with no snapshot for the dates, flights still show a number'); else ok();
 }
 
+// ── the transport card, after Yossi's walk-through (10.11) ───────────
+// Getting there first; chips that say which was pressed and land on the
+// start of their section, not under the sticky strip; the bus up from
+// Valtournenche; links that say they are the operator's; timetables folded;
+// car hire that leads with the excess insurance and drops the essay.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const $ = id => document.getElementById(id);
+    const vis = el => !!el && getComputedStyle(el).display !== 'none';
+    if (!$('transport-body').innerHTML && window._texts) renderTransport(window._texts.transport);
+    openM('parkingModal');
+    await new Promise(res => setTimeout(res, 150));
+    const tabs = [...document.querySelectorAll('#parkingModal .ttab-btn')].map(b => b.id);
+    out.firstTab = tabs[0];
+    out.opensOn = vis($('park-panel-transport')) && !vis($('park-panel-parking'))
+      && $('park-tab-transport').classList.contains('ttab-active');
+    const body = $('park-panel-transport');
+    out.title = /מתי מגיעים ומתי חוזרים/.test(body.textContent) && !/מתי להגיע ומתי לצאת/.test(body.textContent);
+
+    // the chips
+    if (typeof buildPanelToc === 'function') buildPanelToc('park-panel-transport');
+    const strip = body.querySelector('.panel-toc');
+    const chips = [...strip.querySelectorAll('button')];
+    const secs = [...body.querySelectorAll('[data-toc]')];
+    const box = $('parkingModal').querySelector('.modal-content');
+    out.chips = chips.length;
+    out.landed = [];
+    for (let i = 0; i < Math.min(5, chips.length); i++) {
+      box.scrollTo({ top: 0 });
+      chips[i].click();
+      await new Promise(res => setTimeout(res, 900));
+      const gap = secs[i].getBoundingClientRect().top - strip.getBoundingClientRect().bottom;
+      const on = chips.filter(c => c.classList.contains('on'));
+      out.landed.push([Math.round(gap), on.length === 1 && on[0] === chips[i]]);
+    }
+
+    const t = body.textContent;
+    out.valtBus = /מוולטורננש לצ'רוויניה באוטובוס/.test(t) && /מסלולים אדומים/.test(t);
+    const labels = [...body.querySelectorAll('a, button')].map(a => a.textContent);
+    out.linksSay = labels.some(l => /הלוח הרשמי/.test(l)) && labels.some(l => /אתר המפעיל/.test(l))
+      && /פותחים את האתר הרשמי של המפעיל/.test(t);
+    const folds = [...body.querySelectorAll('details.tr-fold')];
+    out.folds = folds.length;
+    out.foldsClosed = folds.every(d => !d.open && d.querySelector('table'));
+    out.notesOutside = /95 דקות/.test(t) && !folds.some(d => /95 דקות/.test(d.textContent));
+    out.insurance = /ביטוח ביטול השתתפות עצמית — חובה/.test(t) && /AIG/.test(t) && /ביטוח הנסיעות/.test(t);
+    out.essayGone = !/ההבדל אינו בביטוח אלא בהשתתפות/.test(t) && !/השאלה הראשונה בהזמנה/.test(t);
+    out.widestGone = !/הרחב ביותר/.test(t);
+    out.chainsAlways = /עובדות תמיד/.test(t) && /צמיגי חורף — כמעט אין/.test(t);
+    closeM('parkingModal');
+
+    // the search entry for parking still lands on parking
+    const ent = (typeof SEARCH_INDEX !== 'undefined' ? SEARCH_INDEX : []).find(e => /חניה כביש/.test(e.text || ''));
+    if (ent) {
+      new Function(ent.action)();
+      await new Promise(res => setTimeout(res, 100));
+      out.searchParking = vis($('park-panel-parking'));
+      closeM('parkingModal');
+    } else out.searchParking = 'no-entry';
+    return out;
+  });
+
+  const T = 'the transport card, after the walk-through';
+  if (r.firstTab !== 'park-tab-transport' || !r.opensOn) fail(T,
+    `getting there is not the first tab and the one that opens (${r.firstTab})`); else ok();
+  if (!r.title) fail(T, 'the planner is not titled "מתי מגיעים ומתי חוזרים"'); else ok();
+  const bad = r.landed.map((x, i) => [i, x]).filter(([, x]) => x[0] < 0 || x[0] > 40 || !x[1]);
+  if (r.chips < 5 || bad.length) fail(T,
+    `chips land under the strip or do not show which was pressed: ${JSON.stringify(bad)}`); else ok();
+  if (!r.valtBus) fail(T, 'Valtournenche to Cervinia offers no bus, or hides that the ski way is long and red'); else ok();
+  if (!r.linksSay) fail(T, 'the timetable buttons do not say they are the operator\'s official pages'); else ok();
+  if (r.folds !== 2 || !r.foldsClosed) fail(T,
+    `the full timetables are not folded away (${r.folds} folds)`); else ok();
+  if (!r.notesOutside) fail(T, 'folding the timetables hid the notes that go with them'); else ok();
+  if (!r.insurance) fail(T, 'car hire does not lead with the excess insurance, where to buy it and the AIG experience'); else ok();
+  if (!r.essayGone) fail(T, 'the deductible comparison or "the first question" is still there'); else ok();
+  if (!r.widestGone) fail(T, 'Malpensa is still "the widest of the four"'); else ok();
+  if (!r.chainsAlways) fail(T, 'car hire does not say winter tyres are rare and chains always work'); else ok();
+  if (r.searchParking !== true) fail(T, `the search entry for parking does not open on parking (${r.searchParking})`); else ok();
+}
+
 await browser.close();
 
 // ── report ────────────────────────────────────────────────────────────────
