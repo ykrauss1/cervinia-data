@@ -1084,7 +1084,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.31';
+  var v='v17.32';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1161,6 +1161,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
   </div>
   <div id="side-menu-links" role="navigation">
     <button onclick="smGo('why')"><span>🏔️</span>למה צ׳רוויניה? · קהילה וקישורים</button>
+    <button onclick="smGo('cost')"><span>💶</span>כמה תכל'ס יעלה לי?</button>
     <button onclick="smGo('about')"><span>ℹ️</span>עלינו</button>
     <button onclick="smGo('contact')"><span>✉️</span>צור קשר</button>
     <button id="sm-install" onclick="smGo('install')"><span>📲</span>התקנת האפליקציה</button>
@@ -2298,6 +2299,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       </div>
       <div style="font-size:0.7rem;color:#7a8794;margin-top:6px;line-height:1.5;">
         התאריכים והנוסעים עוברים לכל השלבים. ניתן לשנות כל שלב בנפרד.</div>
+      <button type="button" onclick="openCost('trip')" class="plan-chip" id="strip-cost"
+        style="margin-top:8px;background:#fff8e6;border-color:#ecd9a8;color:#7a5a1c;font-weight:700;">
+        💶 כמה תכל'ס יעלה?</button>
     </div>
     <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;">שלבי התכנון</div>
     <div style="display:flex;gap:5px;margin-bottom:16px;">
@@ -2786,6 +2790,26 @@ details.fold > .fold-body { padding: 0 13px 12px; }
      agencies and with the consortium, and is rented by email and telephone.
      An Israeli reader has no way of knowing this and no Italian to ask in,
      so the panel ends with a letter it writes for him. -->
+<!-- ══ כמה תכל'ס יעלה לי (stage 4) ══
+     Two doors, one panel: from the trip strip it reads the trip - nights,
+     people, stays - and from the side menu it asks for them. Exact where we
+     know (the ski pass, from the operator's own tariff), a range where we are
+     guessing, and empty where we have nothing to go on: a single precise
+     number would be a lie people plan by. -->
+<div id="costModal" class="modal" onclick="if(event.target===this)closeM('costModal')">
+  <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;padding:24px 22px;">
+    <span class="close-btn" onclick="closeM('costModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;">💶 כמה תכל'ס יעלה לי?</h3>
+    <p style="color:#8a6d1b;background:#fff8e6;border-radius:8px;padding:7px 10px;font-size:0.78rem;margin:0 0 14px;line-height:1.6;">
+      <b>הערכה, לא הצעת מחיר.</b> הסקי פס מחושב מהמחירון הרשמי; השאר טווח, וכל שורה ניתנת לעריכה.</p>
+
+    <div id="cost-inputs" style="background:#f6f9fc;border:1px solid #e1eaf3;border-radius:11px;padding:11px 12px;margin-bottom:14px;"></div>
+    <div id="cost-rows"></div>
+    <div id="cost-coverage" style="display:none;font-size:0.78rem;line-height:1.6;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:#f8fbf9;border:1px solid #dcebe2;"></div>
+    <div id="cost-total" style="margin-top:14px;padding:12px 14px;border-radius:11px;background:#0a192f;color:white;"></div>
+  </div>
+</div>
+
 <div id="localStayModal" class="modal" onclick="if(event.target===this)closeM('localStayModal')">
   <div class="modal-content" style="max-width:620px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('localStayModal')">×</span>
@@ -4871,7 +4895,7 @@ var PANEL_LINKS = {
   help:     'helpModal',     zermatt: 'zermattForecastModal',
   summer:      'summerSkiModal',   'summer-hike':  'summerHikeModal',
   'summer-bike': 'summerBikeModal', 'summer-cross': 'summerCrossModal',
-  'stay-local': 'localStayModal',
+  'stay-local': 'localStayModal', cost: 'costModal',
   // #gear was the equipment panel's own address before its two halves moved
   // into the planner and the hire panel. Links to it are already out there,
   // so it still opens - at the planner, where the buying half went.
@@ -5550,6 +5574,13 @@ function openM(id) {
   // The letter is written the moment the panel opens, and the dates the
   // reader already typed into the planner are carried over - asking a
   // person for the same dates twice is asking him to do our filing.
+  // #cost arrives here without openCost: fill the panel the way the side
+  // menu would, asking for nights and people.
+  if (id === 'costModal' && typeof _costRender === 'function'
+      && !(document.getElementById('cost-rows') || {}).innerHTML) {
+    COST.mode = 'free'; _costDefaults(); _costRecalc(); _costRender();
+    _costRates().then(function () { _costRecalc(); _costRender(); }).catch(function () {});
+  }
   if (id === 'localStayModal' && typeof buildLocalStayMail === 'function') {
     try { initLocalStayPicker(); } catch (e) {}
     try {
@@ -5678,6 +5709,8 @@ var SIDE_MENU_ACTIONS = {
   // after a tap, and from the search box if you knew to look. Those links
   // are the only route to the community, so they get a standing door.
   why:     function () { openM('whyModal'); },
+  // The calculator's second door: no trip to read, so it asks.
+  cost:    function () { openCost('free'); },
   about:   function () { openM('aboutModal'); },
   contact: function () { openM('contactModal'); },
   help:    function () { openM('helpModal'); },
@@ -8088,6 +8121,370 @@ function _stayLetter() {
   openM('localStayModal');
   if (g && n) g.value = n;
   setLocalStayDates(st.ci, st.co);
+}
+
+// ── כמה תכל'ס יעלה לי (stage 4) ─────────────────────────────────────────
+//
+// One panel, two doors. openCost('trip') reads the trip: nights from the
+// strip, people from it, lodging from the stays. openCost('free') - the side
+// menu - asks for nights and people and has no stays to read.
+//
+// Each row is a range [min, max] in euros. Exact rows have min === max.
+// A row the reader typed into is his and is not recomputed; "↺" gives it back.
+// Rows with nothing to go on stay empty and say so, rather than carry a
+// number nobody collected.
+var COST = {
+  mode: 'free', nights: 7, skiDays: null, pass: 'cervinia',
+  bands: null, bandsTouched: false,
+  rows: {}, fx: null, fxTried: false
+};
+var COST_ROWS = [
+  { key: 'flights', icon: '✈️', he: 'טיסות' },
+  { key: 'lodging', icon: '🏨', he: 'אירוח' },
+  { key: 'car',     icon: '🚗', he: 'רכב' },
+  { key: 'skipass', icon: '🎫', he: 'סקי פס' },
+  { key: 'gear',    icon: '🎿', he: 'ציוד' },
+  { key: 'food',    icon: '🍞', he: 'אוכל' },
+  { key: 'misc',    icon: '➕', he: 'שונות' }
+];
+
+function _costFmt(n) {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// ── exchange rates: euros are the unit, shekels the answer people want ──
+async function _costRates() {
+  if (COST.fxTried) return COST.fx;
+  COST.fxTried = true;
+  var tries = [
+    function () {
+      return fetch('https://api.frankfurter.app/latest?from=EUR&to=ILS,USD,CHF')
+        .then(function (r) { return r.json(); })
+        .then(function (j) { return j && j.rates && j.rates.ILS ? j.rates : null; });
+    },
+    function () {
+      return fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json')
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var e = j && j.eur;
+          return e && e.ils ? { ILS: e.ils, USD: e.usd, CHF: e.chf } : null;
+        });
+    }
+  ];
+  for (var i = 0; i < tries.length && !COST.fx; i++) {
+    try { COST.fx = await tries[i](); } catch (e) { COST.fx = null; }
+  }
+  return COST.fx;
+}
+// amount in `cur` -> euros, or null when there is no rate to do it with
+function _costToEur(v, cur) {
+  if (v == null) return null;
+  if (!cur || cur === 'EUR') return v;
+  var r = COST.fx && COST.fx[cur];
+  return r ? v / r : null;
+}
+
+// ── the ski pass, from Cervino S.p.A.'s own tariff ──
+// Bands as the tariff names them. Baby (under 8, with a paying adult) and
+// Over 80 ski free; the other four have a column.
+var COST_BANDS = ['Adult', 'Young', 'Junior', 'Senior', 'Baby', 'Over 80'];
+function _costBandInfo() {
+  var sp = (window._texts && window._texts.skipass) || {};
+  var by = {};
+  (sp.age_bands || []).forEach(function (b) { by[b.name] = b; });
+  return by;
+}
+function _costPassPrice(pass, band, days) {
+  var p = window._texts && window._texts.skipass && window._texts.skipass.prices;
+  var t = p && p[pass];
+  if (!t) return null;
+  if (band === 'Baby' || band === 'Over 80') return 0;
+  var col = (p.columns || []).indexOf(band);
+  if (col < 0) return null;
+  var row = (t.rows || []).filter(function (r) {
+    var m = String(r[0]).match(/(\d+)\s*ימים/);
+    var d = m ? +m[1] : (/יום אחד/.test(r[0]) ? 1 : null);
+    return d === days;
+  })[0];
+  if (!row) return null;
+  var v = parseFloat(String(row[col + 1]).replace(/[^\d.]/g, ''));
+  return isFinite(v) ? v : null;
+}
+function _costSkipass() {
+  var S = COST.skiDays, b = COST.bands, total = 0, who = [], missing = false;
+  COST_BANDS.forEach(function (k) {
+    var n = b[k] || 0;
+    if (!n) return;
+    var one = _costPassPrice(COST.pass, k, S);
+    if (one == null) { missing = true; return; }
+    total += one * n;
+    who.push(n + ' ' + k);
+  });
+  var name = COST.pass === 'zermatt' ? 'פס בינלאומי עם צ\'רמט' : 'פס צ\'רוויניה';
+  if (!who.length && !missing) return { min: null, max: null, note: 'אין גולשים בחישוב' };
+  if (missing) return { min: null, max: null,
+    note: S > 8 ? 'מעל 8 ימים אין במחירון פס רב-יומי — ראו "עונה מלאה" במחירון הסקי פס'
+                : 'אין במחירון מחיר לאחת הקבוצות' };
+  return { min: total, max: total, exact: true,
+    note: name + ' · ' + S + (S === 1 ? ' יום' : ' ימים') + ' · ' + who.join(', ')
+      + ' · מחירון רשמי 2026/27' + (b.Baby ? ' · עד גיל 8 חינם עם מבוגר מלווה' : '') };
+}
+
+// ── rental, from the Genzianella Sport price list on the site ──
+// The list gives 1, 3 and 6 days. Between and beyond them this interpolates,
+// which is why the row is a range and says "בערך".
+function _costRentFor(v, S) {
+  var v1 = v[0], v3 = v[1], v6 = v[2];
+  if (S <= 1) return v1;
+  if (S === 2) return Math.min(2 * v1, v3);
+  if (S === 3) return v3;
+  if (S < 6) return v3 + (S - 3) * (v6 - v3) / 3;
+  if (S === 6) return v6;
+  return v6 + (S - 6) * v6 / 6;
+}
+function _costGear() {
+  var rows = (window._texts && window._texts.rental && window._texts.rental.price_rows) || [];
+  var get = function (re) {
+    var r = rows.filter(function (x) { return re.test(x.label + ' ' + x.note); })[0];
+    return r ? r.v.map(function (s) { return parseFloat(String(s).replace(/[^\d.]/g, '')); }) : null;
+  };
+  var sup = get(/מבוגר.*Superior/), top = get(/מתקדם.*Top/), kid = get(/ילדים.*Junior/);
+  var helm = get(/קסדה/);
+  if (!sup || !top || !kid || !helm) return { min: null, max: null, note: 'מחירון ההשכרה לא נטען' };
+  var S = COST.skiDays, b = COST.bands;
+  var grown = (b.Adult || 0) + (b.Young || 0) + (b.Senior || 0) + (b['Over 80'] || 0);
+  var kids = (b.Junior || 0) + (b.Baby || 0);
+  if (!grown && !kids) return { min: null, max: null, note: 'אין גולשים בחישוב' };
+  // a helmet is required by law for children in Italy, so it is in both ends
+  var kidOne = _costRentFor(kid, S) + _costRentFor(helm, S);
+  var lo = grown * _costRentFor(sup, S) + kids * kidOne;
+  var hi = grown * (_costRentFor(top, S) + _costRentFor(helm, S)) + kids * kidOne;
+  return { min: lo, max: hi,
+    note: 'סקי ומגפיים ל-' + S + (S === 1 ? ' יום' : ' ימים') + ', בערך · מחירון Genzianella Sport'
+      + ' · מי שמביא ציוד משלו — ערכו את השורה' };
+}
+
+// ── flights, from the daily snapshot the site already keeps ──
+function _costFlights() {
+  if (COST.mode !== 'trip' || !TRIP.from) return { min: null, max: null,
+    note: 'הזינו מה שמצאתם, או פתחו את המחשבון מתוך תכנון הטיול' };
+  var F = window._FLIGHTS;
+  var n = Math.round((TRIP.to - TRIP.from) / 86400000);
+  var cal = F && F.cal && F.cal.MXP && F.cal.MXP[String(n)];
+  var day = _isoDay(TRIP.from);
+  if (!cal || cal[day] == null) return { min: null, max: null,
+    note: 'אין מחיר יומי לתאריכים האלה' + (F ? ' (המחיר היומי מכסה טיולים של '
+      + (F.nights || []).join('–') + ' לילות)' : '') + ' — הזינו מה שמצאתם' };
+  // the day itself, and the most the same trip costs three days either side:
+  // prices move, and the snapshot is a day old
+  var lo = cal[day], hi = lo;
+  for (var k = -3; k <= 3; k++) {
+    var d = new Date(TRIP.from.getFullYear(), TRIP.from.getMonth(), TRIP.from.getDate() + k);
+    var v = cal[_isoDay(d)];
+    if (v != null && v > hi) hi = v;
+  }
+  var pax = TRIP.adults + TRIP.children;
+  var cur = F.currency || 'USD';
+  var eLo = _costToEur(lo * pax, cur), eHi = _costToEur(hi * pax, cur);
+  var per = (cur === 'USD' ? '$' : cur + ' ') + lo + (hi > lo ? '–' + hi : '');
+  if (eLo == null) return { min: null, max: null,
+    note: 'מלפנסה הלוך-חזור ' + per + ' לאדם · אין שער המרה כרגע, אז לא נכלל בסכום' };
+  return { min: eLo, max: eHi,
+    note: 'מלפנסה הלוך-חזור · ' + per + ' לאדם × ' + pax + ' · מחיר יומי, מתעדכן פעם ביום' };
+}
+
+// ── lodging: the stays, priced by the budget the reader gave the search ──
+function _costLodging() {
+  if (COST.mode !== 'trip' || !TRIP.stays.length) return { min: null, max: null,
+    note: 'הזינו סכום כולל ללינה' };
+  var nights = TRIP.stays.reduce(function (a, st) { return a + _stayNights(st); }, 0);
+  var box = document.querySelector('#tpanel-hotel .stay-filters');
+  var num = function (sel) {
+    var el = box && box.querySelector(sel), v = el ? parseInt(el.value, 10) : NaN;
+    return isFinite(v) && v > 0 ? v : null;
+  };
+  var cur = (box && box.querySelector('.sf-cur') && box.querySelector('.sf-cur').value) || 'EUR';
+  var a = num('.sf-min'), b = num('.sf-max');
+  var count = nights + ' לילות ב-' + (TRIP.stays.length === 1 ? 'שהייה אחת' : TRIP.stays.length + ' שהיות');
+  if (a == null && b == null) return { min: null, max: null,
+    note: count + ' · הזינו תקציב ללילה בחיפוש הלינה, או סכום כאן' };
+  var lo = _costToEur((a != null ? a : b) * nights, cur), hi = _costToEur((b != null ? b : a) * nights, cur);
+  if (lo == null) return { min: null, max: null, note: count + ' · אין שער המרה כרגע' };
+  return { min: lo, max: hi, note: count + ' · לפי התקציב ללילה שהוזן בחיפוש הלינה' };
+}
+
+var COST_CALC = {
+  flights: _costFlights,
+  lodging: _costLodging,
+  car:  function () { return { min: null, max: null, note: 'הזינו מה שמצאתם בחיפוש הרכב' }; },
+  skipass: _costSkipass,
+  gear: _costGear,
+  food: function () { return { min: null, max: null, note: 'לא אספנו מחירי מזון — הזינו הערכה משלכם' }; },
+  misc: function () { return { min: null, max: null, note: 'חניה, העברות, ביטוח, שיעורים…' }; }
+};
+
+// ── state in, state out ──
+function _costDefaults() {
+  if (COST.mode === 'trip' && TRIP.from) {
+    COST.nights = Math.round((TRIP.to - TRIP.from) / 86400000);
+  }
+  if (COST.skiDays == null) COST.skiDays = Math.max(1, Math.min(8, COST.nights - 1));
+  if (!COST.bands || (!COST.bandsTouched && COST.mode === 'trip')) {
+    COST.bands = { Adult: 2, Young: 0, Junior: 0, Senior: 0, Baby: 0, 'Over 80': 0 };
+    if (COST.mode === 'trip') { COST.bands.Adult = TRIP.adults; COST.bands.Junior = TRIP.children; }
+  }
+}
+
+function _costRecalc() {
+  COST_ROWS.forEach(function (r) {
+    var cur = COST.rows[r.key];
+    var calc = COST_CALC[r.key]();
+    if (cur && cur.touched) { cur.note = calc.note; cur.calc = calc; return; }
+    COST.rows[r.key] = { min: calc.min, max: calc.max, exact: !!calc.exact, note: calc.note,
+                         touched: false, calc: calc };
+  });
+}
+
+function openCost(mode) {
+  var next = mode === 'trip' ? 'trip' : 'free';
+  // People set by hand through one door belong to that door: the trip's
+  // travellers must not be replaced by a family typed into the side menu.
+  if (next !== COST.mode) { COST.bands = null; COST.bandsTouched = false; }
+  COST.mode = next;
+  if (COST.mode === 'trip') COST.skiDays = null;
+  _costDefaults();
+  openM('costModal');
+  _costRecalc();
+  _costRender();
+  // the rate and the flight snapshot arrive late; the panel fills in when they do
+  Promise.all([_costRates(), typeof loadFlights === 'function' ? loadFlights() : null])
+    .then(function () { _costRecalc(); _costRender(); })
+    .catch(function () {});
+}
+
+function _costSet(what, v) {
+  v = parseInt(v, 10);
+  if (what === 'nights' && isFinite(v) && v > 0) {
+    COST.nights = v;
+    COST.skiDays = Math.max(1, Math.min(8, v - 1));
+  } else if (what === 'skiDays' && isFinite(v) && v > 0) {
+    COST.skiDays = v;
+  } else if (what === 'pass') {
+    COST.pass = v === 1 || String(v) === 'zermatt' ? 'zermatt' : 'cervinia';
+  }
+  _costRecalc(); _costRender();
+}
+function _costPass(p) { COST.pass = p === 'zermatt' ? 'zermatt' : 'cervinia'; _costRecalc(); _costRender(); }
+function _costBand(k, d) {
+  COST.bands[k] = Math.max(0, (COST.bands[k] || 0) + d);
+  COST.bandsTouched = true;
+  _costRecalc(); _costRender();
+}
+// a row typed into belongs to the reader
+function _costEdit(key, which, v) {
+  var r = COST.rows[key];
+  var n = parseFloat(v);
+  r[which] = isFinite(n) && n >= 0 ? n : null;
+  r.touched = true; r.exact = false;
+  _costTotal();
+  var b = document.getElementById('cost-reset-' + key);
+  if (b) b.style.visibility = 'visible';
+}
+function _costReset(key) {
+  var c = COST_CALC[key]();
+  COST.rows[key] = { min: c.min, max: c.max, exact: !!c.exact, note: c.note, touched: false, calc: c };
+  _costRender();
+}
+
+function _costRender() {
+  var inp = document.getElementById('cost-inputs');
+  if (!inp) return;
+  var info = _costBandInfo();
+  var trip = COST.mode === 'trip' && TRIP.from;
+  var counter = function (label, k) {
+    return '<div style="display:flex;align-items:center;gap:5px;background:white;border:1px solid #dbe5ef;border-radius:8px;padding:4px 7px;">'
+      + '<span style="font-size:0.7rem;color:#666;">' + label + '</span>'
+      + '<button class="c-btn" onclick="_costBand(\'' + k + '\',-1)" style="width:20px;height:20px;font-size:0.75rem;">-</button>'
+      + '<b id="cost-band-' + k.replace(/\s/g, '') + '">' + (COST.bands[k] || 0) + '</b>'
+      + '<button class="c-btn" onclick="_costBand(\'' + k + '\',1)" style="width:20px;height:20px;font-size:0.75rem;">+</button></div>';
+  };
+  var bandLabel = function (k) {
+    var b = info[k];
+    return b && typeof clAgeLabel === 'function' ? escHtml(clAgeLabel(b)) : k;
+  };
+  inp.innerHTML =
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:9px;">'
+    + (trip
+        ? '<span style="font-size:0.8rem;color:#16314f;"><b>' + COST.nights + ' לילות</b> מהטיול</span>'
+        : '<label style="font-size:0.78rem;color:#555;">לילות <input id="cost-nights" type="number" min="1" max="30" value="' + COST.nights
+          + '" oninput="_costSet(\'nights\',this.value)" dir="ltr" style="width:56px;padding:5px 7px;border:1.5px solid #cfdcea;border-radius:7px;font-family:inherit;"></label>')
+    + '<label style="font-size:0.78rem;color:#555;">ימי סקי <input id="cost-skidays" type="number" min="1" max="30" value="' + COST.skiDays
+      + '" oninput="_costSet(\'skiDays\',this.value)" dir="ltr" style="width:56px;padding:5px 7px;border:1.5px solid #cfdcea;border-radius:7px;font-family:inherit;"></label>'
+    + '<label class="ls-opt"><input type="radio" name="cost-pass" value="cervinia"' + (COST.pass === 'cervinia' ? ' checked' : '')
+      + ' onchange="_costPass(this.value)"> פס צ\'רוויניה</label>'
+    + '<label class="ls-opt"><input type="radio" name="cost-pass" value="zermatt"' + (COST.pass === 'zermatt' ? ' checked' : '')
+      + ' onchange="_costPass(this.value)"> בינלאומי עם צ\'רמט</label>'
+    + '</div>'
+    + '<div style="font-size:0.72rem;color:#7a8794;margin-bottom:5px;">גולשים לפי קבוצות הגיל של המחירון</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+    + COST_BANDS.map(function (k) { return counter(bandLabel(k), k); }).join('')
+    + '</div>';
+
+  var rows = document.getElementById('cost-rows');
+  rows.innerHTML = COST_ROWS.map(function (r) {
+    var x = COST.rows[r.key] || {};
+    // an exact row keeps its cents - €912.50 is what the tariff says
+    var val = function (v) { return v == null ? '' : (x.exact ? Math.round(v * 100) / 100 : Math.round(v)); };
+    var field = function (which, ph) {
+      return '<input id="cost-' + r.key + '-' + which + '" type="number" min="0" step="10" inputmode="numeric" dir="ltr" placeholder="' + ph + '"'
+        + ' value="' + val(x[which]) + '" oninput="_costEdit(\'' + r.key + '\',\'' + which + '\',this.value)"'
+        + ' style="width:74px;padding:6px 7px;border:1.5px solid #dde4ec;border-radius:7px;font-size:0.84rem;font-family:inherit;">';
+    };
+    return '<div class="cost-row" id="cost-row-' + r.key + '" style="padding:9px 0;border-bottom:1px solid #eef2f6;">'
+      + '<div style="display:flex;align-items:center;gap:8px;">'
+      + '<span style="flex:1;font-size:0.88rem;"><b>' + r.icon + ' ' + r.he + '</b>'
+      + (x.exact ? ' <span style="font-size:0.68rem;color:#1e8449;background:#eafaf1;border-radius:6px;padding:1px 6px;">מדויק</span>' : '')
+      + '</span>'
+      + '<span style="font-size:0.75rem;color:#888;">€</span>' + field('min', 'מ-')
+      + '<span style="color:#aaa;">–</span>' + field('max', 'עד')
+      + '<button id="cost-reset-' + r.key + '" onclick="_costReset(\'' + r.key + '\')" title="חזרה לחישוב" aria-label="חזרה לחישוב"'
+      + ' style="visibility:' + (x.touched ? 'visible' : 'hidden') + ';border:none;background:none;cursor:pointer;color:#1a73e8;font-size:0.9rem;">↺</button>'
+      + '</div>'
+      + '<div id="cost-note-' + r.key + '" style="font-size:0.72rem;color:#7a8794;margin-top:3px;line-height:1.5;">' + (x.note || '') + '</div>'
+      + '</div>';
+  }).join('');
+
+  var cv = document.getElementById('cost-coverage');
+  var line = trip && typeof _stayCoverageLine === 'function' ? _stayCoverageLine() : '';
+  if (cv) {
+    cv.innerHTML = line ? '🏨 בדיקת האירוח: ' + line : '';
+    cv.style.display = line ? 'block' : 'none';
+  }
+  _costTotal();
+}
+
+function _costTotal() {
+  var lo = 0, hi = 0, any = false, left = [];
+  COST_ROWS.forEach(function (r) {
+    var x = COST.rows[r.key] || {};
+    var a = x.min, b = x.max;
+    if (a == null && b == null) { left.push(r.he); return; }
+    any = true;
+    lo += (a != null ? a : b);
+    hi += (b != null ? b : a);
+  });
+  var box = document.getElementById('cost-total');
+  if (!box) return;
+  if (!any) { box.innerHTML = '<span style="opacity:0.8;">אין עדיין סכום — מלאו שורה אחת לפחות</span>'; return; }
+  var eur = '€' + _costFmt(lo) + (hi > lo ? '–€' + _costFmt(hi) : '');
+  var ils = COST.fx && COST.fx.ILS
+    ? '≈ ₪' + _costFmt(lo * COST.fx.ILS) + (hi > lo ? '–₪' + _costFmt(hi * COST.fx.ILS) : '')
+    : 'שער השקל לא זמין כרגע';
+  box.innerHTML = '<div style="font-size:0.78rem;opacity:0.75;margin-bottom:3px;">סה"כ משוער</div>'
+    + '<div id="cost-total-eur" dir="ltr" style="font-size:1.35rem;font-weight:800;text-align:right;">' + eur + '</div>'
+    // numbers run left to right; the sentence saying there is no rate does not
+    + '<div id="cost-total-ils"' + (COST.fx && COST.fx.ILS ? ' dir="ltr"' : '') + ' style="font-size:0.95rem;opacity:0.9;text-align:right;">' + ils + '</div>'
+    + (left.length ? '<div id="cost-left" style="font-size:0.72rem;opacity:0.7;margin-top:6px;">לא נכלל: ' + left.join(' · ') + '</div>' : '');
 }
 
 // A search that ran is a stage passed - the strip shows it on its tab.

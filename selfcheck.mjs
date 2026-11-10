@@ -8158,6 +8158,142 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── how much it really costs ─────────────────────────────────────────
+// Stage 4. Exact where we know (the ski pass, from the operator's tariff),
+// a range where we guess (gear, flights, lodging), empty where we have
+// nothing (food) - and every row the reader's to change. Two doors, one
+// panel: the side menu asks; the trip strip reads the trip.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const $ = id => document.getElementById(id);
+    const T = window._texts;
+    const P = T.skipass.prices, cols = P.columns;
+    const price = (pass, band, days) => {
+      const row = P[pass].rows.find(x => { const m = String(x[0]).match(/(\d+)\s*ימים/); return (m ? +m[1] : (/יום אחד/.test(x[0]) ? 1 : 0)) === days; });
+      return parseFloat(row[cols.indexOf(band) + 1]);
+    };
+    const rent = T.rental.price_rows;
+    const rv = re => rent.find(x => re.test(x.label + ' ' + x.note)).v.map(v => parseFloat(v.replace(/[^\d.]/g, '')));
+    out.expect = {
+      adult6: 2 * price('cervinia', 'Adult', 6),
+      zermatt6: 2 * price('zermatt', 'Adult', 6),
+      gearLo: 2 * rv(/מבוגר.*Superior/)[2],
+      gearHi: 2 * (rv(/מתקדם.*Top/)[2] + rv(/קסדה/)[2])
+    };
+    // no network here: a rate and a snapshot of our own
+    COST.fx = { ILS: 4, USD: 1.25, CHF: 1 }; COST.fxTried = true;
+    // a trip on file and a snapshot that prices it - the side-menu door must
+    // still not use them: it was not asked about that trip
+    window._flTried = true;
+    TRIP.from = new Date(2027, 0, 10); TRIP.to = new Date(2027, 0, 17);
+    window._FLIGHTS = { currency: 'USD', nights: [7], cal: { MXP: { '7': { '2027-01-10': 200 } } } };
+    COST.rows = {}; COST.bands = null; COST.bandsTouched = false; COST.pass = 'cervinia'; COST.skiDays = null;
+
+    // ── door 1: the side menu ──
+    out.inMenu = !![...document.querySelectorAll('#side-menu-links button')].find(b => /כמה תכל'ס יעלה/.test(b.textContent));
+    SIDE_MENU_ACTIONS.cost();
+    await new Promise(res => setTimeout(res, 60));
+    out.freeOpen = getComputedStyle($('costModal')).display !== 'none';
+    out.freeAsks = !!$('cost-nights');
+    out.freeDays = COST.skiDays;
+    out.skipass = [COST.rows.skipass.min, COST.rows.skipass.max, COST.rows.skipass.exact];
+    out.gear = [COST.rows.gear.min, COST.rows.gear.max];
+    out.freeFlights = COST.rows.flights.min;
+    out.foodEmpty = COST.rows.food.min == null && /לא אספנו מחירי מזון/.test(COST.rows.food.note);
+    out.estimateSaid = /הערכה, לא הצעת מחיר/.test($('costModal').textContent);
+
+    _costPass('zermatt');
+    out.zermatt = COST.rows.skipass.min;
+    _costPass('cervinia');
+    _costBand('Baby', 1);
+    out.babyFree = COST.rows.skipass.min === out.expect.adult6 && /עד גיל 8 חינם/.test(COST.rows.skipass.note);
+    _costBand('Baby', -1);
+    _costSet('skiDays', 9);
+    out.over8 = [COST.rows.skipass.min, /מעל 8 ימים/.test(COST.rows.skipass.note)];
+    _costSet('skiDays', 6);
+
+    // a row typed into is the reader's
+    _costEdit('food', 'min', '300'); _costEdit('food', 'max', '500');
+    _costEdit('skipass', 'min', '600'); _costEdit('skipass', 'max', '600');
+    _costSet('skiDays', 5);
+    out.handKept = [COST.rows.food.min, COST.rows.skipass.min];
+    out.total = $('cost-total').innerText;
+    _costReset('skipass');
+    out.resetBack = COST.rows.skipass.exact && COST.rows.skipass.min === 2 * price('cervinia', 'Adult', 5);
+    _costReset('food');
+    out.foodBack = COST.rows.food.min;
+    closeM('costModal');
+
+    // ── door 2: the trip ──
+    openM('hotelModal'); planGo('trip');
+    TRIP.stays = []; TRIP.stayAt = 0;
+    TRIP_DATE_IDS.concat(Object.keys(TRIP_PAX)).forEach(id => $(id).removeAttribute('data-touched'));
+    stripSetDates(new Date(2027, 0, 10), new Date(2027, 0, 17));
+    _tripSetPax(2, 1);
+    switchTripTab('hotel');
+    TRIP.stays = [{ ci: '2027-01-10', co: '2027-01-14', place: 'cervinia', way: 'site', touched: true },
+                  { ci: '2027-01-14', co: '2027-01-16', place: 'milano', way: 'site', touched: true }];
+    const hb = document.querySelector('#tpanel-hotel .stay-filters');
+    hb.querySelector('.sf-min').value = '100'; hb.querySelector('.sf-max').value = '150';
+    hb.querySelector('.sf-cur').value = 'EUR';
+    window._FLIGHTS = { currency: 'USD', nights: [7], cal: { MXP: { '7': {
+      '2027-01-08': 260, '2027-01-10': 200, '2027-01-12': 225 } } } };
+    $('strip-cost').click();
+    await new Promise(res => setTimeout(res, 60));
+    out.tripNights = COST.nights;
+    out.tripAsksNot = !$('cost-nights');
+    out.tripBands = [COST.bands.Adult, COST.bands.Junior];
+    out.lodging = [COST.rows.lodging.min, COST.rows.lodging.max];
+    out.flights = [COST.rows.flights.min, COST.rows.flights.max];
+    out.coverage = ($('cost-coverage').textContent || '');
+    out.ils = $('cost-total-ils') ? $('cost-total-ils').textContent : '';
+    window._FLIGHTS = { currency: 'USD', nights: [3, 4], cal: { MXP: {} } };
+    _costReset('flights');
+    out.noSnapshot = [COST.rows.flights.min, /אין מחיר יומי/.test(COST.rows.flights.note)];
+    closeM('costModal'); closeM('hotelModal');
+    hb.querySelector('.sf-min').value = ''; hb.querySelector('.sf-max').value = '';
+    TRIP.stays = []; window._FLIGHTS = null;
+    return out;
+  });
+
+  const T = 'how much it really costs';
+  const near1 = (a, b) => a != null && Math.abs(a - b) < 0.6;
+  if (!r.inMenu) fail(T, 'the side menu has no way to the calculator'); else ok();
+  if (!r.freeOpen || !r.freeAsks) fail(T, 'the side-menu door does not open a panel that asks for nights'); else ok();
+  if (r.freeDays !== 6) fail(T, `7 nights default to ${r.freeDays} ski days, not 6`); else ok();
+  if (!near1(r.skipass[0], r.expect.adult6) || r.skipass[0] !== r.skipass[1] || !r.skipass[2]) fail(T,
+    `the ski pass is not the tariff's exact price: ${r.skipass} vs ${r.expect.adult6}`); else ok();
+  if (!near1(r.zermatt, r.expect.zermatt6)) fail(T,
+    `the international pass is not priced from the Zermatt table (${r.zermatt})`); else ok();
+  if (!r.babyFree) fail(T, 'a child under 8 is charged, or the panel does not say why it is free'); else ok();
+  if (r.over8[0] != null || !r.over8[1]) fail(T,
+    '9 ski days got a price the tariff does not have'); else ok();
+  if (!near1(r.gear[0], r.expect.gearLo) || !near1(r.gear[1], r.expect.gearHi)) fail(T,
+    `gear is not the rental list's range: ${r.gear} vs ${r.expect.gearLo}-${r.expect.gearHi}`); else ok();
+  if (r.freeFlights != null) fail(T, 'the side-menu door invented a flight price with no dates'); else ok();
+  if (!r.foodEmpty) fail(T, 'food carries a number nobody collected'); else ok();
+  if (!r.estimateSaid) fail(T, 'the panel does not say it is an estimate'); else ok();
+  if (r.handKept[0] !== 300 || r.handKept[1] !== 600) fail(T,
+    `rows typed into were recomputed: ${r.handKept}`); else ok();
+  if (!/לא נכלל:.*רכב/.test(r.total) || !/₪/.test(r.total)) fail(T,
+    `the total does not say what it leaves out, or has no shekels: "${r.total}"`); else ok();
+  if (!r.resetBack || r.foodBack != null) fail(T, '"↺" does not give the row back to the calculation'); else ok();
+  if (r.tripNights !== 7 || !r.tripAsksNot) fail(T,
+    'the trip door asks for nights the trip already has'); else ok();
+  if (r.tripBands[0] !== 2 || r.tripBands[1] !== 1) fail(T,
+    `the trip's 2 adults and 1 child came in as ${r.tripBands}`); else ok();
+  if (!near1(r.lodging[0], 600) || !near1(r.lodging[1], 900)) fail(T,
+    `6 nights in two stays at €100-150 came out ${r.lodging}`); else ok();
+  if (!near1(r.flights[0], 200 * 3 / 1.25) || !near1(r.flights[1], 260 * 3 / 1.25)) fail(T,
+    `flights are not the snapshot's day and its week around, for 3, in euros: ${r.flights}`); else ok();
+  if (!/חסר לילה אחד: 16\.1/.test(r.coverage)) fail(T,
+    `the calculator does not see the night nobody covers: "${r.coverage}"`); else ok();
+  if (!/₪/.test(r.ils)) fail(T, 'no shekels in the total'); else ok();
+  if (r.noSnapshot[0] != null || !r.noSnapshot[1]) fail(T,
+    'with no snapshot for the dates, flights still show a number'); else ok();
+}
+
 await browser.close();
 
 // ── report ────────────────────────────────────────────────────────────────
