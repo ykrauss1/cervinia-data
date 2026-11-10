@@ -8004,6 +8004,160 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── lodging is a list of stays ───────────────────────────────────────
+// Stage 3. Four nights in Cervinia and two in Milan are two stays, each
+// with its own nights, place and way of being found; the letter works on a
+// stay, not on the trip; and the list says when a night is missing.
+{
+  const fpPath3 = near('node_modules/flatpickr/dist/flatpickr.min.js');
+  if (!fs.existsSync(fpPath3)) {
+    fail('lodging is a list of stays',
+      'flatpickr is not installed - run: npm install --no-save flatpickr@4.6.13');
+  } else {
+  const r = await page.evaluate(async () => {
+    if (typeof flatpickr === 'undefined') return { noFp: true };
+    const out = {};
+    const D = (y, m, d) => new Date(y, m - 1, d);
+    const $ = id => document.getElementById(id);
+    const vis = id => !!$(id) && getComputedStyle($(id)).display !== 'none';
+    const cov = () => ($('stay-coverage') || {}).textContent || '';
+    const byHand = (id, a, b) => {
+      const el = $(id); el._picking = true;
+      el._flatpickr.setDate([a, b], true);
+      el._picking = false;
+    };
+    initFlatpickr();
+    openM('hotelModal');
+    planGo('trip');
+    TRIP.from = TRIP.to = null; TRIP.adults = 2; TRIP.children = 1;
+    TRIP.stays = []; TRIP.stayAt = 0;
+    TRIP_DATE_IDS.concat(Object.keys(TRIP_PAX)).forEach(id => $(id).removeAttribute('data-touched'));
+    stripSetDates(D(2027, 1, 10), D(2027, 1, 17));
+    _tripSetPax(2, 1);
+    switchTripTab('hotel');
+
+    out.listShown = vis('stay-list');
+    out.first = JSON.stringify(TRIP.stays.map(s => [s.ci, s.co]));
+    stripSetDates(D(2027, 1, 11), D(2027, 1, 18));
+    out.firstFollows = TRIP.stays[0] && TRIP.stays[0].ci;
+    stripSetDates(D(2027, 1, 10), D(2027, 1, 17));
+
+    byHand('hotel-dates', D(2027, 1, 10), D(2027, 1, 14));
+    out.firstByHand = TRIP.stays[0].co + '/' + TRIP.stays[0].touched;
+    out.covHole = cov();
+
+    _stayAdd();
+    out.added = TRIP.stays[1] ? TRIP.stays[1].ci + '/' + TRIP.stays[1].co : null;
+    out.addedActive = TRIP.stayAt;
+    out.fieldShowsNew = $('hotel-dates').getAttribute('data-ci');
+    out.covFull = cov();
+
+    byHand('hotel-dates', D(2027, 1, 14), D(2027, 1, 16));
+    out.covMissing = cov();
+
+    $('stay-place').value = 'milano'; _stayEdit();
+    searchHotel();
+    const links = [...$('hotel-results').querySelectorAll('a')].map(a => a.href);
+    out.milanLinks = {
+      booking: links.some(h => /booking\.com.*ss=Milano/.test(h)),
+      airbnb: links.length === 0 || true,
+      notCervinia: !links.some(h => /Breuil-Cervinia/.test(h)),
+      header: /שהייה 2/.test($('hotel-results').textContent)
+    };
+    document.querySelector('input[name="stay-way"][value="direct"]').checked = true;
+    _stayEdit();
+    out.milanDirectRefused = TRIP.stays[1].way;
+
+    // stay 1: by letter
+    _stayPick(0);
+    out.pickedField = $('hotel-dates').getAttribute('data-ci') + '/' + $('hotel-dates').getAttribute('data-co');
+    out.pickedPlace = $('stay-place').value;
+    document.querySelector('input[name="stay-way"][value="direct"]').checked = true;
+    _stayEdit();
+    out.letterBtn = vis('stay-letter-btn');
+    out.searchBtn = vis('hotel-search-btn');
+    $('stay-letter-btn').click();
+    await new Promise(res => setTimeout(res, 50));
+    const ld = $('ls-dates');
+    out.letter = {
+      open: getComputedStyle($('localStayModal')).display !== 'none',
+      dates: ld.getAttribute('data-ci') + '/' + ld.getAttribute('data-co'),
+      guests: $('ls-guests').value
+    };
+    closeM('localStayModal');
+
+    // the strip moves; stays a hand set do not
+    stripSetDates(D(2027, 1, 11), D(2027, 1, 18));
+    out.handStaysKept = TRIP.stays.map(s => s.ci).join(',');
+    stripSetDates(D(2027, 1, 10), D(2027, 1, 17));
+
+    // two stays on one night
+    _stayPick(1);
+    byHand('hotel-dates', D(2027, 1, 13), D(2027, 1, 17));
+    out.covDouble = cov();
+
+    _stayDrop(1);
+    out.afterDrop = TRIP.stays.length + '/' + TRIP.stayAt + '/' + $('hotel-dates').getAttribute('data-ci');
+
+    // a search alone is one stay, in Cervinia, found on the sites
+    TRIP.stays[0].place = 'milano';
+    TRIP.stays[0].way = 'direct';
+    planGo('hotel');
+    out.solo = {
+      list: vis('stay-list'), edit: vis('stay-edit'),
+      search: vis('hotel-search-btn'), letter: vis('stay-letter-btn')
+    };
+    searchHotel();
+    out.soloCervinia = [...$('hotel-results').querySelectorAll('a')]
+      .some(a => /booking\.com.*ss=Breuil-Cervinia/.test(a.href));
+    TRIP.stays[0].place = 'cervinia'; TRIP.stays[0].way = 'site';
+    closeM('hotelModal');
+    return out;
+  });
+
+  const T = 'lodging is a list of stays';
+  if (r.noFp) { fail(T, 'flatpickr did not load'); }
+  else {
+  if (!r.listShown) fail(T, 'the trip\'s lodging screen shows no list of stays'); else ok();
+  if (r.first !== '[["2027-01-10","2027-01-17"]]') fail(T,
+    `the first stay was not born from the trip: ${r.first}`); else ok();
+  if (r.firstFollows !== '2027-01-11') fail(T,
+    'the first stay, untouched, did not follow the strip'); else ok();
+  if (r.firstByHand !== '2027-01-14/true') fail(T,
+    `the lodging field moved by hand did not move its stay (${r.firstByHand})`); else ok();
+  if (!/חסרים 3 לילות/.test(r.covHole)) fail(T,
+    `a stay of 4 nights in a 7-night trip does not say 3 are missing: "${r.covHole}"`); else ok();
+  if (r.added !== '2027-01-14/2027-01-17' || r.addedActive !== 1 || r.fieldShowsNew !== '2027-01-14') fail(T,
+    `"הוסף שהייה" did not open on the first uncovered nights (${r.added}, active ${r.addedActive})`); else ok();
+  if (!/כל 7 הלילות מכוסים/.test(r.covFull)) fail(T,
+    `two stays covering the trip do not say so: "${r.covFull}"`); else ok();
+  if (!/חסר לילה אחד: 16\.1/.test(r.covMissing)) fail(T,
+    `one night left uncovered is not named: "${r.covMissing}"`); else ok();
+  if (!r.milanLinks.booking || !r.milanLinks.notCervinia) fail(T,
+    'a stay in Milan still searches Breuil-Cervinia'); else ok();
+  if (!r.milanLinks.header) fail(T, 'the results do not say which stay they are for'); else ok();
+  if (r.milanDirectRefused !== 'site') fail(T,
+    'a stay in Milan took "פנייה ישירה" - the letter is for agencies in the valley'); else ok();
+  if (r.pickedField !== '2027-01-10/2027-01-14' || r.pickedPlace !== 'cervinia') fail(T,
+    `picking stay 1 did not bring its own dates and place back (${r.pickedField}, ${r.pickedPlace})`); else ok();
+  if (!r.letterBtn || r.searchBtn) fail(T,
+    'a stay found by letter still shows a search, or no letter'); else ok();
+  if (!r.letter.open || r.letter.dates !== '2027-01-10/2027-01-14' || r.letter.guests !== '3') fail(T,
+    `the letter is not for this stay: ${JSON.stringify(r.letter)}`); else ok();
+  if (r.handStaysKept !== '2027-01-10,2027-01-14') fail(T,
+    `stays set by hand moved with the strip (${r.handStaysKept})`); else ok();
+  if (!/לילה אחד מכוסה פעמיים: 13\.1/.test(r.covDouble)) fail(T,
+    `a night booked twice is not named: "${r.covDouble}"`); else ok();
+  if (r.afterDrop !== '1/0/2027-01-10') fail(T,
+    `removing stay 2 left the wrong stay on screen (${r.afterDrop})`); else ok();
+  if (r.solo.list || r.solo.edit || !r.solo.search || r.solo.letter) fail(T,
+    `a search alone shows the trip's stays (${JSON.stringify(r.solo)})`); else ok();
+  if (!r.soloCervinia) fail(T,
+    'a search alone took its place from a stay in the trip'); else ok();
+  }
+  }
+}
+
 await browser.close();
 
 // ── report ────────────────────────────────────────────────────────────────
