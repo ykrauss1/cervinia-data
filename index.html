@@ -798,11 +798,37 @@ M6.1 15.5l-3.2.9M6.1 15.5l-.9 3.2M17.9 8.5l3.2.9M17.9 8.5l.9-3.2'/></svg>") no-r
     /* the one card that leaves the planner instead of switching screens */
     .plan-card-out { background: #fffdf5; border-color: #ecd9a8; }
     .plan-card-out:hover { border-color: #d9bc72; box-shadow: 0 3px 12px rgba(180,140,40,.16); }
+    /* The menu is two groups now - what you came to search for, and what you
+       read before searching - so each group needs a quiet name above it. */
+    .plan-grp { position: relative; z-index: 1; font-size: 0.72rem; font-weight: 700;
+            color: #5d7790; margin: 3px 3px -3px; }
+    .plan-grp + .plan-grp { margin-top: 10px; }
+    .plan-card + .plan-grp, .plan-strip + .plan-grp { margin-top: 9px; }
+    /* Not a fourth sibling of the three searches: it is those same three
+       screens with a frame around them, so it reads as a different kind of
+       thing. Wider, bordered, and set apart. */
+    .plan-strip { display: flex; align-items: center; gap: 12px; width: 100%;
+            padding: 13px; margin-top: 4px; position: relative; z-index: 1;
+            border: 1.5px solid #9cc6ec; border-radius: 13px; cursor: pointer;
+            font-family: inherit; text-align: right; color: #0f2c4d;
+            background: linear-gradient(135deg, #ffffff 0%, #e9f3fd 100%);
+            box-shadow: 0 1px 3px rgba(16,58,98,.08);
+            transition: border-color .15s, box-shadow .15s, transform .08s; }
+    .plan-strip:hover { border-color: #5fa3e0; box-shadow: 0 3px 14px rgba(26,115,232,.2); }
+    .plan-strip:active { transform: scale(.985); }
+    .plan-strip .plan-ico { background: #dceafa; }
+    /* the cards that explain rather than search - present, but not competing
+       with the three a visitor usually came for */
+    .plan-card-soft { padding: 11px 13px; box-shadow: none; }
+    .plan-card-soft:not(.plan-card-out) { background: #fbfdff; }
+    .plan-card-soft .plan-txt b { font-size: 0.88rem; }
     .plan-ico { display: flex; align-items: center; justify-content: center;
             width: 42px; height: 42px; flex: 0 0 auto; border-radius: 11px;
             background: #eef6fe; font-size: 1.45rem; line-height: 1; }
     .plan-card-out .plan-ico { background: #fdf4e0; }
     .plan-ico svg { width: 25px; height: 25px; }
+    .plan-card-soft .plan-ico { width: 34px; height: 34px; font-size: 1.15rem; border-radius: 9px; }
+    .plan-card-soft .plan-ico svg { width: 20px; height: 20px; }
     .plan-txt { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
     .plan-txt b { font-size: 0.95rem; }
     .plan-txt small { font-size: 0.735rem; color: #5d7790; line-height: 1.45; }
@@ -1055,7 +1081,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.24';
+  var v='v17.25';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1714,26 +1740,52 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          buried the other two and closing it again meant scrolling back past
          all of it. The planner now opens on a menu and shows one at a time,
          with a bar that stays on screen to get back or step sideways. -->
+    <!-- The menu asks what you came for before anything else. The three
+         searches used to be ONE card - "חיפוש טיסה, רכב ולינה" - with four tabs
+         inside it opening on "הכל", so somebody who wanted a flight went two
+         levels down and landed on a combined search he never asked for. They
+         are top-level now and each takes the whole screen.
+         The strip below them is not a fourth sibling: it is those same three
+         screens with a frame around them. -->
     <div id="plan-hub">
-      <button class="plan-card" onclick="planGo('when')">
+      <div class="plan-grp">מה מחפשים?</div>
+      <button class="plan-card" onclick="planGo('flight')">
+        <span class="plan-ico">✈️</span>
+        <span class="plan-txt"><b>טיסות</b>
+          <small>מילאנו וטורין · מחירים יומיים ומנועי הזמנה</small></span>
+      </button>
+      <button class="plan-card" onclick="planGo('hotel')">
+        <span class="plan-ico">🏨</span>
+        <span class="plan-txt"><b>לינה</b>
+          <small>דירות ומלונות · ופנייה ישירה לבעלי דירות בכפר</small></span>
+      </button>
+      <button class="plan-card" onclick="planGo('car')">
+        <span class="plan-ico">🚗</span>
+        <span class="plan-txt"><b>רכב</b>
+          <small>השכרה בשדה התעופה או בעמק · ומה צריך בשלג</small></span>
+      </button>
+
+      <button class="plan-strip" onclick="planGo('trip')">
+        <span class="plan-ico">✨</span>
+        <span class="plan-txt"><b>תכנון טיול שלם</b>
+          <small>שלושתם יחד — התאריכים והנוסעים נכנסים פעם אחת</small></span>
+      </button>
+
+      <div class="plan-grp">לפני שמחפשים</div>
+      <button class="plan-card plan-card-soft" onclick="planGo('when')">
         <span class="plan-ico">📅</span>
         <span class="plan-txt"><b>מתי לנסוע</b>
           <small>עונות, שלג, חגים — ומתי יקר</small></span>
         </button>
-      <button class="plan-card" onclick="planGo('prep')">
+      <button class="plan-card plan-card-soft" onclick="planGo('prep')">
         <span class="plan-ico">🧳</span>
         <span class="plan-txt"><b>הכנות לפני הנסיעה</b>
           <small>ציוד, ביטוח, חשמל ושבת · רשימת אריזה</small></span>
         </button>
-      <button class="plan-card" onclick="planGo('search')">
-        <span class="plan-ico">🔍</span>
-        <span class="plan-txt"><b>חיפוש טיסה, רכב ולינה</b>
-          <small>תאריכים, נוסעים והשוואת מחירים</small></span>
-      </button>
       <!-- Not a screen of the planner: it opens the kashrut panel, where the
            Shabbat material actually lives. It is on this menu because planning
            a trip is when somebody thinks about it. -->
-      <button class="plan-card plan-card-out" onclick="closeM('hotelModal');openKosherShabbat();">
+      <button class="plan-card plan-card-soft plan-card-out" onclick="closeM('hotelModal');openKosherShabbat();">
         <span class="plan-ico"><svg viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg></span>
         <span class="plan-txt"><b>שבת בצ'רוויניה</b>
           <small>מה להביא לדירה, חשמל, ומתי להפסיק לגלוש בשישי</small></span>
@@ -2217,12 +2269,14 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          this, did not know the car and lodging tabs existed. So the
          question comes first and the form second - nobody should have to
          fill in flight dates to discover there is a car search. -->
-    <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;">מה מחפשים?</div>
+    <div id="trip-steps">
+    <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;">שלבי התכנון</div>
     <div style="display:flex;gap:5px;margin-bottom:16px;">
       <button id="ttab-all"    onclick="switchTripTab('all')"    class="ttab-btn ttab-active">✨ הכל</button>
       <button id="ttab-flight" onclick="switchTripTab('flight')" class="ttab-btn">✈️ טיסה</button>
       <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn">🚗 רכב</button>
       <button id="ttab-hotel"  onclick="switchTripTab('hotel')"  class="ttab-btn">🏨 לינה</button>
+    </div>
     </div>
 
     <!-- Dates, passengers and the free-text box belong to the two searches
@@ -2590,8 +2644,19 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div id="hotel-results" style="display:none;margin-top:10px;"></div>
     </div>
 
+      <!-- One way only. Whatever was typed is in the same DOM, so moving up
+           to the whole trip loses nothing; there is no bridge back, because
+           the trip frame IS this screen and there would be nowhere to land. -->
+      <div id="trip-ask" style="display:none;margin:20px 0 2px;padding:12px 14px;
+           background:#f7fbff;border:1px solid #dbe9f7;border-radius:11px;
+           align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:0.8rem;color:#4a6b8a;flex:1 1 auto;line-height:1.5;">
+          צריכים גם את השאר? בתכנון המלא התאריכים נכנסים פעם אחת.</span>
+        <button class="plan-chip" onclick="planGo('trip')"
+          style="background:#eaf3fd;border-color:#c6ddf3;color:#1a5fa8;font-weight:700;">
+          ✨ לתכנון טיול שלם ←</button>
+      </div>
 
-  
     </section>
 </div>
 </div>
@@ -3710,7 +3775,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             ולבחור חדרים ומסלול הליכה שאינם עוברים דרכם.
             <br>שתי השאלות האלה נכנסות גם למכתב המוכן לסוכנויות שבסעיף
             <a href="#" onclick="closeM('hotelModal');openM('localStayModal');return false;" style="color:#1a73e8;font-weight:bold;">לשכור דירה כמו מקומי</a>,
-            שנמצא בתכנון הטיול תחת <b>חיפוש ← לינה</b>.
+            שנמצא בתכנון הטיול תחת <b>לינה</b>.
 
             <div class="prep-h">הרשימה</div>
             • <b>פמוטים ונרות.</b> בדירות שכורות רבות אסורה אש גלויה; מניחים על מגש מתכת,
@@ -7736,10 +7801,21 @@ function openArrivalPlanner() {
 var PLAN_PANES = {
   when:   { id: 'pane-when',   icon: '📅', title: 'מתי לנסוע',               chip: 'מתי לנסוע' },
   prep:   { id: 'pane-prep',   icon: '🧳', title: 'הכנות לפני הנסיעה',        chip: 'הכנות' },
-  // Not 'חיפוש': on a chip beside 'מתי לנסוע' it reads as the site's own
-  // search box, which is a different thing in a different place.
-  search: { id: 'pane-search', icon: '🔍', title: 'חיפוש טיסה, רכב ולינה',    chip: 'טיסה, רכב ולינה' }
+  // Four keys, one pane. The three searches and the whole trip are the SAME
+  // screen in two different frames - solo takes it over completely, the trip
+  // keeps the step strip on top. Building them as separate panes would mean
+  // two lodging searches to keep in step, and that is the kind of duplication
+  // that comes back to bite a month later.
+  flight: { id: 'pane-search', icon: '✈️', title: 'חיפוש טיסות', tab: 'flight', solo: true },
+  hotel:  { id: 'pane-search', icon: '🏨', title: 'חיפוש לינה',  tab: 'hotel',  solo: true },
+  car:    { id: 'pane-search', icon: '🚗', title: 'חיפוש רכב',   tab: 'car',    solo: true },
+  trip:   { id: 'pane-search', icon: '✨', title: 'תכנון טיול שלם', tab: 'all', chip: 'טיול שלם' }
 };
+
+// Everything that used to say planGo('search') meant the combined screen.
+// A lookup and not a second key: anything that walks PLAN_PANES walks keys,
+// and an alias sitting in there offered the same screen twice in the bar.
+var PLAN_ALIAS = { search: 'trip' };
 
 // Shabbat lives in the kashrut panel now, and both doors into it - the
 // signpost in the packing section and the card on the planner's menu - want
@@ -7812,19 +7888,30 @@ function planGo(which) {
   var hub = document.getElementById('plan-hub');
   var bar = document.getElementById('plan-bar');
   if (!hub || !bar) return;
+  which = PLAN_ALIAS[which] || which;
   var open = PLAN_PANES[which] || null;
-  Object.keys(PLAN_PANES).forEach(function (k) {
-    var el = document.getElementById(PLAN_PANES[k].id);
-    if (el) el.style.display = (open && k === which) ? 'block' : 'none';
+  // Hide by PANE id, not by key: four keys share #pane-search, so keyed, the
+  // 'hotel' pass would hide the very pane the 'flight' pass had just shown.
+  var want = open ? open.id : '';
+  var ids = {};
+  Object.keys(PLAN_PANES).forEach(function (k) { ids[PLAN_PANES[k].id] = 1; });
+  Object.keys(ids).forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = (id === want) ? 'block' : 'none';
   });
   hub.style.display = open ? 'none' : 'flex';
   bar.style.display = open ? 'flex' : 'none';
   if (open) {
+    if (open.tab && typeof switchTripTab === 'function') switchTripTab(open.tab);
+    _planFrame(open);
     var t = document.getElementById('plan-bar-title');
     if (t) t.textContent = open.icon + ' ' + open.title;
     var c = document.getElementById('plan-bar-chips');
-    if (c) c.innerHTML = Object.keys(PLAN_PANES)
-      .filter(function (k) { return k !== which; })
+    // A single search is the only thing on its screen. Chips across to the
+    // other two would rebuild the tab strip it was just promoted out of, so
+    // only panes that carry a chip are offered, and solo screens carry none.
+    if (c) c.innerHTML = open.solo ? '' : Object.keys(PLAN_PANES)
+      .filter(function (k) { return k !== which && PLAN_PANES[k].chip; })
       .map(function (k) {
         return '<button class="plan-chip" onclick="planGo(\'' + k + '\')">' +
                PLAN_PANES[k].icon + ' ' + PLAN_PANES[k].chip + '</button>';
@@ -7833,6 +7920,19 @@ function planGo(which) {
   // a new screen starts at its own top, not wherever the last one was left
   var body = document.querySelector('#hotelModal .modal-content');
   if (body) body.scrollTop = 0;
+}
+
+// Same screens, two frames. The step strip IS the trip frame: with it the
+// three searches are stages of one plan; without it each one is the whole
+// screen and nothing on it belongs to a trip the reader never asked to plan.
+function _planFrame(open) {
+  var solo  = !!open.solo;
+  var strip = document.getElementById('trip-steps');
+  if (strip) strip.style.display = solo ? 'none' : 'block';
+  // The way up to the whole trip - offered only from a single search, because
+  // from the trip there is nowhere to go: it is this same screen.
+  var ask = document.getElementById('trip-ask');
+  if (ask) ask.style.display = solo ? 'flex' : 'none';
 }
 
 // Open the planner straight onto one of its screens. Everything that used to
@@ -12259,8 +12359,10 @@ function _apField(label, control) {
 // growing a second search of its own.
 function openCarSearch() {
   openFrom('parkingModal', 'hotelModal');
+  // Through planGo, so the car search arrives with its own frame - alone on
+  // the screen - instead of as the third tab of a combined search.
   setTimeout(function () {
-    if (typeof switchTripTab === 'function') switchTripTab('car');
+    if (typeof planGo === 'function') planGo('car');
   }, 60);
 }
 
@@ -14140,9 +14242,8 @@ function setTripDates(ci, co) {
 // reader asks for them.
 function openFlightDeal(o) {
   if (!o || !o.date || !o.ret) return;
-  openPlanner('search');
+  openPlanner('flight');
   setTimeout(function () {
-    switchTripTab('flight');
     setTripDates(o.date, o.ret);
     var sel = document.getElementById('airport-select-flight');
     if (sel && o.dest) sel.value = o.dest;

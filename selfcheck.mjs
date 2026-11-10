@@ -4779,6 +4779,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       return e ? getComputedStyle(e).display !== 'none' : null;
     };
     const panes = ['pane-when', 'pane-prep', 'pane-search'];
+    out.strips = document.querySelectorAll('#plan-hub .plan-strip').length;
 
     openM('hotelModal');
     out.landsOnMenu = vis('plan-hub') === true && panes.every(p => vis(p) === false);
@@ -4836,7 +4837,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'opening the planner no longer shows the menu - it is back to dropping the ' +
     'reader into the middle of a section'); else ok();
   if (!r.barHiddenOnMenu) fail(T, 'the back bar shows on the menu itself'); else ok();
-  if (r.cards !== 4) fail(T, `the menu offers ${r.cards} cards, not four`); else ok();
+  if (r.cards !== 6) fail(T, `the menu offers ${r.cards} cards, not six`); else ok();
+  if (r.strips !== 1) fail(T,
+    `the menu carries ${r.strips} whole-trip strips, not one - the trip is a ` +
+    'different kind of thing from the three searches and has to look like it'); else ok();
   if (r.cardsOut !== 1) fail(T,
     'the menu no longer carries the door to Shabbat, which is the one thing ' +
     'on it that is not a screen of the planner'); else ok();
@@ -4863,6 +4867,109 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'the preparations link from elsewhere no longer lands on that screen'); else ok();
   if (!r.order) fail(T,
     'the preparations screen now comes before "when to go"'); else ok();
+}
+
+// ── a single search is the whole screen ───────────────────────
+// The three searches used to be tabs inside one card of the menu, opening on
+// "הכל" - so somebody who came for a flight went two levels down and landed
+// on a combined search he never asked for. They are screens of the menu now.
+// The strip of steps is what makes the three into a trip: without it each is
+// alone on the screen, and nothing on it belongs to a plan the reader did not
+// ask to make. Same screens, two frames.
+{
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const vis = id => {
+      const e = document.getElementById(id);
+      return e ? getComputedStyle(e).display !== 'none' : null;
+    };
+    const panel = t => vis('tpanel-' + t);
+
+    openM('hotelModal');
+    const hub = document.getElementById('plan-hub');
+    const txt = [...hub.querySelectorAll('.plan-card b')].map(b => b.textContent.trim());
+    out.namesThree = ['טיסות', 'לינה', 'רכב'].every(n => txt.includes(n));
+    out.noOldCard = !txt.some(t => /^חיפוש טיסה/.test(t));
+
+    out.solo = {};
+    for (const k of ['flight', 'hotel', 'car']) {
+      planGo(k);
+      out.solo[k] = {
+        onSearch: vis('pane-search') === true,
+        panel: panel(k) === true,
+        others: ['all', 'flight', 'car', 'hotel'].filter(x => x !== k && panel(x)).length,
+        steps: vis('trip-steps'),
+        ask: vis('trip-ask'),
+        chips: document.querySelectorAll('#plan-bar-chips .plan-chip').length,
+        title: (document.getElementById('plan-bar-title') || {}).textContent || ''
+      };
+    }
+
+    planGo('trip');
+    out.trip = {
+      onSearch: vis('pane-search') === true,
+      all: panel('all') === true,
+      steps: vis('trip-steps'),
+      ask: vis('trip-ask'),
+      chips: document.querySelectorAll('#plan-bar-chips .plan-chip').length
+    };
+
+    // the older name still has to reach the combined screen, and must not put
+    // the same screen into the bar twice
+    planGo('search');
+    out.aliasLands = panel('all') === true && vis('trip-steps') === true;
+    const chipTxt = [...document.querySelectorAll('#plan-bar-chips .plan-chip')]
+      .map(c => c.textContent.trim());
+    out.aliasNoDup = new Set(chipTxt).size === chipTxt.length;
+
+    // the door from the parking panel lands on a screen of its own
+    planGo('hub');
+    openCarSearch();
+    await new Promise(res => setTimeout(res, 150));
+    out.carDoor = panel('car') === true && vis('trip-steps') === false;
+    return out;
+  });
+
+  const T = 'one search is the whole screen; the trip is the frame around it';
+  if (!r.namesThree) fail(T,
+    'the planner menu no longer offers flights, lodging and the car by name - ' +
+    'they are back behind one card, which is the two-levels-down this fixed'); else ok();
+  if (!r.noOldCard) fail(T,
+    'the old combined search card is on the menu again'); else ok();
+  for (const k of ['flight', 'hotel', 'car']) {
+    const g = r.solo[k];
+    if (!g.onSearch || !g.panel) fail(T,
+      `the ${k} card does not land on the ${k} search`); else ok();
+    if (g.others !== 0) fail(T,
+      `${g.others} other search panels are on screen beside ${k}`); else ok();
+    if (g.steps !== false) fail(T,
+      `the step strip shows on the ${k} search alone - the reader is being ` +
+      'shown a trip he never asked to plan'); else ok();
+    if (g.ask !== true) fail(T,
+      `the ${k} search offers no way up to the whole trip`); else ok();
+    if (g.chips !== 0) fail(T,
+      `the bar offers ${g.chips} chips on the ${k} search alone, rebuilding ` +
+      'the tab strip it was promoted out of'); else ok();
+    if (!g.title.trim()) fail(T, `the bar does not name the ${k} search`); else ok();
+  }
+  if (!r.trip.onSearch || !r.trip.all) fail(T,
+    'the whole-trip strip does not land on the combined search'); else ok();
+  if (r.trip.steps !== true) fail(T,
+    'the whole trip shows without its step strip, so the three searches are ' +
+    'no longer stages of one plan'); else ok();
+  if (r.trip.ask !== false) fail(T,
+    'the trip screen still offers the way up to the trip - there is nowhere ' +
+    'to go, it is this screen'); else ok();
+  if (r.trip.chips < 1) fail(T,
+    'the trip screen offers no way sideways to the rest of the planner'); else ok();
+  if (!r.aliasLands) fail(T,
+    "planGo('search') no longer reaches the combined screen, so every older " +
+    'door into the planner is broken'); else ok();
+  if (!r.aliasNoDup) fail(T,
+    'the bar offers the same screen twice - the alias is a second key in ' +
+    'PLAN_PANES instead of a lookup'); else ok();
+  if (!r.carDoor) fail(T,
+    'the car door from the parking panel no longer lands on a screen of its own'); else ok();
 }
 
 // ── Shabbat is the same two candles everywhere ───────────────────────
