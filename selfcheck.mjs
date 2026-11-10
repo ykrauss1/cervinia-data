@@ -8200,7 +8200,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.skipass = [COST.rows.skipass.min, COST.rows.skipass.max, COST.rows.skipass.exact];
     out.gear = [COST.rows.gear.min, COST.rows.gear.max];
     out.freeFlights = COST.rows.flights.min;
-    out.foodEmpty = COST.rows.food.min == null && /לא אספנו מחירי מזון/.test(COST.rows.food.note);
+    const ref = T.cost_ref;
+    out.ref = ref;
+    out.food = [COST.rows.food.min, COST.rows.food.max, /הצעה ראשונית/.test(COST.rows.food.note)];
+    out.freeLodging = [COST.rows.lodging.min, COST.rows.lodging.max];
+    out.freeCar = [COST.rows.car.min, COST.rows.car.max, /בלי רכב/.test(COST.rows.car.note)];
     out.estimateSaid = /הערכה, לא הצעת מחיר/.test($('costModal').textContent);
 
     _costPass('zermatt');
@@ -8223,6 +8227,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.resetBack = COST.rows.skipass.exact && COST.rows.skipass.min === 2 * price('cervinia', 'Adult', 5);
     _costReset('food');
     out.foodBack = COST.rows.food.min;
+    out.foodBackExpect = 2 * 7 * ref.food_person_day[0];
     closeM('costModal');
 
     // ── door 2: the trip ──
@@ -8245,6 +8250,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.tripAsksNot = !$('cost-nights');
     out.tripBands = [COST.bands.Adult, COST.bands.Junior];
     out.lodging = [COST.rows.lodging.min, COST.rows.lodging.max];
+    // no budget typed: the reference, by where each stay is
+    hb.querySelector('.sf-min').value = ''; hb.querySelector('.sf-max').value = '';
+    _costReset('lodging');
+    out.lodgingRef = [COST.rows.lodging.min, COST.rows.lodging.max, /הצעה ראשונית/.test(COST.rows.lodging.note)];
+    out.lodgingRefExpect = [4 * ref.lodging_valley[0] + 2 * ref.lodging_city[0], 4 * ref.lodging_valley[1] + 2 * ref.lodging_city[1]];
+    out.tripCar = [COST.rows.car.min, 7 * ref.car_day[0]];
     out.flights = [COST.rows.flights.min, COST.rows.flights.max];
     out.coverage = ($('cost-coverage').textContent || '');
     out.ils = $('cost-total-ils') ? $('cost-total-ils').textContent : '';
@@ -8272,19 +8283,28 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!near1(r.gear[0], r.expect.gearLo) || !near1(r.gear[1], r.expect.gearHi)) fail(T,
     `gear is not the rental list's range: ${r.gear} vs ${r.expect.gearLo}-${r.expect.gearHi}`); else ok();
   if (r.freeFlights != null) fail(T, 'the side-menu door invented a flight price with no dates'); else ok();
-  if (!r.foodEmpty) fail(T, 'food carries a number nobody collected'); else ok();
+  if (!r.ref || !near1(r.food[0], 2 * 7 * r.ref.food_person_day[0]) || !near1(r.food[1], 2 * 7 * r.ref.food_person_day[1]) || !r.food[2]) fail(T,
+    `food is not people × days × the reference, or does not say it is a suggestion: ${r.food}`); else ok();
+  if (!near1(r.freeLodging[0], 7 * r.ref.lodging_valley[0]) || !near1(r.freeLodging[1], 7 * r.ref.lodging_valley[1])) fail(T,
+    `the side-menu door's lodging is not nights × the valley reference: ${r.freeLodging}`); else ok();
+  if (!near1(r.freeCar[0], 7 * r.ref.car_day[0]) || !near1(r.freeCar[1], 7 * r.ref.car_day[1]) || !r.freeCar[2]) fail(T,
+    `the car is not days × the daily reference, or does not say how to drop it: ${r.freeCar}`); else ok();
   if (!r.estimateSaid) fail(T, 'the panel does not say it is an estimate'); else ok();
   if (r.handKept[0] !== 300 || r.handKept[1] !== 600) fail(T,
     `rows typed into were recomputed: ${r.handKept}`); else ok();
-  if (!/לא נכלל:.*רכב/.test(r.total) || !/₪/.test(r.total)) fail(T,
+  if (!/לא נכלל:.*טיסות/.test(r.total) || !/₪/.test(r.total)) fail(T,
     `the total does not say what it leaves out, or has no shekels: "${r.total}"`); else ok();
-  if (!r.resetBack || r.foodBack != null) fail(T, '"↺" does not give the row back to the calculation'); else ok();
+  if (!r.resetBack || !near1(r.foodBack, r.foodBackExpect)) fail(T, '"↺" does not give the row back to the calculation'); else ok();
   if (r.tripNights !== 7 || !r.tripAsksNot) fail(T,
     'the trip door asks for nights the trip already has'); else ok();
   if (r.tripBands[0] !== 2 || r.tripBands[1] !== 1) fail(T,
     `the trip's 2 adults and 1 child came in as ${r.tripBands}`); else ok();
   if (!near1(r.lodging[0], 600) || !near1(r.lodging[1], 900)) fail(T,
     `6 nights in two stays at €100-150 came out ${r.lodging}`); else ok();
+  if (!near1(r.lodgingRef[0], r.lodgingRefExpect[0]) || !near1(r.lodgingRef[1], r.lodgingRefExpect[1]) || !r.lodgingRef[2]) fail(T,
+    `with no budget, 4 valley nights and 2 city nights are not priced from the reference: ${r.lodgingRef} vs ${r.lodgingRefExpect}`); else ok();
+  if (!near1(r.tripCar[0], r.tripCar[1])) fail(T,
+    `the car in the trip is not the car's 7 days × the reference: ${r.tripCar}`); else ok();
   if (!near1(r.flights[0], 200 * 3 / 1.25) || !near1(r.flights[1], 260 * 3 / 1.25)) fail(T,
     `flights are not the snapshot's day and its week around, for 3, in euros: ${r.flights}`); else ok();
   if (!/חסר לילה אחד: 16\.1/.test(r.coverage)) fail(T,

@@ -2801,7 +2801,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <span class="close-btn" onclick="closeM('costModal')">×</span>
     <h3 style="margin:0 0 4px;font-size:1.15rem;">💶 כמה תכל'ס יעלה לי?</h3>
     <p style="color:#8a6d1b;background:#fff8e6;border-radius:8px;padding:7px 10px;font-size:0.78rem;margin:0 0 14px;line-height:1.6;">
-      <b>הערכה, לא הצעת מחיר.</b> הסקי פס מחושב מהמחירון הרשמי; השאר טווח, וכל שורה ניתנת לעריכה.</p>
+      <b>הערכה, לא הצעת מחיר.</b> הסקי פס מחושב מהמחירון הרשמי; השאר טווח — חלקו הצעה ראשונית לפי ממוצעים — וכל שורה ניתנת לעריכה.</p>
 
     <div id="cost-inputs" style="background:#f6f9fc;border:1px solid #e1eaf3;border-radius:11px;padding:11px 12px;margin-bottom:14px;"></div>
     <div id="cost-rows"></div>
@@ -8293,33 +8293,82 @@ function _costFlights() {
     note: 'מלפנסה הלוך-חזור · ' + per + ' לאדם × ' + pax + ' · מחיר יומי, מתעדכן פעם ביום' };
 }
 
-// ── lodging: the stays, priced by the budget the reader gave the search ──
+// ── first suggestions, where nothing was collected for this trip ──
+// texts.json → cost_ref: orders of magnitude from booking-site averages and
+// budget guides (see its _comment). A suggestion says it is one; the reader's
+// own numbers - the lodging budget he typed, a row he edits - always win.
+function _costRef(k) {
+  var r = window._texts && window._texts.cost_ref;
+  var v = r && r[k];
+  return (v && v.length === 2) ? v : null;
+}
+var COST_SUGGEST = 'הצעה ראשונית, סדר גודל — כדאי לבדוק';
+
+// ── lodging: the stays, priced by the reader's budget or the reference ──
 function _costLodging() {
-  if (COST.mode !== 'trip' || !TRIP.stays.length) return { min: null, max: null,
-    note: 'הזינו סכום כולל ללינה' };
-  var nights = TRIP.stays.reduce(function (a, st) { return a + _stayNights(st); }, 0);
   var box = document.querySelector('#tpanel-hotel .stay-filters');
   var num = function (sel) {
     var el = box && box.querySelector(sel), v = el ? parseInt(el.value, 10) : NaN;
     return isFinite(v) && v > 0 ? v : null;
   };
-  var cur = (box && box.querySelector('.sf-cur') && box.querySelector('.sf-cur').value) || 'EUR';
-  var a = num('.sf-min'), b = num('.sf-max');
-  var count = nights + ' לילות ב-' + (TRIP.stays.length === 1 ? 'שהייה אחת' : TRIP.stays.length + ' שהיות');
-  if (a == null && b == null) return { min: null, max: null,
-    note: count + ' · הזינו תקציב ללילה בחיפוש הלינה, או סכום כאן' };
-  var lo = _costToEur((a != null ? a : b) * nights, cur), hi = _costToEur((b != null ? b : a) * nights, cur);
-  if (lo == null) return { min: null, max: null, note: count + ' · אין שער המרה כרגע' };
-  return { min: lo, max: hi, note: count + ' · לפי התקציב ללילה שהוזן בחיפוש הלינה' };
+  var rooms = Math.max(1, +((document.getElementById('h-rooms') || {}).textContent) || 1);
+  var trip = COST.mode === 'trip' && TRIP.stays.length;
+  var stays = trip ? TRIP.stays
+    : [{ ci: '2000-01-01', co: _isoDay(new Date(2000, 0, 1 + COST.nights)), place: 'cervinia' }];
+  var nights = stays.reduce(function (a, st) { return a + _stayNights(st); }, 0);
+  var count = nights + ' לילות' + (trip ? ' ב-' + (stays.length === 1 ? 'שהייה אחת' : stays.length + ' שהיות') : '')
+    + (rooms > 1 ? ' · ' + rooms + ' חדרים' : '');
+  var a = trip ? num('.sf-min') : null, b = trip ? num('.sf-max') : null;
+  if (a != null || b != null) {
+    var cur = (box && box.querySelector('.sf-cur') && box.querySelector('.sf-cur').value) || 'EUR';
+    var lo = _costToEur((a != null ? a : b) * nights * rooms, cur);
+    var hi = _costToEur((b != null ? b : a) * nights * rooms, cur);
+    if (lo == null) return { min: null, max: null, note: count + ' · אין שער המרה כרגע' };
+    return { min: lo, max: hi, note: count + ' · לפי התקציב ללילה שהוזן בחיפוש הלינה' };
+  }
+  // no budget given: the reference, by where each stay is
+  var lo2 = 0, hi2 = 0, ok = true;
+  stays.forEach(function (st) {
+    var pl = STAY_PLACES[st.place] || STAY_PLACES.cervinia;
+    var r = _costRef(pl.local ? 'lodging_valley' : 'lodging_city');
+    if (!r) { ok = false; return; }
+    lo2 += r[0] * _stayNights(st) * rooms; hi2 += r[1] * _stayNights(st) * rooms;
+  });
+  if (!ok) return { min: null, max: null, note: count + ' · הזינו סכום כולל ללינה' };
+  return { min: lo2, max: hi2,
+    note: count + ' · ' + COST_SUGGEST + ' (חדר או דירה בחורף) · תקציב ללילה בחיפוש הלינה יחליף אותה' };
+}
+
+// ── the car: days × a daily range ──
+function _costCar() {
+  var r = _costRef('car_day');
+  var days = COST.nights, src = '';
+  var cd = document.getElementById('car-dates');
+  var cr = COST.mode === 'trip' && cd ? _tripRange(cd) : null;
+  if (cr) { days = Math.max(1, Math.round((_stayD(cr.co) - _stayD(cr.ci)) / 86400000)); src = ' (לפי תאריכי הרכב)'; }
+  if (!r) return { min: null, max: null, note: 'הזינו מה שמצאתם בחיפוש הרכב' };
+  return { min: r[0] * days, max: r[1] * days,
+    note: days + ' ימים' + src + ' · רכב קטן עד בינוני ממלפנסה · ' + COST_SUGGEST + ' · בלי רכב — מחקו את השורה' };
+}
+
+// ── food: people × days × a daily range ──
+function _costFood() {
+  var r = _costRef('food_person_day');
+  var b = COST.bands || {};
+  var ppl = COST_BANDS.reduce(function (a, k) { return a + (b[k] || 0); }, 0);
+  var days = COST.nights;
+  if (!r || !ppl) return { min: null, max: null, note: 'הזינו הערכה משלכם' };
+  return { min: r[0] * ppl * days, max: r[1] * ppl * days,
+    note: ppl + ' אנשים × ' + days + ' ימים · ' + COST_SUGGEST + ' · מי שמביא אוכל מהארץ יוציא פחות' };
 }
 
 var COST_CALC = {
   flights: _costFlights,
   lodging: _costLodging,
-  car:  function () { return { min: null, max: null, note: 'הזינו מה שמצאתם בחיפוש הרכב' }; },
+  car:  _costCar,
   skipass: _costSkipass,
   gear: _costGear,
-  food: function () { return { min: null, max: null, note: 'לא אספנו מחירי מזון — הזינו הערכה משלכם' }; },
+  food: _costFood,
   misc: function () { return { min: null, max: null, note: 'חניה, העברות, ביטוח, שיעורים…' }; }
 };
 
