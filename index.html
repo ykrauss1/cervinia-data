@@ -8260,7 +8260,11 @@ function _costGear() {
   var lo = grown * _costRentFor(sup, S) + kids * kidOne;
   var hi = grown * (_costRentFor(top, S) + _costRentFor(helm, S)) + kids * kidOne;
   return { min: lo, max: hi,
-    note: 'סקי ומגפיים ל-' + S + (S === 1 ? ' יום' : ' ימים') + ', בערך · מחירון Genzianella Sport'
+    // Genzianella is the one shop that publishes a full list, which is why it
+    // is the yardstick - not because it is the cheapest. Yossi, 10.11: other
+    // shops cost less, and asking for a discount gets one.
+    note: 'סקי ומגפיים ל-' + S + (S === 1 ? ' יום' : ' ימים') + ', בערך · לפי המחירון המלא של Genzianella Sport'
+      + ' · יש חנויות זולות יותר, ובדרך כלל אפשר לבקש הנחה'
       + ' · מי שמביא ציוד משלו — ערכו את השורה' };
 }
 

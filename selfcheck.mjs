@@ -8199,6 +8199,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.freeDays = COST.skiDays;
     out.skipass = [COST.rows.skipass.min, COST.rows.skipass.max, COST.rows.skipass.exact];
     out.gear = [COST.rows.gear.min, COST.rows.gear.max];
+    out.gearCheaper = /זולות יותר/.test(COST.rows.gear.note) && /הנחה/.test(COST.rows.gear.note);
     out.freeFlights = COST.rows.flights.min;
     const ref = T.cost_ref;
     out.ref = ref;
@@ -8285,6 +8286,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     '9 ski days got a price the tariff does not have'); else ok();
   if (!near1(r.gear[0], r.expect.gearLo) || !near1(r.gear[1], r.expect.gearHi)) fail(T,
     `gear is not the rental list's range: ${r.gear} vs ${r.expect.gearLo}-${r.expect.gearHi}`); else ok();
+  if (!r.gearCheaper) fail(T,
+    'gear is priced from one shop\'s list and does not say others cost less, or that a discount can be asked'); else ok();
   if (r.freeFlights != null) fail(T, 'the side-menu door invented a flight price with no dates'); else ok();
   if (!r.ref || !near1(r.food[0], 2 * 7 * r.ref.food_person_day[0]) || !near1(r.food[1], 2 * 7 * r.ref.food_person_day[1]) || !r.food[2]) fail(T,
     `food is not people × days × the reference, or does not say it is a suggestion: ${r.food}`); else ok();
