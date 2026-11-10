@@ -7820,6 +7820,34 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     "a person's report is labelled a measurement"); else ok();
 }
 
+// ── the local reader knows a head count ──────────────────────────────
+// It is the fallback when the model call fails, and it understood "2 מבוגרים"
+// and "משפחה" but not the commonest way anyone writes it: "4 נוסעים".
+{
+  const r = await page.evaluate(() => {
+    const P = t => { const o = window.parseTripText(t); return [o.adults, o.children]; };
+    return {
+      digits:   P('מילאנו בחנוכה לשבוע, 4 נוסעים'),
+      word:     P('מילאנו בחנוכה לשבוע, לארבעה אנשים'),
+      one:      P('מילאנו בחנוכה, נוסע אחד'),
+      total:    P('מילאנו בחנוכה, 5 נוסעים מהם 2 ילדים'),
+      explicit: P('מילאנו בחנוכה, 2 מבוגרים ו-2 ילדים'),
+      none:     P('מילאנו בחנוכה לשבוע')
+    };
+  });
+  const T = 'the local reader knows a head count';
+  const eq = (a, b) => a[0] === b[0] && a[1] === b[1];
+  if (r.digits[0] !== 4) fail(T, `"4 נוסעים" read as ${r.digits[0]} passengers`); else ok();
+  if (r.word[0] !== 4)   fail(T, `"לארבעה אנשים" read as ${r.word[0]} passengers`); else ok();
+  if (r.one[0] !== 1) fail(T, `"נוסע אחד" read as ${r.one[0]} passengers`); else ok();
+  if (r.total[0] !== 3 || r.total[1] !== 2) fail(T,
+    `"5 נוסעים מהם 2 ילדים" read as ${r.total} - should be 3 adults and 2 children`); else ok();
+  if (!eq(r.explicit, [2, 2])) fail(T,
+    `an explicit 2 adults + 2 children read as ${r.explicit}`); else ok();
+  if (r.none[0] != null) fail(T,
+    `a sentence with no head count invented ${r.none[0]} adults`); else ok();
+}
+
 await browser.close();
 
 // ── report ────────────────────────────────────────────────────────────────
@@ -7831,3 +7859,4 @@ for (const f of fails) console.log(`✗ ${f.test}\n   ${f.detail}`);
 for (const w of warns) console.log(`⚠ ${w.test}\n   ${w.detail}`);
 if (!fails.length && !warns.length) console.log('הכול תקין.');
 process.exit(fails.length ? 1 : 0);
+

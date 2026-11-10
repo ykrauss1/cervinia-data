@@ -1081,7 +1081,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.26';
+  var v='v17.27';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6661,6 +6661,18 @@ function growTripFree(el) {
     if (mAd) o.adults = _num(mAd[1]);
     var mCh = txt.match(/(\d+|[֐-׿]+)\s*ילדים?/);
     if (mCh) o.children = _num(mCh[1]);
+    // "4 נוסעים" / "לשישה אנשים" - a head count with no adults/children split.
+    // When children are named as well it is the total: the rest are adults.
+    // _num strips the one-letter prefix, so "לארבעה" reads as four.
+    if (o.adults == null) {
+      var mPx = txt.match(/(\d+|[֐-׿]+)\s*(?:נוסעים|נוסעות|נוסע|אנשים|נפשות|איש)(?![֐-׿])/);
+      var nPx = mPx ? _num(mPx[1]) : null;
+      if (nPx != null && nPx > 0) {
+        o.adults = (o.children != null && nPx > o.children) ? nPx - o.children : nPx;
+      }
+    }
+    // the number after the noun: "נוסע אחד", "נוסעת אחת"
+    if (o.adults == null && /נוסע(?:ת)?\s+(?:אחד|אחת)(?![֐-׿])/.test(txt)) o.adults = 1;
     if (o.adults == null && /זוג/.test(txt)) o.adults = 2;
     if (o.adults == null && /משפחה/.test(txt)) { o.adults = 2; if (o.children == null) o.children = 2; }
 
