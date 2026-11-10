@@ -18,6 +18,7 @@
 // Request (new):
 //   { kind: "trip",      text, today: "YYYY-MM-DD", chagim: "<name> <iso> · ..." }
 //   { kind: "translate", text, to: "it" | "en" | "he" }
+//   { kind: "kosherfly", text, today: "YYYY-MM-DD" }      (Kosher Fly, 10 Nov)
 // Request (legacy, during the deploy window only - see ALLOW_LEGACY):
 //   { prompt: "..." }
 // Response (unchanged, so the client needs no flag day):
@@ -46,8 +47,8 @@ const ALLOW_ORIGINS = [
 // Short on purpose. The real sentences are one line; the trip parser caps
 // its own input at 400 characters. A cap is what makes the endpoint useless
 // as a general-purpose model.
-const MAX_TEXT = { trip: 400, translate: 600, legacy: 1200 };
-const MAX_TOKENS = { trip: 900, translate: 400, legacy: 500 };
+const MAX_TEXT = { trip: 400, translate: 600, kosherfly: 600, legacy: 1200 };
+const MAX_TOKENS = { trip: 900, translate: 400, kosherfly: 900, legacy: 500 };
 
 // Per IP per hour, and for everybody together per day. The daily one is the
 // number that matters: it is the most this function can cost in 24 hours
@@ -112,6 +113,37 @@ function tripPrompt(text: string, today: string, chagim: string) {
     + '- summary: תקציר עברי קצר של מה שהובן\n'
     + 'אל תמציא ערך שלא נכתב. פלט: {"airport":null,"checkin":null,"checkout":null,"nights":null,"adults":null,"children":null,"car":null,"hotel":null,"accType":null,"airportPickup":null,"automatic":null,"summary":""}\n'
     + 'הבקשה: "' + text + '"';
+}
+
+// Kosher Fly (ykrauss1.github.io/trip-finder) used to build this prompt in the
+// page and post it whole as { prompt }. Closing that door on 9 November left
+// its free-text search on the local fallback, because nobody remembered it
+// shared this function. The prompt now lives here like the other two; the
+// page sends only the sentence and today's date. Copied verbatim from
+// buildPrompt() in trip-finder js/08-ui-cards.js as of APP_VER 66.
+function kosherFlyPrompt(text: string, today: string) {
+  return `תרגם בקשת חיפוש טיסות/תכנון חופשה חופשית ל-JSON. החזר אך ורק JSON תקין — בלי טקסט, בלי markdown.
+התאריך היום: ${today}. כשמזוהה חודש/עונה בלי שנה — בחר את המופע העתידי הקרוב. אם צוינה שנה מפורשת ("2027", "שנת 2027") או "שנה הבאה", וגם שנה דו-ספרתית ("אוגוסט 27"→2027) — החל אותה על כל החודשים.
+שדות:
+- origin: IATA מוצא (ברירת מחדל "TLV")
+- destination: IATA יעד, או "-" אם רוצה "לאן שהוא"/יעד חדש/לא צוין יעד, או "SKI" אם הבקשה על סקי/גלישה
+- skiCountry: אם הבקשה על סקי וצוינה בה מדינה — שם המדינה בעברית ("איטליה", "אוסטריה", "בולגריה", "צרפת", "שווייץ", "גאורגיה", "סלובניה"). אחרת "" ‏. אל תמציא מדינה שלא נכתבה
+- months: מערך "YYYY-MM" של כל החודשים הרלוונטיים. עונות: חורף=דצמבר+ינואר+פברואר+מרץ (עונת הסקי), אביב=מרץ+אפריל+מאי, קיץ=יוני+יולי+אוגוסט, סתיו=ספטמבר+אוקטובר+נובמבר. חלקי עונה: "תחילת/ראשית X"=החודש הראשון, "אמצע X"=החודש האמצעי, "סוף/שלהי X"=החודשיים האחרונים (למשל "סוף הקיץ"→יולי+אוגוסט, "סוף החורף"→פברואר+מרץ, "תחילת החורף"→דצמבר). אם לא צוין זמן — []
+- fromDate / toDate: אם צוין טווח תאריכים לועזי מפורש עם ימים ("10 בינואר עד 15 בחודש", "מ-3.1 עד 9.1", "10-15 בפברואר") — "YYYY-MM-DD" לכל אחד. אחרת null לשניהם. חודש בלי ימים אינו טווח — השאר null ומלא רק months
+- startDays: מערך ימי יציאה אפשריים כמספרים (ראשון=0, שני=1, שלישי=2, רביעי=3, חמישי=4, שישי=5, שבת=6). "מראשון"→[0], "יציאה בראשון"→[0]. אם לא צוין — []
+- endDays: מערך ימי חזרה אפשריים באותו קידוד. "עד חמישי או שישי"→[4,5]. אם לא צוין — []
+- nights: מספר לילות ("5 לילות"→5, "שבוע"→7) או טווח כמחרוזת ("שבוע עד 10 ימים"→"7-10", "בין 5 ל-8 לילות"→"5-8"), אחרת null. אם צוינו ימי יציאה וחזרה בלבד — השאר null
+- mode: "dates" אם מבקשים רק לבדוק תאריכים/מתי כדאי/בלי טיסות/תכנון מול חגים; אחרת "flights"
+- avoidPeriods: מערך תקופות להימנע מהן, מתוך: threeweeks (שלושת השבועות/בין המצרים), ninedays (תשעת הימים), tisha (תשעה באב), omer (ספירת העומר), fast (צומות), beinhazmanim (בין הזמנים), chanuka, purim, cholhamoed (חול המועד), lag (ל"ג בעומר). "בלי צומות"→["fast"], "לא בבין הזמנים"→["beinhazmanim"]. אם לא צוין — []
+- preferPeriods: מערך תקופות שדווקא רוצים (אותם ערכים). "דווקא בחול המועד"→["cholhamoed"]. אם לא צוין — []
+- constraints: {"type":"airline","value":"IZ|LY|W4"} או {"type":"noShabbat"}
+- scorers: {"name":"price|novelty|comfort","w":1-5}
+- unsupported: קריטריונים בלי לבנה (חב״ד/ים/כשרות/מלון) — אל תמציא
+- summary: תקציר עברי קצר של מה שהובן
+יעדים: בוקרשט=BUH אתונה=ATH סלוניקי=SKG טביליסי=TBS ירוואן=EVN לרנקה=LCA בודפשט=BUD פראג=PRG ברצלונה=BCN "ניו יורק"=JFK מילאנו=MIL רומא=ROM פריז=PAR לונדון=LON.
+דוגמה — "מחפש חופשה מראשון עד חמישי במהלך חודשי החורף" ⇒ {"origin":"TLV","destination":"-","months":["2026-12","2027-01","2027-02"],"startDays":[0],"endDays":[4],"nights":null,"mode":"flights","constraints":[],"scorers":[{"name":"price","w":3}],"unsupported":[],"summary":"חופשה ראשון–חמישי בחורף, לפי מחיר"}
+פלט: {"origin":"TLV","destination":"-","months":[],"startDays":[],"endDays":[],"nights":null,"mode":"flights","avoidPeriods":[],"preferPeriods":[],"constraints":[],"scorers":[],"unsupported":[],"summary":""}
+הבקשה: "${text}"`;
 }
 
 // ── counting ──────────────────────────────────────────────────────────────
@@ -185,6 +217,15 @@ Deno.serve(async (req) => {
         return J({ ok: false, error: "bad holiday table" }, 400, origin);
       prompt = tripPrompt(text, today, chagim);
       maxTokens = MAX_TOKENS.trip;
+
+    } else if (kind === "kosherfly") {
+      const text = String(body.text || "").trim().slice(0, MAX_TEXT.kosherfly);
+      if (!text) return J({ ok: false, error: "text required" }, 400, origin);
+      const today = String(body.today || "");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(today))
+        return J({ ok: false, error: "bad date" }, 400, origin);
+      prompt = kosherFlyPrompt(text, today);
+      maxTokens = MAX_TOKENS.kosherfly;
 
     } else if (kind === "legacy" && ALLOW_LEGACY) {
       prompt = String(body.prompt || "").trim();
