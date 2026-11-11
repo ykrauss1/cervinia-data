@@ -833,14 +833,14 @@ const routePaint = await page.evaluate(async () => {
     return 'the viewBox is not the pdf page, so the lines will not follow a zoom';
   if (svg.style.width !== c.style.width || svg.style.height !== c.style.height)
     return 'the overlay is not the size of the canvas';
-  const n = svg.querySelectorAll('path').length;
+  const n = svg.querySelectorAll(':scope > path').length;
   if (n !== rm.routes_drawn.grand_tour.layers.length)
     return 'drew ' + n + ' paths for ' + rm.routes_drawn.grand_tour.layers.length + ' layers';
   // the subtitle has to follow the route that is showing
   if (!document.getElementById('map-route-sub').textContent.includes(rm.routes_drawn.grand_tour.title))
     return 'the caption does not name the route on screen';
   mapShowRoute('ventina');
-  if (document.getElementById('map-route-layer').querySelectorAll('path').length
+  if (document.getElementById('map-route-layer').querySelectorAll(':scope > path').length
       !== rm.routes_drawn.ventina.layers.length)
     return 'switching route did not redraw the lines';
   _mapCurrentType = 'piste-swiss';
@@ -8560,6 +8560,114 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.searchParking !== true) fail(T, `the search entry for parking does not open on parking (${r.searchParking})`); else ok();
 }
 
+// ── a skier rides the recommended route ──────────────────────────────
+// Yossi, 11.11: colour and movement - a marker that rides each recommended
+// route on the piste map, up in the lifts and down the runs, in order.
+{
+  const T = 'a skier rides the recommended route';
+  const r = await page.evaluate(async () => {
+    const rd = _mapRouteData(), out = { routes: {} };
+    for (const id of Object.keys(rd.routes_drawn)) {
+      const legs = _mapRideLegs(rd.routes_drawn[id]);
+      const gaps = legs.slice(1).map((g, i) => {
+        const e = legs[i].pts.slice(-1)[0];
+        return Math.hypot(g.pts[0][0] - e[0], g.pts[0][1] - e[1]);
+      });
+      out.routes[id] = {
+        n: legs.length,
+        firstLift: legs[0] && legs[0].kind === 'lift',
+        liftsUp: legs.filter(g => g.kind === 'lift').every(g => g.pts.slice(-1)[0][1] < g.pts[0][1]),
+        noAlt: legs.every(g => g.kind !== 'alt'),
+        maxGap: Math.round(Math.max(0, ...gaps))
+      };
+    }
+    // on a stand-in sheet: it appears, moves, and stops once the route is off
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + rd.page.w + ' ' + rd.page.h);
+    svg.style.cssText = 'position:fixed;left:0;top:0;width:360px;height:290px';
+    document.body.appendChild(svg);
+    _mapRideRoute(svg, rd.routes_drawn.ventina);
+    const pos = () => (svg.querySelector('.map-rider') || { getAttribute: () => '' }).getAttribute('transform');
+    const p0 = pos();
+    await new Promise(res => setTimeout(res, 700));
+    const p1 = pos();
+    out.moves = !!p0 && p0 !== p1;
+    out.icon = (svg.querySelector('.map-rider text') || {}).textContent;
+    out.onScreen = Math.round(svg.querySelector('.map-rider circle').getBoundingClientRect().width);
+    svg.style.display = 'none';
+    await new Promise(res => setTimeout(res, 150));
+    out.stops = _mapRideRaf === 0;
+    svg.remove();
+    out.inPaint = /_mapRideRoute\(svg, route\)/.test(String(_mapPaintRoute));
+    // the drawn layers are still exactly the route's layers
+    mapShowRoute('grand_tour');
+    out.layersOnly = document.getElementById('map-route-layer').querySelectorAll(':scope > path').length === rd.routes_drawn.grand_tour.layers.length;
+    mapShowRoute('grand_tour');
+    return out;
+  });
+  const bad = Object.entries(r.routes).filter(([, x]) => !x.n || !x.firstLift || !x.liftsUp || !x.noAlt || x.maxGap > 60);
+  if (bad.length) fail(T, `a route is ridden wrong: ${JSON.stringify(bad)}`); else ok();
+  if (!r.moves || !r.inPaint) fail(T, `the marker does not ride (moves ${r.moves}, drawn with the route ${r.inPaint})`); else ok();
+  if (r.icon !== '\u{1F6A1}') fail(T, `the ride starts with "${r.icon}", not the lift`); else ok();
+  if (r.onScreen < 22 || r.onScreen > 36) fail(T, `the marker is ${r.onScreen}px on a phone sheet`); else ok();
+  if (!r.stops) fail(T, 'the animation keeps running after the route is hidden'); else ok();
+  if (!r.layersOnly) fail(T, 'the rider\'s guide paths are counted among the drawn layers'); else ok();
+}
+
+// ── how many days of pass to buy ─────────────────────────────────────
+// Yossi, 11.11: the weather turns, a closed day is not refunded, and the
+// link opens day by day - so the local pass plus a day supplement, and our
+// own record of closures, are said where the pass is bought and in the
+// calculator.
+{
+  const T = 'how many days of pass to buy';
+  const r = await page.evaluate(async () => {
+    const $ = id => document.getElementById(id);
+    const out = {};
+    openM('skipassModal');
+    const box = $('skipass-howmany');
+    out.txt = box ? box.innerText : '';
+    const fold = $('skipass-prices-fold');
+    out.before = !!box && !!fold && !!(box.compareDocumentPosition(fold) & Node.DOCUMENT_POSITION_FOLLOWING);
+    out.visible = !!box && box.offsetParent !== null;
+    closeM('skipassModal');
+    openCost('free');
+    COST.skiDays = 6; COST.pass = 'zermatt'; COST.rows = {}; _costRecalc(); _costRender();
+    const t1 = $('cost-ideas-body').textContent;
+    out.supp = /תוספת יום לצ'רמט/.test(t1) && /€52/.test(t1);
+    out.link = !!$('cost-ideas-body').querySelector('a[onclick*="skipassModal"]');
+    COST.pass = 'cervinia'; COST.rows = {}; _costRecalc(); _costRender();
+    const halfIdea = [...$('cost-ideas-body').querySelectorAll('.cost-idea')].find(x => /חצי יום/.test(x.textContent));
+    out.halfCaveat = !!halfIdea && /אין החזר/.test(halfIdea.textContent);
+    // the Zermatt days calculator, against the tariff by hand: 5 days, 2 in Zermatt
+    const C = d => _costPassPrice('cervinia', 'Adult', d), I = d => _costPassPrice('zermatt', 'Adult', d);
+    const sup = _texts.skipass.prices.zermatt.day_supplement.Adult;
+    const pl = zcPlans(5, 2), by = id => (pl.find(x => x.id === id) || {}).cost;
+    out.zcMath = by('local') === C(5) + 2 * sup && by('intl') === I(5) && by('daily') === 3 * C(1) + 2 * I(1)
+      && pl[0].cost === Math.min(...pl.map(x => x.cost))
+      && by('forecast') <= Math.min(by('local'), by('daily'));
+    out.zcSays = (pl.find(x => x.id === 'forecast') || {}).label || '';
+    openM('skipassModal'); ZC.n = 5; ZC.z = 2; zcRender();
+    out.zcShown = $('zc-out').querySelectorAll('.zc-plan').length === pl.length && /🏆/.test($('zc-out').textContent);
+    zcAdj('z', 9); out.zcCap = ZC.z === 5; zcAdj('n', -9); out.zcCap = out.zcCap && ZC.n === 1 && ZC.z === 1;
+    closeM('skipassModal');
+    // a percent sign stays with its number on a Hebrew line
+    out.pct = /<span dir="ltr">12%<\/span>/.test(_fixNums('כ-12% פחות'));
+    closeM('costModal');
+    return out;
+  });
+  const need = [/אין החזר/, /4 ימים קדימה/, /14 ימים/, /שבוע שלם ברצף/, /€52/, /3 ימים ומעלה/, /ולטורננש/];
+  const miss = need.filter(re => !re.test(r.txt)).map(String);
+  if (!r.visible || !r.before) fail(T, `the advice is not shown above the tariff (shown ${r.visible}, before ${r.before})`); else ok();
+  if (miss.length) fail(T, `the advice lacks: ${miss.join(' ')}`); else ok();
+  if (!r.supp || !r.link) fail(T, `the calculator does not offer the local pass with the day supplement (${r.supp}) or the way to the advice (${r.link})`); else ok();
+  if (!r.halfCaveat) fail(T, 'keeping the half day in the pass is offered without the no-refund caveat'); else ok();
+  if (!r.zcMath) fail(T, 'the Zermatt days calculator does not add up against the tariff'); else ok();
+  if (!/פס בינלאומי ל-2 ימים|תוספת צ'רמט|בינלאומי ליום אחד/.test(r.zcSays)) fail(T, `the forecast plan does not say which pass covers Zermatt: "${r.zcSays}"`); else ok();
+  if (!r.zcShown || !r.zcCap) fail(T, `the calculator does not show its plans (${r.zcShown}) or keep its days in range (${r.zcCap})`); else ok();
+  if (!r.pct) fail(T, 'a percent sign is left outside its number on a Hebrew line'); else ok();
+}
+
 // ── where to sleep ───────────────────────────────────────────────────
 // Yossi, 11.11: a section on lodging in the village - the three areas of
 // his map, outside the village, the kinds of lodging, what to ask, parking.
@@ -8575,8 +8683,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.open = getComputedStyle($('lodgingModal')).display !== 'none';
     const txt = $('lodging-body').innerText;
     out.areas = ['מרכז הכפר', 'Giomein', 'Cielo Alto', 'Plan Maison', 'Valtournenche'].filter(w => !txt.includes(w));
-    out.yossi = [/20 דקות הליכה בעלייה תלולה/, /Ski in\/Ski out/, /בדקו מראש היכן חונים/, /רק בתנאי שלג מתאימים/, /מרווחות יותר באותו מחיר/, /פינוי שלג/, /ZTL/, /Genzianella/].filter(re => !re.test(txt)).map(String);
+    out.yossi = [/20 דקות הליכה בעלייה תלולה/, /Ski in\/Ski out/, /בדקו מראש היכן חונים/, /רק בתנאי שלג מתאימים/, /פריקה וטעינה/, /צמודה לתקרה/, /מרווחות יותר באותו מחיר/, /פינוי שלג/, /ZTL/, /Genzianella/].filter(re => !re.test(txt)).map(String);
     out.chips = $('lodgingModal').querySelectorAll('.panel-toc button').length;
+    out.piste = /פיסטה|מוסך/.test(txt);
     // the map button lands on Yossi's map, and closing it returns to the guide
     const mapBtn = [...$('lodging-body').querySelectorAll('button')].find(b => /נקודות הציון/.test(b.textContent));
     mapBtn && mapBtn.click();
@@ -8599,6 +8708,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.open) fail(T, 'the card does not open the lodging guide'); else ok();
   if (r.areas.length) fail(T, `the guide does not name: ${r.areas.join(', ')}`); else ok();
   if (r.yossi.length) fail(T, `Yossi's points are missing: ${r.yossi.join(' ')}`); else ok();
+  if (r.piste) fail(T, 'the guide says פיסטה or מוסך - the words people use are מסלול and חניה'); else ok();
   if (r.chips < 5) fail(T, `the guide has ${r.chips} chips, not one per section`); else ok();
   if (!r.mapOpen || !r.backToGuide) fail(T, `the map button: opens ${r.mapOpen}, returns ${r.backToGuide}`); else ok();
   if (!r.fromSearch) fail(T, 'the lodging search screen has no way to the guide'); else ok();

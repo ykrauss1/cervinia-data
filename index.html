@@ -1116,7 +1116,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.37';
+  var v='v17.38';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6222,6 +6222,124 @@ function _mapPaintRoute() {
   svg.innerHTML = (route.layers || []).map(function (l) {
     return '<path d="' + l.d + '" fill="' + l.c + '" fill-opacity="0.72"/>';
   }).join('');
+  // the rider is a nicety: whatever goes wrong with it, the lines stay
+  try { _mapRideRoute(svg, route); } catch (e) {}
+}
+
+// ── a skier who rides the route (Yossi, 11.11: "צבע ותנועה") ──────────────
+// The drawn layers are ribbons - each run or lift is the OUTLINE of a thick
+// line, out along one edge and back along the other. One edge is close
+// enough to the middle for a marker, so each ribbon is cut at the point
+// farthest from where it starts. Lifts are turned to run uphill and runs
+// downhill, and the pieces are chained from the lowest lift by nearest ends:
+// the rider goes up in the lift and skis down, in the route's own order.
+// The alternative exit ('alt') is a variant, not the route, and is left out.
+var _mapRideRaf = 0;
+function _mapRideLegs(route) {
+  var legs = [];
+  (route.layers || []).forEach(function (l) {
+    if (l.kind === 'alt') return;
+    String(l.d).split(/(?=M)/).forEach(function (sub) {
+      var pts = (sub.match(/-?\d+(?:\.\d+)?/g) || []).map(Number), P = [];
+      for (var i = 0; i + 1 < pts.length; i += 2) P.push([pts[i], pts[i + 1]]);
+      if (P.length < 3) return;
+      var far = 0, best = -1;
+      P.forEach(function (q, i) {
+        var d = (q[0] - P[0][0]) * (q[0] - P[0][0]) + (q[1] - P[0][1]) * (q[1] - P[0][1]);
+        if (d > best) { best = d; far = i; }
+      });
+      var line = P.slice(0, far + 1);
+      // y grows downwards: a lift ends higher (smaller y), a run ends lower
+      var up = line[line.length - 1][1] < line[0][1];
+      if ((l.kind === 'lift') !== up) line.reverse();
+      legs.push({ kind: l.kind, pts: line });
+    });
+  });
+  if (!legs.length) return [];
+  var lifts = legs.filter(function (g) { return g.kind === 'lift'; });
+  var pool = legs.slice(), out = [];
+  var first = (lifts.length ? lifts : legs).reduce(function (a, g) { return g.pts[0][1] > a.pts[0][1] ? g : a; });
+  pool.splice(pool.indexOf(first), 1); out.push(first);
+  while (pool.length) {
+    var end = out[out.length - 1].pts.slice(-1)[0], k = 0, bd = Infinity;
+    // a run may be entered from either end - a short traverse on the sheet
+    // can run uphill in page terms - but a lift only from its bottom
+    var flip = false;
+    pool.forEach(function (g, i) {
+      var d = Math.hypot(g.pts[0][0] - end[0], g.pts[0][1] - end[1]);
+      if (d < bd) { bd = d; k = i; flip = false; }
+      if (g.kind !== 'lift') {
+        var z = g.pts[g.pts.length - 1], d2 = Math.hypot(z[0] - end[0], z[1] - end[1]);
+        if (d2 < bd) { bd = d2; k = i; flip = true; }
+      }
+    });
+    var nx = pool.splice(k, 1)[0];
+    if (flip) nx.pts.reverse();
+    out.push(nx);
+  }
+  return out;
+}
+function _mapRideRoute(svg, route) {
+  if (_mapRideRaf) { cancelAnimationFrame(_mapRideRaf); _mapRideRaf = 0; }
+  var legs = _mapRideLegs(route);
+  if (!legs.length) return;
+  // one path per leg, so the marker knows when it is riding and when skiing
+  // the guide paths sit in their own group, apart from the drawn layers
+  var NS = 'http://www.w3.org/2000/svg', parts = [];
+  var guides = document.createElementNS(NS, 'g');
+  guides.setAttribute('class', 'map-ride-guides');
+  svg.appendChild(guides);
+  legs.forEach(function (g, i) {
+    var p = document.createElementNS(NS, 'path');
+    var d = g.pts.map(function (q, j) { return (j ? 'L' : 'M') + q[0] + ',' + q[1]; }).join('');
+    // a gap between two legs is walked in a straight line, as part of the next one
+    if (i) { var e = legs[i - 1].pts.slice(-1)[0]; d = 'M' + e[0] + ',' + e[1] + d.replace(/^M/, 'L'); }
+    p.setAttribute('d', d); p.setAttribute('fill', 'none');
+    guides.appendChild(p);
+    parts.push({ el: p, kind: g.kind, len: p.getTotalLength() });
+  });
+  var g = document.createElementNS(NS, 'g');
+  g.setAttribute('class', 'map-rider');
+  // The same size on screen at every zoom: the svg scales with the canvas,
+  // so the marker is sized in page units per screen pixel.
+  var vb = svg.viewBox && svg.viewBox.baseVal, px = svg.getBoundingClientRect().width || 1;
+  var u = (vb && vb.width ? vb.width : 900) / px;
+  var halo = document.createElementNS(NS, 'circle');
+  halo.setAttribute('r', (14 * u).toFixed(2)); halo.setAttribute('fill', '#fff');
+  halo.setAttribute('stroke', '#ff6a00'); halo.setAttribute('stroke-width', (2.5 * u).toFixed(2));
+  var t = document.createElementNS(NS, 'text');
+  t.setAttribute('text-anchor', 'middle'); t.setAttribute('dominant-baseline', 'central');
+  t.setAttribute('font-size', (17 * u).toFixed(2));
+  g.appendChild(halo); g.appendChild(t); svg.appendChild(g);
+  var place = function (part, at) {
+    var q = part.el.getPointAtLength(at);
+    g.setAttribute('transform', 'translate(' + q.x.toFixed(1) + ',' + q.y.toFixed(1) + ')');
+    t.textContent = part.kind === 'lift' ? '\ud83d\udea1' : '\u26f7\ufe0f';
+  };
+  // Someone who asked the system for less motion gets the skier standing at
+  // the start of the route, not riding it.
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    place(parts[0], 0); return;
+  }
+  // page units a second: the lift is slower than the skier, as on the hill
+  var SPEED = { lift: 45, ski: 70 }, PAUSE = 1200;
+  var i = 0, at = 0, last = 0, wait = 0;
+  var step = function (now) {
+    if (!svg.isConnected || svg.style.display === 'none') { _mapRideRaf = 0; return; }
+    var dt = last ? Math.min(100, now - last) : 0; last = now;
+    if (wait > 0) { wait -= dt; }
+    else {
+      at += (SPEED[parts[i].kind] || 60) * dt / 1000;
+      while (at > parts[i].len) {
+        at -= parts[i].len; i++;
+        if (i >= parts.length) { i = 0; at = 0; wait = PAUSE; break; }
+      }
+    }
+    place(parts[i], Math.min(at, parts[i].len));
+    _mapRideRaf = requestAnimationFrame(step);
+  };
+  place(parts[0], 0);
+  _mapRideRaf = requestAnimationFrame(step);
 }
 
 function _renderPdfPage(pageNum) {
@@ -8375,6 +8493,92 @@ function _costBandHe(k, withAges) {
   }
   return k;
 }
+// ── Zermatt days, worked out ───────────────────────────────────────────
+// For N ski days with Z of them in Zermatt, one adult, from the tariff:
+//  all-local  - a Cervinia pass for N days + the day supplement on each Zermatt day
+//  all-intl   - an international pass for N days
+//  daily      - a ticket each morning: Cervinia, or international on a Zermatt day
+//  forecast   - short passes of up to 4 days, as far as a forecast reaches
+// The cheapest is marked, and so is how many days are paid before they are seen.
+var ZC = { n: 5, z: 2 };
+function zcAdj(k, d) {
+  if (k === 'n') { ZC.n = Math.max(1, Math.min(8, ZC.n + d)); ZC.z = Math.min(ZC.z, ZC.n); }
+  else ZC.z = Math.max(0, Math.min(ZC.n, ZC.z + d));
+  zcRender();
+}
+function zcPlans(N, Z) {
+  var C = function (d) { return _costPassPrice('cervinia', 'Adult', d); };
+  var I = function (d) { return _costPassPrice('zermatt', 'Adult', d); };
+  var p = window._texts && window._texts.skipass && window._texts.skipass.prices;
+  var sup = p && p.zermatt && p.zermatt.day_supplement && p.zermatt.day_supplement.Adult;
+  if (C(1) == null || I(1) == null || !sup) return null;
+  var plans = [];
+  // the supplement is sold to holders of a multi-day pass only
+  if (N >= 2 && C(N) != null) plans.push({ id: 'local', cost: C(N) + Z * sup, ahead: N,
+    label: 'פס צ\'רוויניה ל-' + N + ' ימים' + (Z ? ', ועוד תוספת יום לצ\'רמט (€' + sup + ') בבוקר שהמעבר פתוח' : '') });
+  if (Z && I(N) != null) plans.push({ id: 'intl', cost: I(N), ahead: N,
+    label: 'פס בינלאומי ל-' + N + ' ימים' });
+  plans.push({ id: 'daily', cost: (N - Z) * C(1) + Z * I(1), ahead: 0,
+    label: 'כרטיס יומי בכל בוקר' + (Z ? ' — וביום של צ\'רמט, בינלאומי ליום אחד' : '') });
+  // short passes as far as a forecast reaches: the best split into runs of 1-4 days
+  if (N >= 3) {
+    var memo = {};
+    var f = function (n, z) {
+      if (!n) return z ? null : { cost: 0, parts: [] };
+      var key = n + ',' + z;
+      if (key in memo) return memo[key];
+      var best = null;
+      for (var L = 1; L <= Math.min(4, n); L++) {
+        for (var k = 0; k <= Math.min(L, z); k++) {
+          // a run of days is a Cervinia pass (+ the supplement on its Zermatt
+          // days) or, when it holds Zermatt days, an international pass
+          var opts = L === 1 ? [{ c: k ? I(1) : C(1), t: k ? 'i' : 'c' }]
+                             : [{ c: C(L) + k * sup, t: 'c' }].concat(k ? [{ c: I(L), t: 'i' }] : []);
+          var rest = f(n - L, z - k);
+          if (!rest) continue;
+          opts.forEach(function (o) {
+            if (!best || o.c + rest.cost < best.cost)
+              best = { cost: o.c + rest.cost, parts: [{ L: L, k: k, t: o.t }].concat(rest.parts) };
+          });
+        }
+      }
+      return (memo[key] = best);
+    };
+    var fc = f(N, Z);
+    if (fc && fc.parts.length > 1 && fc.parts.some(function (x) { return x.L > 1; })) {
+      fc.parts.sort(function (a, b) { return b.L - a.L || a.k - b.k; });
+      var day = function (k) { return k === 1 ? 'יום אחד' : k + ' ימים'; };
+      plans.push({ id: 'forecast', cost: fc.cost, ahead: fc.parts[0].L, parts: fc.parts,
+        label: 'פסים קצרים לפי התחזית: ' + fc.parts.map(function (x) {
+          if (x.L === 1) return x.k ? 'בינלאומי ליום אחד (צ\'רמט)' : 'כרטיס ליום אחד';
+          if (x.t === 'i') return 'פס בינלאומי ל-' + x.L + ' ימים' + (x.k < x.L ? ' (' + day(x.k) + ' מהם בצ\'רמט)' : ' (ימי צ\'רמט ברצף)');
+          return 'פס צ\'רוויניה ל-' + x.L + ' ימים' + (x.k ? ' + תוספת צ\'רמט ל' + day(x.k) : '');
+        }).join(' · ') });
+    }
+  }
+  plans.sort(function (a, b) { return a.cost - b.cost; });
+  return plans;
+}
+function zcRender() {
+  var out = document.getElementById('zc-out');
+  if (!out) return;
+  document.getElementById('zc-n').textContent = ZC.n;
+  document.getElementById('zc-z').textContent = ZC.z;
+  var plans = zcPlans(ZC.n, ZC.z);
+  if (!plans) { out.innerHTML = '<span style="color:#888;">המחירון לא נטען</span>'; return; }
+  var min = plans[0].cost;
+  var eur = function (v) { return '<bdi dir="ltr">€' + (Math.round(v * 2) / 2).toLocaleString('en-US') + '</bdi>'; };
+  out.innerHTML = plans.map(function (pl, i) {
+    var top = pl.cost === min;
+    return '<div class="zc-plan" data-plan="' + pl.id + '" style="display:flex;gap:10px;align-items:flex-start;padding:7px 9px;margin-bottom:5px;border-radius:9px;'
+      + (top ? 'background:#eafaf0;border:1.5px solid #a9dfbf;' : 'background:#f8fafc;border:1px solid #e6edf3;') + '">'
+      + '<div style="flex:1;">' + (top ? '🏆 ' : '') + pl.label
+      + '<div style="font-size:0.72rem;color:#7a8794;">' + (pl.ahead ? 'משלמים מראש על ' + pl.ahead + ' ימים — יום סגור לא מוחזר' : 'לא משלמים מראש: ביום סגור פשוט לא קונים') + '</div></div>'
+      + '<div style="font-weight:bold;white-space:nowrap;">' + eur(pl.cost) + (top ? '' : '<div style="font-size:0.7rem;font-weight:normal;color:#8a5a00;">+' + eur(pl.cost - min) + '</div>') + '</div></div>';
+  }).join('')
+  + '<div style="font-size:0.72rem;color:#7a8794;margin-top:4px;">למבוגר, לפי המחירון הרשמי. תוספת היום לצ\'רמט נמכרת רק למי שיש לו פס לכמה ימים, ותקפה ביום הקנייה בלבד.</div>';
+}
+
 function _costPassPrice(pass, band, days) {
   var p = window._texts && window._texts.skipass && window._texts.skipass.prices;
   var t = p && p[pass];
@@ -8900,7 +9104,7 @@ function _costIdeas() {
   // the pass
   if (COST.pass === 'zermatt') {
     var cv = _costPassTotal('cervinia', S);
-    if (now != null && cv != null) save.push(item('save', 'פס צ\'רוויניה במקום הבינלאומי — בלי צ\'רמט, אותו אזור סקי באיטליה', cv - now, 'pass-cervinia'));
+    if (now != null && cv != null) save.push(item('save', 'פס צ\'רוויניה במקום הבינלאומי — ובבוקר שהמעבר פתוח, תוספת יום לצ\'רמט בקופה (€52 למבוגר). המעבר נסגר לא מעט, ואין החזר על יום סגור', cv - now, 'pass-cervinia'));
   } else {
     var zm = _costPassTotal('zermatt', S);
     if (now != null && zm != null) fancy.push(item('fancy', 'פס בינלאומי — לגלוש גם לצ\'רמט שבשווייץ', zm - now, 'pass-zermatt'));
@@ -8925,9 +9129,13 @@ function _costIdeas() {
           : 'גולשים רק חצי יום? כרטיס חצי יום במקום יום מלא', dH, null));
       } else {
         save.push(item('save', 'גולשים רק חצי יום ביום ההגעה או העזיבה? בפס של ' + S + ' ימים היום הנוסף עולה רק '
-          + amt(now - lessH) + ' — פחות מכרטיס חצי יום נפרד (' + amt(half) + '). עדיף להשאיר אותו בפס', null, null));
+          + amt(now - lessH) + ' — פחות מכרטיס חצי יום נפרד (' + amt(half) + '). כדאי רק אם בטוחים שגולשים את כל הימים: על יום סגור אין החזר', null, null));
       }
     }
+  }
+  // Buying for every day up front is the real question here (Yossi, 11.11)
+  if (S > 2) {
+    save.push(item('save', 'פס לכל הימים מראש? מזג האוויר הפכפך ועל יום סגור אין החזר — <a onclick="openFrom(\'costModal\',\'skipassModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">לכמה ימים לקנות פס</a>', null, null));
   }
   // getting there
   var pl = window._texts && window._texts.transport && window._texts.transport.planner;
@@ -11079,7 +11287,9 @@ function _fixNumsText(s) {
     // neutral dash between them, "\u20ac87\u2013\u20ac344" came out as "\u20ac344\u2013\u20ac87".
     .replace(/[\u20ac$\u20aa\u00a3]\s?\d[\d.,]*\s*[\u2013-]\s*[\u20ac$\u20aa\u00a3]?\s?\d[\d.,]*/g,
              function (m) { return '\u0001' + m + '\u0002'; })
-    .replace(/\d[\d,.\u2013-]*\d|\d/g, function (m) { return '<span dir="ltr">' + m + '</span>'; })
+    // A percent sign belongs to its number (Yossi, 11.11): left outside the
+    // LTR run it fell to the far side on a Hebrew line, "12%" read as "%12".
+    .replace(/\d[\d,.\u2013-]*\d%?|\d%?/g, function (m) { return '<span dir="ltr">' + m + '</span>'; })
     .replace(/\u0001([^\u0002]*)\u0002/g, function (m, g) {
       return '<span dir="ltr">' + g.replace(/<\/?span[^>]*>/g, '') + '</span>';
     })
@@ -14959,6 +15169,10 @@ function _applyTexts(t) {
     _set('skipass-mobile-desc',     sp.mobile_pass_desc);
     _set('skipass-keycard',         _fixPhones(sp.keycard_note));
     _set('skipass-discounts-title', sp.discounts_title);
+    if (typeof zcRender === 'function') zcRender();
+    if (sp.howmany) _set('skipass-howmany',
+      '<div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:6px;">' + sp.howmany.title + '</div>'
+      + sp.howmany.items.map(function (x) { return '<div style="margin-bottom:6px;">' + _fixNums(x) + '</div>'; }).join(''));
     if (sp.discounts) {
       var discEl = document.getElementById('skipass-discounts-list');
       if (discEl) discEl.innerHTML = sp.discounts.map(function(d) {
@@ -18924,6 +19138,28 @@ async function _admRenderUsers() {
     <span class="close-btn" onclick="closeM('skipassModal')">×</span>
     <h3 style="margin:0 0 4px;font-size:1.15rem;">🎫 סקי פס — צ'רוויניה</h3>
     <p style="color:#888;font-size:0.82rem;margin:0 0 18px;">עונת 2026/2027 · מחירון רשמי של Cervino S.p.A.</p>
+
+    <!-- How many days to buy (Yossi, 11.11): the weather turns, a closed day
+         is not refunded, and the link to Zermatt opens day by day - the
+         question people ask most, answered before the tariff. -->
+    <div id="skipass-howmany" style="padding:12px 14px;background:#f4f8fc;border:1.5px solid #d8e4f0;border-radius:11px;margin-bottom:14px;font-size:0.8rem;color:#334;line-height:1.75;"></div>
+    <!-- Days with Zermatt, worked out (Yossi, 11.11): "לי מסובך לחשב את זה".
+         Four ways to buy for N days with Z of them in Zermatt, priced from
+         the official tariff for one adult. -->
+    <div id="zc-box" style="padding:12px 14px;background:#fff;border:1.5px solid #d8e4f0;border-radius:11px;margin-bottom:14px;font-size:0.8rem;color:#334;line-height:1.7;">
+      <div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;">🧮 ימים בצ'רמט — איך הכי משתלם לקנות?</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:10px;">
+        <span style="display:inline-flex;align-items:center;gap:6px;">ימי סקי
+          <button class="c-btn" type="button" onclick="zcAdj('n',-1)">-</button>
+          <b id="zc-n" style="min-width:1.4em;text-align:center;">5</b>
+          <button class="c-btn" type="button" onclick="zcAdj('n',1)">+</button></span>
+        <span style="display:inline-flex;align-items:center;gap:6px;">מהם בצ'רמט
+          <button class="c-btn" type="button" onclick="zcAdj('z',-1)">-</button>
+          <b id="zc-z" style="min-width:1.4em;text-align:center;">2</b>
+          <button class="c-btn" type="button" onclick="zcAdj('z',1)">+</button></span>
+      </div>
+      <div id="zc-out"></div>
+    </div>
 
     <!-- The tables are long, and most people come here to buy rather than to
          read a tariff, so they fold away behind one line like the rental ones. -->
