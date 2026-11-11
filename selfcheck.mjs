@@ -8291,13 +8291,22 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const ideaText = () => $('cost-ideas-body').textContent;
     const p6 = 2 * price('cervinia', 'Adult', 6), p5 = 2 * price('cervinia', 'Adult', 5);
     out.dayLess = new RegExp('יום סקי אחד פחות.*חוסך כ-€' + Math.round(p6 - p5)).test(ideaText());
-    out.valtIdea = /וולטורננש/.test(ideaText()) && /€308/.test(ideaText());
+    // lodging is the big saving and comes first; bringing gear from home is gone
+    const firstSave = $('cost-ideas-body').querySelector('.cost-idea[data-kind="save"]');
+    out.valtIdea = !!firstSave && /החיסכון הגדול ביותר — הלינה/.test(firstSave.textContent)
+      && /Cielo Alto/.test(firstSave.textContent) && /ולטורננש/.test(firstSave.textContent)
+      && !!firstSave.querySelector('a[onclick*="lodgingModal"]');
+    out.noOwnGear = !/מביאים ציוד מהארץ/.test(ideaText()) && !/Genzianella/.test(ideaText()) && /חפשו חנות השכרה זולה/.test(ideaText());
+    // half a day is always said: for 6 days the extra day costs less than a half-day ticket
+    const SP = window._texts.skipass.prices;
+    const half2 = 2 * parseFloat(SP.cervinia.rows.find(r => /חצי יום/.test(r[0]))[1 + SP.columns.indexOf('Adult')]);
+    out.halfIdea = /חצי יום/.test(ideaText()) && ideaText().includes('€' + Math.round(half2));
+    out.fancyNew = /ספא/.test(ideaText()) && /שדרוג הרכב/.test(ideaText());
     const apply = what => { const b = [...$('cost-ideas-body').querySelectorAll('button')].find(x => (x.getAttribute('onclick') || '').includes("'" + what + "'")); b && b.click(); return !!b; };
     out.applyDay = apply('day-less') && COST.skiDays === 5;
     out.applyBus = apply('bus') && COST.transport === 'bus' && /אוטובוס/.test(COST.rows.car.note);
     out.applyZermatt = apply('pass-zermatt') && COST.pass === 'zermatt';
     out.thenCervinia = /פס צ'רוויניה במקום הבינלאומי/.test(ideaText());
-    out.applyGear = apply('own-gear') && COST.rows.gear.min === 0 && COST.rows.gear.touched;
     COST.pass = 'cervinia'; COST.transport = 'car'; COST.skiDays = 6; COST.rows = {}; _costRecalc(); _costRender();
     out.foodBackExpect = 2 * 7 * ref.food_person_day[0];
     closeM('costModal');
@@ -8415,9 +8424,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `the total does not say what it leaves out, or has no shekels: "${r.total}"`); else ok();
   if (!r.ideasOpen) fail(T, 'the total has no way to the save-or-splurge ideas'); else ok();
   if (!r.dayLess) fail(T, 'one ski day fewer is not offered at what it saves in this trip'); else ok();
-  if (!r.valtIdea) fail(T, 'lodging in Valtournenche is not offered with what it is really worth'); else ok();
-  if (!r.applyDay || !r.applyBus || !r.applyZermatt || !r.applyGear) fail(T,
-    `an idea's button does not apply it: day ${r.applyDay}, bus ${r.applyBus}, zermatt ${r.applyZermatt}, gear ${r.applyGear}`); else ok();
+  if (!r.valtIdea) fail(T, 'lodging is not the first saving, with Cielo Alto, Valtournenche and a way to the guide'); else ok();
+  if (!r.noOwnGear) fail(T, 'bringing gear from home is offered as a saving again'); else ok();
+  if (!r.halfIdea) fail(T, 'the half-day ticket is not mentioned with its price'); else ok();
+  if (!r.fancyNew) fail(T, 'the splurges lack the spa hotel or the car upgrade'); else ok();
+  if (!r.applyDay || !r.applyBus || !r.applyZermatt) fail(T,
+    `an idea's button does not apply it: day ${r.applyDay}, bus ${r.applyBus}, zermatt ${r.applyZermatt}`); else ok();
   if (!r.thenCervinia) fail(T, 'with the international pass, the Cervinia pass is not offered as a saving'); else ok();
   if (!r.resetBack || !near1(r.foodBack, r.foodBackExpect)) fail(T, '"↺" does not give the row back to the calculation'); else ok();
   if (!r.carAlt || !r.altOpens) fail(T, 'the car search does not point at the transfer and the bus'); else ok();
@@ -8546,6 +8558,51 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.chainsButton) fail(T, 'the chain-fitting videos have no button of their own'); else ok();
   if (!r.chainsAlways) fail(T, 'car hire does not say winter tyres are rare and chains always work'); else ok();
   if (r.searchParking !== true) fail(T, `the search entry for parking does not open on parking (${r.searchParking})`); else ok();
+}
+
+// ── where to sleep ───────────────────────────────────────────────────
+// Yossi, 11.11: a section on lodging in the village - the three areas of
+// his map, outside the village, the kinds of lodging, what to ask, parking.
+{
+  const T = 'where to sleep in the village';
+  const r = await page.evaluate(async () => {
+    const $ = id => document.getElementById(id);
+    const out = {};
+    const card = $('svc-lodging');
+    out.card = !!card && card.closest('.services-grid') !== null && !!card.querySelector('use[href="#ico-house"]');
+    card && card.click();
+    await new Promise(res => setTimeout(res, 150));
+    out.open = getComputedStyle($('lodgingModal')).display !== 'none';
+    const txt = $('lodging-body').innerText;
+    out.areas = ['מרכז הכפר', 'Giomein', 'Cielo Alto', 'Plan Maison', 'Valtournenche'].filter(w => !txt.includes(w));
+    out.yossi = [/20 דקות הליכה בעלייה תלולה/, /Ski in\/Ski out/, /בדקו מראש היכן חונים/, /רק בתנאי שלג מתאימים/, /מרווחות יותר באותו מחיר/, /פינוי שלג/, /ZTL/, /Genzianella/].filter(re => !re.test(txt)).map(String);
+    out.chips = $('lodgingModal').querySelectorAll('.panel-toc button').length;
+    // the map button lands on Yossi's map, and closing it returns to the guide
+    const mapBtn = [...$('lodging-body').querySelectorAll('button')].find(b => /נקודות הציון/.test(b.textContent));
+    mapBtn && mapBtn.click();
+    await new Promise(res => setTimeout(res, 200));
+    out.mapOpen = getComputedStyle($('mapModal')).display !== 'none' && getComputedStyle($('lodgingModal')).display === 'none';
+    closeM('mapModal');
+    await new Promise(res => setTimeout(res, 120));
+    out.backToGuide = getComputedStyle($('lodgingModal')).display !== 'none';
+    closeM('lodgingModal');
+    // from the lodging search screen
+    openM('hotelModal'); planGo('hotel');
+    const g = $('hotel-guide-link');
+    out.fromSearch = !!g && g.offsetParent !== null;
+    closeM('hotelModal');
+    out.search = SEARCH_INDEX.some(e => /lodgingModal/.test(e.action));
+    out.hash = typeof _panelHashOf === 'function' && _panelHashOf('lodgingModal') === 'lodging';
+    return out;
+  });
+  if (!r.card) fail(T, 'no "where to sleep" card with its house icon on the home page'); else ok();
+  if (!r.open) fail(T, 'the card does not open the lodging guide'); else ok();
+  if (r.areas.length) fail(T, `the guide does not name: ${r.areas.join(', ')}`); else ok();
+  if (r.yossi.length) fail(T, `Yossi's points are missing: ${r.yossi.join(' ')}`); else ok();
+  if (r.chips < 5) fail(T, `the guide has ${r.chips} chips, not one per section`); else ok();
+  if (!r.mapOpen || !r.backToGuide) fail(T, `the map button: opens ${r.mapOpen}, returns ${r.backToGuide}`); else ok();
+  if (!r.fromSearch) fail(T, 'the lodging search screen has no way to the guide'); else ok();
+  if (!r.search || !r.hash) fail(T, `the guide is not in the site search (${r.search}) or has no address (${r.hash})`); else ok();
 }
 
 // ── the phone's back button closes, it does not leave ───────────────
