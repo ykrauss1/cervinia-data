@@ -1134,7 +1134,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.45';
+  var v='v17.46';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1210,14 +1210,16 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <button onclick="closeSideMenu()" aria-label="סגירת התפריט">✕</button>
   </div>
   <div id="side-menu-links" role="navigation">
+    <!-- Yossi's order (11.11): what the site does for you first, then what
+         backs it, and who we are last - the usual order of a menu. -->
     <button onclick="smGo('why')"><span>🏔️</span>למה צ׳רוויניה? · קהילה וקישורים</button>
-    <button onclick="smGo('cost')"><span>💶</span>כמה תכל'ס יעלה לי?</button>
-    <button onclick="smGo('about')"><span>ℹ️</span>עלינו</button>
-    <button onclick="smGo('contact')"><span>✉️</span>צור קשר</button>
+    <button onclick="smGo('cost')"><span>💶</span>תכל'ס, כמה יעלה לנו?</button>
     <button id="sm-install" onclick="smGo('install')"><span>📲</span>התקנת האפליקציה</button>
-    <button id="sm-push" onclick="smGo('push')"><span>🔔</span>התראות</button>
-    <button onclick="smGo('help')"><span>❓</span>עזרה</button>
+    <button id="sm-push" onclick="smGo('push')"><span>🔔</span>התראות — הפעלה וביטול</button>
     <button onclick="smGo('sources')"><span>📚</span>מקורות ואמינות</button>
+    <button onclick="smGo('help')"><span>❓</span>עזרה</button>
+    <button onclick="smGo('contact')"><span>✉️</span>צור קשר</button>
+    <button onclick="smGo('about')"><span>ℹ️</span>עלינו</button>
   </div>
   <div id="side-menu-foot">CerviniaLive</div>
 </aside>
@@ -4712,7 +4714,7 @@ const DEMO_LIVE = {
   ],
   snow_points: [
     { station: 'top',  alt: 3480, depth: 210 },
-    { station: 'mid',  alt: 2800, depth: 155 },
+    { station: 'mid',  alt: 2555, depth: 155 },
     { station: 'base', alt: 2050, depth: 80  }
   ]
 };
@@ -17337,8 +17339,13 @@ function renderLiveBar(d) {
   // which station that is: the point with the same depth, the middle one first
   // older readings carry no name or call the height alt; fill both in
   var _stName = { top: 'Plateau Rosa', cime: 'Cime Bianche Laghi', mid: 'Plan Maison', base: 'Breuil', basev: 'Breuil' };
+  // The operator's table gives no heights; the scraper set Plan Maison at
+  // 2,600 until 11.11, and the station stands at 2,555 (Yossi caught it).
+  // The heights the site uses everywhere else win over what a reading says.
+  var _stAlt = { 'Plateau Rosa': 3480, 'Cime Bianche Laghi': 2814, 'Plan Maison': 2555, 'Breuil': 2050 };
   _snowPoints = (Array.isArray(d.snow_points) ? d.snow_points : []).map(function (p) {
-    return { station: p.station, name: p.name || _stName[p.station] || '', altitude: p.altitude != null ? p.altitude : p.alt, depth: p.depth };
+    var nm = p.name || _stName[p.station] || '';
+    return { station: p.station, name: nm, altitude: _stAlt[nm] || (p.altitude != null ? p.altitude : p.alt), depth: p.depth };
   }).filter(function (p) { return p.name; });
   _snowLastFall = d.last_snowfall || '';
   var _sm = document.getElementById('snowModal');

@@ -393,7 +393,7 @@ async function scrape() {
       const stationMap = {
         'Plateau Rosa':       { station: 'top',  altitude: 3480 },
         'Cime Bianche Laghi': { station: 'cime', altitude: 2814 },
-        'Plan Maison':        { station: 'mid',  altitude: 2600 },
+        'Plan Maison':        { station: 'mid',  altitude: 2555 },
         'Breuil':             { station: 'base', altitude: 2050 },
         'Valtournenche':      { station: 'valt', altitude: 1520 },
         'La Salette':         { station: 'salette', altitude: 2289 },

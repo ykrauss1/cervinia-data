@@ -8192,7 +8192,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     COST.rows = {}; COST.bands = null; COST.bandsTouched = false; COST.pass = 'cervinia'; COST.skiDays = null;
 
     // ── door 1: the side menu ──
-    out.inMenu = !![...document.querySelectorAll('#side-menu-links button')].find(b => /כמה תכל'ס יעלה/.test(b.textContent));
+    out.inMenu = !![...document.querySelectorAll('#side-menu-links button')].find(b => /תכל'ס, כמה יעלה לנו/.test(b.textContent));
+    // Yossi's order (11.11): why, cost, install, notifications, sources, help, contact, about
+    const order = [...document.querySelectorAll('#side-menu-links button')].map(b => (b.getAttribute('onclick') || '').replace(/.*smGo\('([a-z]+)'\).*/, '$1')).join(',');
+    out.menuOrder = order === 'why,cost,install,push,sources,help,contact,about' ? 'ok' : order;
+    out.pushLabel = /התראות — הפעלה וביטול/.test(document.getElementById('sm-push').textContent);
     SIDE_MENU_ACTIONS.cost();
     await new Promise(res => setTimeout(res, 60));
     out.freeOpen = getComputedStyle($('costModal')).display !== 'none';
@@ -8368,6 +8372,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const T = 'how much it really costs';
   const near1 = (a, b) => a != null && Math.abs(a - b) < 0.6;
   if (!r.inMenu) fail(T, 'the side menu has no way to the calculator'); else ok();
+  if (r.menuOrder !== 'ok' || !r.pushLabel) fail(T, `the side menu is not in Yossi's order: ${r.menuOrder} (push label ${r.pushLabel})`); else ok();
   if (!r.freeOpen || !r.freeAsks) fail(T, 'the side-menu door does not open a panel that asks for nights'); else ok();
   if (r.freeDays !== 6) fail(T, `7 nights default to ${r.freeDays} ski days, not 6`); else ok();
   if (!near1(r.skipass[0], r.expect.adult6) || r.skipass[0] !== r.skipass[1] || !r.skipass[2]) fail(T,
@@ -8730,7 +8735,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     openM('lessonsModal');
     const vb = $('les-videos-btn');
     out.videosBtn = !!vb && vb.offsetParent !== null && vb.getBoundingClientRect().top < $('les-videos').getBoundingClientRect().top;
-    out.pizza = /מ"פיצה" לסקי פרללי/.test($('les-videos').innerText) && /בינוניים ומתקדמים/.test($('les-videos').innerText) && !/ממשיכים/.test($('les-videos').innerText);
+    out.pizza = /מ"פיצה" לסקי פרללי/.test($('les-videos').innerText) && /רמת ביניים ומתקדמים/.test($('les-videos').innerText) && !/ממשיכים/.test($('les-videos').innerText);
     closeM('lessonsModal');
     // rental: booking ahead among the tips; one place for "buy it on the way"
     openM('rentalModal');
@@ -8777,7 +8782,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       snow_depth: '20 cm', last_snowfall: '06/11/2026', updated_at: new Date().toISOString(),
       snow_points: [
         // out of order on purpose: the panel sorts them, top first
-        { station: 'mid', altitude: 2600, depth: 20, name: 'Plan Maison' },
+        { station: 'mid', altitude: 2600, depth: 20, name: 'Plan Maison' }, // a reading's wrong height
         { station: 'base', altitude: 2050, depth: 15, name: 'Breuil' },
         { station: 'top', altitude: 3480, depth: 35, name: 'Plateau Rosa' },
         { station: 'cime', altitude: 2814, depth: 35, name: 'Cime Bianche Laghi' }]
@@ -8796,6 +8801,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!/^20\s*ס"מ$/.test(r.value.trim())) fail(T, `the value reads "${r.value}"`); else ok();
   if (!r.open || r.rows.length !== 4 || !/פלטאו רוזה/.test(r.rows[0]) || !/הכפר/.test(r.rows[3]) || !/35/.test(r.rows[0]) || !/15/.test(r.rows[3]))
     fail(T, `the stations list: open ${r.open}, rows ${JSON.stringify(r.rows)}`); else ok();
+  if (!/2,555/.test(r.rows.find(x => /פלאן מייזון/.test(x)) || '')) fail(T, 'Plan Maison is not shown at 2,555 m'); else ok();
   if (!/06\/11\/2026/.test(r.foot) || !/ולטורננש/.test(r.foot)) fail(T, `the foot lacks the last snowfall or the Valtournenche note: ${r.foot}`); else ok();
 }
 
