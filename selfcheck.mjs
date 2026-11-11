@@ -8281,6 +8281,24 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.resetBack = COST.rows.skipass.exact && COST.rows.skipass.min === 2 * price('cervinia', 'Adult', 5);
     _costReset('food');
     out.foodBack = COST.rows.food.min;
+
+    // save or splurge: priced against this trip, and applied by the button
+    COST.skiDays = 6; COST.pass = 'cervinia'; COST.transport = 'car'; COST.rows = {};
+    _costRecalc(); _costRender();
+    const ideasBtn = [...$('cost-total').querySelectorAll('button')].find(b => /לחסוך\? או להתפנק/.test(b.textContent));
+    ideasBtn && ideasBtn.click();
+    out.ideasOpen = $('cost-ideas').open;
+    const ideaText = () => $('cost-ideas-body').textContent;
+    const p6 = 2 * price('cervinia', 'Adult', 6), p5 = 2 * price('cervinia', 'Adult', 5);
+    out.dayLess = new RegExp('יום סקי אחד פחות.*חוסך כ-€' + Math.round(p6 - p5)).test(ideaText());
+    out.valtIdea = /וולטורננש/.test(ideaText()) && /€308/.test(ideaText());
+    const apply = what => { const b = [...$('cost-ideas-body').querySelectorAll('button')].find(x => (x.getAttribute('onclick') || '').includes("'" + what + "'")); b && b.click(); return !!b; };
+    out.applyDay = apply('day-less') && COST.skiDays === 5;
+    out.applyBus = apply('bus') && COST.transport === 'bus' && /אוטובוס/.test(COST.rows.car.note);
+    out.applyZermatt = apply('pass-zermatt') && COST.pass === 'zermatt';
+    out.thenCervinia = /פס צ'רוויניה במקום הבינלאומי/.test(ideaText());
+    out.applyGear = apply('own-gear') && COST.rows.gear.min === 0 && COST.rows.gear.touched;
+    COST.pass = 'cervinia'; COST.transport = 'car'; COST.skiDays = 6; COST.rows = {}; _costRecalc(); _costRender();
     out.foodBackExpect = 2 * 7 * ref.food_person_day[0];
     closeM('costModal');
 
@@ -8395,6 +8413,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `rows typed into were recomputed: ${r.handKept}`); else ok();
   if (!/לא נכלל:.*טיסות/.test(r.total) || !/₪/.test(r.total)) fail(T,
     `the total does not say what it leaves out, or has no shekels: "${r.total}"`); else ok();
+  if (!r.ideasOpen) fail(T, 'the total has no way to the save-or-splurge ideas'); else ok();
+  if (!r.dayLess) fail(T, 'one ski day fewer is not offered at what it saves in this trip'); else ok();
+  if (!r.valtIdea) fail(T, 'lodging in Valtournenche is not offered with what it is really worth'); else ok();
+  if (!r.applyDay || !r.applyBus || !r.applyZermatt || !r.applyGear) fail(T,
+    `an idea's button does not apply it: day ${r.applyDay}, bus ${r.applyBus}, zermatt ${r.applyZermatt}, gear ${r.applyGear}`); else ok();
+  if (!r.thenCervinia) fail(T, 'with the international pass, the Cervinia pass is not offered as a saving'); else ok();
   if (!r.resetBack || !near1(r.foodBack, r.foodBackExpect)) fail(T, '"↺" does not give the row back to the calculation'); else ok();
   if (!r.carAlt || !r.altOpens) fail(T, 'the car search does not point at the transfer and the bus'); else ok();
   if (!r.altTab) fail(T, 'the car tab opens the transport card on the wrong tab'); else ok();
@@ -8457,6 +8481,20 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       out.landed.push([Math.round(gap), on.length === 1 && on[0] === chips[i]]);
     }
 
+    // one row on a phone (this page is 430 wide), and a pressed chip in view
+    const tops = new Set(chips.map(c => Math.round(c.getBoundingClientRect().top)));
+    out.oneRow = [tops.size, Math.round(strip.getBoundingClientRect().height), strip.scrollWidth > strip.clientWidth];
+    const far = chips[chips.length - 1];
+    far.click(); await new Promise(res => setTimeout(res, 700));
+    const sr = strip.getBoundingClientRect(), fr = far.getBoundingClientRect();
+    out.farInView = fr.left >= sr.left - 1 && fr.right <= sr.right + 1;
+    // the corner ×: big enough to see, and a finger slightly off still hits it
+    const x = $('parkingModal').querySelector('.close-btn');
+    box.scrollTo({ top: 0, behavior: 'instant' }); await new Promise(res => setTimeout(res, 250));   // the × scrolls with the panel
+    const xr = x.getBoundingClientRect();
+    const hit = document.elementFromPoint(xr.left + xr.width / 2, xr.bottom + 6);
+    out.xSize = Math.round(xr.width);
+    out.xNearHit = hit === x;
     const t = body.textContent;
     out.valtBus = /מוולטורננש לצ'רוויניה באוטובוס/.test(t) && /מסלולים אדומים/.test(t);
     const labels = [...body.querySelectorAll('a, button')].map(a => a.textContent);
@@ -8470,6 +8508,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.essayGone = !/ההבדל אינו בביטוח אלא בהשתתפות/.test(t) && !/השאלה הראשונה בהזמנה/.test(t);
     out.widestGone = !/הרחב ביותר/.test(t);
     out.chainsAlways = /עובדות תמיד/.test(t) && /צמיגי חורף — כמעט אין/.test(t);
+    // the fitting videos have a button of their own, not only a link in a sentence
+    out.chainsButton = [...body.querySelectorAll('a')].some(a => /snowchains\.com/.test(a.href) && /סרטוני הרכבת שרשראות/.test(a.textContent));
     closeM('parkingModal');
 
     // the search entry for parking still lands on parking
@@ -8490,6 +8530,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const bad = r.landed.map((x, i) => [i, x]).filter(([, x]) => x[0] < 0 || x[0] > 40 || !x[1]);
   if (r.chips < 5 || bad.length) fail(T,
     `chips land under the strip or do not show which was pressed: ${JSON.stringify(bad)}`); else ok();
+  if (r.oneRow[0] !== 1 || r.oneRow[1] > 60 || !r.oneRow[2]) fail(T,
+    `on a phone the chips are not one row that scrolls (rows ${r.oneRow[0]}, ${r.oneRow[1]}px)`); else ok();
+  if (!r.farInView) fail(T, 'a chip pressed at the end of the row is left half out of view'); else ok();
+  if (r.xSize < 34) fail(T, `the corner × is ${r.xSize}px on a phone - too small to find`); else ok();
+  if (!r.xNearHit) fail(T, 'a tap just below the corner × misses it'); else ok();
   if (!r.valtBus) fail(T, 'Valtournenche to Cervinia offers no bus, or hides that the ski way is long and red'); else ok();
   if (!r.linksSay) fail(T, 'the timetable buttons do not say they are the operator\'s official pages'); else ok();
   if (r.folds !== 2 || !r.foldsClosed) fail(T,
@@ -8498,8 +8543,58 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.insurance) fail(T, 'car hire does not lead with the excess insurance, where to buy it and the AIG experience'); else ok();
   if (!r.essayGone) fail(T, 'the deductible comparison or "the first question" is still there'); else ok();
   if (!r.widestGone) fail(T, 'Malpensa is still "the widest of the four"'); else ok();
+  if (!r.chainsButton) fail(T, 'the chain-fitting videos have no button of their own'); else ok();
   if (!r.chainsAlways) fail(T, 'car hire does not say winter tyres are rare and chains always work'); else ok();
   if (r.searchParking !== true) fail(T, `the search entry for parking does not open on parking (${r.searchParking})`); else ok();
+}
+
+// ── the phone's back button closes, it does not leave ───────────────
+// Yossi, 11.11: back on a phone left the site whatever was open. Now back
+// closes the top layer; with nothing open it says how to leave, and only a
+// second back leaves. Its own page, because the last step really leaves.
+{
+  const T = 'the back button closes, it does not leave';
+  const pb = await browser.newPage({ viewport: { width: 390, height: 800 } });
+  await pb.goto('about:blank');
+  await pb.goto('file://' + PAGE);
+  await pb.waitForTimeout(900);
+  // a back that leaves the site takes the page with it: that is a finding, not a crash
+  const st = () => pb.evaluate(() => ({
+    url: location.href,
+    open: [...document.querySelectorAll('.modal')].filter(m => m.style.display && m.style.display !== 'none').map(m => m.id),
+    side: typeof _sideMenuOpen === 'function' ? _sideMenuOpen() : null,
+    toast: (() => { const t = document.getElementById('back-toast'); return t && t.style.display !== 'none' ? t.textContent : ''; })()
+  })).catch(() => ({ url: pb.url(), open: [], side: null, toast: '' }));
+  // two panels deep: back closes the top one, then the next
+  await pb.evaluate(() => { openM('pisteModal'); if (typeof openSources === 'function') openSources('pistes'); }).catch(() => {});
+  await pb.waitForTimeout(150);
+  const before = await st();
+  await pb.goBack(); await pb.waitForTimeout(250);
+  const one = await st();
+  await pb.goBack(); await pb.waitForTimeout(250);
+  const two = await st();
+  // the side menu
+  await pb.evaluate(() => openSideMenu()).catch(() => {}); await pb.waitForTimeout(300);
+  await pb.goBack(); await pb.waitForTimeout(300);
+  const side = await st();
+  // nothing open: a word, not an exit
+  await pb.waitForTimeout(3200);           // let any earlier arming lapse
+  await pb.goBack(); await pb.waitForTimeout(250);
+  const warn = await st();
+  // and a second back leaves
+  await pb.goBack(); await pb.waitForTimeout(600);
+  const gone = pb.url();
+  await pb.close();
+
+  if (before.open.length < 2) fail(T, `could not open two panels (${before.open})`);
+  else if (one.open.length !== before.open.length - 1 || !/file:/.test(one.url)) fail(T,
+    `back did not close just the top panel: ${before.open} → ${one.open} (${one.url})`); else ok();
+  if (two.open.length !== 0 || !/file:/.test(two.url)) fail(T,
+    `a second back did not close the last panel: ${two.open}`); else ok();
+  if (side.side || !/file:/.test(side.url)) fail(T, 'back does not close the side menu'); else ok();
+  if (!/file:/.test(warn.url) || !/לחצו שוב/.test(warn.toast)) fail(T,
+    `with nothing open, back left or said nothing ("${warn.toast}", ${warn.url})`); else ok();
+  if (/file:/.test(gone)) fail(T, `a second back right after the warning did not leave (${gone})`); else ok();
 }
 
 await browser.close();

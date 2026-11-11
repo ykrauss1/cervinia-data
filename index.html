@@ -374,6 +374,12 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .modal-content { scrollbar-width: thin; scrollbar-color: #ccc transparent; }
 .close-btn { position: absolute; left: 20px; top: 16px; cursor: pointer; font-size: 1.5rem; color: #888; z-index: 10; line-height: 1; background: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 .close-btn:hover { color: #333; }
+/* A finger is bigger than the drawn button: an invisible ring around it
+   takes the tap too, so closing a panel is not a game of aim (Yossi, 11.11). */
+.close-btn::after { content: ''; position: absolute; inset: -9px; border-radius: 50%; }
+/* not where the × sits in a toolbar row (the map) - there the ring reached
+   past the screen edge and over the map itself */
+.close-btn[style*="position:static"]::after { content: none; }
 /* "what to do in the area": the category row stays pinned while the list
    scrolls under it. The container's top padding has to go, or a 20px strip
    of card shows above the bar; the header puts that padding back. */
@@ -670,8 +676,17 @@ img, svg, video { max-width: 100%; }
     overflow-y: auto;
     border-radius: 14px !important;
   }
-  .close-btn { left: 12px !important; top: 10px !important; font-size: 1.4rem !important; }
-  .panel-share { left: 44px !important; top: 10px !important; }
+  /* On a phone the corner × was a pale grey glyph at the very edge, easy to
+     miss and hard to hit. Larger, darker, on a grey disc that reads as a
+     button - still small enough not to cover the heading. */
+  .close-btn { left: 10px !important; top: 9px !important; font-size: 1.45rem !important;
+               width: 36px !important; height: 36px !important; }
+  /* the grey disc only where the panel is light; a × on a dark header (the
+     dashboard) keeps its own white on nothing */
+  .close-btn:not([style*="background:transparent"]) {
+               color: #2d3b4a !important; background: #edf1f6 !important;
+               box-shadow: 0 1px 4px rgba(10,25,47,0.14); }
+  .panel-share { left: 54px !important; top: 13px !important; }
 
   /* Tables on mobile - allow horizontal scroll */
   table { font-size: 0.82rem; }
@@ -943,6 +958,21 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 .panel-toc button:hover { background: #e2ebf5; }
 /* the chip last pressed says so - otherwise nothing shows what was chosen */
 .panel-toc button.on { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+/* On a phone the chips wrapped to as many as five rows, and a sticky strip
+   that tall kept a third of the screen for itself (Yossi, 11.11). There they
+   sit in one row that scrolls sideways; the row is cut mid-chip at its end
+   and fades, which is what says there is more. */
+@media (max-width: 600px) {
+  .panel-toc {
+    flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    -webkit-mask-image: linear-gradient(to left, transparent 0, #000 56px);
+            mask-image: linear-gradient(to left, transparent 0, #000 56px);
+  }
+  .panel-toc::-webkit-scrollbar { display: none; }
+  .panel-toc button { flex: 0 0 auto; }
+}
 .toc-flash { animation: tocFlash 1.2s ease; }
 @keyframes tocFlash { from { background: #fff6d8; } to { background: transparent; } }
 @media (prefers-reduced-motion: reduce) { .toc-flash { animation: none; } }
@@ -1086,7 +1116,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.35';
+  var v='v17.36';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2821,6 +2851,12 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
     <div id="cost-inputs" style="background:#f6f9fc;border:1px solid #e1eaf3;border-radius:11px;padding:11px 12px;margin-bottom:14px;"></div>
     <div id="cost-rows"></div>
+    <!-- Save or splurge (Yossi, 11.11): each idea says what it is worth in
+         this trip, and the ones the calculator can apply have a button. -->
+    <details id="cost-ideas" style="margin-top:12px;border:1.5px solid #e3e8ef;border-radius:11px;background:#fbfcfe;padding:9px 12px;">
+      <summary style="cursor:pointer;font-weight:bold;font-size:0.9rem;color:#16314f;">💡 רוצה לחסוך? או להתפנק?</summary>
+      <div id="cost-ideas-body" style="margin-top:8px;"></div>
+    </details>
     <div id="cost-coverage" style="display:none;font-size:0.78rem;line-height:1.6;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:#f8fbf9;border:1px solid #dcebe2;"></div>
     <!-- Sticky to the bottom of the panel: the answer is on screen from the
          moment it opens, not after a scroll past seven rows. -->
@@ -4939,7 +4975,8 @@ function _panelHashOf(modalId) {
 function _setPanelHash(h) {
   try {
     if (!history.replaceState) return;
-    history.replaceState(null, '', location.pathname + location.search + (h ? '#' + h : ''));
+    // keep the entry's state: the back button's guard lives in it
+    history.replaceState(history.state, '', location.pathname + location.search + (h ? '#' + h : ''));
   } catch (e) {}
 }
 
@@ -5670,6 +5707,13 @@ function buildPanelToc(panelId) {
     b.textContent = label;
     b.onclick = function () {
       [].forEach.call(strip.children, function (x) { x.classList.toggle('on', x === b); });
+      // in the one-row strip a chip pressed near the edge is brought fully in
+      if (strip.scrollWidth > strip.clientWidth) {
+        var sr = strip.getBoundingClientRect(), br = b.getBoundingClientRect();
+        if (br.left < sr.left + 56 || br.right > sr.right) {
+          strip.scrollBy({ left: (br.left + br.width / 2) - (sr.left + sr.width / 2), behavior: 'smooth' });
+        }
+      }
       scrollToSection(sec);
     };
     strip.appendChild(b);
@@ -5811,6 +5855,66 @@ function closeM(id) {
       typeof _panelHashOf === 'function' && _panelHashOf(id)) _setPanelHash('');
   _unlockBodyScroll();
 }
+
+// ── the phone's back button ──────────────────────────────────────────
+// Back on a phone left the site altogether, whatever was open (Yossi, 11.11).
+// Two history entries are laid down at load: "root" and "guard" on top of it.
+// Back from the guard lands on root and fires popstate, and the page answers:
+// if a panel, the side menu or a full-screen camera is open, it closes the top
+// one - exactly what Escape does - and lays the guard down again. With nothing
+// open it says how to leave, and only a second back within a few seconds goes.
+// Fragment links make entries with no state and are left alone; the panel
+// hash uses replaceState, so it never adds entries of its own.
+var _backArmed = 0;
+function _anyLayerOpen() {
+  if (typeof _sideMenuOpen === 'function' && _sideMenuOpen()) return true;
+  var cam = document.getElementById('cam-fullscreen');
+  if (cam && cam.style.display === 'flex') return true;
+  return [].some.call(document.querySelectorAll('.modal'), function (m) {
+    return m.style.display && m.style.display !== 'none';
+  });
+}
+function _backToast(text) {
+  var t = document.getElementById('back-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'back-toast';
+    t.setAttribute('role', 'status');
+    t.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:100000;'
+      + 'background:#0a192f;color:#fff;padding:10px 16px;border-radius:22px;font-size:0.86rem;'
+      + 'box-shadow:0 6px 20px rgba(0,0,0,0.25);max-width:88vw;text-align:center;transition:opacity .3s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = text;
+  t.style.opacity = '1'; t.style.display = 'block';
+  clearTimeout(t._h);
+  t._h = setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.style.display = 'none'; }, 300); }, 2600);
+}
+function _backGuard() {
+  try { history.pushState({ cl: 'guard' }, '', location.href); } catch (e) {}
+}
+(function () {
+  if (!window.history || !history.pushState) return;
+  try { history.replaceState({ cl: 'root' }, '', location.href); } catch (e) { return; }
+  _backGuard();
+  window.addEventListener('popstate', function (e) {
+    if (!e.state || e.state.cl !== 'root') return;
+    if (_anyLayerOpen()) {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      _backArmed = 0;
+      _backGuard();
+      return;
+    }
+    if (_backArmed && Date.now() - _backArmed < 3000) {   // the second press: leave
+      _backArmed = 0;
+      history.back();
+      return;
+    }
+    _backArmed = Date.now();
+    _backToast('ליציאה מהאתר לחצו שוב על "חזרה"');
+    _backGuard();
+  });
+})();
 
 // ESC key closes the topmost open modal
 document.addEventListener('keydown', function(e) {
@@ -8705,7 +8809,126 @@ function _costTotal() {
         + '</bdi> ל-<bdi dir="ltr">' + money(hi, sym, rate) + '</bdi></div>'
       : '<div id="cost-total-eur"></div>')
     + '<div id="cost-total-ils"' + (oRate ? ' dir="ltr"' : '') + ' style="font-size:0.8rem;opacity:0.7;margin-top:2px;">' + second + '</div>'
-    + (left.length ? '<div id="cost-left" style="font-size:0.72rem;opacity:0.65;margin-top:6px;">לא נכלל: ' + left.join(' · ') + '</div>' : '');
+    + (left.length ? '<div id="cost-left" style="font-size:0.72rem;opacity:0.65;margin-top:6px;">לא נכלל: ' + left.join(' · ') + '</div>' : '')
+    + '<button type="button" onclick="_costIdeasOpen()" style="margin-top:8px;background:rgba(255,255,255,0.12);color:#fff;'
+    + 'border:1px solid rgba(255,255,255,0.3);border-radius:18px;padding:5px 14px;font-size:0.8rem;font-family:inherit;cursor:pointer;">'
+    + '💡 רוצה לחסוך? או להתפנק?</button>';
+  _costIdeas();
+}
+
+// ── save or splurge ──────────────────────────────────────────────────────
+// Each idea is priced against THIS trip, from the same data the rows use,
+// and carries a button when the calculator can make the change itself.
+// The rest are said plainly: what it is, and roughly what it is worth.
+function _costIdeasOpen() {
+  var d = document.getElementById('cost-ideas');
+  if (!d) return;
+  d.open = true;
+  var box = d.closest('.modal-content');
+  if (box) box.scrollTo({ top: d.offsetTop - 12, behavior: 'smooth' });
+}
+function _costPassTotal(pass, days) {
+  var b = COST.bands || {}, t = 0;
+  for (var i = 0; i < COST_BANDS.length; i++) {
+    var k = COST_BANDS[i], n = b[k] || 0;
+    if (!n) continue;
+    var one = _costPassPrice(pass, k, days);
+    if (one == null) return null;
+    t += one * n;
+  }
+  return t;
+}
+function _costHalfTotal() {
+  // the tariff's half day exists for the Cervinia pass only
+  var b = COST.bands || {}, t = 0, p = window._texts && window._texts.skipass && window._texts.skipass.prices;
+  var row = p && p.cervinia && (p.cervinia.rows || []).filter(function (r) { return /חצי יום/.test(r[0]); })[0];
+  if (!row) return null;
+  for (var i = 0; i < COST_BANDS.length; i++) {
+    var k = COST_BANDS[i], n = b[k] || 0;
+    if (!n) continue;
+    if (k === 'Baby' || k === 'Over 80') continue;
+    var col = (p.columns || []).indexOf(k);
+    if (col < 0) return null;
+    t += parseFloat(row[col + 1]) * n;
+  }
+  return t;
+}
+function _costApplyIdea(what) {
+  if (what === 'pass-cervinia') COST.pass = 'cervinia';
+  else if (what === 'pass-zermatt') COST.pass = 'zermatt';
+  else if (what === 'day-less') COST.skiDays = Math.max(1, COST.skiDays - 1);
+  else if (what === 'bus' || what === 'transfer') COST.transport = what;
+  else if (what === 'own-gear') {
+    COST.rows.gear = { min: 0, max: 0, exact: false, touched: true,
+      note: 'מביאים ציוד משלכם — ↺ מחזיר את מחיר ההשכרה', calc: COST_CALC.gear() };
+  }
+  ['skipass', 'car', 'gear'].forEach(function (k) {
+    if (what === 'own-gear' && k === 'gear') return;
+    if (COST.rows[k] && !COST.rows[k].touched) COST.rows[k] = null;
+  });
+  if (what === 'bus' || what === 'transfer') COST.rows.car = null;
+  _costRecalc(); _costRender();
+  var d = document.getElementById('cost-ideas'); if (d) d.open = true;
+}
+function _costIdeas() {
+  var body = document.getElementById('cost-ideas-body');
+  if (!body) return;
+  var rate = _costRate() || 1, sym = COST_CUR[COST.cur];
+  var amt = function (v) { return '<bdi dir="ltr">' + sym + _costFmt(Math.abs(v) * rate) + '</bdi>'; };
+  var item = function (kind, text, delta, apply) {
+    var tag = delta == null ? ''
+      : '<span style="font-size:0.74rem;font-weight:700;white-space:nowrap;color:' + (delta < 0 ? '#1e8449' : '#8a5a00') + ';">'
+        + (delta < 0 ? 'חוסך כ-' : 'מוסיף כ-') + amt(delta) + '</span>';
+    return '<div class="cost-idea" data-kind="' + kind + '" style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #eef2f6;">'
+      + '<div style="flex:1;font-size:0.78rem;color:#334;line-height:1.6;">' + text + (tag ? ' · ' + tag : '') + '</div>'
+      + (apply ? '<button type="button" onclick="_costApplyIdea(\'' + apply + '\')" style="flex:0 0 auto;font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1.5px solid #c6ddf3;background:#eaf3fd;color:#1a5fa8;cursor:pointer;font-family:inherit;">החל</button>' : '')
+      + '</div>';
+  };
+  var save = [], fancy = [], S = COST.skiDays;
+  var now = _costPassTotal(COST.pass, S);
+  // the pass
+  if (COST.pass === 'zermatt') {
+    var cv = _costPassTotal('cervinia', S);
+    if (now != null && cv != null) save.push(item('save', 'פס צ\'רוויניה במקום הבינלאומי — בלי צ\'רמט, אותו אזור סקי באיטליה', cv - now, 'pass-cervinia'));
+  } else {
+    var zm = _costPassTotal('zermatt', S);
+    if (now != null && zm != null) fancy.push(item('fancy', 'פס בינלאומי — לגלוש גם לצ\'רמט שבשווייץ', zm - now, 'pass-zermatt'));
+  }
+  // one day fewer
+  if (S > 1) {
+    var less = _costPassTotal(COST.pass, S - 1);
+    if (now != null && less != null) save.push(item('save', 'יום סקי אחד פחות — יום מנוחה או טיול באמצע', less - now, 'day-less'));
+    // half a day on the arrival day, where the tariff has one
+    var half = COST.pass === 'cervinia' ? _costHalfTotal() : null;
+    var lessC = COST.pass === 'cervinia' ? less : null;
+    if (half != null && lessC != null && now != null && lessC + half < now) {
+      save.push(item('save', 'חצי יום ביום ההגעה במקום יום מלא — כרטיס חצי יום נפרד, ופס ל-' + (S - 1) + ' ימים', lessC + half - now, null));
+    }
+  }
+  // getting there
+  var pl = window._texts && window._texts.transport && window._texts.transport.planner;
+  if (pl && COST.transport !== 'bus') {
+    var cur = COST.rows.car && COST.rows.car.min, keep = COST.transport;
+    COST.transport = 'bus'; var bus = _costCar(); COST.transport = keep;
+    if (cur != null && bus.min != null && bus.min < cur) save.push(item('save', 'אוטובוס מהשדה וקו Linea Blu במקום ' + COST_TRANSPORT[keep], bus.min - cur, 'bus'));
+  }
+  if (pl && COST.transport !== 'transfer') {
+    var cur2 = COST.rows.car && COST.rows.car.min, keep2 = COST.transport;
+    COST.transport = 'transfer'; var tr = _costCar(); COST.transport = keep2;
+    if (cur2 != null && tr.min != null) fancy.push(item('fancy', 'הסעה פרטית מהשדה עד דלת המלון — בלי החלפות ובלי לוחות זמנים', tr.min - cur2, 'transfer'));
+  }
+  // gear
+  var g = COST.rows.gear;
+  if (g && g.min) save.push(item('save', 'מביאים ציוד מהארץ — או שוכרים בחנות זולה יותר ומבקשים הנחה', -g.min, 'own-gear'));
+  // what the calculator cannot apply, said plainly
+  save.push(item('save', 'לינה בוולטורננש, 9 ק"מ במורד העמק — דירות שם זולות בכמה אחוזים בלבד (כ-€308 ללילה בינואר, לעומת כ-€327 בצ\'רוויניה), ורכבל מחבר לאזור הסקי. בכפרים נמוכים יותר בעמק זה זול יותר, אבל כל בוקר מתחיל בנסיעה', null, null));
+  save.push(item('save', 'אוכל: מביאים מהארץ ומבשלים בדירה — הקצה הנמוך של שורת האוכל', null, null));
+  fancy.push(item('fancy', 'לינה צמוד לגונדולה או למעליות — יוצאים לגלוש מהדלת', null, null));
+  fancy.push(item('fancy', 'שיעורי סקי פרטיים — <a onclick="openFrom(\'costModal\',\'lessonsModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">המדריכים באתר</a>', null, null));
+  fancy.push(item('fancy', 'ציוד ברמה גבוהה (Top) עם קסדה — הקצה העליון של שורת הציוד', null, null));
+  body.innerHTML =
+    '<div style="font-size:0.8rem;font-weight:bold;color:#1e8449;margin:2px 0 2px;">💚 לחסוך</div>' + save.join('')
+    + '<div style="font-size:0.8rem;font-weight:bold;color:#8a5a00;margin:10px 0 2px;">✨ להתפנק</div>' + fancy.join('');
 }
 
 // A search that ran is a stage passed - the strip shows it on its tab.
