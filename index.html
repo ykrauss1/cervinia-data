@@ -507,6 +507,8 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 @media (prefers-reduced-motion: reduce) { .alert-strip.severity-good { animation:none; } }
 .alert-close { position:absolute; left:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.1rem; opacity:0.6; background:none; border:none; color:inherit; }
 .alert-close:hover { opacity:1; }
+.alert-closeall { background:rgba(255,255,255,0.55); border:1px solid rgba(0,0,0,0.15); border-radius:12px; padding:1px 9px; font-size:0.72rem; font-weight:bold; color:inherit; cursor:pointer; font-family:inherit; margin-inline-start:4px; }
+.alert-closeall:hover { background:rgba(255,255,255,0.85); }
 @keyframes alertPulse { 0%,100%{opacity:1} 50%{opacity:0.68} }
 
 /* the rest of the alerts, folded under the strip */
@@ -958,6 +960,22 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 .panel-toc button:hover { background: #e2ebf5; }
 /* the chip last pressed says so - otherwise nothing shows what was chosen */
 .panel-toc button.on { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+/* Wider than a phone, the chips wrapped by their own lengths - three in one
+   row, two in the next, one alone - and looked thrown down (Yossi, 11.11).
+   They stand in two even columns instead, each as wide as its column, the
+   label at the start, the way the transport card happened to look. */
+@media (min-width: 601px) {
+  .panel-toc {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 8px;
+    /* clear of both corner buttons, the × and the share link beside it */
+    padding-inline-end: 92px;
+  }
+  .panel-toc button {
+    border-radius: 9px; padding: 7px 12px; text-align: start;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+}
 /* On a phone the chips wrapped to as many as five rows, and a sticky strip
    that tall kept a third of the screen for itself (Yossi, 11.11). There they
    sit in one row that scrolls sideways; the row is cut mid-chip at its end
@@ -1116,7 +1134,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.43';
+  var v='v17.44';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -3312,18 +3330,6 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          same screen - and the numbers in them were ranges nobody published.
          This is one shop's own price list, which can be checked. -->
     <div style="margin-bottom:16px;">
-      <!-- The headline is the thing to remember; the shop-specific detail
-           behind it is for whoever wants to know why. -->
-      <!-- One line, and the whole line opens the explanation. -->
-      <details style="background:#fff4ec;border:1.5px solid #ffd2b5;border-radius:10px;
-               padding:9px 13px;margin-bottom:10px;">
-        <summary id="rental-booking-summary" style="cursor:pointer;list-style:none;
-                 font-size:0.85rem;font-weight:bold;color:#7a2e00;">
-          🔴 בשיא העונה הזמינו מראש.<span style="font-weight:normal;font-size:0.76rem;color:#9a5a33;">&nbsp; למה ▾</span>
-        </summary>
-        <div id="rental-booking-warning" style="font-size:0.78rem;line-height:1.75;font-weight:normal;color:#7a2e00;margin-top:7px;"></div>
-      </details>
-
       <details class="fold" style="margin-bottom:14px;">
         <summary id="rental-price-title">💶 מחירון השכרה</summary>
         <div class="fold-body">
@@ -3340,6 +3346,20 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <details class="fold" style="margin-bottom:14px;background:#fffbf0;border-color:#fde8a0;">
       <summary style="color:#7a5a00;">💡 טיפים להשכרה</summary>
       <div class="fold-body">
+        <!-- Booking ahead is a tip like the others (Yossi, 11.11), the
+             first of them; it keeps its own line that opens the reason. -->
+      <!-- The headline is the thing to remember; the shop-specific detail
+           behind it is for whoever wants to know why. -->
+      <!-- One line, and the whole line opens the explanation. -->
+      <details style="background:#fff4ec;border:1.5px solid #ffd2b5;border-radius:10px;
+               padding:9px 13px;margin-bottom:10px;background:#fff;">
+        <summary id="rental-booking-summary" style="cursor:pointer;list-style:none;
+                 font-size:0.85rem;font-weight:bold;color:#7a2e00;">
+          🔴 בשיא העונה הזמינו מראש.<span style="font-weight:normal;font-size:0.76rem;color:#9a5a33;">&nbsp; למה ▾</span>
+        </summary>
+        <div id="rental-booking-warning" style="font-size:0.78rem;line-height:1.75;font-weight:normal;color:#7a2e00;margin-top:7px;"></div>
+      </details>
+
         <ul id="rental-ski-tips" style="margin:0;padding-right:18px;font-size:0.8rem;color:#555;line-height:1.8;"></ul>
       </div>
     </details>
@@ -3660,16 +3680,6 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     </details>
     </div>
 
-      <div id="rental-buy-on-way-tip" style=""padding:10px 13px;background:#fffbf0;border:1px solid #fde8a0;border-radius:9px;font-size:0.79rem;color:#555;line-height:1.8;">
-        🛒 <b>מה כדאי לקנות בדרך (ולא בכפר):</b><br>
-        כפפות · גוגלס · גרביים תרמיות · Base Layer (בגד תחתון מנדף) · צוואריון · קרם הגנה לשמש+שלג · כדורי חימום ידיים
-        <div style="margin-top:7px;">
-          <a href="#" onclick="closeM('rentalModal');openPlanner('prep');return false;"
-             style="color:#1a73e8;font-weight:bold;text-decoration:none;">
-            🧳 מה בדיוק לקנות, ואיך בוחרים — ב״הכנות לפני הנסיעה״ ←</a>
-        </div>
-      </div>
-
       <!-- The arithmetic is short and it settles the question, so it is on
            the page rather than left to the reader. -->
       <details class="fold" style="margin-top:10px;">
@@ -3685,6 +3695,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <span class="close-btn" onclick="closeM('lessonsModal')">×</span>
     <h3 id="lessons-modal-title" style="margin:0 0 4px;font-size:1.15rem;">🏫 שיעורי סקי וסנובורד</h3>
     <p id="lessons-modal-subtitle" style="color:#888;font-size:0.82rem;margin:0 0 18px;">מורים מוסמכים מהאיגוד האיטלקי לסקי</p>
+    <!-- The tutorials sit at the bottom; nobody opening the card knows they
+         are there (Yossi, 11.11). -->
+    <button type="button" id="les-videos-btn" onclick="var v=document.getElementById('les-videos');if(v)v.scrollIntoView({behavior:'smooth',block:'start'});"
+      style="display:inline-flex;align-items:center;gap:6px;margin:-8px 0 14px;padding:6px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;color:#c00;font-weight:bold;font-size:0.8rem;cursor:pointer;font-family:inherit;">🎥 סרטוני הדרכה — למתחילים ולמתקדמים ↓</button>
 
     <!-- Lesson type tabs -->
     <div style="display:flex;gap:8px;margin-bottom:16px;">
@@ -4145,6 +4159,12 @@ details.fold > .fold-body { padding: 0 13px 12px; }
            them nowhere. The marks ring the printed run badges in order,
            which is the one thing that can be placed exactly on a hand-drawn
            panorama; the caption says that is what they are. -->
+      <!-- The routes are chosen in the pistes card, where each has its card
+           and its picture; a second row of the same three buttons here only
+           weighed the panel down (Yossi, 11.11). The row stays in the page,
+           hidden, for the code that marks the chosen one; a route arrives
+           here from the pistes card and is put away from its own caption. -->
+      <div id="map-route-pick" style="display:none;">
       <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:8px 0 2px;">⛷️ סמן מסלול מומלץ:</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="service-btn map-route-btn" data-route="warmup"
@@ -4157,6 +4177,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           style="flex:1;padding:9px 6px;font-size:0.76rem;min-width:105px;"
           onclick="mapShowRoute('ventina')">🏔️ ה-Ventina</button>
       </div>
+      </div>
       <!-- The caption used to apologise that the marks were not the line of
            the piste. They are the line now: Yossi clicked each route on the
            sheet and the drawing was fitted to the artwork between his
@@ -4164,6 +4185,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div id="map-route-caption" style="display:none;font-size:0.72rem;color:#5b6b7a;
            background:#f4f8fc;border:1px solid #d8e4f0;border-radius:7px;
            padding:7px 10px;margin-top:7px;line-height:1.75;">
+        <button type="button" id="map-route-off" onclick="if(_mapRoute)mapShowRoute(_mapRoute)"
+          style="float:left;margin:-2px -4px 0 0;padding:2px 9px;background:#fff;border:1px solid #d8e4f0;border-radius:7px;color:#5b6b7a;font-size:0.7rem;cursor:pointer;font-family:inherit;">✕ הסתר את המסלול</button>
         <span id="map-route-sub" style="font-weight:bold;color:#17324c;"></span><br>
         <span id="map-route-legend"></span>
         <span id="map-route-video"></span>
@@ -12508,6 +12531,20 @@ function dismissAlert(ev) {
   refreshAlertStrip();
 }
 
+// Close them all at once (Yossi, 11.11): with several alerts up, the X
+// closes one and the next takes its place - right, but a second X to press,
+// and a third. Offered only when there is more than one.
+function dismissAllAlerts(ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  var d = _dismissedIds(), now = Date.now();
+  getLiveAlerts().concat(getLiveNotices()).forEach(function (a) { if (!d[a.id]) d[a.id] = now; });
+  var cutoff = now - ALERTS_EXPIRY_MS;
+  Object.keys(d).forEach(function (k) { if (d[k] < cutoff) delete d[k]; });
+  _saveDismissed(d);
+  _alertMoreOpen = false;
+  refreshAlertStrip();
+}
+
 var _alertMoreOpen = false;
 
 function toggleAlertMore(ev) {
@@ -12561,7 +12598,7 @@ function refreshAlertStrip() {
     var tgt = ev && ev.target;
     if (tgt && tgt.classList &&
         (tgt.classList.contains('alert-close') || tgt.classList.contains('alert-more-btn') ||
-         tgt.classList.contains('amore-chev'))) return;
+         tgt.classList.contains('amore-chev') || tgt.classList.contains('alert-closeall'))) return;
     openAlertPanel();
   };
 
@@ -12569,13 +12606,14 @@ function refreshAlertStrip() {
   // panel at all - so the distinction between a measurement and a person
   // standing at the lift has to survive here, not only inside the card.
   textEl.innerHTML = (a.kind === 'notice' ? '📌 ' : '')
-    + (a.auto ? '<span class="auto-chip">📡 מדידה אוטומטית</span> ' : '')
+    + (a.auto ? '<span class="auto-chip">📡 הודעה אוטומטית</span> ' : '')
     + escHtml(a.text)
     + ' <span style="font-size:0.72rem;opacity:0.7;font-weight:normal;">— '
     + escHtml(a.user) + ', ' + alertTimeAgo(a.ts) + '</span>'
     + (rest.length
         ? ' <button type="button" class="alert-more-btn" onclick="toggleAlertMore(event)">'
           + 'ועוד ' + rest.length + ' <span class="amore-chev">▾</span></button>'
+          + ' <button type="button" class="alert-closeall" onclick="dismissAllAlerts(event)">✕ סגור הכל</button>'
         : '');
 
   strip.style.display = 'block';
@@ -12590,7 +12628,7 @@ function refreshAlertStrip() {
               : (x.severity || 'warning'));
         return '<div class="amore-row amore-' + s + '">'
           + '<span style="flex:1;">' + (x.kind === 'notice' ? '📌 ' : '')
-          + (x.auto ? '<span class="auto-chip">📡 מדידה אוטומטית</span> ' : '')
+          + (x.auto ? '<span class="auto-chip">📡 הודעה אוטומטית</span> ' : '')
           + escHtml(x.text) + '</span>'
           + '<span class="amore-meta">' + escHtml(x.user) + ' · ' + alertTimeAgo(x.ts) + '</span>'
           + '</div>';
@@ -15371,7 +15409,6 @@ function _applyTexts(t) {
         return h + '</div>';
       }).join('');
     }
-    _set('rental-buy-on-way-tip',      r.buy_on_way_tip);
     _set('rental-buy-vs-rent-title',   r.buy_vs_rent_title);
     _set('rental-buy-vs-rent',         r.buy_vs_rent);
   }
@@ -20411,7 +20448,7 @@ function _alertCardHtml(a) {
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
     + '<div style="font-size:0.88rem;font-weight:bold;line-height:1.5;flex:1;">'
     + '<span style="font-size:0.7rem;font-weight:normal;opacity:0.8;">' + tag + '</span>'
-    + (a.auto ? ' <span class="auto-chip">📡 מדידה אוטומטית</span>' : '')
+    + (a.auto ? ' <span class="auto-chip">📡 הודעה אוטומטית</span>' : '')
     + '<br>'
     + '<span style="white-space:pre-wrap;">' + escHtml(a.text) + '</span></div>'
     + (canDel ? '<button type="button" onclick="deleteAlert(\'' + escHtml(a.id) + '\')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1rem;padding:0 0 0 6px;">🗑️</button>' : '')

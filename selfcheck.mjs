@@ -7755,11 +7755,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     fail(T, 'the system card shows no instrument mark'); else ok();
   if (/👤/.test(r.sysCard))
     fail(T, 'the system card still shows the person icon'); else ok();
-  if (!/מדידה אוטומטית/.test(r.sysCard))
+  if (!/הודעה אוטומטית/.test(r.sysCard))
     fail(T, 'the system card does not say it is a measurement'); else ok();
   if (!/👤/.test(r.humanCard))
     fail(T, "a person's card lost its person icon"); else ok();
-  if (/מדידה אוטומטית/.test(r.humanCard))
+  if (/הודעה אוטומטית/.test(r.humanCard))
     fail(T, "a person's card is labelled a measurement"); else ok();
   if (r.badgeThrew)
     fail(T, 'the unread badge crashes on an authorless alert: ' + r.badgeThrew); else ok();
@@ -7798,10 +7798,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 
     // inside the card: at the top with the severity tag, not in the footer
     const html = _alertCardHtml(_alerts[0]);
-    const tagAt  = html.indexOf('מדידה אוטומטית');
+    const tagAt  = html.indexOf('הודעה אוטומטית');
     const textAt = html.indexOf('רוח חזקה בהר');
     out.chipBeforeText = tagAt >= 0 && textAt >= 0 && tagAt < textAt;
-    out.humanCardClean = _alertCardHtml(_alerts[1]).indexOf('מדידה אוטומטית') < 0;
+    out.humanCardClean = _alertCardHtml(_alerts[1]).indexOf('הודעה אוטומטית') < 0;
     _alerts = [];
     refreshAlertStrip();
     return out;
@@ -8706,6 +8706,66 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.fromBar) fail(T, 'the live bar does not hand its reading to the strip'); else ok();
 }
 
+// ── Yossi's notes of 11.11, midday ───────────────────────────────────
+{
+  const T = "Yossi's notes of 11.11, midday";
+  const r = await page.evaluate(async () => {
+    const $ = id => document.getElementById(id), out = {};
+    // close every alert at once, offered only when there is more than one
+    const keep = { a: _alerts, d: localStorage.getItem(ALERTS_DISMISS_KEY) };
+    const now = Date.now();
+    const mk = (id, text) => ({ id, text, auto: true, ts: now - 60e3, until: now + 3600e3, kind: 'alert', severity: 'warning', user: 'x', authorId: '' });
+    _alerts = [mk('n1', 'אחת'), mk('n2', 'שתיים'), mk('n3', 'שלוש')];
+    refreshAlertStrip();
+    const btn = $('alert-strip').querySelector('.alert-closeall');
+    out.closeAllShown = !!btn;
+    out.chip = /הודעה אוטומטית/.test($('alert-strip-text').innerHTML) && !/מדידה אוטומטית/.test(document.body.innerHTML);
+    btn && btn.click();
+    out.allGone = $('alert-strip').style.display === 'none';
+    _alerts = [mk('n4', 'רק אחת')]; refreshAlertStrip();
+    out.notForOne = !$('alert-strip').querySelector('.alert-closeall');
+    _alerts = keep.a; if (keep.d === null) localStorage.removeItem(ALERTS_DISMISS_KEY); else localStorage.setItem(ALERTS_DISMISS_KEY, keep.d);
+    refreshAlertStrip();
+    // the tutorials are announced at the top of the lessons card
+    openM('lessonsModal');
+    const vb = $('les-videos-btn');
+    out.videosBtn = !!vb && vb.offsetParent !== null && vb.getBoundingClientRect().top < $('les-videos').getBoundingClientRect().top;
+    out.pizza = /מ"פיצה" לסקי פרללי/.test($('les-videos').innerText) && /בינוניים ומתקדמים/.test($('les-videos').innerText) && !/ממשיכים/.test($('les-videos').innerText);
+    closeM('lessonsModal');
+    // rental: booking ahead among the tips; one place for "buy it on the way"
+    openM('rentalModal');
+    const tips = $('rental-ski-tips').closest('details');
+    out.bookingInTips = !!tips && tips.contains($('rental-booking-summary'));
+    out.oneBuyOnWay = !$('rental-buy-on-way-tip') && /בעצם הכול/.test($('rental-shops-way-sub').innerText)
+      && (document.getElementById('rentalModal').innerText.match(/כדאי לקנות בדרך/g) || []).length === 1
+      && !!$('rental-buy-vs-rent-title');
+    closeM('rentalModal');
+    // the contents strip stands in two even columns wider than a phone
+    openM('lodgingModal');
+    const toc = $('lodgingModal').querySelector('.panel-toc');
+    out.tocGrid = innerWidth > 600 ? getComputedStyle(toc).display === 'grid' : true;
+    out.giomein = /הירידה מהשכונה ואל השכונה אינה מסלול רשמי/.test($('lodging-body').innerText);
+    closeM('lodgingModal');
+    // the routes are chosen in the pistes card only; the map puts one away
+    out.noPickRow = getComputedStyle($('map-route-pick')).display === 'none';
+    _mapCurrentType = _texts.pistes.route_map.map;
+    mapShowRoute('ventina');
+    const offBtn = $('map-route-off');
+    out.offShown = !!offBtn && offBtn.offsetParent !== null;
+    offBtn && offBtn.click();
+    out.offWorks = !_mapRoute;
+    closeM('mapModal');
+    return out;
+  });
+  if (!r.closeAllShown || !r.allGone || !r.notForOne) fail(T, `close all: shown ${r.closeAllShown}, closes all ${r.allGone}, hidden for one ${r.notForOne}`); else ok();
+  if (!r.chip) fail(T, 'the automatic chip still says מדידה'); else ok();
+  if (!r.videosBtn || !r.pizza) fail(T, `the lessons card: videos button ${r.videosBtn}, wording ${r.pizza}`); else ok();
+  if (!r.bookingInTips || !r.oneBuyOnWay) fail(T, `rental: booking in tips ${r.bookingInTips}, buy-on-the-way said once ${r.oneBuyOnWay}`); else ok();
+  if (!r.tocGrid) fail(T, 'the contents strip is not an even grid on a wide screen'); else ok();
+  if (!r.giomein) fail(T, 'the Giomein descent wording is not the one Yossi gave'); else ok();
+  if (!r.noPickRow || !r.offShown || !r.offWorks) fail(T, `routes on the map: row hidden ${r.noPickRow}, hide button ${r.offShown}, hides ${r.offWorks}`); else ok();
+}
+
 // ── videos worth watching ────────────────────────────────────────────
 // Yossi, 11.11: useful videos - tutorials in the lessons panel, the Ventina
 // filmed, the official ones. Every one is a checked address.
@@ -8756,7 +8816,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.open = getComputedStyle($('lodgingModal')).display !== 'none';
     const txt = $('lodging-body').innerText;
     out.areas = ['מרכז הכפר', 'Giomein', 'Cielo Alto', 'Plan Maison', 'Valtournenche'].filter(w => !txt.includes(w));
-    out.yossi = [/20 דקות הליכה בעלייה תלולה/, /Ski in\/Ski out/, /רק לשני מסלולים שחורים/, /Zona a Traffico Limitato/, /אינה מופיעה במפות/, /בחצי עמידה/, /בדקו מראש היכן חונים/, /רק בתנאי שלג מתאימים/, /פריקה וטעינה/, /צמודה לתקרה/, /מרווחות יותר באותו מחיר/, /פינוי שלג/, /ZTL/, /Genzianella/].filter(re => !re.test(txt)).map(String);
+    out.yossi = [/20 דקות הליכה בעלייה תלולה/, /Ski in\/Ski out/, /רק לשני מסלולים שחורים/, /Zona a Traffico Limitato/, /אינה מופיעה במפות/, /בחצי עמידה/, /רכבל הכיסא הראשון/, /בדקו מראש היכן חונים/, /רק בתנאי שלג מתאימים/, /פריקה וטעינה/, /צמודה לתקרה/, /מרווחות יותר באותו מחיר/, /פינוי שלג/, /ZTL/, /Genzianella/].filter(re => !re.test(txt)).map(String);
     out.chips = $('lodgingModal').querySelectorAll('.panel-toc button').length;
     out.piste = /פיסטה|מוסך/.test(txt);
     out.mapLink = !!$('lodging-body').querySelector('a[onclick*="loadMap(\'mymap\')"]');
