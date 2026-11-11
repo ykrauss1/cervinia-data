@@ -8586,7 +8586,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     svg.setAttribute('viewBox', '0 0 ' + rd.page.w + ' ' + rd.page.h);
     svg.style.cssText = 'position:fixed;left:0;top:0;width:360px;height:290px';
     document.body.appendChild(svg);
+    // it rides even when the system asks for less motion
+    const mm = window.matchMedia;
+    window.matchMedia = q => /reduced-motion/.test(q) ? { matches: true } : mm.call(window, q);
     _mapRideRoute(svg, rd.routes_drawn.ventina);
+    window.matchMedia = mm;
     const pos = () => (svg.querySelector('.map-rider') || { getAttribute: () => '' }).getAttribute('transform');
     const p0 = pos();
     await new Promise(res => setTimeout(res, 700));

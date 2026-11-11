@@ -1116,7 +1116,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.38';
+  var v='v17.39';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6316,11 +6316,8 @@ function _mapRideRoute(svg, route) {
     g.setAttribute('transform', 'translate(' + q.x.toFixed(1) + ',' + q.y.toFixed(1) + ')');
     t.textContent = part.kind === 'lift' ? '\ud83d\udea1' : '\u26f7\ufe0f';
   };
-  // Someone who asked the system for less motion gets the skier standing at
-  // the start of the route, not riding it.
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    place(parts[0], 0); return;
-  }
+  // It rides even where the system asks for less motion (Yossi, 11.11): his
+  // own Windows reports that, and a small marker moving slowly is the point.
   // page units a second: the lift is slower than the skier, as on the hill
   var SPEED = { lift: 45, ski: 70 }, PAUSE = 1200;
   var i = 0, at = 0, last = 0, wait = 0;
