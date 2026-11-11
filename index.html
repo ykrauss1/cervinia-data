@@ -1134,7 +1134,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.44';
+  var v='v17.45';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1288,9 +1288,12 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🌬️ משבים ברכס</div>
         </div>
 
-        <div style="text-align:center;">
-          <div id="bar-snow" dir="ltr" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;line-height:1;">--</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">❄️ שלג ס"מ</div>
+        <!-- The unit was said twice, "20 ס"מ" over "שלג ס"מ", and nothing said
+             where the 20 was measured (Yossi, 11.11). The label names the
+             station; a tap lists every station the operator measures. -->
+        <div id="bar-snow-cell" style="text-align:center;cursor:pointer;" onclick="openSnowPoints()" title="גובה השלג בכל התחנות">
+          <div id="bar-snow" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;line-height:1;white-space:nowrap;">--</div>
+          <div id="bar-snow-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;white-space:nowrap;">❄️ שלג</div>
         </div>
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
@@ -1634,6 +1637,17 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 </div>
 
 <!-- Modal עזרה -->
+<!-- Snow at every station the operator measures (Yossi, 11.11). -->
+<div id="snowModal" class="modal" onclick="if(event.target===this)closeM('snowModal')">
+  <div class="modal-content" style="max-width:420px;padding:24px 22px;">
+    <span class="close-btn" onclick="closeM('snowModal')">×</span>
+    <h3 style="margin:0 0 4px;">❄️ גובה השלג</h3>
+    <div style="font-size:0.76rem;color:#7a8794;margin-bottom:12px;">לפי התחנות של מפעיל המעליות, מלמעלה למטה</div>
+    <div id="snow-points-list"></div>
+    <div id="snow-points-foot" style="font-size:0.72rem;color:#7a8794;margin-top:10px;line-height:1.6;"></div>
+  </div>
+</div>
+
 <div id="helpModal" class="modal" onclick="if(event.target===this)closeM('helpModal')">
   <div class="modal-content" style="max-width:480px;">
     <span class="close-btn" onclick="closeM('helpModal')">×</span>
@@ -4994,7 +5008,7 @@ var PANEL_LINKS = {
   help:     'helpModal',     zermatt: 'zermattForecastModal',
   summer:      'summerSkiModal',   'summer-hike':  'summerHikeModal',
   'summer-bike': 'summerBikeModal', 'summer-cross': 'summerCrossModal',
-  'stay-local': 'localStayModal', cost: 'costModal', lodging: 'lodgingModal',
+  'stay-local': 'localStayModal', cost: 'costModal', lodging: 'lodgingModal', snow: 'snowModal',
   // #gear was the equipment panel's own address before its two halves moved
   // into the planner and the hire panel. Links to it are already out there,
   // so it still opens - at the planner, where the buying half went.
@@ -5676,6 +5690,8 @@ function openM(id) {
   // person for the same dates twice is asking him to do our filing.
   // #cost arrives here without openCost: fill the panel the way the side
   // menu would, asking for nights and people.
+  // the snow panel fills itself, however it was reached (a link, the bar)
+  if (id === 'snowModal' && typeof _snowFill === 'function') _snowFill();
   if (id === 'costModal' && typeof _costRender === 'function' && !COST.opening
       && !(document.getElementById('cost-rows') || {}).innerHTML) {
     COST.mode = 'free'; _costDefaults(); _costRecalc(); _costRender();
@@ -8532,6 +8548,28 @@ function _costBandHe(k, withAges) {
 //  forecast   - short passes of up to 4 days, as far as a forecast reaches
 // The cheapest is marked, and so is how many days are paid before they are seen.
 var ZC = { n: 5, z: 2 };
+var _snowPoints = [], _snowLastFall = '';
+var SNOW_HE = { 'Plateau Rosa': 'פלטאו רוזה', 'Cime Bianche Laghi': 'צ\'ימה ביאנקה', 'Plan Maison': 'פלאן מייזון', 'Breuil': 'הכפר' };
+function openSnowPoints() { openM('snowModal'); }
+function _snowFill() {
+  var box = document.getElementById('snow-points-list');
+  var pts = _snowPoints.slice().sort(function (a, b) { return (b.altitude || 0) - (a.altitude || 0); });
+  var max = Math.max.apply(null, pts.map(function (p) { return +p.depth || 0; }).concat([1]));
+  if (box) box.innerHTML = pts.length ? pts.map(function (p) {
+    var he = SNOW_HE[p.name] || '';
+    var w = Math.max(4, Math.round(100 * (+p.depth || 0) / max));
+    return '<div class="snow-pt" style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;background:#f4f8fc;border:1px solid #d8e4f0;border-radius:9px;">'
+      + '<div style="flex:1;min-width:0;"><b style="color:#17324c;">' + (he || '<bdi>' + p.name + '</bdi>') + '</b>'
+      + (he ? ' <span style="color:#7a8794;font-size:0.74rem;"><bdi>' + p.name + '</bdi></span>' : '')
+      + '<div style="font-size:0.72rem;color:#7a8794;">' + (p.altitude ? '<bdi dir="ltr">' + Number(p.altitude).toLocaleString('en-US') + '</bdi> מ\'' : '') + '</div>'
+      + '<div style="height:5px;background:#e3ecf5;border-radius:3px;margin-top:5px;"><div style="height:5px;width:' + w + '%;background:#4cc9f0;border-radius:3px;"></div></div></div>'
+      + '<div style="font-size:1.15rem;font-weight:800;color:#17324c;white-space:nowrap;">' + (p.depth != null ? p.depth + ' <span style="font-size:0.75rem;font-weight:600;">ס"מ</span>' : '—') + '</div></div>';
+  }).join('') : '<div style="color:#888;">אין כרגע נתונים מהתחנות</div>';
+  var foot = document.getElementById('snow-points-foot');
+  if (foot) foot.innerHTML = (_snowLastFall ? 'שלג אחרון: <bdi dir="ltr">' + _snowLastFall + '</bdi> · ' : '')
+    + 'מתוך <a href="https://www.cervinia.it/en/meteo" target="_blank" rel="noopener" style="color:#1a73e8;">האתר הרשמי</a>. בוולטורננש המפעיל לא מפרסם מדידה נפרדת.';
+}
+
 function zcAdj(k, d) {
   if (k === 'n') { ZC.n = Math.max(1, Math.min(8, ZC.n + d)); ZC.z = Math.min(ZC.z, ZC.n); }
   else ZC.z = Math.max(0, Math.min(ZC.n, ZC.z + d));
@@ -17296,6 +17334,22 @@ function renderLiveBar(d) {
   var _bs = document.getElementById('bar-snow');
   if (_bs) _bs.innerHTML = snowNum != null
     ? snowNum + '<span class="bar-u"> ס"מ</span>' : '--';
+  // which station that is: the point with the same depth, the middle one first
+  // older readings carry no name or call the height alt; fill both in
+  var _stName = { top: 'Plateau Rosa', cime: 'Cime Bianche Laghi', mid: 'Plan Maison', base: 'Breuil', basev: 'Breuil' };
+  _snowPoints = (Array.isArray(d.snow_points) ? d.snow_points : []).map(function (p) {
+    return { station: p.station, name: p.name || _stName[p.station] || '', altitude: p.altitude != null ? p.altitude : p.alt, depth: p.depth };
+  }).filter(function (p) { return p.name; });
+  _snowLastFall = d.last_snowfall || '';
+  var _sm = document.getElementById('snowModal');
+  if (_sm && _sm.style.display && _sm.style.display !== 'none' && typeof _snowFill === 'function') _snowFill();
+  var _bsl = document.getElementById('bar-snow-label');
+  if (_bsl) {
+    var here = snowNum == null ? null
+      : (_snowPoints.filter(function (p) { return p.station === 'mid' && +p.depth === snowNum; })[0]
+         || _snowPoints.filter(function (p) { return +p.depth === snowNum; })[0]);
+    _bsl.innerHTML = '❄️ שלג' + (here && here.name ? ' · <bdi>' + here.name + '</bdi>' : '');
+  }
 
   // weather_description — Italian + English → Hebrew
   const weatherIcons = {

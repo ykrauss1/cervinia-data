@@ -8766,6 +8766,39 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.noPickRow || !r.offShown || !r.offWorks) fail(T, `routes on the map: row hidden ${r.noPickRow}, hide button ${r.offShown}, hides ${r.offWorks}`); else ok();
 }
 
+// ── snow, and where it was measured ──────────────────────────────────
+// Yossi, 11.11: "20 ס"מ" sat over "שלג ס"מ" and nothing said where. The
+// label names the station; a tap lists every station.
+{
+  const T = 'snow, and where it was measured';
+  const r = await page.evaluate(async () => {
+    const $ = id => document.getElementById(id), out = {};
+    renderLiveBar(Object.assign({}, window._lastLive || {}, {
+      snow_depth: '20 cm', last_snowfall: '06/11/2026', updated_at: new Date().toISOString(),
+      snow_points: [
+        // out of order on purpose: the panel sorts them, top first
+        { station: 'mid', altitude: 2600, depth: 20, name: 'Plan Maison' },
+        { station: 'base', altitude: 2050, depth: 15, name: 'Breuil' },
+        { station: 'top', altitude: 3480, depth: 35, name: 'Plateau Rosa' },
+        { station: 'cime', altitude: 2814, depth: 35, name: 'Cime Bianche Laghi' }]
+    }));
+    out.label = $('bar-snow-label').innerText;
+    out.value = $('bar-snow').innerText;
+    $('bar-snow-cell').click();
+    await new Promise(res => setTimeout(res, 150));
+    out.open = getComputedStyle($('snowModal')).display !== 'none';
+    out.rows = [...$('snow-points-list').querySelectorAll('.snow-pt')].map(x => x.innerText.replace(/\s+/g, ' '));
+    out.foot = $('snow-points-foot').innerText;
+    closeM('snowModal');
+    return out;
+  });
+  if (!/Plan Maison/.test(r.label) || /ס"מ/.test(r.label)) fail(T, `the label is "${r.label}" - it should name the station and not repeat the unit`); else ok();
+  if (!/^20\s*ס"מ$/.test(r.value.trim())) fail(T, `the value reads "${r.value}"`); else ok();
+  if (!r.open || r.rows.length !== 4 || !/פלטאו רוזה/.test(r.rows[0]) || !/הכפר/.test(r.rows[3]) || !/35/.test(r.rows[0]) || !/15/.test(r.rows[3]))
+    fail(T, `the stations list: open ${r.open}, rows ${JSON.stringify(r.rows)}`); else ok();
+  if (!/06\/11\/2026/.test(r.foot) || !/ולטורננש/.test(r.foot)) fail(T, `the foot lacks the last snowfall or the Valtournenche note: ${r.foot}`); else ok();
+}
+
 // ── videos worth watching ────────────────────────────────────────────
 // Yossi, 11.11: useful videos - tutorials in the lessons panel, the Ventina
 // filmed, the official ones. Every one is a checked address.
