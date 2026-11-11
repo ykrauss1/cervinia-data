@@ -216,7 +216,7 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
       severity: 'info',
       hours: 5,
       cooldown: 8,
-      text: 'המעבר לצ׳רמט נפתח — אפשר לחצות לצ׳רמט.'
+      text: 'המעבר לצ׳רמט נפתח — אפשר לעבור לצד השוויצרי.'
     });
   }
 

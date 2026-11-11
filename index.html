@@ -1116,7 +1116,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.41';
+  var v='v17.42';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -17393,6 +17393,13 @@ function renderLiveBar(d) {
 
   // Zermatt big colored badge
   const zVal2 = _zermattState(d);
+  // and the strip follows the same reading (see _zStale)
+  const zAt = Date.parse((d && d.updated_at) || '');
+  if (zAt) {
+    const changed = !_zLive || _zLive.s !== zVal2 || _zLive.t !== zAt;
+    _zLive = { s: zVal2, t: zAt };
+    if (changed && typeof refreshAlertStrip === 'function') { try { updateAlertBadge(); refreshAlertStrip(); } catch (e) {} }
+  }
   const zBarEl = document.getElementById('bar-zermatt');
   if (zBarEl) {
     const dot = document.getElementById('matterhorn-dot');
@@ -19640,9 +19647,23 @@ function _alertsWriteMirror(arr) {
 }
 
 // Renderers stay synchronous - they read this, never the network.
+// The live reading outranks an older automatic notice about the crossing
+// (Yossi, 11.11). At 11:01 the operator's page said OPEN and the strip
+// announced it; by 11:41 it said NEXT UPDATE and then CHIUSO, and the strip
+// went on saying "open" next to a mountain badge that said shut. A notice
+// raised by the scraper is a reading, and a newer reading that disagrees
+// takes it off the strip - the closing notice itself follows on the next run.
+var _zLive = null;   // { s: 'OPEN'|'CLOSED'|..., t: ms of that reading }
+function _zStale(a) {
+  if (!a.auto || !_zLive || !(_zLive.t > a.ts)) return false;
+  var t = a.text || '';
+  if (/המעבר לצ.רמט נפתח/.test(t)) return _zLive.s !== 'OPEN';
+  if (/המעבר לצ.רמט (נסגר|סגור היום)/.test(t)) return _zLive.s === 'OPEN';
+  return false;
+}
 function getAlerts() {
   var now = Date.now();
-  return _alerts.filter(function (a) { return a.until > now; });
+  return _alerts.filter(function (a) { return a.until > now && !_zStale(a); });
 }
 // the two kinds, newest first
 function getLiveAlerts()  { return getAlerts().filter(function (a) { return a.kind !== 'notice'; }); }

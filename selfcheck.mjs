@@ -8672,6 +8672,40 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.pct) fail(T, 'a percent sign is left outside its number on a Hebrew line'); else ok();
 }
 
+// ── the live reading outranks an older crossing notice ───────────────
+// Yossi, 11.11: the strip said the crossing had opened while the mountain
+// badge and the operator said shut. A newer reading takes the notice off.
+{
+  const T = 'the live reading outranks an older crossing notice';
+  const r = await page.evaluate(() => {
+    const keep = { a: _alerts, z: _zLive };
+    const now = Date.now(), hour = 3600e3;
+    const mk = (id, text, auto, ts) => ({ id, text, auto, ts, until: now + 5 * hour, kind: 'alert', severity: 'info', user: '', authorId: auto ? '' : 'u1' });
+    _alerts = [
+      mk('open-auto', 'המעבר לצ׳רמט נפתח — אפשר לעבור לצד השוויצרי.', true, now - hour),
+      mk('open-person', 'המעבר לצ׳רמט נפתח, ראיתי בעצמי', false, now - hour),
+      mk('shut-auto', 'המעבר לצ׳רמט נסגר. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.', true, now - 2 * hour)
+    ];
+    const ids = () => getAlerts().map(a => a.id).sort().join(',');
+    const out = {};
+    _zLive = { s: 'NEXT UPDATE', t: now };        out.placeholder = ids();
+    _zLive = { s: 'CLOSED', t: now };             out.closed = ids();
+    _zLive = { s: 'OPEN', t: now };               out.open = ids();
+    _zLive = { s: 'CLOSED', t: now - 3 * hour };  out.older = ids();
+    // and the live bar is what sets it
+    _zLive = null;
+    renderLiveBar(Object.assign({}, window._lastLive || {}, { zermatt_link: 'CLOSED', updated_at: new Date(now).toISOString() }));
+    out.fromBar = !!_zLive && _zLive.s === 'CLOSED' && _zLive.t === now - (now % 1000) + (now % 1000);
+    _alerts = keep.a; _zLive = keep.z;
+    return out;
+  });
+  if (r.placeholder !== 'open-person,shut-auto') fail(T, `NEXT UPDATE after the opening notice leaves: ${r.placeholder}`); else ok();
+  if (r.closed !== 'open-person,shut-auto') fail(T, `CLOSED after the opening notice leaves: ${r.closed}`); else ok();
+  if (r.open !== 'open-auto,open-person') fail(T, `OPEN after the closing notice leaves: ${r.open}`); else ok();
+  if (r.older !== 'open-auto,open-person,shut-auto') fail(T, `an older reading took notices off: ${r.older}`); else ok();
+  if (!r.fromBar) fail(T, 'the live bar does not hand its reading to the strip'); else ok();
+}
+
 // ── videos worth watching ────────────────────────────────────────────
 // Yossi, 11.11: useful videos - tutorials in the lessons panel, the Ventina
 // filmed, the official ones. Every one is a checked address.
