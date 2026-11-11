@@ -8672,6 +8672,41 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.pct) fail(T, 'a percent sign is left outside its number on a Hebrew line'); else ok();
 }
 
+// ── videos worth watching ────────────────────────────────────────────
+// Yossi, 11.11: useful videos - tutorials in the lessons panel, the Ventina
+// filmed, the official ones. Every one is a checked address.
+{
+  const T = 'videos worth watching';
+  const VER = JSON.parse(fs.readFileSync(new URL('./verified_urls.json', import.meta.url), 'utf8'));
+  const r = await page.evaluate(async () => {
+    const $ = id => document.getElementById(id), out = {};
+    openM('lessonsModal');
+    const box = $('les-videos');
+    const lv = box ? [...box.querySelectorAll('a.les-video')] : [];
+    out.lessons = lv.map(a => a.href);
+    out.levels = !!box && /מתחילים/.test(box.innerText) && /מתקדמים/.test(box.innerText);
+    out.visible = !!box && box.offsetParent !== null;
+    closeM('lessonsModal');
+    _mapCurrentType = _texts.pistes.route_map.map;
+    mapShowRoute('ventina');
+    const a = $('map-route-video').querySelector('a');
+    out.ventina = a ? a.href : '';
+    mapShowRoute('grand_tour');
+    out.noVideoElsewhere = !$('map-route-video').querySelector('a');
+    mapShowRoute('grand_tour');
+    out.why = [...document.querySelectorAll('#whyModal a[href*="youtube.com"]')].map(x => x.href);
+    out.valt = [...$('lodging-body').querySelectorAll('a[href*="youtube.com"]')].map(x => x.href);
+    return out;
+  });
+  const ok2 = u => VER.exact.includes(u) || VER.exact.includes(u.replace(/\/$/, ''));
+  const all = [...r.lessons, r.ventina, ...r.why, ...r.valt].filter(Boolean);
+  if (r.lessons.length < 4 || !r.levels || !r.visible) fail(T, `the lessons panel has ${r.lessons.length} tutorials (levels ${r.levels}, shown ${r.visible})`); else ok();
+  if (!/R4QD6aEve0g/.test(r.ventina) || !r.noVideoElsewhere) fail(T, `the Ventina route does not offer its video, or another route does (${r.ventina})`); else ok();
+  if (r.why.length < 3 || !r.valt.some(u => /5GPIabg51_A/.test(u))) fail(T, `the official videos are missing (why ${r.why.length}, Valtournenche ${r.valt.length})`); else ok();
+  const unchecked = all.filter(u => !ok2(u));
+  if (unchecked.length) fail(T, `videos linked without a check on record: ${unchecked.join(' ')}`); else ok();
+}
+
 // ── where to sleep ───────────────────────────────────────────────────
 // Yossi, 11.11: a section on lodging in the village - the three areas of
 // his map, outside the village, the kinds of lodging, what to ask, parking.

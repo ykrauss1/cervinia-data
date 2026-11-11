@@ -1116,7 +1116,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.39';
+  var v='v17.40';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -3288,6 +3288,8 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <a href="https://snow.org.il/listing-item/cervinia/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0f8ff;border:1px solid #c0e0f8;border-radius:8px;text-decoration:none;color:#0a192f;font-size:0.8rem;font-weight:bold;">❄️ snow.org.il — צ'רוויניה</a>
         <a href="https://snow.org.il/listing-item/zermatt/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0fff4;border:1px solid #b8e0c8;border-radius:8px;text-decoration:none;color:#0a2a1a;font-size:0.8rem;font-weight:bold;"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> snow.org.il — זרמט</a>
         <a href="https://www.youtube.com/watch?v=51HCOZl4g6k" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;">▶️ סרטון בעברית</a>
+        <a href="https://www.youtube.com/watch?v=rcc2cPmg5Uc" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;">▶️ מדריך לאתר (באנגלית)</a>
+        <a href="https://www.youtube.com/watch?v=8RUS22N7P4M" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;">🎬 הסרטון הרשמי לעונה</a>
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
@@ -3801,6 +3803,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       </div>
     </div>
     </div>
+    <!-- Learning from video (Yossi, 11.11): tutorials from the channels that
+         are recommended, beginners and onwards. Content in texts.json. -->
+    <div id="les-videos" style="margin-top:14px;padding:12px 14px;background:#fff8f8;border:1.5px solid #f3d0d0;border-radius:11px;"></div>
   </div>
 </div>
 <div id="aroundModal" class="modal" onclick="if(event.target===this)closeM('aroundModal')">
@@ -4161,6 +4166,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
            padding:7px 10px;margin-top:7px;line-height:1.75;">
         <span id="map-route-sub" style="font-weight:bold;color:#17324c;"></span><br>
         <span id="map-route-legend"></span>
+        <span id="map-route-video"></span>
         <br><span style="font-size:0.68rem;color:#93a3b3;">הקו עובר על המסלולים כפי שהם מצוירים במפה.</span>
       </div>
     </div>
@@ -6189,6 +6195,11 @@ function _mapMarkRouteBtns() {
   if (sub) sub.textContent = r2 ? (r2.title + ' — ' + r2.sub) : '';
   var leg = document.getElementById('map-route-legend');
   if (leg) leg.innerHTML = r2 ? _mapKindLegend(r2.layers) : '';
+  // a route that has been filmed says so (Yossi, 11.11: useful videos)
+  var vid = document.getElementById('map-route-video');
+  if (vid) vid.innerHTML = (r2 && r2.video)
+    ? '<br><a href="' + r2.video.url + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:5px;padding:4px 10px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:7px;color:#c00;font-weight:bold;text-decoration:none;">' + _aEsc(r2.video.label) + ' ↗</a>'
+    : '';
 }
 
 function _mapPaintRoute() {
@@ -15156,6 +15167,19 @@ function _applyTexts(t) {
         }).join('');
       }
     }
+  }
+
+  if (t.lessons && t.lessons.videos) {
+    var lv = t.lessons.videos, lvEl = document.getElementById('les-videos');
+    if (lvEl) lvEl.innerHTML = '<div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:4px;">' + _aEsc(lv.title) + '</div>'
+      + '<div style="font-size:0.74rem;color:#7a8794;line-height:1.6;margin-bottom:8px;">' + _aEsc(lv.note) + '</div>'
+      + lv.groups.map(function (g) {
+          return '<div style="font-size:0.78rem;font-weight:bold;color:#555;margin:6px 0 4px;">' + _aEsc(g.label) + '</div>'
+            + g.items.map(function (it) {
+                return '<a href="' + it.url + '" target="_blank" rel="noopener" class="les-video" style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 10px;margin-bottom:5px;background:white;border:1px solid #f0d6d6;border-radius:8px;text-decoration:none;color:#16314f;font-size:0.8rem;">'
+                  + '<span>▶️ ' + _aEsc(it.label) + '</span><span style="font-size:0.7rem;color:#999;white-space:nowrap;">' + _fixNums(_aEsc(it.meta)) + '</span></a>';
+              }).join('');
+        }).join('');
   }
 
   // ── סקי פס: הנחות, הודעת סגירה, כותרת mobile ──
