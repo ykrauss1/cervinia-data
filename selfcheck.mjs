@@ -8805,6 +8805,34 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!/06\/11\/2026/.test(r.foot) || !/ולטורננש/.test(r.foot)) fail(T, `the foot lacks the last snowfall or the Valtournenche note: ${r.foot}`); else ok();
 }
 
+// ── no browser dialogs anywhere ──────────────────────────────────────
+// Yossi, 11.11: deleting a review put up the browser's own box, headed
+// "האתר cervinialive.co.il אומר". The site asks in its own card instead.
+{
+  const T = 'no browser dialogs anywhere';
+  const SRC = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+  const code = [...SRC.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/.*$/gm, '$1');
+  const natives = [...code.matchAll(/(^|[^\w.$])(alert|confirm|prompt)\s*\(/g)].map(m => m[2]);
+  if (natives.length) fail(T, `the page still calls the browser's own ${[...new Set(natives)].join(', ')}()`); else ok();
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const press = sel => setTimeout(() => { const b = document.querySelector('#ui-dialog ' + sel); b && b.click(); }, 50);
+    let p = uiConfirm('למחוק את הביקורת?', 'מחיקה', true); out.shown = !!document.getElementById('ui-dialog') && /למחוק את הביקורת/.test(document.getElementById('ui-dialog').innerText);
+    press('.ui-dialog-ok'); out.yes = await p;
+    p = uiConfirm('בטוח?'); press('.ui-dialog-cancel'); out.no = await p;
+    p = uiConfirm('בטוח?'); setTimeout(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })), 50);
+    out.esc = await Promise.race([p, new Promise(res => setTimeout(() => res('no answer to Escape'), 800))]);
+    { const d = document.getElementById('ui-dialog'); d && d.remove(); }
+    p = uiAlert('הודעה'); out.alertOneBtn = document.querySelectorAll('#ui-dialog button').length === 1; press('.ui-dialog-ok'); await p;
+    out.gone = !document.getElementById('ui-dialog');
+    out.reviewUsesIt = /uiConfirm\(/.test(String(deleteReview));
+    return out;
+  });
+  if (!r.shown || r.yes !== true || r.no !== false || r.esc !== false || !r.alertOneBtn || !r.gone || !r.reviewUsesIt)
+    fail(T, `the site's dialog: ${JSON.stringify(r)}`); else ok();
+}
+
 // ── videos worth watching ────────────────────────────────────────────
 // Yossi, 11.11: useful videos - tutorials in the lessons panel, the Ventina
 // filmed, the official ones. Every one is a checked address.

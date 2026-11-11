@@ -1134,7 +1134,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.46';
+  var v='v17.47';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -8550,6 +8550,62 @@ function _costBandHe(k, withAges) {
 //  forecast   - short passes of up to 4 days, as far as a forecast reaches
 // The cheapest is marked, and so is how many days are paid before they are seen.
 var ZC = { n: 5, z: 2 };
+// ── the site's own dialogs ───────────────────────────────────────────────
+// The browser's confirm() and alert() put up a box headed with the address
+// ("האתר cervinialive.co.il אומר") in the browser's own colours, and block
+// the page while they are up (Yossi, 11.11: "אסור שזה יהיה בשום מקום באתר").
+// These say the same in the site's own card. uiConfirm resolves true or
+// false; Escape and a tap outside are "no". uiAlert resolves when closed.
+function uiDialog(o) {
+  return new Promise(function (resolve) {
+    var prev = document.getElementById('ui-dialog');
+    if (prev) prev.remove();
+    var wrap = document.createElement('div');
+    wrap.id = 'ui-dialog';
+    wrap.setAttribute('role', 'dialog');
+    wrap.setAttribute('aria-modal', 'true');
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(10,20,35,0.45);display:flex;align-items:center;justify-content:center;padding:18px;';
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:16px;max-width:360px;width:100%;padding:20px 20px 16px;box-shadow:0 12px 40px rgba(0,0,0,0.25);direction:rtl;text-align:right;font-family:inherit;';
+    var msg = document.createElement('div');
+    msg.className = 'ui-dialog-text';
+    msg.style.cssText = 'font-size:0.95rem;color:#17324c;line-height:1.6;white-space:pre-line;margin-bottom:16px;';
+    msg.textContent = o.text || '';
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap;';
+    var done = function (v) {
+      document.removeEventListener('keydown', onKey, true);
+      wrap.remove();
+      resolve(v);
+    };
+    var mkBtn = function (label, primary, v) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.className = primary ? 'ui-dialog-ok' : 'ui-dialog-cancel';
+      b.style.cssText = 'border-radius:10px;padding:9px 18px;font-size:0.9rem;font-weight:bold;cursor:pointer;font-family:inherit;'
+        + (primary ? 'border:none;color:#fff;background:' + (o.danger ? '#d93025' : '#1a73e8') + ';'
+                   : 'border:1px solid #d0dae6;color:#41556b;background:#fff;');
+      b.onclick = function () { done(v); };
+      return b;
+    };
+    var ok = mkBtn(o.ok || 'אישור', true, true);
+    row.appendChild(ok);
+    if (o.cancel !== false) row.appendChild(mkBtn(o.cancel || 'ביטול', false, false));
+    card.appendChild(msg); card.appendChild(row); wrap.appendChild(card);
+    wrap.addEventListener('click', function (e) { if (e.target === wrap) done(o.cancel === false); });
+    var onKey = function (e) {
+      if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); done(o.cancel === false); }
+      else if (e.key === 'Enter') { e.stopPropagation(); e.preventDefault(); done(true); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(wrap);
+    try { ok.focus(); } catch (e) {}
+  });
+}
+function uiConfirm(text, ok, danger) { return uiDialog({ text: text, ok: ok || 'אישור', cancel: 'ביטול', danger: !!danger }); }
+function uiAlert(text) { return uiDialog({ text: text, ok: 'סגירה', cancel: false }); }
+
 var _snowPoints = [], _snowLastFall = '';
 var SNOW_HE = { 'Plateau Rosa': 'פלטאו רוזה', 'Cime Bianche Laghi': 'צ\'ימה ביאנקה', 'Plan Maison': 'פלאן מייזון', 'Breuil': 'הכפר' };
 function openSnowPoints() { openM('snowModal'); }
@@ -10361,7 +10417,7 @@ AI.save = async function (id) {
 
 AI.del = async function (id) {
   var r = AI.rows.filter(function (x) { return x.id === id; })[0] || {};
-  if (!confirm('למחוק את ' + (r.full_name || '') + '?')) return;
+  if (!(await uiConfirm('למחוק את ' + (r.full_name || '') + '?', 'מחיקה', true))) return;
   var res = await getSB().from('ski_instructors').delete().eq('id', id);
   if (res.error) { AI.msg('שגיאה: ' + res.error.message, false); return; }
   AI.msg('נמחק.', true);
@@ -10791,7 +10847,7 @@ CE.TECH = ['map','mapy','xy','latlon','start_latlon','trail','geo','area_key',
 CE.label = function (k) { return CE.FIELD[k] || k; };
 
 CE.open = function () {
-  if (!window._texts) { alert('texts.json עדיין לא נטען'); return; }
+  if (!window._texts) { uiAlert('texts.json עדיין לא נטען'); return; }
   if (!CE.data) {
     var draft = null;
     try { draft = JSON.parse(localStorage.getItem('ce_draft') || 'null'); } catch (e) {}
@@ -11175,8 +11231,8 @@ CE.export = function () {
   msg.innerHTML = '✅ הקובץ ירד. העלו אותו לגיטהאב והעלו את APP_VER.';
 };
 
-CE.revert = function () {
-  if (!confirm('לבטל את כל השינויים ולחזור לקובץ שנטען?')) return;
+CE.revert = async function () {
+  if (!(await uiConfirm('לבטל את כל השינויים ולחזור לקובץ שנטען?', 'ביטול השינויים', true))) return;
   CE.data = JSON.parse(JSON.stringify(CE.orig));
   CE.dirty = {};
   try { localStorage.removeItem('ce_draft'); } catch (e) {}
@@ -12467,7 +12523,7 @@ function setRevFilter(cat) {
 }
 
 async function deleteReview(id) {
-  if (!confirm('למחוק ביקורת זו?')) return;
+  if (!(await uiConfirm('למחוק את הביקורת?', 'מחיקה', true))) return;
   const sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
   if (!sb) return;
   try {
@@ -12895,7 +12951,7 @@ let _webcamStream = null;
 async function openWebcam() {
   // Check support
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert('הדפדפן לא תומך בגישה למצלמה. אנא בחר תמונה מהקובץ.');
+    uiAlert('הדפדפן לא תומך בגישה למצלמה. אנא בחר תמונה מהקובץ.');
     return;
   }
   openM('avatarCamModal');
@@ -12967,11 +13023,11 @@ function handleAvatarFile(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) {
-    alert('אנא בחר קובץ תמונה');
+    uiAlert('אנא בחר קובץ תמונה');
     return;
   }
   if (file.size > 10 * 1024 * 1024) {
-    alert('הקובץ גדול מדי. גודל מקסימלי: 10MB');
+    uiAlert('הקובץ גדול מדי. גודל מקסימלי: 10MB');
     return;
   }
   const reader = new FileReader();
@@ -12979,7 +13035,7 @@ function handleAvatarFile(event) {
     showCropper(e.target.result);
   };
   reader.onerror = function() {
-    alert('שגיאה בקריאת הקובץ');
+    uiAlert('שגיאה בקריאת הקובץ');
   };
   reader.readAsDataURL(file);
 }
@@ -12996,7 +13052,7 @@ function showCropper(imageDataUrl) {
   if (confirmBtn) confirmBtn.disabled = false;
   setTimeout(() => {
     if (typeof Cropper === 'undefined') {
-      alert('שגיאה: ספריית החיתוך לא נטענה');
+      uiAlert('שגיאה: ספריית החיתוך לא נטענה');
       return;
     }
     _cropper = new Cropper(img, {
@@ -13063,7 +13119,7 @@ async function confirmCrop() {
     }
   } catch (e) {
     console.error(e);
-    alert('שגיאה: ' + (e.message || e));
+    uiAlert('שגיאה: ' + (e.message || e));
     if (confirmBtn) confirmBtn.disabled = false;
     if (prog) prog.style.display = 'none';
   }
@@ -13071,7 +13127,7 @@ async function confirmCrop() {
 
 async function uploadAvatarBlob(blob) {
   if (!USE_SUPABASE || !user || !user.sbId) {
-    alert('אינך מחובר למערכת');
+    uiAlert('אינך מחובר למערכת');
     return;
   }
   const path = user.sbId + '/avatar.jpg';
@@ -13110,7 +13166,7 @@ async function uploadAvatarBlob(blob) {
 
 async function deleteAvatar() {
   if (!user || !user.avatar_url) { closeM('avatarMenuModal'); return; }
-  if (!confirm('האם למחוק את תמונת הפרופיל?')) return;
+  if (!(await uiConfirm('למחוק את תמונת הפרופיל?', 'מחיקה', true))) return;
   closeM('avatarMenuModal');
   try {
     if (USE_SUPABASE && user.sbId) {
@@ -13131,7 +13187,7 @@ async function deleteAvatar() {
     showProfileMsg('✅ התמונה נמחקה', 'success');
   } catch (e) {
     console.error(e);
-    alert('שגיאה במחיקת התמונה');
+    uiAlert('שגיאה במחיקת התמונה');
   }
 }
 
@@ -13617,7 +13673,7 @@ async function requireAuth(action) {
   const what = action ? ' כדי ' + action : '';
   const msg = 'ההתחברות פגה — יש להתחבר מחדש' + what + '.';
   if (typeof forumMsg === 'function') forumMsg(msg, true);
-  else alert(msg);
+  else uiAlert(msg);
   try { openM('authModal'); } catch (e) {}
   return '';
 }
@@ -16835,7 +16891,7 @@ async function _saveSeasonMode(mode) {
       },
       body: JSON.stringify({ season_mode: mode, updated_at: new Date().toISOString() })
     });
-    if (!_r.ok) alert('שמירת מצב העונה נכשלה (' + _r.status + ') — השינוי לא יישמר.');
+    if (!_r.ok) await uiAlert('שמירת מצב העונה נכשלה (' + _r.status + ') — השינוי לא יישמר.');
   } catch(e) {
     console.warn('Could not save season mode:', e.message);
   }
@@ -16850,7 +16906,7 @@ async function _handleLogoTap() {
     var labels = { auto: 'אוטומטי 📅', summer: 'קיץ ☀️', winter: 'חורף ❄️' };
     await _saveSeasonMode(next);
     _seasonOverride = next;
-    alert('מצב עונה שונה ל: ' + labels[next] + '\nמרענן...');
+    await uiAlert('מצב עונה שונה ל: ' + labels[next] + '\nמרענן...');
     location.reload();
   }
 }
@@ -18359,7 +18415,7 @@ function forumMsg(text, isError) {
   const els = ['forum-msg', 'forum-msg2']
     .map(function(id){ return document.getElementById(id); })
     .filter(Boolean);
-  if (!els.length) { if (text) alert(text); return; }
+  if (!els.length) { if (text) uiAlert(text); return; }
   els.forEach(function(el) {
     if (!text) { el.style.display = 'none'; el.textContent = ''; return; }
     el.textContent = text;
