@@ -4346,8 +4346,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.freeLabelled = !!(card2 && /כתבו במילים שלכם/.test(card2.textContent));
     out.freeExplains = !!(card2 && /משפט אחד/.test(card2.textContent));
     const btn = card2 ? [...card2.querySelectorAll('button')]
-                          .find(b => /הבן/.test(b.textContent)) : null;
-    out.btnSaysWhat = !!(btn && /ומלא/.test(btn.textContent));
+                          .find(b => /applyTripText/.test(b.getAttribute('onclick') || '')) : null;
+    out.btnSaysWhat = !!(btn && /מלא\s*בשבילי/.test(btn.textContent));
 
     // and the answer is a card with chips, not a line of grey text
     if (free) {
@@ -8844,7 +8844,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     await wait(150);
     // the blue box does not point at results that are not there yet
     out.noPhantom = !/החיפוש למטה חי/.test(document.body.innerHTML);
-    // an example, then "הבן ומלא"
+    // an example, then "מלא בשבילי"
     const ex = [...$('trip-free-ex').querySelectorAll('.ftx')].find(e => /חנוכה/.test(e.textContent)) || $('trip-free-ex').querySelector('.ftx');
     ex && ex.click(); await wait(80);
     out.filled = $('trip-free').value.length > 3;
@@ -8860,7 +8860,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     return out;
   });
   if (!r.noPhantom) fail(T, 'the price box still speaks of a search "below" before there is one'); else ok();
-  if (!r.filled || !r.said) fail(T, `the example and "הבן ומלא": filled ${r.filled}, understood ${r.said}`); else ok();
+  if (!r.filled || !r.said) fail(T, `the example and "מלא בשבילי": filled ${r.filled}, understood ${r.said}`); else ok();
   if (!r.chipDir) fail(T, 'the dates chip is not set left-to-right'); else ok();
   if (!r.cleared) fail(T, '"נקה" leaves the sentence, the dates or the "הבנתי" box behind'); else ok();
 }
