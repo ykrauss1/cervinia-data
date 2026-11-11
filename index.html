@@ -1134,7 +1134,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.47';
+  var v='v17.48';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7300,7 +7300,7 @@ async function applyTripText(){
       else el.value = r.ci + ' \u2014 ' + r.co;
     }
     var f=function(iso){ return (+iso.slice(8,10))+'.'+(+iso.slice(5,7)); };
-    got.push(f(r.ci)+'\u2013'+f(r.co)+' ('+r.nights+' \u05dc\u05d9\u05dc\u05d5\u05ea)');
+    got.push('<bdi dir="ltr">'+f(r.ci)+'\u2013'+f(r.co)+'</bdi> ('+r.nights+' \u05dc\u05d9\u05dc\u05d5\u05ea)');
   }
   if(r.adults!=null){
     var a=document.getElementById('fl-adults'); if(a) a.textContent=r.adults;
@@ -9588,6 +9588,9 @@ function resetTripDates() {
   // sentence sitting there has not cleared the search.
   const q = document.getElementById('trip-free');
   if (q) { q.value = ''; q.style.height = ''; }
+  // and so does what it said it understood (Yossi, 11.11)
+  const said = document.getElementById('trip-free-said');
+  if (said) said.innerHTML = '';
   ['all-results','flight-results','car-results','hotel-results'].forEach(id => {
     const r = document.getElementById(id);
     if (r) { r.style.display = 'none'; r.innerHTML = ''; }
@@ -12404,7 +12407,16 @@ function renderReviews() {
       + (mine ? '<span style="font-size:0.78rem;color:#1a73e8;cursor:pointer;" onclick="editReview(\'' + escHtml(r.id) + '\')">✏️ עריכה</span>' : '')
       + (canDel ? '<span style="font-size:0.78rem;color:#e74c3c;cursor:pointer;" onclick="deleteReview(\'' + escHtml(r.id) + '\')">🗑 מחק</span>' : '')
       + '</span>'
-      + '</div></div>';
+      + '</div>'
+      // asked right under the review, the way the forum asks (Yossi, 11.11)
+      + (canDel && _revDeleting === String(r.id)
+          ? '<div class="del-confirm rev-del-confirm" style="background:#fff3f3;border:1px solid #e74c3c;border-radius:8px;padding:8px 12px;margin-top:8px;display:flex;gap:10px;align-items:center;font-size:0.85rem;">'
+            + '<span>למחוק את הביקורת?</span>'
+            + '<button type="button" onclick="confirmDelReview(\'' + escHtml(r.id) + '\')" style="padding:3px 12px;background:#e74c3c;color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-family:inherit;">מחק</button>'
+            + '<button type="button" onclick="deleteReview(null)" style="padding:3px 12px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-family:inherit;">ביטול</button>'
+            + '</div>'
+          : '')
+      + '</div>';
   }).join('');
 }
 
@@ -12522,8 +12534,15 @@ function setRevFilter(cat) {
   renderReviews();
 }
 
-async function deleteReview(id) {
-  if (!(await uiConfirm('למחוק את הביקורת?', 'מחיקה', true))) return;
+// The question is asked under the review itself, as in the forum: a second
+// press on 🗑 or ביטול puts it away.
+var _revDeleting = null;
+function deleteReview(id) {
+  _revDeleting = (id == null || _revDeleting === String(id)) ? null : String(id);
+  renderReviews();
+}
+async function confirmDelReview(id) {
+  _revDeleting = null;
   const sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
   if (!sb) return;
   try {
@@ -15373,7 +15392,8 @@ function _applyTexts(t) {
   // ── כשרות ושבת: כותרות וטיפים ──
   if (t.kosher) {
     var ko = t.kosher;
-    _set('kosher-modal-title',       ko.title);
+    // the title too: two drawn candles, whatever texts.json leads it with
+    _set('kosher-modal-title', '🍽️' + _candles() + ' ' + String(ko.title || '').replace(/^[\u{1F37D}\u{1F56F}\u{FE0F}\s]+/u, ''));
     // the label is content, the symbol is not - the drawing is put back on
     // whatever texts.json calls this button
     _set('kosher-btn-shabbat-label',
@@ -15917,7 +15937,7 @@ function flightForDatesHtml(dest, ci, co, pax) {
     // Said once, here, because a big number in a dark box reads like an
     // offer. It is a daily scan: no airline, no seat held, nothing booked.
     '<div style="font-size:0.68rem;opacity:.6;margin-top:7px;line-height:1.5;">' +
-      'מחירון יומי להתרשמות, לא הזמנה · החיפוש למטה חי באתרים עצמם</div>' +
+      'מחירון יומי להתרשמות, לא הזמנה · המחיר האמיתי — באתרי הטיסות, אחרי "חפש טיסות"</div>' +
     '</div>';
 }
 

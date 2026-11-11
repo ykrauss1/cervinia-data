@@ -8826,11 +8826,66 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     { const d = document.getElementById('ui-dialog'); d && d.remove(); }
     p = uiAlert('הודעה'); out.alertOneBtn = document.querySelectorAll('#ui-dialog button').length === 1; press('.ui-dialog-ok'); await p;
     out.gone = !document.getElementById('ui-dialog');
-    out.reviewUsesIt = /uiConfirm\(/.test(String(deleteReview));
+    out.reviewUsesIt = !/confirm\(/.test(String(deleteReview) + String(confirmDelReview));
     return out;
   });
   if (!r.shown || r.yes !== true || r.no !== false || r.esc !== false || !r.alertOneBtn || !r.gone || !r.reviewUsesIt)
     fail(T, `the site's dialog: ${JSON.stringify(r)}`); else ok();
+}
+
+// ── the flight search, walked through as Yossi did (11.11, evening) ──
+{
+  const T = 'the flight search, walked through as Yossi did';
+  const r = await page.evaluate(async () => {
+    const $ = id => document.getElementById(id), out = {};
+    const wait = ms => new Promise(res => setTimeout(res, ms));
+    openM('hotelModal'); await wait(150);
+    if (typeof planGo === 'function') planGo('flight'); else switchTripTab('flight');
+    await wait(150);
+    // the blue box does not point at results that are not there yet
+    out.noPhantom = !/החיפוש למטה חי/.test(document.body.innerHTML);
+    // an example, then "הבן ומלא"
+    const ex = [...$('trip-free-ex').querySelectorAll('.ftx')].find(e => /חנוכה/.test(e.textContent)) || $('trip-free-ex').querySelector('.ftx');
+    ex && ex.click(); await wait(80);
+    out.filled = $('trip-free').value.length > 3;
+    await applyTripText(); await wait(400);
+    const said = $('trip-free-said');
+    out.said = /הבנתי/.test(said.innerText);
+    const bd = said.querySelector('bdi[dir="ltr"]');
+    out.chipDir = !!bd && /^\d{1,2}\.\d{1,2}–\d{1,2}\.\d{1,2}$/.test(bd.textContent);
+    // "נקה" clears the sentence, the dates and what it said it understood
+    resetTripDates(); await wait(80);
+    out.cleared = !$('trip-free').value && !said.innerText.trim() && !$('trip-dates').value;
+    closeM('hotelModal');
+    return out;
+  });
+  if (!r.noPhantom) fail(T, 'the price box still speaks of a search "below" before there is one'); else ok();
+  if (!r.filled || !r.said) fail(T, `the example and "הבן ומלא": filled ${r.filled}, understood ${r.said}`); else ok();
+  if (!r.chipDir) fail(T, 'the dates chip is not set left-to-right'); else ok();
+  if (!r.cleared) fail(T, '"נקה" leaves the sentence, the dates or the "הבנתי" box behind'); else ok();
+}
+
+// ── a review is deleted the way a forum post is ──────────────────────
+{
+  const T = 'a review is deleted the way a forum post is';
+  const r = await page.evaluate(async () => {
+    const out = {};
+    const keepU = user, keepR = _reviews;
+    user = { sbId: 'me', isAdmin: false, name: 'בודק' };
+    _reviews = [{ id: 'r1', authorId: 'me', user: 'בודק', cat: 'כללי', rating: 5, text: 'טוב', timestamp: Date.now() }].concat(_reviews);
+    _revCatFilter = 'all';
+    renderReviews();
+    deleteReview('r1');
+    const bar = document.querySelector('.rev-del-confirm');
+    out.inline = !!bar && /למחוק את הביקורת/.test(bar.innerText) && !document.getElementById('ui-dialog');
+    deleteReview(null);
+    out.closes = !document.querySelector('.rev-del-confirm');
+    user = keepU; _reviews = keepR; renderReviews();
+    out.candles = /ico-candle/.test(document.getElementById('kosher-modal-title').innerHTML);
+    return out;
+  });
+  if (!r.inline || !r.closes) fail(T, `inline confirm: shown ${r.inline}, put away ${r.closes}`); else ok();
+  if (!r.candles) fail(T, 'the kosher title has lost its two drawn candles'); else ok();
 }
 
 // ── videos worth watching ────────────────────────────────────────────
