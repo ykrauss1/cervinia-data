@@ -8660,7 +8660,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     closeM('costModal');
     return out;
   });
-  const need = [/אין החזר/, /4 ימים קדימה/, /14 ימים/, /שבוע שלם ברצף/, /€52/, /3 ימים ומעלה/, /ולטורננש/];
+  const need = [/אין החזר/, /4 ימים קדימה/, /14 ימים/, /שבוע שלם ברצף/, /€52/, /בכל בוקר כרטיס יומי/, /היעזרו במחשבון/, /ולטורננש/];
   const miss = need.filter(re => !re.test(r.txt)).map(String);
   if (!r.visible || !r.before) fail(T, `the advice is not shown above the tariff (shown ${r.visible}, before ${r.before})`); else ok();
   if (miss.length) fail(T, `the advice lacks: ${miss.join(' ')}`); else ok();
