@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-11T01:50:57.250Z",
-  "temperature": 2.7,
+  "updated_at": "2026-11-11T02:31:10.445Z",
+  "temperature": 2.9,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 19,
@@ -12,9 +12,9 @@
   "slopes_total_local": 5,
   "snow_depth": "20 cm",
   "last_snowfall": "06/11/2026",
-  "wind_speed": 1.4,
-  "wind_gust": 20.5,
-  "humidity": 81,
+  "wind_speed": 6.8,
+  "wind_gust": 27.4,
+  "humidity": null,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Poco nuvoloso",
@@ -50,23 +50,23 @@
     }
   ],
   "forecast_today": {
-    "date": "Tuesday, November 10",
+    "date": "Wednesday, November 11",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "rain-snow"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
