@@ -8756,9 +8756,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.open = getComputedStyle($('lodgingModal')).display !== 'none';
     const txt = $('lodging-body').innerText;
     out.areas = ['מרכז הכפר', 'Giomein', 'Cielo Alto', 'Plan Maison', 'Valtournenche'].filter(w => !txt.includes(w));
-    out.yossi = [/20 דקות הליכה בעלייה תלולה/, /Ski in\/Ski out/, /בדקו מראש היכן חונים/, /רק בתנאי שלג מתאימים/, /פריקה וטעינה/, /צמודה לתקרה/, /מרווחות יותר באותו מחיר/, /פינוי שלג/, /ZTL/, /Genzianella/].filter(re => !re.test(txt)).map(String);
+    out.yossi = [/20 דקות הליכה בעלייה תלולה/, /Ski in\/Ski out/, /רק לשני מסלולים שחורים/, /Zona a Traffico Limitato/, /אינה מופיעה במפות/, /בחצי עמידה/, /בדקו מראש היכן חונים/, /רק בתנאי שלג מתאימים/, /פריקה וטעינה/, /צמודה לתקרה/, /מרווחות יותר באותו מחיר/, /פינוי שלג/, /ZTL/, /Genzianella/].filter(re => !re.test(txt)).map(String);
     out.chips = $('lodgingModal').querySelectorAll('.panel-toc button').length;
     out.piste = /פיסטה|מוסך/.test(txt);
+    out.mapLink = !!$('lodging-body').querySelector('a[onclick*="loadMap(\'mymap\')"]');
     // the map button lands on Yossi's map, and closing it returns to the guide
     const mapBtn = [...$('lodging-body').querySelectorAll('button')].find(b => /נקודות הציון/.test(b.textContent));
     mapBtn && mapBtn.click();
@@ -8783,6 +8784,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.yossi.length) fail(T, `Yossi's points are missing: ${r.yossi.join(' ')}`); else ok();
   if (r.piste) fail(T, 'the guide says פיסטה or מוסך - the words people use are מסלול and חניה'); else ok();
   if (r.chips < 5) fail(T, `the guide has ${r.chips} chips, not one per section`); else ok();
+  if (!r.mapLink) fail(T, 'the words "מפת נקודות הציון" are not a link to the map'); else ok();
   if (!r.mapOpen || !r.backToGuide) fail(T, `the map button: opens ${r.mapOpen}, returns ${r.backToGuide}`); else ok();
   if (!r.fromSearch) fail(T, 'the lodging search screen has no way to the guide'); else ok();
   if (!r.search || !r.hash) fail(T, `the guide is not in the site search (${r.search}) or has no address (${r.hash})`); else ok();

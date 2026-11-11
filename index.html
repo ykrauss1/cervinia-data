@@ -1116,7 +1116,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.42';
+  var v='v17.43';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1380,7 +1380,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     </div>
     <div id="svc-lodging" class="service-btn" onclick="openM('lodgingModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-house"/></svg></span>
-      <span class="svc-txt"><b>איפה לישון</b><small>שלושה אזורים בכפר · סוגי לינה · חניה · מה לשאול</small></span>
+      <span class="svc-txt"><b>איפה להתארח</b><small>שלושה אזורים בכפר · סוגי לינה · חניה · מה לשאול</small></span>
     </div>
     <div id="svc-skipass" class="service-btn" onclick="openM('skipassModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-ticket"/></svg></span>
@@ -2870,7 +2870,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
   </div>
 </div>
 
-<!-- Where to sleep (Yossi, 11.11): the three areas of the village as he
+<!-- Where to stay (Yossi, 11.11): the three areas of the village as he
      marked them on his map, what lies outside it, the kinds of lodging and
      what to ask. Content in texts.json lodging_guide. -->
 <div id="lodgingModal" class="modal" onclick="if(event.target===this)closeM('lodgingModal')">
@@ -17486,7 +17486,7 @@ const SEARCH_INDEX = [
   { text: 'הדרכת סקי שיעורים מורה', action: "openM('lessonsModal')", icon: '🏫', label: 'הדרכת סקי' },
   { text: 'כשר מסעדה אוכל', action: "openM('kosherModal')", icon: '🍽️', label: 'אוכל כשר' },
   { text: 'מצלמות webcam שידור חי', action: "openM('webcamModal')", icon: '📷', label: 'מצלמות חי' },
-  { text: 'איפה לישון לינה מלון דירה אזור שכונה cielo alto giomein ולטורננש', action: "openM('lodgingModal')", icon: '🏘️', label: 'איפה לישון בכפר' },
+  { text: 'איפה לישון להתארח אירוח לינה מלון דירה אזור שכונה cielo alto giomein ולטורננש', action: "openM('lodgingModal')", icon: '🏘️', label: 'איפה להתארח בכפר' },
   { text: 'חניה כביש נסיעה', action: "openM('parkingModal');switchParkTab('parking')", icon: '🅿️', label: 'חניה וכביש' },
   { text: 'תחבורה אוטובוס הסעה שאטל linea blu רכבת תחנה', action: "openParkTransport()", icon: '🚌', label: 'תחבורה והסעות' },
   { text: 'נחתתי נחיתה טיסה הגעה משדה התעופה מלפנסה מתכנן', action: "openArrivalPlanner()", icon: '🛬', label: 'נחתתי — איך אני מגיע?' },
