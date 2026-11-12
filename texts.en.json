@@ -1,153 +1,567 @@
 {
-  "ui": {
-    "footer_credit": "CerviniaLive © 2026 · live data from the Cervino Ski Paradise website",
-    "preview_banner": "Preview mode — weather and forum show sample data",
-    "why_cervinia_banner": "Why Cervinia?"
+ "ui": {
+  "footer_credit": "CerviniaLive © 2026 · live data from the Cervino Ski Paradise website",
+  "preview_banner": "Preview mode — weather and forum show sample data",
+  "why_cervinia_banner": "Why Cervinia?"
+ },
+ "services": {
+  "buttons": [
+   {
+    "id": "svc-piste",
+    "label": "Slopes, huts and après-ski",
+    "sub": "By level · Cervinia, Zermatt and Valtournenche · and where to stop on the way"
+   },
+   {
+    "id": "svc-webcam",
+    "label": "Webcams",
+    "sub": "See the mountain now, before you head out"
+   },
+   {
+    "id": "svc-parking",
+    "label": "Transport, parking and emergencies",
+    "sub": "From the airport to the village · timetables · car hire · snow chains · emergencies"
+   },
+   {
+    "id": "svc-travel",
+    "label": "Trip planning",
+    "sub": "Search flights, lodging and a car — in one query"
+   },
+   {
+    "id": "svc-skipass",
+    "label": "Ski pass",
+    "sub": "Cervinia and Zermatt prices · discounts by age · pass on your phone"
+   },
+   {
+    "id": "svc-rental",
+    "label": "Gear and rental",
+    "sub": "Five shops in the village and three on the way · prices · rent or buy"
+   },
+   {
+    "id": "svc-lessons",
+    "label": "Ski school",
+    "sub": "2026/27 prices · group, private and children · instructors"
+   },
+   {
+    "id": "svc-kosher",
+    "label": "Kosher and Shabbat",
+    "sub": "Shabbat times · supermarket products · delivery · Milan and Turin"
+   },
+   {
+    "id": "svc-maps",
+    "label": "Maps",
+    "sub": "Slopes, the village, Valtournenche and Switzerland"
+   },
+   {
+    "id": "svc-around",
+    "label": "Things to do nearby",
+    "sub": "Stormy days · after skiing · and what is closed in winter"
+   }
+  ]
+ },
+ "modals": {
+  "about": {
+   "title": "🏔️ About us",
+   "text1": "CerviniaLive is an unofficial site built by skiers, for skiers. It updates itself from Cervinia's official websites several times a day.",
+   "text2": "The site has no official connection to Cervino Ski Paradise or any other official body. The data is shown as a service to the community."
   },
-  "services": {
-    "buttons": [
-      {
-        "id": "svc-piste",
-        "label": "Slopes, huts and après-ski",
-        "sub": "By level · Cervinia, Zermatt and Valtournenche · and where to stop on the way"
-      },
-      {
-        "id": "svc-webcam",
-        "label": "Webcams",
-        "sub": "See the mountain now, before you head out"
-      },
-      {
-        "id": "svc-parking",
-        "label": "Transport, parking and emergencies",
-        "sub": "From the airport to the village · timetables · car hire · snow chains · emergencies"
-      },
-      {
-        "id": "svc-travel",
-        "label": "Trip planning",
-        "sub": "Search flights, lodging and a car — in one query"
-      },
-      {
-        "id": "svc-skipass",
-        "label": "Ski pass",
-        "sub": "Cervinia and Zermatt prices · discounts by age · pass on your phone"
-      },
-      {
-        "id": "svc-rental",
-        "label": "Gear and rental",
-        "sub": "Five shops in the village and three on the way · prices · rent or buy"
-      },
-      {
-        "id": "svc-lessons",
-        "label": "Ski school",
-        "sub": "2026/27 prices · group, private and children · instructors"
-      },
-      {
-        "id": "svc-kosher",
-        "label": "Kosher and Shabbat",
-        "sub": "Shabbat times · supermarket products · delivery · Milan and Turin"
-      },
-      {
-        "id": "svc-maps",
-        "label": "Maps",
-        "sub": "Slopes, the village, Valtournenche and Switzerland"
-      },
-      {
-        "id": "svc-around",
-        "label": "Things to do nearby",
-        "sub": "Stormy days · after skiing · and what is closed in winter"
-      }
-    ]
-  },
-  "modals": {
-    "about": {
-      "title": "🏔️ About us",
-      "text1": "CerviniaLive is an unofficial site built by skiers, for skiers. It updates itself from Cervinia's official websites several times a day.",
-      "text2": "The site has no official connection to Cervino Ski Paradise or any other official body. The data is shown as a service to the community."
+  "help": {
+   "title": "❓ Help",
+   "faq": [
+    {
+     "q": "The data is not updating?",
+     "a": "The data updates itself every hour. Try refreshing the page."
     },
-    "help": {
-      "title": "❓ Help",
-      "faq": [
-        {
-          "q": "The data is not updating?",
-          "a": "The data updates itself every hour. Try refreshing the page."
-        },
-        {
-          "q": "How do I join?",
-          "a": "Tap “Sign in” in the top corner and choose “Join”."
-        },
-        {
-          "q": "What do the numbers in the banner mean?",
-          "a": "The big number is the <b>whole ski area</b> — Cervinia, Valtournenche, Chamois, Torgnon and Zermatt together — the same figure the official website shows. The small number in brackets, when there is one, is Cervinia alone. When there is no separate Cervinia figure, there are no brackets.<br><br><b>The number after the slash is not the total number of lifts</b>, but how many of them are running in the current period. In October, for example, five lifts run in Cervinia and 15 in the whole area; at the height of winter these numbers are several times larger. This is exactly what the operator itself publishes."
-        },
-        {
-          "q": "What is the Zermatt link?",
-          "a": "The crossing between the Cervinia ski area and Zermatt (Switzerland) over the glacier. The cable car (Matterhorn Alpine Crossing) runs all year in good weather, even when no slope is open — then it says “Cable car only”. Crossing on skis is possible only when slopes are open."
-        }
-      ]
+    {
+     "q": "How do I join?",
+     "a": "Tap “Sign in” in the top corner and choose “Join”."
     },
-    "zermatt_link_conditions": [
-      "🌡️ Temperature below 0° at Plateau Rosa",
-      "💨 Wind below 40 km/h",
-      "👁️ Good visibility (no fog or snowstorm)",
-      "📋 Glacier operator's approval"
-    ],
-    "kosher_notice": "The food at the huts is not kosher, and we publish no recommendations about food. You can still sit in the huts and on the terraces overlooking the wonderful view, enjoy the winter sun, and have a beer, a soft drink or something stronger — and every hut has toilets for skiers."
-  },
-  "swiss": {
-    "last_lift": {
-      "label": "The last lift from Zermatt back to Italy",
-      "note": "The time changes on 30 January. It is published every day on the lift operator's website, and in bad weather they close earlier.",
-      "live_label": "Live status of the link →"
+    {
+     "q": "What do the numbers in the banner mean?",
+     "a": "The big number is the <b>whole ski area</b> — Cervinia, Valtournenche, Chamois, Torgnon and Zermatt together — the same figure the official website shows. The small number in brackets, when there is one, is Cervinia alone. When there is no separate Cervinia figure, there are no brackets.<br><br><b>The number after the slash is not the total number of lifts</b>, but how many of them are running in the current period. In October, for example, five lifts run in Cervinia and 15 in the whole area; at the height of winter these numbers are several times larger. This is exactly what the operator itself publishes."
+    },
+    {
+     "q": "What is the Zermatt link?",
+     "a": "The crossing between the Cervinia ski area and Zermatt (Switzerland) over the glacier. The cable car (Matterhorn Alpine Crossing) runs all year in good weather, even when no slope is open — then it says “Cable car only”. Crossing on skis is possible only when slopes are open."
     }
+   ]
   },
-  "why_cervinia": {
-    "title": "⛷️ Why Cervinia?",
-    "items": [
-      {
-        "title": "The highest ski area in the Alps",
-        "text": "About 160 km of slopes on the Italian side, and **360 km** together with Swiss Zermatt — one area, one ski pass. The top reaches almost 3,900 m, with reliable snow all season."
-      },
-      {
-        "title": "Snow that does not depend on luck",
-        "text": "The high skiing here sits on the <b>Theodul Glacier on the Swiss side</b>, reached through Plateau Rosà (3,480 m) — the highest and largest summer ski area in Europe, about 25 km of slopes. In practice the season opens as early as October, while most of the Alps are still green."
-      },
-      {
-        "title": "The Zermatt link",
-        "text": "When conditions allow, the crossing to Swiss Zermatt is open. Ski from Plateau Rosa into Italy and Switzerland and back — in a single day."
-      },
-      {
-        "title": "A mountain made for learning and for clocking up kilometres",
-        "text": "Of the 73 slopes on the Italian side only **9 are black** — the rest are blue and red, wide and open. Those still learning, and those who want to cover distance without pressure, get a whole mountain to themselves."
-      },
-      {
-        "title": "A quiet, authentic village",
-        "text": "A small village without bustle, crowds or noise. A real Italian atmosphere — whoever is after quiet and a view will find exactly that here."
-      },
-      {
-        "title": "Airport and ski-pass prices",
-        "text": "Milan's airports are well served and flights there are relatively cheap. An adult day pass is <b>€64</b>, against about €89 in the Dolomiti Superski and CHF 104 in Zermatt. What you buy on the spot costs less too: in the village and on the mountain prices are much lower than on the Swiss side."
-      },
-      {
-        "title": "The Matterhorn — two faces of an icon",
-        "text": "From the Italian side — a perfect, spectacular pyramid. From the Swiss side — the steep peak on the Toblerone. Two completely different views of the same legendary mountain, in one day of skiing."
-      }
-    ],
-    "facebook_title": "The Israeli Facebook group for Cervinia (in Hebrew)",
-    "facebook_sub": "The Israeli community — questions, tips and reports from the slopes",
-    "banner_stats": [
-      "⛷️ 360 km",
-      "❄️ Snow from October",
-      "🇨🇭 Two countries"
-    ]
-  },
-  "community": {
-    "facebook": {
-      "title": "The Israeli Facebook group for Cervinia (in Hebrew)",
-      "sub": "Questions, recommendations and reports from the slopes — the Israeli community"
-    },
-    "whatsapp": {
-      "title": "Cervinia for the observant skier — WhatsApp group",
-      "sub": "Arranging a minyan, Shabbat meals and shared shopping — quick talk among those who are there now"
-    }
+  "zermatt_link_conditions": [
+   "🌡️ Temperature below 0° at Plateau Rosa",
+   "💨 Wind below 40 km/h",
+   "👁️ Good visibility (no fog or snowstorm)",
+   "📋 Glacier operator's approval"
+  ],
+  "kosher_notice": "The food at the huts is not kosher, and we publish no recommendations about food. You can still sit in the huts and on the terraces overlooking the wonderful view, enjoy the winter sun, and have a beer, a soft drink or something stronger — and every hut has toilets for skiers."
+ },
+ "swiss": {
+  "last_lift": {
+   "label": "The last lift from Zermatt back to Italy",
+   "note": "The time changes on 30 January. It is published every day on the lift operator's website, and in bad weather they close earlier.",
+   "live_label": "Live status of the link →"
   }
+ },
+ "why_cervinia": {
+  "title": "⛷️ Why Cervinia?",
+  "items": [
+   {
+    "title": "The highest ski area in the Alps",
+    "text": "About 160 km of slopes on the Italian side, and **360 km** together with Swiss Zermatt — one area, one ski pass. The top reaches almost 3,900 m, with reliable snow all season."
+   },
+   {
+    "title": "Snow that does not depend on luck",
+    "text": "The high skiing here sits on the <b>Theodul Glacier on the Swiss side</b>, reached through Plateau Rosà (3,480 m) — the highest and largest summer ski area in Europe, about 25 km of slopes. In practice the season opens as early as October, while most of the Alps are still green."
+   },
+   {
+    "title": "The Zermatt link",
+    "text": "When conditions allow, the crossing to Swiss Zermatt is open. Ski from Plateau Rosa into Italy and Switzerland and back — in a single day."
+   },
+   {
+    "title": "A mountain made for learning and for clocking up kilometres",
+    "text": "Of the 73 slopes on the Italian side only **9 are black** — the rest are blue and red, wide and open. Those still learning, and those who want to cover distance without pressure, get a whole mountain to themselves."
+   },
+   {
+    "title": "A quiet, authentic village",
+    "text": "A small village without bustle, crowds or noise. A real Italian atmosphere — whoever is after quiet and a view will find exactly that here."
+   },
+   {
+    "title": "Airport and ski-pass prices",
+    "text": "Milan's airports are well served and flights there are relatively cheap. An adult day pass is <b>€64</b>, against about €89 in the Dolomiti Superski and CHF 104 in Zermatt. What you buy on the spot costs less too: in the village and on the mountain prices are much lower than on the Swiss side."
+   },
+   {
+    "title": "The Matterhorn — two faces of an icon",
+    "text": "From the Italian side — a perfect, spectacular pyramid. From the Swiss side — the steep peak on the Toblerone. Two completely different views of the same legendary mountain, in one day of skiing."
+   }
+  ],
+  "facebook_title": "The Israeli Facebook group for Cervinia (in Hebrew)",
+  "facebook_sub": "The Israeli community — questions, tips and reports from the slopes",
+  "banner_stats": [
+   "⛷️ 360 km",
+   "❄️ Snow from October",
+   "🇨🇭 Two countries"
+  ]
+ },
+ "community": {
+  "facebook": {
+   "title": "The Israeli Facebook group for Cervinia (in Hebrew)",
+   "sub": "Questions, recommendations and reports from the slopes — the Israeli community"
+  },
+  "whatsapp": {
+   "title": "Cervinia for the observant skier — WhatsApp group",
+   "sub": "Arranging a minyan, Shabbat meals and shared shopping — quick talk among those who are there now"
+  }
+ },
+ "lessons": {
+  "title": "🏫 Ski and snowboard lessons",
+  "subtitle": "Certified instructors · 2026/27 prices of Cervinia's ski schools",
+  "group": {
+   "day1_title": "📅 Half day · 9:30–12:00",
+   "day1_desc": "Monday–Friday, groups of 5–10 by level. 3 or 5 days.",
+   "day1_price": "3 days €180 · 5 days €210<br><span style=\"font-size:0.78rem;color:#8a5a00;\">Peak season: 5 days €270</span>",
+   "day3_title": "📅 Full day · 9:30–16:00 · lunch included",
+   "day3_desc": "Monday–Friday, groups of 5–8 at the same level. <b>From age 7, intermediate level and up.</b>",
+   "day3_price": "3 days €400 · 5 days €600<br><span style=\"font-size:0.78rem;color:#8a5a00;\">Peak season: €500 / €700 · family ×2: €1,000 (€1,200 at peak)</span>",
+   "levels": "Beginners · Intermediate · Advanced",
+   "languages": "Groups are split by level, age <b>and spoken language</b> — worth stating when you book"
+  },
+  "private": {
+   "hour0_title": "⏱️ One hour",
+   "hour0_desc": "One pupil. A single hour is sold subject to availability — not at every hour of the day.",
+   "hour0_price": "€70 in the morning (9:00–10:00) · €65 in the afternoon (13:00–14:00)<br><span style=\"font-size:0.78rem;color:#8a5a00;\">€75 in high season · €80 at peak · a single hour costs more, per hour, than a two-hour lesson</span>",
+   "hour1_title": "⏱️ Two hours",
+   "hour1_desc": "Morning / afternoon (from 13:00). One pupil.",
+   "hour1_price": "€115 morning · €110 afternoon<br><span style=\"font-size:0.78rem;color:#8a5a00;\">Peak season €130 · two pupils €130/€120 (€150 at peak)</span>",
+   "half_day_title": "⏱️⏱️ Three hours · half day (4 hours) · full day",
+   "half_day_desc": "One pupil. Two or more — only a small supplement.",
+   "half_day_price": "3 hours €170 · half day €230 · full day €450<br><span style=\"font-size:0.78rem;color:#8a5a00;\">Afternoon €150 / €210 · peak season €190 / €255 / €500</span>",
+   "family_tip": "💡 <b>Family discount:</b> in a private family lesson <b>the third person is not counted</b>. For two there is a \"family ×2\" rate, cheaper than the two-pupil rate: €120 for two hours in the morning (€115 afternoon), €145 at peak.<br>⏱️ <b>Single hour:</b> the price is the Breuil school's, the only one that publishes an hourly price. At the Cervinia school and at Ride'em a single hour is sold subject to availability, with no published price.<br>👤 <b>An independent instructor</b> sets their own price, and it need not match the prices here.<br>🧒 <b>Children up to 5:</b> a one-hour private lesson — €60 in the morning (€55 afternoon), €65 at peak.<br>↩️ Cancellation is refunded only up to 72 hours ahead and with proof of the circumstances."
+  },
+  "kids": {
+   "young_title": "🎿 Up to age 5 — private only",
+   "young_desc": "At this age the school runs no groups. A short private lesson, one hour.",
+   "young_price": "€60 an hour in the morning · €55 afternoon · €65 at peak",
+   "older_title": "🎿⭐ From age 7 — full-day group",
+   "older_desc": "9:30–16:00 with lunch, Monday–Friday, 5–8 children at the same level. <b>Intermediate level required</b> — not for complete beginners.",
+   "older_price": "3 days €400 · 5 days €600",
+   "tip": "💡 <b>Age 6:</b> falls between the cracks — above the \"up to 5\" rate and below the minimum for the full-day group. Ask the school directly.<br>📞 <b>Cervinia ski school:</b> 0166 949034 · 0166 948744 · scuolacervino.com<br><span style=\"font-size:0.78rem;color:#888;\">Other schools in the village have prices of their own. The prices here are those of the school by the main lift, for the 2026/27 season.</span>"
+  },
+  "instructors_title": "🎿 Recommended private instructors",
+  "instructors_sub": "We keep a list of experienced instructors recommended by our skiers. Send a detailed request and we will answer soon.",
+  "instructors_note": "<b>An independent instructor or a school — two different ways:</b><br>👤 <b>Independent instructor:</b> you choose exactly who you want, and they set their own price. There is no written contract, so agree in advance and in writing: the price, how and when you pay, what happens if you cancel, and what happens if the lesson falls through because of weather or closed lifts.<br>🏫 <b>School:</b> the terms are written out in detail — a refund up to 72 hours ahead with proof of the circumstances, and you can add cancellation insurance (Snowcare) for about 7% of the lesson price. On the other hand, the instructor is assigned to you rather than chosen by you; the great majority are excellent, but the personal fit is a matter of luck.",
+  "schools_title": "🏫 Ski schools in Cervinia",
+  "instructors_cta": "✉️ Ask for an instructor's details",
+  "instructors_add": "➕ Recommend an instructor",
+  "videos": {
+   "title": "🎓 Learn from videos",
+   "note": "Certified instructors, on well-regarded YouTube channels.",
+   "groups": [
+    {
+     "label": "Beginners",
+     "items": [
+      {
+       "label": "How to ski in one day — 20 tips",
+       "meta": "Stomp It · 21 min"
+      },
+      {
+       "label": "From \"pizza\" to parallel skiing",
+       "meta": "Alpine Tutorials · 9 min"
+      }
+     ]
+    },
+    {
+     "label": "Intermediate · Advanced",
+     "items": [
+      {
+       "label": "Carving — clean turns on the edges: 5 tips and drills",
+       "meta": "Stomp It · 15 min"
+      },
+      {
+       "label": "Red and black slopes — how to ski a steep pitch",
+       "meta": "Alpine Tutorials · 7 min"
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "lodging_guide": {
+  "title": "🏘️ Where to stay in Cervinia",
+  "intro": "The village is small, but where you stay makes itself felt every morning — walking in ski boots, parking, and the way home at the end of the day. Here: the village's three areas, what lies outside it, the types of lodging, and what to check before you book.",
+  "groups": [
+   {
+    "id": "areas",
+    "title": "Three areas in the village",
+    "lead": "On the <a onclick=\"openFrom('lodgingModal','mapModal');loadMap('mymap')\" style=\"color:#1a73e8;cursor:pointer;text-decoration:underline;font-weight:bold;\">points-of-interest map</a> each area has its own colour — blue, red and orange.",
+    "notes": [
+     {
+      "text": "🔵 <b>Village centre</b> (<bdi>Breuil</bdi>, 2,050 m) — between the two lifts that leave the village: <b>the <bdi>Cretaz</bdi> cable car</b> and <b>the gondola to <bdi>Plan Maison</bdi></b>. Most of the hotels, shops and the bus stop are here, all within walking distance.<br>👎 It is also the most expensive lodging, and most apartments are small — sometimes really cramped, with extra beds in every corner. The main streets are a <b>ZTL</b> (<bdi>Zona a Traffico Limitato</bdi> — limited traffic zone), closed to unauthorised cars, and not every place has parking."
+     },
+     {
+      "text": "🔴 <b><bdi>Giomein</bdi></b> — on the slope above the village, on the gondola side. Quiet, with hotels along <bdi>Via Giomein</bdi> — for example <bdi dir=\"ltr\">White Angel</bdi> and <bdi dir=\"ltr\">Bergman Mountain Hotel</bdi>, right by slope 3BIS. With enough snow you can ski here from slope 3, and down towards the gondola along the line of slope 3BIS (<bdi>Fallinière</bdi>) — <b>only in suitable snow conditions</b>. The way down from the neighbourhood and into it is not an official slope and is not on the maps.<br>👎 The walk up from the centre is steep, and there are hardly any shops. Worth asking whether the hotel drives its guests."
+     },
+     {
+      "text": "🟠 <b><bdi>Cielo Alto</bdi></b> (about 2,100 m) — a separate neighbourhood, mostly apartment buildings. This is usually where <b>the cheapest lodging</b> is, and apartments are often <b>roomier for the same price</b> — which is already a treat. <b>You ski from it down to the village</b> on slope 16 (red) <b>and come back to it from the mountain on skis</b> on slope 13, from the Ventina. The neighbourhood has a chairlift of its own, an old one (built in 1972), but <b>it leads only to two black slopes</b> (21 and 22), not to the rest of the lift network. From the upper black (21) the new slope 34 (red, with a steep stretch) branches off to the village.<br>👎 Far from the village: <b>about 20 minutes on foot up a steep hill</b>, or by car, or on the <bdi>Linea Viola</bdi> bus — which runs at limited hours, so photograph the timetable at the nearest stop. The neighbourhood itself has an equipment rental shop. <b>The buildings themselves are very dated and in need of renovation</b> — they date from when the neighbourhood was built, around the 1970s, and some apartments have hardly changed since. Ask for recent photos."
+     },
+     {
+      "text": "⛷️ <b>True <bdi>Ski in/Ski out</bdi> hardly exists in Cervinia.</b> Even \"next to the slope\" usually means a few minutes' walk. The exceptions: <bdi dir=\"ltr\">Hotel Lo Stambecco</bdi> at Plan Maison (see below), and <bdi dir=\"ltr\">Hotel Baita Cretaz</bdi> — a small hotel, 7 rooms, on the slope along the <bdi>Cretaz</bdi> cable car above the village; for the trip to the village in the evening it has a snowmobile."
+     }
+    ],
+    "links": [
+     {
+      "label": "📍 Points-of-interest map"
+     },
+     {
+      "label": "🎥 \"Where to stay\" — in the Why Cervinia video"
+     }
+    ]
+   },
+   {
+    "id": "outside",
+    "title": "And outside the village",
+    "notes": [
+     {
+      "text": "🚡 <b><bdi>Plan Maison</bdi></b> (about 2,550 m) — one hotel on the mountain: <b><bdi dir=\"ltr\">Hotel Lo Stambecco</bdi></b>, right at the lift station and on the slope. <b>No road leads to it</b> — only the lift.<details style=\"margin-top:6px;\"><summary style=\"cursor:pointer;color:#1a73e8;font-weight:bold;font-size:0.8rem;\">More about the hotel</summary>The lift runs 8:30–16:30 and is free for hotel guests; outside those hours — a private snowmobile transfer on booking, so plan your arrival time. The hotel has a gym, billiards and a reading room, and sells ski passes and rents equipment. At Hanukkah it hosts the kosher holiday group of <b><bdi>Fun Fit Family</bdi></b> — see the Kosher and Shabbat card.</details>"
+     },
+     {
+      "text": "🏘️ <b><bdi>Valtournenche</bdi></b> — a village down the valley, on the same lift network and the same ski pass. Lodging here is <b>much cheaper</b>. On the other hand, the way to Cervinia on skis is long, and <b>the way up the mountain from the village is by an old, awkward gondola, half standing</b>, and <b>the first chairlift you meet after it, along slope 4, is truly ancient</b>. <b>Be careful not to fall when getting off it.</b> The season here also opens later. And there is an advantage: on a day of strong wind, when Cervinia's high lifts are closed, lower Valtournenche can sometimes still be skied."
+     },
+     {
+      "text": "🚗 <b>The villages further down the valley</b> — cheaper still. <b>Up to about half an hour's drive each way — reasonable in return for a cheaper, more comfortable apartment.</b> In snow, also allow for snow chains."
+     },
+     {
+      "text": "🅿️ <b>In an apartment far from the lifts — check in advance where to park</b>, both by the apartment and by the lifts."
+     }
+    ],
+    "links": [
+     {
+      "label": "🏨 Hotel Lo Stambecco — official page"
+     },
+     {
+      "label": "🕯️🕯️ The kosher holiday"
+     },
+     {
+      "label": "🅿️ Car parks in the village"
+     },
+     {
+      "label": "🎥 Valtournenche — the official video"
+     }
+    ]
+   },
+   {
+    "id": "types",
+    "title": "Types of lodging",
+    "lead": "The village's official map divides lodging like this — and these are also the terms to search for on Italian sites:",
+    "notes": [
+     {
+      "text": "🏨 <b>Hotel</b> (<bdi>Hotel</bdi>) — from one star to five. Many offer half board, some have a spa, and some drive guests to the lifts. There are also bed-and-breakfast-only hotels (<bdi>camera e colazione</bdi>)."
+     },
+     {
+      "text": "🛏️ <b>Rooms to let</b> (<bdi>Affittacamere</bdi>) — a few rooms in a house, usually with breakfast. Simple, and relatively cheap."
+     },
+     {
+      "text": "🏢 <b>Residence</b> (<bdi>Residence</bdi>) — apartments with a kitchen, plus hotel services: reception, cleaning, sometimes a ski room."
+     },
+     {
+      "text": "🔑 <b>Holiday apartment</b> (<bdi>Casa vacanze</bdi>) — a privately owned apartment, through a local agency or online. Most convenient for families and groups, and for anyone keeping kosher — with a kitchen of your own."
+     }
+    ]
+   },
+   {
+    "id": "priorities",
+    "title": "What to check before you book",
+    "lead": "\"Close to the slope\" is not an answer. Ask the place itself:",
+    "notes": [
+     {
+      "text": "<b>1.</b> <b>How many minutes' walk to a lift — and which one.</b> Ten minutes in ski boots, skis on your shoulder, makes itself felt every morning."
+     },
+     {
+      "text": "<b>2.</b> <b>Where the equipment stays.</b> A ski room, a boot locker. If you rent equipment you can leave it at the shop by the lift — the map marks <bdi>Neloggio Ski Service</bdi> and <bdi>SKI 2.0</bdi> near <bdi>Cretaz</bdi>, and <bdi>La Genzianella</bdi> on <bdi>Via Funivie</bdi> by the gondola. Then even a place further away is comfortable."
+     },
+     {
+      "text": "<b>3.</b> <b>Parking.</b> Is there private parking (outdoor or covered)? In Cervinia that is already a lot. In an apartment far from the lifts — check in advance where to park."
+     },
+     {
+      "text": "<b>4.</b> <b>An apartment inside the ZTL — can you drive in, and how.</b> Some apartments get an entry and parking permit for the whole stay. For others the permit is only for loading and unloading, about half an hour — and the car is parked in the free car park opposite the tourist office. Ask the owner before booking, and give them the car's registration number before you arrive, or a fine follows."
+     },
+     {
+      "text": "<b>5.</b> <b>How much room there really is.</b> How many bedrooms, and where the \"extra\" guests sleep. Cervinia has creative solutions: a bed under the ceiling reached by a ladder, beds that fold into the wall, a sofa bed — and sometimes five beds in one room. That is not bad, but when the whole apartment is one room with the kitchen, and at night it fills up with beds — it is less comfortable. Ask for a floor plan or photos of the rooms. In the older buildings, ask about a lift too."
+     },
+     {
+      "text": "<b>6.</b> <b>What is included.</b> Linen and towels, final cleaning, a washing machine — in apartments these are sometimes extra."
+     }
+    ]
+   },
+   {
+    "id": "parking",
+    "title": "Parking — what is marked on the map",
+    "notes": [
+     {
+      "text": "🟢 <b>Free parking 1</b> — on the right, just after the tunnel at the entrance to the village. <b>On some days parking there is forbidden for snow clearing</b> — the days are written on the sign at the entrance. Then move the car to free parking 2."
+     },
+     {
+      "text": "🟢 <b>Free parking 2</b> — opposite the tourist office, on <bdi>Via Circonvallazione</bdi>, with an electric-car charging point."
+     },
+     {
+      "text": "🔴 <b>Gondola car park</b> — paid, the closest to the lifts."
+     },
+     {
+      "text": "🟡 <b>The yellow streets on the map are a ZTL</b> — only permit holders may enter, and there are cameras. Staying inside it? See point 4 above: not every apartment gets a parking permit."
+     }
+    ],
+    "links": [
+     {
+      "label": "📍 Points-of-interest map"
+     },
+     {
+      "label": "🅿️ All car parks and prices"
+     }
+    ]
+   },
+   {
+    "id": "search",
+    "title": "And from here — to the search",
+    "links": [
+     {
+      "label": "🏨 Search for lodging"
+     },
+     {
+      "label": "🗝️ Rent an apartment like a local"
+     },
+     {
+      "label": "💶 So, what will it cost me?"
+     }
+    ]
+   }
+  ],
+  "footer": "From the village's official map, the lift operator and our own experience on the ground. Prices, hours and parking terms change — check with the place before booking."
+ },
+ "skipass": {
+  "zermatt_closure_notice": "⚠️ <b>The Matterhorn Alpine Crossing is closed for maintenance 07/01/2027 – 26/02/2027.</b> The crossing to Zermatt <b>on skis</b> is not affected — it runs on slopes and lifts, not on this cable car.",
+  "keycard_note": "<b style=\"font-size:0.88rem;color:#8a6d1b;\">🎟️ The hard card (keycard) — three ways to get it</b><div style=\"margin-top:9px;\"><b>1 · Directly at the staffed ticket office</b><br>Buy on the spot. If you have no plastic card, you pay <b>€2 on top</b> of the ski-pass price — a €64 ski pass will cost €66. The card stays with you and can be reloaded on later visits.</div><div style=\"margin-top:9px;\"><b>2 · You already have a keycard — the fastest way</b><br>Buy online and type in the number on the back of the card (<b>with the dashes, no spaces</b>). <b>No ticket office and no machine</b> — the ski pass is loaded onto the card and you go straight to the gate.<br><span style=\"color:#8a5a00;\">⚠️ <b>The card number must be typed in during the order.</b> If you finish the purchase without it, the card can no longer be linked to the ski pass — and you will have to go to the ticket office after all.</span></div><div style=\"margin-top:9px;\"><b>3 · You have no keycard</b><br>You can order online and collect at the automatic machine, or simply go to the machine and issue one there.<br><span style=\"color:#8a5a00;\">Note: the machine issues a <b>single-use card, free</b> — it is valid for the ski pass you bought and is not meant for reloading. If you want a permanent keycard for future reloads — that is at the ticket office, for €2 extra.</span></div><div style=\"margin-top:10px;padding-top:8px;border-top:1px solid #ecdfb8;\"><b>🤖 Automatic machines are in four places:</b> Cretaz · the main ticket office in Cervinia · Valtournenche · Torgnon</div><div style=\"margin-top:11px;display:flex;gap:7px;flex-wrap:wrap;\"><a href=\"https://shop.cervinoskiparadise.it/\" target=\"_blank\" rel=\"noopener\" style=\"padding:7px 13px;background:#1a73e8;color:white;border-radius:8px;text-decoration:none;font-size:0.79rem;font-weight:bold;\">🛒 To the shop — buy, or load an existing card</a><a href=\"https://cervinia.it/eventi/accesso-alle-biglietterie-e-acquisto-ticket-online\" target=\"_blank\" rel=\"noopener\" style=\"padding:7px 13px;background:#fff;color:#8a6d1b;border:1.5px solid #e8d9a8;border-radius:8px;text-decoration:none;font-size:0.79rem;font-weight:bold;\">📄 The official instructions</a></div><div style=\"margin-top:5px;font-size:0.72rem;color:#999;\">The same shop serves both purposes — you choose between them at checkout.</div><div style=\"margin-top:9px;font-size:0.73rem;color:#777;\">The staffed ticket offices are mainly for purchases with special discounts and for collecting a keycard · <b>the pass is not refunded</b> even if you did not get to ski — check the forecast and the lift opening before you buy</div>",
+  "mobile_pass_title": "SkiPass Mobile — the pass on your phone",
+  "mobile_pass_desc": "No queue at the ticket office — buy online and the gate opens through your phone",
+  "discounts_title": "💡 Discounts and free passes worth knowing:",
+  "discounts": [
+   "🏨 <b>First &amp; Last Tracks 2026/27</b> — 30% off a 4–7 day pass · until 04/12/2026, and again 05/04–02/05/2027 · minimum 4 nights · <b>you must book directly with the hotel</b> — booking through Booking or Expedia does not qualify",
+   "👥 <b>Groups</b> — one free pass for every 15 bought (the 16th pass)",
+   "🗓️ <b>Buying online</b> — saves the queue at the ticket office, but the price is the same as the price list. <b>Note:</b> the online shop, the automatic machines and the intermediate stations sell <b>the adult rate only</b> — age discounts are given only at the staffed ticket office.",
+   "🎟️ <b>Freedom Pass</b> — 8 rides €76, 10 rides €95, 12 rides €114 · <b>Explore Pass</b> — single ride from €13, return from €20 (Cervinia–Plan Maison)",
+   "🏔️ <b>A multi-day pass opens other resorts</b> — a <b>3–5 day</b> pass lets you ski <b>one day</b> at another resort in the Aosta Valley (Torgnon, Chamois, Courmayeur, Pila and more), and a <b>6–8 day</b> pass — <b>two days</b>. The days are counted from the pass you bought and are not extra. The Buisson–Chamois cable car is never included.",
+   "🗺️ <b>Regional ski pass (Valle d'Aosta)</b> — valid at 20 resorts in the valley, and also at La Rosière in France and at Alagna. Sold as a season pass or as <b>3–14 consecutive days</b>; there is no regional day ticket. A regional season pass also includes up to <b>6 ski days in the 4 Vallées/Verbier</b>, one day a week.",
+   "🚑 <b>Rescue from the slope costs €200</b> anywhere in the Aosta Valley. Insurance at the ticket office costs <b>€3.50 a day</b> (a child born after 31/10/2018 — €1.50), or €49 for the season. <b>It cannot be added after purchase.</b>",
+   "🪪 <b>The pass is personal and not transferable</b>, with no refund and no exchange. From <b>3 days up, a full name is written</b> on the pass. The \"days of your choice\" ticket has no group or over-80 discounts. Tickets sold at intermediate stations, at machines and in the online shop — <b>at the adult price only</b>.",
+   "🎿 <b>Quota 2500 — €46.00</b> · five chairlifts (Cretaz, Campetto, Pancheron, Plan Maison, Cielo Alto), the Baby La Vieille lift and the Cervinia–Plan Maison cable car return. No Cime Bianche and no Plateau Rosà."
+  ],
+  "age_bands": [
+   {
+    "chip": "Free with the pass of an <b>accompanying adult</b>, of the same length, bought at the same time. A child with no accompanying adult — 75% off.",
+    "extra": "Free with the pass of an <b>accompanying adult</b>, of the same length, bought at the same time. A child with no accompanying adult — 75% off."
+   },
+   null,
+   null,
+   null,
+   {
+    "extra": "Show an ID · age is measured on 31 May, so whoever turns 65 during the season already qualifies"
+   },
+   {
+    "chip": "Free!",
+    "extra": "A completely free day pass"
+   }
+  ],
+  "howmany": {
+   "title": "🌬️ How many days to buy a pass for?",
+   "items": [
+    "⛅ <b>The weather here is changeable.</b> A forecast you can rely on reaches at most about 4 days ahead. And <b>for a day when the lifts are closed by wind or storm — there is no refund</b>: the pass cannot be returned or exchanged.",
+    "📊 <b>What we saw in the data we collected</b> (<bdi dir=\"ltr\" style=\"white-space:nowrap\">20/2–3/5/2026</bdi>, 73 days): Cervinia itself closed almost completely on one day, and on about four more days only some of the lifts ran. <b>The crossing to Zermatt was closed on 14 days</b> — nearly one day in five — and once for <b>a whole week in a row</b> (<bdi dir=\"ltr\" style=\"white-space:nowrap\">25–31/3</bdi>). These are end-of-season figures; we have not yet measured the heart of winter.",
+    "💡 <b>A multi-day pass saves only a little</b>: 6 days cost €338 for an adult, against €64 for a single day — about 12% less. So it is worth buying a pass for the days with a good forecast, and the rest separately. For example a 4-day pass plus two single days — about €25 more than a 6-day pass, but without paying for closed days.",
+    "🏔️ <b>When it is stormy in Cervinia</b>, lower Valtournenche — on the same pass — is usually still open. But you have to travel there and back, and not all of its slopes will be open.",
+    "🇨🇭 <b>A multi-day international pass is usually not worth it</b>, because you cannot know in advance when the crossing will be open. <b>Two options:</b> either buy a day ticket every morning as needed — local or international. Or buy a Cervinia pass, and on a morning when the crossing is open buy at the ticket office <b>a Zermatt day supplement — €52 for an adult</b> (for multi-day pass holders; valid on the day of purchase only). Use the calculator below."
+   ]
+  },
+  "prices": {
+   "season_label": "Official price list · 2026/27 season · Cervino S.p.A.",
+   "cervinia": {
+    "note": "<b>*</b> A 3–5 day pass lets you ski <b>one day</b> at another resort in the Aosta Valley · <b>**</b> a 6–8 day pass — <b>two days</b>.<br>Important: these are <b>not extra days</b> — they are counted from the days you bought.<br>Keycard €2.00 · insurance €3.50 a day (child up to 8 — €1.50) · season insurance €49.00.<br>The season: Cervinia 24/10/2026–02/05/2027 · Valtournenche 28/11/2026–25/04/2027.",
+    "rows": [
+     [
+      "🕐 Half day",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "☀️ One day",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "2 days",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "3 days *",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "4 days *",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "5 days *",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "6 days **",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "7 days **",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "8 days **",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "Full season",
+      null,
+      null,
+      null,
+      null
+     ]
+    ]
+   },
+   "zermatt": {
+    "note": "If you already have a multi-day or season pass, you can buy at the ticket office <b>a Zermatt day supplement</b> — €52.00 for an adult, €26.00 for a Junior (born after 31/10/2010). Valid on the day of issue only.",
+    "rows": [
+     [
+      "☀️ One day",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "2 days",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "3 days",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "4 days",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "5 days",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "6 days",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "7 days",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "8 days",
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      "Full season",
+      null,
+      null,
+      null,
+      null
+     ]
+    ]
+   }
+  }
+ }
 }

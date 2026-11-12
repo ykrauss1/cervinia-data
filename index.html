@@ -159,6 +159,7 @@ html[dir="ltr"] [style*="direction:rtl"], html[dir="ltr"] [style*="direction: rt
 html[dir="ltr"] [dir="rtl"]:not(.ugc) { direction: ltr !important; }
 /* material that exists only in Hebrew is not offered on the English page */
 html[dir="ltr"] .he-only { display: none !important; }
+html[dir="ltr"] #map-route-off { float: right !important; margin: -2px 0 0 -4px !important; }
 /* Local time in Cervinia (Yossi, 12.11): the operator's notices, the lift
    hours and the alerts are all in Italian time, an hour behind Israel. On a
    wide screen it sits in the empty middle of the header row; on a phone that
@@ -3075,13 +3076,13 @@ what counts.">
 <div id="localStayModal" class="modal" onclick="if(event.target===this)closeM('localStayModal')">
   <div class="modal-content" style="max-width:620px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('localStayModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.15rem;">🗝️ לשכור דירה כמו מקומי</h3>
-    <p style="color:#888;font-size:0.82rem;margin:0 0 16px;">
+    <h3 style="margin:0 0 4px;font-size:1.15rem;" data-en="🗝️ Rent an apartment like a local">🗝️ לשכור דירה כמו מקומי</h3>
+    <p style="color:#888;font-size:0.82rem;margin:0 0 16px;" data-en="Local agencies, the village consortium, and the Italian listing sites">
       סוכנויות מקומיות, הקונסורציום של הכפר, ולוחות המודעות האיטלקיים
     </p>
 
     <div style="background:#f3f7fd;border:1px solid #dce7f5;border-radius:10px;
-                padding:12px 14px;font-size:0.86rem;line-height:1.75;margin-bottom:16px;">
+                padding:12px 14px;font-size:0.86rem;line-height:1.75;margin-bottom:16px;" data-en="Many of Cervinia&#x27;s holiday apartments are not on Booking or Airbnb at all. The apartments belong to Italian owners and are managed by local agencies that rent by phone and email. There is no platform fee, and you can usually rent for a few days too, not only a full week from weekend to weekend as is the custom in the Alps.">
       חלק גדול מדירות הנופש בצ'רוויניה אינו מופיע בבוקינג ובאיירבנב כלל.
       הדירות שייכות לבעלים איטלקים, ומי שמנהל אותן הוא סוכנות מקומית שמשכירה
       בטלפון ובמייל. אין עמלת פלטפורמה, ולרוב אפשר גם לשכור לימים בודדים
@@ -3096,7 +3097,7 @@ what counts.">
          each. Sibling <details> are independent: opening one hides none of
          the others, so all four headings stay in view. -->
     <details class="fold" style="margin-bottom:10px;" open>
-      <summary>✉️ הכנת פנייה באיטלקית או באנגלית</summary>
+      <summary data-en="✉️ Prepare an enquiry in Italian or English">✉️ הכנת פנייה באיטלקית או באנגלית</summary>
       <div class="fold-body" style="font-size:0.84rem;line-height:1.85;color:#444;">
     <!-- The letter. Without it the whole panel is advice a reader cannot
          act on: the agencies answer in Italian, and the reader does not
@@ -3112,13 +3113,13 @@ what counts.">
              lodging searches already use. The ISO dates live in data-ci and
              data-co; the field itself shows Hebrew. -->
         <div style="flex:1;min-width:210px;">
-          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;">תאריכי השהייה</label>
+          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;" data-en="Dates of the stay">תאריכי השהייה</label>
           <input type="text" id="ls-dates" readonly placeholder="בחרו הגעה ועזיבה"
             style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #ddd;
-                   border-radius:9px;font-size:0.85rem;font-family:inherit;background:#fff;cursor:pointer;">
+                   border-radius:9px;font-size:0.85rem;font-family:inherit;background:#fff;cursor:pointer;" data-en-placeholder="Choose arrival and departure">
         </div>
         <div>
-          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;">כמה נוסעים</label>
+          <label style="font-size:0.74rem;color:#888;display:block;margin-bottom:4px;" data-en="How many travellers">כמה נוסעים</label>
           <input type="number" id="ls-guests" min="1" max="20" value="4" inputmode="numeric"
             oninput="buildLocalStayMail()"
             style="width:82px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;">
@@ -3126,9 +3127,9 @@ what counts.">
       </div>
 
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:11px;font-size:0.82rem;">
-        <span style="color:#888;font-size:0.78rem;">שפת המכתב</span>
-        <label class="ls-opt"><input type="radio" name="ls-lang" value="it" checked onchange="buildLocalStayMail()"> איטלקית</label>
-        <label class="ls-opt"><input type="radio" name="ls-lang" value="en" onchange="buildLocalStayMail()"> אנגלית</label>
+        <span style="color:#888;font-size:0.78rem;" data-en="Letter language">שפת המכתב</span>
+        <label class="ls-opt" data-en="&lt;input type=&quot;radio&quot; name=&quot;ls-lang&quot; value=&quot;it&quot; checked onchange=&quot;buildLocalStayMail()&quot;&gt; Italian"><input type="radio" name="ls-lang" value="it" checked onchange="buildLocalStayMail()"> איטלקית</label>
+        <label class="ls-opt" data-en="&lt;input type=&quot;radio&quot; name=&quot;ls-lang&quot; value=&quot;en&quot; onchange=&quot;buildLocalStayMail()&quot;&gt; English"><input type="radio" name="ls-lang" value="en" onchange="buildLocalStayMail()"> אנגלית</label>
       </div>
 
       <!-- Every one of these replaces a sentence somebody would otherwise
@@ -3136,43 +3137,43 @@ what counts.">
            is the thing this panel can actually guarantee, so the more of the
            question fits in here, the less of it rests on a translation
            nobody in the room can read. -->
-      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;">מה עוד לשאול</div>
+      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="What else to ask">מה עוד לשאול</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px;font-size:0.82rem;">
-        <label class="ls-opt"><input type="checkbox" id="ls-opt-lift"    onchange="buildLocalStayMail()"> קרוב למעליות</label>
-        <label class="ls-opt"><input type="checkbox" id="ls-opt-park"    onchange="buildLocalStayMail()"> חניה</label>
-        <label class="ls-opt"><input type="checkbox" id="ls-opt-kitchen" onchange="buildLocalStayMail()"> מטבח בדירה</label>
-        <label class="ls-opt"><input type="checkbox" id="ls-opt-linen"   onchange="buildLocalStayMail()"> מצעים ומגבות</label>
-        <label class="ls-opt"><input type="checkbox" id="ls-opt-wash"    onchange="buildLocalStayMail()"> מכונת כביסה</label>
-        <label class="ls-opt"><input type="checkbox" id="ls-opt-wifi"    onchange="buildLocalStayMail()"> אינטרנט אלחוטי</label>
-        <label class="ls-opt"><input type="checkbox" id="ls-opt-elev"    onchange="buildLocalStayMail()"> מעלית בבניין</label>
-        <label class="ls-opt"><input type="checkbox" id="ls-opt-mid"     onchange="buildLocalStayMail()"> כניסה באמצע השבוע</label>
-        <label class="ls-opt"><input type="checkbox" id="ls-opt-card"    onchange="buildLocalStayMail()"> תשלום בכרטיס אשראי</label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-lift"    onchange="buildLocalStayMail()"> <span data-en="Close to the lifts">קרוב למעליות</span></label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-park"    onchange="buildLocalStayMail()"> <span data-en="Parking">חניה</span></label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-kitchen" onchange="buildLocalStayMail()"> <span data-en="Kitchen in the apartment">מטבח בדירה</span></label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-linen"   onchange="buildLocalStayMail()"> <span data-en="Linen and towels">מצעים ומגבות</span></label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-wash"    onchange="buildLocalStayMail()"> <span data-en="Washing machine">מכונת כביסה</span></label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-wifi"    onchange="buildLocalStayMail()"> <span data-en="Wi-fi">אינטרנט אלחוטי</span></label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-elev"    onchange="buildLocalStayMail()"> <span data-en="Lift in the building">מעלית בבניין</span></label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-mid"     onchange="buildLocalStayMail()"> <span data-en="Arrive mid-week">כניסה באמצע השבוע</span></label>
+        <label class="ls-opt"><input type="checkbox" id="ls-opt-card"    onchange="buildLocalStayMail()"> <span data-en="Pay by credit card">תשלום בכרטיס אשראי</span></label>
       </div>
 
       <!-- Yossi, 8 November: "צריך להשאיר מקום לתוספת כיתוב חופשי".
            It is deliberately a small box under the boxes rather than a mode
            of its own: what goes in here is the only sentence in the letter
            that a machine wrote, and it is shown as such. -->
-      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;">
+      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="Anything else to ask (optional) — write in English">
         משהו נוסף לשאול (לא חובה) — כתבו בעברית
       </div>
       <textarea id="ls-extra" rows="2" placeholder="למשל: האם אפשר להגיע עם תינוק, ויש מיטת תינוק?"
         oninput="_lsExtraChanged()"
         style="width:100%;box-sizing:border-box;padding:9px 11px;border:1.5px solid #ddd;
                border-radius:9px;font-size:0.84rem;line-height:1.6;font-family:inherit;
-               resize:vertical;margin-bottom:8px;"></textarea>
+               resize:vertical;margin-bottom:8px;" data-en-placeholder="e.g. can we come with a baby, and is there a cot?"></textarea>
       <div id="ls-extra-row" style="display:none;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px;">
         <button type="button" onclick="lsTranslateExtra(this)"
           style="padding:7px 14px;background:#fff;border:1.5px solid var(--accent);
                  color:var(--accent);border-radius:8px;font-size:0.8rem;font-weight:bold;
-                 cursor:pointer;font-family:inherit;">תרגמו את התוספת</button>
+                 cursor:pointer;font-family:inherit;" data-en="Translate the addition">תרגמו את התוספת</button>
         <span id="ls-extra-state" style="font-size:0.76rem;color:#888;"></span>
       </div>
       <div id="ls-extra-back" style="display:none;font-size:0.78rem;color:#6b5a2a;
            background:#fffdf4;border:1px solid #eadfbe;border-radius:8px;padding:9px 11px;
            margin-bottom:11px;line-height:1.7;"></div>
 
-      <div id="ls-out-label" style="font-size:0.74rem;color:#888;margin-bottom:5px;">הנוסח באיטלקית</div>
+      <div id="ls-out-label" style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="The letter in Italian">הנוסח באיטלקית</div>
       <textarea id="ls-it" readonly dir="ltr" rows="11"
         style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #dde6f0;
                border-radius:8px;background:white;font-size:0.84rem;line-height:1.65;
@@ -3181,31 +3182,33 @@ what counts.">
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:9px 0 12px;">
         <button onclick="copyLocalStay(this)"
           style="padding:8px 16px;background:var(--accent);color:white;border:none;
-                 border-radius:8px;font-size:0.84rem;font-weight:bold;cursor:pointer;">
+                 border-radius:8px;font-size:0.84rem;font-weight:bold;cursor:pointer;" data-en="Copy the letter">
           העתקת הנוסח
         </button>
-        <a id="ls-send-cervino" href="#" class="ls-chip" style="padding:8px 13px;">שליחה ל־Il Cervino</a>
-        <a id="ls-send-monte"   href="#" class="ls-chip" style="padding:8px 13px;">שליחה ל־Monte Cervino</a>
-        <a id="ls-send-blue"    href="#" class="ls-chip" style="padding:8px 13px;">שליחה ל־BlueMoon</a>
-        <a id="ls-send-cons"    href="#" class="ls-chip" style="padding:8px 13px;">שליחה לקונסורציום</a>
+        <a id="ls-send-cervino" href="#" class="ls-chip" style="padding:8px 13px;" data-en="Send to Il Cervino">שליחה ל־Il Cervino</a>
+        <a id="ls-send-monte"   href="#" class="ls-chip" style="padding:8px 13px;" data-en="Send to Monte Cervino">שליחה ל־Monte Cervino</a>
+        <a id="ls-send-blue"    href="#" class="ls-chip" style="padding:8px 13px;" data-en="Send to BlueMoon">שליחה ל־BlueMoon</a>
+        <a id="ls-send-cons"    href="#" class="ls-chip" style="padding:8px 13px;" data-en="Send to the consortium">שליחה לקונסורציום</a>
       </div>
 
-      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;">וזה בדיוק מה שכתוב שם</div>
+      <div id="ls-he-wrap">
+      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="And this is exactly what it says">וזה בדיוק מה שכתוב שם</div>
       <div id="ls-he" style="padding:11px;border:1px dashed #dde6f0;border-radius:8px;
                              background:#fff;font-size:0.84rem;line-height:1.8;color:#444;
                              white-space:pre-wrap;"></div>
+      </div>
     </div>
       </div>
     </details>
 
     <details class="fold" style="margin-bottom:10px;">
-      <summary>🏘️ סוכנויות בכפר</summary>
+      <summary data-en="🏘️ Agencies in the village">🏘️ סוכנויות בכפר</summary>
       <div class="fold-body" style="font-size:0.84rem;line-height:1.85;color:#444;">
     <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:18px;">
 
       <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;">
         <div style="font-weight:bold;font-size:0.9rem;">Agenzia Il Cervino</div>
-        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;" data-en="Via Meynet 4 · describes itself as the first rental agency in Cervinia">
           Via Meynet 4 · מגדירה את עצמה כסוכנות ההשכרה הראשונה בצ'רוויניה
         </div>
         <div style="display:flex;gap:7px;flex-wrap:wrap;font-size:0.8rem;">
@@ -3217,7 +3220,7 @@ what counts.">
 
       <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;">
         <div style="font-weight:bold;font-size:0.9rem;">Immobiliare Monte Cervino</div>
-        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;" data-en="Via Circonvallazione 19 · apartments, houses and chalets — weekly or for a whole season">
           Via Circonvallazione 19 · דירות, בתים ושאלֶה — שבועי או לעונה שלמה
         </div>
         <div style="display:flex;gap:7px;flex-wrap:wrap;font-size:0.8rem;">
@@ -3229,7 +3232,7 @@ what counts.">
 
       <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;">
         <div style="font-weight:bold;font-size:0.9rem;">Housecervinia</div>
-        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;" data-en="The Fior di Roccia building in the village centre (Via Gorret 5) and the La Grand&#x27;Ourse building at Cielo Alto · they say explicitly that you can rent for a few days too">
           בניין Fior di Roccia במרכז הכפר (Via Gorret 5) ובניין La Grand'Ourse
           בצ'לו אלטו (Cielo Alto) · כתוב אצלם במפורש שאפשר לשכור גם לימים בודדים
         </div>
@@ -3240,7 +3243,7 @@ what counts.">
 
       <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;">
         <div style="font-weight:bold;font-size:0.9rem;">BlueMoon Maisons</div>
-        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+        <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;" data-en="Apartments at Cielo Alto next to the chairlift — ski-in/ski-out · guests get 20% off equipment rental · their availability calendar has its own booking site">
           דירות בצ'לו אלטו (Cielo Alto) צמוד למעלית הכיסא — סקי־אין וסקי־אאוט ·
           לאורחים 20% הנחה על השכרת ציוד · ללוח הזמינות שלהם יש אתר הזמנות משלו
         </div>
@@ -3255,11 +3258,11 @@ what counts.">
     </details>
 
     <details class="fold" style="margin-bottom:10px;">
-      <summary>🤝 הקונסורציום של הכפר</summary>
+      <summary data-en="🤝 The village consortium">🤝 הקונסורציום של הכפר</summary>
       <div class="fold-body" style="font-size:0.84rem;line-height:1.85;color:#444;">
     <div style="border:1px solid #e6e6e6;border-radius:10px;padding:11px 13px;margin-bottom:18px;">
       <div style="font-weight:bold;font-size:0.9rem;">Cervino Tourism Management</div>
-      <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;">
+      <div style="font-size:0.82rem;color:#555;line-height:1.7;margin:3px 0 7px;" data-en="Via Circonvallazione 18 · an organisation of about 120 local businesses, hotels and apartments among them. They are not a booking engine — but one enquiry to them with your dates reaches all of them, and it is the local way to ask who is free.">
         Via Circonvallazione 18 · ארגון של כ־120 עסקים מקומיים, ובהם בתי המלון
         והדירות. הם אינם מנוע הזמנות — אבל פנייה אחת אליהם עם התאריכים מגיעה
         לכולם, וזו הדרך המקומית לשאול מי פנוי.
@@ -3273,9 +3276,12 @@ what counts.">
     </details>
 
     <details class="fold" style="margin-bottom:10px;">
-      <summary>📋 לוחות המודעות האיטלקיים</summary>
+      <summary data-en="📋 The Italian listing sites">📋 לוחות המודעות האיטלקיים</summary>
       <div class="fold-body" style="font-size:0.84rem;line-height:1.85;color:#444;">
-    <div style="font-size:0.84rem;line-height:1.85;color:#444;margin-bottom:18px;">
+    <div style="font-size:0.84rem;line-height:1.85;color:#444;margin-bottom:18px;" data-en="&lt;b&gt;immobiliare.it&lt;/b&gt; — Italy&#x27;s largest property portal. It has a &lt;bdi dir=&quot;ltr&quot;&gt;da privati&lt;/bdi&gt; category, i.e. directly from the owner with no agent.&lt;br&gt;
+      &lt;b&gt;subito.it&lt;/b&gt; — a general classifieds board; it has rentals for the ski season.&lt;br&gt;
+      &lt;b&gt;casevacanza.it&lt;/b&gt; — a holiday-apartment portal.&lt;br&gt;
+      &lt;span style=&quot;color:#888;font-size:0.8rem;&quot;&gt;All three are in Italian only — but they are ordinary sites, and the browser&#x27;s &quot;Translate&quot; button (in Chrome: the icon in the address bar) makes them perfectly readable.&lt;/span&gt;">
       <b>immobiliare.it</b> — פורטל הנדל"ן הגדול באיטליה. יש בו קטגוריית
       <bdi dir="ltr">da privati</bdi>, כלומר ישירות מבעל הדירה בלי סוכן.<br>
       <b>subito.it</b> — לוח מודעות כללי; יש בו השכרות לעונת הסקי.<br>
@@ -3288,7 +3294,7 @@ what counts.">
       </div>
     </details>
 
-    <p style="font-size:0.78rem;color:#999;margin:14px 0 0;line-height:1.7;">
+    <p style="font-size:0.78rem;color:#999;margin:14px 0 0;line-height:1.7;" data-en="All the agencies listed also answer in English. Italian gets a faster reply, and above all pins down what is asked: the total price, and what is added to it.">
       כל הסוכנויות ברשימה עונות גם באנגלית. האיטלקית נותנת מענה מהיר יותר,
       ובעיקר מדייקת את מה שנשאל: מחיר כולל, ומה נוסף עליו.
     </p>
@@ -3559,7 +3565,7 @@ what counts.">
             <a href="https://www.genzianellasport.it/it/listini.html" target="_blank"
               style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
             <a href="https://maps.app.goo.gl/TKUJSWwpcx5RKFzY9" target="_blank"
-              style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
+              style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
           </div>
         </div>
 
@@ -3585,7 +3591,7 @@ what counts.">
             <a href="https://nolski.it/20skirental" target="_blank"
               style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
             <a href="https://maps.app.goo.gl/M7SWb5vQ2xorhEVcA" target="_blank"
-              style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
+              style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
           </div>
         </div>
 
@@ -3605,7 +3611,7 @@ what counts.">
             שעות לפי Google — בדקו במפה.</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <a href="https://www.google.com/maps/search/Cervinia%20Ski%20Service%20Via%20Bich%207/@45.9367253,7.630615,17z" target="_blank" rel="noopener" style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
+            <a href="https://www.google.com/maps/search/Cervinia%20Ski%20Service%20Via%20Bich%207/@45.9367253,7.630615,17z" target="_blank" rel="noopener" style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
           </div>
         </div>
 
@@ -3623,7 +3629,7 @@ what counts.">
           </div>
           <div style="display:flex;gap:8px;">
             <a href="https://www.genzianellasport.it/it/noleggio/cretaz.html" target="_blank" rel="noopener" style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
-            <a href="https://www.google.com/maps/search/Noleggio%20Cretaz%20Cervinia/@45.9373101,7.6305618,17z" target="_blank" rel="noopener" style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
+            <a href="https://www.google.com/maps/search/Noleggio%20Cretaz%20Cervinia/@45.9373101,7.6305618,17z" target="_blank" rel="noopener" style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
           </div>
         </div>
 
@@ -3648,7 +3654,7 @@ what counts.">
             בכל מקרה אי אפשר להגיע אליה לפני הגונדולה הראשונה ב-08:30.</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <a href="https://www.google.com/maps/search/Adriano%20Sport%20Plan%20Maison/@45.9410575,7.6545008,17z" target="_blank" rel="noopener" style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>
+            <a href="https://www.google.com/maps/search/Adriano%20Sport%20Plan%20Maison/@45.9410575,7.6545008,17z" target="_blank" rel="noopener" style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
           </div>
         </div>
 
@@ -3872,13 +3878,13 @@ what counts.">
     <!-- The tutorials sit at the bottom; nobody opening the card knows they
          are there (Yossi, 11.11). -->
     <button type="button" id="les-videos-btn" onclick="var v=document.getElementById('les-videos');if(v)v.scrollIntoView({behavior:'smooth',block:'start'});"
-      style="display:inline-flex;align-items:center;gap:6px;margin:-8px 0 14px;padding:6px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;color:#c00;font-weight:bold;font-size:0.8rem;cursor:pointer;font-family:inherit;">🎥 סרטוני הדרכה — למתחילים ולמתקדמים ↓</button>
+      style="display:inline-flex;align-items:center;gap:6px;margin:-8px 0 14px;padding:6px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;color:#c00;font-weight:bold;font-size:0.8rem;cursor:pointer;font-family:inherit;" data-en="🎥 Instruction videos — beginners and advanced ↓">🎥 סרטוני הדרכה — למתחילים ולמתקדמים ↓</button>
 
     <!-- Lesson type tabs -->
     <div style="display:flex;gap:8px;margin-bottom:16px;">
-      <button id="les-tab-group" onclick="switchLessonTab('group')" class="ttab-btn ttab-active" style="flex:1;">👥 קבוצתי</button>
-      <button id="les-tab-private" onclick="switchLessonTab('private')" class="ttab-btn" style="flex:1;">👤 פרטי</button>
-      <button id="les-tab-kids" onclick="switchLessonTab('kids')" class="ttab-btn" style="flex:1;">👶 ילדים</button>
+      <button id="les-tab-group" onclick="switchLessonTab('group')" class="ttab-btn ttab-active" style="flex:1;" data-en="👥 Group">👥 קבוצתי</button>
+      <button id="les-tab-private" onclick="switchLessonTab('private')" class="ttab-btn" style="flex:1;" data-en="👤 Private">👤 פרטי</button>
+      <button id="les-tab-kids" onclick="switchLessonTab('kids')" class="ttab-btn" style="flex:1;" data-en="👶 Children">👶 ילדים</button>
     </div>
 
     <!-- GROUP -->
@@ -3950,12 +3956,12 @@ what counts.">
       <div style="padding:14px;background:#f0fff4;border-radius:10px;border:1px solid #b8f0c8;margin-bottom:12px;">
         <div id="les-kids-young-title" style="font-size:0.85rem;font-weight:bold;margin-bottom:6px;">🎿 גן שלג (4-6 שנים)</div>
         <div style="font-size:0.8rem;color:#555;line-height:1.7;"><span id="les-kids-young-desc">ליווי מלא, ציוד מותאם, קצב אישי. כולל קסדה.</span><br>
-        <b>מחיר:</b> <span id="les-kids-young-price">~€60-80 / יום כולל ציוד</span></div>
+        <b data-en="Price:">מחיר:</b> <span id="les-kids-young-price">~€60-80 / יום כולל ציוד</span></div>
       </div>
       <div style="padding:14px;background:#f0fff4;border-radius:10px;border:1px solid #b8f0c8;margin-bottom:14px;">
         <div id="les-kids-older-title" style="font-size:0.85rem;font-weight:bold;margin-bottom:6px;">🎿⭐ קבוצת ילדים (7-14 שנים)</div>
         <div style="font-size:0.8rem;color:#555;line-height:1.7;"><span id="les-kids-older-desc">קבוצות לפי גיל ורמה. יום שלם (10:00-16:00).</span><br>
-        <b>מחיר:</b> <span id="les-kids-older-price">~€70-90 / יום</span></div>
+        <b data-en="Price:">מחיר:</b> <span id="les-kids-older-price">~€70-90 / יום</span></div>
       </div>
       <div id="les-kids-tip" style="padding:10px;background:#fffbf0;border-radius:9px;font-size:0.8rem;color:#555;border:1px solid #fde8a0;">
         💡 הזמן מראש בעונת שיא — קבוצות מתמלאות מהר. לילדים מעל גיל 6 שיעור פרטי ביום הראשון — משנה!
@@ -3966,25 +3972,25 @@ what counts.">
     <div style="border-top:1px solid #eee;padding-top:14px;">
 
       <div>
-      <div style="font-size:0.82rem;font-weight:bold;margin-bottom:10px;">🏫 בתי ספר לסקי בצ'רוויניה</div>
+      <div style="font-size:0.82rem;font-weight:bold;margin-bottom:10px;" data-en="🏫 Ski schools in Cervinia">🏫 בתי ספר לסקי בצ'רוויניה</div>
       <div style="display:flex;flex-direction:column;gap:9px;">
 
         <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
-          <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Scuola Sci del Cervino <span style="font-size:0.68rem;background:#1a3a6c;color:white;padding:1px 7px;border-radius:8px;">מאז 1936</span></div>
+          <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Scuola Sci del Cervino <span style="font-size:0.68rem;background:#1a3a6c;color:white;padding:1px 7px;border-radius:8px;" data-en="since 1936">מאז 1936</span></div>
           <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Piazzale Funivie + Chalet Cretaz</b> · ☎ <a href="tel:+390166948744" style="color:#1a73e8;text-decoration:none;"><bdi dir="ltr">+39 0166 948744</bdi></a></div>
-          <a href="https://scuolacervino.com/en/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuolacervino.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola%20Sci%20Cervino/@45.9356162,7.6304743,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+          <a href="https://scuolacervino.com/en/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuolacervino.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola%20Sci%20Cervino/@45.9356162,7.6304743,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;" data-en="🗺️ Map">🗺️ מפה</a>
         </div>
 
         <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
           <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Ride'em / New Ski School</div>
           <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Via Meynet 3</b>, Breuil-Cervinia · ☎ <a href="tel:+390166948532" style="color:#1a73e8;text-decoration:none;"><bdi dir="ltr">+39 0166 948532</bdi></a></div>
-          <a href="https://www.ride-em.com/?lang=en" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 ride-em.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Ride%27Em%2C%20Via%20Meynet%203/@45.9355155,7.6301735,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+          <a href="https://www.ride-em.com/?lang=en" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 ride-em.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Ride%27Em%2C%20Via%20Meynet%203/@45.9355155,7.6301735,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;" data-en="🗺️ Map">🗺️ מפה</a>
         </div>
 
         <div style="padding:10px 13px;border:1.5px solid #d0e8f8;border-radius:10px;background:#f5faff;">
           <div style="font-weight:bold;font-size:0.88rem;margin-bottom:2px;">⛷️ Scuola Sci Breuil</div>
-          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;">📍 <b>Piazzale Funivie</b>, Breuil-Cervinia · מאז 1999</div>
-          <a href="https://scuoladiscibreuil.com/en/homepage-english/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuoladiscibreuil.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola%20Di%20Sci%20Del%20Breuil/@45.9373184,7.6306225,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🗺️ מפה</a>
+          <div style="font-size:0.76rem;color:#555;margin-bottom:5px;" data-en="📍 &lt;b&gt;Piazzale Funivie&lt;/b&gt;, Breuil-Cervinia · since 1999">📍 <b>Piazzale Funivie</b>, Breuil-Cervinia · מאז 1999</div>
+          <a href="https://scuoladiscibreuil.com/en/homepage-english/" target="_blank" style="font-size:0.76rem;color:#1a73e8;">🌐 scuoladiscibreuil.com ↗</a>&nbsp;·&nbsp;<a href="https://www.google.com/maps/search/Scuola%20Di%20Sci%20Del%20Breuil/@45.9373184,7.6306225,16z" target="_blank" style="font-size:0.76rem;color:#1a73e8;" data-en="🗺️ Map">🗺️ מפה</a>
         </div>
 
 
@@ -4311,21 +4317,21 @@ what counts.">
   <div class="modal-content" style="max-width:960px;height:92vh;display:flex;flex-direction:column;padding:14px;gap:0;">
     <!-- כותרת -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;">
-      <h3 style="margin:0;font-size:1rem;">🗺️ מפות</h3>
+      <h3 style="margin:0;font-size:1rem;" data-en="🗺️ Maps">🗺️ מפות</h3>
       <span class="close-btn" style="position:static;font-size:1.4rem;cursor:pointer;" onclick="closeMapModal()">×</span>
     </div>
     <!-- כפתורי בחירה -->
     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;flex-shrink:0;">
       <div style="display:flex;gap:6px;">
-        <button class="service-btn map-pick" data-map="mymap" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('mymap')">📍 נקודות ציון</button>
-        <button class="service-btn map-pick" data-map="town" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('town')">🏘️ מפת הכפר</button>
+        <button class="service-btn map-pick" data-map="mymap" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('mymap')" data-en="📍 Points of interest">📍 נקודות ציון</button>
+        <button class="service-btn map-pick" data-map="town" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('town')" data-en="🏘️ Village map">🏘️ מפת הכפר</button>
       </div>
-      <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:2px 0;">⛷️ מפות מסלולים:</div>
+      <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:2px 0;" data-en="⛷️ Slope maps:">⛷️ מפות מסלולים:</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="service-btn map-pick" data-map="piste-all" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-all')">🌍 כל האזור</button>
-        <button class="service-btn map-pick" data-map="piste-cervinia" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-cervinia')"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> צ׳רוויניה</button>
-        <button class="service-btn map-pick" data-map="piste-valtournenche" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-valtournenche')">🏔️ ולטורננש</button>
-        <button class="service-btn map-pick" data-map="piste-swiss" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-swiss')"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> שוויץ</button>
+        <button class="service-btn map-pick" data-map="piste-all" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-all')" data-en="🌍 Whole area">🌍 כל האזור</button>
+        <button class="service-btn map-pick" data-map="piste-cervinia" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-cervinia')" data-en="&lt;svg class=fl-it aria-hidden=true&gt;&lt;use href=#flag-it&gt;&lt;/use&gt;&lt;/svg&gt; Cervinia"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> צ׳רוויניה</button>
+        <button class="service-btn map-pick" data-map="piste-valtournenche" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-valtournenche')" data-en="🏔️ Valtournenche">🏔️ ולטורננש</button>
+        <button class="service-btn map-pick" data-map="piste-swiss" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-swiss')" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; Switzerland"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> שוויץ</button>
       </div>
 
       <!-- ══ the recommended routes, on the sheet ══
@@ -4339,17 +4345,17 @@ what counts.">
            hidden, for the code that marks the chosen one; a route arrives
            here from the pistes card and is put away from its own caption. -->
       <div id="map-route-pick" style="display:none;">
-      <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:8px 0 2px;">⛷️ סמן מסלול מומלץ:</div>
+      <div style="font-size:0.72rem;color:#888;font-weight:bold;padding:8px 0 2px;" data-en="⛷️ Mark a recommended route:">⛷️ סמן מסלול מומלץ:</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="service-btn map-route-btn" data-route="warmup"
           style="flex:1;padding:9px 6px;font-size:0.76rem;min-width:105px;"
-          onclick="mapShowRoute('warmup')">⬆️ העלייה לפלאן מייזון</button>
+          onclick="mapShowRoute('warmup')" data-en="⬆️ The climb to Plan Maison">⬆️ העלייה לפלאן מייזון</button>
         <button class="service-btn map-route-btn" data-route="grand_tour"
           style="flex:1;padding:9px 6px;font-size:0.76rem;min-width:105px;"
-          onclick="mapShowRoute('grand_tour')">⛷️ הסיבוב הגדול</button>
+          onclick="mapShowRoute('grand_tour')" data-en="⛷️ The grand tour">⛷️ הסיבוב הגדול</button>
         <button class="service-btn map-route-btn" data-route="ventina"
           style="flex:1;padding:9px 6px;font-size:0.76rem;min-width:105px;"
-          onclick="mapShowRoute('ventina')">🏔️ ה-Ventina</button>
+          onclick="mapShowRoute('ventina')" data-en="🏔️ The Ventina">🏔️ ה-Ventina</button>
       </div>
       </div>
       <!-- The caption used to apologise that the marks were not the line of
@@ -4360,11 +4366,11 @@ what counts.">
            background:#f4f8fc;border:1px solid #d8e4f0;border-radius:7px;
            padding:7px 10px;margin-top:7px;line-height:1.75;">
         <button type="button" id="map-route-off" onclick="if(_mapRoute)mapShowRoute(_mapRoute)"
-          style="float:left;margin:-2px -4px 0 0;padding:2px 9px;background:#fff;border:1px solid #d8e4f0;border-radius:7px;color:#5b6b7a;font-size:0.7rem;cursor:pointer;font-family:inherit;">✕ הסתר את המסלול</button>
+          style="float:left;margin:-2px -4px 0 0;padding:2px 9px;background:#fff;border:1px solid #d8e4f0;border-radius:7px;color:#5b6b7a;font-size:0.7rem;cursor:pointer;font-family:inherit;" data-en="✕ Hide the route">✕ הסתר את המסלול</button>
         <span id="map-route-sub" style="font-weight:bold;color:#17324c;"></span><br>
         <span id="map-route-legend"></span>
         <span id="map-route-video"></span>
-        <br><span style="font-size:0.68rem;color:#93a3b3;">הקו עובר על המסלולים כפי שהם מצוירים במפה.</span>
+        <br><span style="font-size:0.68rem;color:#93a3b3;" data-en="The line follows the slopes as they are drawn on the map.">הקו עובר על המסלולים כפי שהם מצוירים במפה.</span>
       </div>
     </div>
     <!-- toolbar: zoom + fullscreen + download (מוצג רק כשיש תוכן) -->
@@ -4373,8 +4379,8 @@ what counts.">
       <button onclick="mapZoomOut()" style="padding:5px 13px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:1rem;background:white;">－</button>
       <button onclick="mapZoomReset()" style="padding:5px 11px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.78rem;background:white;">100%</button>
       <span id="map-zoom-label" style="font-size:0.78rem;color:#888;min-width:36px;text-align:center;">100%</span>
-      <button onclick="mapFullscreen()" style="padding:5px 11px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.82rem;background:white;">⛶ מסך מלא</button>
-      <a id="map-download-btn" href="" target="_blank" style="padding:5px 14px;border-radius:7px;background:#27ae60;color:white;font-size:0.78rem;font-weight:bold;text-decoration:none;margin-inline-start:auto;">📥 הורד</a>
+      <button onclick="mapFullscreen()" style="padding:5px 11px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.82rem;background:white;" data-en="⛶ Full screen">⛶ מסך מלא</button>
+      <a id="map-download-btn" href="" target="_blank" style="padding:5px 14px;border-radius:7px;background:#27ae60;color:white;font-size:0.78rem;font-weight:bold;text-decoration:none;margin-inline-start:auto;" data-en="📥 Download">📥 הורד</a>
     </div>
     <!-- אזור תצוגה -->
     <div id="map-container" style="flex:1;border:1px solid #eee;border-radius:10px;overflow:hidden;position:relative;background:#f0f0f0;display:flex;align-items:center;justify-content:center;">
@@ -4397,18 +4403,18 @@ what counts.">
            gap:6px;align-items:center;">
         <button onclick="mapExitFullscreen()" aria-label="יציאה ממסך מלא"
           style="width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;
-                 background:rgba(10,25,47,0.82);color:white;font-size:1.1rem;line-height:1;">✕</button>
+                 background:rgba(10,25,47,0.82);color:white;font-size:1.1rem;line-height:1;" data-en-aria-label="Exit full screen">✕</button>
         <button onclick="mapZoomIn()" aria-label="הגדלה"
           style="width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;
-                 background:rgba(10,25,47,0.82);color:white;font-size:1.2rem;line-height:1;">＋</button>
+                 background:rgba(10,25,47,0.82);color:white;font-size:1.2rem;line-height:1;" data-en-aria-label="Zoom in">＋</button>
         <button onclick="mapZoomOut()" aria-label="הקטנה"
           style="width:38px;height:38px;border-radius:10px;border:none;cursor:pointer;
-                 background:rgba(10,25,47,0.82);color:white;font-size:1.2rem;line-height:1;">－</button>
+                 background:rgba(10,25,47,0.82);color:white;font-size:1.2rem;line-height:1;" data-en-aria-label="Zoom out">－</button>
       </div>
       <!-- placeholder -->
       <div id="map-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:10px;color:#999;">
         <span style="font-size:3rem;">🗺️</span>
-        <span>בחר מפה</span>
+        <span data-en="Choose a map">בחר מפה</span>
       </div>
     </div>
   </div>
@@ -5520,7 +5526,7 @@ function initLocalStayPicker() {
   var el = document.getElementById('ls-dates');
   if (!el || el._flatpickr || typeof flatpickr === 'undefined') return;
   flatpickr(el, {
-    mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+    mode: 'range', minDate: 'today', dateFormat: FP_FMT, locale: HE_FP,
     onChange: function (sel) {
       if (sel.length === 2) {
         // toISOString() shifts by the timezone and can land on the day
@@ -5588,7 +5594,7 @@ async function _lsAsk(text, to) {
   } finally { clearTimeout(t); }
 }
 
-var _LS_NAME = { it: 'איטלקית', en: 'אנגלית' };
+var _LS_NAME = window.LANG === 'en' ? { it: 'Italian', en: 'English' } : { it: 'איטלקית', en: 'אנגלית' };
 
 async function lsTranslateExtra(btn) {
   var ta  = document.getElementById('ls-extra');
@@ -5598,23 +5604,24 @@ async function lsTranslateExtra(btn) {
   if (!txt) return;
   var lang = _lsLang();
   var was = btn ? btn.textContent : '';
-  if (btn) { btn.disabled = true; btn.textContent = 'מתרגם…'; }
+  if (btn) { btn.disabled = true; btn.textContent = L('מתרגם…', 'Translating…'); }
   if (st) st.textContent = '';
   try {
     var out   = await _lsAsk(txt, lang);
-    var back2 = await _lsAsk(out, 'he');
+    // back into the reader's own language, so they can see what was said
+    var back2 = await _lsAsk(out, window.LANG === 'en' ? 'en' : 'he');
     _lsExtra = { src: txt, lang: lang, out: out, back: back2 };
     if (back) {
       back.style.display = 'block';
-      back.innerHTML = '<b>מה שהמשפט הזה אומר, בתרגום חזרה לעברית:</b><br>' +
+      back.innerHTML = '<b>' + L('מה שהמשפט הזה אומר, בתרגום חזרה לעברית:', 'What this sentence says, translated back into English:') + '</b><br>' +
         '<span style="color:#444;">' + esc(back2) + '</span><br>' +
-        '<span style="font-size:0.74rem;color:#9a8b63;">אם זה לא מה שהתכוונתם — ' +
-        'נסחו מחדש בעברית ותרגמו שוב.</span>';
+        '<span style="font-size:0.74rem;color:#9a8b63;">' + L('אם זה לא מה שהתכוונתם — ' +
+        'נסחו מחדש בעברית ותרגמו שוב.', 'If that is not what you meant — rephrase it and translate again.') + '</span>';
     }
-    if (st) st.textContent = 'תורגם ל' + _LS_NAME[lang] + '.';
+    if (st) st.textContent = L('תורגם ל' + _LS_NAME[lang] + '.', 'Translated into ' + _LS_NAME[lang] + '.');
   } catch (e) {
     _lsExtraClear();
-    if (st) st.textContent = 'התרגום לא הצליח. אפשר לנסות שוב, או לשלוח בלי התוספת.';
+    if (st) st.textContent = L('התרגום לא הצליח. אפשר לנסות שוב, או לשלוח בלי התוספת.', 'The translation did not work. Try again, or send without the addition.');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = was; }
     buildLocalStayMail();
@@ -5654,13 +5661,21 @@ function buildLocalStayMail() {
   var _ta = document.getElementById('ls-extra');
   var _raw = _ta ? _ta.value.trim() : '';
   var _st  = document.getElementById('ls-extra-state');
-  if (_raw && _lsExtra.out && _lsExtra.src === _raw && _lsExtra.lang === lang) {
+  // An English reader writing an English letter needs no translation:
+  // what they wrote goes in as it is, and the translate row stays away.
+  var _asIs = window.LANG === 'en' && lang === 'en';
+  var _row = document.getElementById('ls-extra-row');
+  if (_row && _asIs) _row.style.display = 'none';
+  if (_raw && _asIs) {
+    extraOut = '\n\n' + _raw;
+    extraHe  = '\n\n' + _raw;
+  } else if (_raw && _lsExtra.out && _lsExtra.src === _raw && _lsExtra.lang === lang) {
     extraOut = '\n\n' + _lsExtra.out;
     extraHe  = '\n\n' + _raw;
   } else if (_raw && _st && !_st.textContent) {
-    _st.textContent = 'התוספת עדיין לא בתוך המכתב — לחצו "תרגמו את התוספת".';
+    _st.textContent = L('התוספת עדיין לא בתוך המכתב — לחצו "תרגמו את התוספת".', 'The addition is not in the letter yet — tap "Translate the addition".');
   } else if (_raw && _lsExtra.out && _lsExtra.lang !== lang && _st) {
-    _st.textContent = 'שיניתם שפה — תרגמו את התוספת מחדש.';
+    _st.textContent = L('שיניתם שפה — תרגמו את התוספת מחדש.', 'You changed the language — translate the addition again.');
   }
 
   // The English dates are written out in words. dd/mm is unambiguous to an
@@ -5744,12 +5759,24 @@ function buildLocalStayMail() {
            asksHe.join(', ') + '.' + extraHe + '\n\n' +
            'תודה רבה,\n';
 
+  // The same letter in the reader's own language. In English that is the
+  // English letter itself; under an English letter it says nothing new.
+  var mine = he;
+  if (window.LANG === 'en') {
+    mine = 'Subject: Apartment request for ' + ppl + ' people, ' + (from ? _long(from) : '[date]') + '\n\n' +
+           'Hello,\n\n' +
+           'We are looking for an apartment for ' + ppl + ' people in Breuil-Cervinia ' + whenEn + '.\n\n' +
+           'Do you have availability for those dates? I would be grateful if you could let me know ' +
+           asksEn.join(', ') + '.' + extraHe + '\n\n' + 'Thank you very much,\n';
+  }
   var lbl = document.getElementById('ls-out-label');
-  if (lbl) lbl.textContent = (lang === 'en') ? 'הנוסח באנגלית' : 'הנוסח באיטלקית';
+  if (lbl) lbl.textContent = (lang === 'en') ? L('הנוסח באנגלית', 'The letter in English') : L('הנוסח באיטלקית', 'The letter in Italian');
   var ta = document.getElementById('ls-it');
   if (ta) ta.value = it;
   var heBox = document.getElementById('ls-he');
-  if (heBox) heBox.textContent = he;
+  if (heBox) heBox.textContent = mine;
+  var heWrap = document.getElementById('ls-he-wrap');
+  if (heWrap) heWrap.style.display = (window.LANG === 'en' && lang === 'en') ? 'none' : '';
 
   // mailto carries the letter itself, so the reader lands in his mail
   // program with it already written rather than with an empty window.
@@ -5773,7 +5800,7 @@ function copyLocalStay(btn) {
   var done = function (ok) {
     if (!btn) return;
     var was = btn.textContent;
-    btn.textContent = ok ? '✓ הועתק' : 'לא הצלחנו להעתיק';
+    btn.textContent = ok ? L('✓ הועתק', '✓ Copied') : L('לא הצלחנו להעתיק', 'Could not copy');
     setTimeout(function () { btn.textContent = was; }, 1800);
   };
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -6215,7 +6242,7 @@ function _mapIdle() {
   var ph = document.getElementById('map-placeholder');
   if (ph) {
     ph.style.display = 'flex';
-    ph.innerHTML = '<span style="font-size:3rem;">🗺️</span><span>בחר מפה</span>';
+    ph.innerHTML = '<span style="font-size:3rem;">🗺️</span><span>' + L('בחר מפה', 'Choose a map') + '</span>';
   }
 }
 // A 20MB download that nobody cancelled keeps running behind a closed panel,
@@ -6281,7 +6308,7 @@ function loadMap(type) {
     var img     = document.getElementById('map-img');
     var ph      = document.getElementById('map-placeholder');
     img.onload  = function() { if (ph) ph.style.display = 'none'; if (imgWrap) imgWrap.style.display = 'block'; };
-    img.onerror = function() { if (ph) ph.innerHTML = '<span style="color:#e74c3c;">שגיאה בטעינת המפה</span>'; };
+    img.onerror = function() { if (ph) ph.innerHTML = '<span style="color:#e74c3c;">' + L('שגיאה בטעינת המפה', 'Error loading the map') + '</span>'; };
     img.style.transform = 'scale(1)';
     img.style.transformOrigin = 'top right';
     img.src = baseUrl + 'mymap.jpg';
@@ -6300,7 +6327,7 @@ function loadMap(type) {
         var ph = document.getElementById('map-placeholder');
         if (!ph || !p || !p.total) return;
         var pct = Math.min(99, Math.round(p.loaded / p.total * 100));
-        ph.innerHTML = '<span style="font-size:2rem;">⏳</span><span>טוען את המפה… '
+        ph.innerHTML = '<span style="font-size:2rem;">⏳</span><span>' + L('טוען את המפה… ', 'Loading the map… ')
           + pct + '%</span>';
       };
       task.promise.then(function(pdf) {
@@ -6314,7 +6341,7 @@ function loadMap(type) {
           if (_mapTask !== task) return;        // cancelled on purpose, not a failure
           _mapTask = null;
           var ph = document.getElementById('map-placeholder');
-          if (ph) ph.innerHTML = '<span style="color:#e74c3c;">שגיאה בטעינת ה-PDF</span><a href="' + pdfUrl + '" target="_blank" style="padding:10px 22px;background:#1a3a6c;color:white;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:8px;">📄 פתח ישירות</a>';
+          if (ph) ph.innerHTML = '<span style="color:#e74c3c;">' + L('שגיאה בטעינת ה-PDF', 'Error loading the PDF') + '</span><a href="' + pdfUrl + '" target="_blank" style="padding:10px 22px;background:#1a3a6c;color:white;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:8px;">' + L('📄 פתח ישירות', '📄 Open directly') + '</a>';
         });
     });
 
@@ -8157,6 +8184,17 @@ var HE_FP = {
     longhand: ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
   }
 };
+// The date pickers speak the page's language. The name stays HE_FP so the
+// dozen pickers that use it need no change; in English it is an English
+// locale, Monday-first as in Europe.
+if (window.LANG === 'en') HE_FP = {
+  firstDayOfWeek: 1, rangeSeparator: ' — ',
+  weekdays: { shorthand: ['Su','Mo','Tu','We','Th','Fr','Sa'],
+              longhand: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'] },
+  months: { shorthand: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+            longhand: ['January','February','March','April','May','June','July','August','September','October','November','December'] }
+};
+var FP_FMT = window.LANG === 'en' ? 'j M' : 'j בF';
 
 // ── the trip and its searches (design, 9 Nov: "same screens, two frames") ──
 //
@@ -8812,11 +8850,13 @@ function zcPlans(N, Z) {
   var plans = [];
   // the supplement is sold to holders of a multi-day pass only
   if (N >= 2 && C(N) != null) plans.push({ id: 'local', cost: C(N) + Z * sup, ahead: N,
-    label: 'פס צ\'רוויניה ל-' + N + ' ימים' + (Z ? ', ועוד תוספת יום לצ\'רמט (€' + sup + ') בבוקר שהמעבר פתוח' : '') });
+    label: L('פס צ\'רוויניה ל-' + N + ' ימים' + (Z ? ', ועוד תוספת יום לצ\'רמט (€' + sup + ') בבוקר שהמעבר פתוח' : ''),
+             'A ' + N + '-day Cervinia pass' + (Z ? ', plus a Zermatt day supplement (€' + sup + ') on each morning the crossing is open' : '')) });
   if (Z && I(N) != null) plans.push({ id: 'intl', cost: I(N), ahead: N,
-    label: 'פס בינלאומי ל-' + N + ' ימים' });
+    label: L('פס בינלאומי ל-' + N + ' ימים', 'A ' + N + '-day international pass') });
   plans.push({ id: 'daily', cost: (N - Z) * C(1) + Z * I(1), ahead: 0,
-    label: 'כרטיס יומי בכל בוקר' + (Z ? ' — וביום של צ\'רמט, בינלאומי ליום אחד' : '') });
+    label: L('כרטיס יומי בכל בוקר' + (Z ? ' — וביום של צ\'רמט, בינלאומי ליום אחד' : ''),
+             'A day ticket every morning' + (Z ? ' — and on a Zermatt day, a one-day international' : '')) });
   // short passes as far as a forecast reaches: the best split into runs of 1-4 days
   if (N >= 3) {
     var memo = {};
@@ -8844,6 +8884,15 @@ function zcPlans(N, Z) {
     var fc = f(N, Z);
     if (fc && fc.parts.length > 1 && fc.parts.some(function (x) { return x.L > 1; })) {
       fc.parts.sort(function (a, b) { return b.L - a.L || a.k - b.k; });
+      if (window.LANG === 'en') {
+        var dayE = function (k) { return k === 1 ? 'one day' : k + ' days'; };
+        plans.push({ id: 'forecast', cost: fc.cost, ahead: fc.parts[0].L, parts: fc.parts,
+          label: 'Short passes by the forecast: ' + fc.parts.map(function (x) {
+            if (x.L === 1) return x.k ? 'a one-day international (Zermatt)' : 'a one-day ticket';
+            if (x.t === 'i') return 'a ' + x.L + '-day international pass' + (x.k < x.L ? ' (' + dayE(x.k) + ' of them in Zermatt)' : ' (Zermatt days in a row)');
+            return 'a ' + x.L + '-day Cervinia pass' + (x.k ? ' + Zermatt supplement for ' + dayE(x.k) : '');
+          }).join(' · ') });
+      } else {
       var day = function (k) { return k === 1 ? 'יום אחד' : k + ' ימים'; };
       plans.push({ id: 'forecast', cost: fc.cost, ahead: fc.parts[0].L, parts: fc.parts,
         label: 'פסים קצרים לפי התחזית: ' + fc.parts.map(function (x) {
@@ -8851,6 +8900,7 @@ function zcPlans(N, Z) {
           if (x.t === 'i') return 'פס בינלאומי ל-' + x.L + ' ימים' + (x.k < x.L ? ' (' + day(x.k) + ' מהם בצ\'רמט)' : ' (ימי צ\'רמט ברצף)');
           return 'פס צ\'רוויניה ל-' + x.L + ' ימים' + (x.k ? ' + תוספת צ\'רמט ל' + day(x.k) : '');
         }).join(' · ') });
+      }
     }
   }
   plans.sort(function (a, b) { return a.cost - b.cost; });
@@ -8862,7 +8912,7 @@ function zcRender() {
   document.getElementById('zc-n').textContent = ZC.n;
   document.getElementById('zc-z').textContent = ZC.z;
   var plans = zcPlans(ZC.n, ZC.z);
-  if (!plans) { out.innerHTML = '<span style="color:#888;">המחירון לא נטען</span>'; return; }
+  if (!plans) { out.innerHTML = '<span style="color:#888;">' + L('המחירון לא נטען', 'The price list did not load') + '</span>'; return; }
   var min = plans[0].cost;
   var eur = function (v) { return '<bdi dir="ltr">€' + (Math.round(v * 2) / 2).toLocaleString('en-US') + '</bdi>'; };
   out.innerHTML = plans.map(function (pl, i) {
@@ -8870,10 +8920,10 @@ function zcRender() {
     return '<div class="zc-plan" data-plan="' + pl.id + '" style="display:flex;gap:10px;align-items:flex-start;padding:7px 9px;margin-bottom:5px;border-radius:9px;'
       + (top ? 'background:#eafaf0;border:1.5px solid #a9dfbf;' : 'background:#f8fafc;border:1px solid #e6edf3;') + '">'
       + '<div style="flex:1;">' + (top ? '🏆 ' : '') + pl.label
-      + '<div style="font-size:0.72rem;color:#7a8794;">' + (pl.ahead ? 'משלמים מראש על ' + pl.ahead + ' ימים — יום סגור לא מוחזר' : 'לא משלמים מראש: ביום סגור פשוט לא קונים') + '</div></div>'
+      + '<div style="font-size:0.72rem;color:#7a8794;">' + (pl.ahead ? L('משלמים מראש על ' + pl.ahead + ' ימים — יום סגור לא מוחזר', 'Paid in advance for ' + pl.ahead + ' days — a closed day is not refunded') : L('לא משלמים מראש: ביום סגור פשוט לא קונים', 'Nothing paid in advance: on a closed day you simply do not buy')) + '</div></div>'
       + '<div style="font-weight:bold;white-space:nowrap;">' + eur(pl.cost) + (top ? '' : '<div style="font-size:0.7rem;font-weight:normal;color:#8a5a00;">+' + eur(pl.cost - min) + '</div>') + '</div></div>';
   }).join('')
-  + '<div style="font-size:0.72rem;color:#7a8794;margin-top:4px;">למבוגר, לפי המחירון הרשמי. תוספת היום לצ\'רמט נמכרת רק למי שיש לו פס לכמה ימים, ותקפה ביום הקנייה בלבד.</div>';
+  + '<div style="font-size:0.72rem;color:#7a8794;margin-top:4px;">' + L('למבוגר, לפי המחירון הרשמי. תוספת היום לצ\'רמט נמכרת רק למי שיש לו פס לכמה ימים, ותקפה ביום הקנייה בלבד.', 'For an adult, by the official price list. The Zermatt day supplement is sold only to holders of a multi-day pass, and is valid on the day of purchase only.') + '</div>';
 }
 
 function _costPassPrice(pass, band, days) {
@@ -9540,7 +9590,7 @@ function initFlatpickr() {
       // Hebrew in the field itself. It used to read "2027-01-10 to 2027-01-15",
       // which in an RTL line renders with the "to" in the wrong place and the
       // dates looking swapped - and then said the same thing again underneath.
-      dateFormat: 'j בF',
+      dateFormat: FP_FMT,
       locale: HE_FP,
       onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(selectedDates, _s, inst) {
@@ -9567,7 +9617,7 @@ function initFlatpickr() {
   const stripEl = document.getElementById('strip-dates');
   if (stripEl && !stripEl._flatpickr) {
     flatpickr(stripEl, {
-      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      mode: 'range', minDate: 'today', dateFormat: FP_FMT, locale: HE_FP,
       onChange: function(sel) {
         if (_tripInjecting || sel.length !== 2) return;
         stripSetDates(sel[0], sel[1]);
@@ -9578,7 +9628,7 @@ function initFlatpickr() {
   const carEl = document.getElementById('car-dates');
   if (carEl && !carEl._flatpickr) {
     flatpickr(carEl, {
-      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      mode: 'range', minDate: 'today', dateFormat: FP_FMT, locale: HE_FP,
       onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
         _tripTouch(carEl);
@@ -9600,7 +9650,7 @@ function initFlatpickr() {
   const htlEl = document.getElementById('hotel-dates');
   if (htlEl && !htlEl._flatpickr) {
     flatpickr(htlEl, {
-      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      mode: 'range', minDate: 'today', dateFormat: FP_FMT, locale: HE_FP,
       onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
         _tripTouch(htlEl);
@@ -9622,7 +9672,7 @@ function initFlatpickr() {
   const allHtlEl = document.getElementById('all-hotel-dates');
   if (allHtlEl && !allHtlEl._flatpickr) {
     flatpickr(allHtlEl, {
-      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      mode: 'range', minDate: 'today', dateFormat: FP_FMT, locale: HE_FP,
       onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
         _tripTouch(allHtlEl);
@@ -9644,7 +9694,7 @@ function initFlatpickr() {
   const allCarEl = document.getElementById('all-car-dates');
   if (allCarEl && !allCarEl._flatpickr) {
     flatpickr(allCarEl, {
-      mode: 'range', minDate: 'today', dateFormat: 'j בF', locale: HE_FP,
+      mode: 'range', minDate: 'today', dateFormat: FP_FMT, locale: HE_FP,
       onOpen: _tripPickOpen, onClose: _tripPickClose,
       onChange: function(sel) {
         _tripTouch(allCarEl);
@@ -11903,7 +11953,7 @@ function renderPisteGuide() {
   var activeTab = window.pisteTab || 'list';
 
   var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:8px;">'
-    + [['list','📋 מסלולים'],['map','🗺️ מפה']].map(function (t) {
+    + [['list',L('📋 מסלולים', '📋 Slopes')],['map',L('🗺️ מפה', '🗺️ Map')]].map(function (t) {
         var on = t[0] === activeTab;
         return '<button onclick="setPisteTab(\'' + t[0] + '\')" style="flex:1;padding:6px;border-radius:8px;border:none;cursor:pointer;font-size:0.8rem;font-weight:' + (on ? 'bold' : 'normal') + ';background:' + (on ? '#1a3a6c' : '#f0f0f0') + ';color:' + (on ? 'white' : '#555') + ';">' + t[1] + '</button>';
       }).join('') + '</div>';
@@ -12089,7 +12139,7 @@ function clAgeCutoff(band, now) {
 
 function clAgeLabel(band) {
   if (!band.age) return band.name;
-  var word = band.rule === 'before' ? 'לפני' : 'אחרי';
+  var word = band.rule === 'before' ? L('לפני', 'born before') : L('אחרי', 'born after');
   return band.name + ' (' + word + ' ' + clAgeCutoff(band) + ')';
 }
 
@@ -12132,7 +12182,7 @@ function renderSkipassPrices() {
     if (!host || !t) return;
 
     var head = '<tr style="background:#0a192f;color:white;">'
-      + '<th style="padding:7px 8px;text-align:start;border-radius:8px 0 0 0;">פס</th>'
+      + '<th style="padding:7px 8px;text-align:start;border-radius:8px 0 0 0;">' + L('פס', 'Pass') + '</th>'
       + (p.columns || []).map(function (c, i) {
           var last = i === (p.columns.length - 1);
           return '<th style="padding:7px 6px;text-align:center;'
@@ -12140,7 +12190,7 @@ function renderSkipassPrices() {
         }).join('') + '</tr>';
 
     var body = (t.rows || []).map(function (r, i) {
-      var season = /עונה/.test(r[0]);
+      var season = /עונה|season/i.test(r[0]);
       var bg = season ? '#f0fff4' : (i % 2 === 0 ? '#f8f9fa' : '');
       return '<tr' + (bg ? ' style="background:' + bg + ';"' : '') + '>'
         + '<td style="padding:7px 8px;' + (season ? 'font-weight:bold;' : '') + '">' + escHtml(r[0]) + '</td>'
@@ -12161,7 +12211,7 @@ function renderSkipassPrices() {
       + (t.note ? '<div style="font-size:0.71rem;color:#888;margin-bottom:6px;line-height:1.6;">' + t.note + '</div>' : '')
       + (p.source_url
           ? '<div style="font-size:0.71rem;margin-bottom:6px;"><a href="' + p.source_url
-            + '" target="_blank" style="color:#1a73e8;">המחירון הרשמי המלא ←</a></div>'
+            + '" target="_blank" style="color:#1a73e8;">' + L('המחירון הרשמי המלא ←', 'The full official price list →') + '</a></div>'
           : '');
   });
 }
@@ -15540,7 +15590,7 @@ function _applyTexts(t) {
         pkEl.innerHTML = pk.lots.map(function(lot) {
           var btns = '';
           if (lot.info_url) btns += '<a href="' + lot.info_url + '" target="_blank" style="padding:5px 11px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 מידע</a> ';
-          if (lot.map_url)  btns += '<a href="' + lot.map_url  + '" target="_blank" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ מפה</a>';
+          if (lot.map_url)  btns += '<a href="' + lot.map_url  + '" target="_blank" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>';
           else if (lot.map)  btns += '<a href="' + _gUrl(lot.map, lot.latlon) + '" target="_blank" rel="noopener" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f ' + (lot.xy_approx ? 'האזור במפה' : 'מפה') + '</a>';
           return '<div style="padding:12px 14px;border:1.5px solid ' + (lot.paid?'#ffd0d0':'#c8f0d0') + ';border-radius:10px;background:' + (lot.paid?'#fff5f5':'#f5fff8') + ';margin-bottom:10px;">' +
             '<div style="font-weight:bold;font-size:0.9rem;margin-bottom:6px;">' + lot.name + '</div>' +
@@ -15715,8 +15765,8 @@ function _applyTexts(t) {
       _set('les-group-day3-title',  g.day3_title);
       _set('les-group-day3-desc',   g.day3_desc);
       _set('les-group-day3-price',  g.day3_price);
-      _set('les-group-levels',      (g.levels ? '<b>רמות:</b> ' + g.levels : null));
-      _set('les-group-languages',   (g.languages ? '<b>שפות:</b> ' + g.languages : null));
+      _set('les-group-levels',      (g.levels ? '<b>' + L('רמות:', 'Levels:') + '</b> ' + g.levels : null));
+      _set('les-group-languages',   (g.languages ? '<b>' + L('שפות:', 'Languages:') + '</b> ' + g.languages : null));
     }
     if (les.private) {
       var p = les.private;
@@ -15977,7 +16027,7 @@ function _wireSourceChips() {
     if (!head) return;
     var b = document.createElement('span');
     b.className = 'src-chip';
-    b.title = 'מאיפה הנתונים';
+    b.title = L('מאיפה הנתונים', 'Where the data comes from');
     b.textContent = 'ⓘ';
     b.style.cssText = 'cursor:pointer;color:#9bb0c7;font-size:0.82rem;margin-inline-start:6px;'
       + 'vertical-align:middle;user-select:none;';
@@ -19535,8 +19585,8 @@ async function _admRenderUsers() {
 <div id="skipassModal" class="modal" onclick="if(event.target===this)closeM('skipassModal')">
   <div class="modal-content" style="max-width:580px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('skipassModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.15rem;">🎫 סקי פס — צ'רוויניה</h3>
-    <p style="color:#888;font-size:0.82rem;margin:0 0 18px;">עונת 2026/2027 · מחירון רשמי של Cervino S.p.A.</p>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;" data-en="🎫 Ski pass — Cervinia">🎫 סקי פס — צ'רוויניה</h3>
+    <p style="color:#888;font-size:0.82rem;margin:0 0 18px;" data-en="2026/2027 season · official price list of Cervino S.p.A.">עונת 2026/2027 · מחירון רשמי של Cervino S.p.A.</p>
 
     <!-- How many days to buy (Yossi, 11.11): the weather turns, a closed day
          is not refunded, and the link to Zermatt opens day by day - the
@@ -19546,13 +19596,13 @@ async function _admRenderUsers() {
          Four ways to buy for N days with Z of them in Zermatt, priced from
          the official tariff for one adult. -->
     <div id="zc-box" style="padding:12px 14px;background:#fff;border:1.5px solid #d8e4f0;border-radius:11px;margin-bottom:14px;font-size:0.8rem;color:#334;line-height:1.7;">
-      <div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;">🧮 ימים בצ'רמט — איך הכי משתלם לקנות?</div>
+      <div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;" data-en="🧮 Days in Zermatt — what is the cheapest way to buy?">🧮 ימים בצ'רמט — איך הכי משתלם לקנות?</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:10px;">
-        <span style="display:inline-flex;align-items:center;gap:6px;">ימי סקי
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span data-en="Ski days">ימי סקי</span>
           <button class="c-btn" type="button" onclick="zcAdj('n',-1)">-</button>
           <b id="zc-n" style="min-width:1.4em;text-align:center;">5</b>
           <button class="c-btn" type="button" onclick="zcAdj('n',1)">+</button></span>
-        <span style="display:inline-flex;align-items:center;gap:6px;">מהם בצ'רמט
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span data-en="Of them in Zermatt">מהם בצ'רמט</span>
           <button class="c-btn" type="button" onclick="zcAdj('z',-1)">-</button>
           <b id="zc-z" style="min-width:1.4em;text-align:center;">2</b>
           <button class="c-btn" type="button" onclick="zcAdj('z',1)">+</button></span>
@@ -19563,12 +19613,12 @@ async function _admRenderUsers() {
     <!-- The tables are long, and most people come here to buy rather than to
          read a tariff, so they fold away behind one line like the rental ones. -->
     <details class="fold" id="skipass-prices-fold" style="margin-bottom:14px;">
-      <summary>💶 מחירוני הסקי פס</summary>
+      <summary data-en="💶 Ski-pass price lists">💶 מחירוני הסקי פס</summary>
       <div class="fold-body">
     <!-- Pass type tabs -->
     <div style="display:flex;gap:8px;margin:4px 0 18px;">
       <button id="pass-tab-cervinia" onclick="switchPassTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> Cervinia</button>
-      <button id="pass-tab-zermatt" onclick="switchPassTab('zermatt')" class="ttab-btn" style="flex:1;"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> + צ'רמט</button>
+      <button id="pass-tab-zermatt" onclick="switchPassTab('zermatt')" class="ttab-btn" style="flex:1;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; + Zermatt"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> + צ'רמט</button>
     </div>
 
     <!-- CERVINIA ONLY -->
@@ -19579,7 +19629,7 @@ async function _admRenderUsers() {
       <div id="skipass-table-cervinia"></div>
     </div>
     <div id="pass-panel-zermatt" style="display:none;">
-      <div style="padding:10px 14px;background:#e8f4fd;border-radius:9px;border:1px solid #c0d8f0;margin-bottom:12px;font-size:0.82rem;color:#1a5276;">
+      <div style="padding:10px 14px;background:#e8f4fd;border-radius:9px;border:1px solid #c0d8f0;margin-bottom:12px;font-size:0.82rem;color:#1a5276;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; The combined pass covers all of Zermatt&#x27;s lifts (Zermatt Bergbahnen + GGB). ⚠️ &lt;b&gt;Take an ID&lt;/b&gt; to Switzerland.">
         <svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> הפס המשולב כולל גישה לכל רמות צ'רמט (Zermatt Bergbahnen + GGB). ⚠️ <b>יש לצאת עם תעודת זהות</b> לשווייץ.
       </div>
       <div id="skipass-legend-zermatt" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;font-size:0.71rem;"></div>
@@ -19595,12 +19645,12 @@ async function _admRenderUsers() {
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
         <span style="font-size:1.4rem;">📱</span>
         <div>
-          <div id="skipass-mobile-title" style="font-weight:bold;font-size:0.92rem;">SkiPass Mobile — הפס בסמארטפון</div>
-          <div id="skipass-mobile-desc" style="font-size:0.75rem;color:#555;">ללא תור בקופות — קונים אונליין והשער נפתח דרך הטלפון</div>
+          <div id="skipass-mobile-title" style="font-weight:bold;font-size:0.92rem;" data-en="SkiPass Mobile — the pass on your phone">SkiPass Mobile — הפס בסמארטפון</div>
+          <div id="skipass-mobile-desc" style="font-size:0.75rem;color:#555;" data-en="No queue at the ticket office — buy online and the gate opens through your phone">ללא תור בקופות — קונים אונליין והשער נפתח דרך הטלפון</div>
         </div>
       </div>
       <a href="https://shop.cervinoskiparadise.it/" target="_blank"
-        style="display:inline-block;padding:7px 16px;background:#4cc9f0;color:white;border-radius:8px;text-decoration:none;font-size:0.83rem;font-weight:bold;">
+        style="display:inline-block;padding:7px 16px;background:#4cc9f0;color:white;border-radius:8px;text-decoration:none;font-size:0.83rem;font-weight:bold;" data-en="📱 Buy with SkiPass Mobile">
         📱 רכישה ב-Skipas Mobile
       </a>
 
@@ -19608,7 +19658,7 @@ async function _admRenderUsers() {
 
     <!-- Discounts -->
     <details class="fold" style="margin-bottom:14px;background:#fffbf0;border-color:#fde8a0;">
-      <summary id="skipass-discounts-title" style="color:#7a5a00;">💡 הנחות וחינמיות שכדאי לדעת</summary>
+      <summary id="skipass-discounts-title" style="color:#7a5a00;" data-en="💡 Discounts and free passes worth knowing">💡 הנחות וחינמיות שכדאי לדעת</summary>
       <div class="fold-body" id="skipass-discounts-list" style="font-size:0.81rem;color:#555;line-height:2.1;">
         👥 <b>קבוצות</b> — פס חינם על כל 15 שרוכשים (הפס ה-16)<br>
         🗓️ <b>רכישה מראש אונליין</b> — ממוצע 5-10% זול יותר<br>
@@ -19619,10 +19669,10 @@ async function _admRenderUsers() {
 
     <!-- Buy online buttons -->
     <div style="border-top:1px solid #eee;padding-top:14px;">
-      <div style="font-size:0.78rem;color:#888;margin-bottom:8px;">רכישה מראש אונליין:</div>
+      <div style="font-size:0.78rem;color:#888;margin-bottom:8px;" data-en="Buy in advance online:">רכישה מראש אונליין:</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <a href="https://shop.cervinoskiparadise.it/" target="_blank"
-          style="padding:9px 16px;background:#0a192f;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;">
+          style="padding:9px 16px;background:#0a192f;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;" data-en="🌐 Official Cervinia website">
           🌐 אתר רשמי Cervinia
         </a>
         <a href="https://www.matterhornparadise.ch/en/book/tickets" target="_blank"
@@ -19802,7 +19852,7 @@ async function _admRenderUsers() {
             style="font-size:0.78rem;color:#1a73e8;">🌐 מידע רשמי ↗</a>
           &nbsp;·&nbsp;
           <a href="https://maps.app.goo.gl/Vqd6YccAxZdz3MYm6" target="_blank"
-            style="font-size:0.78rem;color:#1a73e8;">🗺️ מפה ↗</a>
+            style="font-size:0.78rem;color:#1a73e8;" data-en="🗺️ Map ↗">🗺️ מפה ↗</a>
         </div>
 
         <!-- Paid parking 2 — Commercial centre -->
