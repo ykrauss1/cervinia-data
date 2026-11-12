@@ -8711,6 +8711,51 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.fromBar) fail(T, 'the live bar does not hand its reading to the strip'); else ok();
 }
 
+// ── Yossi (12.11, evening): the flight search reaches other ski areas ──
+{
+  const T = 'the flight search offers the airports of other ski areas';
+  const r = await page.evaluate(async () => {
+    const $ = id => document.getElementById(id), out = {};
+    openPlanner('flight');
+    await new Promise(res => setTimeout(res, 200));
+    setTripDates('2027-01-10', '2027-01-17');
+    const sel = $('airport-select-flight');
+    const codes = [...sel.options].map(o => o.value);
+    out.has = ['GVA', 'ZRH', 'VIE', 'SOF', 'TBS'].every(c => codes.includes(c));
+    out.cerviniaFirst = codes.slice(0, 3).join() === 'MXP,BGY,TRN';
+    // the other tabs are about reaching Cervinia, and stay so
+    out.othersClean = !['airport-select', 'airport-select-car'].some(id =>
+      [...$(id).options].some(o => o.value === 'GVA'));
+    sel.value = 'GVA';
+    searchFlight();
+    await loadFlights(); await new Promise(res => setTimeout(res, 100));
+    const res = $('flight-results');
+    out.head = /ז׳נבה \(GVA\)/.test(res.textContent) && !/ברירת מחדל: מילאנו/.test(res.textContent);
+    out.noDirectClaim = !/ללא ישיר/.test(res.textContent);
+    const kf = [...res.querySelectorAll('a')].map(a => a.href).find(h => /trip-finder/.test(h)) || '';
+    out.kf = /to=GVA/.test(kf) && decodeURIComponent(kf).includes('label=ז׳נבה');
+    out.sky = [...res.querySelectorAll('a')].some(a => /skyscanner.*\/tlv\/gva\//.test(a.href));
+    out.noMissingPrice = !/אין מחיר שמור/.test($('fl-snapshot').textContent);
+    // and Milan is as it was
+    sel.value = 'MXP'; searchFlight();
+    const kf2 = [...$('flight-results').querySelectorAll('a')].map(a => a.href).find(h => /trip-finder/.test(h)) || '';
+    out.milan = /ברירת מחדל: מילאנו/.test($('flight-results').textContent) && decodeURIComponent(kf2).includes('label=מילאנו');
+    resetTripDates();
+    closeM('hotelModal');
+    return out;
+  });
+  const want = { has: 'the list lacks Geneva, Zurich, Vienna, Sofia or Tbilisi',
+    cerviniaFirst: 'the Cervinia airports are no longer first',
+    othersClean: 'the car or "all" tab offers Geneva - they are about reaching Cervinia',
+    head: 'the results do not name Geneva, or still say "default Milan"',
+    noDirectClaim: 'Geneva is said to have no direct flight - an unverified claim',
+    kf: 'Kosher Fly does not get GVA with the Hebrew name',
+    sky: 'Skyscanner does not search to Geneva',
+    noMissingPrice: 'Geneva shows "no saved price" - the price list is only for Cervinia',
+    milan: 'Milan lost its heading or its Kosher Fly label' };
+  for (const k in want) if (!r[k]) fail(T, want[k]); else ok();
+}
+
 // ── Yossi's notes of 12.11: the clock, and a crossing notice without "today" ──
 {
   const T = "Yossi's notes of 12.11";
@@ -8720,7 +8765,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.shown = !!box && box.style.display !== 'none';  // on a scrolled phone it hides on purpose
     const want = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false });
     out.time = $('local-clock-time') && $('local-clock-time').textContent;
-    out.want = want;
+    // the clock ticks every 15s, so a minute may turn between the two reads
+    const before = new Date(Date.now() - 20e3).toLocaleTimeString('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false });
+    out.want = out.time === before ? before : want;
     out.inHeader = !!box && $('sticky-header').contains(box);
     // the new wording is still retired by a live OPEN reading
     const keep = _zLive, now = Date.now();

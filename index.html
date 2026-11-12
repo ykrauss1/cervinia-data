@@ -1153,7 +1153,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.53';
+  var v='v17.54';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2611,10 +2611,28 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     <div id="tpanel-flight" style="display:none;">
       <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
         <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
+        <!-- Yossi (12.11): the flight search is useful beyond Cervinia, so
+             this one list - and only this one; the car, hotel and "all" tabs
+             are about getting to Cervinia - also offers the airports of other
+             well-known ski areas. data-he names the city for Kosher Fly. -->
         <select id="airport-select-flight" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
-          <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
-          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
-          <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
+          <optgroup label="לצ׳רוויניה">
+          <option value="MXP" data-city="Milan Malpensa" data-he="מילאנו" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
+          <option value="BGY" data-city="Milan Bergamo" data-he="ברגמו" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
+          <option value="TRN" data-city="Turin" data-he="טורינו" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
+          </optgroup>
+          <optgroup label="לאתרי סקי אחרים">
+          <option value="GVA" data-city="Geneva" data-he="ז׳נבה" data-other="1">ז׳נבה · Geneva (GVA) — שאמוני, ורבייה, שלושת העמקים</option>
+          <option value="ZRH" data-city="Zurich" data-he="ציריך" data-other="1">ציריך · Zurich (ZRH) — דאבוס, לאקס, אנגלברג</option>
+          <option value="LYS" data-city="Lyon" data-he="ליון" data-other="1">ליון · Lyon (LYS) — ואל טורנס, טין, אלפ ד׳ואז</option>
+          <option value="INN" data-city="Innsbruck" data-he="אינסברוק" data-other="1">אינסברוק · Innsbruck (INN) — איסגל, מיירהופן, שטובאי</option>
+          <option value="SZG" data-city="Salzburg" data-he="זלצבורג" data-other="1">זלצבורג · Salzburg (SZG) — זאלבך, קפרון, באד גסטיין</option>
+          <option value="MUC" data-city="Munich" data-he="מינכן" data-other="1">מינכן · Munich (MUC) — קיצביל, גרמיש-פרטנקירכן</option>
+          <option value="VIE" data-city="Vienna" data-he="וינה" data-other="1">וינה · Vienna (VIE) — זמרינג, שלאדמינג</option>
+          <option value="VRN" data-city="Verona" data-he="ורונה" data-other="1">ורונה · Verona (VRN) — הדולומיטים, מדונה די קמפיליו</option>
+          <option value="SOF" data-city="Sofia" data-he="סופיה" data-other="1">סופיה · Sofia (SOF) — בנסקו, בורובץ</option>
+          <option value="TBS" data-city="Tbilisi" data-he="טביליסי" data-other="1">טביליסי · Tbilisi (TBS) — גודאורי</option>
+          </optgroup>
         </select>
       </div>
       <div id="flight-offers" class="fl-offers" style="display:none;"></div>
@@ -7435,7 +7453,10 @@ function gFlightsUrl(from, to, ci, co, pax) {
 // Kosher Fly — מנוע החיפוש שלנו. הפרמטרים נקראים שם וממלאים את הטופס,
 // ו-run=1 מריץ את החיפוש מיד — המטייל נוחת על תוצאות, לא על טופס ריק.
 function kosherFlyUrl(code, ci, co, pax) {
-  var he = code === 'MXP' ? '\u05de\u05d9\u05dc\u05d0\u05e0\u05d5' : code === 'BGY' ? '\u05d1\u05e8\u05d2\u05de\u05d5' : '\u05d8\u05d5\u05e8\u05d9\u05e0\u05d5';
+  // the Hebrew name lives on the option, so an airport added to the list
+  // needs nothing here
+  var opt = document.querySelector('#airport-select-flight option[value="' + code + '"]');
+  var he = (opt && opt.getAttribute('data-he')) || code;
   var n = Math.max(1, Math.min(9, parseInt(pax, 10) || 2));
   return 'https://ykrauss1.github.io/trip-finder/'
     + '?to=' + encodeURIComponent(code)
@@ -7688,7 +7709,9 @@ function searchFlight() {
   const fOpt = fSel?.options[fSel.selectedIndex];
   const fCity = fOpt?.getAttribute('data-city') || 'Milan Malpensa';
   const fDist = fOpt?.getAttribute('data-dist') || '175';
-  const isDirect = fCode !== 'TRN';
+  const isDirect = fCode !== 'TRN';   // said only of Turin; the others make no claim
+  const fOther = fOpt?.getAttribute('data-other') === '1';
+  const fHe = fOpt?.getAttribute('data-he') || fCode;
   const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
   const gfWithDates = gFlightsUrl('TLV', fCode, dr.ci, dr.co, pax);
   const links = [
@@ -7700,7 +7723,8 @@ function searchFlight() {
   const res = document.getElementById('flight-results');
   showResults(res);
   res.innerHTML = '<div style="background:#f0f7ff;border:1.5px solid #bcd;border-radius:11px;padding:12px 14px;">'
-    + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:8px;">✈️ טיסות — ברירת מחדל: מילאנו (MXP)</div>'
+    + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:8px;">✈️ טיסות — '
+    + (fOther ? 'מתל אביב ל' + esc(fHe) + ' (' + fCode + ')' : 'ברירת מחדל: מילאנו (MXP)') + '</div>'
     + makeResultLinks(links) + '</div>';
   // The snapshot answers instantly from a file; the links below it are the
   // live sites. Painted after the links so a slow first load of the file
@@ -15906,6 +15930,10 @@ function _flAge(gen) {
 // The price the snapshot holds, for the dates the reader actually chose.
 function flightForDatesHtml(dest, ci, co, pax) {
   if (!_FLIGHTS) return '';
+  // The daily price list covers only the airports near Cervinia. For any
+  // other the live links are the answer, and "no saved price for this
+  // date" would only suggest something is missing.
+  if (!(_FLIGHTS.cal && _FLIGHTS.cal[dest])) return '';
   var n = _flNights(ci, co);
   var covered = (_FLIGHTS.nights || []).map(Number);
   var price = _flLookup(dest, n, ci);
