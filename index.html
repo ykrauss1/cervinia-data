@@ -15440,7 +15440,7 @@ function renderSwissBox() {
        + _aEsc(sw.source_label || '') + '</a></div>';
   }
   if (detail) {
-    h += '<details class="swiss-more"><summary>הכללים, המחירים והאחריות</summary>'
+    h += L('<details class="swiss-more"><summary>הכללים, המחירים והאחריות</summary>', '<details class="swiss-more"><summary>The rules, the prices and the responsibility</summary>')
        + '<div style="margin-top:9px;">' + detail + '</div></details>';
   }
   return h + '</div>';
@@ -15467,7 +15467,7 @@ function renderAroundList() {
 
   if (!items.length) {
     box.innerHTML = '<div style="padding:22px;text-align:center;color:#aaa;font-size:0.84rem;">'
-      + 'אין פריטים בקטגוריה הזו שעובדים ביום סוער. הסירו את הסינון כדי לראות את כולם.</div>';
+      + L('אין פריטים בקטגוריה הזו שעובדים ביום סוער. הסירו את הסינון כדי לראות את כולם.</div>', 'No items in this category work on a stormy day. Remove the filter to see them all.</div>');
     return;
   }
 
@@ -15484,11 +15484,11 @@ function renderAroundList() {
 
     if (pl.storm) {
       h += '<span style="display:inline-block;font-size:0.7rem;background:#e6f4ea;color:#1a7a3a;'
-         + 'border-radius:20px;padding:2px 9px;margin-bottom:6px;">☔ עובד ביום סוער</span> ';
+         + L('border-radius:20px;padding:2px 9px;margin-bottom:6px;">☔ עובד ביום סוער</span> ', 'border-radius:20px;padding:2px 9px;margin-bottom:6px;">☔ Works on a stormy day</span> ');
     }
     if (pl.lifts) {
       h += '<span style="display:inline-block;font-size:0.7rem;background:#fff3e0;color:#9a6200;'
-         + 'border-radius:20px;padding:2px 9px;margin-bottom:6px;">🚡 דורש מעליות</span> ';
+         + L('border-radius:20px;padding:2px 9px;margin-bottom:6px;">🚡 דורש מעליות</span> ', 'border-radius:20px;padding:2px 9px;margin-bottom:6px;">🚡 Needs lifts</span> ');
     }
 
     h += '<div style="font-size:0.83rem;color:#495466;line-height:1.85;margin:5px 0 8px;">' + _aEsc(pl.what) + '</div>';
@@ -15510,7 +15510,7 @@ function renderAroundList() {
     var links = [];
     if (pl.url) {
       links.push('<a href="' + pl.url + '" target="_blank" rel="noopener" '
-        + 'style="font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">לדף הרשמי ←</a>');
+        + L('style="font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">לדף הרשמי ←</a>', 'style="font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">To the official page →</a>'));
     }
     if (pl.map) {
       // built here rather than stored, so the texts file keeps readable
