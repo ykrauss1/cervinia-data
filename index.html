@@ -34,7 +34,7 @@ function setLang(l) {
 // Static markup: the English sits beside the Hebrew as attributes.
 function _i18nStatic(root) {
   if (window.LANG !== 'en') return;
-  var SEL = '[data-en],[data-en-title],[data-en-placeholder],[data-en-aria-label],[data-en-ph]';
+  var SEL = '[data-en],[data-en-title],[data-en-placeholder],[data-en-aria-label],[data-en-ph],[data-en-toc]';
   var list = Array.prototype.slice.call((root || document).querySelectorAll(SEL));
   if (root && root.matches && root.matches(SEL)) list.unshift(root);
   list.forEach(function (e) {
@@ -48,6 +48,7 @@ function _i18nStatic(root) {
     if ((v = e.getAttribute('data-en-placeholder')) != null) e.placeholder = v;
     if ((v = e.getAttribute('data-en-aria-label')) != null) e.setAttribute('aria-label', v);
     if ((v = e.getAttribute('data-en-ph')) != null) e.setAttribute('data-ph', v);
+    if ((v = e.getAttribute('data-en-toc')) != null) e.setAttribute('data-toc', v);
   });
 }
 // Registered here in the head, so it runs before any renderer's own
@@ -4242,26 +4243,56 @@ what counts.">
            the panel already has two - but a small thing floating at the side
            that takes them down, and gets out of the way once they are there. -->
       <button id="shabbat-jump" type="button" onclick="_scrollToShabbatApartment()"
-              aria-label="מעבר למה להביא לשבת בדירה">
+              aria-label="מעבר למה להביא לשבת בדירה" data-en-aria-label="Jump to what to bring for Shabbat in the apartment">
         <svg viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg>
-        <span class="sj-t">התארגנות<br>לשבת</span>
+        <span class="sj-t" data-en="Shabbat&lt;br&gt;prep">התארגנות<br>לשבת</span>
       </button>
 
       <!-- Moved here from the packing section. Everything about keeping Shabbat
            in the village belongs beside the times for it, not three folds deep
            inside a list of ski gear. -->
       <div id="shabbat-apartment" style="margin-top:18px;">
-<div class="prep-group"><svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg> שבת בצ'רוויניה</div>
+<div class="prep-group" data-en="&lt;svg class=&quot;ico-inline&quot; viewBox=&quot;0 0 128 128&quot; aria-hidden=&quot;true&quot;&gt;&lt;use href=&quot;#ico-candle&quot;/&gt;&lt;/svg&gt; Shabbat in Cervinia"><svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg> שבת בצ'רוויניה</div>
 
-        <div style="font-size:0.81rem;color:#555;line-height:1.8;margin-bottom:9px;">
+        <div style="font-size:0.81rem;color:#555;line-height:1.8;margin-bottom:9px;" data-en="This is the part you can&#x27;t sort out on the spot. The village has no synagogue and no shop selling candlesticks or a hot plate, and the apartments are not set up for Shabbat in any way. Everything on this list travels with you, so it belongs to the planning stage, not to the moment of packing.">
           זה החלק שאי אפשר להשלים במקום. בכפר אין בית כנסת, אין חנות שמוכרת פמוטים או
           פלטה, והדירות אינן ערוכות לשבת בשום צורה. כל מה שברשימה הזו נוסע מהארץ,
           ולכן הוא שייך לשלב התכנון ולא לרגע האריזה.
         </div>
 
         <details class="fold" style="margin-bottom:10px;background:#fffbf0;border-color:#fde8a0;">
-          <summary style="color:#7a5a00;"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg>מה להביא, ומה לוודא מול בעל הדירה</summary>
-          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+          <summary style="color:#7a5a00;" data-en="&lt;svg class=&quot;fold-ico&quot; viewBox=&quot;0 0 128 128&quot; aria-hidden=&quot;true&quot;&gt;&lt;use href=&quot;#ico-candle&quot;/&gt;&lt;/svg&gt;What to bring, and what to check with the landlord"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg>מה להביא, ומה לוודא מול בעל הדירה</summary>
+          <div id="shab-prep-body" class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="&lt;div style=&quot;font-size:0.78rem;color:#7a5a00;margin-bottom:4px;&quot;&gt;
+  Shabbat start and end times, kosher food and products are in the
+  &lt;a href=&quot;#&quot; onclick=&quot;closeM(&#x27;hotelModal&#x27;);openM(&#x27;kosherModal&#x27;);return false;&quot; style=&quot;color:#1a73e8;font-weight:bold;&quot;&gt;Kosher &amp;amp; Shabbat&lt;/a&gt; section.
+&lt;/div&gt;
+&lt;div class=&quot;prep-h&quot;&gt;Electricity — read before you pack&lt;/div&gt;
+Italy runs on 230V. Italian sockets take the thin two-pin European plug (Type C, the &quot;Europlug&quot;) as well as the Italian Type L.
+&lt;br&gt;• &lt;b&gt;A thin two-pin round plug fits.&lt;/b&gt; That is the plug on most chargers, lamps and small devices.&lt;br&gt;
+• &lt;b&gt;Plugs from other countries usually need an adapter&lt;/b&gt; — check yours before you travel.
+&lt;br&gt;&lt;b&gt;But note:&lt;/b&gt; a simple travel adapter &lt;b&gt;drops the earth&lt;/b&gt;. That is fine for a charger, a lamp or a Shabbat timer — &lt;b&gt;not&lt;/b&gt; for an urn, a hot plate or any heating appliance. For those you need a properly earthed adapter, or an appliance with a European plug to begin with.
+&lt;br&gt;&lt;b&gt;Bring more than one&lt;/b&gt;, and don&#x27;t count on finding one in the apartment.
+&lt;br&gt;&lt;b&gt;The point that surprises almost every family:&lt;/b&gt; Italian home supply is usually limited to 3 kW per apartment. An urn (&lt;span dir=&quot;ltr&quot;&gt;2,000W&lt;/span&gt;) and a hot plate (&lt;span dir=&quot;ltr&quot;&gt;1,000–1,500W&lt;/span&gt;) together go over the limit and the main breaker trips — sometimes right as Shabbat begins. Run them &lt;b&gt;not at the same time&lt;/b&gt;, and find the fuse box in advance.
+&lt;div class=&quot;prep-h&quot;&gt;Two questions for the landlord — before you pay&lt;/div&gt;
+• &lt;b&gt;A mechanical door key.&lt;/b&gt; Many apartments and hotels in Italy use a magnetic card or an electric lock. Ask for a regular key explicitly.&lt;br&gt;
+• &lt;b&gt;Automatic light sensors.&lt;/b&gt; Very common in entrances, corridors, stairwells and sometimes in toilets and the ski room. Ask where they are and &lt;b&gt;whether they can be switched off&lt;/b&gt; — there is usually a switch or a dedicated fuse. If not, ask a rabbi in advance how to proceed, and choose rooms and routes that avoid them.
+&lt;br&gt;Both questions are also in the ready-made letter to agencies in the
+&lt;a href=&quot;#&quot; onclick=&quot;closeM(&#x27;hotelModal&#x27;);openM(&#x27;localStayModal&#x27;);return false;&quot; style=&quot;color:#1a73e8;font-weight:bold;&quot;&gt;Rent like a local&lt;/a&gt; section, under &lt;b&gt;Lodging&lt;/b&gt; in the trip planner.
+&lt;div class=&quot;prep-h&quot;&gt;The list&lt;/div&gt;
+• &lt;b&gt;Candlesticks and candles.&lt;/b&gt; Many rentals forbid open flame; stand them on a metal tray, away from curtains and smoke detectors. Some prefer small oil candles or a Shabbat lamp.&lt;br&gt;
+• &lt;b&gt;A small electric hot plate&lt;/b&gt;, or a metal cover for an electric hob.&lt;br&gt;
+• &lt;b&gt;An urn&lt;/b&gt; or a large thermos. A thermos also solves the power-load problem.&lt;br&gt;
+• &lt;b&gt;A mechanical Shabbat timer&lt;/b&gt;, with a plug that fits the Italian socket.&lt;br&gt;
+• &lt;b&gt;A Shabbat lamp&lt;/b&gt; or a lamp cover, for a room you want dark.&lt;br&gt;
+• &lt;b&gt;A small flashlight&lt;/b&gt; for each bedroom.&lt;br&gt;
+• &lt;b&gt;Pre-cut toilet paper&lt;/b&gt; and paper towels.&lt;br&gt;
+• &lt;b&gt;Disposable dishes&lt;/b&gt; — they save washing up and hot water.&lt;br&gt;
+• &lt;b&gt;Siddur, Chumash and sefarim.&lt;/b&gt;&lt;br&gt;
+• &lt;b&gt;Paper tape&lt;/b&gt; for marking, and stickers to cover switches and sensors.
+&lt;div class=&quot;prep-h&quot;&gt;End Friday early — earlier than you think&lt;/div&gt;
+In January Shabbat begins in the village after four in the afternoon, and it is easy to conclude you can ski until three. That is a mistake.
+&lt;br&gt;After the last run you still need to get down to the village, return the gear to the shop, get to the apartment, shower, set out the food and the hot plate, light candles and get ready. That is no less than two hours, and usually more — especially with children.
+&lt;br&gt;&lt;b&gt;The rule of thumb:&lt;/b&gt; Shabbat at 16:30 means &lt;b&gt;finishing skiing by 14:00 at the latest&lt;/b&gt;, and leaving at least two clear hours from the moment everything ski-related is done. A short Friday is not a sacrifice — it is what lets you go into Shabbat calm.">
             <div style="font-size:0.78rem;color:#7a5a00;margin-bottom:4px;">
               זמני כניסת השבת ויציאתה, כשרות ומוצרים — בסעיף
               <a href="#" onclick="closeM('hotelModal');openM('kosherModal');return false;" style="color:#1a73e8;font-weight:bold;">כשרות ושבת</a>.
@@ -4327,16 +4358,16 @@ what counts.">
     <div id="kosh-main-panel-kosher" style="display:none;">
       <!-- תת-לשוניות כשרות -->
       <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
-        <button id="kosh-tab-cervinia" onclick="switchKoshTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;font-size:0.8rem;">🏔️ בכפר</button>
-        <button id="kosh-tab-delivery" onclick="switchKoshTab('delivery')" class="ttab-btn" style="flex:1;font-size:0.8rem;">📦 משלוח</button>
-        <button id="kosh-tab-milan"    onclick="switchKoshTab('milan')"    class="ttab-btn" style="flex:1;font-size:0.8rem;">🏙️ מילאנו</button>
-        <button id="kosh-tab-torino"   onclick="switchKoshTab('torino')"   class="ttab-btn" style="flex:1;font-size:0.8rem;">🏛️ טורינו</button>
+        <button id="kosh-tab-cervinia" onclick="switchKoshTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;font-size:0.8rem;" data-en="🏔️ In the village">🏔️ בכפר</button>
+        <button id="kosh-tab-delivery" onclick="switchKoshTab('delivery')" class="ttab-btn" style="flex:1;font-size:0.8rem;" data-en="📦 Delivery">📦 משלוח</button>
+        <button id="kosh-tab-milan"    onclick="switchKoshTab('milan')"    class="ttab-btn" style="flex:1;font-size:0.8rem;" data-en="🏙️ Milan">🏙️ מילאנו</button>
+        <button id="kosh-tab-torino"   onclick="switchKoshTab('torino')"   class="ttab-btn" style="flex:1;font-size:0.8rem;" data-en="🏛️ Turin">🏛️ טורינו</button>
       </div>    <!-- CERVINIA -->
     <div id="kosh-panel-cervinia">
       <nav class="panel-toc"></nav>
 
       <div style="padding:14px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:11px;margin-bottom:12px;">
-        <div id="kosher-cervinia-title" data-toc="ℹ️ מה יש בכפר" style="font-size:1rem;font-weight:bold;margin-bottom:8px;">ℹ️ מה יש בכפר?</div>
+        <div id="kosher-cervinia-title" data-toc="ℹ️ מה יש בכפר" style="font-size:1rem;font-weight:bold;margin-bottom:8px;" data-en-toc="ℹ️ In the village">ℹ️ מה יש בכפר?</div>
         <div id="kosher-cervinia-text" style="font-size:0.84rem;color:#555;line-height:1.9;">
           בצ'רוויניה עצמה <b>אין מסעדות כשרות</b>.<br>
           בסופרמרקט המקומי ניתן למצוא:<br>
@@ -4346,7 +4377,7 @@ what counts.">
         <div id="kosher-community"></div>
       </div>
       <div style="padding:13px;background:#f0fff4;border:1.5px solid #a5d6a7;border-radius:11px;">
-        <div id="kosher-tips-title" data-toc="💡 טיפים לשהייה כשרה" style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;">💡 טיפים לשהייה כשרה</div>
+        <div id="kosher-tips-title" data-toc="💡 טיפים לשהייה כשרה" style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;" data-en-toc="💡 Tips for a kosher stay">💡 טיפים לשהייה כשרה</div>
       <div id="kosher-tips-list" style="font-size:0.82rem;color:#555;line-height:2;">
           🧳 <b>הבאת מזון מישראל</b> — מותר ומומלץ (שימורים, קפואים בצידנית)<br>
           🛒 <b>הצטיידות במילאנו</b> לפני העלייה לכפר<br>
@@ -4364,7 +4395,7 @@ what counts.">
            only reasonable one. It is its own section now, it uses the same
            fold as the rest of the site, and the arrow is back. -->
       <details class="fold" style="margin-top:12px;">
-        <summary id="kosher-products-title" data-toc="🛒 רשימת המוצרים הכשרים"></summary>
+        <summary id="kosher-products-title" data-toc="🛒 רשימת המוצרים הכשרים" data-en-toc="🛒 Kosher products list"></summary>
         <div class="fold-body">
           <div id="kosher-products-list" style="font-size:0.79rem;color:#444;line-height:1.95;"></div>
         </div>
@@ -4375,44 +4406,44 @@ what counts.">
       <div id="kosher-group-box" style="display:none;padding:13px;border:1.5px solid #c5cae9;
            border-right:4px solid #3f51b5;border-radius:11px;background:#f5f6fc;margin:12px 0;">
         <details>
-          <summary id="kosher-group-title" data-toc="🕍 חופשה כשרה מאורגנת" style="font-weight:bold;font-size:0.9rem;color:#283593;cursor:pointer;list-style:none;"></summary>
+          <summary id="kosher-group-title" data-toc="🕍 חופשה כשרה מאורגנת" style="font-weight:bold;font-size:0.9rem;color:#283593;cursor:pointer;list-style:none;" data-en-toc="🕍 Organised kosher holiday"></summary>
           <div id="kosher-group-text" style="font-size:0.82rem;color:#444;line-height:1.95;margin-top:6px;"></div>
         </details>
       </div>
 
       <!-- Kosher resources -->
       <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px;">
-        <div id="kosher-resources-title" data-toc="📋 מידע למטייל" style="font-size:0.82rem;font-weight:bold;margin-bottom:9px;">📋 מידע כשרות למטייל באיטליה</div>
+        <div id="kosher-resources-title" data-toc="📋 מידע למטייל" style="font-size:0.82rem;font-weight:bold;margin-bottom:9px;" data-en-toc="📋 Traveller info">📋 מידע כשרות למטייל באיטליה</div>
         <div style="display:flex;flex-direction:column;gap:7px;">
 
           <a href="https://www.italykosherunion.it/en/kosher-products-list/" target="_blank"
             style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
-            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">🏷️ Italy Kosher Union — רשימת מוצרים כשרים</div>
-            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מוצרים מאושרים בפיקוח כשרות איטלקי</div>
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;" data-en="🏷️ Italy Kosher Union — kosher products list">🏷️ Italy Kosher Union — רשימת מוצרים כשרים</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;" data-en="Products approved under Italian kosher supervision">מוצרים מאושרים בפיקוח כשרות איטלקי</div>
           </a>
 
           <a href="https://beitchabadmalpensa.com/food/5443/" target="_blank"
             style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
-            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">✡️ בית חב"ד מלפנסה — מדריך מזון</div>
-            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מוצרים כשרים — מה מותר לאכול באיטליה</div>
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;" data-en="✡️ Chabad Malpensa — food guide">✡️ בית חב"ד מלפנסה — מדריך מזון</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;" data-en="Kosher products — what you can eat in Italy">מוצרים כשרים — מה מותר לאכול באיטליה</div>
           </a>
 
           <a href="https://metaylimbkipa.com/kosher-food-what-is-allowed-to-eat/" target="_blank"
             style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
-            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">🌍 מטיילים בכיפה — מה מותר לאכול?</div>
-            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מדריך כשרות לטיול בחו"ל</div>
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;" data-en="🌍 Metaylim BeKipa — what can you eat? (Hebrew)">🌍 מטיילים בכיפה — מה מותר לאכול?</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;" data-en="A kosher guide for travel abroad">מדריך כשרות לטיול בחו"ל</div>
           </a>
 
           <a href="https://kipaonmap.com/%D7%A8%D7%95%D7%9E%D7%90/kosherlistitaly/" target="_blank"
             style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
-            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">🗺️ Kipa on Map — רשימת כשר איטליה</div>
-            <div style="font-size:0.73rem;color:#888;margin-top:2px;">מפה ורשימה של מוצרים ומסעדות</div>
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;" data-en="🗺️ Kipa on Map — kosher list for Italy">🗺️ Kipa on Map — רשימת כשר איטליה</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;" data-en="A map and list of products and restaurants">מפה ורשימה של מוצרים ומסעדות</div>
           </a>
 
           <a href="https://www.tjt.co.il/%D7%A0%D7%95%D7%A4%D7%A9_%D7%9B%D7%A9%D7%A8-TL331-%D7%90%D7%99%D7%98%D7%9C%D7%99%D7%94_%D7%90%D7%99%D7%A8%D7%95%D7%A4%D7%94-%D7%97%D7%95%D7%A4%D7%A9%D7%95%D7%AA.html" target="_blank"
             style="padding:10px 13px;border:1.5px solid #dce;border-radius:9px;background:#fafafa;text-decoration:none;color:inherit;display:block;">
-            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;">✈️ TJT — נופש כשר באיטליה</div>
-            <div style="font-size:0.73rem;color:#888;margin-top:2px;">חופשות ומידע למטייל הדתי באיטליה ואירופה</div>
+            <div style="font-weight:bold;font-size:0.84rem;color:#1a3a6c;" data-en="✈️ TJT — kosher holidays in Italy">✈️ TJT — נופש כשר באיטליה</div>
+            <div style="font-size:0.73rem;color:#888;margin-top:2px;" data-en="Holidays and information for the observant traveller in Italy and Europe">חופשות ומידע למטייל הדתי באיטליה ואירופה</div>
           </a>
 
         </div>
@@ -4426,14 +4457,14 @@ what counts.">
           <span style="font-size:2rem;">📦</span>
           <div>
             <div id="kosher-delivery-title" style="font-weight:bold;font-size:1rem;">Kosher4U</div>
-            <div style="font-size:0.78rem;color:#555;">משלוח מזון כשר לאתרי סקי באירופה</div>
+            <div style="font-size:0.78rem;color:#555;" data-en="Kosher food delivery to ski resorts in Europe">משלוח מזון כשר לאתרי סקי באירופה</div>
           </div>
         </div>
         <div id="kosher-delivery-desc" style="font-size:0.83rem;color:#444;line-height:1.8;margin-bottom:12px;">
           אתר אירופאי המתמחה במשלוחי מזון כשר לאתרי סקי באיטליה ושווייץ. מזמינים אונליין ומקבלים את החבילה <b>בנקודת איסוף בצ'רוויניה</b> — ללא צורך לשאת אוכל מהבית.
         </div>
         <a href="https://www.kosher4u.eu/" target="_blank"
-          style="display:inline-block;padding:11px 24px;background:#2e7d32;color:white;border-radius:10px;text-decoration:none;font-size:0.92rem;font-weight:bold;">
+          style="display:inline-block;padding:11px 24px;background:#2e7d32;color:white;border-radius:10px;text-decoration:none;font-size:0.92rem;font-weight:bold;" data-en="🛒 Order — Kosher4U">
           🛒 להזמנה — Kosher4U
         </a>
       </div>
@@ -4451,7 +4482,7 @@ what counts.">
            turned out not to exist could not be removed without editing a
            1.8MB file - and so it stayed up. -->
       <div id="kosher-milan-restaurants-title" data-toc="🍽️ מסעדות וחנויות"
-           style="font-weight:bold;font-size:0.88rem;margin:4px 0 8px;"></div>
+           style="font-weight:bold;font-size:0.88rem;margin:4px 0 8px;" data-en-toc="🍽️ Restaurants and shops"></div>
       <div id="kosher-milan-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
       <div id="kosher-milan-shuls-title" data-toc style="font-weight:bold;font-size:0.88rem;margin:16px 0 8px;"></div>
       <div id="kosher-milan-shuls-note" style="font-size:0.78rem;color:#666;background:#f5f5f5;padding:9px 12px;border-radius:8px;margin-bottom:10px;line-height:1.8;"></div>
@@ -4459,7 +4490,7 @@ what counts.">
       <div id="kosher-milan-stays-title" data-toc style="font-weight:bold;font-size:0.88rem;margin:16px 0 8px;"></div>
       <div id="kosher-milan-stays-note" style="font-size:0.78rem;color:#666;background:#f5f5f5;padding:9px 12px;border-radius:8px;margin-bottom:10px;"></div>
       <div id="kosher-milan-stays" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
-      <div id="kosher-milan-shop-tip" data-toc="🛒 מה לקנות" style="padding:10px 13px;background:#fffbf0;border:1px solid #fde8a0;border-radius:9px;font-size:0.79rem;color:#555;line-height:1.8;">
+      <div id="kosher-milan-shop-tip" data-toc="🛒 מה לקנות" style="padding:10px 13px;background:#fffbf0;border:1px solid #fde8a0;border-radius:9px;font-size:0.79rem;color:#555;line-height:1.8;" data-en-toc="🛒 What to buy">
         🛒 <b>מה כדאי לקנות במילאנו לשהייה בכפר:</b><br>
         שימורי טונה · פסטה + רוטב · עוגיות · גבינות מאוטמות · מיצים · חטיפים לרכבל
       </div>
@@ -10331,9 +10362,15 @@ function sharePost(postId) {
   var TZEIT_DEG  = 8.5;   // מעלות — צאת הכוכבים ויציאת שבת
   var RT_MIN     = 72;    // דקות אחרי השקיעה — ר"ת
   var IN_ISRAEL  = false; // חו"ל — יום טוב שני של גלויות
-  var HE         = 'he-x-NoNikud';
-  var DAYS_HE    = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
-  var MONTHS_HE  = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  var EN         = window.LANG === 'en';
+  // in English the holiday and parasha names come from the library in English
+  var HE         = EN ? 'en' : 'he-x-NoNikud';
+  var DAYS_HE    = EN ? ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Shabbat']
+                      : ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  var MONTHS_HE  = EN ? ['January','February','March','April','May','June','July','August','September','October','November','December']
+                      : ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  if (EN) ['Cervinia', 'Milan', 'Turin', 'Venice', 'Geneva'].forEach(function (n, i) { if (LOCATIONS[i]) LOCATIONS[i].name = n; });
+  var SHAB = EN ? 'Shabbat' : 'שבת';
 
   var currentLocIdx = 0;
   var _locCache = {}, _fmtCache = {};
@@ -10385,7 +10422,7 @@ function sharePost(postId) {
   function evName(ev) {
     var desc = ev.getDesc();
     // "Rosh Hashana 5787" → ראש השנה א׳
-    if (/^Rosh Hashana \d{4}$/.test(desc)) return 'ראש השנה א׳';
+    if (/^Rosh Hashana \d{4}$/.test(desc)) return L('ראש השנה א׳', 'Rosh Hashana I');
     return ev.render(HE);
   }
 
@@ -10401,7 +10438,7 @@ function sharePost(postId) {
     var mask = 0, shown = [], special = null;
     for (var i = 0; i < all.length; i++) {
       var ev = all[i], fl = ev.getFlags();
-      if (fl & f.SPECIAL_SHABBAT) { special = evName(ev).replace(/^שבת\s+/, ''); continue; }
+      if (fl & f.SPECIAL_SHABBAT) { special = evName(ev).replace(/^(שבת|Shabbat)\s+/, ''); continue; }
       if (fl & skip) continue;
       if (SKIP_DESC[ev.getDesc()]) continue;
       mask |= fl;
@@ -10418,7 +10455,7 @@ function sharePost(postId) {
 
     var o = {
       date: jsDate, dow: dow, hd: hd, tz: Lc.tz,
-      hebDate: hd.renderGematriya(true, true) + ' ' + h.gematriya(hd.getFullYear() % 1000),
+      hebDate: EN ? hd.render('en', true) : hd.renderGematriya(true, true) + ' ' + h.gematriya(hd.getFullYear() % 1000),
       names: shown, special: special,
       isShabbat: isShabbat, isFriday: isFriday, isChag: isChag,
       isErev: isErev, isChm: isChm, isFast: isFast,
@@ -10460,18 +10497,18 @@ function sharePost(postId) {
     try {
       var s = h.getSedra(hd.getFullYear(), IN_ISRAEL).lookup(hd);
       if (s && s.parsha && s.parsha.length) {
-        parasha = s.parsha.map(function(p) { return h.Locale.gettext(p, HE); }).join('־');
+        parasha = s.parsha.map(function(p) { return h.Locale.gettext(p, HE); }).join(EN ? '-' : '־');
       }
     } catch (e) {}
     if (parasha) {
       // שבת חול המועד וכדומה מתורגמת כבר עם "שבת" בתוכה
-      var head = /^שבת/.test(parasha) ? parasha : 'שבת ' + parasha;
+      var head = /^(שבת|Shabbat)/.test(parasha) ? parasha : SHAB + ' ' + parasha;
       return head + (satInfo.special ? ' — ' + satInfo.special : '');
     }
     // שבת שהיא חג — אין קריאת פרשת השבוע
     var name = satInfo.names.length ? satInfo.names[0] : '';
-    if (!name) return 'שבת';
-    return /^שבת/.test(name) ? name : 'שבת ' + name;
+    if (!name) return SHAB;
+    return /^(שבת|Shabbat)/.test(name) ? name : SHAB + ' ' + name;
   }
 
   // זמני היום של today
@@ -10482,19 +10519,19 @@ function sharePost(postId) {
     // מג״א — היום מעלות השחר (72 דק') ועד צאת הכוכבים (72 דק')
     // גר״א — היום מהנץ עד השקיעה
     return [
-      { t: 'עלות השחר',     v: fmt(z.alotHaShachar(), Lc.tz, 'down') },
-      { t: 'זריחה',          v: fmt(z.sunrise(), Lc.tz, 'near') },
-      { t: 'סוף זמן ק״ש',   pair: [
-          ['מג״א', fmt(z.sofZmanShmaMGA(), Lc.tz, 'down')],
-          ['גר״א', fmt(z.sofZmanShma(),    Lc.tz, 'down')] ] },
-      { t: 'סוף זמן תפילה', pair: [
-          ['מג״א', fmt(z.sofZmanTfillaMGA(), Lc.tz, 'down')],
-          ['גר״א', fmt(z.sofZmanTfilla(),    Lc.tz, 'down')] ] },
-      { t: 'חצות היום',      v: fmt(z.chatzot(), Lc.tz, 'near') },
-      { t: 'מנחה גדולה',     v: fmt(z.minchaGedola(), Lc.tz, 'up') },
-      { t: 'פלג המנחה',      v: fmt(z.plagHaMincha(), Lc.tz, 'near') },
-      { t: 'שקיעה',          v: fmt(z.sunset(), Lc.tz, 'near') },
-      { t: 'צאת הכוכבים',   v: fmt(z.tzeit(TZEIT_DEG), Lc.tz, 'up') }
+      { t: L('עלות השחר', 'Alot HaShachar'),     v: fmt(z.alotHaShachar(), Lc.tz, 'down') },
+      { t: L('זריחה', 'Sunrise'),          v: fmt(z.sunrise(), Lc.tz, 'near') },
+      { t: L('סוף זמן ק״ש', 'Latest Shema'),   pair: [
+          [L('מג״א', 'MGA'), fmt(z.sofZmanShmaMGA(), Lc.tz, 'down')],
+          [L('גר״א', 'GRA'), fmt(z.sofZmanShma(),    Lc.tz, 'down')] ] },
+      { t: L('סוף זמן תפילה', 'Latest Tefilla'), pair: [
+          [L('מג״א', 'MGA'), fmt(z.sofZmanTfillaMGA(), Lc.tz, 'down')],
+          [L('גר״א', 'GRA'), fmt(z.sofZmanTfilla(),    Lc.tz, 'down')] ] },
+      { t: L('חצות היום', 'Chatzot'),      v: fmt(z.chatzot(), Lc.tz, 'near') },
+      { t: L('מנחה גדולה', 'Mincha Gedola'),     v: fmt(z.minchaGedola(), Lc.tz, 'up') },
+      { t: L('פלג המנחה', 'Plag HaMincha'),      v: fmt(z.plagHaMincha(), Lc.tz, 'near') },
+      { t: L('שקיעה', 'Sunset'),          v: fmt(z.sunset(), Lc.tz, 'near') },
+      { t: L('צאת הכוכבים', 'Tzeit HaKochavim'),   v: fmt(z.tzeit(TZEIT_DEG), Lc.tz, 'up') }
     ];
   }
 
@@ -10509,7 +10546,7 @@ function sharePost(postId) {
     if (!window.hebcal || !window.hebcal.HDate) {
       el.innerHTML = '<div style="padding:16px;background:#fff3e0;border:1px solid #ffcc80;'
         + 'border-radius:10px;font-size:0.85rem;color:#8d6e63;text-align:center;">'
-        + 'ספריית הלוח העברי לא נטענה. רעננו את הדף.</div>';
+        + L('ספריית הלוח העברי לא נטענה. רעננו את הדף.', 'The Hebrew calendar library did not load. Refresh the page.') + '</div>';
       return;
     }
     if (locIdx !== undefined && LOCATIONS[locIdx]) currentLocIdx = locIdx;
@@ -10542,25 +10579,25 @@ function sharePost(postId) {
                 + badgeColor + ';">' + esc(o.names.join(' · ')) + '</span>';
         }
         if (o.isShabbat && o.special) {
-          badge += '<br><span style="font-size:0.7rem;font-weight:900;color:#00695c;">שבת '
+          badge += '<br><span style="font-size:0.7rem;font-weight:900;color:#00695c;">' + SHAB + ' '
                  + esc(o.special) + '</span>';
         }
 
         var notes = [];
         if (o.candle) {
           notes.push('<div style="color:#2e7d32;">' + _candles() + ' ' + o.candle
-            + (o.candleTzeis ? ' <span style="font-size:0.63rem;opacity:0.7;">(מצאת הכוכבים)</span>' : '')
+            + (o.candleTzeis ? ' <span style="font-size:0.63rem;opacity:0.7;">' + L('(מצאת הכוכבים)', '(after nightfall)') + '</span>' : '')
             + '</div>');
         }
         if (o.havdalah) {
           notes.push('<div style="color:#7b1fa2;">✨ ' + o.havdalah
-            + ' <span style="font-size:0.64rem;opacity:0.65;">/ ' + o.rt + ' ר"ת</span></div>');
+            + ' <span style="font-size:0.64rem;opacity:0.65;">/ ' + o.rt + L(' ר"ת', ' R"T') + '</span></div>');
         }
         if (o.fastStart) {
-          notes.push('<div style="color:#c62828;font-size:0.7rem;">🕓 תחילת הצום ' + o.fastStart + '</div>');
+          notes.push('<div style="color:#c62828;font-size:0.7rem;">🕓 ' + L('תחילת הצום ', 'Fast begins ') + o.fastStart + '</div>');
         }
         if (o.fastEnd) {
-          notes.push('<div style="color:#c62828;font-size:0.7rem;">✡️ סיום הצום ' + o.fastEnd + '</div>');
+          notes.push('<div style="color:#c62828;font-size:0.7rem;">✡️ ' + L('סיום הצום ', 'Fast ends ') + o.fastEnd + '</div>');
         }
 
         rows += '<tr style="' + (tint ? 'background:' + tint + ';' : '') + '">'
@@ -10620,23 +10657,23 @@ function sharePost(postId) {
         + '<div style="font-weight:bold;font-size:1rem;">' + _candles() + ' ' + esc(satTitle) + '</div>'
         + '<div style="font-size:0.76rem;color:#888;margin-top:2px;">' + esc(satInfo.hebDate) + ' · ' + satStr + '</div>'
         + '</div>'
-        + '<div style="text-align:left;font-size:0.72rem;color:#888;white-space:nowrap;">⛰️ ' + Lc.elev + 'm<br>'
+        + '<div style="text-align:end;font-size:0.72rem;color:#888;white-space:nowrap;">⛰️ ' + Lc.elev + 'm<br>'
         + Lc.lat.toFixed(2) + '°N</div>'
         + '</div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
         + '<div style="padding:10px;background:white;border-radius:9px;text-align:center;">'
-        + '<div style="font-size:0.72rem;color:#888;margin-bottom:3px;">כניסת שבת</div>'
+        + '<div style="font-size:0.72rem;color:#888;margin-bottom:3px;">' + L('כניסת שבת', 'Candle lighting') + '</div>'
         + '<div style="font-size:1.3rem;font-weight:bold;color:#2e7d32;">' + _candles() + ' ' + friInfo.candle + '</div>'
-        + '<div style="font-size:0.7rem;color:#aaa;">' + CANDLE_MIN + ' דקות לפני שקיעה</div>'
+        + '<div style="font-size:0.7rem;color:#aaa;">' + CANDLE_MIN + L(' דקות לפני שקיעה', ' minutes before sunset') + '</div>'
         + '</div>'
         + '<div style="padding:10px;background:white;border-radius:9px;text-align:center;">'
-        + '<div style="font-size:0.72rem;color:#888;margin-bottom:5px;">יציאת שבת</div>'
+        + '<div style="font-size:0.72rem;color:#888;margin-bottom:5px;">' + L('יציאת שבת', 'Shabbat ends') + '</div>'
         + '<div style="margin-bottom:5px;">'
-        + '<div style="font-size:0.67rem;color:#aaa;">צאת הכוכבים</div>'
+        + '<div style="font-size:0.67rem;color:#aaa;">' + L('צאת הכוכבים', 'Tzeit HaKochavim') + '</div>'
         + '<div style="font-size:1.2rem;font-weight:bold;color:#7b1fa2;">✨ ' + satInfo.havdalah + '</div>'
         + '</div>'
         + '<div style="border-top:1px dashed #ddd;padding-top:5px;">'
-        + '<div style="font-size:0.67rem;color:#aaa;">ר"ת</div>'
+        + '<div style="font-size:0.67rem;color:#aaa;">' + L('ר"ת', 'Rabbeinu Tam') + '</div>'
         + '<div style="font-size:1rem;font-weight:bold;color:#9c27b0;">✨ ' + satInfo.rt + '</div>'
         + '</div>'
         + '</div>'
@@ -10646,20 +10683,20 @@ function sharePost(postId) {
         // זמני היום
         + '<div style="border-radius:10px;overflow:hidden;border:1px solid #eee;margin-bottom:14px;">'
         + '<div style="background:#0a192f;color:white;padding:7px 12px;font-size:0.8rem;font-weight:bold;">'
-        + '🕊️ זמני היום · ' + esc(Lc.name) + '</div>'
+        + L('🕊️ זמני היום · ', '🕊️ Today\'s zmanim · ') + esc(Lc.name) + '</div>'
         + '<div style="padding:9px;background:#f7f9fb;">' + zmGrid + '</div>'
         + '</div>'
 
         // טבלת השבועיים
         + '<div style="border-radius:10px;overflow:hidden;border:1px solid #eee;">'
         + '<div style="background:#0a192f;color:white;padding:7px 12px;font-size:0.8rem;font-weight:bold;">'
-        + _candles() + ' זמני השבוע, שבת ומועדים</div>'
+        + _candles() + L(' זמני השבוע, שבת ומועדים', ' This week\'s times, Shabbat and holidays') + '</div>'
         + '<table style="width:100%;border-collapse:collapse;">'
         + '<thead><tr style="background:#f5f5f5;">'
-        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:start;">יום</th>'
-        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:center;">זריחה</th>'
-        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:center;">שקיעה</th>'
-        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:center;">שבת / חג</th>'
+        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:start;">' + L('יום', 'Day') + '</th>'
+        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:center;">' + L('זריחה', 'Sunrise') + '</th>'
+        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:center;">' + L('שקיעה', 'Sunset') + '</th>'
+        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:center;">' + L('שבת / חג', 'Shabbat / holiday') + '</th>'
         + '</tr></thead>'
         + '<tbody>' + rows + '</tbody>'
         + '</table>'
@@ -10667,13 +10704,16 @@ function sharePost(postId) {
 
         // הערת מקור
         + '<div style="margin-top:10px;font-size:0.67rem;color:#b0bec5;line-height:1.6;text-align:center;">'
-        + 'כניסת שבת ' + CANDLE_MIN + ' דק\' לפני השקיעה הנראית בגובה ' + Lc.elev + ' מ\' · '
+        + L('כניסת שבת ' + CANDLE_MIN + ' דק\' לפני השקיעה הנראית בגובה ' + Lc.elev + ' מ\' · '
         + 'צאת הכוכבים ' + TZEIT_DEG + '° · ר"ת ' + RT_MIN + ' דק\'<br>'
-        + 'חישוב: @hebcal/core · להלכה למעשה יש לברר אצל רב המקום.</div>';
+        + 'חישוב: @hebcal/core · להלכה למעשה יש לברר אצל רב המקום.',
+        'Candle lighting ' + CANDLE_MIN + ' min before the visible sunset at an altitude of ' + Lc.elev + ' m · '
+        + 'Tzeit HaKochavim ' + TZEIT_DEG + '° · Rabbeinu Tam ' + RT_MIN + ' min<br>'
+        + 'Calculated with @hebcal/core · for practical halacha, ask the local rabbi.') + '</div>';
     } catch (err) {
       el.innerHTML = '<div style="padding:16px;background:#ffebee;border:1px solid #ef9a9a;'
         + 'border-radius:10px;font-size:0.85rem;color:#c62828;text-align:center;">'
-        + 'שגיאה בחישוב הזמנים: ' + esc(err && err.message) + '</div>';
+        + L('שגיאה בחישוב הזמנים: ', 'Error calculating the times: ') + esc(err && err.message) + '</div>';
     }
   };
 })();
@@ -10694,8 +10734,8 @@ function renderInstructors() {
   set('les-ins-title', les.instructors_title);
   set('les-ins-sub',   les.instructors_sub);
   set('les-ins-note',  les.instructors_note);
-  set('les-ins-cta',   les.instructors_cta || '✉️ בקשת פרטי מדריך');
-  set('les-ins-add',   les.instructors_add || '➕ הוסף מדריך מומלץ');
+  set('les-ins-cta',   les.instructors_cta || L('✉️ בקשת פרטי מדריך', '✉️ Ask for an instructor\'s details'));
+  set('les-ins-add',   les.instructors_add || L('➕ הוסף מדריך מומלץ', '➕ Recommend an instructor'));
   for (var i = 0; i < targets.length; i++) targets[i].innerHTML = '';
 }
 
@@ -15972,7 +16012,7 @@ function _applyTexts(t) {
       }).length;
       var _prTitle = document.getElementById('kosher-products-title');
       if (_prTitle && _nProducts) {
-        _prTitle.textContent = (ko.cervinia_products_title || '') + ' · ' + _nProducts + ' מוצרים';
+        _prTitle.textContent = (ko.cervinia_products_title || '') + ' · ' + _nProducts + L(' מוצרים', ' products');
       }
       // The eight "##" lines were drawn as headings inside one long run, so
       // the whole list - twelve phone screens - sat behind a single arrow and
