@@ -563,5 +563,579 @@
     ]
    }
   }
+ },
+ "rental": {
+  "title": "⛷️ Gear and rental",
+  "subtitle": "Cervinia has many rental shops, at different levels and prices",
+  "price_title": "💶 Rental prices",
+  "price_sub": "The prices of <b>Genzianella Sport</b>, the shop by the main lift station, which publishes a full price list for the season. Every shop has its own prices — this one is here to give a real order of magnitude. Poles are included in the ski packages.",
+  "price_cols": [
+   "Day",
+   "3 days",
+   "6 days"
+  ],
+  "price_rows": [
+   {
+    "label": "🎿 Skis + boots — adult",
+    "note": "Superior model"
+   },
+   {
+    "label": "🎿 Skis + boots — advanced",
+    "note": "Top model"
+   },
+   {
+    "label": "🎿 Skis + boots — children",
+    "note": "Junior model"
+   },
+   {
+    "label": "🏂 Snowboard + boots — adult",
+    "note": "Standard model"
+   },
+   {
+    "label": "🏂 Snowboard + boots — children",
+    "note": "Junior model"
+   },
+   {
+    "label": "🪖 Helmet"
+   },
+   {
+    "label": "👕 Ski jacket"
+   },
+   {
+    "label": "👖 Ski trousers"
+   },
+   {
+    "label": "🧤 Gloves"
+   }
+  ],
+  "tips": [
+   "The more days you rent, the lower the price per day — six ski days for an adult come to about €29 a day instead of €41.",
+   "Booking online in advance is almost always cheaper, and also saves a queue on the first morning.",
+   "If you reach the village in the afternoon the day before skiing — go and get fitted then. The first visit is the longest, because boots are fitted and bindings adjusted, and in the morning the shops are especially busy around the lift opening. In the afternoon the staff are free — they are mostly taking equipment back. Most shops can leave your equipment ready for the morning; Genzianella and Cretaz have heated lockers that dry boots and gloves overnight — on booking, and paid separately.",
+   "A helmet is compulsory for children under 18 in Italy, and strongly recommended for adults.",
+   "Boots can also be rented separately from the skis (€16 a day for an adult, €7 for a child).",
+   "Gloves, goggles and thermal socks — better bought on the way from the airport than rented in the village.",
+   "Hours: Genzianella and Noleggio Cretaz close at midday, roughly 12:30–14:30. Cervinia Ski Service is open straight through until 18:00, and Ski 2.0 until 19:00. The shop at Plan Maison cannot be reached before the first gondola.",
+   "Overnight locker: at Ski 2.0 a heated locker for €8 a day holds the equipment of two adults — skis, boots, poles, helmet and gloves, dry in the morning. Genzianella and Cretaz have heated lockers on booking, with no published price."
+  ],
+  "shops_in_village_title": "🏪 Rental shops in Cervinia",
+  "shops_on_way_title": "🚗 Gear shops on the way from the airport",
+  "shops_on_way_sub": "Everything costs more in the village, so <b>it is worth buying practically everything on the way</b>: gloves, goggles, thermal socks, a <bdi>base layer</bdi>, a neck warmer, sunscreen, hand warmers and a helmet. Note which shop is really on the route and which needs a detour. <a href=\"#\" onclick=\"closeM('rentalModal');openPlanner('prep');return false;\" style=\"color:#1a73e8;font-weight:bold;text-decoration:none;\">🧳 Exactly what to buy, and how to choose →</a>",
+  "shops_on_way": [
+   {
+    "badge": "📍 Right on the route",
+    "where": "Burolo, near Ivrea — on the A5, about 50 km before the turn-off to Cervinia",
+    "desc": "Everything under one roof: ski clothing, gloves, goggles, helmets, thermal socks and underwear, at accessible prices. The only shop on the list that is really on the way — stop, buy and carry on."
+   },
+   {
+    "badge": "↩️ A detour of about 45 km there and back",
+    "where": "Strada Statale 26 no. 71, località Amérique, Quart — about 22 km west of the turn-off at Châtillon",
+    "desc": "The same shop and stock as at Ivrea, but it lies west of the turn-off to Cervinia — not on the way. Worth it only if you are going to Aosta anyway.",
+    "open": "Every day including Sunday, 09:00–20:00 · <b>closed on 25 and 26 December</b>"
+   },
+   {
+    "badge": "↩️ In Aosta",
+    "where": "In Aosta",
+    "desc": "A large Italian sports chain, with well-known ski brands and technical clothing of a higher grade than Decathlon. Dearer, but for those after serious equipment."
+   }
+  ],
+  "booking_warning": "Genzianella write that booking \"guarantees availability\", and in practice that means that without a booking you may arrive and find nothing in your size — and they will not always bother to check whether anything is left. Booking is done online on their website; it is cheaper and also saves the queue.",
+  "buy_vs_rent_title": "🧮 Rent a jacket and trousers, or buy?",
+  "buy_vs_rent": "Rental at Genzianella is <bdi dir=\"ltr\">€28</bdi> a day for a jacket and <bdi dir=\"ltr\">€13</bdi> for trousers — <b><bdi dir=\"ltr\">€41</bdi> a day</b>. For three days <bdi dir=\"ltr\">€105</bdi>, for six days <bdi dir=\"ltr\">€210</bdi>.<br>At Decathlon, a men's ski jacket starts at <bdi dir=\"ltr\">€44.99</bdi> and trousers at <bdi dir=\"ltr\">€24.99</bdi> — <b>about <bdi dir=\"ltr\">€70</bdi> for a whole suit, which you keep</b>.<br><b>So even two days of rental cost more than buying.</b> Renting pays only for those who do not mean to ski again, or who have no room in the suitcase."
+ },
+ "parking": {
+  "lots": [
+   {
+    "name": "🟢 Chateau — free, at the top of the ring road",
+    "desc": "📍 At the top of Via Circonvallazione, by the tourist office<br>⛷️ <b>In winter — very convenient for the Cretaz lifts</b><br>🚶 Easy access to the village centre and the shops<br>⚡ 2 electric-car charging points · 4 disabled spaces<br>🎿 In winter at the entrance to the open ski slope; in summer by the golf course and the start of the walks<br>☎ Valtournenche municipality · 0166 92032 · 0166 946811"
+   },
+   {
+    "name": "🟢 Breithorn — free, at the entrance to the village",
+    "desc": "📍 At the entrance to the village, by the bus station<br>🚶 Easy access to the village centre and the shops<br>🌲 In summer next to the picnic area<br>☎ Valtournenche municipality · 0166 92032 · 0166 946811"
+   },
+   {
+    "name": "🔴 Cervino Lift Parking — the lift car park",
+    "desc": "📍 Next to the lift station — <b>the closest</b> · about 500 spaces · open 24/7<br>💶 07:01–19:00 — €10 · 19:01–24:00 — €1.50 an hour · 00:01–07:00 — €10 · 24-hour cap: €20<br>🆓 <b>The first 30 minutes are free</b> — counted from entry, for a short stop<br>⏱️ <b>And once you have paid — leave within 30 minutes.</b> That is a separate count, from the moment of payment; going over means paying more at the tariff<br>💳 Two automatic pay stations opposite the Cervino S.p.A. offices and two opposite the ticket offices — <b>electronic payment only</b> · cash only at the staffed desk by the information counter, until 16:45<br>📱 You can also scan the QR on the ticket and pay by phone · Telepass and UnipolMove for subscribers<br>⚡ <b>Electric-car charging</b> — 18 points:<br><bdi dir=\"ltr\" style=\"display:inline-block;\">4 × 400 kW · 4 × 100 kW · 10 × 22 kW</bdi><br><span style=\"font-size:0.78rem;color:#8a5a00;\">Access through your own subscription or app, not through the car park</span><br>☎ 0166 944311 · Cervino S.p.A."
+   },
+   {
+    "name": "🟡 Circonvallazione — paid, on the ring road",
+    "desc": "📍 Along the Circonvallazione, by the tourist office and the mountain guides' office<br>💶 €1 an hour · 08:00–12:00 and 14:00–20:00 · free outside those hours<br>💳 Cash at the machine on the pavement, or with the EasyPark app<br>🆓 Completely free in May, June, September and October<br>☎ Valtournenche municipality · 0166 92032"
+   },
+   {
+    "name": "🟡 Baselli — paid, village centre",
+    "desc": "📍 In the village centre, by the church and at the entrance to the pedestrian streets<br>🛍️ <b>In practice this is the car park of the village's small shopping centre</b> — and so <b>usually full</b>. Do not plan on it; if there is room, great.<br>💶 €1 an hour · 08:00–12:00 and 14:00–20:00 · free outside those hours<br>💳 Cash at the machine at the entrance, or with the EasyPark app<br>🆓 Completely free in May, June, September and October<br>☎ Valtournenche municipality · 0166 92032"
+   }
+  ],
+  "tips": "💡 <b>Important tips:</b><br>🆓 <b>There is free parking in the village in winter too</b> — Chateau at the top of the ring road (and convenient for the Cretaz lifts) and Breithorn at the entrance to the village. Both belong to the municipality and are free.<br>🅿️ The lift car park is the most expensive but the closest and biggest — about 500 spaces. The paid municipal car parks cost only €1 an hour, but they are small and fill up.<br>🚗 <b>At weekends and holidays</b> — the SR46 road is busy. Leave early.<br>⛓️ <b>Snow chains</b> — sometimes compulsory on the road up<br>🏨 <b>Hotel guests</b> — check whether parking is included in the price"
+ },
+ "transport": {
+  "title": "🚌 The way to Cervinia",
+  "intro": "From the airport to the village you can go by hire car, by transfer or by public transport. This is what each costs and how long it takes.",
+  "alert": "🚆 <b>The valley railway is closed this season.</b> The Ivrea–Aosta line is closed for electrification works, and Châtillon-Saint-Vincent station — the station closest to Cervinia — is not in service. Replacement buses run between Ivrea and Aosta instead. The Ivrea–Pont-Saint-Martin section reopens in January 2027, and the section to Aosta only after that. This season the simple way is a car or a direct bus, not the train.",
+  "groups": [
+   {
+    "id": "distances",
+    "title": "Distances from the airports",
+    "cols": [
+     "From the airport",
+     "km",
+     "Drive"
+    ],
+    "rows": [
+     {
+      "a": "Milan Malpensa"
+     },
+     {
+      "a": "Milan Linate"
+     },
+     {
+      "a": "Turin (Caselle)"
+     },
+     {
+      "a": "Bergamo (Orio al Serio)"
+     },
+     {
+      "a": "Geneva"
+     }
+    ],
+    "notes": [
+     {
+      "text": "The Milan, Turin and Geneva figures come from a route planner — with no traffic, no snow and no stops. Bergamo's is the journey time published by the local transfer operator."
+     }
+    ],
+    "links": [
+     {
+      "label": "🧭 Navigate with Waze"
+     },
+     {
+      "label": "🗺️ Navigate with Google Maps"
+     }
+    ]
+   },
+   {
+    "id": "transfer",
+    "title": "Airport transfer",
+    "lead": "A private transfer comes to the hotel door and is booked in advance. The price is per vehicle, not per person.",
+    "cols": [
+     "From the airport",
+     "1–2 passengers",
+     "3–8 passengers"
+    ],
+    "rows": [
+     {
+      "a": "Milan Malpensa"
+     },
+     {
+      "a": "Milan Linate"
+     },
+     {
+      "a": "Turin"
+     },
+     {
+      "a": "Bergamo"
+     }
+    ],
+    "notes": [
+     {
+      "text": "The prices are those of Cervinia Taxi Services, a local operator. Other operators quote on request."
+     },
+     {
+      "text": "📋 Cervinia's official website lists nine licensed taxi companies, with phone numbers — useful for a short ride within the valley too."
+     }
+    ],
+    "links": [
+     {
+      "label": "📋 The official taxi list"
+     }
+    ]
+   },
+   {
+    "id": "bus",
+    "title": "Buses — direct and local",
+    "lead": "There is no direct bus from an airport to Cervinia. All the lines reach Châtillon, and from there you take the local line up.",
+    "notes": [
+     {
+      "text": "🔵 <b><bdi>Linea Blu</bdi> (line 503)</b> — <bdi dir=\"ltr\">Châtillon ⇄ Valtournenche ⇄ Breuil-Cervinia</bdi>, <b>€3.30</b> each way, an hour's ride. The full timetable is in the card below."
+     },
+     {
+      "text": "🎫 Tickets: in the <b>#vdatransports</b> app, at the Aosta and Courmayeur ticket offices, at licensed sellers, or in cash from the driver — in small notes."
+     },
+     {
+      "text": "✈️ <b>From Malpensa</b> — a direct bus to Châtillon, <b>€25</b>, booking compulsory 24 hours ahead. The stop is <b>the Terminal 1 bus area, on floor -1</b>, by the railway station and opposite the <bdi>Sheraton</bdi>; follow the <bdi>Bus</bdi> signs downwards, not a door number on the arrivals floor. <b>Does not run on Tuesday and Wednesday.</b>"
+     },
+     {
+      "text": "🚍 <b>From Turin</b> — <b>€15</b> each way, €25 return, booking compulsory, change at Châtillon. The stops are in the city centre (Porta Susa, Porta Nuova), not at the airport."
+     },
+     {
+      "text": "🚍 <b>From Milan</b> — the stop is Lampugnano on the red metro line (M1), not a main railway station. <b>€15.50</b> to Châtillon."
+     },
+     {
+      "text": "🏘️ <b>Within the village</b> — <bdi>Linea Viola</bdi> to the <bdi>Cielo Alto</bdi> neighbourhood, €1.20, runs all year. Two more lines are <b>free winter shuttles</b>: <bdi>Linea Azzurra</bdi> (the ski bus) and <bdi>Linea Verde</bdi> to <bdi>Cime Bianche</bdi>. The operator publishes no timetable or operating dates for them, and its line page says whether they are running — <a href=\"https://aosta.arriva.it/valtournenche-cervinia/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a4b8c;text-decoration:underline;\">worth a look there before relying on them</a>."
+     },
+     {
+      "text": "🚌 <b>From Valtournenche to Cervinia by bus</b> — <bdi>Linea Blu</bdi> stops at Valtournenche on the way up, and so you start the ski day in Cervinia. You can also take the <bdi>Gran Sometta</bdi> lift and ski to Cervinia, but it is a long way, partly on red slopes."
+     },
+     {
+      "text": "🔗 <b>The buttons here open the official website of the operator, Arriva</b> — that is the source, and that is where you book the bus from Malpensa. The timetables in the next cards are copied from the official timetable, valid from 10 September 2026."
+     }
+    ],
+    "links": [
+     {
+      "label": "🕗 Linea Blu — the official timetable (PDF) ↗"
+     },
+     {
+      "label": "🚌 Linea Blu — the operator's line page ↗"
+     },
+     {
+      "label": "✈️ Malpensa bus — operator's website and booking ↗"
+     }
+    ]
+   },
+   {
+    "id": "malpensa",
+    "title": "Malpensa ⇄ Châtillon — the timetable",
+    "lead": "Four trips a day on Friday, Saturday and Sunday, and one on Monday and one on Thursday. No service on Tuesday and Wednesday. The departure time is from Terminal 1; from Terminal 2 five minutes earlier.",
+    "notes": [
+     {
+      "text": "🔁 <b>The ride takes 95 minutes in both directions.</b> On the way back the arrival is at Terminal 1; for Terminal 2 you continue from there."
+     },
+     {
+      "text": "🎄 <b>On holidays everything runs.</b> The Friday–Sunday trips also run on public holidays, and every day in the periods 1–6 January, 4–8 December and 25–31 December."
+     },
+     {
+      "text": "🎫 Book in advance at <a href=\"https://estore.arriva.it/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a4b8c;text-decoration:underline;\">Arriva's online shop</a>. This timetable is valid until <b>31 December 2026</b>; a new one is usually published in December <a href=\"https://aosta.arriva.it/en/aosta-malpensa-airport/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a4b8c;text-decoration:underline;\">on the line page</a>."
+     }
+    ],
+    "tables": [
+     {
+      "title": "⬆️ From Malpensa to Châtillon",
+      "cols": [
+       "Leaves Malpensa",
+       "Arrives Châtillon",
+       "Days"
+      ],
+      "rows": [
+       {
+        "c": "Fri · Sat · Sun"
+       },
+       {
+        "c": "Fri · Sat · Sun"
+       },
+       {
+        "c": "Mon"
+       },
+       {
+        "c": "Fri · Sat · Sun"
+       },
+       {
+        "c": "Fri · Sat · Sun"
+       },
+       {
+        "c": "Thu"
+       }
+      ]
+     },
+     {
+      "title": "⬇️ From Châtillon to Malpensa",
+      "cols": [
+       "Leaves Châtillon",
+       "Arrives Malpensa",
+       "Days"
+      ],
+      "rows": [
+       {
+        "c": "Fri · Sat · Sun"
+       },
+       {
+        "c": "Fri · Sat · Sun"
+       },
+       {
+        "c": "Mon"
+       },
+       {
+        "c": "Fri · Sat · Sun"
+       },
+       {
+        "c": "Fri · Sat · Sun"
+       },
+       {
+        "c": "Thu"
+       }
+      ]
+     }
+    ],
+    "collapse_tables": "The full timetable"
+   },
+   {
+    "id": "lineablu",
+    "title": "Châtillon ⇄ Cervinia — the timetable",
+    "lead": "Ten trips a day in each direction, every day of the week. The stop in Châtillon is the railway station, and the stop in Cervinia is Breuil Terminal Bus in the village centre.",
+    "tables": [
+     {
+      "title": "⬆️ From Châtillon to Cervinia",
+      "cols": [
+       "Leaves",
+       "Arrives"
+      ]
+     },
+     {
+      "title": "⬇️ From Cervinia to Châtillon",
+      "cols": [
+       "Leaves",
+       "Arrives"
+      ]
+     }
+    ],
+    "notes": [
+     {
+      "text": "🗓️ <b>On Sundays and holidays</b> exactly the same trips, with two small differences: the 17:30 departure leaves at 17:40, and the 6:25 from Cervinia arrives at 7:25."
+     },
+     {
+      "text": "🎒 <b>On school days</b> extra trips run via Torgnon and so take longer. Up at 6:20 (arrives 7:50), and then the 7:00 trip does not run. Down, an extra bus leaves at exactly the same minute as the regular one — 13:05 and 16:15 — but reaches Châtillon at 14:35 and 17:45 instead of 14:05 and 17:15."
+     },
+     {
+      "text": "⏱️ Most trips take an hour. Three take longer because they make an extra loop: 13:35 and 17:30 up, and 6:25 down — about 65 to 70 minutes. The last bus up leaves at 19:30 and the last down at 20:30; if you land late you will need a transfer."
+     },
+     {
+      "text": "🎫 <b>€3.30</b> each way. The timetable is valid from 10 September 2026."
+     }
+    ],
+    "collapse_tables": "The full timetable"
+   },
+   {
+    "id": "car",
+    "title": "Hire car — what to insist on when booking",
+    "lead": "Three things to settle when you book: insurance that cancels the excess, snow chains, and a petrol car if you can.",
+    "notes": [
+     {
+      "text": "🛡️ <b>Excess-waiver insurance — a must, not an extra.</b> Many companies \"find\" a small scratch here and there on return, and charge hundreds of euros of the excess for it. The best cover is the rental company's own — but it is expensive. <b>The cheapest: as an add-on to your travel insurance.</b> Buying it through the search engine (such as <bdi>DiscoverCars</bdi>) is the same or worse, and usually more expensive. <b>From experience:</b> with <bdi>AIG</bdi> a claim is easy, and the refund arrives within a few days, with no excess."
+     },
+     {
+      "text": "⛓️ <b>Snow chains — they are what always works.</b> The law in the valley is satisfied by chains in the car or winter tyres. Chains are usually included at no extra cost during the compulsory period (at <bdi>Noleggiare</bdi> in every car; at <bdi>Italy Car Rent</bdi> for €10 a day). Make sure they are in the boot, and that the size on the box matches the size on the tyre wall."
+     },
+     {
+      "text": "❄️ <b>Winter tyres — almost none.</b> Few companies rent cars with winter tyres, and at a hefty price (for example the <bdi>WT</bdi> categories at <bdi>Sicily by Car</bdi>, or a supplement of up to €22.20 a day at <bdi>Locauto</bdi>). If you can — great, but you still need chains: in deep snow and on the steep climb they always work, and winter tyres are not always enough."
+     },
+     {
+      "text": "🔧 <b>You will fit the chains yourself.</b> Practise once in the hotel car park, or at least watch the <a href=\"https://www.snowchains.com/fitting-snow-chains\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a4b8c;text-decoration:underline;\">fitting videos</a> before the trip — there is a video for every type of chain, and a hire car usually comes with the manual type. Not something to learn in the dark, in the snow, at the side of the road."
+     },
+     {
+      "text": "🎿 <b>Ski rack</b> — ask for it when you book, at least 24 hours ahead, for a one-off charge for the whole rental. Not every car can take one."
+     },
+     {
+      "text": "⛽ <b>Fuel:</b> <bdi>benzina</bdi> is petrol, <bdi>gasolio</bdi> is diesel. Wrong fuel is not covered by the insurance. <b>If you have the choice, take petrol</b> — ordinary diesel freezes on a cold mountain night, and the engine will not start."
+     },
+     {
+      "text": "🥶 <b>In a diesel car:</b> on the way up fill with <bdi>gasolio artico</bdi> (a separate pump, good to <bdi dir=\"ltr\">-20°C</bdi>), or before the cold night add <bdi>antigelo gasolio</bdi> as the bottle instructs. If the car will no longer start — do not keep cranking; move it somewhere warm and wait. <span style=\"color:#8a5a00;\">⚠️ Never pour petrol into a diesel tank.</span>"
+     }
+    ],
+    "links": [
+     {
+      "label": "🎥 Snow-chain fitting videos ↗"
+     },
+     {
+      "label": "🚗 Search for a hire car"
+     }
+    ]
+   },
+   {
+    "id": "rentaldesks",
+    "title": "Rental desks — hours and traps",
+    "lead": "<b>None of the four airports has a desk open 24 hours.</b> Land at night without arranging it in advance — and you find a closed door.",
+    "tables": [
+     {
+      "title": "When the desks close",
+      "cols": [
+       "Airport",
+       "Closes",
+       "Watch out for"
+      ],
+      "rows": [
+       {
+        "a": "Milan Malpensa T1"
+       },
+       {
+        "a": "Milan Linate"
+       },
+       {
+        "a": "Turin",
+        "c": "On Sunday some close at 20:00"
+       },
+       {
+        "a": "Bergamo",
+        "c": "The car is in car park P3, not at the terminal"
+       }
+      ]
+     }
+    ],
+    "notes": [
+     {
+      "text": "⚠️ <b>Turin is the risky one, and it is the closest to the valley.</b> On Sunday Avis and Maggiore close at 20:00, and Hertz there is closed between 15:00 and 18:00 on Saturday and Sunday. A flight landing on Sunday afternoon may meet a closed desk."
+     },
+     {
+      "text": "🏢 <b>A desk inside the terminal</b> — Sicily by Car at all four airports; Italy Car Rent at Malpensa, Turin and Bergamo; Sixt and Locauto at Malpensa and Linate; Avis at Malpensa; Hertz and Sixt at Turin. These are the companies that need no shuttle."
+     },
+     {
+      "text": "🇮🇹 <b>Italy Car Rent</b> — a desk in the arrivals hall at three of the airports: Malpensa (Terminal 1, floor -1), Turin and Bergamo. It has no branch at Linate. The hours are <b>08:00–23:00 every day</b> — at Malpensa a narrower window than the others, which open at 07:00 and close at midnight."
+     },
+     {
+      "text": "🚌 <b>At Bergamo a desk in the terminal does not mean the car is there.</b> With Sixt, Locauto and Noleggiare the desk is in arrivals but the car is collected from car park P3, by shuttle. The shuttle's own hours are not published."
+     },
+     {
+      "text": "📞 <b>Noleggiare at Malpensa is outside the airport</b>, in Somma Lombardo. The shuttle is free but comes only once you phone it — and a pick-up after opening hours costs €50."
+     }
+    ]
+   },
+   {
+    "id": "carprices",
+    "title": "What it really costs",
+    "lead": "One real comparison, for the same dates and the same airport, because a price list alone says little.",
+    "tables": [
+     {
+      "title": "Five days at Malpensa, 10–15 January 2027",
+      "cols": [
+       "Company and car",
+       "5 days",
+       "Winter equipment"
+      ],
+      "rows": [
+       {
+        "a": "Italy Car Rent · Astra SW or Tipo SW",
+        "c": "Chains €10 a day"
+       },
+       {
+        "a": "Sicily by Car · Cupra Leon SW"
+       },
+       {
+        "a": "Sicily by Car · the same car with winter tyres",
+        "c": "Winter tyres fitted"
+       }
+      ]
+     }
+    ],
+    "notes": [
+     {
+      "text": "💡 <b>From experience, not from a price list:</b> the local companies usually come out cheaper than the international ones, and it pays to compare before you book. Among the international ones, <b>Alamo</b> is the one that competes with them on price — but note where it sits: at Malpensa it is at Terminal 2, in the rental area by the railway station and not in the arrivals hall, and a pick-up outside opening hours costs €43.20 there. It has no branch at Turin or Bergamo."
+     },
+     {
+      "text": "🔎 <b>The figures in the table come from a real search</b> made on 23 October 2026 for the same dates and the same airport. Italy Car Rent's price is the list price; with the discount code they publish it drops to about €129. A compact car with them starts at €103, and at Sicily by Car at €212."
+     }
+    ]
+   },
+   {
+    "id": "winter",
+    "title": "The law in winter, and the road up",
+    "notes": [
+     {
+      "text": "📅 <b>15 October to 15 April</b> — in the Aosta Valley winter tyres <u>or</u> chains in the car are compulsory. A month earlier than the rest of Italy. The fine: <b>€87–€344</b>."
+     },
+     {
+      "text": "🔎 <b>If you did get winter tyres:</b> the <b>M+S</b> mark satisfies the law, but the tyre that really grips in snow is the one carrying <b>the snowflake inside a mountain (3PMSF)</b>. Even with it — the chains stay in the boot."
+     },
+     {
+      "text": "⛰️ <b>On the road up to Cervinia (SR46) the sign decides.</b> The published order applies to the state roads in the valley; up the mountain the instruction is on the sign at the roadside. Chains in the boot settle the question in advance."
+     },
+     {
+      "text": "🚧 <b>In heavy snow the road closes.</b> The closure is decided by the local avalanche commission, and traffic moves in escorted convoys at set times. Leave a margin before a flight."
+     },
+     {
+      "text": "📻 <b>Before you go up</b> — live road conditions on <a href=\"https://www.regione.vda.it/varie/infomobilita_i.aspx\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a4b8c;text-decoration:underline;\">the Aosta Valley traffic website</a>, in the <bdi>ViaVDA</bdi> app, or by phone on 0165231243."
+     },
+     {
+      "text": "🚫 <b>ZTL in the village.</b> The centre of Breuil-Cervinia is closed to cars and watched by cameras at four gates. Give the hotel the hire car's registration number before you arrive — the hotel registers it for the dates of your stay. The fines are paid by the renter, not the rental company."
+     }
+    ],
+    "links": [
+     {
+      "label": "🚦 Road conditions in the area"
+     }
+    ]
+   },
+   {
+    "id": "swissdrive",
+    "title": "By car across the border — Switzerland and France",
+    "notes": [
+     {
+      "text": "🌍 <b>Every rental company has its own rule, and France and Switzerland are treated alike.</b><br>• <bdi>Noleggiare</bdi> — any trip out of Italy, France included, requires buying a service called the <bdi>Cross Border Card</bdi>.<br>• <bdi>Locauto</bdi> — allows the whole EU and Switzerland too, at no extra charge, but forbids returning the car outside Italy.<br>• <bdi>Sicily by Car</bdi> — France and Switzerland are on the list of permitted countries. The binding list is the one printed on the first page of the contract, so read it at the desk.<br>• <bdi>Italy Car Rent</bdi> — a <bdi>Cross-border</bdi> supplement is bought at the desk at pick-up, and you must declare the trip in advance.<br>• At any other company — the binding terms are in the rental conditions on the company's website. Check them before you book."
+     },
+     {
+      "text": "⚠️ <b>Crossing the border without declaring it voids the insurance and the roadside assistance.</b> That holds at all four companies, and it is the clause that surprises people after something has happened."
+     },
+     {
+      "text": "🛣️ <b>Switzerland — a motorway vignette, CHF 40.</b> Sold electronically by registration number on the via.admin.ch portal, at the official price and with no fees. Driving without one: a CHF 200 fine plus the vignette. <b>In a hire car — ask at the desk whether there is already a vignette</b>, because most of the Italian fleet has none."
+     },
+     {
+      "text": "🗓️ <b>Watch the year.</b> The 2026 vignette is valid until 31 January 2027. A trip in February, March or April needs the 2027 vignette, on sale from the beginning of December. In a hire car — check the windscreen first, there may already be one."
+     },
+     {
+      "text": "🚇 <b>The Great St Bernard Pass is closed in winter</b> and opens in June. In the season you go through the tunnel: <b>€33.50</b> each way, €53.50 return within 30 days. On the Italian side you pay in euros only, on the Swiss side in francs."
+     },
+     {
+      "text": "📄 <b>Leaving Italy requires the rental company's approval in advance</b>, and usually a fee too. Ask for it to be written into the contract, and make sure the insurance stays valid across the border."
+     },
+     {
+      "text": "🛞 Switzerland has no legal requirement for winter tyres — but a driver involved in an accident without suitable equipment bears the responsibility, and the insurance may reduce the cover."
+     },
+     {
+      "text": "🇫🇷 <b>France — no motorway vignette</b>, you pay tolls on the road itself. A <bdi>Crit'Air</bdi> sticker is not needed for a private car on the way from Aosta through the Mont Blanc tunnel to Chamonix — the restrictions in the Arve valley apply to lorries; on pollution days the speed limit is lowered."
+     },
+     {
+      "text": "❄️ <b>In France, 1 November to 31 March</b> — throughout the <bdi>Haute-Savoie</bdi> department, Chamonix included, winter tyres marked <b>3PMSF</b> are compulsory, or chains or snow socks in the car. Note that the dates and the marking are not the same as in Italy."
+     }
+    ]
+   }
+  ],
+  "footer": "The prices and fares here were checked against the official sources in October 2026. Before travelling, it is worth confirming a timetable or fare on the official page — see 'Sources and reliability'.",
+  "planner": {
+   "title": "🛬🛫 When you arrive and when you go back",
+   "lead": "Fill in the arrival, the return, or just one of them — and we will show what is possible at exactly those hours.",
+   "airports": [
+    {
+     "id": "mxp",
+     "name": "Milan Malpensa"
+    },
+    {
+     "id": "lin",
+     "name": "Milan Linate",
+     "no_bus": "There is no bus line from Linate airport. By public transport you first get to Lampugnano station in Milan (the red metro line), and from there a bus to Châtillon."
+    },
+    {
+     "id": "trn",
+     "name": "Turin",
+     "no_bus": "There is no bus line from Turin airport. The bus to Châtillon leaves from the city-centre stops — Porta Susa and Porta Nuova — which you reach from the airport by train or the airport bus."
+    },
+    {
+     "id": "bgy",
+     "name": "Bergamo",
+     "no_bus": "There is no bus line from Bergamo to the valley. By public transport you first get to Milan, and from there a bus to Châtillon."
+    }
+   ],
+   "lines": {
+    "mxp": {
+     "name": "Bus Malpensa → Châtillon"
+    },
+    "blu": {
+     "name": "Linea Blu — Châtillon → Cervinia"
+    },
+    "mxp_down": {
+     "name": "Bus Châtillon → Malpensa"
+    },
+    "blu_down": {
+     "name": "Linea Blu — Cervinia → Châtillon"
+    }
+   },
+   "freetext": {
+    "label": "Or write it in words",
+    "placeholder": "Landing at Malpensa on 10 January at 15:00, flying back on 15 January at 4 in the morning",
+    "hint": "Picks out the airport, date, time and number of travellers from an ordinary sentence.",
+    "missing": {
+     "airport": "I did not recognise an airport",
+     "date": "I did not recognise a date",
+     "time": "I did not recognise a time"
+    },
+    "fail": "I could not read the sentence. You can fill it in by hand below, or try for example: landing at Malpensa on 10 January at 14:00"
+   },
+   "taxi": "🚕 <b>But a taxi is still possible.</b> About 28 km up the valley. In Châtillon: <bdi>Taxi Dufour</bdi> 0166 61467 or 340 8262390, and <bdi>Taxi Lavalle</bdi> 0166 61330. In Valtournenche and Cervinia: <bdi>Ski Taxi</bdi> 338 8739115. There is no official published fare for this route — agree a price by phone before you get in, and book ahead rather than look for a rank at that hour. <a href=\"https://www.cervinia.it/en/ospitalita-servizi/taxi\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a4b8c;text-decoration:underline;\">The full official list</a>."
+  }
  }
 }

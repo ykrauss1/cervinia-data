@@ -34,7 +34,14 @@ function setLang(l) {
 // Static markup: the English sits beside the Hebrew as attributes.
 function _i18nStatic(root) {
   if (window.LANG !== 'en') return;
-  (root || document).querySelectorAll('[data-en],[data-en-title],[data-en-placeholder],[data-en-aria-label],[data-en-ph]').forEach(function (e) {
+  var SEL = '[data-en],[data-en-title],[data-en-placeholder],[data-en-aria-label],[data-en-ph]';
+  var list = Array.prototype.slice.call((root || document).querySelectorAll(SEL));
+  if (root && root.matches && root.matches(SEL)) list.unshift(root);
+  list.forEach(function (e) {
+    // once only: an element that code later moves, or fills itself, must not
+    // be put back to its starting text when it lands somewhere else
+    if (e.hasAttribute('data-en-done')) return;
+    e.setAttribute('data-en-done', '');
     var v;
     if ((v = e.getAttribute('data-en')) != null) e.innerHTML = v;
     if ((v = e.getAttribute('data-en-title')) != null) e.title = v;
@@ -51,8 +58,21 @@ function langBtn() {
   // a phone has no tooltip, so the "soon" is said on the tap
   uiAlert('האתר באנגלית יעלה בקרוב · English coming soon');
 }
+// Markup that code builds later can carry data-en too: in English every
+// element added to the page is translated on arrival.
+// It starts only once the page is parsed: while the parser is still
+// writing, an element arrives before its own text does, and translating it
+// then would leave the Hebrew to be appended after the English.
 document.addEventListener('DOMContentLoaded', function () {
   _i18nStatic();
+  if (window.LANG === 'en' && window.MutationObserver) {
+    new MutationObserver(function (muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var add = muts[i].addedNodes;
+        for (var j = 0; j < add.length; j++) if (add[j].nodeType === 1) _i18nStatic(add[j]);
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  }
   var lb = document.getElementById('lang-btn');
   if (lb && window.LANG !== 'en' && !LANG_OPEN) lb.classList.add('soon');
 
@@ -3524,7 +3544,7 @@ what counts.">
     <!-- Seven tips is the longest block here, and none of them is the reason
          anyone opened the panel. Folded, like the price table. -->
     <details class="fold" style="margin-bottom:14px;background:#fffbf0;border-color:#fde8a0;">
-      <summary style="color:#7a5a00;">💡 טיפים להשכרה</summary>
+      <summary style="color:#7a5a00;" data-en="💡 Rental tips">💡 טיפים להשכרה</summary>
       <div class="fold-body">
         <!-- Booking ahead is a tip like the others (Yossi, 11.11), the
              first of them; it keeps its own line that opens the reason. -->
@@ -3534,7 +3554,7 @@ what counts.">
       <details style="background:#fff4ec;border:1.5px solid #ffd2b5;border-radius:10px;
                padding:9px 13px;margin-bottom:10px;background:#fff;">
         <summary id="rental-booking-summary" style="cursor:pointer;list-style:none;
-                 font-size:0.85rem;font-weight:bold;color:#7a2e00;">
+                 font-size:0.85rem;font-weight:bold;color:#7a2e00;" data-en="🔴 At the height of the season, book ahead.&lt;span style=&quot;font-weight:normal;font-size:0.76rem;color:#9a5a33;&quot;&gt;&amp;nbsp; why ▾&lt;/span&gt;">
           🔴 בשיא העונה הזמינו מראש.<span style="font-weight:normal;font-size:0.76rem;color:#9a5a33;">&nbsp; למה ▾</span>
         </summary>
         <div id="rental-booking-warning" style="font-size:0.78rem;line-height:1.75;font-weight:normal;color:#7a2e00;margin-top:7px;"></div>
@@ -3546,7 +3566,7 @@ what counts.">
 
     <!-- Local recommended shops — FIRST -->
     <div style="border-top:1px solid #eee;padding-top:14px;margin-bottom:14px;">
-      <div id="rental-shops-village-title" style="font-size:0.85rem;font-weight:bold;margin-bottom:10px;">🏪 חנויות השכרה בצ'רוויניה</div>
+      <div id="rental-shops-village-title" style="font-size:0.85rem;font-weight:bold;margin-bottom:10px;" data-en="🏪 Rental shops in Cervinia">🏪 חנויות השכרה בצ'רוויניה</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
 
         <!-- La Genzianella -->
@@ -3554,7 +3574,11 @@ what counts.">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <div style="font-weight:bold;font-size:0.92rem;">🎿 Genzianella Sport</div>
           </div>
-          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;" data-en="📍 &lt;b&gt;Piazzale Funivie 14&lt;/b&gt;&lt;br&gt;
+            ☎ &lt;a href=&quot;tel:+390166550102&quot; style=&quot;color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;0166 550102&lt;/a&gt;&lt;br&gt;
+            The only shop right in front of the gondola, about 50 metres from the ticket offices. It publishes a full price list and has heated lockers.
+            &lt;div style=&quot;font-size:0.74rem;color:#777;margin-top:4px;&quot;&gt;🕐 08:30–12:30 · 14:30–18:30 · weekends 08:00–18:30 straight through&lt;br&gt;
+            &lt;b&gt;Note: closed at midday.&lt;/b&gt; Hours from Google — check on the map.&lt;/div&gt;">
             📍 <b>Piazzale Funivie 14</b><br>
             ☎ <a href="tel:+390166550102" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 550102</a><br>
             החנות היחידה שנמצאת ממש לפני הגונדולה, כ-50 מטר מהקופות. מפרסמת מחירון מלא, ויש בה לוקרים מחוממים.
@@ -3563,7 +3587,7 @@ what counts.">
           </div>
           <div style="display:flex;gap:8px;">
             <a href="https://www.genzianellasport.it/it/listini.html" target="_blank"
-              style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
+              style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🌐 Website">🌐 אתר</a>
             <a href="https://maps.app.goo.gl/TKUJSWwpcx5RKFzY9" target="_blank"
               style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
           </div>
@@ -3574,7 +3598,11 @@ what counts.">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <div style="font-weight:bold;font-size:0.92rem;">🎿 Ski 2.0</div>
           </div>
-          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;" data-en="📍 &lt;b&gt;Via Carrel 2&lt;/b&gt;, Breuil-Cervinia&lt;br&gt;
+            ☎ &lt;a href=&quot;tel:+390166691210&quot; style=&quot;color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;0166 691210&lt;/a&gt;&lt;br&gt;
+            They describe themselves as ski-in / ski-out, meaning that on days with good snow you ski right up to the door.
+            Downstairs there are heated lockers — €8 a day for a locker that holds the equipment of two adults.
+            &lt;div style=&quot;font-size:0.74rem;color:#777;margin-top:4px;&quot;&gt;🕐 08:00–19:00 straight through, according to their website.&lt;/div&gt;">
             📍 <b>Via Carrel 2</b>, Breuil-Cervinia<br>
             ☎ <a href="tel:+390166691210" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 691210</a><br>
             מגדירים את עצמם כ-ski-in / ski-out, כלומר בימים עם שלג טוב מגיעים עד הדלת בגלישה.
@@ -3589,7 +3617,7 @@ what counts.">
            modal with a download link. -->
                     <div style="display:flex;gap:8px;">
             <a href="https://nolski.it/20skirental" target="_blank"
-              style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
+              style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🌐 Website">🌐 אתר</a>
             <a href="https://maps.app.goo.gl/M7SWb5vQ2xorhEVcA" target="_blank"
               style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
           </div>
@@ -3601,9 +3629,13 @@ what counts.">
         <div style="padding:13px 15px;border:1.5px solid #e0e0e0;border-radius:11px;background:#f9f9f9;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <div style="font-weight:bold;font-size:0.92rem;">🎿 Cervinia Ski Service</div>
-            <span style="background:#2ecc71;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;">⭐ מומלץ</span>
+            <span style="background:#2ecc71;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;" data-en="⭐ Recommended">⭐ מומלץ</span>
           </div>
-          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;" data-en="📍 &lt;b&gt;Via J. B. Bich 7&lt;/b&gt;&lt;br&gt;
+            ☎ &lt;a href=&quot;tel:+393398511092&quot; style=&quot;color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;339 851 1092&lt;/a&gt;&lt;br&gt;
+            Opposite the Cretaz chairlift — the closest to the lift of all the village shops.
+            &lt;div style=&quot;font-size:0.74rem;color:#777;margin-top:4px;&quot;&gt;🕐 08:30–18:00 straight through, midday too · weekends until 18:30&lt;br&gt;
+            Hours from Google — check on the map.&lt;/div&gt;">
             📍 <b>Via J. B. Bich 7</b><br>
             ☎ <a href="tel:+393398511092" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">339 851 1092</a><br>
             ממול לכיסאות Cretaz — הקרובה ביותר לרכבל מכל חנויות הכפר.
@@ -3619,7 +3651,12 @@ what counts.">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <div style="font-weight:bold;font-size:0.92rem;">🎿 Noleggio Cretaz</div>
           </div>
-          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;" data-en="📍 &lt;b&gt;Via J. B. Bich 15&lt;/b&gt;&lt;br&gt;
+            ☎ &lt;a href=&quot;tel:+390166949484&quot; style=&quot;color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;0166 949484&lt;/a&gt;&lt;br&gt;
+            Also opposite the Cretaz chairlift, a few doors from the previous one. This is Genzianella Sport&#x27;s second branch —
+            the same prices and the same advance booking, in a smaller shop, with heated lockers.
+            &lt;div style=&quot;font-size:0.74rem;color:#777;margin-top:4px;&quot;&gt;🕐 08:30–12:20 · 14:30–18:00 · weekends 08:00–18:30 straight through&lt;br&gt;
+            &lt;b&gt;Closed at midday.&lt;/b&gt; Hours from Google — check on the map.&lt;/div&gt;">
             📍 <b>Via J. B. Bich 15</b><br>
             ☎ <a href="tel:+390166949484" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 949484</a><br>
             גם היא מול כיסאות Cretaz, כמה דלתות מהקודמת. זהו הסניף השני של Genzianella Sport —
@@ -3628,7 +3665,7 @@ what counts.">
             <b>סגורה בצהריים.</b> שעות לפי Google — בדקו במפה.</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <a href="https://www.genzianellasport.it/it/noleggio/cretaz.html" target="_blank" rel="noopener" style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 אתר</a>
+            <a href="https://www.genzianellasport.it/it/noleggio/cretaz.html" target="_blank" rel="noopener" style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🌐 Website">🌐 אתר</a>
             <a href="https://www.google.com/maps/search/Noleggio%20Cretaz%20Cervinia/@45.9373101,7.6305618,17z" target="_blank" rel="noopener" style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
           </div>
         </div>
@@ -3638,9 +3675,19 @@ what counts.">
         <div style="padding:13px 15px;border:1.5px solid #cfe3ff;border-radius:11px;background:#f6faff;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <div style="font-weight:bold;font-size:0.92rem;">🎿 Adriano Sport — Plan Maison</div>
-            <span style="background:#1a73e8;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;">⛰️ על ההר</span>
+            <span style="background:#1a73e8;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;" data-en="⛰️ On the mountain">⛰️ על ההר</span>
           </div>
-          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;">
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;" data-en="📍 &lt;b&gt;Plan Maison 1&lt;/b&gt; — inside the gondola&#x27;s arrival station, 2,555 m&lt;br&gt;
+            ☎ &lt;a href=&quot;tel:+390166949220&quot; style=&quot;color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;0166 949220&lt;/a&gt;&lt;br&gt;
+            &lt;b&gt;The advantage:&lt;/b&gt; you ride the gondola up at ease in ordinary shoes,
+            change at the top, and at the end of the day leave the equipment there and go down to the village in your shoes —
+            and carry on wherever you like, with no ski boots and no skis to carry through the street.&lt;br&gt;
+            &lt;b&gt;Two drawbacks, both from the same thing — the equipment is up top:&lt;/b&gt;&lt;br&gt;
+            • When the gondola is closed by wind there is no access to the equipment at all. Even if Valtournenche is open that day, you cannot get there.&lt;br&gt;
+            • You must end every day at Plan Maison and ride the gondola down. You cannot ski to the village on the last run,
+            and you cannot sit at an après-ski and then ski down — the gondola stops before the skiing ends.
+            &lt;div style=&quot;font-size:0.74rem;color:#777;margin-top:4px;&quot;&gt;🕐 Opens at 09:00, according to the shop&#x27;s management.
+            In any case it cannot be reached before the first gondola at 08:30.&lt;/div&gt;">
             📍 <b>Plan Maison 1</b> — בתוך תחנת ההגעה של הגונדולה, 2,555 מ׳<br>
             ☎ <a href="tel:+390166949220" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 949220</a><br>
             <b>היתרון:</b> עולים לגונדולה בנחת בנעליים רגילות,
@@ -3663,8 +3710,8 @@ what counts.">
 
     <!-- Shops on the way from Milan — SECOND -->
     <div style="border-top:1px solid #eee;padding-top:14px;">
-      <div id="rental-shops-way-title" style="font-size:0.82rem;font-weight:bold;margin-bottom:6px;">🚗 חנויות ציוד בדרך ממילאנו</div>
-      <div id="rental-shops-way-sub" style="font-size:0.75rem;color:#888;margin-bottom:10px;">לכפפות, גוגלס, ביגוד תרמי, קסדה וכל השלמות — <b>הרבה יותר זול מהכפר</b></div>
+      <div id="rental-shops-way-title" style="font-size:0.82rem;font-weight:bold;margin-bottom:6px;" data-en="🚗 Gear shops on the way from Milan">🚗 חנויות ציוד בדרך ממילאנו</div>
+      <div id="rental-shops-way-sub" style="font-size:0.75rem;color:#888;margin-bottom:10px;" data-en="For gloves, goggles, thermals, a helmet and everything else — &lt;b&gt;much cheaper than in the village&lt;/b&gt;">לכפפות, גוגלס, ביגוד תרמי, קסדה וכל השלמות — <b>הרבה יותר זול מהכפר</b></div>
       <div id="rental-shops-way-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
 
 
@@ -3672,20 +3719,74 @@ what counts.">
          for at the counter. It lives here rather than with the shopping list
          for exactly that reason. -->
     <div style="border-top:1px solid #eee;padding-top:14px;margin-top:14px;">
-      <div style="font-size:0.82rem;font-weight:bold;margin-bottom:8px;">🎿 מה לבקש בדלפק — ומה ההבדל בין דגם לדגם</div>
+      <div style="font-size:0.82rem;font-weight:bold;margin-bottom:8px;" data-en="🎿 What to ask for at the counter — and the difference between models">🎿 מה לבקש בדלפק — ומה ההבדל בין דגם לדגם</div>
     <!-- ══ the heavy gear, in three ══
          This was one fold: three phone screens of prose behind a single
          summary, the longest run anywhere on the site. Opening it to look
          up pole length meant scrolling past the whole buckling procedure.
          Three folds, each about a screen, and the one somebody actually
          wants is the one they open. -->
-    <div style="font-size:0.78rem;color:#6b7f93;margin:2px 0 7px;">
+    <div style="font-size:0.78rem;color:#6b7f93;margin:2px 0 7px;" data-en="The heavy gear is rented, so the question is not what to buy but what to ask for at the counter.">
       את הציוד הכבד שוכרים, ולכן השאלה אינה מה לקנות אלא מה לבקש בדלפק.
     </div>
 
     <details class="fold" style="margin-bottom:10px;">
-      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-skiboots"/></svg>מגפיים — הפריט היחיד שבאמת קובע</summary>
-      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-skiboots"/></svg><span data-en="Boots — the one item that really decides">מגפיים — הפריט היחיד שבאמת קובע</span></summary>
+      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="A boot that does not fit ruins a ski day more than anything else, and a boot that fits is worth more than any ski upgrade.
+        &lt;br&gt;&lt;b&gt;Flex&lt;/b&gt; — the stiffness. 60–80 soft, for beginners and children · 85–100 medium ·
+        110–130 advanced · 130 and up for racing. A boot that is too stiff does not bend at all under a beginner&#x27;s leg,
+        and the leg simply cannot tip the ski.
+        &lt;br&gt;&lt;b&gt;Width&lt;/b&gt; (Last), in millimetres: 98 narrow · 100–102 average · 104 and up wide.
+        A wide foot in a narrow boot hurts after an hour.
+        &lt;br&gt;&lt;b&gt;Size&lt;/b&gt; is measured in Mondopoint — the length of the foot in centimetres, not a shoe size.
+        &lt;br&gt;&lt;b&gt;What to ask for:&lt;/b&gt; come to the counter &lt;b&gt;in your ski socks&lt;/b&gt;, and ask them to check the fit
+        with your foot in the shell without the liner. A boot that is too big feels comfortable in the shop and gives no control on the slope.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;How to buckle the boot — and why the order matters&lt;/div&gt;
+        Most of the pain, cold and numbness of a ski day come not from the boot but from how it was buckled.
+        &lt;br&gt;&lt;b&gt;1. Open everything.&lt;/b&gt; All the buckles and the top strap fully open.
+        &lt;br&gt;&lt;b&gt;2. Step in standing, not sitting.&lt;/b&gt; Pull the tongue forward and to the side, put the
+        toes in and then the heel, and bend the knee forward. Sitting, the foot does not go all the way in.
+        &lt;br&gt;&lt;b&gt;3. Seat the heel.&lt;/b&gt; Stand, and tap your heel on the floor until it settles into the heel
+        pocket at the back. A heel that has not settled pushes the toes forward all day — and that is the pain
+        most people blame on a boot that is too small.
+        &lt;br&gt;&lt;b&gt;4. Buckle from the top down.&lt;/b&gt; First the two shin buckles, and only then the two
+        over the foot. Buckling from the bottom locks the foot where it happens to be, and the heel
+        will not go back.
+        &lt;br&gt;&lt;b&gt;5. The top buckles — tight.&lt;/b&gt; Closing them should take a little effort. If you are fighting
+        them, they are too tight. &lt;b&gt;The second buckle from the top matters most&lt;/b&gt; — it holds the heel
+        in place.
+        &lt;br&gt;&lt;b&gt;6. The top strap&lt;/b&gt; (Power strap) is pulled after the top buckles, equally
+        tight.
+        &lt;br&gt;&lt;b&gt;7. The buckles over the foot — loose.&lt;/b&gt; Their job is only to close the boot. Nerves and blood vessels run
+        over the top of the foot, and tightening there is the most common cause of cold toes
+        and numbness. The front one is the loosest of all.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;Trousers — over the boot, always&lt;/div&gt;
+        This is the most common mistake, and you see it on every slope: trousers tucked &lt;b&gt;into&lt;/b&gt; the boot.
+        &lt;br&gt;The trousers go down &lt;b&gt;over&lt;/b&gt; the boot and cover it. At the bottom of the trousers there is an inner cuff with elastic
+        (Inner gaiter) — that is what goes inside and sits on the boot shell, while the outer fabric stays
+        outside. That way the snow slides off the boot and not into it.
+        &lt;br&gt;&lt;b&gt;Trousers tucked into the boot&lt;/b&gt; do exactly the opposite: they make a funnel that leads snow straight
+        to the sock, crease the fabric under the buckles and create pressure points that hurt after an hour.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;The test that says you buckled it right&lt;/div&gt;
+        Standing upright, the toes lightly touch the end of the boot. Bending forward, in a skiing stance, they
+        draw back a little. If the toes are already pressed when you stand upright — the heel has not settled, or the boot
+        is small. If the foot wobbles inside — the top buckles are too loose.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;During the day&lt;/div&gt;
+        • &lt;b&gt;In the morning, do not tighten all the way.&lt;/b&gt; A cold foot cramps. Tighten after the first or
+        second run, once the liner has settled around the foot.&lt;br&gt;
+        • &lt;b&gt;On breaks and long lift rides — release only the two lower buckles&lt;/b&gt;, without
+        unhooking them. The blood comes back, and they close again in a second. Opening the boot completely
+        makes the foot swell, and then it is hard to get back in.&lt;br&gt;
+        • &lt;b&gt;Fine adjustment:&lt;/b&gt; the buckle screws. Clockwise tightens, anticlockwise
+        loosens. That way you adjust by half a notch instead of jumping a whole tooth.&lt;br&gt;
+        • &lt;b&gt;Only the sock goes inside the boot.&lt;/b&gt; Not long thermal underwear and not a second sock.&lt;br&gt;
+        • &lt;b&gt;The boot does not spend the night in the cold&lt;/b&gt; — not in the car and not in a shed. A cold boot in the morning is a cold day.
+        &lt;div style=&quot;margin-top:10px;&quot;&gt;
+          &lt;a href=&quot;https://www.youtube.com/watch?v=cb23npAnJDc&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;
+             style=&quot;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;
+                    border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;
+                    font-size:0.8rem;font-weight:bold;&quot;&gt;▶️ Demonstration video (5:36)&lt;/a&gt;
+        &lt;/div&gt;">
         מגף לא מתאים הורס יום סקי יותר מכל דבר אחר, ומגף מתאים שווה יותר מכל שדרוג של מגלשיים.
         <br><b>פלקס</b> (Flex) — מידת הקשיחות. 60–80 רך, למתחילים ולילדים · 85–100 בינוני ·
         110–130 מתקדם · 130 ומעלה תחרותי. מגף קשיח מדי לא נכפף בכלל ברגל של מתחיל,
@@ -3762,8 +3863,30 @@ what counts.">
     </details>
 
     <details class="fold" style="margin-bottom:10px;">
-      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-skipair"/></svg>מגלשיים, קשירה ומקלות</summary>
-      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-skipair"/></svg><span data-en="Skis, bindings and poles">מגלשיים, קשירה ומקלות</span></summary>
+      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="&lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;Skis&lt;/div&gt;
+        &lt;b&gt;Length&lt;/b&gt; relative to your height: beginner — up to the chin · intermediate — up to the nose · advanced — from the forehead up.
+        A shorter ski is easier to turn and less stable at speed.
+        &lt;br&gt;&lt;b&gt;Width underfoot&lt;/b&gt;: 70–85 mm for groomed slopes · 85–100 for the whole mountain ·
+        100 and up for powder. In Cervinia, a piste resort, 75–90 covers almost everything.
+        &lt;br&gt;&lt;b&gt;Turn radius&lt;/b&gt;: 11–14 m short turns · 15–18 general · 19 and up wide, fast turns.
+        &lt;br&gt;&lt;b&gt;Camber and rocker&lt;/b&gt;: camber is the upward arch in the middle — it is what digs the edge into hard snow.
+        Rocker is the rise of the tip — it makes starting a turn and floating in powder easier, and forgives mistakes.
+        A beginner ski combines tip rocker for exactly this reason.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;The binding — the DIN&lt;/div&gt;
+        The number that sets the force at which the boot releases from the ski in a fall. It is worked out from weight, height, age,
+        level and the boot sole length.
+        &lt;br&gt;&lt;b&gt;Never adjust it yourself.&lt;/b&gt; Too high — the foot does not release and the knee takes it.
+        Too low — the ski releases in the middle of a turn. Tell the technician your weight and level honestly.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;Poles&lt;/div&gt;
+        Hold the pole upside down, below the basket: the elbow should be at 90 degrees. That is the right height.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;Basic, advanced or pro — is it worth the difference&lt;/div&gt;
+        &lt;b&gt;For a beginner:&lt;/b&gt; no. An advanced ski is stiffer, needs more strength and speed to bend,
+        and at low speed it simply does not work. The basic grade will give a better day.
+        &lt;br&gt;&lt;b&gt;For an intermediate who skis all day:&lt;/b&gt; yes, and you feel the difference — stability at speed and grip on the edge.
+        &lt;br&gt;&lt;b&gt;At any level:&lt;/b&gt; with rented equipment, what matters most is &lt;b&gt;the state of maintenance&lt;/b&gt;, not the model.
+        A ski with a sharpened edge and fresh wax grips completely differently from one that has done thirty rental days without care.
+        It is fine, and right, to ask to swap a pair whose edge feels round to the touch.">
         <div style="font-weight:bold;color:#16314f;margin-top:11px;">מגלשיים</div>
         <b>אורך</b> ביחס לגובה: מתחיל — עד גובה הסנטר · בינוני — עד האף · מתקדם — מהמצח ומעלה.
         מגלש קצר יותר קל להסתובב איתו ופחות יציב במהירות.
@@ -3793,8 +3916,41 @@ what counts.">
       </div>
     </details>
     <details class="fold" style="margin-bottom:10px;">
-      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-snowboard"/></svg>סנובורד — מה שונה</summary>
-      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-snowboard"/></svg><span data-en="Snowboard — what is different">סנובורד — מה שונה</span></summary>
+      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="Everything else on this page holds for snowboarding too: the same helmet, the same insurance, the same goggles, the same clothing.
+        Only the heavy equipment and two pieces of protection differ.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;The difference in learning — and it matters if you go just once&lt;/div&gt;
+        On skis the first two days are relatively easy, and then progress slows. On a snowboard the first two days
+        are hard and frustrating — you fall a lot — and from the third day progress is fast.
+        &lt;br&gt;&lt;b&gt;Someone going for four days or less who has never skied will get further on skis.&lt;/b&gt;
+        Someone going for a week, or meaning to come back, will enjoy the snowboard.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;Two items with no equivalent in skiing&lt;/div&gt;
+        • &lt;b&gt;Wrist guards.&lt;/b&gt; The most common snowboard fracture is at the wrist — you fall
+        forward and stop with your hands. Cheap, and they go under the glove. Do not skip them in the first two days.&lt;br&gt;
+        • &lt;b&gt;Padded shorts&lt;/b&gt; (impact shorts) — padding on the bottom and tailbone. The first two days
+        are a series of backward landings.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;Front foot&lt;/div&gt;
+        &lt;b&gt;Regular&lt;/b&gt; — left foot forward. &lt;b&gt;Goofy&lt;/b&gt; — right foot forward. The shop will ask you.
+        If you do not know: ask someone to push you lightly from behind and see which foot steps out first.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;The board&lt;/div&gt;
+        &lt;b&gt;Length&lt;/b&gt; is set mainly by &lt;b&gt;weight&lt;/b&gt;, not height. Stood beside the body,
+        the tip reaches roughly between the chin and the nose. Shorter — easy to turn, less stable at speed.
+        &lt;br&gt;&lt;b&gt;Width:&lt;/b&gt; shoe size 44 and up needs a &lt;b&gt;wide&lt;/b&gt; board. Otherwise toe and heel
+        stick out past the edge and catch the snow in the middle of a turn.
+        &lt;br&gt;&lt;b&gt;Stiffness&lt;/b&gt; (flex 1–10): 3–5 soft, for beginners and the park · 6–7 medium ·
+        8 and up stiff, for speed.
+        &lt;br&gt;&lt;b&gt;Camber and rocker:&lt;/b&gt; a beginner board combines rocker — the ends are raised, the edge catches less
+        by mistake, and there are fewer falls. Full camber grips better on ice and needs technique.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;Boots and bindings&lt;/div&gt;
+        The boots are much softer than ski boots and are sized like an ordinary shoe — and here too &lt;b&gt;one sock&lt;/b&gt;.
+        &lt;b&gt;BOA&lt;/b&gt; closure (a dial) is quick and even; laces are cheap and allow a different tension at the top and bottom.
+        &lt;br&gt;The common bindings are &lt;b&gt;strap-in&lt;/b&gt; (two straps). There are also &lt;b&gt;rear-entry&lt;/b&gt; ones
+        that open at the back — quicker to get into, especially in cold and snow.
+        &lt;br&gt;Stance angle for a beginner: about 15 degrees forward and 15 back (duck) — comfortable in both directions.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;And what nobody tells you in advance&lt;/div&gt;
+        &lt;b&gt;Drag lifts and T-bars are hard on a snowboard.&lt;/b&gt; You stand on one foot with the board at an angle
+        and hold on all the way up. Chairlifts and gondolas are no problem.
+        &lt;br&gt;And there are no poles — but there is a lot of walking with one foot strapped in, pushing with the free foot.">
         כל השאר בעמוד הזה נכון גם לסנובורד: אותה קסדה, אותו ביטוח, אותם גוגלס, אותו ביגוד.
         שונים רק הציוד הכבד ושני פריטי מיגון.
 
@@ -3840,8 +3996,19 @@ what counts.">
 
 
 <details class="fold" style="margin-bottom:10px;">
-      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-helmet"/></svg>קסדה</summary>
-      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+      <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-helmet"/></svg><span data-en="Helmet">קסדה</span></summary>
+      <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="Required by law at every age, with a CE mark — see above. You can rent a helmet cheaply in the village,
+        and for most families that is the right choice.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;If you buy one anyway&lt;/div&gt;
+        &lt;b&gt;In-mold&lt;/b&gt; — the shell and the foam are moulded together. Light and ventilated, less resistant to repeated knocks.
+        &lt;br&gt;&lt;b&gt;Hard shell&lt;/b&gt; (ABS) — a separate hard shell. Heavier, tougher.
+        &lt;br&gt;&lt;b&gt;Rotational protection&lt;/b&gt; (MIPS and the like) — an inner layer that lets the helmet move a little
+        relative to the head in an angled blow. That is the common kind of head injury in skiing.
+        &lt;br&gt;&lt;b&gt;EN 1077 standard:&lt;/b&gt; class A also covers the ears and protects more, class B is more open and cooler.
+        &lt;div style=&quot;font-weight:bold;color:#16314f;margin-top:11px;&quot;&gt;Fit&lt;/div&gt;
+        The helmet should sit snugly without pressing, and not move when you shake your head before closing the strap.
+        Try it on &lt;b&gt;together with the goggles&lt;/b&gt;.
+        &lt;br&gt;A helmet that has taken a significant blow is replaced, even if it looks intact — the foam crushes only once.">
         חובה בחוק לכל הגילים, עם סימון CE — ראו למעלה. אפשר לשכור קסדה בכפר בזול,
         ולרוב המשפחות זו הבחירה הנכונה.
 
@@ -7779,7 +7946,7 @@ function _renderGearShops() {
       + 'text-decoration:none;font-size:0.76rem;font-weight:bold;direction:ltr;">\u260E ' + escHtml(sh.tel) + '</a>');
     if (sh.map) btns.push('<a href="' + sh.map + '" target="_blank" rel="noopener" '
       + 'style="padding:5px 11px;background:#f1f5fa;color:#1a73e8;border-radius:7px;'
-      + 'text-decoration:none;font-size:0.76rem;font-weight:bold;">\u{1F5FA} מפה</a>');
+      + 'text-decoration:none;font-size:0.76rem;font-weight:bold;">\u{1F5FA} ' + L('מפה', 'Map') + '</a>');
     btns.push('<a href="' + sh.url + '" target="_blank" rel="noopener" '
       + 'style="padding:5px 11px;background:#1a73e8;color:white;border-radius:7px;'
       + 'text-decoration:none;font-size:0.76rem;font-weight:bold;">\u{1F310} אתר</a>');
@@ -8865,17 +9032,17 @@ function zcPlans(N, Z) {
       var key = n + ',' + z;
       if (key in memo) return memo[key];
       var best = null;
-      for (var L = 1; L <= Math.min(4, n); L++) {
-        for (var k = 0; k <= Math.min(L, z); k++) {
+      for (var Lr = 1; Lr <= Math.min(4, n); Lr++) {
+        for (var k = 0; k <= Math.min(Lr, z); k++) {
           // a run of days is a Cervinia pass (+ the supplement on its Zermatt
           // days) or, when it holds Zermatt days, an international pass
-          var opts = L === 1 ? [{ c: k ? I(1) : C(1), t: k ? 'i' : 'c' }]
-                             : [{ c: C(L) + k * sup, t: 'c' }].concat(k ? [{ c: I(L), t: 'i' }] : []);
-          var rest = f(n - L, z - k);
+          var opts = Lr === 1 ? [{ c: k ? I(1) : C(1), t: k ? 'i' : 'c' }]
+                             : [{ c: C(Lr) + k * sup, t: 'c' }].concat(k ? [{ c: I(Lr), t: 'i' }] : []);
+          var rest = f(n - Lr, z - k);
           if (!rest) continue;
           opts.forEach(function (o) {
             if (!best || o.c + rest.cost < best.cost)
-              best = { cost: o.c + rest.cost, parts: [{ L: L, k: k, t: o.t }].concat(rest.parts) };
+              best = { cost: o.c + rest.cost, parts: [{ L: Lr, k: k, t: o.t }].concat(rest.parts) };
           });
         }
       }
@@ -9098,7 +9265,7 @@ function _costCar() {
         + (pax <= 2 ? '1–2' : '3–8') + ' נוסעים · מחירון המפעיל המקומי בכרטיס התחבורה' };
   }
   if (way === 'bus') {
-    var L = pl && pl.lines, a = L && L.mxp && L.mxp.price, b2 = L && L.blu && L.blu.price;
+    var Lp = pl && pl.lines, a = Lp && Lp.mxp && Lp.mxp.price, b2 = Lp && Lp.blu && Lp.blu.price;
     if (!a || !b2 || !pax) return { min: null, max: null, note: 'הזינו את מחיר הנסיעה' };
     var per = (a + b2) * 2;
     return { min: per * pax, max: per * pax,
@@ -10133,8 +10300,8 @@ function sharePost(postId) {
 
   function hcLoc(i) {
     if (!_locCache[i]) {
-      var L = LOCATIONS[i], h = hc();
-      _locCache[i] = new h.Location(L.lat, L.lon, false, L.tz, L.name, L.cc, null, L.elev);
+      var Lc = LOCATIONS[i], h = hc();
+      _locCache[i] = new h.Location(Lc.lat, Lc.lon, false, Lc.tz, Lc.name, Lc.cc, null, Lc.elev);
     }
     return _locCache[i];
   }
@@ -10182,7 +10349,7 @@ function sharePost(postId) {
 
   // כל מה שצריך לדעת על יום אחד
   function dayInfo(jsDate, locIdx) {
-    var h = hc(), f = h.flags, L = LOCATIONS[locIdx];
+    var h = hc(), f = h.flags, Lc = LOCATIONS[locIdx];
     var hd = new h.HDate(jsDate);
     var z  = new h.Zmanim(hcLoc(locIdx), jsDate, true);
     var dow = jsDate.getDay();
@@ -10208,39 +10375,39 @@ function sharePost(postId) {
     var isFast  = isMajor || isMinor;
 
     var o = {
-      date: jsDate, dow: dow, hd: hd, tz: L.tz,
+      date: jsDate, dow: dow, hd: hd, tz: Lc.tz,
       hebDate: hd.renderGematriya(true, true) + ' ' + h.gematriya(hd.getFullYear() % 1000),
       names: shown, special: special,
       isShabbat: isShabbat, isFriday: isFriday, isChag: isChag,
       isErev: isErev, isChm: isChm, isFast: isFast,
-      sunrise: fmt(z.sunrise(), L.tz, 'near'),
-      sunset:  fmt(z.sunset(),  L.tz, 'near'),
+      sunrise: fmt(z.sunrise(), Lc.tz, 'near'),
+      sunset:  fmt(z.sunset(),  Lc.tz, 'near'),
       candle: null, candleTzeis: false, havdalah: null, rt: null,
       fastStart: null, fastEnd: null, fastLabel: null
     };
 
     // הדלקת נרות
     if (isFriday || (mask & f.LIGHT_CANDLES)) {
-      o.candle = fmt(z.sunsetOffset(-CANDLE_MIN, false), L.tz, 'down');
+      o.candle = fmt(z.sunsetOffset(-CANDLE_MIN, false), Lc.tz, 'down');
     } else if (mask & f.LIGHT_CANDLES_TZEIS) {
-      o.candle = fmt(z.tzeit(TZEIT_DEG), L.tz, 'up');
+      o.candle = fmt(z.tzeit(TZEIT_DEG), Lc.tz, 'up');
       o.candleTzeis = true;
     }
     // יציאת שבת / חג — לא בערב שבת, ששם היום נכנס לשבת
     if (!isFriday && (isShabbat || (mask & f.YOM_TOV_ENDS))) {
-      o.havdalah = fmt(z.tzeit(TZEIT_DEG), L.tz, 'up');
-      o.rt       = fmt(z.sunsetOffset(RT_MIN, false), L.tz, 'up');
+      o.havdalah = fmt(z.tzeit(TZEIT_DEG), Lc.tz, 'up');
+      o.rt       = fmt(z.sunsetOffset(RT_MIN, false), Lc.tz, 'up');
     }
     // צומות
     if (isMinor) {
-      o.fastStart = fmt(z.alotHaShachar(), L.tz, 'down');
-      o.fastEnd   = fmt(z.tzeit(TZEIT_DEG), L.tz, 'up');
+      o.fastStart = fmt(z.alotHaShachar(), Lc.tz, 'down');
+      o.fastEnd   = fmt(z.tzeit(TZEIT_DEG), Lc.tz, 'up');
       o.fastLabel = 'עלות השחר';
     } else if (isMajor && isErev) {
-      o.fastStart = fmt(z.sunset(), L.tz, 'down');
+      o.fastStart = fmt(z.sunset(), Lc.tz, 'down');
       o.fastLabel = 'שקיעה';
     } else if (isMajor) {
-      o.fastEnd = fmt(z.tzeit(TZEIT_DEG), L.tz, 'up');
+      o.fastEnd = fmt(z.tzeit(TZEIT_DEG), Lc.tz, 'up');
     }
     return o;
   }
@@ -10267,25 +10434,25 @@ function sharePost(postId) {
 
   // זמני היום של today
   function todayZmanim(locIdx) {
-    var h = hc(), L = LOCATIONS[locIdx], now = midnight(new Date());
+    var h = hc(), Lc = LOCATIONS[locIdx], now = midnight(new Date());
     var z = new h.Zmanim(hcLoc(locIdx), now, true);
     // שתי שיטות לסוף זמן קריאת שמע ותפילה:
     // מג״א — היום מעלות השחר (72 דק') ועד צאת הכוכבים (72 דק')
     // גר״א — היום מהנץ עד השקיעה
     return [
-      { t: 'עלות השחר',     v: fmt(z.alotHaShachar(), L.tz, 'down') },
-      { t: 'זריחה',          v: fmt(z.sunrise(), L.tz, 'near') },
+      { t: 'עלות השחר',     v: fmt(z.alotHaShachar(), Lc.tz, 'down') },
+      { t: 'זריחה',          v: fmt(z.sunrise(), Lc.tz, 'near') },
       { t: 'סוף זמן ק״ש',   pair: [
-          ['מג״א', fmt(z.sofZmanShmaMGA(), L.tz, 'down')],
-          ['גר״א', fmt(z.sofZmanShma(),    L.tz, 'down')] ] },
+          ['מג״א', fmt(z.sofZmanShmaMGA(), Lc.tz, 'down')],
+          ['גר״א', fmt(z.sofZmanShma(),    Lc.tz, 'down')] ] },
       { t: 'סוף זמן תפילה', pair: [
-          ['מג״א', fmt(z.sofZmanTfillaMGA(), L.tz, 'down')],
-          ['גר״א', fmt(z.sofZmanTfilla(),    L.tz, 'down')] ] },
-      { t: 'חצות היום',      v: fmt(z.chatzot(), L.tz, 'near') },
-      { t: 'מנחה גדולה',     v: fmt(z.minchaGedola(), L.tz, 'up') },
-      { t: 'פלג המנחה',      v: fmt(z.plagHaMincha(), L.tz, 'near') },
-      { t: 'שקיעה',          v: fmt(z.sunset(), L.tz, 'near') },
-      { t: 'צאת הכוכבים',   v: fmt(z.tzeit(TZEIT_DEG), L.tz, 'up') }
+          ['מג״א', fmt(z.sofZmanTfillaMGA(), Lc.tz, 'down')],
+          ['גר״א', fmt(z.sofZmanTfilla(),    Lc.tz, 'down')] ] },
+      { t: 'חצות היום',      v: fmt(z.chatzot(), Lc.tz, 'near') },
+      { t: 'מנחה גדולה',     v: fmt(z.minchaGedola(), Lc.tz, 'up') },
+      { t: 'פלג המנחה',      v: fmt(z.plagHaMincha(), Lc.tz, 'near') },
+      { t: 'שקיעה',          v: fmt(z.sunset(), Lc.tz, 'near') },
+      { t: 'צאת הכוכבים',   v: fmt(z.tzeit(TZEIT_DEG), Lc.tz, 'up') }
     ];
   }
 
@@ -10304,7 +10471,7 @@ function sharePost(postId) {
       return;
     }
     if (locIdx !== undefined && LOCATIONS[locIdx]) currentLocIdx = locIdx;
-    var L = LOCATIONS[currentLocIdx];
+    var Lc = LOCATIONS[currentLocIdx];
 
     try {
       var today = midnight(new Date());
@@ -10411,8 +10578,8 @@ function sharePost(postId) {
         + '<div style="font-weight:bold;font-size:1rem;">' + _candles() + ' ' + esc(satTitle) + '</div>'
         + '<div style="font-size:0.76rem;color:#888;margin-top:2px;">' + esc(satInfo.hebDate) + ' · ' + satStr + '</div>'
         + '</div>'
-        + '<div style="text-align:left;font-size:0.72rem;color:#888;white-space:nowrap;">⛰️ ' + L.elev + 'm<br>'
-        + L.lat.toFixed(2) + '°N</div>'
+        + '<div style="text-align:left;font-size:0.72rem;color:#888;white-space:nowrap;">⛰️ ' + Lc.elev + 'm<br>'
+        + Lc.lat.toFixed(2) + '°N</div>'
         + '</div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
         + '<div style="padding:10px;background:white;border-radius:9px;text-align:center;">'
@@ -10437,7 +10604,7 @@ function sharePost(postId) {
         // זמני היום
         + '<div style="border-radius:10px;overflow:hidden;border:1px solid #eee;margin-bottom:14px;">'
         + '<div style="background:#0a192f;color:white;padding:7px 12px;font-size:0.8rem;font-weight:bold;">'
-        + '🕊️ זמני היום · ' + esc(L.name) + '</div>'
+        + '🕊️ זמני היום · ' + esc(Lc.name) + '</div>'
         + '<div style="padding:9px;background:#f7f9fb;">' + zmGrid + '</div>'
         + '</div>'
 
@@ -10458,7 +10625,7 @@ function sharePost(postId) {
 
         // הערת מקור
         + '<div style="margin-top:10px;font-size:0.67rem;color:#b0bec5;line-height:1.6;text-align:center;">'
-        + 'כניסת שבת ' + CANDLE_MIN + ' דק\' לפני השקיעה הנראית בגובה ' + L.elev + ' מ\' · '
+        + 'כניסת שבת ' + CANDLE_MIN + ' דק\' לפני השקיעה הנראית בגובה ' + Lc.elev + ' מ\' · '
         + 'צאת הכוכבים ' + TZEIT_DEG + '° · ר"ת ' + RT_MIN + ' דק\'<br>'
         + 'חישוב: @hebcal/core · להלכה למעשה יש לברר אצל רב המקום.</div>';
     } catch (err) {
@@ -11734,7 +11901,7 @@ function _pisteCard(p, col) {
     + (function () {
         if (!p.map && !p.trail && !p.geo) return '';
         var btn = 'display:inline-flex;align-items:center;gap:4px;font-size:0.74rem;text-decoration:none;padding:4px 9px;border-radius:6px;';
-        var L = [];
+        var Lb = [];
         var mapIsUrl = p.map && /^https?:\/\//.test(p.map);
         if (p.trail && p.mapy) {
           // Every run carries Mapy's own object id, so the link opens the run
@@ -11747,13 +11914,13 @@ function _pisteCard(p, col) {
             u += '&x=' + encodeURIComponent(c[0].trim())
                + '&y=' + encodeURIComponent(c[1].trim()) + '&z=16';
           }
-          L.push('<a href="' + u + '" target="_blank" rel="noopener" style="' + btn
+          Lb.push('<a href="' + u + '" target="_blank" rel="noopener" style="' + btn
             + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">'
-            + '⛷️ המסלול על המפה</a>');
+            + L('⛷️ המסלול על המפה', '⛷️ The slope on the map') + '</a>');
         }
         if (mapIsUrl && /google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
-          L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
-            + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">📍 במפה</a>');
+          Lb.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
+            + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">' + L('📍 במפה', '📍 On the map') + '</a>');
         } else if (p.geo || (p.map && !mapIsUrl)) {
           // "נקודת היציאה" read either way - the end of the run, or how to
           // get to it. It meant neither: it is where the run STARTS, which
@@ -11762,22 +11929,22 @@ function _pisteCard(p, col) {
           // a map at all.
           var sp = _startPlace(p), mp = p.trail ? _mapyPoint(p.start_latlon || p.latlon) : '';
           if (mp) {
-            L.push('<a href="' + mp + '" target="_blank" rel="noopener" style="' + btn
+            Lb.push('<a href="' + mp + '" target="_blank" rel="noopener" style="' + btn
               + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">'
-              + '🚩 תחילת המסלול'
+              + L('🚩 תחילת המסלול', '🚩 Start of the slope')
               + (sp ? ' · <bdi dir="ltr">' + esc(sp) + '</bdi>' : '') + '</a>');
           } else {
-            L.push('<a href="' + _gUrl(p.geo || p.map, p.latlon || p.start_latlon)
+            Lb.push('<a href="' + _gUrl(p.geo || p.map, p.latlon || p.start_latlon)
               + '" target="_blank" rel="noopener" style="' + btn
               + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">'
               + _gLabel(p.xy_approx) + '</a>');
           }
         }
         if (mapIsUrl && !/google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
-          L.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
-            + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">🌐 אתר</a>');
+          Lb.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
+            + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">🌐 ' + L('אתר', 'Website') + '</a>');
         }
-        return L.length ? '<div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;">' + L.join('') + '</div>' : '';
+        return Lb.length ? '<div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;">' + Lb.join('') + '</div>' : '';
       })()
     + '</div>';
 }
@@ -12095,17 +12262,17 @@ function renderKosherList(id, places, city) {
       + (p.kashrut ? '<div style="font-size:0.74rem;color:#2d6a4f;margin-bottom:5px;">✔️ ' + p.kashrut + '</div>' : '')
       + (p.phone ? '<div style="font-size:0.77rem;margin-bottom:4px;">☎ ' + _telLink(p.phone) + '</div>' : '')
       + (function () {
-          var L = [];
-          if (p.url) L.push('<a href="' + p.url + '" target="_blank" rel="noopener" style="font-size:0.77rem;color:#1a73e8;">🌐 אתר</a>');
+          var Lb = [];
+          if (p.url) Lb.push('<a href="' + p.url + '" target="_blank" rel="noopener" style="font-size:0.77rem;color:#1a73e8;">🌐 ' + L('אתר', 'Website') + '</a>');
           if (p.map || p.addr || city) {
             // p.map holds the name Google itself returned when the entry was
             // checked; p.xy holds where it put it
             var q = p.map || (String(p.name || '').replace(/^[^A-Za-z\u0590-\u05FF]+/, '')
                   + (p.addr ? ', ' + p.addr : '') + (city ? ', ' + city : ''));
-            L.push('<a href="' + _gUrl(q, p.latlon) + '" target="_blank" rel="noopener" '
+            Lb.push('<a href="' + _gUrl(q, p.latlon) + '" target="_blank" rel="noopener" '
               + 'style="font-size:0.77rem;color:#1a73e8;">' + _gLabel(p.xy_approx) + '</a>');
           }
-          return L.length ? '<div style="display:flex;gap:14px;margin-top:2px;">' + L.join('') + '</div>' : '';
+          return Lb.length ? '<div style="display:flex;gap:14px;margin-top:2px;">' + Lb.join('') + '</div>' : '';
         })()
       + warn
       + '</div>';
@@ -14022,7 +14189,7 @@ function _startPlace(o) {
 
 // an approximate pin says so, rather than claiming a precision we do not have
 function _gLabel(approx) {
-  return approx ? '\ud83d\udccd האזור במפה' : '\ud83d\udccd במפה';
+  return approx ? L('\ud83d\udccd האזור במפה', '\ud83d\udccd The area on the map') : L('\ud83d\udccd במפה', '\ud83d\udccd On the map');
 }
 
 // The Zermatt briefing. The one field that matters is the last ascent back
@@ -14437,6 +14604,11 @@ function _nextRun(line, dow, notBefore) {
 }
 
 function _waitHe(m) {
+  if (window.LANG === 'en') {
+    if (m < 60) return m + ' min';
+    var he = Math.floor(m / 60), re = m % 60;
+    return (he === 1 ? '1 hour' : he + ' hours') + (re ? ' ' + re + ' min' : '');
+  }
   if (m < 60) return m + ' דקות';
   var h = Math.floor(m / 60), r = m % 60;
   var hs = h === 1 ? 'שעה' : (h === 2 ? 'שעתיים' : h + ' שעות');
@@ -14474,6 +14646,9 @@ function openCarSearch() {
 var _AP_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי',
                   'אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 var _AP_DOW    = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+var _AP_MONTHS_EN = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+var _AP_DOW_EN = ['sun','mon','tues?','wed(?:nes)?','thu(?:rs)?','fri','sat(?:ur)?'];
+var _AP_WORDNUM_EN = { one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8 };
 var _AP_WORDNUM = { 'אחד':1,'שניים':2,'שני':2,'שתיים':2,'שלושה':3,'שלוש':3,'ארבעה':4,'ארבע':4,
                     'חמישה':5,'חמש':5,'שישה':6,'שש':6,'שבעה':7,'שבע':7,'שמונה':8 };
 
@@ -14487,8 +14662,12 @@ function _apParse(txt, pl) {
               outDate: null, outTime: null };
   var today = new Date();
 
-  // airport, by any of the names the content file lists for it
-  var al = ft.aliases || {};
+  // airport, by any of the names the content file lists for it - and, in
+  // any language, by its English name or code
+  var al = {};
+  var _alSrc = ft.aliases || {};
+  var _alEn = { mxp: ['malpensa', 'mxp'], lin: ['linate', 'lin'], trn: ['turin', 'torino', 'caselle', 'trn'], bgy: ['bergamo', 'orio', 'bgy'] };
+  Object.keys(_alSrc).forEach(function (id) { al[id] = (_alSrc[id] || []).concat(_alEn[id] || []); });
   Object.keys(al).forEach(function (id) {
     if (out.airport) return;
     (al[id] || []).forEach(function (w) {
@@ -14497,18 +14676,21 @@ function _apParse(txt, pl) {
   });
 
   // how many are travelling
-  var px = t.match(/(\d{1,2})\s*(?:נוסעים|אנשים|איש|מבוגרים|passengers|people|adults|pax)/i);
+  var px = t.match(/(\d{1,2})\s*(?:נוסעים|אנשים|איש|מבוגרים|passengers|people|persons|adults|pax|of us)/i);
   if (px) out.pax = +px[1];
   if (!out.pax) {
     Object.keys(_AP_WORDNUM).forEach(function (w) {
       if (!out.pax && new RegExp(w + '\\s*(נוסעים|אנשים|איש)').test(t)) out.pax = _AP_WORDNUM[w];
+    });
+    Object.keys(_AP_WORDNUM_EN).forEach(function (w) {
+      if (!out.pax && new RegExp('\\b' + w + '\\s*(passengers|people|persons|adults|of us)', 'i').test(t)) out.pax = _AP_WORDNUM_EN[w];
     });
   }
 
   // A sentence often holds both legs: "landing on the 10th... coming back on
   // the 15th". Everything after the word that starts the return belongs to
   // the return, everything before it to the arrival.
-  var back = t.search(/(חוזר(?:ים|ת)?|חזרה|חזור|טיסה הביתה|return|flying back)/);
+  var back = t.search(/(חוזר(?:ים|ת)?|חזרה|חזור|טיסה הביתה|return|flying back|fly back|flying home|going back|coming back|back on|departing)/i);
   var head = back > -1 ? t.slice(0, back) : t;
   var tail = back > -1 ? t.slice(back) : '';
   var first = _apParseWhen(head, today);
@@ -14537,18 +14719,24 @@ function _apParseWhen(t, today) {
   if (!out.date) {
     for (var i = 0; i < 12 && !out.date; i++) {
       var mm = t.match(new RegExp('(\\d{1,2})\\s*ב?' + _AP_MONTHS[i]));
+      // English: "10 January", "10th of Jan", "January 10"
+      var en = _AP_MONTHS_EN[i];
+      var me = t.match(new RegExp('(\\d{1,2})(?:st|nd|rd|th)?\\s*(?:of\\s+)?' + en, 'i'))
+            || t.match(new RegExp(en + '[a-z]*\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b', 'i'));
+      mm = mm || me;
       if (mm) { out.date = _apDateFrom(+mm[1], i + 1, null, today); rest = rest.replace(mm[0], ' '); }
     }
   }
   if (!out.date) {
     var W = function (w) { return new RegExp('(?:^|[\\s,.-])' + w + '(?:[\\s,.]|$)').test(t); };
-    if (W('היום'))         out.date = _apShift(today, 0);
-    else if (W('מחרתיים')) out.date = _apShift(today, 2);
-    else if (W('מחר'))     out.date = _apShift(today, 1);
+    if (W('היום') || /\btoday\b/i.test(t))         out.date = _apShift(today, 0);
+    else if (W('מחרתיים') || /day after tomorrow/i.test(t)) out.date = _apShift(today, 2);
+    else if (W('מחר') || /\btomorrow\b/i.test(t))     out.date = _apShift(today, 1);
   }
   if (!out.date) {
     for (var j = 0; j < 7 && !out.date; j++) {
-      if (new RegExp('(ביום|יום|ב)\\s?' + _AP_DOW[j] + '(\\s|,|$)').test(t)) {
+      if (new RegExp('(ביום|יום|ב)\\s?' + _AP_DOW[j] + '(\\s|,|$)').test(t)
+          || new RegExp('\\b(on\\s+)?' + _AP_DOW_EN[j] + '(day)?\\b', 'i').test(t)) {
         var add = (j - today.getDay() + 7) % 7;
         out.date = _apShift(today, add === 0 ? 7 : add);
       }
@@ -14561,6 +14749,17 @@ function _apParseWhen(t, today) {
   if (tm) {
     out.time = _apPad(Math.min(23, +tm[1])) + ':' + _apPad(Math.min(59, +tm[2]));
   } else {
+    // English: "at 3 pm", "3am", "at 15", "4 in the morning"
+    var te = rest.match(/(?:\bat\s*)?(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.|in the morning|in the afternoon|in the evening|at night|o'clock)/i)
+          || rest.match(/\bat\s+(\d{1,2})\b(?!\s*[:\/.]?\d)/i);
+    if (te) {
+      var he2 = +te[1], we = (te[2] || '').toLowerCase();
+      if (/pm|p\.m\.|afternoon|evening|night/.test(we) && he2 < 12) he2 += 12;
+      if (/am|a\.m\./.test(we) && he2 === 12) he2 = 0;
+      if (he2 >= 0 && he2 <= 23) out.time = _apPad(he2) + ':00';
+    }
+  }
+  if (!out.time) {
     var th = rest.match(new RegExp('(?:בשעה|ב-|ב)\\s*(\\d{1,2})\\s*(' + PERIOD + ')?(?!\\s*[:\\/.]?\\d)'))
           || rest.match(new RegExp('(\\d{1,2})\\s*(' + PERIOD + ')'));
     if (th) {
@@ -14604,13 +14803,13 @@ function runArrivalText() {
   set('ap-pax', r.pax);
 
   var gaps = [];
-  if (!r.airport) gaps.push(miss.airport || 'שדה תעופה');
+  if (!r.airport) gaps.push(miss.airport || L('שדה תעופה', 'Airport'));
   var gotIn  = r.date && r.time, gotOut = r.outDate && r.outTime;
-  if (!gotIn && !gotOut) gaps.push(miss.date || 'תאריך ושעה');
+  if (!gotIn && !gotOut) gaps.push(miss.date || L('תאריך ושעה', 'Date and time'));
   if (say) {
     say.style.display = gaps.length ? 'block' : 'none';
     say.innerHTML = gaps.length
-      ? _aEsc(gaps.join(' · ')) + '. השלימו למטה ולחצו על החיפוש.' : '';
+      ? _aEsc(gaps.join(' · ')) + L('. השלימו למטה ולחצו על החיפוש.', '. Fill in below and press search.') : '';
   }
   if (!gaps.length) planTrip();
 }
@@ -14645,35 +14844,35 @@ function renderArrivalPlanner(pl) {
           + '<button type="button" onclick="runArrivalText()" style="width:100%;margin-top:6px;'
             + 'padding:8px;background:white;color:#1a3a6c;border:1.5px solid #9dc0e4;'
             + 'border-radius:8px;font-size:0.79rem;font-weight:bold;cursor:pointer;'
-            + 'font-family:inherit;">↵ תקראו את זה בשבילי</button>'
+            + 'font-family:inherit;">' + L('↵ תקראו את זה בשבילי', '↵ Read it for me') + '</button>'
         + '</div>'
         : '')
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;">'
-      + _apField('שדה תעופה',
+      + _apField(L('שדה תעופה', 'Airport'),
           '<select id="ap-airport" style="' + F + '">' + opts + '</select>')
-      + _apField('נוסעים',
+      + _apField(L('נוסעים', 'Travellers'),
           '<input type="number" id="ap-pax" value="2" min="1" max="8" style="' + F + '">')
     + '</div>'
-    + '<div style="font-size:0.74rem;color:#1a3a6c;font-weight:bold;margin:2px 0 4px;">🛬 הגעה</div>'
+    + '<div style="font-size:0.74rem;color:#1a3a6c;font-weight:bold;margin:2px 0 4px;">' + L('🛬 הגעה', '🛬 Arrival') + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;">'
-      + _apField('תאריך נחיתה', '<input type="date" id="ap-date" style="' + F + '">')
-      + _apField('שעת נחיתה', '<input type="time" id="ap-time" style="' + F + '">')
+      + _apField(L('תאריך נחיתה', 'Landing date'), '<input type="date" id="ap-date" style="' + F + '">')
+      + _apField(L('שעת נחיתה', 'Landing time'), '<input type="time" id="ap-time" style="' + F + '">')
     + '</div>'
-    + '<div style="font-size:0.74rem;color:#1a3a6c;font-weight:bold;margin:2px 0 4px;">🛫 חזרה</div>'
+    + '<div style="font-size:0.74rem;color:#1a3a6c;font-weight:bold;margin:2px 0 4px;">' + L('🛫 חזרה', '🛫 Return') + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">'
-      + _apField('תאריך הטיסה חזרה', '<input type="date" id="dp-date" style="' + F + '">')
-      + _apField('שעת הטיסה', '<input type="time" id="dp-time" style="' + F + '">')
+      + _apField(L('תאריך הטיסה חזרה', 'Return flight date'), '<input type="date" id="dp-date" style="' + F + '">')
+      + _apField(L('שעת הטיסה', 'Flight time'), '<input type="time" id="dp-time" style="' + F + '">')
     + '</div>'
     + '<div style="font-size:0.72rem;color:#8a95a3;margin-bottom:9px;">'
-      + 'אפשר למלא רק כיוון אחד.</div>'
+      + L('אפשר למלא רק כיוון אחד.', 'You can fill in just one direction.') + '</div>'
     + '<div style="display:flex;gap:8px;">'
       + '<button type="button" onclick="planTrip()" style="flex:1;padding:10px;'
         + 'background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;'
-        + 'font-weight:bold;cursor:pointer;font-family:inherit;">🔎 מה האפשרויות</button>'
+        + 'font-weight:bold;cursor:pointer;font-family:inherit;">' + L('🔎 מה האפשרויות', '🔎 What are the options') + '</button>'
       + '<button type="button" id="ap-reset" onclick="resetArrival()" style="display:none;'
         + 'padding:10px 14px;background:white;color:#44536a;border:1.5px solid #cfd8e3;'
         + 'border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;'
-        + 'font-family:inherit;">נקה</button>'
+        + 'font-family:inherit;">' + L('נקה', 'Clear') + '</button>'
     + '</div>'
     + '<div id="ap-out" style="margin-top:10px;"></div>'
     + '</div>';
@@ -14683,7 +14882,9 @@ function _dow(date) {
   var p = String(date).split('-');
   return new Date(+p[0], +p[1] - 1, +p[2]).getDay();
 }
-var _AP_DAYNAMES = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+var _AP_DAYNAMES = window.LANG === 'en'
+  ? ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  : ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 
 // ── the way up ────────────────────────────────────────────────────────────
 function _legArrival(pl, ap, date, time, pax) {
@@ -14693,39 +14894,47 @@ function _legArrival(pl, ap, date, time, pax) {
 
   var line = ap.line && pl.lines ? pl.lines[ap.line] : null;
   if (!line) {
-    cards.push(_apCard('#f7f8fa', '#d8dde4', '#555', '🚌 אוטובוס',
-      ap.no_bus || ('אין קו אוטובוס ישיר מ' + ap.name + ' לשאטיון.')));
+    cards.push(_apCard('#f7f8fa', '#d8dde4', '#555', L('🚌 אוטובוס', '🚌 Bus'),
+      ap.no_bus || L('אין קו אוטובוס ישיר מ' + ap.name + ' לשאטיון.', 'There is no direct bus from ' + ap.name + ' to Châtillon.')));
   } else {
     var leg1 = _nextRun(line, dow, ready);
     if (!leg1) {
       var runsToday = (line.runs || []).filter(function (r) { return _runsOn(r, dow); });
-      cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', '🚌 אוטובוס — לא הפעם',
+      cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', L('🚌 אוטובוס — לא הפעם', '🚌 Bus — not this time'),
         runsToday.length
-          ? 'ביום ' + _AP_DAYNAMES[dow] + ' האוטובוס האחרון מ' + ap.name + ' יוצא ב-'
+          ? L('ביום ' + _AP_DAYNAMES[dow] + ' האוטובוס האחרון מ' + ap.name + ' יוצא ב-'
             + runsToday[runsToday.length - 1].dep + ', ואתם תהיו מחוץ לטרמינל רק ב-'
-            + _hhmm(ready) + '.'
-          : 'ביום ' + _AP_DAYNAMES[dow] + ' הקו הזה אינו פועל כלל.'));
+            + _hhmm(ready) + '.',
+            'On ' + _AP_DAYNAMES[dow] + ' the last bus from ' + ap.name + ' leaves at '
+            + runsToday[runsToday.length - 1].dep + ', and you will only be out of the terminal at '
+            + _hhmm(ready) + '.')
+          : L('ביום ' + _AP_DAYNAMES[dow] + ' הקו הזה אינו פועל כלל.', 'On ' + _AP_DAYNAMES[dow] + ' this line does not run at all.')));
     } else {
       var leg2 = _nextRun(pl.lines.blu, dow, _mins(leg1.arr) + (pl.connect_min || 10));
       var cost = (line.price || 0) * pax;
-      var body = '🚌 ' + leg1.dep + ' מ' + ap.name + ' ← ' + leg1.arr + ' בשאטיון';
+      var body = L('🚌 ' + leg1.dep + ' מ' + ap.name + ' ← ' + leg1.arr + ' בשאטיון',
+                   '🚌 ' + leg1.dep + ' from ' + ap.name + ' → ' + leg1.arr + ' at Châtillon');
       if (leg2) {
         busOk = true;
         cost += (pl.lines.blu.price || 0) * pax;
         busCost = cost;
         var wait = _mins(leg2.dep) - _mins(leg1.arr);
-        body += '<br>🔵 ' + leg2.dep + ' משאטיון ← <b>' + leg2.arr + " בצ'רוויניה</b>"
+        body += L('<br>🔵 ' + leg2.dep + ' משאטיון ← <b>' + leg2.arr + " בצ'רוויניה</b>"
              + '<br><span style="color:#667;">המתנה בשאטיון: ' + _waitHe(wait)
-             + ' · כ-€' + (Math.round(cost * 10) / 10) + ' ל-' + pax + ' נוסעים</span>';
+             + ' · כ-€' + (Math.round(cost * 10) / 10) + ' ל-' + pax + ' נוסעים</span>',
+             '<br>🔵 ' + leg2.dep + ' from Châtillon → <b>' + leg2.arr + ' in Cervinia</b>'
+             + '<br><span style="color:#667;">Wait at Châtillon: ' + _waitHe(wait)
+             + ' · about €' + (Math.round(cost * 10) / 10) + ' for ' + pax + ' travellers</span>');
         cards.push(wait >= 60
-          ? _apCard('#fffaf0', '#e8c488', '#8a5a00', '🚌 בתחבורה ציבורית — אבל עם המתנה', body)
-          : _apCard('#f3fbf5', '#8fcfa3', '#1d6b35', '🚌 בתחבורה ציבורית', body));
+          ? _apCard('#fffaf0', '#e8c488', '#8a5a00', L('🚌 בתחבורה ציבורית — אבל עם המתנה', '🚌 By public transport — but with a wait'), body)
+          : _apCard('#f3fbf5', '#8fcfa3', '#1d6b35', L('🚌 בתחבורה ציבורית', '🚌 By public transport'), body));
       } else {
-        body += '<br><b>אבל משם כבר אין אוטובוס למעלה באותו ערב.</b> '
-             + 'האחרון לצ\'רוויניה יוצא ב-19:35.'
+        body += L('<br><b>אבל משם כבר אין אוטובוס למעלה באותו ערב.</b> '
+             + 'האחרון לצ\'רוויניה יוצא ב-19:35.', '<br><b>But from there no bus goes up that evening.</b> '
+             + 'The last one to Cervinia leaves at 19:35.')
              + (pl.taxi ? '<br>' + pl.taxi : '');
         cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16',
-          '🚌 האוטובוס מגיע רק עד שאטיון', body));
+          L('🚌 האוטובוס מגיע רק עד שאטיון', '🚌 The bus only gets as far as Châtillon'), body));
       }
     }
   }
@@ -14736,18 +14945,22 @@ function _legArrival(pl, ap, date, time, pax) {
   if (close) {
     var slack = _mins(close) - ready;
     if (slack < 0) {
-      desk = { level: 2, text: '<b>הדלפקים נסגרים ב-' + close + ', ואתם תצאו מהטרמינל ב-'
-        + _hhmm(ready) + '. רכב שכור לא יעזור כאן אלא אם סידרתם איסוף מראש.</b>' };
+      desk = { level: 2, text: L('<b>הדלפקים נסגרים ב-' + close + ', ואתם תצאו מהטרמינל ב-'
+        + _hhmm(ready) + '. רכב שכור לא יעזור כאן אלא אם סידרתם איסוף מראש.</b>',
+        '<b>The desks close at ' + close + ', and you will leave the terminal at '
+        + _hhmm(ready) + '. A hire car will not help here unless you arranged a pick-up in advance.</b>') };
     } else if (slack < 60) {
-      desk = { level: 1, text: '<b>שימו לב: הדלפקים נסגרים ב-' + close + ', כלומר '
-        + slack + ' דקות אחרי שתצאו מהטרמינל.</b>' };
+      desk = { level: 1, text: L('<b>שימו לב: הדלפקים נסגרים ב-' + close + ', כלומר '
+        + slack + ' דקות אחרי שתצאו מהטרמינל.</b>', '<b>Note: the desks close at ' + close + ', that is '
+        + slack + ' minutes after you leave the terminal.</b>') };
     }
   }
   return {
     cards: cards, busOk: busOk, busCost: busCost, desk: desk,
     arriveBy: ready,
-    head: 'נחיתה ביום ' + _AP_DAYNAMES[dow] + ', ' + time
+    head: L('נחיתה ביום ' + _AP_DAYNAMES[dow] + ', ' + time
         + ' · יצאתם מהטרמינל בערך ב-' + _hhmm(ready),
+        'Landing on ' + _AP_DAYNAMES[dow] + ', ' + time + ' · out of the terminal at about ' + _hhmm(ready)),
     leaveBy: null
   };
 }
@@ -14769,25 +14982,27 @@ function _legDeparture(pl, ap, date, time, pax) {
   var cards = [], busOk = false, busCost = 0;
 
   if (beBy <= 0) {
-    cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', '🛫 טיסה מוקדמת מאוד',
-      'טיסה בשעה כזו מחייבת לינה ליד השדה בלילה שלפני.'));
+    cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', L('🛫 טיסה מוקדמת מאוד', '🛫 A very early flight'),
+      L('טיסה בשעה כזו מחייבת לינה ליד השדה בלילה שלפני.', 'A flight at that hour means a night near the airport before it.')));
     return { cards: cards, busOk: false, leaveBy: null,
-             head: 'טיסה ביום ' + _AP_DAYNAMES[dow] + ', ' + time };
+             head: L('טיסה ביום ' + _AP_DAYNAMES[dow] + ', ' + time, 'Flight on ' + _AP_DAYNAMES[dow] + ', ' + time) };
   }
 
   var dl = ap.line_down && pl.lines ? pl.lines[ap.line_down] : null;
   if (!dl) {
-    cards.push(_apCard('#f7f8fa', '#d8dde4', '#555', '🚌 אוטובוס',
-      ap.no_bus || ('אין קו אוטובוס ישיר משאטיון ל' + ap.name + '.')));
+    cards.push(_apCard('#f7f8fa', '#d8dde4', '#555', L('🚌 אוטובוס', '🚌 Bus'),
+      ap.no_bus || L('אין קו אוטובוס ישיר משאטיון ל' + ap.name + '.', 'There is no direct bus from Châtillon to ' + ap.name + '.')));
   } else {
     var coach = _prevRun(dl, dow, beBy);
     if (!coach) {
       var any = (dl.runs || []).filter(function (r) { return _runsOn(r, dow); });
-      cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', '🚌 אוטובוס — לא הפעם',
+      cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16', L('🚌 אוטובוס — לא הפעם', '🚌 Bus — not this time'),
         any.length
-          ? 'ביום ' + _AP_DAYNAMES[dow] + ' האוטובוס היה צריך להגיע ל' + ap.name
-            + ' עד ' + _hhmm(beBy) + ', והראשון באותו יום מגיע רק ב-' + any[0].arr + '.'
-          : 'ביום ' + _AP_DAYNAMES[dow] + ' הקו הזה אינו פועל כלל.'));
+          ? L('ביום ' + _AP_DAYNAMES[dow] + ' האוטובוס היה צריך להגיע ל' + ap.name
+            + ' עד ' + _hhmm(beBy) + ', והראשון באותו יום מגיע רק ב-' + any[0].arr + '.',
+            'On ' + _AP_DAYNAMES[dow] + ' the bus would need to reach ' + ap.name
+            + ' by ' + _hhmm(beBy) + ', and the first that day arrives only at ' + any[0].arr + '.')
+          : L('ביום ' + _AP_DAYNAMES[dow] + ' הקו הזה אינו פועל כלל.', 'On ' + _AP_DAYNAMES[dow] + ' this line does not run at all.')));
     } else {
       var blu = pl.lines.blu_down
         ? _prevRun(pl.lines.blu_down, dow, _mins(coach.dep) - (pl.connect_min || 10))
@@ -14797,33 +15012,45 @@ function _legDeparture(pl, ap, date, time, pax) {
         var cost = ((dl.price || 0) + (pl.lines.blu_down.price || 0)) * pax;
         busCost = cost;
         var wait = _mins(coach.dep) - _mins(blu.arr);
-        var body = '🔵 ' + blu.dep + " מצ'רוויניה ← " + blu.arr + ' בשאטיון'
+        var body = L('🔵 ' + blu.dep + " מצ'רוויניה ← " + blu.arr + ' בשאטיון'
           + '<br>🚌 ' + coach.dep + ' משאטיון ← <b>' + coach.arr + ' ב' + ap.name + '</b>'
           + '<br><span style="color:#667;">המתנה בשאטיון: ' + _waitHe(wait)
           + ' · כ-€' + (Math.round(cost * 10) / 10) + ' ל-' + pax + ' נוסעים'
-          + '<br>זה מותיר ' + _waitHe(_mins(time) - _mins(coach.arr)) + ' בשדה לפני הטיסה.</span>'
+          + '<br>זה מותיר ' + _waitHe(_mins(time) - _mins(coach.arr)) + ' בשדה לפני הטיסה.</span>',
+          '🔵 ' + blu.dep + ' from Cervinia → ' + blu.arr + ' at Châtillon'
+          + '<br>🚌 ' + coach.dep + ' from Châtillon → <b>' + coach.arr + ' at ' + ap.name + '</b>'
+          + '<br><span style="color:#667;">Wait at Châtillon: ' + _waitHe(wait)
+          + ' · about €' + (Math.round(cost * 10) / 10) + ' for ' + pax + ' travellers'
+          + '<br>That leaves ' + _waitHe(_mins(time) - _mins(coach.arr)) + ' at the airport before the flight.</span>')
           + (wait <= 20
-              ? '<br><span style="color:#8a5a00;">⚠️ חיבור צמוד, ובשתי תחנות שונות: '
+              ? '<br><span style="color:#8a5a00;">' + L('⚠️ חיבור צמוד, ובשתי תחנות שונות: '
                 + 'הקו המקומי מגיע לתחנת הרכבת, והאוטובוס לשדה יוצא מתחנת האוטובוסים. '
-                + 'עם ציוד סקי זה לא הרבה זמן.</span>'
+                + 'עם ציוד סקי זה לא הרבה זמן.', '⚠️ A tight connection, at two different stops: '
+                + 'the local line arrives at the railway station, and the airport bus leaves from the bus station. '
+                + 'With ski gear that is not much time.') + '</span>'
               : '');
         cards.push(wait >= 60
-          ? _apCard('#fffaf0', '#e8c488', '#8a5a00', '🚌 בתחבורה ציבורית — אבל עם המתנה', body)
-          : _apCard('#f3fbf5', '#8fcfa3', '#1d6b35', '🚌 בתחבורה ציבורית', body));
+          ? _apCard('#fffaf0', '#e8c488', '#8a5a00', L('🚌 בתחבורה ציבורית — אבל עם המתנה', '🚌 By public transport — but with a wait'), body)
+          : _apCard('#f3fbf5', '#8fcfa3', '#1d6b35', L('🚌 בתחבורה ציבורית', '🚌 By public transport'), body));
       } else {
+        var firstDown = (((pl.lines.blu_down || {}).runs || [])[0] || {}).dep;
         cards.push(_apCard('#fff6f3', '#e8a088', '#9c3b16',
-          '🚌 האוטובוס קיים — אבל לא מגיעים אליו',
-          'האוטובוס לשדה יוצא משאטיון ב-' + coach.dep
+          L('🚌 האוטובוס קיים — אבל לא מגיעים אליו', '🚌 The bus exists — but you cannot reach it'),
+          L('האוטובוס לשדה יוצא משאטיון ב-' + coach.dep
           + ', <b>ואין אוטובוס מצ\'רוויניה שמגיע לשאטיון לפניו.</b> '
-          + 'הקו המקומי הראשון של היום יוצא ב-'
-          + (((pl.lines.blu_down || {}).runs || [])[0] || {}).dep + '.'));
+          + 'הקו המקומי הראשון של היום יוצא ב-' + firstDown + '.',
+          'The airport bus leaves Châtillon at ' + coach.dep
+          + ', <b>and no bus from Cervinia reaches Châtillon before it.</b> '
+          + 'The first local bus of the day leaves at ' + firstDown + '.')));
       }
     }
   }
   return {
     cards: cards, busOk: busOk, busCost: busCost, leaveBy: beBy,
-    head: 'טיסה ביום ' + _AP_DAYNAMES[dow] + ', ' + time + ' · להיות בשדה עד '
-        + _hhmm(beBy) + ' (' + _waitHe(checkin) + ' לפני ההמראה)'
+    head: L('טיסה ביום ' + _AP_DAYNAMES[dow] + ', ' + time + ' · להיות בשדה עד '
+        + _hhmm(beBy) + ' (' + _waitHe(checkin) + ' לפני ההמראה)',
+        'Flight on ' + _AP_DAYNAMES[dow] + ', ' + time + ' · be at the airport by '
+        + _hhmm(beBy) + ' (' + _waitHe(checkin) + ' before take-off)')
   };
 }
 
@@ -14842,7 +15069,7 @@ function planTrip() {
   var hasIn  = !!(inD && inT), hasOut = !!(outD && outT);
   if (!hasIn && !hasOut) {
     out.innerHTML = '<div style="font-size:0.79rem;color:#c0392b;">'
-      + 'מלאו תאריך ושעה לפחות בכיוון אחד.</div>';
+      + L('מלאו תאריך ושעה לפחות בכיוון אחד.', 'Fill in a date and time for at least one direction.') + '</div>';
     return;
   }
   var ap = (pl.airports || []).filter(function (a) { return a.id === apId; })[0];
@@ -14860,12 +15087,26 @@ function planTrip() {
       (new Date(outD) - new Date(inD)) / 86400000));
     var transfer = (pax <= 2 ? ap.t_small : ap.t_big) * 2;
     if (A.busOk && B.busOk) {
-      html += _apCard('#f3fbf5', '#8fcfa3', '#1d6b35', '✅ תחבורה ציבורית עובדת בשני הכיוונים',
-        'אפשר לוותר על רכב. הפירוט של כל כיוון למטה.');
+      html += _apCard('#f3fbf5', '#8fcfa3', '#1d6b35', L('✅ תחבורה ציבורית עובדת בשני הכיוונים', '✅ Public transport works both ways'),
+        L('אפשר לוותר על רכב. הפירוט של כל כיוון למטה.', 'You can do without a car. The details of each direction are below.'));
     } else if (!A.busOk && !B.busOk) {
-      html += _apCard('#fff6f3', '#e8a088', '#9c3b16', '🚗 בשני הכיוונים אין תחבורה ציבורית',
-        'ההחלטה היא לכל הטיול: רכב שכור ל-' + nights + ' ימים, או שתי הסעות פרטיות — '
-        + 'כ-€' + transfer + ' הלוך ושוב ל-' + pax + ' נוסעים.');
+      html += _apCard('#fff6f3', '#e8a088', '#9c3b16', L('🚗 בשני הכיוונים אין תחבורה ציבורית', '🚗 No public transport in either direction'),
+        L('ההחלטה היא לכל הטיול: רכב שכור ל-' + nights + ' ימים, או שתי הסעות פרטיות — '
+        + 'כ-€' + transfer + ' הלוך ושוב ל-' + pax + ' נוסעים.', 'The decision is for the whole trip: a hire car for ' + nights + ' days, or two private transfers — '
+        + 'about €' + transfer + ' return for ' + pax + ' travellers.'));
+    } else if (window.LANG === 'en') {
+      var worksE = A.busOk ? 'The arrival' : 'The return';
+      var deadE  = A.busOk ? 'the return' : 'the arrival';
+      var busLegE = Math.round(((A.busOk ? A.busCost : B.busCost) || 0) * 10) / 10;
+      var mixedE  = Math.round((busLegE + transfer / 2) * 10) / 10;
+      html += _apCard('#fffaf0', '#e8c488', '#8a5a00',
+        '⚖️ ' + worksE + ' works by public transport, ' + deadE + ' does not',
+        '<b>You do not have to decide for the whole trip.</b> You can mix: ' + worksE.toLowerCase()
+        + ' by bus (about €' + busLegE + ') and ' + deadE + ' by private transfer (€'
+        + (transfer / 2) + ') — <b>about €' + mixedE + ' together</b> for ' + pax + ' travellers.'
+        + '<br>Two private transfers would cost about €' + transfer
+        + ', and a hire car for ' + nights + ' days is a third option — '
+        + 'worth it mainly if you want independence on the mountain and not just a ride to the airport.');
     } else {
       // One dead leg does not force a car for the whole week: the bus one way
       // and a single transfer the other is usually the cheapest thing on the
@@ -14907,8 +15148,16 @@ function _tripDrive(pl, ap, pax, mode, A, B) {
   var one = (pax <= 2 ? ap.t_small : ap.t_big);
   var h = '';
   var legs = (mode === 'both') ? 2 : 1;
-  h += _apCard('#f4f9ff', '#8fb8e0', '#1a4f85', '🚐 הסעה פרטית',
-    (legs === 2 ? '<b>€' + (one * 2) + '</b> הלוך ושוב' : '<b>€' + one + '</b> לכיוון')
+  h += _apCard('#f4f9ff', '#8fb8e0', '#1a4f85', L('🚐 הסעה פרטית', '🚐 Private transfer'),
+    window.LANG === 'en'
+    ? (legs === 2 ? '<b>€' + (one * 2) + '</b> return' : '<b>€' + one + '</b> each way')
+      + ' per vehicle for ' + pax + ' travellers, driving time ' + _waitHe(ap.drive_min) + '.'
+      + (A ? ' It leaves when you come out, to the hotel door — estimated arrival about '
+             + _hhmm(A.arriveBy - 30 + ap.drive_min) + '.' : '')
+      + (B && B.leaveBy != null
+          ? ' On the way back — <b>leave the hotel at ' + _hhmm(B.leaveBy - ap.drive_min) + '</b>.'
+          : '')
+    : (legs === 2 ? '<b>€' + (one * 2) + '</b> הלוך ושוב' : '<b>€' + one + '</b> לכיוון')
     + ' לרכב ל-' + pax + ' נוסעים, זמן נסיעה ' + _waitHe(ap.drive_min) + '.'
     + (A ? ' יוצאת כשאתם יוצאים, עד דלת המלון — הגעה משוערת כ-'
            + _hhmm(A.arriveBy - 30 + ap.drive_min) + '.' : '')
@@ -14919,15 +15168,23 @@ function _tripDrive(pl, ap, pax, mode, A, B) {
   var tint = desk ? (desk.level === 2 ? ['#fff6f3', '#e8a088', '#9c3b16']
                                       : ['#fffaf0', '#e8c488', '#8a5a00'])
                   : ['#f7f8fa', '#d8dde4', '#444'];
-  h += _apCard(tint[0], tint[1], tint[2], '🚗 ברכב שכור',
+  h += _apCard(tint[0], tint[1], tint[2], L('🚗 ברכב שכור', '🚗 By hire car'),
     (desk ? desk.text + ' ' : '')
-    + 'זמן נסיעה ' + _waitHe(ap.drive_min) + ' לכיוון. '
+    + (window.LANG === 'en'
+      ? 'Driving time ' + _waitHe(ap.drive_min) + ' each way. '
+        + (A ? 'Estimated arrival about ' + _hhmm(A.arriveBy + ap.drive_min) + '. ' : '')
+        + 'In winter — winter tyres or chains in the car are compulsory.'
+        + (B && B.leaveBy != null
+            ? ' On the way back — <b>leave the hotel at ' + _hhmm(B.leaveBy - ap.drive_min - 30) + '</b>, '
+              + 'including returning the car and getting to the terminal.'
+            : '')
+      : 'זמן נסיעה ' + _waitHe(ap.drive_min) + ' לכיוון. '
     + (A ? 'הגעה משוערת כ-' + _hhmm(A.arriveBy + ap.drive_min) + '. ' : '')
     + 'בחורף — צמיגי חורף או שרשראות ברכב, חובה.'
     + (B && B.leaveBy != null
         ? ' בחזרה — <b>צאו מהמלון ב-' + _hhmm(B.leaveBy - ap.drive_min - 30) + '</b>, '
           + 'כולל החזרת הרכב ומעבר לטרמינל.'
-        : ''));
+        : '')));
   return h;
 }
 
@@ -14945,7 +15202,7 @@ function resetArrival() {
 }
 
 function _apCard(bg, edge, ink, title, body) {
-  return '<div style="border:1.5px solid ' + edge + ';border-right:4px solid ' + edge
+  return '<div style="border:1.5px solid ' + edge + ';border-inline-start:4px solid ' + edge
     + ';border-radius:10px;background:' + bg + ';padding:9px 12px;margin-bottom:7px;">'
     + '<div style="font-weight:bold;font-size:0.81rem;color:' + ink + ';margin-bottom:3px;">'
     + title + '</div>'
@@ -15589,9 +15846,9 @@ function _applyTexts(t) {
       if (pkEl) {
         pkEl.innerHTML = pk.lots.map(function(lot) {
           var btns = '';
-          if (lot.info_url) btns += '<a href="' + lot.info_url + '" target="_blank" style="padding:5px 11px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🌐 מידע</a> ';
-          if (lot.map_url)  btns += '<a href="' + lot.map_url  + '" target="_blank" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>';
-          else if (lot.map)  btns += '<a href="' + _gUrl(lot.map, lot.latlon) + '" target="_blank" rel="noopener" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f ' + (lot.xy_approx ? 'האזור במפה' : 'מפה') + '</a>';
+          if (lot.info_url) btns += '<a href="' + lot.info_url + '" target="_blank" style="padding:5px 11px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">' + L('🌐 מידע', '🌐 Info') + '</a> ';
+          if (lot.map_url)  btns += '<a href="' + lot.map_url  + '" target="_blank" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">🗺️ ' + L('מפה', 'Map') + '</a>';
+          else if (lot.map)  btns += '<a href="' + _gUrl(lot.map, lot.latlon) + '" target="_blank" rel="noopener" style="padding:5px 11px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f ' + (lot.xy_approx ? L('האזור במפה', 'The area on the map') : L('מפה', 'Map')) + '</a>';
           return '<div style="padding:12px 14px;border:1.5px solid ' + (lot.paid?'#ffd0d0':'#c8f0d0') + ';border-radius:10px;background:' + (lot.paid?'#fff5f5':'#f5fff8') + ';margin-bottom:10px;">' +
             '<div style="font-weight:bold;font-size:0.9rem;margin-bottom:6px;">' + lot.name + '</div>' +
             '<div style="font-size:0.8rem;color:#555;line-height:1.8;margin-bottom:8px;">' + _fixPhones(lot.desc) + '</div>' +
@@ -15741,10 +15998,10 @@ function _applyTexts(t) {
         if (sh.where) h += '<div style="font-size:0.73rem;color:#1a4b8c;margin-bottom:4px;">\ud83d\udccd ' + sh.where + '</div>';
         h += '<div style="font-size:0.75rem;color:#555;line-height:1.7;margin-bottom:5px;">' + _aEsc(sh.desc) + '</div>';
         if (sh.open) h += '<div style="font-size:0.73rem;color:#666;margin-bottom:6px;">\ud83d\udd51 ' + sh.open + '</div>';
-        var L = [];
-        if (sh.url) L.push('<a href="' + sh.url + '" target="_blank" rel="noopener" style="padding:5px 12px;background:' + sh.color + ';color:#fff;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83c\udf10 אתר</a>');
-        if (sh.map) L.push('<a href="' + _gUrl(sh.map, sh.latlon) + '" target="_blank" rel="noopener" style="padding:5px 12px;background:#34a853;color:#fff;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f מפה</a>');
-        if (L.length) h += '<div style="display:flex;gap:8px;">' + L.join('') + '</div>';
+        var Lb = [];
+        if (sh.url) Lb.push('<a href="' + sh.url + '" target="_blank" rel="noopener" style="padding:5px 12px;background:' + sh.color + ';color:#fff;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83c\udf10 ' + L('אתר', 'Website') + '</a>');
+        if (sh.map) Lb.push('<a href="' + _gUrl(sh.map, sh.latlon) + '" target="_blank" rel="noopener" style="padding:5px 12px;background:#34a853;color:#fff;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;">\ud83d\uddfa\ufe0f ' + L('מפה', 'Map') + '</a>');
+        if (Lb.length) h += '<div style="display:flex;gap:8px;">' + Lb.join('') + '</div>';
         return h + '</div>';
       }).join('');
     }
@@ -19825,14 +20082,14 @@ async function _admRenderUsers() {
     <div style="display:flex;gap:6px;margin-bottom:18px;">
       <!-- Getting there first (Yossi, 10.11): most people open this card
            before the trip, and parking matters only once there with a car. -->
-      <button id="park-tab-transport" onclick="switchParkTab('transport')" class="ttab-btn ttab-active" style="flex:1;">🚌 הגעה</button>
-      <button id="park-tab-parking"   onclick="switchParkTab('parking')"   class="ttab-btn" style="flex:1;">🅿️ חניה וכביש</button>
-      <button id="park-tab-emergency" onclick="switchParkTab('emergency')" class="ttab-btn" style="flex:1;">🚨 חירום</button>
+      <button id="park-tab-transport" onclick="switchParkTab('transport')" class="ttab-btn ttab-active" style="flex:1;" data-en="🚌 Getting there">🚌 הגעה</button>
+      <button id="park-tab-parking"   onclick="switchParkTab('parking')"   class="ttab-btn" style="flex:1;" data-en="🅿️ Parking and road">🅿️ חניה וכביש</button>
+      <button id="park-tab-emergency" onclick="switchParkTab('emergency')" class="ttab-btn" style="flex:1;" data-en="🚨 Emergency">🚨 חירום</button>
     </div>
 
     <!-- PARKING TAB -->
     <div id="park-panel-parking" style="display:none;">
-      <h3 style="margin:0 0 14px;font-size:1.05rem;">🅿️ חניה בצ'רוויניה</h3>
+      <h3 style="margin:0 0 14px;font-size:1.05rem;" data-en="🅿️ Parking in Cervinia">🅿️ חניה בצ'רוויניה</h3>
 
       <div id="parking-lots-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
 
@@ -19917,18 +20174,18 @@ async function _admRenderUsers() {
 
       <!-- Road status -->
       <div style="border-top:1px solid #eee;padding-top:12px;">
-        <div style="font-size:0.85rem;font-weight:bold;margin-bottom:9px;">🛣️ מצב כביש SR46 — אאוסטה ← → צ'רוויניה</div>
+        <div style="font-size:0.85rem;font-weight:bold;margin-bottom:9px;" data-en="🛣️ SR46 road conditions — Aosta ← → Cervinia">🛣️ מצב כביש SR46 — אאוסטה ← → צ'רוויניה</div>
         <div style="display:flex;flex-direction:column;gap:7px;">
           <a href="https://infomobilita.regione.vda.it/" target="_blank"
-            style="padding:10px 14px;background:#1a73e8;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;display:block;text-align:center;">
+            style="padding:10px 14px;background:#1a73e8;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;display:block;text-align:center;" data-en="🔴 Live road conditions — Infomobilità VDA">
             🔴 מצב כביש חי — Infomobilità VDA
           </a>
           <a href="https://www.google.com/maps/dir/Milano/Breuil-Cervinia" target="_blank"
-            style="padding:10px 14px;background:#0a192f;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;display:block;text-align:center;">
+            style="padding:10px 14px;background:#0a192f;color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:bold;display:block;text-align:center;" data-en="🗺️ Navigate to Cervinia — Google Maps">
             🗺️ ניווט ל-Cervinia — Google Maps
           </a>
         </div>
-        <div style="margin-top:9px;font-size:0.76rem;color:#888;line-height:1.7;">
+        <div style="margin-top:9px;font-size:0.76rem;color:#888;line-height:1.7;" data-en="📻 VDA radio: &lt;bdi dir=&quot;ltr&quot;&gt;FM 97.8&lt;/bdi&gt; · road closures: &lt;a href=&quot;tel:800007772&quot; style=&quot;color:#1a73e8;&quot;&gt;&lt;bdi dir=&quot;ltr&quot;&gt;800 007 772&lt;/bdi&gt;&lt;/a&gt;">
           📻 רדיו VDA: <bdi dir="ltr">FM 97.8</bdi> · חסימות דרכים: <a href="tel:800007772" style="color:#1a73e8;"><bdi dir="ltr">800 007 772</bdi></a>
         </div>
       </div>
@@ -19942,54 +20199,59 @@ async function _admRenderUsers() {
     </div>
 
     <div id="park-panel-emergency" style="display:none;">
-      <h3 style="margin:0 0 14px;font-size:1.05rem;color:#c0392b;">🚨 מספרי חירום</h3>
+      <h3 style="margin:0 0 14px;font-size:1.05rem;color:#c0392b;" data-en="🚨 Emergency numbers">🚨 מספרי חירום</h3>
 
       <!-- Main emergency numbers -->
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
 
         <a href="tel:118" style="padding:14px 16px;background:#c0392b;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
           <span style="font-size:1.8rem;">🚑</span>
-          <div><div style="font-weight:bold;font-size:1.1rem;">118 — אמבולנס / מדיקל</div><div style="font-size:0.78rem;opacity:0.85;">מוקד רפואי לאומי איטליה</div></div>
+          <div data-en="&lt;div style=&quot;font-weight:bold;font-size:1.1rem;&quot;&gt;118 — Ambulance / medical&lt;/div&gt;&lt;div style=&quot;font-size:0.78rem;opacity:0.85;&quot;&gt;Italy&#x27;s national medical line&lt;/div&gt;"><div style="font-weight:bold;font-size:1.1rem;">118 — אמבולנס / מדיקל</div><div style="font-size:0.78rem;opacity:0.85;">מוקד רפואי לאומי איטליה</div></div>
         </a>
 
         <a href="tel:112" style="padding:14px 16px;background:#1a237e;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
           <span style="font-size:1.8rem;">🚓</span>
-          <div><div style="font-weight:bold;font-size:1.1rem;">112 — חירום כללי</div><div style="font-size:0.78rem;opacity:0.85;">משטרה, כיבוי אש, הצלה — אירופה</div></div>
+          <div data-en="&lt;div style=&quot;font-weight:bold;font-size:1.1rem;&quot;&gt;112 — General emergency&lt;/div&gt;&lt;div style=&quot;font-size:0.78rem;opacity:0.85;&quot;&gt;Police, fire, rescue — Europe-wide&lt;/div&gt;"><div style="font-weight:bold;font-size:1.1rem;">112 — חירום כללי</div><div style="font-size:0.78rem;opacity:0.85;">משטרה, כיבוי אש, הצלה — אירופה</div></div>
         </a>
 
         <a href="tel:115" style="padding:14px 16px;background:#e65100;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
           <span style="font-size:1.8rem;">🚒</span>
-          <div><div style="font-weight:bold;font-size:1.1rem;">115 — כיבוי אש</div><div style="font-size:0.78rem;opacity:0.85;">Vigili del Fuoco</div></div>
+          <div data-en="&lt;div style=&quot;font-weight:bold;font-size:1.1rem;&quot;&gt;115 — Fire brigade&lt;/div&gt;&lt;div style=&quot;font-size:0.78rem;opacity:0.85;&quot;&gt;Vigili del Fuoco&lt;/div&gt;"><div style="font-weight:bold;font-size:1.1rem;">115 — כיבוי אש</div><div style="font-size:0.78rem;opacity:0.85;">Vigili del Fuoco</div></div>
         </a>
 
         <a href="tel:+39016694016" style="padding:14px 16px;background:#2e7d32;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
           <span style="font-size:1.8rem;">🏔️</span>
-          <div><div style="font-weight:bold;font-size:1.1rem;">Soccorso Alpino</div><div style="font-size:0.78rem;opacity:0.85;">חילוץ הרים — Cervinia: +39 0166 94 016</div></div>
+          <div><div style="font-weight:bold;font-size:1.1rem;">Soccorso Alpino</div><div style="font-size:0.78rem;opacity:0.85;" data-en="Mountain rescue — Cervinia: +39 0166 94 016">חילוץ הרים — Cervinia: +39 0166 94 016</div></div>
         </a>
 
         <a href="tel:+390166941111" style="padding:14px 16px;background:#4a148c;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
           <span style="font-size:1.8rem;">🏥</span>
-          <div><div style="font-weight:bold;font-size:1.1rem;">בית חולים — Aosta</div><div style="font-size:0.78rem;opacity:0.85;">Ospedale Regionale: +39 0165 543 111</div></div>
+          <div><div style="font-weight:bold;font-size:1.1rem;" data-en="Hospital — Aosta">בית חולים — Aosta</div><div style="font-size:0.78rem;opacity:0.85;">Ospedale Regionale: +39 0165 543 111</div></div>
         </a>
 
       </div>
 
       <!-- Additional info -->
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="padding:11px 14px;background:#fff8e1;border:1px solid #ffe082;border-radius:9px;font-size:0.8rem;color:#555;line-height:1.7;">
+        <div style="padding:11px 14px;background:#fff8e1;border:1px solid #ffe082;border-radius:9px;font-size:0.8rem;color:#555;line-height:1.7;" data-en="🏥 &lt;b&gt;First-aid post in the village:&lt;/b&gt;&lt;br&gt;
+          Ambulatorio Medico — on the main street of Breuil-Cervinia&lt;br&gt;
+          &lt;span style=&quot;font-size:0.73rem;color:#888;&quot;&gt;Open in season · check current hours&lt;/span&gt;">
           🏥 <b>תחנת עזרה ראשונה בכפר:</b><br>
           Ambulatorio Medico — ברחוב הראשי של Breuil-Cervinia<br>
           <span style="font-size:0.73rem;color:#888;">פתוח בעונה · בדוק שעות עדכניות</span>
         </div>
 
-        <div style="padding:11px 14px;background:#e8f4fd;border:1px solid #c0d8f0;border-radius:9px;font-size:0.8rem;color:#1a5276;line-height:1.7;">
+        <div class="he-only" style="padding:11px 14px;background:#e8f4fd;border:1px solid #c0d8f0;border-radius:9px;font-size:0.8rem;color:#1a5276;line-height:1.7;">
           <svg class=fl-il aria-hidden=true><use href=#flag-il></use></svg> <b>שגרירות ישראל ברומא:</b><br>
           <a href="tel:+39065479441" style="color:#1a5276;">+39 06 5479 441</a><br>
           <b>קונסוליה כללית במילאנו:</b><br>
           <a href="tel:+390248013844" style="color:#1a5276;">+39 02 4801 3844</a>
         </div>
 
-        <div style="padding:11px 14px;background:#fce4ec;border:1px solid #f48fb1;border-radius:9px;font-size:0.8rem;color:#880e4f;line-height:1.7;">
+        <div style="padding:11px 14px;background:#fce4ec;border:1px solid #f48fb1;border-radius:9px;font-size:0.8rem;color:#880e4f;line-height:1.7;" data-en="⛷️ &lt;b&gt;A ski accident on the slope?&lt;/b&gt;&lt;br&gt;
+          1. Stop and keep the injured person warm&lt;br&gt;
+          2. Plant skis in an X above the injured person to mark the spot&lt;br&gt;
+          3. Call 118 and give the GPS location from your phone">
           ⛷️ <b>תאונת סקי בשטח?</b><br>
           1. עצור ושמור על הנפגע חמים<br>
           2. הנח גלשניים X מעל לנפגע לסימון<br>
