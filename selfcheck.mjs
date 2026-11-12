@@ -9175,6 +9175,53 @@ for (const [w, h] of [[360, 740], [390, 800], [1366, 800]]) {
   if (/file:/.test(gone)) fail(T, `a second back right after the warning did not leave (${gone})`); else ok();
 }
 
+// ── L() is the language switch, and a local may not take its name ──────────
+// A function-scoped "var L" hides the global for the whole function, hoisted,
+// so every L('…', '…') inside it calls a number and throws - only on the
+// pages that reach that function. Three such locals had to be renamed when
+// the English site began; this keeps a fourth from arriving.
+{
+  const T0 = 'no local variable is called L';
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const bad = [];
+  src.split('\n').forEach((ln, i) => {
+    if (/(?:^|[^\w$.])(?:var|let|const)\s+L\s*[=,;]/.test(ln) || /function\s*\w*\s*\([^)]*\bL\b[^)]*\)/.test(ln))
+      bad.push((i + 1) + ': ' + ln.trim().slice(0, 80));
+  });
+  if (bad.length) fail(T0, bad.join(' | ')); else ok(T0);
+}
+
+// ── the English flight search asks where you fly from ─────────────────────
+// The Hebrew site is for travellers from Israel and always searches from
+// Tel Aviv. The English one must not: with no origin it searches nothing,
+// and with one every engine gets it.
+{
+  const T0 = 'the English flight search starts from the origin the reader gave';
+  const pg = await browser.newPage({ viewport: { width: 430, height: 900 } });
+  await pg.goto('file://' + PAGE + '?lang=en');
+  await pg.waitForTimeout(1500);
+  const r = await pg.evaluate(() => {
+    openM('hotelModal'); planGo('flight');
+    try { localStorage.removeItem('cl_origin'); } catch (e) {}
+    document.getElementById('fl-origin').value = '';
+    var none = flOrigin();
+    document.getElementById('fl-origin').value = 'Vienna';
+    var byName = flOrigin();
+    document.getElementById('fl-origin').value = 'London Heathrow (LHR)';
+    var byCode = flOrigin();
+    stripSetDates(new Date(2027, 0, 10), new Date(2027, 0, 17));
+    searchFlight();
+    var links = [].map.call(document.querySelectorAll('#flight-results a'), function (a) { return a.href; });
+    return { none: none, byName: byName, byCode: byCode, links: links };
+  });
+  const tlv = r.links.filter(h => /tlv/i.test(h));
+  if (r.none !== null) fail(T0, 'an empty field gave ' + r.none);
+  else if (r.byName !== 'VIE' || r.byCode !== 'LHR') fail(T0, 'Vienna -> ' + r.byName + ', LHR -> ' + r.byCode);
+  else if (!r.links.length || tlv.length) fail(T0, tlv.length ? 'Tel Aviv in ' + tlv[0] : 'no links');
+  else ok(T0);
+  await pg.close();
+}
+
 await browser.close();
 
 // ── report ────────────────────────────────────────────────────────────────

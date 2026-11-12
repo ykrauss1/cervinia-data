@@ -34,7 +34,7 @@ function setLang(l) {
 // Static markup: the English sits beside the Hebrew as attributes.
 function _i18nStatic(root) {
   if (window.LANG !== 'en') return;
-  var SEL = '[data-en],[data-en-title],[data-en-placeholder],[data-en-aria-label],[data-en-ph],[data-en-toc]';
+  var SEL = '[data-en],[data-en-title],[data-en-placeholder],[data-en-aria-label],[data-en-ph],[data-en-toc],[data-en-alt],[data-en-label]';
   var list = Array.prototype.slice.call((root || document).querySelectorAll(SEL));
   if (root && root.matches && root.matches(SEL)) list.unshift(root);
   list.forEach(function (e) {
@@ -49,6 +49,8 @@ function _i18nStatic(root) {
     if ((v = e.getAttribute('data-en-aria-label')) != null) e.setAttribute('aria-label', v);
     if ((v = e.getAttribute('data-en-ph')) != null) e.setAttribute('data-ph', v);
     if ((v = e.getAttribute('data-en-toc')) != null) e.setAttribute('data-toc', v);
+    if ((v = e.getAttribute('data-en-alt')) != null) e.setAttribute('alt', v);
+    if ((v = e.getAttribute('data-en-label')) != null) e.setAttribute('label', v);
   });
 }
 // Registered here in the head, so it runs before any renderer's own
@@ -180,6 +182,8 @@ html[dir="ltr"] [style*="direction:rtl"], html[dir="ltr"] [style*="direction: rt
 html[dir="ltr"] [dir="rtl"]:not(.ugc) { direction: ltr !important; }
 /* material that exists only in Hebrew is not offered on the English page */
 html[dir="ltr"] .he-only { display: none !important; }
+/* and the reverse: things only the English page needs (where you fly from) */
+html:not([dir="ltr"]) .en-only { display: none !important; }
 html[dir="ltr"] #map-route-off { float: right !important; margin: -2px 0 0 -4px !important; }
 /* Local time in Cervinia (Yossi, 12.11): the operator's notices, the lift
    hours and the alerts are all in Italian time, an hour behind Israel. On a
@@ -1968,7 +1972,7 @@ what counts.">
 <div id="hotelModal" class="modal">
   <div class="modal-content" style="max-width:580px;max-height:92vh;overflow-y:auto;padding:28px 24px;">
     <span class="close-btn" onclick="closeM('hotelModal')">×</span>
-    <h3 style="margin:0 0 18px;font-size:1.15rem;">✈️ תכנון טיול לצ’רוויניה</h3>
+    <h3 style="margin:0 0 18px;font-size:1.15rem;" data-en="✈️ Plan a trip to Cervinia">✈️ תכנון טיול לצ’רוויניה</h3>
 
     <!-- The planner holds three things that have little to do with each other:
          when to come, what to bring, and where to book. Stacked in one column
@@ -1984,38 +1988,44 @@ what counts.">
          The strip below them is not a fourth sibling: it is those same three
          screens with a frame around them. -->
     <div id="plan-hub">
-      <div class="plan-grp">מה מחפשים?</div>
+      <div class="plan-grp" data-en="What are you looking for?">מה מחפשים?</div>
       <button class="plan-card" onclick="planGo('flight')">
         <span class="plan-ico">✈️</span>
-        <span class="plan-txt"><b>טיסות</b>
+        <span class="plan-txt" data-en="&lt;b&gt;Flights&lt;/b&gt;
+          &lt;small&gt;Milan and Turin · daily prices and booking sites&lt;/small&gt;"><b>טיסות</b>
           <small>מילאנו וטורין · מחירים יומיים ומנועי הזמנה</small></span>
       </button>
       <button class="plan-card" onclick="planGo('hotel')">
         <span class="plan-ico">🏨</span>
-        <span class="plan-txt"><b>לינה</b>
+        <span class="plan-txt" data-en="&lt;b&gt;Lodging&lt;/b&gt;
+          &lt;small&gt;Apartments and hotels · and writing directly to owners in the village&lt;/small&gt;"><b>לינה</b>
           <small>דירות ומלונות · ופנייה ישירה לבעלי דירות בכפר</small></span>
       </button>
       <button class="plan-card" onclick="planGo('car')">
         <span class="plan-ico">🚗</span>
-        <span class="plan-txt"><b>רכב</b>
+        <span class="plan-txt" data-en="&lt;b&gt;Car&lt;/b&gt;
+          &lt;small&gt;Hire at the airport or in the valley · and what you need in the snow&lt;/small&gt;"><b>רכב</b>
           <small>השכרה בשדה התעופה או בעמק · ומה צריך בשלג</small></span>
       </button>
 
       <button class="plan-strip" onclick="planGo('trip')">
         <span class="plan-ico">✨</span>
-        <span class="plan-txt"><b>תכנון טיול שלם</b>
+        <span class="plan-txt" data-en="&lt;b&gt;Plan the whole trip&lt;/b&gt;
+          &lt;small&gt;All three together — enter dates and travellers once&lt;/small&gt;"><b>תכנון טיול שלם</b>
           <small>שלושתם יחד — התאריכים והנוסעים נכנסים פעם אחת</small></span>
       </button>
 
-      <div class="plan-grp">לפני שמחפשים</div>
+      <div class="plan-grp" data-en="Before you search">לפני שמחפשים</div>
       <button class="plan-card plan-card-soft" onclick="planGo('when')">
         <span class="plan-ico">📅</span>
-        <span class="plan-txt"><b>מתי לנסוע</b>
+        <span class="plan-txt" data-en="&lt;b&gt;When to go&lt;/b&gt;
+          &lt;small&gt;Seasons, snow, holidays — and when it gets expensive&lt;/small&gt;"><b>מתי לנסוע</b>
           <small>עונות, שלג, חגים — ומתי יקר</small></span>
         </button>
       <button class="plan-card plan-card-soft" onclick="planGo('prep')">
         <span class="plan-ico">🧳</span>
-        <span class="plan-txt"><b>הכנות לפני הנסיעה</b>
+        <span class="plan-txt" data-en="&lt;b&gt;Before you travel&lt;/b&gt;
+          &lt;small&gt;Gear, insurance, power and Shabbat · packing list&lt;/small&gt;"><b>הכנות לפני הנסיעה</b>
           <small>ציוד, ביטוח, חשמל ושבת · רשימת אריזה</small></span>
         </button>
       <!-- Not a screen of the planner: it opens the kashrut panel, where the
@@ -2023,13 +2033,14 @@ what counts.">
            a trip is when somebody thinks about it. -->
       <button class="plan-card plan-card-soft plan-card-out" onclick="closeM('hotelModal');openKosherShabbat();">
         <span class="plan-ico"><svg viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg></span>
-        <span class="plan-txt"><b>שבת בצ'רוויניה</b>
+        <span class="plan-txt" data-en="&lt;b&gt;Shabbat in Cervinia&lt;/b&gt;
+          &lt;small&gt;What to bring to the apartment, electricity, and when to stop skiing on Friday&lt;/small&gt;"><b>שבת בצ'רוויניה</b>
           <small>מה להביא לדירה, חשמל, ומתי להפסיק לגלוש בשישי</small></span>
       </button>
     </div>
 
     <div id="plan-bar">
-      <button class="plan-back" onclick="planGo('hub')">→ התפריט</button>
+      <button class="plan-back" onclick="planGo('hub')" data-en="← Menu">→ התפריט</button>
       <span id="plan-bar-title"></span>
       <span id="plan-bar-chips"></span>
     </div>
@@ -2055,20 +2066,39 @@ what counts.">
          the list to pack from. -->
     <section class="plan-pane" id="pane-prep">
     <details class="fold" id="prep-fold" open style="margin:0 0 16px;background:#f5f9ff;border-color:#d8e6fb;">
-      <summary style="color:#0f3b66;font-weight:bold;">🧳 הכנות לפני הנסיעה — ציוד, ביטוח ושבת</summary>
+      <summary style="color:#0f3b66;font-weight:bold;" data-en="🧳 Before you travel — gear, insurance and Shabbat">🧳 הכנות לפני הנסיעה — ציוד, ביטוח ושבת</summary>
       <div class="fold-body">
 
         <!-- ── 1. the law ─────────────────────────────────────────────── -->
-        <div class="prep-group">⚖️ מה שחייבים לפי חוק</div>
+        <div class="prep-group" data-en="⚖️ What the law requires">⚖️ מה שחייבים לפי חוק</div>
 
         <!-- Folded like its neighbours. It is the law, so it opens with a summary
              that says so plainly rather than hiding behind a neutral label -
              but a reader who already knows should not have to scroll a screen
              of it to reach the rest. -->
         <details class="fold" style="margin-bottom:10px;">
-          <summary style="color:#9a4a12;font-weight:bold;">🪖 קסדה וביטוח צד שלישי — מה החוק מחייב</summary>
+          <summary style="color:#9a4a12;font-weight:bold;" data-en="🪖 Helmet and third-party insurance — what the law requires">🪖 קסדה וביטוח צד שלישי — מה החוק מחייב</summary>
           <div class="fold-body" style="padding-top:2px;">
-        <div id="gear-law" style="background:#fff4ec;border:1.5px solid #ffb98f;border-radius:11px;padding:4px 12px 12px;margin-bottom:10px;">
+        <div id="gear-law" style="background:#fff4ec;border:1.5px solid #ffb98f;border-radius:11px;padding:4px 12px 12px;margin-bottom:10px;" data-en="&lt;div style=&quot;background:white;border-radius:9px;padding:10px 12px;margin-top:10px;&quot;&gt;
+  &lt;div style=&quot;font-weight:bold;font-size:0.9rem;color:#8a3b00;margin-bottom:3px;&quot;&gt;🪖 Helmet — for all ages&lt;/div&gt;
+  &lt;div style=&quot;font-size:0.81rem;color:#555;line-height:1.8;&quot;&gt;
+    Until the 2024/25 season the obligation applied to minors only. &lt;b&gt;From the 2025/26 season it applies to every skier&lt;/b&gt;
+    on marked runs, on skis and on a snowboard. The helmet must carry the &lt;b&gt;CE&lt;/b&gt; mark.
+    The penalty: a fine, and for a repeat offence, withdrawal of the ski pass. You can hire a helmet cheaply in the village.
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div style=&quot;background:white;border-radius:9px;padding:10px 12px;margin-top:8px;&quot;&gt;
+  &lt;div style=&quot;font-weight:bold;font-size:0.9rem;color:#8a3b00;margin-bottom:3px;&quot;&gt;🧾 Third-party insurance&lt;/div&gt;
+  &lt;div style=&quot;font-size:0.81rem;color:#555;line-height:1.8;&quot;&gt;
+    Compulsory for every skier since 2022. It covers &lt;b&gt;damage you cause to someone else&lt;/b&gt;.
+    Without it: a fine of 100–150 euros and the ski pass withdrawn on the spot.
+    You can buy it as an add-on to the ski pass.
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div style=&quot;font-size:0.78rem;color:#8a3b00;margin-top:9px;line-height:1.7;&quot;&gt;
+  ⚠️ Third-party insurance is &lt;b&gt;not&lt;/b&gt; medical insurance and does not cover rescue. These are separate things,
+  and you need both — see just below.
+&lt;/div&gt;">
           <div style="background:white;border-radius:9px;padding:10px 12px;margin-top:10px;">
             <div style="font-weight:bold;font-size:0.9rem;color:#8a3b00;margin-bottom:3px;">🪖 קסדה — לכל הגילים</div>
             <div style="font-size:0.81rem;color:#555;line-height:1.8;">
@@ -2094,8 +2124,18 @@ what counts.">
         </details>
 
         <details class="fold" style="margin-bottom:10px;">
-          <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-shield"/></svg>ביטוח ספורט חורף — ולמה "ספורט אתגרי" לא מספיק</summary>
-          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+          <summary id="ins-sum" data-en="&lt;svg class=&quot;fold-ico&quot; viewBox=&quot;0 0 128 128&quot; aria-hidden=&quot;true&quot;&gt;&lt;use href=&quot;#ico-shield&quot;/&gt;&lt;/svg&gt;Winter sports insurance — check that skiing is really covered"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-shield"/></svg>ביטוח ספורט חורף — ולמה "ספורט אתגרי" לא מספיק</summary>
+          <div id="ins-body" class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="&lt;div class=&quot;prep-h&quot;&gt;Check that skiing is named in the policy&lt;/div&gt;
+Many travel policies exclude winter sports unless you add them, and a general &quot;adventure&quot; or &quot;hazardous activities&quot; extension does not always include skiing. Read the wording: it should name &lt;b&gt;skiing and snowboarding on marked runs&lt;/b&gt;. If it doesn&#x27;t, an injury on the slope may not be covered at all.
+&lt;div class=&quot;prep-h&quot;&gt;What the cover really buys&lt;/div&gt;
+• &lt;b&gt;Mountain search and rescue&lt;/b&gt; — a helicopter evacuation can cost many thousands. This is the item you buy it for.&lt;br&gt;
+• &lt;b&gt;Ski equipment&lt;/b&gt; that is stolen or damaged.&lt;br&gt;
+• &lt;b&gt;Unused ski days and ski pass&lt;/b&gt; because of an injury.
+&lt;div class=&quot;prep-h&quot;&gt;Two things it usually does not cover&lt;/div&gt;
+&lt;b&gt;Skiing off the marked runs&lt;/b&gt; is often excluded — check before you go off-piste, and make sure any off-piste cover includes the flight home.
+&lt;br&gt;&lt;b&gt;Competitions or organised training&lt;/b&gt; are usually excluded too.
+&lt;div class=&quot;prep-h&quot;&gt;And the free insurance on your credit card?&lt;/div&gt;
+Card cover is often &lt;b&gt;basic only&lt;/b&gt;, with winter sports as a paid extra, and limited in the number of days. Compare it with a full policy from an insurer before you rely on it.">
             <div class="prep-h">שתי הרחבות שונות, ורק אחת מהן נכונה</div>
             בפוליסות הנסיעות הישראליות <b>"ספורט אתגרי" ו"ספורט חורף" הן שתי הרחבות
             נפרדות</b>, בתמחור נפרד. ה"אתגרי" הוא טיפוס הרים, צלילה, רפטינג וכדומה —
@@ -2120,7 +2160,7 @@ what counts.">
             <br><b>לכן שווה לתמחר את שתי הדרכים זו מול זו</b> — פוליסה שלמה בחברת ביטוח
             רגילה, מול ״בסיס חינם בכרטיס + הרחבה בתשלום״. לא פעם ה״חינם״ יוצא היקר מבין השניים.
 
-            <details class="fold" style="margin-top:11px;">
+            <details class="fold he-only" style="margin-top:11px;">
               <summary style="font-size:0.8rem;">💶 כמה עולה ההרחבה</summary>
               <div class="fold-body">
                 <div style="font-size:0.76rem;color:#777;margin-bottom:5px;">
@@ -2142,17 +2182,41 @@ what counts.">
         </details>
 
         <!-- ── 2. where to buy ────────────────────────────────────────── -->
-        <div class="prep-group">🛒 מה קונים, מה שוכרים, ואיפה</div>
+        <div class="prep-group" data-en="🛒 What to buy, what to hire, and where">🛒 מה קונים, מה שוכרים, ואיפה</div>
 
-        <div style="background:#f0f7ff;border:1.5px solid #bcd;border-radius:11px;padding:12px 14px;margin-bottom:10px;font-size:0.82rem;color:#333;line-height:1.85;">
+        <div id="buy-rent" style="background:#f0f7ff;border:1.5px solid #bcd;border-radius:11px;padding:12px 14px;margin-bottom:10px;font-size:0.82rem;color:#333;line-height:1.85;" data-en="&lt;b&gt;Buy:&lt;/b&gt; thermal layers, ski socks, jacket, trousers, gloves, goggles, neck gaiter, sunscreen.&lt;br&gt;
+&lt;b&gt;Hire in the village:&lt;/b&gt; skis, boots, poles, helmet — heavy gear, expensive to buy, and fitted on the spot to your foot and level.&lt;br&gt;
+&lt;b&gt;If it&#x27;s a once-in-a-lifetime trip&lt;/b&gt;, you can often hire the clothing at home too.">
           <b>קונים:</b> ביגוד תרמי, גרבי סקי, מעיל, מכנסיים, כפפות, גוגלס, מגן צוואר, קרם הגנה.<br>
           <b>שוכרים בכפר:</b> מגלשיים, מגפיים, מקלות, קסדה — ציוד כבד, יקר לקנייה, ומותאם במקום לרגל ולרמה.<br>
           <b>ומי שיוצא פעם אחת בחיים</b> יכול לשכור גם את הביגוד בארץ.
         </div>
 
         <details class="fold" style="margin-bottom:10px;">
-          <summary>📍 ארבע דרכים לקנות — ומה ההבדל ביניהן</summary>
-          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+          <summary data-en="📍 Four ways to buy — and how they differ">📍 ארבע דרכים לקנות — ומה ההבדל ביניהן</summary>
+          <div id="buy-ways" class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="&lt;div class=&quot;prep-h&quot;&gt;At home, before you go&lt;/div&gt;
+You can try sizes calmly, you can go back if something doesn&#x27;t fit, and you land fully equipped — straight to the apartment without hunting for anything. This is the relaxed way.
+&lt;div class=&quot;prep-h&quot;&gt;In Italy, on the way from Milan&lt;/div&gt;
+On the road from Milan to the valley there are large sports stores, and &lt;b&gt;prices there are noticeably lower than in the village&lt;/b&gt;. At Decathlon in Italy, for example:
+&lt;table style=&quot;width:100%;border-collapse:collapse;font-size:0.78rem;margin:7px 0;&quot;&gt;
+  &lt;tr style=&quot;background:#f3f6fa;&quot;&gt;&lt;th style=&quot;text-align:start;padding:4px 6px;&quot;&gt;Model&lt;/th&gt;&lt;th style=&quot;text-align:start;padding:4px 6px;&quot;&gt;In Italy&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;QUECHUA 500&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;span dir=&quot;ltr&quot;&gt;€100&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;WEDZE 500 AM&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;span dir=&quot;ltr&quot;&gt;€130&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+It is also the best value for gloves, goggles, thermals and sunscreen.
+&lt;br&gt;&lt;b&gt;The price you pay:&lt;/b&gt; time on the day you land, and uncertainty — you can&#x27;t know in advance what will be in stock and in which size. Don&#x27;t count on it for an item you must have.
+&lt;br&gt;The list and locations are in the
+&lt;a href=&quot;#&quot; onclick=&quot;closeM(&#x27;hotelModal&#x27;);openM(&#x27;rentalModal&#x27;);return false;&quot; style=&quot;color:#1a73e8;font-weight:bold;&quot;&gt;Gear and rental&lt;/a&gt; section.
+&lt;div class=&quot;prep-h&quot;&gt;Online&lt;/div&gt;
+Online marketplaces are good value for socks, thermals, neck gaiters, hats and heat packs. &lt;b&gt;Jackets and trousers&lt;/b&gt; are better tried on in person — sizes vary a lot between brands.
+&lt;br&gt;Good branded goggles are often cheaper online. Just check that the lens category (S1/S2/S3) is stated and that it is a double lens.
+&lt;br&gt;&lt;b&gt;Either way&lt;/b&gt;: order early. A month before the trip, not a week.
+&lt;div class=&quot;prep-h&quot;&gt;In the village, at the last minute&lt;/div&gt;
+Cervinia has sports shops where you can buy everything — jacket, trousers, gloves, goggles.
+&lt;br&gt;&lt;b&gt;But it is not the same shelf at the same price — it&#x27;s a different category.&lt;/b&gt; The village shops stock big brands (Helly Hansen, Spyder, Dainese) and sell them in season &lt;b&gt;at full list price&lt;/b&gt;. A cheap jacket simply isn&#x27;t sold there.
+&lt;br&gt;For example: a &lt;b&gt;Helly Hansen Alpha&lt;/b&gt; jacket — the kind of brand sold in the village shops — lists at &lt;b&gt;&lt;span dir=&quot;ltr&quot;&gt;€450&lt;/span&gt;&lt;/b&gt;, against €100–130 for the Decathlon jacket above.
+&lt;br&gt;&lt;b&gt;When to buy there anyway:&lt;/b&gt; when something tears, gets lost or is forgotten. It&#x27;s a safety net, not a plan.
+&lt;div style=&quot;font-size:0.72rem;color:#8795a4;margin-top:9px;&quot;&gt;Prices checked in November 2026.&lt;/div&gt;">
             <div class="prep-h">בארץ, לפני הנסיעה</div>
             המידה נמדדת בנחת, יש למי לחזור אם משהו לא מתאים, ונוחתים מצוידים —
             אפשר לנסוע ישר לדירה בלי לחפש כלום. זו הדרך הרגועה.
@@ -2203,7 +2267,7 @@ what counts.">
           </div>
         </details>
 
-        <details class="fold" style="margin-bottom:10px;">
+        <details class="fold he-only" style="margin-bottom:10px;">
           <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-gloves"/></svg>חנויות בארץ</summary>
           <div class="fold-body">
             <div style="font-size:0.78rem;color:#777;line-height:1.7;margin-bottom:9px;">
@@ -2215,11 +2279,32 @@ what counts.">
         </details>
 
         <!-- ── 3. the gear itself ─────────────────────────────────────── -->
-        <div class="prep-group">🧤 הציוד — מה חשוב בכל פריט</div>
+        <div class="prep-group" data-en="🧤 The gear — what matters in each item">🧤 הציוד — מה חשוב בכל פריט</div>
 
         <details class="fold" style="margin-bottom:10px;">
-          <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-goggles"/></svg>גוגלס — הפריט שהכי קל לטעות בו</summary>
-          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+          <summary data-en="&lt;svg class=&quot;fold-ico&quot; viewBox=&quot;0 0 128 128&quot; aria-hidden=&quot;true&quot;&gt;&lt;use href=&quot;#ico-goggles&quot;/&gt;&lt;/svg&gt;Goggles — the easiest item to get wrong"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-goggles"/></svg>גוגלס — הפריט שהכי קל לטעות בו</summary>
+          <div id="fb-goggles" class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="Goggles are not sunglasses. They are how you read the surface, and in flat light (low cloud, falling snow) the difference between the right lens and the wrong one is the difference between seeing the bump in front of you and not seeing it.
+&lt;div class=&quot;prep-h&quot;&gt;Lens category — the one number you must know&lt;/div&gt;
+Every lens is labelled with a category, by the share of light it lets through:
+&lt;table style=&quot;width:100%;border-collapse:collapse;font-size:0.78rem;margin:7px 0;&quot;&gt;
+  &lt;tr style=&quot;background:#f3f6fa;&quot;&gt;&lt;th style=&quot;text-align:start;padding:4px 6px;&quot;&gt;Category&lt;/th&gt;&lt;th style=&quot;text-align:start;padding:4px 6px;&quot;&gt;Light through&lt;/th&gt;&lt;th style=&quot;text-align:start;padding:4px 6px;&quot;&gt;When&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;b&gt;S0&lt;/b&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;span dir=&quot;ltr&quot;&gt;80–100%&lt;/span&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;Night skiing, snowstorm&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;b&gt;S1&lt;/b&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;span dir=&quot;ltr&quot;&gt;43–80%&lt;/span&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;Overcast, flat light&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;b&gt;S2&lt;/b&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;span dir=&quot;ltr&quot;&gt;18–43%&lt;/span&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;Partly cloudy — the most useful&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;b&gt;S3&lt;/b&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;span dir=&quot;ltr&quot;&gt;8–18%&lt;/span&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;Full sun at altitude&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;b&gt;S4&lt;/b&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;&lt;span dir=&quot;ltr&quot;&gt;3–8%&lt;/span&gt;&lt;/td&gt;&lt;td style=&quot;padding:4px 6px;border-top:1px solid #eee;&quot;&gt;Glacier · not for driving&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;b&gt;The common mistake:&lt;/b&gt; buying the darkest lens because it looks professional. On a cloudy day with S3 you simply can&#x27;t see the terrain.
+&lt;br&gt;&lt;b&gt;The practical answer&lt;/b&gt; — one of two: goggles with &lt;b&gt;two interchangeable lenses&lt;/b&gt; (one S1–S2 for cloud, one S3 for sun), or a &lt;b&gt;photochromic&lt;/b&gt; lens that changes tint with the light. Photochromic is dearer and reacts more slowly in the cold, but there&#x27;s nothing to swap in the middle of the day.
+&lt;div class=&quot;prep-h&quot;&gt;Double lens — not a luxury&lt;/div&gt;
+A single lens fogs. Two layers with an air gap between them almost completely prevent fogging, just like double glazing.
+&lt;br&gt;&lt;b&gt;And one rule:&lt;/b&gt; never wipe the inside when it&#x27;s wet. That&#x27;s where the anti-fog coating sits, and one wipe with a towel removes it for good. Shake it, and let it air-dry.
+&lt;div class=&quot;prep-h&quot;&gt;Shape, tint and UV&lt;/div&gt;
+A &lt;b&gt;spherical&lt;/b&gt; lens (curved on both axes) gives a wider side view and less fogging than a &lt;b&gt;cylindrical&lt;/b&gt; one (curved horizontally only), and costs more.
+&lt;br&gt;&lt;b&gt;Amber, rose or brown&lt;/b&gt; tints boost contrast and sharpen the terrain in flat light. &lt;b&gt;Grey&lt;/b&gt; keeps natural colours, for strong sun.
+&lt;br&gt;&lt;b&gt;UV:&lt;/b&gt; tint is not protection. Any decent goggle filters 100% UV in every category. At altitude, with the reflection off the snow, radiation is much stronger than at sea level.
+&lt;div class=&quot;prep-h&quot;&gt;Fit with your helmet and glasses&lt;/div&gt;
+Goggles and helmet should meet with no gap on the forehead — try them on together. If you wear glasses there are &lt;b&gt;OTG&lt;/b&gt; (Over The Glasses) models with notches for the arms.">
             גוגלס הם לא משקפי שמש. הם המכשיר שדרכו קוראים את פני השטח, ובאור שטוח
             (עננות נמוכה, שלג יורד) ההבדל בין עדשה נכונה ללא נכונה הוא ההבדל בין לראות
             את הבליטה שלפניכם ובין לא לראות אותה.
@@ -2261,8 +2346,32 @@ what counts.">
         </details>
 
         <details class="fold" style="margin-bottom:10px;">
-          <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-jacket"/></svg>מעיל ומכנסי סקי</summary>
-          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+          <summary data-en="&lt;svg class=&quot;fold-ico&quot; viewBox=&quot;0 0 128 128&quot; aria-hidden=&quot;true&quot;&gt;&lt;use href=&quot;#ico-jacket&quot;/&gt;&lt;/svg&gt;Ski jacket and trousers"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-jacket"/></svg>מעיל ומכנסי סקי</summary>
+          <div id="fb-jacket" class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="&lt;div class=&quot;prep-h&quot;&gt;The two numbers on the label&lt;/div&gt;
+&lt;b&gt;Waterproofing&lt;/b&gt;, in millimetres — the height of water column the fabric holds back before it lets water through. 5,000 mm for light snow · &lt;b&gt;10,000–15,000 mm — the right range for resort skiing&lt;/b&gt; · 20,000 and up for wet snow and sitting in the snow.
+&lt;br&gt;&lt;b&gt;Breathability&lt;/b&gt;, in grams per m² per 24 hours — how much vapour the fabric lets out. 5,000 if you ski slowly · &lt;b&gt;10,000–15,000 for normal skiing&lt;/b&gt; · 20,000 and up if you sweat a lot.
+&lt;br&gt;A waterproof jacket with low breathability wets you from the inside instead of the outside, and no extra layer can fix that.
+&lt;figure style=&quot;margin:10px 0;text-align:center;&quot;&gt;
+  &lt;img src=&quot;./img/jacket-tag.jpg&quot; alt=&quot;A ski jacket label showing waterproofing, breathability and insulation&quot; loading=&quot;lazy&quot; width=&quot;620&quot; height=&quot;830&quot; style=&quot;width:100%;max-width:230px;height:auto;border-radius:10px;border:1px solid #d9e2ec;display:block;margin:0 auto;&quot;&gt;
+  &lt;figcaption style=&quot;font-size:0.75rem;color:#777;line-height:1.6;margin-top:6px;&quot;&gt;This is what it looks like on a label: &lt;b&gt;15,000 mm&lt;/b&gt; waterproofing, &lt;b&gt;15,000 g/m²/24h&lt;/b&gt; breathability, &lt;b&gt;80 g/m²&lt;/b&gt; insulation — a typical resort jacket.&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;div class=&quot;prep-h&quot;&gt;Insulated jacket or shell&lt;/div&gt;
+&lt;b&gt;Insulated&lt;/b&gt; — the insulation is sewn into the jacket. Warm straight away, simple, no thinking about layers. The downside: its warmth is fixed. On a spring day of 5°C it is too warm, and there&#x27;s nothing to do but open the zip.
+&lt;br&gt;&lt;b&gt;Shell&lt;/b&gt; — a wind- and waterproof outer with no insulation. All the warmth comes from what you wear underneath. So the same jacket works on a −10°C day (with a mid layer) and on a spring day (without).
+&lt;br&gt;&lt;b&gt;In other words:&lt;/b&gt; an insulated jacket is for a cold day; a shell is for the whole winter, at the cost of a little thought in the morning. Going once — insulated is simpler. Planning to come back — a shell will serve you for years and in all conditions.
+&lt;br&gt;60–80 g of synthetic insulation in the body of the jacket is enough for a ski resort. &lt;b&gt;Down&lt;/b&gt; is warmer for its weight but loses its value when it gets wet.
+&lt;div class=&quot;prep-h&quot;&gt;The details that matter on a real day&lt;/div&gt;
+• &lt;b&gt;Powder skirt&lt;/b&gt; — an elastic band at the bottom of the jacket that grips your waist. After your first fall you&#x27;ll see why.&lt;br&gt;
+• &lt;b&gt;Pit zips&lt;/b&gt; — vents under the arms to regulate heat without taking the jacket off.&lt;br&gt;
+• &lt;b&gt;Taped seams&lt;/b&gt; — &quot;fully taped&quot; is better than &quot;critically taped&quot;.&lt;br&gt;
+• &lt;b&gt;DWR coating&lt;/b&gt; on the outside repels water, wears off in the wash and is renewed with a dedicated spray.&lt;br&gt;
+• &lt;b&gt;A ski pass pocket.&lt;/b&gt; On most jackets today it&#x27;s a narrow vertical pocket at chest height, and the pass stays in it all day — the gate reads it through the fabric. On other models it&#x27;s on the sleeve, sometimes with a clear window. Both work; what matters is not having to pull it out with gloves at every lift.
+&lt;div class=&quot;prep-h&quot;&gt;Trousers&lt;/div&gt;
+The same two numbers. The practical difference is the cut:
+&lt;br&gt;&lt;b&gt;Bib&lt;/b&gt; — trousers with braces up to the chest. Snow doesn&#x27;t get in at the waist, even when you fall. Better for beginners and children, who fall a lot.
+&lt;br&gt;&lt;b&gt;Regular&lt;/b&gt; — more comfortable, and needs a jacket that covers them.
+&lt;br&gt;Look for &lt;b&gt;ankle reinforcement&lt;/b&gt;: a stiff fabric strip at the bottom of the leg. The &lt;b&gt;edge&lt;/b&gt; is the sharp metal strip along the side of the ski, and on one leg it passes right by the other — without that reinforcement it cuts the trousers within days.
+&lt;br&gt;Also an &lt;b&gt;inner gaiter&lt;/b&gt; with elastic that sits over the boot and keeps snow out, and thigh vents.">
             <div class="prep-h">שני המספרים שעל התווית</div>
             <b>עמידות למים</b> (Waterproof), במילימטרים — גובה עמוד המים שהבד עוצר לפני שהוא מרטיב.
             5,000 מ"מ לשלג קל · <b>10,000–15,000 מ"מ — הטווח הנכון לסקי באתר</b> ·
@@ -2325,8 +2434,24 @@ what counts.">
              had to scroll past the whole sock section with its calf diagram,
              and somebody checking sock height had to scroll past the layers. -->
         <details class="fold" style="margin-bottom:10px;">
-          <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-jacket"/></svg>שכבות: מה לובשים מתחת למעיל</summary>
-          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+          <summary data-en="&lt;svg class=&quot;fold-ico&quot; viewBox=&quot;0 0 128 128&quot; aria-hidden=&quot;true&quot;&gt;&lt;use href=&quot;#ico-jacket&quot;/&gt;&lt;/svg&gt;Layers: what to wear under the jacket"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-jacket"/></svg>שכבות: מה לובשים מתחת למעיל</summary>
+          <div id="fb-layers" class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="&lt;div class=&quot;prep-h&quot;&gt;How many layers you really need&lt;/div&gt;
+The &lt;b&gt;base layer&lt;/b&gt; (thermals) sits against the skin and wicks sweat — always.
+The &lt;b&gt;outer layer&lt;/b&gt; stops wind and water — always.
+The &lt;b&gt;mid layer&lt;/b&gt; holds warmth — &lt;b&gt;not always&lt;/b&gt;.
+&lt;br&gt;Thermals under a good jacket is a perfectly right combination for a normal resort day, if you don&#x27;t feel the cold easily. The mid layer is what you add when it&#x27;s especially cold, windy, or when you sit a lot on open chairlifts. It can be a &lt;b&gt;thin fleece&lt;/b&gt;, a &lt;b&gt;micro-fleece top&lt;/b&gt; or a &lt;b&gt;light down vest&lt;/b&gt; — and you can carry it in a bag and add it only if needed.
+&lt;br&gt;&lt;b&gt;And if the jacket is insulated&lt;/b&gt;, the mid layer is already in it, and there&#x27;s no point adding another.
+&lt;br&gt;The common mistake is adding another thick layer instead of changing to the right one.
+&lt;br&gt;&lt;b&gt;No cotton in any layer.&lt;/b&gt; It soaks up sweat, stays wet and chills the body. It&#x27;s the number one reason people freeze on the slope.
+&lt;div class=&quot;prep-h&quot;&gt;Merino or synthetic&lt;/div&gt;
+&lt;b&gt;Merino wool&lt;/b&gt; — warm even when damp, hardly holds odour (you can wear it several days), dries slowly, dearer and more delicate.
+&lt;br&gt;&lt;b&gt;Synthetic&lt;/b&gt; (polyester) — wicks and dries fast, durable, cheap. Holds odour.
+&lt;div class=&quot;prep-h&quot;&gt;The &quot;weight&quot; of a thermal — and what that number means&lt;/div&gt;
+The weight in the description is the &lt;b&gt;fabric weight per square metre&lt;/b&gt;, not the weight of the garment. It measures how thick the fabric is:
+&lt;br&gt;• &lt;b&gt;150 g/m²&lt;/b&gt; — light, for intense activity and for people who sweat.&lt;br&gt;
+• &lt;b&gt;200 g/m²&lt;/b&gt; — medium. &lt;b&gt;The right range for resort skiing.&lt;/b&gt;&lt;br&gt;
+• &lt;b&gt;260 and up&lt;/b&gt; — heavy, for extreme cold or long periods sitting outside.
+&lt;br&gt;&lt;b&gt;Where to find it:&lt;/b&gt; on the hang tag in the shop, on the sewn-in label inside, and on the maker&#x27;s product page — that&#x27;s where it is most complete. The jacket&#x27;s numbers (mm and breathability) appear in the same places.">
             <div class="prep-h">כמה שכבות באמת צריך</div>
             <b>שכבת בסיס</b> (Base layer) (תרמי) נצמדת לגוף ומנדפת זיעה — תמיד.
             <b>שכבה חיצונית</b> (Outer layer) עוצרת רוח ומים — תמיד.
@@ -2359,13 +2484,15 @@ what counts.">
         </details>
 
         <details class="fold" style="margin-bottom:10px;">
-          <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-socks"/></svg>גרבי סקי — והמלכודת שבהן</summary>
+          <summary data-en="&lt;svg class=&quot;fold-ico&quot; viewBox=&quot;0 0 128 128&quot; aria-hidden=&quot;true&quot;&gt;&lt;use href=&quot;#ico-socks&quot;/&gt;&lt;/svg&gt;Ski socks — and the trap in them"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-socks"/></svg>גרבי סקי — והמלכודת שבהן</summary>
           <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
-            <b>זוג אחד. לא שניים.</b> שני זוגות יוצרים קפלים, הקפלים לוחצים, הלחץ חוסם
+            <span id="sock-intro" data-en="&lt;b&gt;One pair. Not two.&lt;/b&gt; Two pairs make folds, the folds press, the pressure cuts off circulation — and the result is a cold foot, not a warm one.
+&lt;br&gt;&lt;b&gt;And a thin sock, not a thick one.&lt;/b&gt; The boot is meant to hold the foot; a thick sock fills the space meant for the foot, reduces control and makes you colder.
+&lt;br&gt;&lt;b&gt;Many socks are sold as &quot;ski socks&quot; and aren&#x27;t.&lt;/b&gt; Here&#x27;s how to check before you buy:"><b>זוג אחד. לא שניים.</b> שני זוגות יוצרים קפלים, הקפלים לוחצים, הלחץ חוסם
             את זרימת הדם — והתוצאה היא כף רגל קרה, לא חמה.
             <br><b>וגרב דקה, לא עבה.</b> המגף אמור להחזיק את הרגל; גרב עבה ממלאת את המקום
             שנועד לרגל, מקטינה שליטה ומקררת.
-            <br><b>הרבה גרביים נמכרות כ"גרבי סקי" ואינן כאלה.</b> כך בודקים לפני שקונים:
+            <br><b>הרבה גרביים נמכרות כ"גרבי סקי" ואינן כאלה.</b> כך בודקים לפני שקונים:</span>
 
             <!-- The leg and boot were traced from a drawing; the lines are placed by
                  measurement, not by eye, and the measurement is taken off the BACK of
@@ -2378,7 +2505,7 @@ what counts.">
                  the lines is ordinary text below rather than more labels inside, so it
                  scales with the page and reads as prose. -->
             <figure class="sock-fig-box">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="170 108 880 862" class="sock-fig" role="img" aria-label="ציור של רגל בתוך מגף סקי. גרב של ארבעים עד ארבעים וחמישה סנטימטר עוברת את בליטת שריר השוק ונגמרת ממש מתחת לברך; גרב של שלושים סנטימטר נגמרת על הבליטה עצמה">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="170 108 880 862" class="sock-fig" role="img" aria-label="ציור של רגל בתוך מגף סקי. גרב של ארבעים עד ארבעים וחמישה סנטימטר עוברת את בליטת שריר השוק ונגמרת ממש מתחת לברך; גרב של שלושים סנטימטר נגמרת על הבליטה עצמה" data-en-aria-label="A drawing of a leg in a ski boot. A 40–45 cm sock passes the bulge of the calf muscle and ends just below the knee; a 30 cm sock ends on the bulge itself">
 <g opacity=".93"><g><path fill="#c5d3dc" fill-rule="evenodd" d="M784.2 467.3 L778.3 465.3 L615.2 466.3 L610.8 461.9 L611.8 458.0 L607.9 450.2 L608.9 441.4 L606.9 439.5 L607.9 435.5 L606.0 433.6 L606.9 428.7 L605.0 427.7 L606.0 422.9 L604.0 421.9 L605.0 417.0 L602.1 414.1 L603.0 404.3 L601.1 403.3 L602.1 397.5 L600.1 396.5 L601.1 391.6 L599.1 390.6 L600.1 383.8 L598.1 382.8 L599.1 377.9 L597.2 377.0 L598.1 370.1 L596.2 369.1 L597.2 363.3 L595.2 361.3 L597.2 356.4 L594.2 353.5 L596.2 347.7 L593.3 344.7 L595.2 338.9 L592.3 335.9 L594.2 330.1 L591.3 327.1 L593.3 321.3 L590.3 318.4 L591.3 312.5 L589.4 311.5 L590.3 306.6 L588.4 304.7 L589.4 297.9 L585.4 293.9 L585.4 284.2 L580.6 278.3 L581.5 268.6 L579.6 262.7 L573.7 257.8 L573.7 250.0 L563.0 229.5 L560.1 217.8 L555.2 211.9 L555.2 199.2 L552.2 197.3 L552.2 185.5 L549.3 183.6 L550.3 178.7 L548.3 177.7 L549.3 171.9 L547.4 169.9 L547.4 167.0 L549.3 165.0 L549.3 160.2 L546.4 155.3 L549.3 152.3 L549.3 140.6 L552.2 138.7 L551.3 129.9 L556.2 115.2 L556.2 107.4 L559.1 102.5 L557.1 100.6 L558.1 93.8 L556.2 92.8 L557.1 87.9 L554.2 81.1 L555.2 75.2 L553.2 74.2 L554.2 67.4 L552.2 66.4 L554.2 60.5 L551.3 58.6 L551.3 55.7 L553.2 53.7 L553.2 51.8 L550.3 49.8 L552.2 43.9 L549.3 41.0 L551.3 33.2 L547.4 30.3 L550.3 22.5 L546.4 18.6 L549.3 13.7 L549.3 9.8 L545.4 4.9 L546.9 1.5 L550.8 -0.5 L568.4 -0.5 L571.3 1.5 L605.5 1.5 L608.4 -0.5 L622.1 -0.5 L625.0 1.5 L760.7 1.5 L763.7 -0.5 L785.6 0.0 L782.7 4.9 L782.7 20.5 L779.8 23.4 L780.8 28.3 L778.8 38.1 L775.9 40.0 L774.9 43.9 L774.9 57.6 L772.0 59.6 L772.9 68.4 L771.0 74.2 L768.1 77.1 L768.1 87.9 L763.2 93.8 L764.2 100.6 L761.2 102.5 L762.2 107.4 L758.3 111.3 L759.3 117.2 L756.3 119.1 L757.3 127.0 L750.5 146.5 L749.5 155.3 L747.6 156.2 L748.5 163.1 L745.6 165.0 L748.5 173.8 L744.6 178.7 L745.6 182.6 L748.5 185.5 L748.5 189.5 L745.6 192.4 L745.6 195.3 L748.5 197.3 L747.6 203.1 L749.5 204.1 L750.5 210.0 L749.5 217.8 L753.4 221.7 L757.3 231.4 L755.4 235.4 L756.3 239.3 L762.2 245.1 L760.3 249.0 L764.2 252.9 L763.2 256.8 L769.0 263.7 L772.0 272.5 L770.0 276.4 L771.0 280.3 L775.9 285.2 L778.8 293.0 L777.8 301.8 L780.8 303.7 L780.8 314.5 L785.6 321.3 L789.6 342.8 L788.6 347.7 L790.5 348.6 L789.6 353.5 L791.5 354.5 L790.5 360.4 L792.5 364.3 L790.5 368.2 L793.5 370.1 L791.5 378.9 L795.4 382.8 L792.5 387.7 L792.5 418.0 L795.4 420.9 L795.4 423.8 L791.5 427.7 L791.5 431.6 L794.4 436.5 L790.5 439.5 L792.5 443.4 L792.5 446.3 L790.5 448.2 L791.5 454.1 L789.6 455.1 L790.5 460.9 L784.2 467.3Z"/><path fill="#8ba0b2" fill-rule="evenodd" d="M621.1 503.4 L617.7 502.0 L616.7 498.0 L603.0 418.9 L587.4 298.8 L577.6 264.6 L561.0 230.5 L556.2 215.8 L548.3 180.7 L547.4 149.4 L556.2 113.3 L557.1 97.7 L549.3 44.9 L546.4 0.0 L784.2 -0.5 L781.7 25.4 L774.9 59.6 L749.5 153.3 L747.6 168.0 L747.6 192.4 L754.4 226.6 L780.8 301.8 L791.5 351.6 L794.4 377.0 L795.4 414.1 L792.5 450.2 L789.6 464.8 L790.5 465.8 L789.1 467.3 L786.6 466.8 L785.6 463.9 L791.5 419.9 L791.5 387.7 L787.6 351.6 L776.9 302.7 L747.6 216.8 L743.7 189.5 L745.6 152.3 L769.0 67.4 L780.8 3.9 L779.3 2.4 L552.7 2.4 L550.3 3.9 L554.2 54.7 L561.0 97.7 L560.1 114.3 L551.3 149.4 L551.3 173.8 L561.0 217.8 L579.6 257.8 L591.3 297.9 L603.0 393.6 L618.7 487.3 L621.6 497.1 L621.1 503.4ZM782.2 556.2 L777.8 555.7 L778.8 548.8 L787.6 532.2 L793.9 524.9 L799.3 521.5 L799.3 487.3 L800.8 485.8 L802.2 487.3 L802.2 518.6 L805.2 521.5 L806.2 532.2 L809.1 535.2 L809.1 540.0 L806.2 543.0 L807.1 551.8 L804.7 554.2 L782.2 556.2ZM586.9 938.0 L582.0 935.1 L471.7 935.1 L448.2 932.1 L432.6 927.2 L427.7 930.2 L426.3 928.7 L426.3 923.8 L429.2 920.9 L429.2 916.0 L427.2 914.1 L427.2 910.2 L428.7 908.7 L434.6 908.7 L439.9 902.3 L437.0 896.5 L439.0 894.5 L439.0 890.6 L437.0 888.7 L438.0 877.0 L436.0 874.0 L440.9 861.3 L443.4 858.9 L446.3 858.9 L455.1 848.1 L458.0 848.1 L460.9 845.2 L464.8 844.2 L466.8 841.3 L483.4 834.5 L488.3 835.4 L493.2 841.3 L498.0 844.2 L506.8 843.3 L509.3 839.8 L502.4 822.3 L509.8 815.9 L521.5 826.7 L525.4 827.6 L530.3 825.7 L532.7 828.1 L524.9 835.0 L524.9 839.8 L536.6 871.1 L542.0 877.4 L558.6 881.3 L570.3 881.3 L574.2 879.4 L579.6 873.0 L579.6 864.3 L574.7 854.5 L557.1 823.2 L552.7 820.8 L544.9 823.7 L543.5 819.3 L549.3 813.5 L546.9 797.4 L572.3 784.7 L579.1 784.7 L584.0 779.8 L589.8 781.7 L597.2 793.0 L608.4 801.3 L615.2 799.3 L619.6 800.8 L619.6 805.7 L615.2 808.1 L613.8 811.5 L633.3 851.6 L637.7 856.9 L647.5 860.8 L668.9 860.8 L672.9 858.9 L679.2 849.6 L677.2 839.8 L642.6 793.5 L638.7 793.5 L632.8 797.4 L628.4 792.0 L634.3 784.2 L629.4 771.5 L621.6 762.7 L621.6 758.8 L625.0 757.3 L628.4 753.9 L629.4 750.0 L635.3 745.1 L634.3 738.3 L629.4 733.4 L631.3 728.5 L632.8 727.1 L641.6 728.0 L644.0 735.4 L648.4 737.8 L704.1 739.7 L710.9 735.8 L718.8 734.9 L721.2 731.4 L721.2 727.5 L722.7 726.1 L727.5 726.1 L730.0 735.4 L733.4 737.8 L784.2 740.7 L789.1 738.8 L795.4 732.4 L804.2 718.8 L807.1 710.0 L804.2 703.1 L796.9 697.8 L733.4 701.7 L730.0 704.1 L727.5 713.4 L722.7 713.4 L719.7 705.6 L711.9 704.6 L705.1 700.7 L646.5 700.7 L641.6 706.5 L631.8 705.6 L627.4 704.1 L627.4 696.3 L634.3 691.4 L635.3 687.5 L623.5 678.7 L622.6 668.9 L625.0 666.5 L630.9 666.5 L632.3 670.9 L635.7 674.3 L687.5 669.4 L692.4 668.5 L701.2 662.6 L705.1 662.6 L708.5 659.2 L707.5 654.3 L710.0 651.9 L714.8 651.9 L717.3 659.2 L720.7 661.6 L769.5 657.7 L776.4 654.8 L781.7 648.4 L788.6 633.8 L790.5 625.0 L788.6 620.1 L783.2 614.7 L775.4 612.8 L717.8 626.5 L712.4 630.9 L713.4 637.7 L709.0 640.1 L705.6 638.7 L703.6 632.8 L701.2 631.3 L693.4 632.3 L688.5 629.4 L684.6 629.4 L630.9 638.2 L627.4 641.6 L626.0 646.0 L622.1 646.0 L617.7 643.6 L618.7 638.7 L616.7 636.7 L617.7 632.8 L614.7 628.9 L614.7 622.1 L618.2 617.7 L624.0 616.7 L756.8 606.9 L791.0 603.0 L812.5 603.0 L812.0 608.4 L814.9 611.3 L813.0 615.2 L814.9 618.2 L814.0 623.0 L817.9 631.8 L816.9 635.7 L818.8 637.7 L817.9 641.6 L819.8 643.6 L818.8 647.5 L820.8 649.4 L819.8 653.3 L826.7 688.5 L828.6 691.4 L830.6 706.1 L833.5 711.9 L843.3 752.9 L845.2 755.9 L843.3 759.8 L845.2 768.6 L842.3 773.4 L842.3 779.3 L845.2 782.2 L843.3 788.1 L845.2 790.0 L846.2 798.8 L851.1 810.5 L854.0 831.1 L856.0 833.0 L855.0 837.9 L856.9 839.8 L854.0 851.6 L856.0 855.5 L856.0 858.4 L854.0 860.4 L856.0 865.2 L854.0 867.2 L855.0 871.1 L849.1 890.6 L850.6 893.1 L856.4 894.0 L860.8 897.5 L861.8 905.3 L858.9 908.2 L860.8 913.1 L857.9 916.0 L859.9 919.9 L857.4 922.4 L853.5 922.4 L829.1 933.1 L702.1 933.1 L680.7 932.1 L678.7 929.2 L672.9 929.2 L668.0 926.3 L663.1 926.3 L657.2 929.2 L649.4 928.2 L645.5 931.2 L643.6 929.2 L640.6 929.2 L637.7 932.1 L631.8 930.2 L628.9 933.1 L624.0 931.2 L620.1 934.1 L618.2 932.1 L615.2 932.1 L611.3 935.1 L609.4 933.1 L606.4 933.1 L602.5 936.0 L600.6 934.1 L597.7 934.1 L595.7 936.0 L589.8 935.1 L586.9 938.0ZM662.1 663.6 L651.9 663.1 L648.9 648.4 L649.9 644.5 L652.3 643.1 L679.7 640.1 L682.1 642.6 L684.1 658.2 L681.6 660.6 L662.1 663.6ZM695.3 730.0 L662.1 730.0 L660.6 728.5 L660.6 710.9 L662.1 709.5 L694.3 709.5 L696.8 711.9 L696.8 728.5 L695.3 730.0ZM762.2 812.5 L769.5 810.1 L775.9 803.7 L777.8 798.8 L777.8 791.0 L775.9 786.1 L769.5 779.8 L759.8 776.9 L752.9 778.8 L745.6 785.2 L742.7 792.0 L742.7 797.9 L745.6 804.7 L750.0 809.1 L755.9 812.0 L762.2 812.5Z"/><path fill="#556b7b" fill-rule="evenodd" d="M821.3 950.7 L698.2 947.8 L690.4 945.8 L679.7 932.1 L672.9 929.2 L656.2 929.2 L585.9 937.0 L581.1 939.0 L573.2 947.8 L566.4 949.7 L544.9 950.7 L465.8 949.7 L437.5 942.9 L430.7 939.9 L427.2 935.5 L426.3 913.1 L430.7 907.7 L438.0 905.3 L436.0 886.7 L437.0 870.1 L442.9 858.4 L449.2 852.1 L482.4 832.5 L492.2 822.8 L506.8 815.9 L508.3 814.5 L508.3 808.6 L511.7 805.2 L516.6 804.2 L523.4 808.1 L532.2 804.2 L534.7 801.8 L535.6 795.9 L540.0 793.5 L550.8 796.4 L582.0 780.8 L583.5 779.3 L583.5 772.5 L586.9 769.0 L591.8 768.1 L595.7 772.0 L601.6 770.0 L607.9 765.6 L606.9 758.8 L609.4 755.4 L616.2 754.4 L622.1 757.3 L629.4 750.0 L634.3 742.2 L634.3 739.3 L630.4 735.4 L629.4 729.5 L622.6 722.7 L622.6 706.1 L625.5 703.1 L626.5 696.3 L631.3 690.4 L632.3 686.5 L630.9 684.1 L624.5 680.7 L622.6 670.9 L616.2 667.5 L613.8 664.1 L611.8 647.5 L616.7 643.6 L614.7 624.0 L612.3 619.6 L607.4 619.6 L604.0 617.2 L602.1 607.4 L600.1 573.2 L603.5 568.8 L607.9 567.4 L607.9 563.5 L600.1 533.2 L599.1 510.7 L605.5 502.4 L621.1 501.5 L635.7 506.3 L656.2 518.1 L674.8 536.6 L677.7 537.6 L701.2 529.8 L717.8 520.0 L736.8 502.0 L748.0 487.8 L766.6 471.2 L776.4 466.3 L789.1 465.3 L793.9 467.3 L800.3 474.6 L801.3 518.6 L808.1 524.4 L809.1 550.8 L814.0 558.6 L815.9 585.0 L815.9 599.6 L814.0 602.5 L814.0 611.3 L816.9 631.8 L831.5 707.0 L845.2 756.8 L844.2 783.2 L856.9 841.8 L856.0 864.3 L850.1 891.6 L858.4 895.0 L861.8 899.4 L856.9 936.5 L852.5 940.9 L841.8 946.8 L821.3 950.7ZM792.5 552.7 L802.7 552.2 L804.2 550.8 L804.2 528.3 L801.8 524.9 L795.9 526.9 L792.5 530.3 L781.7 548.8 L782.2 553.2 L792.5 552.7ZM765.1 825.2 L772.5 822.8 L781.2 816.9 L806.6 797.4 L831.1 776.9 L839.4 768.6 L841.3 763.7 L822.8 688.5 L809.1 605.5 L793.0 605.0 L620.1 619.6 L618.7 624.0 L621.6 640.6 L624.0 643.1 L628.9 636.2 L682.6 627.4 L690.4 627.4 L695.3 630.4 L703.1 629.4 L705.6 630.9 L707.0 635.3 L710.0 636.2 L711.4 627.0 L715.8 624.5 L773.4 610.8 L783.2 611.8 L790.5 618.2 L792.5 623.0 L790.5 635.7 L781.7 653.3 L778.3 656.7 L771.5 659.7 L718.8 663.6 L715.3 661.1 L714.4 655.3 L710.9 654.8 L710.4 661.1 L707.0 664.6 L703.1 664.6 L696.3 669.4 L689.5 671.4 L633.8 676.3 L630.4 672.9 L629.9 669.4 L626.5 670.9 L628.4 676.8 L634.8 680.2 L637.2 684.6 L637.2 691.4 L631.3 697.3 L631.3 701.2 L633.8 703.6 L640.6 703.6 L644.5 698.7 L707.0 698.7 L713.9 702.6 L721.7 703.6 L723.1 710.0 L726.6 710.4 L727.1 704.1 L731.4 699.7 L756.8 698.7 L779.3 695.8 L798.8 695.8 L806.2 701.2 L809.1 708.0 L808.1 716.8 L797.4 734.4 L791.0 740.7 L786.1 742.7 L731.4 739.7 L727.1 735.4 L726.6 729.0 L723.1 729.5 L723.1 733.4 L720.7 736.8 L712.9 737.8 L706.1 741.7 L667.0 739.7 L658.2 739.7 L656.7 741.2 L679.7 754.4 L698.2 769.0 L741.2 819.8 L753.9 825.7 L765.1 825.2ZM660.6 661.1 L679.7 658.7 L681.2 657.2 L680.2 644.5 L676.8 642.1 L654.3 645.0 L651.9 647.5 L652.8 658.2 L655.3 661.6 L660.6 661.1ZM693.8 727.5 L694.8 713.9 L692.4 711.4 L665.0 711.4 L663.6 712.9 L663.6 726.6 L665.0 728.0 L693.8 727.5ZM641.1 734.4 L639.6 730.0 L634.3 731.4 L637.7 734.9 L641.1 734.4ZM588.4 932.6 L661.1 924.3 L676.8 925.3 L685.5 930.2 L827.1 931.2 L852.5 920.4 L856.0 916.0 L856.9 901.4 L852.5 897.9 L846.7 897.0 L845.2 894.5 L852.1 860.4 L852.1 836.9 L841.3 793.9 L840.3 778.3 L838.9 776.9 L836.9 777.8 L811.5 800.3 L779.3 824.7 L764.6 830.6 L754.9 830.6 L746.1 828.6 L736.3 822.8 L729.0 815.4 L705.6 784.2 L686.5 766.1 L663.1 750.5 L642.6 741.7 L625.5 760.7 L626.5 764.6 L631.3 769.5 L633.3 777.3 L637.2 784.2 L633.3 792.0 L642.6 790.5 L647.0 793.9 L679.2 837.9 L681.2 842.8 L681.2 851.6 L674.8 860.8 L670.9 862.8 L645.5 862.8 L635.7 858.9 L631.3 853.5 L611.8 813.5 L611.8 808.6 L615.7 803.7 L606.4 803.2 L597.2 796.9 L587.9 784.7 L584.0 784.7 L550.3 802.7 L550.3 809.6 L552.2 812.5 L551.3 818.4 L555.7 818.8 L559.1 821.3 L581.5 862.3 L581.5 875.0 L576.2 881.3 L572.3 883.3 L556.6 883.3 L540.0 879.4 L534.7 873.0 L522.0 838.9 L523.9 830.1 L519.5 828.6 L510.7 820.8 L507.8 820.8 L505.4 824.2 L511.2 837.9 L511.2 842.8 L508.8 845.2 L496.1 846.2 L491.2 843.3 L486.3 837.4 L483.4 837.4 L454.1 855.0 L444.8 864.3 L441.9 870.1 L440.9 891.6 L442.9 908.2 L440.4 910.6 L432.6 912.6 L431.2 915.0 L431.2 922.9 L435.5 926.3 L450.2 930.2 L473.6 933.1 L588.4 932.6ZM606.9 780.3 L615.7 773.4 L613.3 770.0 L610.4 770.0 L600.1 776.4 L602.5 780.8 L606.9 780.3ZM763.7 814.9 L751.0 813.0 L743.7 806.6 L740.7 799.8 L740.7 790.0 L743.7 783.2 L751.0 776.9 L757.8 774.9 L763.7 774.9 L771.5 777.8 L777.8 784.2 L779.8 789.1 L779.8 800.8 L777.8 805.7 L771.5 812.0 L763.7 814.9Z"/><path fill="#acc0cf" fill-rule="evenodd" d="M677.7 539.6 L674.8 539.6 L667.0 529.8 L649.4 516.1 L635.7 508.3 L622.1 504.4 L619.6 502.0 L615.7 493.2 L615.7 484.4 L613.8 482.4 L614.7 478.5 L612.8 476.6 L613.8 472.7 L610.8 465.8 L612.3 463.4 L778.3 464.4 L779.8 465.8 L778.3 468.3 L760.7 478.0 L735.8 504.9 L735.8 506.8 L721.7 520.0 L702.1 531.7 L677.7 539.6Z"/></g></g>
 <g fill="none" stroke-linecap="round">
  <path d="M300 165H548" stroke="#90a4b7" stroke-width="4" stroke-dasharray="9 9"/>
@@ -2388,24 +2515,29 @@ what counts.">
  <path d="M795 396h54" stroke="#5c7a99" stroke-width="4"/>
 </g>
 <g font-family="system-ui,'Segoe UI',Arial" text-anchor="start" xml:lang="he">
- <text x="540" y="149" font-size="40" fill="#6b7f93">הברך</text>
- <text x="540" y="287" font-size="56" font-weight="800" fill="#0d7a42">40&#8211;45 ס&quot;מ &#10004;</text>
- <text x="540" y="412" font-size="56" font-weight="800" fill="#b03024">30 ס&quot;מ &#10008;</text>
- <text x="1046" y="409" font-size="38" font-weight="600" fill="#4a687f">בליטת השוק</text>
+ <text x="540" y="149" font-size="40" fill="#6b7f93" data-en="Knee">הברך</text>
+ <text x="540" y="287" font-size="56" font-weight="800" fill="#0d7a42" data-en="40&amp;#8211;45 cm &amp;#10004;">40&#8211;45 ס&quot;מ &#10004;</text>
+ <text x="540" y="412" font-size="56" font-weight="800" fill="#b03024" data-en="30 cm &amp;#10008;">30 ס&quot;מ &#10008;</text>
+ <text x="1046" y="409" font-size="38" font-weight="600" fill="#4a687f" data-en="Calf">בליטת השוק</text>
 </g>
 </svg>
-              <figcaption>המספר שמופיע בתיאור הגרב הוא גובה השוק. <b>40&#8211;45 ס"מ</b>
+              <figcaption data-en="The number in the sock description is the calf height. &lt;b&gt;40&amp;#8211;45 cm&lt;/b&gt; passes the bulge of the calf muscle and ends just below the knee &amp;#8211; there it grips and doesn&#x27;t slip. &lt;b&gt;30 cm&lt;/b&gt; ends on the bulge itself, slides down into the boot, and the cuff of the boot presses on the skin.">המספר שמופיע בתיאור הגרב הוא גובה השוק. <b>40&#8211;45 ס"מ</b>
                 עוברת את בליטת שריר השוק ונגמרת ממש מתחת לברך &#8211; שם היא נתפסת ולא
                 מחליקה. <b>30 ס"מ</b> נגמרת על הבליטה עצמה, מחליקה מטה לתוך המגף, ושפת
                 המגף לוחצת על העור.</figcaption>
             </figure>
             <figure class="sock-fig-box">
               <img src="./img/boot-sock.jpg" alt="צילום של רגל בגרב סקי כחולה בתוך מגף סקי, הגרב עולה הרבה מעל שפת המגף"
-                   width="460" height="497" loading="lazy" decoding="async">
-              <figcaption>כך זה נראה במציאות: הגרב עולה גבוה מעל שפת המגף, והריפוד
+                   width="460" height="497" loading="lazy" decoding="async" data-en-alt="A leg in a blue ski sock inside a ski boot; the sock rises well above the cuff of the boot">
+              <figcaption data-en="What it looks like in real life: the sock rises high above the boot cuff, and the padding is concentrated on the shin and the back of the ankle &amp;#8211; not even all the way along.">כך זה נראה במציאות: הגרב עולה גבוה מעל שפת המגף, והריפוד
                 מרוכז בעצם השוק ובגב הקרסול &#8211; ולא אחיד לכל אורכה.</figcaption>
             </figure>
-            <br>• <b>גובה — המבחן החשוב ביותר.</b> עד <b>ממש מתחת לברך</b>. בתיאור המוצר
+            <span id="sock-points" data-en="&lt;br&gt;• &lt;b&gt;Height — the most important test.&lt;/b&gt; Up to &lt;b&gt;just below the knee&lt;/b&gt;. In the product description look for &lt;b&gt;Over the Calf&lt;/b&gt; or &lt;b&gt;OTC&lt;/b&gt;, and in adult sizes &lt;b&gt;40–45 cm&lt;/b&gt;.
+&lt;b&gt;Crew&lt;/b&gt; (about 20 cm) and &lt;b&gt;Mid-calf&lt;/b&gt; (about 30) are too short — and that is true of a large share of the &quot;ski socks&quot; on the market. A sock that stops halfway up the calf slides down and bunches inside the boot.&lt;br&gt;
+• &lt;b&gt;Targeted padding&lt;/b&gt; — thin, raised padding on the shin and the back of the ankle, not even padding all along the sock. A real ski sock looks different in different parts.&lt;br&gt;
+• &lt;b&gt;No toe seam&lt;/b&gt;, or a flat one.&lt;br&gt;
+• &lt;b&gt;Thin to medium&lt;/b&gt;. &quot;A thick, cosy ski sock&quot; is a sign it&#x27;s not a ski sock.&lt;br&gt;
+• &lt;b&gt;No cotton&lt;/b&gt; in the blend."><br>• <b>גובה — המבחן החשוב ביותר.</b> עד <b>ממש מתחת לברך</b>. בתיאור המוצר
             מחפשים <b>Over the Calf</b> או <b>OTC</b>, ובמידת מבוגר <b>40–45 ס"מ</b>.
             <b>Crew</b> (כ-20 ס"מ) ו<b>Mid-calf</b> (כ-30) קצרות מדי — וזה המצב של חלק
             גדול מ"גרבי הסקי" בשוק. גרב שנעצרת באמצע השוק מחליקה מטה ונערמת בתוך המגף.<br>
@@ -2413,13 +2545,25 @@ what counts.">
             אחיד לכל אורך הגרב. גרב סקי אמיתית נראית שונה בחלקים שונים שלה.<br>
             • <b>בלי תפר על האצבעות</b>, או תפר שטוח.<br>
             • <b>דקה עד בינונית</b>. "גרב סקי עבה ומפנקת" היא סימן שזו לא גרב סקי.<br>
-            • <b>בלי כותנה</b> בהרכב.
+            • <b>בלי כותנה</b> בהרכב.</span>
           </div>
         </details>
 
         <details class="fold" style="margin-bottom:10px;">
-          <summary><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-gloves"/></svg>כפפות, צוואר והדברים הקטנים</summary>
-          <div class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;">
+          <summary data-en="&lt;svg class=&quot;fold-ico&quot; viewBox=&quot;0 0 128 128&quot; aria-hidden=&quot;true&quot;&gt;&lt;use href=&quot;#ico-gloves&quot;/&gt;&lt;/svg&gt;Gloves, neck and the small things"><svg class="fold-ico" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-gloves"/></svg>כפפות, צוואר והדברים הקטנים</summary>
+          <div id="fb-gloves" class="fold-body" style="font-size:0.81rem;color:#444;line-height:1.85;" data-en="&lt;div class=&quot;prep-h&quot;&gt;Gloves or mittens&lt;/div&gt;
+&lt;b&gt;Mittens&lt;/b&gt; (no separation between the fingers) are warmer — the fingers warm each other. The price: less control over buckles and poles.
+&lt;b&gt;Gloves&lt;/b&gt; are handier, and colder. &lt;b&gt;Three-finger&lt;/b&gt; (lobster) gloves are a good compromise if your hands get cold.
+&lt;br&gt;Look for a waterproof membrane inside, a &lt;b&gt;wrist leash&lt;/b&gt; (a glove dropped from the chairlift is gone), and a long cuff that goes over the jacket sleeve or under it.
+&lt;br&gt;A removable liner lets you dry them overnight. A wet glove in the morning is a cold day.
+&lt;div class=&quot;prep-h&quot;&gt;Neck and face&lt;/div&gt;
+A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the head that sits on the neck. You can pull it up over your chin and nose. &lt;b&gt;Not a scarf&lt;/b&gt; — a scarf comes loose in the wind and is dangerous on chairlifts and drag lifts.
+&lt;br&gt;A &lt;b&gt;balaclava&lt;/b&gt; is a fuller version of the same idea: a thin fabric cover over the whole head and neck, with an opening for the eyes and sometimes the mouth, worn &lt;b&gt;under the helmet&lt;/b&gt;. It replaces both the hat and the neck gaiter, and closes the gap between them. Useful on cold or windy days; on a normal day a neck gaiter and a thin hat are enough.
+&lt;div class=&quot;prep-h&quot;&gt;Cheap things that save the day&lt;/div&gt;
+• &lt;b&gt;SPF 50 sunscreen&lt;/b&gt; and &lt;b&gt;lip balm with SPF&lt;/b&gt;. At altitude, with the reflection off the snow, you burn even on a cloudy day — under the chin and inside the nostrils too.&lt;br&gt;
+• &lt;b&gt;Heat packs&lt;/b&gt; (hand / toe warmers) — small disposable pouches the size of a deck of cards. Open the wrapper, the air activates a material that heats itself to about 50°C, and they stay warm for six to eight hours. Slip one into the glove on the back of the hand, or into the boot over the toes. They cost very little and change a whole day if your hands or feet get cold. Sold in every sports shop and online.&lt;br&gt;
+• A &lt;b&gt;thin hat&lt;/b&gt; that fits under the helmet, and a &lt;b&gt;regular hat&lt;/b&gt; for after skiing.&lt;br&gt;
+• A &lt;b&gt;boot bag&lt;/b&gt;, and a small electric &lt;b&gt;boot dryer&lt;/b&gt;. A dry boot in the morning makes a real difference.">
             <div class="prep-h">כפפות או כסיות</div>
             <b>כסיות</b> (Mittens) (בלי הפרדה בין האצבעות) חמות יותר — האצבעות מחממות זו את זו.
             המחיר: פחות שליטה בסגרים ובמקל.
@@ -2456,32 +2600,35 @@ what counts.">
              topic, it is a Shabbat topic. It now lives in "כשרות ושבת" beside
              the candle-lighting times, which is where somebody looking for it
              would look. This stays behind as the signpost. -->
-        <a class="prep-jump" href="#" onclick="closeM('hotelModal');openKosherShabbat();return false;">
+        <a class="prep-jump" href="#" onclick="closeM('hotelModal');openKosherShabbat();return false;" data-en="&lt;svg class=&quot;ico-inline&quot; viewBox=&quot;0 0 128 128&quot; aria-hidden=&quot;true&quot;&gt;&lt;use href=&quot;#ico-candle&quot;/&gt;&lt;/svg&gt;
+&lt;span&gt;&lt;b&gt;Shabbat in Cervinia&lt;/b&gt;
+  &lt;small&gt;What to bring to the apartment, electricity and Shabbat timers, and when to stop skiing on Friday&lt;/small&gt;&lt;/span&gt;
+&lt;span class=&quot;prep-jump-go&quot;&gt;In Kosher &amp;amp; Shabbat ›&lt;/span&gt;">
           <svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-candle"/></svg>
           <span><b>שבת בצ'רוויניה</b>
             <small>מה להביא לדירה, חשמל ושעון שבת, ומתי להפסיק לגלוש ביום שישי</small></span>
           <span class="prep-jump-go">בכשרות ושבת ‹</span>
         </a>
 
-        <div class="prep-group">📋 רשימת אריזה</div>
+        <div class="prep-group" data-en="📋 Packing list">📋 רשימת אריזה</div>
 
         <details class="fold" style="margin-bottom:4px;background:#f5f9ff;border-color:#d8e6fb;">
-          <summary style="color:#16314f;">📋 הרשימה המלאה — להעתקה או להדפסה</summary>
+          <summary style="color:#16314f;" data-en="📋 The full list — to copy">📋 הרשימה המלאה — להעתקה או להדפסה</summary>
           <div class="fold-body">
             <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
               <button onclick="copyPackList()" id="gear-copy-btn"
                 style="flex:1;min-width:140px;padding:11px;background:var(--accent);color:white;border:none;
-                       border-radius:9px;font-size:0.86rem;cursor:pointer;font-weight:bold;">
+                       border-radius:9px;font-size:0.86rem;cursor:pointer;font-weight:bold;" data-en="📋 Copy">
                 📋 העתקה
               </button>
-              <a href="./files/packing-list.pdf" download="רשימת_אריזה_צרוויניה.pdf" id="gear-pdf-btn"
+              <a href="./files/packing-list.pdf" download="רשימת_אריזה_צרוויניה.pdf" id="gear-pdf-btn" class="he-only"
                 style="flex:1;min-width:140px;padding:11px;background:#2a9d8f;color:white;
                        border-radius:9px;font-size:0.86rem;font-weight:bold;text-decoration:none;
                        text-align:center;box-sizing:border-box;">
                 📄 הורדה להדפסה
               </a>
             </div>
-            <div style="font-size:0.76rem;color:#777;line-height:1.7;margin-bottom:9px;">
+            <div class="he-only" style="font-size:0.76rem;color:#777;line-height:1.7;margin-bottom:9px;">
               קובץ ההדפסה כולל תיבות סימון ושורות ריקות להוספות משלכם.
             </div>
             <pre id="gear-packlist" style="background:white;border:1px solid #dde6f2;border-radius:9px;
@@ -2510,37 +2657,37 @@ what counts.">
          frame starts from them and stays free to differ - see TRIP below. -->
     <div id="trip-strip" style="background:#f4f8fc;border:1.5px solid #d6e4f0;border-radius:12px;padding:10px 12px;margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-size:0.8rem;color:#16314f;font-weight:bold;">🧳 הטיול</span>
+        <span style="font-size:0.8rem;color:#16314f;font-weight:bold;" data-en="🧳 The trip">🧳 הטיול</span>
         <span id="strip-nights" style="font-size:0.72rem;color:#2980b9;font-weight:600;"></span>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <input type="text" id="strip-dates" readonly placeholder="מתי הטיול? הלוך — חזור"
-          style="flex:1;min-width:170px;padding:9px 12px;border:1.5px solid #cfdcea;border-radius:9px;font-size:0.86rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;box-sizing:border-box;">
+          style="flex:1;min-width:170px;padding:9px 12px;border:1.5px solid #cfdcea;border-radius:9px;font-size:0.86rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;box-sizing:border-box;" data-en-placeholder="When is the trip? Out — back">
         <div style="display:flex;align-items:center;gap:5px;background:white;border:1.5px solid #cfdcea;border-radius:9px;padding:5px 8px;">
-          <span style="font-size:0.7rem;color:#888;">מבוגרים</span>
+          <span style="font-size:0.7rem;color:#888;" data-en="Adults">מבוגרים</span>
           <button class="c-btn" onclick="adjStrip('adults',-1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
           <b id="strip-adults">2</b>
           <button class="c-btn" onclick="adjStrip('adults',1)" style="width:22px;height:22px;font-size:0.8rem;">+</button>
         </div>
         <div style="display:flex;align-items:center;gap:5px;background:white;border:1.5px solid #cfdcea;border-radius:9px;padding:5px 8px;">
-          <span style="font-size:0.7rem;color:#888;">ילדים</span>
+          <span style="font-size:0.7rem;color:#888;" data-en="Children">ילדים</span>
           <button class="c-btn" onclick="adjStrip('children',-1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
           <b id="strip-children">0</b>
           <button class="c-btn" onclick="adjStrip('children',1)" style="width:22px;height:22px;font-size:0.8rem;">+</button>
         </div>
       </div>
-      <div style="font-size:0.7rem;color:#7a8794;margin-top:6px;line-height:1.5;">
+      <div style="font-size:0.7rem;color:#7a8794;margin-top:6px;line-height:1.5;" data-en="Dates and travellers carry over to every step. You can change each step separately.">
         התאריכים והנוסעים עוברים לכל השלבים. ניתן לשנות כל שלב בנפרד.</div>
       <button type="button" onclick="openCost('trip')" class="plan-chip" id="strip-cost"
-        style="margin-top:8px;background:#fff8e6;border-color:#ecd9a8;color:#7a5a1c;font-weight:700;">
+        style="margin-top:8px;background:#fff8e6;border-color:#ecd9a8;color:#7a5a1c;font-weight:700;" data-en="💶 What will it really cost?">
         💶 כמה תכל'ס יעלה?</button>
     </div>
-    <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;">שלבי התכנון</div>
+    <div style="font-size:0.78rem;color:#5d7790;margin-bottom:6px;font-weight:bold;" data-en="Planning steps">שלבי התכנון</div>
     <div style="display:flex;gap:5px;margin-bottom:16px;">
-      <button id="ttab-all"    onclick="switchTripTab('all')"    class="ttab-btn ttab-active">✨ הכל</button>
-      <button id="ttab-flight" onclick="switchTripTab('flight')" class="ttab-btn">✈️ טיסה</button>
-      <button id="ttab-hotel"  onclick="switchTripTab('hotel')"  class="ttab-btn">🏨 לינה</button>
-      <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn">🚗 רכב</button>
+      <button id="ttab-all"    onclick="switchTripTab('all')"    class="ttab-btn ttab-active" data-en="✨ All">✨ הכל</button>
+      <button id="ttab-flight" onclick="switchTripTab('flight')" class="ttab-btn" data-en="✈️ Flight">✈️ טיסה</button>
+      <button id="ttab-hotel"  onclick="switchTripTab('hotel')"  class="ttab-btn" data-en="🏨 Lodging">🏨 לינה</button>
+      <button id="ttab-car"    onclick="switchTripTab('car')"    class="ttab-btn" data-en="🚗 Car">🚗 רכב</button>
     </div>
     </div>
 
@@ -2554,56 +2701,65 @@ what counts.">
       <!-- Nobody could tell this was a free-text box, or what "הבן" would do
            with what they typed. The label says both: write a sentence, the
            button reads it and fills the fields below. -->
-      <div style="font-weight:bold;font-size:0.84rem;color:#16314f;margin-bottom:3px;">
+      <div style="font-weight:bold;font-size:0.84rem;color:#16314f;margin-bottom:3px;" data-en="✍️ Say it in your own words">
         ✍️ כתבו במילים שלכם</div>
-      <div style="font-size:0.735rem;color:#5d7790;line-height:1.5;margin-bottom:8px;">
+      <div style="font-size:0.735rem;color:#5d7790;line-height:1.5;margin-bottom:8px;" data-en="One sentence — where, when and how many people. Tapping &lt;b&gt;Fill it in&lt;/b&gt; reads it and fills in the dates, travellers and options below for you.">
         משפט אחד — לאן, מתי וכמה אנשים. הלחיצה על <b>מלא בשבילי</b> תקרא אותו
         ותמלא בשבילכם את התאריכים, הנוסעים והאפשרויות שלמטה.</div>
       <div style="display:flex;gap:7px;align-items:stretch;">
         <textarea id="trip-free" rows="1" oninput="growTripFree(this)" placeholder="למשל: מילאנו בחנוכה לשבוע, 2 מבוגרים ורכב"
-          style="flex:1;padding:10px 12px;border:1.5px solid #bcd;border-radius:9px;font-size:0.86rem;font-family:inherit;box-sizing:border-box;resize:vertical;min-height:40px;max-height:160px;line-height:1.5;overflow-y:auto;"></textarea>
-        <button onclick="applyTripText()" style="padding:10px 16px;background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.3;">✨ מלא<br>בשבילי</button>
+          style="flex:1;padding:10px 12px;border:1.5px solid #bcd;border-radius:9px;font-size:0.86rem;font-family:inherit;box-sizing:border-box;resize:vertical;min-height:40px;max-height:160px;line-height:1.5;overflow-y:auto;" data-en-placeholder="e.g. Milan in February for a week, 2 adults and a car"></textarea>
+        <button onclick="applyTripText()" style="padding:10px 16px;background:#0a192f;color:white;border:none;border-radius:9px;font-size:0.84rem;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.3;" data-en="✨ Fill&lt;br&gt;it in">✨ מלא<br>בשבילי</button>
         <button type="button" onclick="saveTripSearch()" id="trip-save"
           title="שמירת החיפוש הזה במכשיר" aria-label="שמירת החיפוש הזה במכשיר"
           style="padding:10px 12px;background:#fff;color:#1a3a6c;border:1.5px solid #cfe2f5;
-          border-radius:9px;font-size:0.95rem;cursor:pointer;font-family:inherit;">💾</button>
+          border-radius:9px;font-size:0.95rem;cursor:pointer;font-family:inherit;" data-en-title="Save this search on this device" data-en-aria-label="Save this search on this device">💾</button>
       </div>
       <!-- Each screen speaks of its own business only. What is written here
            is the whole-trip set; switchTripTab swaps in TRIP_FREE_EX[tab],
            so the flight screen never promises a car it does not search for. -->
       <div id="trip-free-ex" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;">
-        <span style="font-size:0.7rem;color:#90a4ae;align-self:center;">לדוגמה:</span>
+        <span style="font-size:0.7rem;color:#90a4ae;align-self:center;" data-en="For example:">לדוגמה:</span>
         <!-- Three, not four: the fourth wrapped onto a line of its own and
              cost the search button a line of height. Bergamo is gone because
              the daily price run found no flights there this season at all. -->
-        <span class="ftx" onclick="fillTripText(this)">מילאנו בחנוכה לשבוע</span>
-        <span class="ftx" onclick="fillTripText(this)">משפחה בפברואר עם רכב</span>
-        <span class="ftx" onclick="fillTripText(this)">מילאנו בחול המועד פסח ל-4 לילות</span>
+        <span class="ftx" onclick="fillTripText(this)" data-en="Milan in February for a week">מילאנו בחנוכה לשבוע</span>
+        <span class="ftx" onclick="fillTripText(this)" data-en="Family in March with a car">משפחה בפברואר עם רכב</span>
+        <span class="ftx" onclick="fillTripText(this)" data-en="Turin from 10 January, 4 nights">מילאנו בחול המועד פסח ל-4 לילות</span>
       </div>
       <div id="trip-free-said" style="margin-top:9px;font-size:0.8rem;"></div>
       <div id="trip-saved" style="display:none;margin-top:8px;"></div>
     </div>
 
+    <!-- Where you fly from. The Hebrew site is for travellers from Israel, so
+         there it is always Tel Aviv; the English one has to ask. -->
+    <div class="en-only" style="margin-bottom:14px;">
+      <label for="fl-origin" style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">🛫 Flying from</label>
+      <input type="text" id="fl-origin" list="fl-origin-list" autocomplete="off" placeholder="City or airport code, e.g. London or LHR"
+        onchange="flOriginSave(this.value)"
+        style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:10px;box-sizing:border-box;font-size:0.88rem;font-family:inherit;background:white;">
+      <datalist id="fl-origin-list"><option value="London Heathrow (LHR)"></option><option value="London Gatwick (LGW)"></option><option value="London Stansted (STN)"></option><option value="London Luton (LTN)"></option><option value="Manchester (MAN)"></option><option value="Edinburgh (EDI)"></option><option value="Dublin (DUB)"></option><option value="Amsterdam (AMS)"></option><option value="Brussels (BRU)"></option><option value="Paris Charles de Gaulle (CDG)"></option><option value="Paris Orly (ORY)"></option><option value="Frankfurt (FRA)"></option><option value="Munich (MUC)"></option><option value="Berlin (BER)"></option><option value="Hamburg (HAM)"></option><option value="Düsseldorf (DUS)"></option><option value="Zurich (ZRH)"></option><option value="Geneva (GVA)"></option><option value="Vienna (VIE)"></option><option value="Copenhagen (CPH)"></option><option value="Stockholm Arlanda (ARN)"></option><option value="Oslo (OSL)"></option><option value="Helsinki (HEL)"></option><option value="Madrid (MAD)"></option><option value="Barcelona (BCN)"></option><option value="Lisbon (LIS)"></option><option value="Rome Fiumicino (FCO)"></option><option value="Athens (ATH)"></option><option value="Warsaw (WAW)"></option><option value="Prague (PRG)"></option><option value="Budapest (BUD)"></option><option value="Istanbul (IST)"></option><option value="Tel Aviv (TLV)"></option><option value="Dubai (DXB)"></option><option value="New York JFK (JFK)"></option><option value="Newark (EWR)"></option><option value="Boston (BOS)"></option><option value="Chicago O&#39;Hare (ORD)"></option><option value="Washington Dulles (IAD)"></option><option value="Miami (MIA)"></option><option value="Los Angeles (LAX)"></option><option value="San Francisco (SFO)"></option><option value="Toronto (YYZ)"></option><option value="Montreal (YUL)"></option><option value="São Paulo (GRU)"></option><option value="Johannesburg (JNB)"></option><option value="Sydney (SYD)"></option><option value="Melbourne (MEL)"></option><option value="Singapore (SIN)"></option><option value="Hong Kong (HKG)"></option></datalist>
+    </div>
     <!-- Date + passengers row -->
     <div style="margin-bottom:18px;">
       <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;">
         <!-- Date picker -->
         <div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;">
-            <label id="trip-dates-label" style="font-size:0.75rem;color:#888;">📅 תאריכי הנסיעה (יציאה — חזרה)</label>
+            <label id="trip-dates-label" style="font-size:0.75rem;color:#888;" data-en="📅 Travel dates (out — back)">📅 תאריכי הנסיעה (יציאה — חזרה)</label>
             <div id="trip-dates-meta" style="display:none;align-items:center;gap:6px;">
               <span id="trip-summary-nights" style="font-size:0.72rem;color:#2980b9;font-weight:600;background:#eaf4fd;padding:2px 9px;border-radius:11px;white-space:nowrap;"></span>
               <button onclick="resetTripDates()" title="נקה תאריכים והתחל מחדש" aria-label="נקה תאריכים והתחל מחדש"
-                style="font-size:0.72rem;color:#7a8794;background:#f1f3f6;border:1px solid #e0e4ea;border-radius:11px;padding:2px 9px;cursor:pointer;font-family:inherit;white-space:nowrap;">↺ נקה</button>
+                style="font-size:0.72rem;color:#7a8794;background:#f1f3f6;border:1px solid #e0e4ea;border-radius:11px;padding:2px 9px;cursor:pointer;font-family:inherit;white-space:nowrap;" data-en="↺ Clear" data-en-title="Clear the dates and start again" data-en-aria-label="Clear the dates and start again">↺ נקה</button>
             </div>
           </div>
           <input type="text" id="trip-dates"
             placeholder="בחר תאריכי יציאה וחזרה"
-            style="width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:10px;box-sizing:border-box;font-size:0.9rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;" readonly>
+            style="width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:10px;box-sizing:border-box;font-size:0.9rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;" readonly data-en-placeholder="Choose departure and return dates">
         </div>
         <!-- Passengers counter -->
         <div style="text-align:center;">
-          <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">👥 נוסעים</label>
+          <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;" data-en="👥 Travellers">👥 נוסעים</label>
           <div style="display:flex;align-items:center;gap:8px;border:1.5px solid #ddd;border-radius:10px;padding:8px 12px;background:white;">
             <button class="c-btn" onclick="adjField('fl-adults',-1,1)" style="width:26px;height:26px;">-</button>
             <b id="fl-adults" style="font-size:1.1rem;min-width:20px;text-align:center;">2</b>
@@ -2622,23 +2778,23 @@ what counts.">
     <!-- === TAB: כולל (ALL) === -->
     <div id="tpanel-all">
       <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
-        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
+        <div style="font-size:0.82rem;color:#555;white-space:nowrap;" data-en="✈️ Airport:">✈️ שדה תעופה:</div>
         <select id="airport-select" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
-          <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
-          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
-          <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
+          <option value="MXP" data-city="Milan Malpensa" data-dist="175" data-en="⭐ Milan Malpensa (MXP) · 175 km">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
+          <option value="BGY" data-city="Milan Bergamo" data-dist="200" data-en="Milan Bergamo (BGY) · 200 km">Milan Bergamo (BGY) · 200 ק"מ</option>
+          <option value="TRN" data-city="Turin" data-dist="100" data-en="Turin (TRN) · 100 km">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
         </select>
       </div>
 
       <!-- Include accommodation checkbox -->
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.86rem;margin-bottom:8px;padding:10px;background:#f8f9fa;border-radius:8px;">
         <input type="checkbox" id="all-hotel-check" onchange="toggleCarDetails('all-hotel-details',this.checked)" checked style="width:15px;height:15px;">
-        🏨 כלול גם לינה
+        <span data-en="🏨 Include lodging">🏨 כלול גם לינה</span>
       </label>
       <div id="all-hotel-details" style="padding:10px;background:#f0fff4;border-radius:8px;margin-bottom:8px;">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
           <div style="background:white;padding:8px;border-radius:7px;text-align:center;">
-            <div style="font-size:0.65rem;color:#888;margin-bottom:4px;">מבוגרים</div>
+            <div style="font-size:0.65rem;color:#888;margin-bottom:4px;" data-en="Adults">מבוגרים</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
               <button class="c-btn" onclick="adjField('all-h-adults',-1,1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
               <b id="all-h-adults">2</b>
@@ -2646,7 +2802,7 @@ what counts.">
             </div>
           </div>
           <div style="background:white;padding:8px;border-radius:7px;text-align:center;">
-            <div style="font-size:0.65rem;color:#888;margin-bottom:4px;">ילדים</div>
+            <div style="font-size:0.65rem;color:#888;margin-bottom:4px;" data-en="Children">ילדים</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
               <button class="c-btn" onclick="adjField('all-h-children',-1,0)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
               <b id="all-h-children">0</b>
@@ -2654,7 +2810,7 @@ what counts.">
             </div>
           </div>
           <div style="background:white;padding:8px;border-radius:7px;text-align:center;">
-            <div style="font-size:0.65rem;color:#888;margin-bottom:4px;">חדרים</div>
+            <div style="font-size:0.65rem;color:#888;margin-bottom:4px;" data-en="Rooms">חדרים</div>
             <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
               <button class="c-btn" onclick="adjField('all-h-rooms',-1,1)" style="width:22px;height:22px;font-size:0.8rem;">-</button>
               <b id="all-h-rooms">1</b>
@@ -2663,40 +2819,40 @@ what counts.">
           </div>
         </div>
         <div style="display:flex;gap:6px;">
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="hotel" onchange="_refreshAllResults()" checked> מלון</label>
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="apt" onchange="_refreshAllResults()"> דירה</label>
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="any" onchange="_refreshAllResults()"> הכל</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="hotel" onchange="_refreshAllResults()" checked> <span data-en="Hotel">מלון</span></label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="apt" onchange="_refreshAllResults()"> <span data-en="Apartment">דירה</span></label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer;padding:5px 9px;border:1px solid #ddd;border-radius:7px;background:white;"><input type="radio" name="all-acc" value="any" onchange="_refreshAllResults()"> <span data-en="Any">הכל</span></label>
         </div>
         <div class="stay-filters" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
           <div>
-            <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">💶 תקציב ללילה (אופציונלי)</label>
+            <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;" data-en="💶 Budget per night (optional)">💶 תקציב ללילה (אופציונלי)</label>
             <div style="display:flex;align-items:center;gap:6px;">
               <input class="sf-min" type="number" min="0" step="10" placeholder="מ-" inputmode="numeric"
-                style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
+                style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;" data-en-placeholder="From">
               <span style="color:#aaa;">–</span>
               <input class="sf-max" type="number" min="0" step="10" placeholder="עד" inputmode="numeric"
-                style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
+                style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;" data-en-placeholder="To">
               <select class="sf-cur" onchange="_refreshAllResults()" style="padding:8px 6px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;background:white;cursor:pointer;">
-                <option value="EUR">€ אירו</option>
-                <option value="ILS">₪ שקל</option>
-                <option value="USD">$ דולר</option>
-                <option value="CHF">CHF פרנק</option>
+                <option value="EUR" data-en="€ Euro">€ אירו</option>
+                <option value="ILS" data-en="₪ Shekel">₪ שקל</option>
+                <option value="USD" data-en="$ Dollar">$ דולר</option>
+                <option value="CHF" data-en="CHF Franc">CHF פרנק</option>
               </select>
             </div>
           </div>
           <label style="display:flex;align-items:center;gap:6px;font-size:0.83rem;cursor:pointer;padding:9px 11px;border:1px solid #ddd;border-radius:9px;background:white;">
-            <input class="sf-kitchen" type="checkbox" onchange="_refreshAllResults()" style="width:15px;height:15px;"> 🍳 עם מטבח
+            <input class="sf-kitchen" type="checkbox" onchange="_refreshAllResults()" style="width:15px;height:15px;"> <span data-en="🍳 With kitchen">🍳 עם מטבח</span>
           </label>
         </div>
         <!-- תאריכי לינה נפרדים -->
         <div style="margin-top:8px;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:#555;">
             <input type="checkbox" id="hotel-diff-dates" onchange="document.getElementById('hotel-dates-row').style.display=this.checked?'block':'none'" style="width:13px;height:13px;">
-            תאריכי לינה שונים מהטיסה
+            <span data-en="Lodging dates differ from the flight">תאריכי לינה שונים מהטיסה</span>
           </label>
           <div id="hotel-dates-row" style="display:none;margin-top:6px;">
             <input type="text" id="all-hotel-dates" placeholder="בחר תאריכי צ'ק-אין / צ'ק-אאוט"
-              style="width:100%;padding:8px 12px;border:1.5px solid #acd;border-radius:8px;box-sizing:border-box;font-size:0.85rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;" readonly>
+              style="width:100%;padding:8px 12px;border:1.5px solid #acd;border-radius:8px;box-sizing:border-box;font-size:0.85rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;" readonly data-en-placeholder="Choose check-in / check-out dates">
           </div>
         </div>
       </div>
@@ -2704,41 +2860,41 @@ what counts.">
       <!-- Include car checkbox -->
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.86rem;margin-bottom:8px;padding:10px;background:#f8f9fa;border-radius:8px;">
         <input type="checkbox" id="all-car-check" onchange="toggleCarDetails('all-car-details',this.checked)" style="width:15px;height:15px;">
-        🚗 כלול גם השכרת רכב
+        <span data-en="🚗 Include car hire">🚗 כלול גם השכרת רכב</span>
       </label>
       <div id="all-car-details" style="display:none;padding:10px;background:#f0f7ff;border-radius:8px;margin-bottom:8px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
           <div>
-            <label style="font-size:0.73rem;color:#777;">שעת איסוף</label>
+            <label style="font-size:0.73rem;color:#777;" data-en="Pick-up time">שעת איסוף</label>
             <input type="time" id="all-car-pickup" value="10:00" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;margin-top:3px;box-sizing:border-box;">
           </div>
           <div>
-            <label style="font-size:0.73rem;color:#777;">שעת החזרה</label>
+            <label style="font-size:0.73rem;color:#777;" data-en="Return time">שעת החזרה</label>
             <input type="time" id="all-car-dropoff" value="10:00" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;margin-top:3px;box-sizing:border-box;">
           </div>
         </div>
         <div style="display:flex;gap:10px;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;background:white;flex:1;">
-            <input type="checkbox" id="all-terminal" checked style="width:14px;height:14px;"> 🛄 קבלה בטרמינל
+            <input type="checkbox" id="all-terminal" checked style="width:14px;height:14px;"> <span data-en="🛄 Pick up at the terminal">🛄 קבלה בטרמינל</span>
           </label>
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;background:white;flex:1;">
-            <input type="checkbox" id="all-automatic" checked style="width:14px;height:14px;"> 🔄 גיר אוטומטי
+            <input type="checkbox" id="all-automatic" checked style="width:14px;height:14px;"> <span data-en="🔄 Automatic">🔄 גיר אוטומטי</span>
           </label>
         </div>
         <!-- תאריכי רכב נפרדים -->
         <div style="margin-top:8px;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:#555;">
             <input type="checkbox" id="car-diff-dates" onchange="document.getElementById('car-dates-row').style.display=this.checked?'block':'none'" style="width:13px;height:13px;">
-            תאריכי השכרה שונים מהטיסה
+            <span data-en="Hire dates differ from the flight">תאריכי השכרה שונים מהטיסה</span>
           </label>
           <div id="car-dates-row" style="display:none;margin-top:6px;">
             <input type="text" id="all-car-dates" placeholder="בחר תאריכי איסוף / החזרה"
-              style="width:100%;padding:8px 12px;border:1.5px solid #aac;border-radius:8px;box-sizing:border-box;font-size:0.85rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;" readonly>
+              style="width:100%;padding:8px 12px;border:1.5px solid #aac;border-radius:8px;box-sizing:border-box;font-size:0.85rem;cursor:pointer;background:white;font-family:inherit;direction:rtl;" readonly data-en-placeholder="Choose pick-up / return dates">
           </div>
         </div>
       </div>
 
-      <button onclick="searchAll()" id="trip-go" style="width:100%;padding:13px;background:var(--accent);color:var(--dark);border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;margin-top:4px;">
+      <button onclick="searchAll()" id="trip-go" style="width:100%;padding:13px;background:var(--accent);color:var(--dark);border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;margin-top:4px;" data-en="🔍 Search all">
         🔍 חפש הכל
       </button>
       <!-- Results area -->
@@ -2750,34 +2906,34 @@ what counts.">
     <!-- === TAB: טיסה === -->
     <div id="tpanel-flight" style="display:none;">
       <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">✈️ שדה תעופה:</div>
+        <div style="font-size:0.82rem;color:#555;white-space:nowrap;" data-en="✈️ Airport:">✈️ שדה תעופה:</div>
         <!-- Yossi (12.11): the flight search is useful beyond Cervinia, so
              this one list - and only this one; the car, hotel and "all" tabs
              are about getting to Cervinia - also offers the airports of other
              well-known ski areas. data-he names the city for Kosher Fly. -->
         <select id="airport-select-flight" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
-          <optgroup label="לצ׳רוויניה">
-          <option value="MXP" data-city="Milan Malpensa" data-he="מילאנו" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
-          <option value="BGY" data-city="Milan Bergamo" data-he="ברגמו" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
-          <option value="TRN" data-city="Turin" data-he="טורינו" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
+          <optgroup label="לצ׳רוויניה" data-en-label="To Cervinia">
+          <option value="MXP" data-city="Milan Malpensa" data-he="מילאנו" data-dist="175" data-en="⭐ Milan Malpensa (MXP) · 175 km">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
+          <option value="BGY" data-city="Milan Bergamo" data-he="ברגמו" data-dist="200" data-en="Milan Bergamo (BGY) · 200 km">Milan Bergamo (BGY) · 200 ק"מ</option>
+          <option value="TRN" data-city="Turin" data-he="טורינו" data-dist="100" data-en="Turin (TRN) · 100 km">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
           </optgroup>
-          <optgroup label="לאתרי סקי אחרים">
-          <option value="GVA" data-city="Geneva" data-he="ז׳נבה" data-other="1">ז׳נבה · Geneva (GVA) — שאמוני, ורבייה, שלושת העמקים</option>
-          <option value="ZRH" data-city="Zurich" data-he="ציריך" data-other="1">ציריך · Zurich (ZRH) — דאבוס, לאקס, אנגלברג</option>
-          <option value="LYS" data-city="Lyon" data-he="ליון" data-other="1">ליון · Lyon (LYS) — ואל טורנס, טין, אלפ ד׳ואז</option>
-          <option value="INN" data-city="Innsbruck" data-he="אינסברוק" data-other="1">אינסברוק · Innsbruck (INN) — איסגל, מיירהופן, שטובאי</option>
-          <option value="SZG" data-city="Salzburg" data-he="זלצבורג" data-other="1">זלצבורג · Salzburg (SZG) — זאלבך, קפרון, באד גסטיין</option>
-          <option value="MUC" data-city="Munich" data-he="מינכן" data-other="1">מינכן · Munich (MUC) — קיצביל, גרמיש-פרטנקירכן</option>
-          <option value="VIE" data-city="Vienna" data-he="וינה" data-other="1">וינה · Vienna (VIE) — זמרינג, שלאדמינג</option>
-          <option value="VRN" data-city="Verona" data-he="ורונה" data-other="1">ורונה · Verona (VRN) — הדולומיטים, מדונה די קמפיליו</option>
-          <option value="SOF" data-city="Sofia" data-he="סופיה" data-other="1">סופיה · Sofia (SOF) — בנסקו, בורובץ</option>
-          <option value="TBS" data-city="Tbilisi" data-he="טביליסי" data-other="1">טביליסי · Tbilisi (TBS) — גודאורי</option>
+          <optgroup label="לאתרי סקי אחרים" data-en-label="To other ski areas">
+          <option value="GVA" data-city="Geneva" data-he="ז׳נבה" data-other="1" data-en="Geneva (GVA) — Chamonix, Verbier, Les 3 Vallées">ז׳נבה · Geneva (GVA) — שאמוני, ורבייה, שלושת העמקים</option>
+          <option value="ZRH" data-city="Zurich" data-he="ציריך" data-other="1" data-en="Zurich (ZRH) — Davos, Laax, Engelberg">ציריך · Zurich (ZRH) — דאבוס, לאקס, אנגלברג</option>
+          <option value="LYS" data-city="Lyon" data-he="ליון" data-other="1" data-en="Lyon (LYS) — Val Thorens, Tignes, Alpe d&#x27;Huez">ליון · Lyon (LYS) — ואל טורנס, טין, אלפ ד׳ואז</option>
+          <option value="INN" data-city="Innsbruck" data-he="אינסברוק" data-other="1" data-en="Innsbruck (INN) — Ischgl, Mayrhofen, Stubai">אינסברוק · Innsbruck (INN) — איסגל, מיירהופן, שטובאי</option>
+          <option value="SZG" data-city="Salzburg" data-he="זלצבורג" data-other="1" data-en="Salzburg (SZG) — Saalbach, Kaprun, Bad Gastein">זלצבורג · Salzburg (SZG) — זאלבך, קפרון, באד גסטיין</option>
+          <option value="MUC" data-city="Munich" data-he="מינכן" data-other="1" data-en="Munich (MUC) — Kitzbühel, Garmisch-Partenkirchen">מינכן · Munich (MUC) — קיצביל, גרמיש-פרטנקירכן</option>
+          <option value="VIE" data-city="Vienna" data-he="וינה" data-other="1" data-en="Vienna (VIE) — Semmering, Schladming">וינה · Vienna (VIE) — זמרינג, שלאדמינג</option>
+          <option value="VRN" data-city="Verona" data-he="ורונה" data-other="1" data-en="Verona (VRN) — the Dolomites, Madonna di Campiglio">ורונה · Verona (VRN) — הדולומיטים, מדונה די קמפיליו</option>
+          <option value="SOF" data-city="Sofia" data-he="סופיה" data-other="1" data-en="Sofia (SOF) — Bansko, Borovets">סופיה · Sofia (SOF) — בנסקו, בורובץ</option>
+          <option value="TBS" data-city="Tbilisi" data-he="טביליסי" data-other="1" data-en="Tbilisi (TBS) — Gudauri">טביליסי · Tbilisi (TBS) — גודאורי</option>
           </optgroup>
         </select>
       </div>
       <div id="flight-offers" class="fl-offers" style="display:none;"></div>
       <!-- מספר הנוסעים נקבע בשורה העליונה של המודאל (משותף לכל הלשוניות) -->
-      <button onclick="searchFlight()" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;margin-bottom:8px;">
+      <button onclick="searchFlight()" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;margin-bottom:8px;" data-en="🔍 Search flights">
         🔍 חפש טיסות
       </button>
       <div id="fl-snapshot" style="display:none;margin-top:10px;"></div>
@@ -2787,40 +2943,40 @@ what counts.">
     <!-- === TAB: רכב === -->
     <div id="tpanel-car" style="display:none;">
       <div style="background:#f0f7ff;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-        <div style="font-size:0.82rem;color:#555;white-space:nowrap;">📍 איסוף מ:</div>
+        <div style="font-size:0.82rem;color:#555;white-space:nowrap;" data-en="📍 Pick up at:">📍 איסוף מ:</div>
         <select id="airport-select-car" style="flex:1;min-width:0;padding:8px 10px;border:1.5px solid #bcd;border-radius:8px;font-size:0.85rem;background:white;font-family:inherit;cursor:pointer;">
-          <option value="MXP" data-city="Milan Malpensa" data-dist="175">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
-          <option value="BGY" data-city="Milan Bergamo" data-dist="200">Milan Bergamo (BGY) · 200 ק"מ</option>
-          <option value="TRN" data-city="Turin" data-dist="100">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
+          <option value="MXP" data-city="Milan Malpensa" data-dist="175" data-en="⭐ Milan Malpensa (MXP) · 175 km">⭐ Milan Malpensa (MXP) · 175 ק"מ</option>
+          <option value="BGY" data-city="Milan Bergamo" data-dist="200" data-en="Milan Bergamo (BGY) · 200 km">Milan Bergamo (BGY) · 200 ק"מ</option>
+          <option value="TRN" data-city="Turin" data-dist="100" data-en="Turin (TRN) · 100 km">Turin (TRN) · 100 ק"מ · ללא ישיר</option>
         </select>
       </div>
       <input type="text" id="car-dates"
         placeholder="בחר תאריכי איסוף והחזרה"
-        style="width:100%;padding:10px 14px;border:1.5px solid #aac;border-radius:10px;box-sizing:border-box;font-size:0.88rem;cursor:pointer;background:#f0f7ff;font-family:inherit;direction:rtl;margin-bottom:12px;" readonly>
+        style="width:100%;padding:10px 14px;border:1.5px solid #aac;border-radius:10px;box-sizing:border-box;font-size:0.88rem;cursor:pointer;background:#f0f7ff;font-family:inherit;direction:rtl;margin-bottom:12px;" readonly data-en-placeholder="Choose pick-up and return dates">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
         <div>
-          <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">שעת איסוף</label>
+          <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;" data-en="Pick-up time">שעת איסוף</label>
           <input type="time" id="car-pickup" value="10:00" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:7px;box-sizing:border-box;">
         </div>
         <div>
-          <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">שעת החזרה</label>
+          <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;" data-en="Return time">שעת החזרה</label>
           <input type="time" id="car-dropoff" value="10:00" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:7px;box-sizing:border-box;">
         </div>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:8px;">
         <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.85rem;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;background:#f9f9f9;flex:1;">
           <input type="checkbox" id="car-terminal" checked style="width:15px;height:15px;accent-color:var(--accent);">
-          <div><div style="font-weight:bold;">🛄 קבלה בטרמינל</div></div>
+          <div data-en="🛄 Pick up at the terminal"><div style="font-weight:bold;">🛄 קבלה בטרמינל</div></div>
         </label>
         <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.85rem;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;background:#f9f9f9;flex:1;">
           <input type="checkbox" id="car-automatic" checked style="width:15px;height:15px;accent-color:var(--accent);">
-          <div><div style="font-weight:bold;">🔄 אוטומטי</div></div>
+          <div data-en="🔄 Automatic"><div style="font-weight:bold;">🔄 אוטומטי</div></div>
         </label>
       </div>
-      <div style="font-size:0.73rem;color:#888;margin-bottom:12px;line-height:1.6;">
+      <div style="font-size:0.73rem;color:#888;margin-bottom:12px;line-height:1.6;" data-en="Both choices are passed on in the link to Kayak.">
         שתי הבחירות עוברות בקישור לקייאק.
       </div>
-      <button onclick="searchCar()" style="width:100%;padding:12px;background:#2c3e50;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
+      <button onclick="searchCar()" style="width:100%;padding:12px;background:#2c3e50;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;" data-en="🔍 Search cars">
         🔍 חפש רכב
       </button>
       <!-- A car is one of three ways up the valley. Somebody about to hire
@@ -2831,8 +2987,8 @@ what counts.">
                background:#f4f8fc;border:1.5px solid #d6e4f0;border-radius:11px;padding:10px 12px;cursor:pointer;font-family:inherit;">
         <span style="font-size:1.2rem;line-height:1;">🚐</span>
         <span style="flex:1;min-width:0;">
-          <b style="font-size:0.85rem;color:#16314f;display:block;">אולי בלי רכב?</b>
-          <small style="font-size:0.75rem;color:#4a6b8a;line-height:1.5;display:block;">
+          <b style="font-size:0.85rem;color:#16314f;display:block;" data-en="Maybe no car?">אולי בלי רכב?</b>
+          <small style="font-size:0.75rem;color:#4a6b8a;line-height:1.5;display:block;" data-en="A private transfer from the airport or a bus — prices and times in the transport card">
             הסעה פרטית מהשדה או אוטובוס — מחירים ושעות בכרטיס התחבורה</small>
         </span>
         <span style="color:#7a9cc0;">‹</span>
@@ -2844,32 +3000,32 @@ what counts.">
     <div id="tpanel-hotel" style="display:none;">
       <!-- Only inside the trip frame is there a flight to differ from.
            _planFrame hides this on the lodging screen alone. -->
-      <div id="hotel-vs-flight" style="background:#e8f8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;color:#1a5226;">
+      <div id="hotel-vs-flight" style="background:#e8f8f0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;color:#1a5226;" data-en="🏨 &lt;b&gt;Lodging dates&lt;/b&gt; — they start from the trip dates, and you can choose other nights">
         🏨 <b>תאריכי לינה</b> — מתחילים מתאריכי הטיול, ואפשר לבחור לילות אחרים
       </div>
       <button type="button" id="hotel-guide-link" class="plan-chip" onclick="openFrom('hotelModal','lodgingModal')"
-        style="margin-bottom:12px;background:#fff8e6;border-color:#f0dca8;color:#7a5a10;font-weight:700;">🏘️ לא בטוחים איפה? מדריך הלינה בכפר ←</button>
+        style="margin-bottom:12px;background:#fff8e6;border-color:#f0dca8;color:#7a5a10;font-weight:700;" data-en="🏘️ Not sure where? The village lodging guide →">🏘️ לא בטוחים איפה? מדריך הלינה בכפר ←</button>
       <!-- Lodging in a trip is a list of stays, not one date range: four
            nights in Cervinia, two in Milan. The fields below edit the stay
            picked here. Trip frame only - a search alone is one stay. -->
       <div id="stay-list" style="display:none;margin-bottom:12px;"></div>
       <input type="text" id="hotel-dates"
         placeholder="בחר תאריכי צ'ק-אין וצ'ק-אאוט"
-        style="width:100%;padding:10px 14px;border:1.5px solid #acd;border-radius:10px;box-sizing:border-box;font-size:0.88rem;cursor:pointer;background:#f0fff8;font-family:inherit;direction:rtl;margin-bottom:12px;" readonly>
+        style="width:100%;padding:10px 14px;border:1.5px solid #acd;border-radius:10px;box-sizing:border-box;font-size:0.88rem;cursor:pointer;background:#f0fff8;font-family:inherit;direction:rtl;margin-bottom:12px;" readonly data-en-placeholder="Choose check-in and check-out dates">
       <div id="stay-edit" style="display:none;margin-bottom:12px;background:#f8fbf9;border:1px solid #dcebe2;border-radius:10px;padding:10px 12px;">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-          <label style="font-size:0.78rem;color:#555;">📍 איפה
+          <label style="font-size:0.78rem;color:#555;"><span data-en="📍 Where">📍 איפה</span>
             <select id="stay-place" onchange="_stayEdit()" style="margin-inline-start:6px;padding:6px 8px;border:1.5px solid #cfe0d6;border-radius:8px;font-size:0.83rem;font-family:inherit;background:white;cursor:pointer;"></select>
           </label>
-          <span style="font-size:0.78rem;color:#555;">איך מחפשים</span>
-          <label class="ls-opt"><input type="radio" name="stay-way" value="site" onchange="_stayEdit()" checked> באתרים</label>
-          <label class="ls-opt" id="stay-way-direct-l"><input type="radio" name="stay-way" value="direct" onchange="_stayEdit()"> פנייה ישירה</label>
+          <span style="font-size:0.78rem;color:#555;" data-en="How to search">איך מחפשים</span>
+          <label class="ls-opt"><input type="radio" name="stay-way" value="site" onchange="_stayEdit()" checked> <span data-en="On booking sites">באתרים</span></label>
+          <label class="ls-opt" id="stay-way-direct-l"><input type="radio" name="stay-way" value="direct" onchange="_stayEdit()"> <span data-en="Write directly">פנייה ישירה</span></label>
         </div>
         <div id="stay-way-note" style="display:none;font-size:0.72rem;color:#7a8794;margin-top:6px;"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
         <div style="background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
-          <div style="font-size:0.72rem;color:#888;margin-bottom:5px;">מבוגרים</div>
+          <div style="font-size:0.72rem;color:#888;margin-bottom:5px;" data-en="Adults">מבוגרים</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
             <button class="c-btn" onclick="adjField('h-adults',-1,1)">-</button>
             <b id="h-adults">2</b>
@@ -2877,7 +3033,7 @@ what counts.">
           </div>
         </div>
         <div style="background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
-          <div style="font-size:0.72rem;color:#888;margin-bottom:5px;">ילדים</div>
+          <div style="font-size:0.72rem;color:#888;margin-bottom:5px;" data-en="Children">ילדים</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
             <button class="c-btn" onclick="adjField('h-children',-1,0)">-</button>
             <b id="h-children">0</b>
@@ -2885,7 +3041,7 @@ what counts.">
           </div>
         </div>
         <div style="background:#f8f9fa;padding:10px;border-radius:8px;text-align:center;">
-          <div style="font-size:0.72rem;color:#888;margin-bottom:5px;">חדרים</div>
+          <div style="font-size:0.72rem;color:#888;margin-bottom:5px;" data-en="Rooms">חדרים</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
             <button class="c-btn" onclick="adjField('h-rooms',-1,1)">-</button>
             <b id="h-rooms">1</b>
@@ -2894,17 +3050,17 @@ what counts.">
         </div>
       </div>
       <div style="margin-bottom:12px;">
-        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">רדיוס חיפוש (ק"מ מהמרכז): <span id="radius-val">5</span></label>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;"><span data-en="Search radius (km from the centre):">רדיוס חיפוש (ק"מ מהמרכז):</span> <span id="radius-val">5</span></label>
         <input type="range" min="1" max="20" value="5" id="radius-slider"
           oninput="document.getElementById('radius-val').textContent=this.value"
           style="width:100%;">
       </div>
       <div style="margin-bottom:12px;">
-        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:6px;">סוג לינה</label>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:6px;" data-en="Type of lodging">סוג לינה</label>
         <div style="display:flex;gap:6px;">
-          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="hotel" onchange="_refreshAllResults()" checked> מלון</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="apt" onchange="_refreshAllResults()"> דירה</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="any" onchange="_refreshAllResults()"> הכל</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="hotel" onchange="_refreshAllResults()" checked> <span data-en="Hotel">מלון</span></label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="apt" onchange="_refreshAllResults()"> <span data-en="Apartment">דירה</span></label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.83rem;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:7px;"><input type="radio" name="acc-type" value="any" onchange="_refreshAllResults()"> <span data-en="Any">הכל</span></label>
         </div>
       </div>
 
@@ -2915,31 +3071,31 @@ what counts.">
            with the prices on the page it links to. -->
       <div class="stay-filters" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
         <div>
-          <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">💶 תקציב ללילה (אופציונלי)</label>
+          <label style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;" data-en="💶 Budget per night (optional)">💶 תקציב ללילה (אופציונלי)</label>
           <div style="display:flex;align-items:center;gap:6px;">
             <input class="sf-min" type="number" min="0" step="10" placeholder="מ-" inputmode="numeric"
-              style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
+              style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;" data-en-placeholder="From">
             <span style="color:#aaa;">–</span>
             <input class="sf-max" type="number" min="0" step="10" placeholder="עד" inputmode="numeric"
-              style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
+              style="width:78px;padding:8px 10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;" data-en-placeholder="To">
             <select class="sf-cur" onchange="_refreshAllResults()" style="padding:8px 6px;border:1.5px solid #ddd;border-radius:9px;font-size:0.85rem;font-family:inherit;background:white;cursor:pointer;">
-              <option value="EUR">€ אירו</option>
-              <option value="ILS">₪ שקל</option>
-              <option value="USD">$ דולר</option>
-              <option value="CHF">CHF פרנק</option>
+              <option value="EUR" data-en="€ Euro">€ אירו</option>
+              <option value="ILS" data-en="₪ Shekel">₪ שקל</option>
+              <option value="USD" data-en="$ Dollar">$ דולר</option>
+              <option value="CHF" data-en="CHF Franc">CHF פרנק</option>
             </select>
           </div>
         </div>
         <label style="display:flex;align-items:center;gap:6px;font-size:0.83rem;cursor:pointer;padding:9px 11px;border:1px solid #ddd;border-radius:9px;background:white;">
-          <input class="sf-kitchen" type="checkbox" onchange="_refreshAllResults()" style="width:15px;height:15px;"> 🍳 עם מטבח
+          <input class="sf-kitchen" type="checkbox" onchange="_refreshAllResults()" style="width:15px;height:15px;"> <span data-en="🍳 With kitchen">🍳 עם מטבח</span>
         </label>
       </div>
       <!-- A stay found by writing to an agency has no search to run: its
            button writes the letter, for this stay's dates and people. -->
-      <button id="stay-letter-btn" onclick="_stayLetter()" style="display:none;width:100%;padding:12px;background:#7a5a1c;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;margin-bottom:0;">
+      <button id="stay-letter-btn" onclick="_stayLetter()" style="display:none;width:100%;padding:12px;background:#7a5a1c;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;margin-bottom:0;" data-en="✉️ A letter of enquiry for this stay">
         ✉️ מכתב פנייה לשהייה הזו
       </button>
-      <button id="hotel-search-btn" onclick="searchHotel()" style="width:100%;padding:12px;background:#003580;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;">
+      <button id="hotel-search-btn" onclick="searchHotel()" style="width:100%;padding:12px;background:#003580;color:white;border:none;border-radius:9px;font-size:0.9rem;font-weight:bold;cursor:pointer;" data-en="🔍 Search lodging">
         🔍 חפש לינה
       </button>
       <!-- Most of the apartment stock in an Italian ski village never
@@ -2958,8 +3114,8 @@ what counts.">
                border-radius:11px;padding:11px 13px;cursor:pointer;font-family:inherit;">
         <span style="font-size:1.35rem;line-height:1;">🗝️</span>
         <span style="flex:1;min-width:0;">
-          <b style="font-size:0.87rem;color:#5b4418;display:block;">לשכור דירה כמו מקומי</b>
-          <small style="font-size:0.765rem;color:#7a6a4a;line-height:1.5;display:block;">
+          <b style="font-size:0.87rem;color:#5b4418;display:block;" data-en="Rent an apartment like a local">לשכור דירה כמו מקומי</b>
+          <small style="font-size:0.765rem;color:#7a6a4a;line-height:1.5;display:block;" data-en="Most holiday apartments in the village are not on Booking or Airbnb · local agencies, no platform fee · and a ready-made enquiry letter in Italian">
             רוב דירות הנופש בכפר אינן בבוקינג ובאיירבנב · סוכנויות מקומיות,
             בלי עמלת פלטפורמה · ומכתב פנייה מוכן באיטלקית</small>
         </span>
@@ -2979,10 +3135,10 @@ what counts.">
       <div id="trip-ask" style="display:none;margin:20px 0 2px;padding:12px 14px;
            background:#f7fbff;border:1px solid #dbe9f7;border-radius:11px;
            align-items:center;gap:10px;flex-wrap:wrap;">
-        <span style="font-size:0.8rem;color:#4a6b8a;flex:1 1 auto;line-height:1.5;">
+        <span style="font-size:0.8rem;color:#4a6b8a;flex:1 1 auto;line-height:1.5;" data-en="Need the rest too? In the full planner you enter the dates once.">
           צריכים גם את השאר? בתכנון המלא התאריכים נכנסים פעם אחת.</span>
         <button class="plan-chip" onclick="planGo('trip')"
-          style="background:#eaf3fd;border-color:#c6ddf3;color:#1a5fa8;font-weight:700;">
+          style="background:#eaf3fd;border-color:#c6ddf3;color:#1a5fa8;font-weight:700;" data-en="✨ Plan the whole trip →">
           ✨ לתכנון טיול שלם ←</button>
       </div>
 
@@ -7291,7 +7447,16 @@ function adjAll(f, d) { adjField('all-' + f, d, f === 'rooms' ? 1 : 0); }
 // The flight screen searches flights only, so nothing here may mention a car
 // or a room. 'משפחה' still works there: the local reader turns it into 2+2,
 // and on the flight screen the children are counted in as passengers.
-var TRIP_FREE_EX = {
+var TRIP_FREE_EX = window.LANG === 'en' ? {
+  flight: {
+    hint: 'e.g. Milan in February for a week, 2 adults',
+    ex: ['Milan in February for a week', 'Family in March for a week', 'Turin from 10 January, 4 nights']
+  },
+  all: {
+    hint: 'e.g. Milan in February for a week, 2 adults and a car',
+    ex: ['Milan in February for a week', 'Family in March with a car', 'Turin from 10 January, 4 nights']
+  }
+} : {
   flight: {
     hint: 'למשל: מילאנו בחנוכה לשבוע, 2 מבוגרים',
     ex: ['מילאנו בחנוכה לשבוע', 'משפחה בפברואר לשבוע', 'מילאנו בחול המועד פסח ל-4 לילות']
@@ -7308,7 +7473,7 @@ function _tripFreeExamples(tab) {
   if (box) box.placeholder = set.hint;
   var ex = document.getElementById('trip-free-ex');
   if (ex) ex.innerHTML =
-    '<span style="font-size:0.7rem;color:#90a4ae;align-self:center;">לדוגמה:</span>' +
+    '<span style="font-size:0.7rem;color:#90a4ae;align-self:center;">' + L('לדוגמה:', 'For example:') + '</span>' +
     set.ex.map(function (s) {
       return '<span class="ftx" onclick="fillTripText(this)">' + s + '</span>';
     }).join('');
@@ -7343,8 +7508,8 @@ function switchTripTab(tab) {
   // where the same dates drive the car and the room as well.
   const lbl = document.getElementById('trip-dates-label');
   if (lbl) lbl.textContent = tab === 'flight'
-    ? '📅 תאריכי טיסה (יציאה — חזרה)'
-    : '📅 תאריכי הנסיעה (יציאה — חזרה)';
+    ? L('📅 תאריכי טיסה (יציאה — חזרה)', '📅 Flight dates (out — back)')
+    : L('📅 תאריכי הנסיעה (יציאה — חזרה)', '📅 Travel dates (out — back)');
   // init flatpickr לשדות הנפרדים אחרי שהם גלויים
   if (tab === 'car' || tab === 'hotel') setTimeout(initFlatpickr, 50);
   paintFlightOffers();
@@ -7441,7 +7606,79 @@ function growTripFree(el) {
     return null;
   }
 
+  // English, for the English site: the same fields from the same kind of
+  // sentence. Only a fallback - the server reads any language first.
+  var EN_MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  var EN_NUM = { one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, a:1, an:1 };
+  function _numEn(w) { var d = parseInt(w, 10); return !isNaN(d) ? d : (EN_NUM[String(w).toLowerCase()] != null ? EN_NUM[String(w).toLowerCase()] : null); }
+  var EN_CHAGIM = [
+    { re: /hanuk+ah?|chanuk+ah?/i, desc: 'Chanukah: 1 Candle' },
+    { re: /passover|pesach/i,      desc: 'Pesach I' },
+    { re: /purim/i,                desc: 'Purim' },
+    { re: /sukkot/i,               desc: 'Sukkot I' }
+  ];
+  function parseTripTextEn(raw) {
+    var txt = String(raw || '').trim(), low = txt.toLowerCase();
+    var o = { airport: null, ci: null, co: null, nights: null, adults: null, children: null,
+              car: null, hotel: null, accType: null, airportPickup: null, automatic: null, said: [] };
+    if (!txt) return o;
+    for (var i = 0; i < AIRPORTS.length; i++) if (AIRPORTS[i].re.test(txt)) { o.airport = AIRPORTS[i].code; break; }
+    var NW = '(\\d+|one|two|three|four|five|six|seven|eight|nine|ten)';
+    var mA = low.match(new RegExp(NW + '\\s*adults?')); if (mA) o.adults = _numEn(mA[1]);
+    var mC = low.match(new RegExp(NW + '\\s*(?:children|child|kids?)')); if (mC) o.children = _numEn(mC[1]);
+    if (o.adults == null) {
+      var mP = low.match(new RegExp(NW + '\\s*(?:people|persons|travell?ers|passengers|of us)'));
+      if (mP) { var nP = _numEn(mP[1]); o.adults = (o.children != null && nP > o.children) ? nP - o.children : nP; }
+    }
+    if (o.adults == null && /\bcouple\b/.test(low)) o.adults = 2;
+    if (o.adults == null && /\bfamily\b/.test(low)) { o.adults = 2; if (o.children == null) o.children = 2; }
+    if (/weekend/.test(low)) o.nights = 2;
+    else if (/two weeks|fortnight/.test(low)) o.nights = 14;
+    else if (/\ba week\b|one week|\bweek\b/.test(low)) o.nights = 7;
+    var mN = low.match(new RegExp(NW + '\\s*(?:nights?|days?)')); if (mN) o.nights = _numEn(mN[1]);
+    var start = null, today0 = today();
+    var mD = txt.match(/(\d{1,2})[.\/](\d{1,2})(?:[.\/](\d{2,4}))?/);
+    if (mD) {
+      var yr = mD[3] ? (+mD[3] < 100 ? 2000 + +mD[3] : +mD[3]) : today0.getFullYear();
+      var cnd = new Date(yr, +mD[2] - 1, +mD[1]); cnd.setHours(0, 0, 0, 0);
+      if (!mD[3] && cnd < today0) cnd = new Date(yr + 1, +mD[2] - 1, +mD[1]);
+      if (!isNaN(cnd.getTime())) { start = cnd; o.said.push(mD[0]); }
+    }
+    if (!start) {
+      var mDM = low.match(/(\d{1,2})(?:st|nd|rd|th)?\s*(?:of\s*)?(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*/) ||
+                low.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*(\d{1,2})(?:st|nd|rd|th)?\b/);
+      if (mDM) {
+        var dayN = /^\d/.test(mDM[1]) ? +mDM[1] : +mDM[2], mon = EN_MONTHS.indexOf(/^\d/.test(mDM[1]) ? mDM[2] : mDM[1]);
+        var yM = txt.match(/20\d{2}/), y0 = yM ? +yM[0] : today0.getFullYear();
+        var cd = new Date(y0, mon, dayN); cd.setHours(0, 0, 0, 0);
+        if (!yM && cd < today0) cd = new Date(y0 + 1, mon, dayN);
+        if (dayN >= 1 && dayN <= 31) { start = cd; o.said.push(mDM[0]); }
+      }
+    }
+    if (!start) for (var c = 0; c < EN_CHAGIM.length; c++) if (EN_CHAGIM[c].re.test(txt)) {
+      var ch = nextChag(EN_CHAGIM[c].desc); if (ch) { start = ch; o.said.push(txt.match(EN_CHAGIM[c].re)[0]); } break;
+    }
+    if (!start) {
+      var mM = low.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/);
+      if (mM) {
+        var mi = EN_MONTHS.indexOf(mM[1].slice(0, 3)), yM2 = txt.match(/20\d{2}/), y2 = yM2 ? +yM2[0] : today0.getFullYear();
+        var f1 = new Date(y2, mi, 1); f1.setHours(0, 0, 0, 0);
+        if (!yM2 && f1 < today0) f1 = new Date(y2 + 1, mi, 1);
+        start = f1; o.said.push(mM[1]);
+      }
+    }
+    if (start) { if (o.nights == null) o.nights = 7; o.ci = iso(start); o.co = iso(addDays(start, o.nights)); }
+    if (/\bcar\b|rental|hire/.test(low)) o.car = true;
+    if (/at the airport|from the airport|airport pick/.test(low)) o.airportPickup = true;
+    if (/automatic/.test(low)) o.automatic = true; else if (/manual/.test(low)) o.automatic = false;
+    if (/apartment|flat|chalet/.test(low)) o.accType = 'apt'; else if (/hotel/.test(low)) o.accType = 'hotel';
+    if (/no (?:hotel|lodging|accommodation)|without (?:a )?(?:hotel|lodging|accommodation)/.test(low)) { o.hotel = false; o.accType = null; }
+    else if (/hotel|apartment|lodging|accommodation|stay/.test(low)) o.hotel = true;
+    return o;
+  }
+
   function parseTripText(raw) {
+    if (!/[\u0590-\u05ff]/.test(String(raw || '')) && /[a-z]/i.test(String(raw || ''))) return parseTripTextEn(raw);
     var txt = String(raw || '').replace(/[׳״'"]/g, '').trim();
     var o = { airport: null, ci: null, co: null, nights: null, adults: null, children: null,
               car: null, hotel: null, accType: null, airportPickup: null, automatic: null, said: [] };
@@ -7653,7 +7890,7 @@ function cvNormalize(I){
 async function applyTripText(){
   var box=document.getElementById('trip-free'), out=document.getElementById('trip-free-said');
   if(!box || !box.value.trim()) return;
-  out.innerHTML='<span style="color:#90a4ae;">\u05de\u05e0\u05ea\u05d7\u2026</span>';
+  out.innerHTML='<span style="color:#90a4ae;">'+L('\u05de\u05e0\u05ea\u05d7\u2026','Reading\u2026')+'</span>';
 
   // המודל הוא המפענח — המקומי הוא רשת ביטחון בלבד.
   // קודם נפלתי למקומי גם כשהמודל החזיר תשובה חלקית תקפה — למשל נוסעים
@@ -7675,7 +7912,7 @@ async function applyTripText(){
     var sel=document.getElementById('airport-select'); if(sel) sel.value=r.airport;
     var sel2=document.getElementById('airport-select-flight'); if(sel2) sel2.value=r.airport;
     var sel3=document.getElementById('airport-select-car'); if(sel3) sel3.value=r.airport;
-    got.push({MXP:'\u05de\u05d9\u05dc\u05d0\u05e0\u05d5',BGY:'\u05d1\u05e8\u05d2\u05de\u05d5',TRN:'\u05d8\u05d5\u05e8\u05d9\u05e0\u05d5'}[r.airport]);
+    got.push(window.LANG==='en' ? {MXP:'Milan',BGY:'Bergamo',TRN:'Turin'}[r.airport] : {MXP:'\u05de\u05d9\u05dc\u05d0\u05e0\u05d5',BGY:'\u05d1\u05e8\u05d2\u05de\u05d5',TRN:'\u05d8\u05d5\u05e8\u05d9\u05e0\u05d5'}[r.airport]);
   }
   if(r.ci && r.co){
     if(typeof initFlatpickr==='function') initFlatpickr();
@@ -7687,16 +7924,16 @@ async function applyTripText(){
       else el.value = r.ci + ' \u2014 ' + r.co;
     }
     var f=function(iso){ return (+iso.slice(8,10))+'.'+(+iso.slice(5,7)); };
-    got.push('<bdi dir="ltr">'+f(r.ci)+'\u2013'+f(r.co)+'</bdi> ('+r.nights+' \u05dc\u05d9\u05dc\u05d5\u05ea)');
+    got.push('<bdi dir="ltr">'+f(r.ci)+'\u2013'+f(r.co)+'</bdi> ('+r.nights+L(' \u05dc\u05d9\u05dc\u05d5\u05ea',' nights')+')');
   }
   if(r.adults!=null){
     var a=document.getElementById('fl-adults'); if(a) a.textContent=r.adults;
     var a2=document.getElementById('all-h-adults'); if(a2) a2.textContent=r.adults;
-    got.push(r.adults+' \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd');
+    got.push(r.adults+L(' \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd',' adults'));
   }
   if(r.children!=null){
     var c=document.getElementById('all-h-children'); if(c) c.textContent=r.children;
-    if(r.children) got.push(r.children+' \u05d9\u05dc\u05d3\u05d9\u05dd');
+    if(r.children) got.push(r.children+L(' \u05d9\u05dc\u05d3\u05d9\u05dd',' children'));
   }
   // On the flight screen alone the sentence is read for the flight only: no
   // car, no room, no gearbox - none of it is searched here, so reporting it
@@ -7712,29 +7949,29 @@ async function applyTripText(){
   if(r.car===true || r.airportPickup===true || r.automatic!=null){
     var cc=document.getElementById('all-car-check');
     if(cc && !cc.checked){ cc.checked=true; if(typeof toggleCarDetails==='function') toggleCarDetails('all-car-details',true); }
-    got.push('\u05e2\u05dd \u05e8\u05db\u05d1');
+    got.push(L('\u05e2\u05dd \u05e8\u05db\u05d1','with a car'));
   }
   if(r.hotel===false){
     var hc=document.getElementById('all-hotel-check');
     if(hc && hc.checked){ hc.checked=false; if(typeof toggleCarDetails==='function') toggleCarDetails('all-hotel-details',false); }
-    got.push('\u05d1\u05dc\u05d9 \u05dc\u05d9\u05e0\u05d4');
+    got.push(L('\u05d1\u05dc\u05d9 \u05dc\u05d9\u05e0\u05d4','no lodging'));
   }
   if(r.accType){
     var rb=document.querySelector('input[name="all-acc"][value="'+r.accType+'"]');
-    if(rb){ rb.checked=true; got.push({apt:'\u05d3\u05d9\u05e8\u05d4',hotel:'\u05de\u05dc\u05d5\u05df',any:'\u05db\u05dc \u05e1\u05d5\u05d2\u05d9 \u05d4\u05dc\u05d9\u05e0\u05d4'}[r.accType]); }
+    if(rb){ rb.checked=true; got.push(window.LANG==='en' ? {apt:'apartment',hotel:'hotel',any:'any lodging'}[r.accType] : {apt:'\u05d3\u05d9\u05e8\u05d4',hotel:'\u05de\u05dc\u05d5\u05df',any:'\u05db\u05dc \u05e1\u05d5\u05d2\u05d9 \u05d4\u05dc\u05d9\u05e0\u05d4'}[r.accType]); }
   }
   if(r.airportPickup===true){
     var tm=document.getElementById('all-terminal');
-    if(tm){ tm.checked=true; got.push('\u05e7\u05d1\u05dc\u05d4 \u05d1\u05d8\u05e8\u05de\u05d9\u05e0\u05dc'); }
+    if(tm){ tm.checked=true; got.push(L('\u05e7\u05d1\u05dc\u05d4 \u05d1\u05d8\u05e8\u05de\u05d9\u05e0\u05dc','pick-up at the terminal')); }
   }
   if(r.automatic!=null){
     var au=document.getElementById('all-automatic');
-    if(au){ au.checked=!!r.automatic; got.push(r.automatic?'\u05d2\u05d9\u05e8 \u05d0\u05d5\u05d8\u05d5\u05de\u05d8\u05d9':'\u05d2\u05d9\u05e8 \u05d9\u05d3\u05e0\u05d9'); }
+    if(au){ au.checked=!!r.automatic; got.push(r.automatic?L('\u05d2\u05d9\u05e8 \u05d0\u05d5\u05d8\u05d5\u05de\u05d8\u05d9','automatic'):L('\u05d2\u05d9\u05e8 \u05d9\u05d3\u05e0\u05d9','manual')); }
   }
   }  // !flightOnly
 
   if(!got.length){
-    out.innerHTML='<span style="color:#ef6c00;">\u05dc\u05d0 \u05d6\u05d9\u05d4\u05d9\u05ea\u05d9 \u05d9\u05e2\u05d3 \u05d0\u05d5 \u05ea\u05d0\u05e8\u05d9\u05da. \u05e0\u05e1\u05d5 \u05dc\u05d4\u05d6\u05db\u05d9\u05e8 \u05e2\u05d9\u05e8 (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5 / \u05d1\u05e8\u05d2\u05de\u05d5 / \u05d8\u05d5\u05e8\u05d9\u05e0\u05d5) \u05d5\u05de\u05ea\u05d9 \u2014 \u05d7\u05d5\u05d3\u05e9, \u05ea\u05d0\u05e8\u05d9\u05da \u05d0\u05d5 \u05d7\u05d2.</span>';
+    out.innerHTML='<span style="color:#ef6c00;">'+L('\u05dc\u05d0 \u05d6\u05d9\u05d4\u05d9\u05ea\u05d9 \u05d9\u05e2\u05d3 \u05d0\u05d5 \u05ea\u05d0\u05e8\u05d9\u05da. \u05e0\u05e1\u05d5 \u05dc\u05d4\u05d6\u05db\u05d9\u05e8 \u05e2\u05d9\u05e8 (\u05de\u05d9\u05dc\u05d0\u05e0\u05d5 / \u05d1\u05e8\u05d2\u05de\u05d5 / \u05d8\u05d5\u05e8\u05d9\u05e0\u05d5) \u05d5\u05de\u05ea\u05d9 \u2014 \u05d7\u05d5\u05d3\u05e9, \u05ea\u05d0\u05e8\u05d9\u05da \u05d0\u05d5 \u05d7\u05d2.','I couldn\'t find a destination or a date. Try naming a city (Milan / Bergamo / Turin) and when \u2014 a month, a date or a holiday.')+'</span>';
     return;
   }
   // The answer used to be a grey line of the same size as the hint above it,
@@ -7744,7 +7981,7 @@ async function applyTripText(){
     '<div style="background:#eaf7ec;border:1.5px solid #a8d8b0;border-radius:10px;'
       + 'padding:9px 11px;">'
     + '<div style="font-weight:bold;color:#1b6b2a;font-size:0.82rem;margin-bottom:6px;">'
-      + '\u2713 \u05d4\u05d1\u05e0\u05ea\u05d9, \u05d5\u05de\u05d9\u05dc\u05d0\u05ea\u05d9 \u05dc\u05de\u05d8\u05d4:</div>'
+      + L('\u2713 \u05d4\u05d1\u05e0\u05ea\u05d9, \u05d5\u05de\u05d9\u05dc\u05d0\u05ea\u05d9 \u05dc\u05de\u05d8\u05d4:','\u2713 Got it, and filled in below:') + '</div>'
     + '<div style="display:flex;flex-wrap:wrap;gap:5px;">'
     + got.map(function (g) {
         return '<span style="background:#fff;border:1px solid #bfe0c6;border-radius:999px;'
@@ -7753,8 +7990,7 @@ async function applyTripText(){
       }).join('')
     + '</div>'
     + (local ? '<div style="margin-top:7px;font-size:0.72rem;color:#9a6a1a;">'
-        + '\u26a0 \u05ea\u05e8\u05d2\u05d5\u05dd \u05de\u05e7\u05d5\u05de\u05d9 (\u05de\u05d5\u05d2\u05d1\u05dc) \u2014 '
-        + '\u05d1\u05d3\u05e7\u05d5 \u05d0\u05ea \u05d4\u05e9\u05d3\u05d5\u05ea \u05dc\u05de\u05d8\u05d4.</div>' : '')
+        + L('\u26a0 \u05ea\u05e8\u05d2\u05d5\u05dd \u05de\u05e7\u05d5\u05de\u05d9 (\u05de\u05d5\u05d2\u05d1\u05dc) \u2014 \u05d1\u05d3\u05e7\u05d5 \u05d0\u05ea \u05d4\u05e9\u05d3\u05d5\u05ea \u05dc\u05de\u05d8\u05d4.', '\u26a0 Read on this device (limited) \u2014 check the fields below.') + '</div>' : '')
     + '</div>';
   // "הבן" used to run the search itself, which is why the engine buttons
   // were on screen before anybody pressed חפש - and why that button looked
@@ -7783,6 +8019,36 @@ function _pbInt(f, n) { return [].concat(_pbKey(f, 0), _pbVarint(n)); }
 function _pbLeg(date, from, to) {
   return [].concat(_pbStr(2, date), _pbMsg(13, _pbStr(2, from)), _pbMsg(14, _pbStr(2, to)));
 }
+// Where the flight starts. Hebrew: Tel Aviv, always. English: whatever the
+// reader typed - an airport code, or a city we know the code of - and
+// nothing at all until they do, rather than a guess.
+function flOrigin() {
+  if (window.LANG !== 'en') return 'TLV';
+  var el = document.getElementById('fl-origin');
+  var v = String((el && el.value) || '').trim();
+  if (!v) { try { v = localStorage.getItem('cl_origin') || ''; } catch (e) {} }
+  var m = v.match(/\(([A-Za-z]{3})\)\s*$/) || v.match(/^([A-Za-z]{3})$/);
+  if (m) return m[1].toUpperCase();
+  var low = v.toLowerCase(), opts = document.querySelectorAll('#fl-origin-list option');
+  for (var i = 0; i < opts.length; i++) {
+    var ov = opts[i].value, name = ov.replace(/\s*\([A-Z]{3}\)$/, '').toLowerCase();
+    if (low && (name === low || name.indexOf(low) === 0)) return ov.slice(-4, -1);
+  }
+  return null;
+}
+function flOriginSave(v) { try { localStorage.setItem('cl_origin', String(v || '').trim()); } catch (e) {} }
+// No origin on the English page: say so at the field, and search nothing.
+function flNeedOrigin() {
+  var el = document.getElementById('fl-origin');
+  if (el) { el.style.borderColor = '#e67e22'; el.focus(); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  uiAlert('Where are you flying from? Enter a city or an airport code.');
+}
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.getElementById('fl-origin');
+  if (el && !el.value) { try { el.value = localStorage.getItem('cl_origin') || ''; } catch (e) {} }
+});
+function _skyHost() { return window.LANG === 'en' ? 'https://www.skyscanner.net' : 'https://www.skyscanner.co.il'; }
+
 function gFlightsUrl(from, to, ci, co, pax) {
   try {
     var body = [].concat(_pbMsg(3, _pbLeg(ci, from, to)));
@@ -7792,7 +8058,7 @@ function gFlightsUrl(from, to, ci, co, pax) {
     body = body.concat(_pbInt(9, 1), _pbInt(19, co ? 1 : 2));
     var raw = ''; for (var j = 0; j < body.length; j++) raw += String.fromCharCode(body[j]);
     var tfs = btoa(raw).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    return 'https://www.google.com/travel/flights?tfs=' + tfs + '&hl=he&curr=ILS';
+    return 'https://www.google.com/travel/flights?tfs=' + tfs + (window.LANG === 'en' ? '&hl=en' : '&hl=he&curr=ILS');
   } catch (e) {
     return 'https://www.google.com/travel/flights';
   }
@@ -7807,12 +8073,12 @@ function kosherFlyUrl(code, ci, co, pax) {
   var n = Math.max(1, Math.min(9, parseInt(pax, 10) || 2));
   return 'https://ykrauss1.github.io/trip-finder/'
     + '?to=' + encodeURIComponent(code)
-    + '&from=TLV&dep=' + encodeURIComponent(ci) + '&ret=' + encodeURIComponent(co)
+    + '&from=' + encodeURIComponent(flOrigin() || 'TLV') + '&dep=' + encodeURIComponent(ci) + '&ret=' + encodeURIComponent(co)
     + '&adults=' + n + '&label=' + encodeURIComponent(he) + '&run=1';
 }
 // Skyscanner השכרת רכב: /carhire/results/{איסוף}/{החזרה}/{תאריך}/{תאריך}/{גיל}
 function skyCarUrl(code, ci, co) {
-  return 'https://www.skyscanner.co.il/carhire/results/' + code + '/' + code + '/' + ci + '/' + co + '/30';
+  return _skyHost() + '/carhire/results/' + code + '/' + code + '/' + ci + '/' + co + '/30';
 }
 // Discover Cars: /italy-mainland/{עיר}/{קוד} — אצלם אין "italy" לבדו
 // Kayak car hire, with the two filters that actually survive a cold URL load.
@@ -7905,7 +8171,65 @@ function gearShops() {
 
 // The list is one string and not a row of checkboxes on purpose: it leaves
 // the page, into a note or a family group, and gets ticked off there.
-var PACK_LIST = [
+var PACK_LIST = window.LANG === 'en' ? [
+  'Packing list — skiing in Cervinia',
+  '',
+  'Required by Italian law',
+  '• A helmet with the CE mark (can be hired in the village)',
+  '• Third-party insurance — can be added to the ski pass',
+  '• Travel insurance that names skiing and snowboarding',
+  '',
+  'On the body',
+  '• Thermal base layer, top and bottom — merino or synthetic, no cotton',
+  '• Mid layer: a thin fleece or light vest — for cold days',
+  '• Ski jacket — 10,000 mm and up',
+  '• Ski trousers — bibs for beginners and children',
+  '• Tall ski socks, one pair a day (thin, not thick)',
+  '• Gloves or mittens with a wrist leash',
+  '• Neck gaiter, and a balaclava on cold days',
+  '• A thin hat under the helmet, and a regular hat for the evening',
+  '',
+  'Eyes and skin',
+  '• Double-lens goggles — S1/S2 for cloud, S3 for sun, or photochromic',
+  '• Sunglasses for walking in the village',
+  '• SPF 50 sunscreen',
+  '• Lip balm with SPF',
+  '',
+  'Useful',
+  '• Hand and toe warmers',
+  '• Boot bag',
+  '• A small boot dryer',
+  '• Water bottle',
+  '• Power bank — the cold drains batteries fast',
+  '• A small backpack for the slopes',
+  '',
+  'Electricity in Italy',
+  '• Adapters for the Italian socket (type L / C / F) — more than one',
+  '• Note: apartment power is usually limited to 3 kW',
+  '',
+  'Shabbat (if you keep it)',
+  '• Candlesticks and candles, and a metal tray to stand them on',
+  '• Electric hot plate',
+  '• Urn or a large thermos',
+  '• Mechanical Shabbat timer',
+  '• Shabbat lamp or a lamp cover',
+  '• A flashlight for each room',
+  '• Pre-cut toilet paper',
+  '• Disposable dishes',
+  '• Siddur, Chumash and sefarim',
+  '• Paper tape and stickers to cover switches and sensors',
+  '• Check in advance: a mechanical door key, and no automatic light sensors',
+  '',
+  'Medicines and first aid',
+  '• Regular medicines, enough for the whole trip',
+  '• Painkillers, plasters and an elastic bandage',
+  '',
+  'Documents',
+  '• A valid passport or ID card',
+  '• An International Driving Permit if your licence requires one, for car hire',
+  '• Proof of insurance, printed or on your phone',
+  '• The apartment booking confirmation and the owner\'s contact details'
+].join('\n') : [
   'רשימת אריזה — סקי בצ\'רוויניה',
   '',
   'חובה בחוק באיטליה',
@@ -7995,7 +8319,7 @@ function copyPackList() {
   var done = function (okFlag) {
     if (!btn) return;
     var was = btn.textContent;
-    btn.textContent = okFlag ? '\u2705 הועתק' : '\u26A0 לא הצלחנו להעתיק — אפשר לסמן ידנית';
+    btn.textContent = okFlag ? L('\u2705 הועתק', '\u2705 Copied') : L('\u26A0 לא הצלחנו להעתיק — אפשר לסמן ידנית', '\u26A0 Couldn\'t copy — you can select it by hand');
     setTimeout(function () { btn.textContent = was; }, 2000);
   };
   try {
@@ -8025,20 +8349,20 @@ function copyPackList() {
 // room, and the reader should know which they are clicking.
 function localStays() {
   return [
-    { icon: '🔑', title: 'Immobiliare Monte Cervino — דירות שבועיות',
-      desc: 'סוכנות מקומית · כ-15 דירות · <b>הזמנה אונליין</b> · אנגלית',
+    { icon: '🔑', title: L('Immobiliare Monte Cervino — דירות שבועיות', 'Immobiliare Monte Cervino — weekly apartments'),
+      desc: L('סוכנות מקומית · כ-15 דירות · <b>הזמנה אונליין</b> · אנגלית', 'Local agency · about 15 apartments · <b>online booking</b> · English spoken'),
       url: 'https://www.immobiliaremontecervino.it/en/' },
-    { icon: '📋', title: 'Immobiliare San Grato — דירות',
-      desc: 'סוכנות ותיקה בכפר (מאז 1972) · שבועי ועונתי · פנייה בלבד · אנגלית',
+    { icon: '📋', title: L('Immobiliare San Grato — דירות', 'Immobiliare San Grato — apartments'),
+      desc: L('סוכנות ותיקה בכפר (מאז 1972) · שבועי ועונתי · פנייה בלבד · אנגלית', 'Long-established village agency (since 1972) · weekly and seasonal · by enquiry only · English spoken'),
       url: 'https://www.immobiliaresangrato.it/en/rentals/' },
-    { icon: '🏔️', title: 'HelloChalet — בקתות ודירות',
-      desc: 'חברה מקומית מוולטורננש · בקתות, דירות וחדרים · אנגלית',
+    { icon: '🏔️', title: L('HelloChalet — בקתות ודירות', 'HelloChalet — chalets and apartments'),
+      desc: L('חברה מקומית מוולטורננש · בקתות, דירות וחדרים · אנגלית', 'Local company from Valtournenche · chalets, apartments and rooms · English spoken'),
       url: 'https://www.hellochalet.com/en/' },
     // Not a flag: Windows draws no flag emoji at all, it draws the two
     // letters the flag is built from. "IT" in a box, which is what Yossi
     // saw and read as a broken icon. It was one.
-    { icon: '📖', title: 'מדריך האירוח הרשמי של צ\'רוויניה',
-      desc: 'מלונות ודירות ברשימת אתר הסקי עצמו · פנייה ישירה לבית המלון',
+    { icon: '📖', title: L('מדריך האירוח הרשמי של צ\'רוויניה', 'Cervinia\'s official accommodation guide'),
+      desc: L('מלונות ודירות ברשימת אתר הסקי עצמו · פנייה ישירה לבית המלון', 'Hotels and apartments listed by the resort itself · contact the property directly'),
       url: 'https://www.cervinia.it/en/ospitalita-servizi' }
   ];
 }
@@ -8047,6 +8371,8 @@ function searchFlight() {
   _tripStepDone('flight');
   const dr = getDateRange();
   if (!dr) { needDates(); return; }
+  const org = flOrigin();
+  if (!org) { flNeedOrigin(); return; }
   const adults = document.getElementById('fl-adults')?.textContent || '2';
   const pax = parseInt(adults);
   const d1 = dr.ci.replace(/-/g,'').slice(2);
@@ -8059,19 +8385,20 @@ function searchFlight() {
   const isDirect = fCode !== 'TRN';   // said only of Turin; the others make no claim
   const fOther = fOpt?.getAttribute('data-other') === '1';
   const fHe = fOpt?.getAttribute('data-he') || fCode;
-  const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
-  const gfWithDates = gFlightsUrl('TLV', fCode, dr.ci, dr.co, pax);
+  const skUrl = _skyHost() + '/flights/' + org.toLowerCase() + '/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
+  const gfWithDates = gFlightsUrl(org, fCode, dr.ci, dr.co, pax);
   const links = [
-    { icon: _svcIcon('ico-candle'), title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
-    { icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך' + (isDirect ? '' : ' · ללא ישיר'), url: gfWithDates },
-    { icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
-    { icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
+    { icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
+    { icon: '✈️', title: 'Google Flights', desc: L('לוח מחירים לפי תאריך' + (isDirect ? '' : ' · ללא ישיר'), 'Price calendar by date'), url: gfWithDates },
+    { icon: '✈️', title: 'Skyscanner', desc: L('השוואת מחירים', 'Price comparison'), url: skUrl },
+    { icon: '✈️', title: 'Kayak', desc: L('השוואה כוללת', 'Broad comparison'), url: 'https://www.kayak.com/flights/' + org + '-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
   ];
   const res = document.getElementById('flight-results');
   showResults(res);
   res.innerHTML = '<div style="background:#f0f7ff;border:1.5px solid #bcd;border-radius:11px;padding:12px 14px;">'
-    + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:8px;">✈️ טיסות — '
-    + (fOther ? 'מתל אביב ל' + esc(fHe) + ' (' + fCode + ')' : 'ברירת מחדל: מילאנו (MXP)') + '</div>'
+    + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:8px;">' + L('✈️ טיסות — ', '✈️ Flights — ')
+    + (window.LANG === 'en' ? 'from ' + org + ' to ' + esc(fCity) + ' (' + fCode + ')'
+       : (fOther ? 'מתל אביב ל' + esc(fHe) + ' (' + fCode + ')' : 'ברירת מחדל: מילאנו (MXP)')) + '</div>'
     + makeResultLinks(links) + '</div>';
   // The snapshot answers instantly from a file; the links below it are the
   // live sites. Painted after the links so a slow first load of the file
@@ -8101,20 +8428,20 @@ function searchCar() {
   const automatic  = document.getElementById('car-automatic')?.checked;
   const atTerminal = document.getElementById('car-terminal')?.checked;
   const picked = [];
-  if (automatic)  picked.push('גיר אוטומטי');
-  if (atTerminal) picked.push('קבלה בטרמינל');
+  if (automatic)  picked.push(L('גיר אוטומטי', 'automatic'));
+  if (atTerminal) picked.push(L('קבלה בטרמינל', 'pick-up at the terminal'));
   const links = [
     { icon: '🚗', title: 'Kayak',
-      desc: picked.length ? picked.join(' · ') + ' — עוברים בקישור'
-                          : 'השוואת מחירים',
+      desc: picked.length ? picked.join(' · ') + L(' — עוברים בקישור', ' — passed on in the link')
+                          : L('השוואת מחירים', 'Price comparison'),
       url: kayakCarUrl(cCode, dr.ci, dr.co, automatic, atTerminal) },
     { icon: '🚗', title: 'Skyscanner',
-      desc: picked.length ? picked.join(' ו') + ' — לסמן בדף' : 'השוואת מחירים',
+      desc: picked.length ? picked.join(L(' ו', ' and ')) + L(' — לסמן בדף', ' — tick them on the site') : L('השוואת מחירים', 'Price comparison'),
       url: skyCarUrl(cCode, dr.ci, dr.co) },
   ];
   const res = document.getElementById('car-results');
   showResults(res);
-  res.innerHTML = '<div style="font-size:0.8rem;color:#888;margin-bottom:8px;">לחץ על אתר לפתיחה:</div>' + makeResultLinks(links);
+  res.innerHTML = '<div style="font-size:0.8rem;color:#888;margin-bottom:8px;">' + L('לחץ על אתר לפתיחה:', 'Tap a site to open it:') + '</div>' + makeResultLinks(links);
 }
 
 // Filter tokens read off Booking's and Airbnb's own filter sidebars rather
@@ -8161,7 +8488,7 @@ function _bookingUrl(ci, co, adults, kids, rooms, radius, accType, f, place) {
     price = '&price=' + (f.min != null ? f.min : 0) + '-'
           + (f.max != null ? f.max : 100000) + '-' + cur;
   }
-  return 'https://www.booking.com/searchresults.he.html?ss=' + encodeURIComponent(place.q)
+  return 'https://www.booking.com/searchresults.' + (window.LANG === 'en' ? 'en-gb' : 'he') + '.html?ss=' + encodeURIComponent(place.q)
     + '&checkin=' + ci + '&checkout=' + co
     + '&group_adults=' + adults + '&group_children=' + (kids || 0)
     + '&no_rooms=' + (rooms || 1)
@@ -8185,17 +8512,17 @@ function _airbnbUrl(ci, co, adults, kids, accType, f, place) {
 // one line naming only the filters that actually travelled
 function _stayDesc(base, accType, f) {
   var on = [];
-  if (f.kitchen) on.push('עם מטבח');
+  if (f.kitchen) on.push(L('עם מטבח', 'with kitchen'));
   if (f.min != null || f.max != null) {
     // A bare dash read as a price that had lost its other half: a ceiling of
     // 150 came out "$-150". Hebrew says the relation in words, and the sign
     // follows the number as it does when anyone writes a price by hand.
     // CHF carries a trailing space from the days it was a prefix.
     var sign = (CUR_SIGN[f.cur] || '').trim();
-    var span = (f.min != null && f.max != null) ? (f.min + ' עד ' + f.max)
-             : (f.max != null)                  ? ('עד ' + f.max)
-             :                                    ('מ-' + f.min);
-    on.push([span, sign, 'ללילה'].filter(Boolean).join(' '));
+    var span = (f.min != null && f.max != null) ? (f.min + L(' עד ', '–') + f.max)
+             : (f.max != null)                  ? (L('עד ', 'up to ') + f.max)
+             :                                    (L('מ-', 'from ') + f.min);
+    on.push([span, sign, L('ללילה', 'a night')].filter(Boolean).join(' '));
   }
   return on.length ? base + ' · ' + on.join(' · ') : base;
 }
@@ -8217,25 +8544,25 @@ function searchHotel() {
   const bkUrl = _bookingUrl(dr.ci, dr.co, adults, kids, rooms, radius, accType, f, pl);
   const abUrl = _airbnbUrl(dr.ci, dr.co, adults, kids, accType, f, pl);
   const links = accType === 'hotel' ? [
-    { icon: '🏨', title: 'Booking.com', desc: _stayDesc('מלונות, B&B, ספא בסביבת ' + radius + ' ק"מ', accType, f), url: bkUrl },
-    { icon: '🏨', title: 'Hotels.com', desc: 'השוואת מחירי מלונות', url: 'https://he.hotels.com/search.do?q-destination=' + PQ + '&q-check-in=' + dr.ci + '&q-check-out=' + dr.co + '&q-rooms=1&q-room-0-adults=' + adults + '&q-room-0-children=' + kids },
-    { icon: '🏨', title: 'Expedia', desc: 'מלונות + חבילות נסיעה', url: 'https://www.expedia.co.il/Hotel-Search?destination=' + PQ + '&startDate=' + dr.ci + '&endDate=' + dr.co + '&rooms=1&adults=' + adults },
+    { icon: '🏨', title: 'Booking.com', desc: _stayDesc(L('מלונות, B&B, ספא בסביבת ' + radius + ' ק"מ', 'Hotels, B&Bs, spas within ' + radius + ' km'), accType, f), url: bkUrl },
+    { icon: '🏨', title: 'Hotels.com', desc: L('השוואת מחירי מלונות', 'Hotel price comparison'), url: 'https://' + (window.LANG === 'en' ? 'www' : 'he') + '.hotels.com/search.do?q-destination=' + PQ + '&q-check-in=' + dr.ci + '&q-check-out=' + dr.co + '&q-rooms=1&q-room-0-adults=' + adults + '&q-room-0-children=' + kids },
+    { icon: '🏨', title: 'Expedia', desc: L('מלונות + חבילות נסיעה', 'Hotels + package holidays'), url: (window.LANG === 'en' ? 'https://www.expedia.com' : 'https://www.expedia.co.il') + '/Hotel-Search?destination=' + PQ + '&startDate=' + dr.ci + '&endDate=' + dr.co + '&rooms=1&adults=' + adults },
   ] : accType === 'apt' ? [
-    { icon: '🏠', title: 'Airbnb', desc: _stayDesc('דירות, בקתות, וילות', accType, f), url: abUrl },
-    { icon: '🏠', title: 'VRBO', desc: 'בתי נופש להשכרה', url: 'https://www.vrbo.com/search?destination=' + PQ + '&startDate=' + dr.ci + '&endDate=' + dr.co + '&adults=' + adults },
-    { icon: '🏠', title: 'Booking — דירות בלבד', desc: _stayDesc('מסוננות לדירות ואפרטמנטים', accType, f), url: bkUrl },
+    { icon: '🏠', title: 'Airbnb', desc: _stayDesc(L('דירות, בקתות, וילות', 'Apartments, chalets, villas'), accType, f), url: abUrl },
+    { icon: '🏠', title: 'VRBO', desc: L('בתי נופש להשכרה', 'Holiday homes to rent'), url: 'https://www.vrbo.com/search?destination=' + PQ + '&startDate=' + dr.ci + '&endDate=' + dr.co + '&adults=' + adults },
+    { icon: '🏠', title: L('Booking — דירות בלבד', 'Booking — apartments only'), desc: _stayDesc(L('מסוננות לדירות ואפרטמנטים', 'Filtered to apartments'), accType, f), url: bkUrl },
   ] : [
-    { icon: '🏨', title: 'Booking.com', desc: _stayDesc('כל סוגי הלינה', accType, f), url: bkUrl },
-    { icon: '🏠', title: 'Airbnb', desc: _stayDesc('דירות ובתי נופש', accType, f), url: abUrl },
-    { icon: '🏨', title: 'Hotels.com', desc: 'מלונות', url: 'https://he.hotels.com/search.do?q-destination=' + PQ + '&q-check-in=' + dr.ci + '&q-check-out=' + dr.co + '&q-rooms=1&q-room-0-adults=' + adults },
-    { icon: '🏠', title: 'VRBO', desc: 'בתי נופש', url: 'https://www.vrbo.com/search?destination=' + PQ + '&startDate=' + dr.ci + '&endDate=' + dr.co },
+    { icon: '🏨', title: 'Booking.com', desc: _stayDesc(L('כל סוגי הלינה', 'All types of lodging'), accType, f), url: bkUrl },
+    { icon: '🏠', title: 'Airbnb', desc: _stayDesc(L('דירות ובתי נופש', 'Apartments and holiday homes'), accType, f), url: abUrl },
+    { icon: '🏨', title: 'Hotels.com', desc: L('מלונות', 'Hotels'), url: 'https://' + (window.LANG === 'en' ? 'www' : 'he') + '.hotels.com/search.do?q-destination=' + PQ + '&q-check-in=' + dr.ci + '&q-check-out=' + dr.co + '&q-rooms=1&q-room-0-adults=' + adults },
+    { icon: '🏠', title: 'VRBO', desc: L('בתי נופש', 'Holiday homes'), url: 'https://www.vrbo.com/search?destination=' + PQ + '&startDate=' + dr.ci + '&endDate=' + dr.co },
   ];
   const res = document.getElementById('hotel-results');
   showResults(res);
   // In a trip with more than one stay, say which one these links are for.
   const which = (!_tripSolo() && TRIP.stays.length > 1)
-    ? 'שהייה ' + (TRIP.stayAt + 1) + ' · ' + _stayPlaceHtml(pl) + ' · ' : '';
-  res.innerHTML = '<div style="font-size:0.8rem;color:#888;margin-bottom:8px;">' + which + 'לחץ על אתר לפתיחה:</div>' + makeResultLinks(links);
+    ? L('שהייה ', 'Stay ') + (TRIP.stayAt + 1) + ' · ' + _stayPlaceHtml(pl) + ' · ' : '';
+  res.innerHTML = '<div style="font-size:0.8rem;color:#888;margin-bottom:8px;">' + which + L('לחץ על אתר לפתיחה:', 'Tap a site to open it:') + '</div>' + makeResultLinks(links);
 }
 
 
@@ -8256,6 +8583,8 @@ function searchAll() {
   const hKids = document.getElementById('all-h-children')?.textContent || kids;
   const hRooms = document.getElementById('all-h-rooms')?.textContent || '1';
   const accType = document.querySelector('input[name="all-acc"]:checked')?.value || 'hotel';
+  const org = flOrigin();
+  if (!org) { flNeedOrigin(); return; }
 
   const airSel = document.getElementById('airport-select');
   const airCode = airSel?.value || 'MXP';
@@ -8264,19 +8593,19 @@ function searchAll() {
   const airDist = airOpt?.getAttribute('data-dist') || '175';
   const d1 = dr.ci.replace(/-/g,'').slice(2);
   const d2 = dr.co.replace(/-/g,'').slice(2);
-  const gfUrl = gFlightsUrl('TLV', airCode, dr.ci, dr.co, adults);
-  const skUrl = 'https://www.skyscanner.co.il/flights/tlv/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
-  const airLabel = airCode === 'TRN' ? airCity + ' (ללא טיסה ישירה)' : airCity;
+  const gfUrl = gFlightsUrl(org, airCode, dr.ci, dr.co, adults);
+  const skUrl = _skyHost() + '/flights/' + org.toLowerCase() + '/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
+  const airLabel = (airCode === 'TRN' && window.LANG !== 'en') ? airCity + ' (ללא טיסה ישירה)' : airCity;
   // kind, not the icon, decides which box a link lands in. It used to be the
   // icon string - and the day Kosher Fly's candle emoji became an inline SVG,
   // our own engine stopped matching '🕯️', fell out of all three boxes and
   // disappeared from the results, leaving only Google, Skyscanner and Kayak.
   // Nothing in that change had anything to do with the trip planner.
   let links = [
-    { kind: 'flight', icon: _svcIcon('ico-candle'), title: 'Kosher Fly — המנוע שלנו <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: 'סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
-    { kind: 'flight', icon: '✈️', title: 'Google Flights', desc: 'לוח מחירים לפי תאריך', url: gfUrl },
-    { kind: 'flight', icon: '✈️', title: 'Skyscanner', desc: 'השוואת מחירים', url: skUrl },
-    { kind: 'flight', icon: '✈️', title: 'Kayak', desc: 'השוואה כוללת', url: 'https://www.kayak.com/flights/TLV-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
+    { kind: 'flight', icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
+    { kind: 'flight', icon: '✈️', title: 'Google Flights', desc: L('לוח מחירים לפי תאריך', 'Price calendar by date'), url: gfUrl },
+    { kind: 'flight', icon: '✈️', title: 'Skyscanner', desc: L('השוואת מחירים', 'Price comparison'), url: skUrl },
+    { kind: 'flight', icon: '✈️', title: 'Kayak', desc: L('השוואה כוללת', 'Broad comparison'), url: 'https://www.kayak.com/flights/' + org + '-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
   ];
   if (hasHotel) {
     const allHtlEl2 = document.getElementById('all-hotel-dates');
@@ -8284,8 +8613,8 @@ function searchAll() {
     const hco = (document.getElementById('hotel-diff-dates')?.checked && allHtlEl2?.getAttribute('data-co')) ? allHtlEl2.getAttribute('data-co') : dr.co;
     const f2 = _stayFilters();
     const bkUrl = _bookingUrl(hci, hco, hAdults, hKids, hRooms, null, accType, f2);
-    links.push({ kind: 'stay', icon: '🏨', title: 'Booking.com — לינה', desc: _stayDesc((accType==='apt'?'דירות':accType==='any'?'כל סוגי הלינה':'מלונות'), accType, f2) + (hci!==dr.ci?' · תאריכים שונים':''), url: bkUrl });
-    links.push({ kind: 'stay', icon: '🏠', title: 'Airbnb — דירות', desc: _stayDesc('דירות ובתי נופש', accType, f2), url: _airbnbUrl(hci, hco, hAdults, hKids, accType, f2) });
+    links.push({ kind: 'stay', icon: '🏨', title: L('Booking.com — לינה', 'Booking.com — lodging'), desc: _stayDesc((accType==='apt'?L('דירות', 'Apartments'):accType==='any'?L('כל סוגי הלינה', 'All types of lodging'):L('מלונות', 'Hotels')), accType, f2) + (hci!==dr.ci?L(' · תאריכים שונים', ' · different dates'):''), url: bkUrl });
+    links.push({ kind: 'stay', icon: '🏠', title: L('Airbnb — דירות', 'Airbnb — apartments'), desc: _stayDesc(L('דירות ובתי נופש', 'Apartments and holiday homes'), accType, f2), url: _airbnbUrl(hci, hco, hAdults, hKids, accType, f2) });
     // Beyond the two global platforms: the privately-owned apartments in
     // Cervinia are let through small local agencies, and most of that stock
     // never reaches Booking or Airbnb. None of these take dates in a URL, so
@@ -8302,16 +8631,16 @@ function searchAll() {
     // What each engine can actually be told in a URL differs, so each card says
     // its own truth rather than one hopeful sentence for all of them.
     const picked = [];
-    if (automatic)  picked.push('גיר אוטומטי');
-    if (atTerminal) picked.push('קבלה בטרמינל');
-    const kayakDesc = (picked.length ? picked.join(' · ') + ' — עוברים בקישור'
-                                     : 'השוואת מחירים')
-      + (cci!==dr.ci ? ' · תאריכים שונים' : '');
+    if (automatic)  picked.push(L('גיר אוטומטי', 'automatic'));
+    if (atTerminal) picked.push(L('קבלה בטרמינל', 'pick-up at the terminal'));
+    const kayakDesc = (picked.length ? picked.join(' · ') + L(' — עוברים בקישור', ' — passed on in the link')
+                                     : L('השוואת מחירים', 'Price comparison'))
+      + (cci!==dr.ci ? L(' · תאריכים שונים', ' · different dates') : '');
     // Only what you still have to do by hand. Saying "the dates transfer" is
     // noise: a link that did not carry them would not be worth offering.
-    const carDesc = (picked.length ? picked.join(' ו') + ' — לסמן בדף'
-                                   : 'השוואת מחירים')
-      + (cci!==dr.ci ? ' · תאריכים שונים' : '');
+    const carDesc = (picked.length ? picked.join(L(' ו', ' and ')) + L(' — לסמן בדף', ' — tick them on the site')
+                                   : L('השוואת מחירים', 'Price comparison'))
+      + (cci!==dr.ci ? L(' · תאריכים שונים', ' · different dates') : '');
   const carAirport = airCode === 'MXP' ? 'Milan+Malpensa+Airport' : airCode === 'BGY' ? 'Milan+Bergamo+Airport' : 'Turin+Airport';
     links.push({ kind: 'car', icon: '🚗', title: 'Kayak', desc: kayakDesc,
                  url: kayakCarUrl(airCode, cci, cco, automatic, atTerminal) });
@@ -8337,7 +8666,7 @@ function searchAll() {
     + '<a href="#" onclick="openM(\'localStayModal\');return false;" '
     + 'style="font-size:0.78rem;color:#0a6b4a;text-decoration:none;'
     + 'border-bottom:1px dashed #9dc;">'
-    + '✉️ הסוכנויות עונות באיטלקית — כך כותבים להן</a></div>';
+    + L('✉️ הסוכנויות עונות באיטלקית — כך כותבים להן', '✉️ The agencies answer in Italian — here\'s how to write to them') + '</a></div>';
   const flightLinks2 = links.filter(l => l.kind === 'flight');
   const hotelLinks2  = links.filter(l => l.kind === 'stay');
   const carLinks2    = links.filter(l => l.kind === 'car');
@@ -8350,15 +8679,17 @@ function searchAll() {
   function missing(ttl, bg, brd) {
     return '<div style="background:' + bg + ';border:1.5px solid ' + brd + ';border-radius:11px;'
       + 'padding:12px 14px;margin-bottom:10px;font-size:0.78rem;color:#8a6d3b;">'
-      + ttl + ' — לא נוצרו קישורים. נסו לרענן את העמוד.</div>';
+      + ttl + L(' — לא נוצרו קישורים. נסו לרענן את העמוד.', ' — no links were created. Try refreshing the page.') + '</div>';
   }
   const res = document.getElementById('all-results');
   showResults(res);
-  res.innerHTML = section('✈️ טיסות', '#f0f7ff', '#bcd', flightLinks2)
-               + (hasHotel ? (hotelLinks2.length ? section('🏨 לינה', '#f0fff8', '#9dc', hotelLinks2, stayFoot)
-                                                 : missing('🏨 לינה', '#f0fff8', '#9dc')) : '')
-               + (hasCar ? (carLinks2.length ? section('🚗 השכרת רכב', '#fff8f0', '#dca', carLinks2)
-                                             : missing('🚗 השכרת רכב', '#fff8f0', '#dca')) : '');
+  const T_FL = L('✈️ טיסות', '✈️ Flights') + (window.LANG === 'en' ? ' — from ' + org : ''),
+        T_ST = L('🏨 לינה', '🏨 Lodging'), T_CR = L('🚗 השכרת רכב', '🚗 Car hire');
+  res.innerHTML = section(T_FL, '#f0f7ff', '#bcd', flightLinks2)
+               + (hasHotel ? (hotelLinks2.length ? section(T_ST, '#f0fff8', '#9dc', hotelLinks2, stayFoot)
+                                                 : missing(T_ST, '#f0fff8', '#9dc')) : '')
+               + (hasCar ? (carLinks2.length ? section(T_CR, '#fff8f0', '#dca', carLinks2)
+                                             : missing(T_CR, '#fff8f0', '#dca')) : '');
   // the same stored price the flight tab shows, for the tab people land on
   loadFlights().then(function () {
     var box = document.getElementById('all-snapshot');
@@ -8559,7 +8890,7 @@ function _tripPaint() {
   var n = document.getElementById('strip-nights');
   if (n) {
     var k = TRIP.from ? Math.round((TRIP.to - TRIP.from) / 86400000) : 0;
-    n.textContent = TRIP.from ? (k === 1 ? 'לילה אחד' : k + ' לילות') : '';
+    n.textContent = TRIP.from ? (k === 1 ? L('לילה אחד', '1 night') : k + L(' לילות', ' nights')) : '';
   }
   var a = document.getElementById('strip-adults'), c = document.getElementById('strip-children');
   if (a) a.textContent = TRIP.adults;
@@ -8595,9 +8926,9 @@ function _tripMarks() {
         mark.style.marginBottom = Math.max(mb, 10) + 'px';
       }
     }
-    mark.innerHTML = (isPax ? 'שונה מהטיול' : 'תאריכים שונים מהטיול')
-      + ' · <a onclick="_tripRejoin(\'' + id + '\')">חזרה ' + (isPax ? 'למספר בטיול' : 'לתאריכי הטיול') + '</a>'
-      + (id === 'trip-dates' ? ' · <a onclick="_tripAdoptFlight()">עדכן את הטיול לפי הטיסה</a>' : '');
+    mark.innerHTML = (isPax ? L('שונה מהטיול', 'Differs from the trip') : L('תאריכים שונים מהטיול', 'Dates differ from the trip'))
+      + ' · <a onclick="_tripRejoin(\'' + id + '\')">' + (isPax ? L('חזרה למספר בטיול', 'Back to the trip number') : L('חזרה לתאריכי הטיול', 'Back to the trip dates')) + '</a>'
+      + (id === 'trip-dates' ? ' · <a onclick="_tripAdoptFlight()">' + L('עדכן את הטיול לפי הטיסה', 'Update the trip to the flight') + '</a>' : '');
     mark.style.display = 'block';
   });
 }
@@ -8617,12 +8948,12 @@ var STAY_PLACES = {
   milano:        { he: 'מילאנו',    q: 'Milano',          ab: 'Milan--Italy',           local: false },
   torino:        { he: 'טורינו',    q: 'Torino',          ab: 'Turin--Italy',           local: false }
 };
-var STAY_WAY = { site: 'באתרים', direct: 'פנייה ישירה' };
+var STAY_WAY = { site: L('באתרים', 'On booking sites'), direct: L('פנייה ישירה', 'Write directly') };
 // Hebrew and Latin side by side. In running text the Latin is isolated: left
 // bare, the bidi algorithm pulled "Breuil-Cervinia" across the separators
 // and scrambled the row around it.
-function _stayPlaceText(pl) { return pl.he + ' · ' + pl.q; }
-function _stayPlaceHtml(pl) { return pl.he + ' <bdi dir="ltr">' + pl.q + '</bdi>'; }
+function _stayPlaceText(pl) { return window.LANG === 'en' ? pl.q : pl.he + ' · ' + pl.q; }
+function _stayPlaceHtml(pl) { return window.LANG === 'en' ? '<bdi dir="ltr">' + pl.q + '</bdi>' : pl.he + ' <bdi dir="ltr">' + pl.q + '</bdi>'; }
 
 function _stayD(iso) { var p = String(iso).split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
 function _stayDM(iso) { var p = String(iso).split('-'); return (+p[2]) + '.' + (+p[1]); }
@@ -8754,22 +9085,22 @@ function _stayCoverageLine() {
   var c = _stayCoverage();
   if (!c) return '';
   var list = function (a) {
-    return a.slice(0, 3).map(_stayDM).join(', ') + (a.length > 3 ? ' ועוד ' + (a.length - 3) : '');
+    return a.slice(0, 3).map(_stayDM).join(', ') + (a.length > 3 ? L(' ועוד ', ' and ') + (a.length - 3) + L('', ' more') : '');
   };
   var parts = [];
   if (!c.missing.length && !c.doubled.length) {
-    parts.push('<span style="color:#1e8449;">✓ כל ' + c.tripNights + ' הלילות מכוסים</span>');
+    parts.push('<span style="color:#1e8449;">' + L('✓ כל ' + c.tripNights + ' הלילות מכוסים', '✓ All ' + c.tripNights + ' nights covered') + '</span>');
   } else {
-    parts.push(c.tripNights + ' לילות בטיול, ' + c.covered + ' מכוסים');
+    parts.push(L(c.tripNights + ' לילות בטיול, ' + c.covered + ' מכוסים', c.tripNights + ' nights in the trip, ' + c.covered + ' covered'));
     if (c.missing.length) parts.push('<b style="color:#b9770e;">' +
-      (c.missing.length === 1 ? 'חסר לילה אחד: ' : 'חסרים ' + c.missing.length + ' לילות: ') +
+      (c.missing.length === 1 ? L('חסר לילה אחד: ', 'One night missing: ') : L('חסרים ' + c.missing.length + ' לילות: ', c.missing.length + ' nights missing: ')) +
       list(c.missing) + '</b>');
     if (c.doubled.length) parts.push('<b style="color:#b9770e;">' +
-      (c.doubled.length === 1 ? 'לילה אחד מכוסה פעמיים: ' : c.doubled.length + ' לילות מכוסים פעמיים: ') +
+      (c.doubled.length === 1 ? L('לילה אחד מכוסה פעמיים: ', 'One night covered twice: ') : L(c.doubled.length + ' לילות מכוסים פעמיים: ', c.doubled.length + ' nights covered twice: ')) +
       list(c.doubled) + '</b>');
   }
   if (c.outside.length) parts.push('<span style="color:#7a8794;">' +
-    (c.outside.length === 1 ? 'לילה אחד מחוץ לתאריכי הטיול' : c.outside.length + ' לילות מחוץ לתאריכי הטיול') + '</span>');
+    (c.outside.length === 1 ? L('לילה אחד מחוץ לתאריכי הטיול', 'One night outside the trip dates') : L(c.outside.length + ' לילות מחוץ לתאריכי הטיול', c.outside.length + ' nights outside the trip dates')) + '</span>');
   return parts.join(' · ');
 }
 
@@ -8786,21 +9117,21 @@ function _stayRender() {
         var on = i === TRIP.stayAt, n = _stayNights(x);
         return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
           + '<button type="button" onclick="_stayPick(' + i + ')" class="stay-row' + (on ? ' stay-on' : '') + '" '
-          + 'style="flex:1;text-align:right;font-family:inherit;cursor:pointer;padding:7px 10px;border-radius:9px;'
+          + 'style="flex:1;text-align:start;font-family:inherit;cursor:pointer;padding:7px 10px;border-radius:9px;'
           + 'border:1.5px solid ' + (on ? '#2e9e6a' : '#dcebe2') + ';background:' + (on ? '#eafaf1' : 'white') + ';font-size:0.8rem;color:#22432f;">'
           + '<b>' + (i + 1) + '</b> · <span dir="ltr">' + _stayDM(x.ci) + '–' + _stayDM(x.co) + '</span>'
-          + ' · ' + (n === 1 ? 'לילה אחד' : n + ' לילות')
+          + ' · ' + (n === 1 ? L('לילה אחד', '1 night') : n + L(' לילות', ' nights'))
           + ' · ' + _stayPlaceHtml(STAY_PLACES[x.place])
           + ' · ' + STAY_WAY[x.way] + '</button>'
           + (TRIP.stays.length > 1
-              ? '<button type="button" onclick="_stayDrop(' + i + ')" aria-label="הסר שהייה" title="הסר שהייה" '
+              ? '<button type="button" onclick="_stayDrop(' + i + ')" aria-label="' + L('הסר שהייה', 'Remove stay') + '" title="' + L('הסר שהייה', 'Remove stay') + '" '
                 + 'style="border:1px solid #e5d3d3;background:#fff7f7;color:#a94442;border-radius:8px;padding:5px 9px;cursor:pointer;font-family:inherit;">✕</button>'
               : '')
           + '</div>';
       }).join('');
-      box.innerHTML = '<div style="font-size:0.8rem;font-weight:bold;color:#1a5226;margin-bottom:6px;">🏨 השהיות בטיול</div>'
+      box.innerHTML = '<div style="font-size:0.8rem;font-weight:bold;color:#1a5226;margin-bottom:6px;">' + L('🏨 השהיות בטיול', '🏨 Stays in the trip') + '</div>'
         + rows
-        + '<button type="button" onclick="_stayAdd()" class="plan-chip" style="margin-top:2px;">➕ הוסף שהייה</button>'
+        + '<button type="button" onclick="_stayAdd()" class="plan-chip" style="margin-top:2px;">' + L('➕ הוסף שהייה', '➕ Add a stay') + '</button>'
         + '<div id="stay-coverage" style="font-size:0.76rem;color:#4a5a50;margin-top:8px;line-height:1.6;">'
         + _stayCoverageLine() + '</div>';
       box.style.display = 'block';
@@ -8821,7 +9152,7 @@ function _stayRender() {
     document.querySelectorAll('input[name="stay-way"]').forEach(function (r) { r.checked = r.value === st.way; });
     var note = document.getElementById('stay-way-note');
     if (note) {
-      note.textContent = local ? '' : 'פנייה ישירה היא לסוכנויות בעמק — במילאנו ובטורינו מחפשים באתרים.';
+      note.textContent = local ? '' : L('פנייה ישירה היא לסוכנויות בעמק — במילאנו ובטורינו מחפשים באתרים.', 'Writing directly is for the agencies in the valley — in Milan and Turin, search the booking sites.');
       note.style.display = local ? 'none' : 'block';
     }
   }
@@ -9840,7 +10171,7 @@ function initFlatpickr() {
         const meta = document.getElementById('trip-dates-meta');
         if (selectedDates.length === 2) {
           const nights = Math.round((selectedDates[1]-selectedDates[0])/86400000);
-          if (summNights) summNights.textContent = nights + (nights === 1 ? ' לילה' : ' לילות');
+          if (summNights) summNights.textContent = nights + (nights === 1 ? L(' לילה', ' night') : L(' לילות', ' nights'));
           if (meta) meta.style.display = 'flex';
           el.value = _tripRangeLabel(selectedDates[0], selectedDates[1]);
           seasonHint(selectedDates[0], selectedDates[1]);
@@ -10081,17 +10412,17 @@ function openArrivalPlanner() {
 // menu, shows one screen at a time, and keeps a bar on top to get back or
 // step sideways without returning to the menu first.
 var PLAN_PANES = {
-  when:   { id: 'pane-when',   icon: '📅', title: 'מתי לנסוע',               chip: 'מתי לנסוע' },
-  prep:   { id: 'pane-prep',   icon: '🧳', title: 'הכנות לפני הנסיעה',        chip: 'הכנות' },
+  when:   { id: 'pane-when',   icon: '📅', title: L('מתי לנסוע', 'When to go'), chip: L('מתי לנסוע', 'When to go') },
+  prep:   { id: 'pane-prep',   icon: '🧳', title: L('הכנות לפני הנסיעה', 'Before you travel'), chip: L('הכנות', 'Preparation') },
   // Four keys, one pane. The three searches and the whole trip are the SAME
   // screen in two different frames - solo takes it over completely, the trip
   // keeps the step strip on top. Building them as separate panes would mean
   // two lodging searches to keep in step, and that is the kind of duplication
   // that comes back to bite a month later.
-  flight: { id: 'pane-search', icon: '✈️', title: 'חיפוש טיסות', tab: 'flight', solo: true },
-  hotel:  { id: 'pane-search', icon: '🏨', title: 'חיפוש לינה',  tab: 'hotel',  solo: true },
-  car:    { id: 'pane-search', icon: '🚗', title: 'חיפוש רכב',   tab: 'car',    solo: true },
-  trip:   { id: 'pane-search', icon: '✨', title: 'תכנון טיול שלם', tab: 'all', chip: 'טיול שלם' }
+  flight: { id: 'pane-search', icon: '✈️', title: L('חיפוש טיסות', 'Flight search'), tab: 'flight', solo: true },
+  hotel:  { id: 'pane-search', icon: '🏨', title: L('חיפוש לינה', 'Lodging search'),  tab: 'hotel',  solo: true },
+  car:    { id: 'pane-search', icon: '🚗', title: L('חיפוש רכב', 'Car search'),   tab: 'car',    solo: true },
+  trip:   { id: 'pane-search', icon: '✨', title: L('תכנון טיול שלם', 'Plan the whole trip'), tab: 'all', chip: L('טיול שלם', 'Whole trip') }
 };
 
 // Everything that used to say planGo('search') meant the combined screen.
@@ -14613,8 +14944,15 @@ var _SEASON_MON = ['ינואר','פברואר','מרץ','אפריל','מאי','�
 // the single day when from and to are the same.
 function _periodWhen(p, stale) {
   if (!p || !p.from || !p.to) return '';
-  if (stale && p.rule !== 'fixed') return 'התאריך לעונה הקרובה טרם אומת';
+  if (stale && p.rule !== 'fixed') return L('התאריך לעונה הקרובה טרם אומת', 'The date for the coming season is not yet confirmed');
   var a = p.from.split('-'), b = p.to.split('-');
+  if (window.LANG === 'en') {
+    var ME = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var em = ME[+a[1] - 1], en2 = ME[+b[1] - 1];
+    if (p.from === p.to) return '<bdi>' + (+a[2]) + ' ' + em + '</bdi>';
+    if (a[1] === b[1])   return '<bdi>' + (+a[2]) + '–' + (+b[2]) + ' ' + em + '</bdi>';
+    return '<bdi>' + (+a[2]) + ' ' + em + ' – ' + (+b[2]) + ' ' + en2 + '</bdi>';
+  }
   var am = _SEASON_MON[+a[1] - 1], bm = _SEASON_MON[+b[1] - 1];
   if (p.from === p.to)   return '<bdi>' + (+a[2]) + ' ב' + am + '</bdi>';
   if (a[1] === b[1])     return '<bdi>' + (+a[2]) + '–' + (+b[2]) + ' ב' + am + '</bdi>';
@@ -16475,6 +16813,7 @@ function _flAge(gen) {
 
 // The price the snapshot holds, for the dates the reader actually chose.
 function flightForDatesHtml(dest, ci, co, pax) {
+  if (window.LANG === 'en') return '';   // the snapshot is of flights from Tel Aviv
   if (!_FLIGHTS) return '';
   // The daily price list covers only the airports near Cervinia. For any
   // other the live links are the answer, and "no saved price for this
@@ -16742,7 +17081,7 @@ function setTripDates(ci, co) {
     ? _tripRangeLabel(a, b) : (ci + ' — ' + co);
   var n = Math.round((b - a) / 86400000);
   var nn = document.getElementById('trip-summary-nights');
-  if (nn) nn.textContent = n + (n === 1 ? ' לילה' : ' לילות');
+  if (nn) nn.textContent = n + (n === 1 ? L(' לילה', ' night') : L(' לילות', ' nights'));
   var meta = document.getElementById('trip-dates-meta');
   if (meta) meta.style.display = 'flex';
   try { seasonHint(a, b); } catch (e) {}
@@ -16766,7 +17105,7 @@ function openFlightDeal(o) {
       var box = document.getElementById('fl-snapshot');
       if (!box) return;
       var pax = (document.getElementById('fl-adults') || {}).textContent || '2';
-      var html = flightForDatesHtml(o.dest, o.date, o.ret, pax);
+      var html = window.LANG === 'en' ? '' : flightForDatesHtml(o.dest, o.date, o.ret, pax);
       box.innerHTML = html;
       box.style.display = html ? 'block' : 'none';
     });
@@ -16780,7 +17119,9 @@ async function paintFlightOffers() {
   var hosts = [].slice.call(document.querySelectorAll('.fl-offers'));
   if (!hosts.length) return;
   await loadFlights();
-  var inner = flightMonthsHtml() + flightOffersHtml();
+  // The daily prices are measured from Tel Aviv. Until the English site
+  // asks where you fly from, they would mislead anyone flying from elsewhere.
+  var inner = window.LANG === 'en' ? '' : flightMonthsHtml() + flightOffersHtml();
   // Two panels of numbers sitting open pushed the search button down the
   // modal. Folded, they cost one line - and the line says what is behind
   // it, because "what was found this season" on its own did not tell
