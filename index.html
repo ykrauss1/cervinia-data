@@ -3064,8 +3064,8 @@ what counts.">
 <div id="costModal" class="modal" onclick="if(event.target===this)closeM('costModal')">
   <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;padding:24px 22px;">
     <span class="close-btn" onclick="closeM('costModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.15rem;">💶 כמה תכל'ס יעלה לי?</h3>
-    <p style="color:#8a6d1b;background:#fff8e6;border-radius:8px;padding:7px 10px;font-size:0.78rem;margin:0 0 14px;line-height:1.6;">
+    <h3 style="margin:0 0 4px;font-size:1.15rem;" data-en="💶 So, what will it cost me?">💶 כמה תכל'ס יעלה לי?</h3>
+    <p style="color:#8a6d1b;background:#fff8e6;border-radius:8px;padding:7px 10px;font-size:0.78rem;margin:0 0 14px;line-height:1.6;" data-en="&lt;b&gt;An estimate, not a final price.&lt;/b&gt; The ski pass is worked out from the official price list; the rest is a range — partly estimated from averages — and every line can be edited.">
       <b>הערכה, לא מחיר סופי.</b> הסקי פס מחושב מהמחירון הרשמי; השאר טווח — חלקו הערכה לפי ממוצעים — וכל שורה ניתנת לעריכה.</p>
 
     <div id="cost-inputs" style="background:#f6f9fc;border:1px solid #e1eaf3;border-radius:11px;padding:11px 12px;margin-bottom:14px;"></div>
@@ -3073,7 +3073,7 @@ what counts.">
     <!-- Save or splurge (Yossi, 11.11): each idea says what it is worth in
          this trip, and the ones the calculator can apply have a button. -->
     <details id="cost-ideas" style="margin-top:12px;border:1.5px solid #e3e8ef;border-radius:11px;background:#fbfcfe;padding:9px 12px;">
-      <summary style="cursor:pointer;font-weight:bold;font-size:0.9rem;color:#16314f;">💡 רוצה לחסוך? או להתפנק?</summary>
+      <summary style="cursor:pointer;font-weight:bold;font-size:0.9rem;color:#16314f;" data-en="💡 Want to save? Or to treat yourselves?">💡 רוצה לחסוך? או להתפנק?</summary>
       <div id="cost-ideas-body" style="margin-top:8px;"></div>
     </details>
     <div id="cost-coverage" style="display:none;font-size:0.78rem;line-height:1.6;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:#f8fbf9;border:1px solid #dcebe2;"></div>
@@ -8837,6 +8837,11 @@ var COST_ROWS = [
   { key: 'food',    icon: '🍞', he: 'אוכל' },
   { key: 'misc',    icon: '➕', he: 'שונות' }
 ];
+// The row names in English: the field stays "he" so every reader of it works
+if (window.LANG === 'en') {
+  var _COST_EN = { flights: 'Flights', lodging: 'Lodging', car: 'Getting there and around', skipass: 'Ski pass', gear: 'Gear', food: 'Food', misc: 'Other' };
+  COST_ROWS.forEach(function (r) { r.he = _COST_EN[r.key] || r.he; });
+}
 
 // Everything is kept in euros; the reader picks the currency he sees and types
 // in. One choice for every field - people often know a price in dollars.
@@ -8904,6 +8909,14 @@ function _costBandHe(k, withAges) {
   var info = _costBandInfo();
   var age = function (x) { var b = info[x]; return b && b.age; };
   var iso = function (t) { return withAges ? ' <bdi dir="ltr">' + t + '</bdi>' : ''; };
+  if (window.LANG === 'en') switch (k) {
+    case 'Adult':  return 'Adults';
+    case 'Junior': return 'Children' + (age('Baby') && age('Junior') ? iso(age('Baby') + '–' + (age('Junior') - 1)) : '');
+    case 'Young':  return 'Young' + (age('Junior') && age('Young') ? iso(age('Junior') + '–' + (age('Young') - 1)) : '');
+    case 'Senior': return 'Seniors' + (age('Senior') && withAges ? ' ' + age('Senior') + '+' : '');
+    case 'Baby':   return 'Toddlers and children' + (age('Baby') ? ' up to ' + age('Baby') : '');
+    case 'Over 80': return 'Over 80';
+  }
   switch (k) {
     case 'Adult':  return 'מבוגרים';
     case 'Junior': return 'ילדים' + (age('Baby') && age('Junior') ? iso(age('Baby') + '–' + (age('Junior') - 1)) : '');
@@ -9101,8 +9114,9 @@ function _costPassPrice(pass, band, days) {
   var col = (p.columns || []).indexOf(band);
   if (col < 0) return null;
   var row = (t.rows || []).filter(function (r) {
-    var m = String(r[0]).match(/(\d+)\s*ימים/);
-    var d = m ? +m[1] : (/יום אחד/.test(r[0]) ? 1 : null);
+    // the row label is read in either language: "3 ימים" / "3 days"
+    var m = String(r[0]).match(/(\d+)\s*(?:ימים|days)/i);
+    var d = m ? +m[1] : (/יום אחד|one day/i.test(r[0]) ? 1 : null);
     return d === days;
   })[0];
   if (!row) return null;
@@ -9119,14 +9133,14 @@ function _costSkipass() {
     total += one * n;
     who.push(n + ' ' + _costBandHe(k, false));
   });
-  var name = COST.pass === 'zermatt' ? 'פס בינלאומי עם צ\'רמט' : 'פס צ\'רוויניה';
-  if (!who.length && !missing) return { min: null, max: null, note: 'אין גולשים בחישוב' };
+  var name = COST.pass === 'zermatt' ? L('פס בינלאומי עם צ\'רמט', 'International pass with Zermatt') : L('פס צ\'רוויניה', 'Cervinia pass');
+  if (!who.length && !missing) return { min: null, max: null, note: L('אין גולשים בחישוב', 'No skiers in the calculation') };
   if (missing) return { min: null, max: null,
-    note: S > 8 ? 'מעל 8 ימים אין במחירון פס רב-יומי — ראו "עונה מלאה" במחירון הסקי פס'
-                : 'אין במחירון מחיר לאחת הקבוצות' };
+    note: S > 8 ? L('מעל 8 ימים אין במחירון פס רב-יומי — ראו "עונה מלאה" במחירון הסקי פס', 'Above 8 days the price list has no multi-day pass — see "Full season" in the ski-pass price list')
+                : L('אין במחירון מחיר לאחת הקבוצות', 'The price list has no price for one of the groups') };
   return { min: total, max: total, exact: true,
-    note: name + ' · ' + S + (S === 1 ? ' יום' : ' ימים') + ' · ' + who.join(', ')
-      + ' · מחירון רשמי 2026/27' + (b.Baby ? ' · עד גיל 8 חינם עם מבוגר מלווה' : '') };
+    note: name + ' · ' + S + (S === 1 ? L(' יום', ' day') : L(' ימים', ' days')) + ' · ' + who.join(', ')
+      + L(' · מחירון רשמי 2026/27', ' · official 2026/27 prices') + (b.Baby ? L(' · עד גיל 8 חינם עם מבוגר מלווה', ' · up to age 8 free with an accompanying adult') : '') };
 }
 
 // ── rental, from the Genzianella Sport price list on the site ──
@@ -9147,13 +9161,13 @@ function _costGear() {
     var r = rows.filter(function (x) { return re.test(x.label + ' ' + x.note); })[0];
     return r ? r.v.map(function (s) { return parseFloat(String(s).replace(/[^\d.]/g, '')); }) : null;
   };
-  var sup = get(/מבוגר.*Superior/), top = get(/מתקדם.*Top/), kid = get(/ילדים.*Junior/);
-  var helm = get(/קסדה/);
-  if (!sup || !top || !kid || !helm) return { min: null, max: null, note: 'מחירון ההשכרה לא נטען' };
+  var sup = get(/(מבוגר|adult).*Superior/i), top = get(/(מתקדם|advanced).*Top/i), kid = get(/(ילדים|children).*Junior/i);
+  var helm = get(/קסדה|helmet/i);
+  if (!sup || !top || !kid || !helm) return { min: null, max: null, note: L('מחירון ההשכרה לא נטען', 'The rental prices did not load') };
   var S = COST.skiDays, b = COST.bands;
   var grown = (b.Adult || 0) + (b.Young || 0) + (b.Senior || 0) + (b['Over 80'] || 0);
   var kids = (b.Junior || 0) + (b.Baby || 0);
-  if (!grown && !kids) return { min: null, max: null, note: 'אין גולשים בחישוב' };
+  if (!grown && !kids) return { min: null, max: null, note: L('אין גולשים בחישוב', 'No skiers in the calculation') };
   // a helmet is required by law for children in Italy, so it is in both ends
   var kidOne = _costRentFor(kid, S) + _costRentFor(helm, S);
   var lo = grown * _costRentFor(sup, S) + kids * kidOne;
@@ -9162,22 +9176,27 @@ function _costGear() {
     // Genzianella is the one shop that publishes a full list, which is why it
     // is the yardstick - not because it is the cheapest. Yossi, 10.11: other
     // shops cost less, and asking for a discount gets one.
-    note: 'סקי ומגפיים ל-' + S + (S === 1 ? ' יום' : ' ימים') + ', בערך · לפי המחירון המלא של Genzianella Sport'
+    note: L('סקי ומגפיים ל-' + S + (S === 1 ? ' יום' : ' ימים') + ', בערך · לפי המחירון המלא של Genzianella Sport'
       + ' · יש חנויות זולות יותר, ובדרך כלל אפשר לבקש הנחה'
-      + ' · מי שמביא ציוד משלו — ערכו את השורה' };
+      + ' · מי שמביא ציוד משלו — ערכו את השורה',
+      'Skis and boots for ' + S + (S === 1 ? ' day' : ' days') + ', roughly · by Genzianella Sport\'s full price list'
+      + ' · some shops are cheaper, and you can usually ask for a discount'
+      + ' · bringing your own gear? Edit the line') };
 }
 
 // ── flights, from the daily snapshot the site already keeps ──
 function _costFlights() {
   if (COST.mode !== 'trip' || !TRIP.from) return { min: null, max: null,
-    note: 'הזינו מחיר שמצאתם. כשפותחים את המחשבון מתוך "תכנון טיול שלם", מחיר הטיסה מתמלא לבד לפי תאריכי הטיול' };
+    note: L('הזינו מחיר שמצאתם. כשפותחים את המחשבון מתוך "תכנון טיול שלם", מחיר הטיסה מתמלא לבד לפי תאריכי הטיול', 'Enter a price you found. When the calculator is opened from "Plan a whole trip", the flight price fills in by itself from the trip dates') };
   var F = window._FLIGHTS;
   var n = Math.round((TRIP.to - TRIP.from) / 86400000);
   var cal = F && F.cal && F.cal.MXP && F.cal.MXP[String(n)];
   var day = _isoDay(TRIP.from);
   if (!cal || cal[day] == null) return { min: null, max: null,
-    note: 'אין מחיר יומי לתאריכים האלה' + (F ? ' (המחיר היומי מכסה טיולים של '
-      + (F.nights || []).join('–') + ' לילות)' : '') + ' — הזינו מה שמצאתם' };
+    note: L('אין מחיר יומי לתאריכים האלה' + (F ? ' (המחיר היומי מכסה טיולים של '
+      + (F.nights || []).join('–') + ' לילות)' : '') + ' — הזינו מה שמצאתם',
+      'No daily price for these dates' + (F ? ' (the daily price covers trips of '
+      + (F.nights || []).join('–') + ' nights)' : '') + ' — enter what you found') };
   // the day itself, and the most the same trip costs three days either side:
   // prices move, and the snapshot is a day old
   var lo = cal[day], hi = lo;
@@ -9191,9 +9210,9 @@ function _costFlights() {
   var eLo = _costToEur(lo * pax, cur), eHi = _costToEur(hi * pax, cur);
   var per = (cur === 'USD' ? '$' : cur + ' ') + lo + (hi > lo ? '–' + hi : '');
   if (eLo == null) return { min: null, max: null,
-    note: 'מלפנסה הלוך-חזור ' + per + ' לאדם · אין שער המרה כרגע, אז לא נכלל בסכום' };
+    note: L('מלפנסה הלוך-חזור ' + per + ' לאדם · אין שער המרה כרגע, אז לא נכלל בסכום', 'Malpensa return ' + per + ' per person · no exchange rate right now, so not in the total') };
   return { min: eLo, max: eHi,
-    note: 'מלפנסה הלוך-חזור · ' + per + ' לאדם × ' + pax + ' · מחיר יומי, מתעדכן פעם ביום' };
+    note: L('מלפנסה הלוך-חזור · ' + per + ' לאדם × ' + pax + ' · מחיר יומי, מתעדכן פעם ביום', 'Malpensa return from Tel Aviv · ' + per + ' per person × ' + pax + ' · daily price, updated once a day') };
 }
 
 // ── first suggestions, where nothing was collected for this trip ──
@@ -9205,7 +9224,7 @@ function _costRef(k) {
   var v = r && r[k];
   return (v && v.length === 2) ? v : null;
 }
-var COST_SUGGEST = 'הערכה לפי ממוצעים, סדר גודל — כדאי לבדוק';
+var COST_SUGGEST = L('הערכה לפי ממוצעים, סדר גודל — כדאי לבדוק', 'an estimate from averages, an order of magnitude — worth checking');
 
 // ── lodging: the stays, priced by the reader's budget or the reference ──
 function _costLodging() {
@@ -9219,15 +9238,18 @@ function _costLodging() {
   var stays = trip ? TRIP.stays
     : [{ ci: '2000-01-01', co: _isoDay(new Date(2000, 0, 1 + COST.nights)), place: 'cervinia' }];
   var nights = stays.reduce(function (a, st) { return a + _stayNights(st); }, 0);
-  var count = nights + ' לילות' + (trip ? ' ב-' + (stays.length === 1 ? 'שהייה אחת' : stays.length + ' שהיות') : '')
+  var count = window.LANG === 'en'
+    ? nights + ' nights' + (trip ? ' in ' + (stays.length === 1 ? 'one stay' : stays.length + ' stays') : '')
+      + (rooms > 1 ? ' · ' + rooms + ' rooms' : '')
+    : nights + ' לילות' + (trip ? ' ב-' + (stays.length === 1 ? 'שהייה אחת' : stays.length + ' שהיות') : '')
     + (rooms > 1 ? ' · ' + rooms + ' חדרים' : '');
   var a = trip ? num('.sf-min') : null, b = trip ? num('.sf-max') : null;
   if (a != null || b != null) {
     var cur = (box && box.querySelector('.sf-cur') && box.querySelector('.sf-cur').value) || 'EUR';
     var lo = _costToEur((a != null ? a : b) * nights * rooms, cur);
     var hi = _costToEur((b != null ? b : a) * nights * rooms, cur);
-    if (lo == null) return { min: null, max: null, note: count + ' · אין שער המרה כרגע' };
-    return { min: lo, max: hi, note: count + ' · לפי התקציב ללילה שהוזן בחיפוש הלינה' };
+    if (lo == null) return { min: null, max: null, note: count + L(' · אין שער המרה כרגע', ' · no exchange rate right now') };
+    return { min: lo, max: hi, note: count + L(' · לפי התקציב ללילה שהוזן בחיפוש הלינה', ' · by the nightly budget entered in the lodging search') };
   }
   // no budget given: the reference, by where each stay is
   var lo2 = 0, hi2 = 0, ok = true;
@@ -9237,9 +9259,9 @@ function _costLodging() {
     if (!r) { ok = false; return; }
     lo2 += r[0] * _stayNights(st) * rooms; hi2 += r[1] * _stayNights(st) * rooms;
   });
-  if (!ok) return { min: null, max: null, note: count + ' · הזינו סכום כולל ללינה' };
+  if (!ok) return { min: null, max: null, note: count + L(' · הזינו סכום כולל ללינה', ' · enter a total for lodging') };
   return { min: lo2, max: hi2,
-    note: count + ' · ' + COST_SUGGEST + ' (חדר או דירה בחורף) · תקציב ללילה בחיפוש הלינה יחליף את ההערכה' };
+    note: count + ' · ' + COST_SUGGEST + L(' (חדר או דירה בחורף) · תקציב ללילה בחיפוש הלינה יחליף את ההערכה', ' (a room or apartment in winter) · a nightly budget in the lodging search will replace the estimate') };
 }
 
 // ── getting there: a hired car, a private transfer, or the bus ──
@@ -9247,7 +9269,9 @@ function _costLodging() {
 // come from the transport card's own data (texts.json → transport.planner):
 // the local operator's price per vehicle per direction, and the Malpensa
 // bus to Châtillon plus Linea Blu up the valley, per person per direction.
-var COST_TRANSPORT = { car: 'רכב שכור', transfer: 'הסעה פרטית', bus: 'תחבורה ציבורית' };
+var COST_TRANSPORT = window.LANG === 'en'
+  ? { car: 'Hire car', transfer: 'Private transfer', bus: 'Public transport' }
+  : { car: 'רכב שכור', transfer: 'הסעה פרטית', bus: 'תחבורה ציבורית' };
 function _costPax() {
   var b = COST.bands || {};
   return COST_BANDS.reduce(function (a, k) { return a + (b[k] || 0); }, 0);
@@ -9258,28 +9282,32 @@ function _costCar() {
   var mxp = pl && (pl.airports || []).filter(function (a) { return a.id === 'mxp'; })[0];
   var pax = _costPax();
   if (way === 'transfer') {
-    if (!mxp || !pax) return { min: null, max: null, note: 'הזינו את מחיר ההסעה' };
+    if (!mxp || !pax) return { min: null, max: null, note: L('הזינו את מחיר ההסעה', 'Enter the transfer price') };
     var one = pax <= 2 ? mxp.t_small : mxp.t_big;
     return { min: one * 2, max: one * 2,
-      note: 'הסעה פרטית ממלפנסה עד הכפר, הלוך וחזור · €' + one + ' לכיוון לרכב של '
-        + (pax <= 2 ? '1–2' : '3–8') + ' נוסעים · מחירון המפעיל המקומי בכרטיס התחבורה' };
+      note: L('הסעה פרטית ממלפנסה עד הכפר, הלוך וחזור · €' + one + ' לכיוון לרכב של '
+        + (pax <= 2 ? '1–2' : '3–8') + ' נוסעים · מחירון המפעיל המקומי בכרטיס התחבורה',
+        'Private transfer from Malpensa to the village, there and back · €' + one + ' each way for a vehicle of '
+        + (pax <= 2 ? '1–2' : '3–8') + ' travellers · the local operator\'s prices in the transport card') };
   }
   if (way === 'bus') {
     var Lp = pl && pl.lines, a = Lp && Lp.mxp && Lp.mxp.price, b2 = Lp && Lp.blu && Lp.blu.price;
-    if (!a || !b2 || !pax) return { min: null, max: null, note: 'הזינו את מחיר הנסיעה' };
+    if (!a || !b2 || !pax) return { min: null, max: null, note: L('הזינו את מחיר הנסיעה', 'Enter the fare') };
     var per = (a + b2) * 2;
     return { min: per * pax, max: per * pax,
-      note: 'אוטובוס מלפנסה–שאטיון €' + a + ' וקו Linea Blu €' + String(b2).replace(/\.?0+$/, '')
-        + ' לכיוון, הלוך וחזור × ' + pax + ' · הזמנה מראש חובה, ואינו פועל בשלישי וברביעי' };
+      note: L('אוטובוס מלפנסה–שאטיון €' + a + ' וקו Linea Blu €' + String(b2).replace(/\.?0+$/, '')
+        + ' לכיוון, הלוך וחזור × ' + pax + ' · הזמנה מראש חובה, ואינו פועל בשלישי וברביעי',
+        'Malpensa–Châtillon bus €' + a + ' and the Linea Blu €' + String(b2).replace(/\.?0+$/, '')
+        + ' each way, there and back × ' + pax + ' · booking compulsory, and it does not run on Tuesday and Wednesday') };
   }
   var r = _costRef('car_day');
   var days = COST.nights, src = '';
   var cd = document.getElementById('car-dates');
   var cr = COST.mode === 'trip' && cd ? _tripRange(cd) : null;
-  if (cr) { days = Math.max(1, Math.round((_stayD(cr.co) - _stayD(cr.ci)) / 86400000)); src = ' (לפי תאריכי הרכב)'; }
-  if (!r) return { min: null, max: null, note: 'הזינו מה שמצאתם בחיפוש הרכב' };
+  if (cr) { days = Math.max(1, Math.round((_stayD(cr.co) - _stayD(cr.ci)) / 86400000)); src = L(' (לפי תאריכי הרכב)', ' (by the car dates)'); }
+  if (!r) return { min: null, max: null, note: L('הזינו מה שמצאתם בחיפוש הרכב', 'Enter what you found in the car search') };
   return { min: r[0] * days, max: r[1] * days,
-    note: days + ' ימים' + src + ' · רכב קטן עד בינוני ממלפנסה · ' + COST_SUGGEST };
+    note: days + L(' ימים', ' days') + src + L(' · רכב קטן עד בינוני ממלפנסה · ', ' · a small to mid-size car from Malpensa · ') + COST_SUGGEST };
 }
 function _costTransport(w) {
   COST.transport = COST_TRANSPORT[w] ? w : 'car';
@@ -9292,9 +9320,10 @@ function _costFood() {
   var b = COST.bands || {};
   var ppl = COST_BANDS.reduce(function (a, k) { return a + (b[k] || 0); }, 0);
   var days = COST.nights;
-  if (!r || !ppl) return { min: null, max: null, note: 'הזינו הערכה משלכם' };
+  if (!r || !ppl) return { min: null, max: null, note: L('הזינו הערכה משלכם', 'Enter your own estimate') };
   return { min: r[0] * ppl * days, max: r[1] * ppl * days,
-    note: ppl + ' אנשים × ' + days + ' ימים · ' + COST_SUGGEST + ' · מי שמביא אוכל מהארץ יוציא פחות' };
+    note: L(ppl + ' אנשים × ' + days + ' ימים · ' + COST_SUGGEST + ' · מי שמביא אוכל מהארץ יוציא פחות',
+            ppl + ' people × ' + days + ' days · ' + COST_SUGGEST + ' · bringing food from home costs less') };
 }
 
 var COST_CALC = {
@@ -9304,7 +9333,7 @@ var COST_CALC = {
   skipass: _costSkipass,
   gear: _costGear,
   food: _costFood,
-  misc: function () { return { min: null, max: null, note: 'חניה, ביטוח, שיעורי סקי…' }; }
+  misc: function () { return { min: null, max: null, note: L('חניה, ביטוח, שיעורי סקי…', 'Parking, insurance, ski lessons…') }; }
 };
 
 // ── state in, state out ──
@@ -9423,18 +9452,18 @@ function _costRender() {
       + (on ? counter(k) : '')
       // Free on the pass, but not free everywhere: they eat and they ride the
       // bus, so they are counted - and the label says why they cost nothing here.
-      + ((k === 'Baby' || k === 'Over 80') ? '<span style="font-size:0.68rem;color:#1e8449;">חינם בסקי פס</span>' : '')
+      + ((k === 'Baby' || k === 'Over 80') ? L('<span style="font-size:0.68rem;color:#1e8449;">חינם בסקי פס</span>', '<span style="font-size:0.68rem;color:#1e8449;">free on the ski pass</span>') : '')
       + '</span>';
   }).join('');
   // Number fields are as wide as what goes in them: two digits, not a line.
   var num2 = 'width:3.4em;padding:5px 6px;border:1.5px solid #cfdcea;border-radius:7px;font-family:inherit;text-align:center;';
   var M = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-  var curSel = '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">מטבע '
+  var curSel = '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">' + L('מטבע ', 'Currency ')
     + '<select id="cost-cur" onchange="_costSetCur(this.value)" style="padding:4px 6px;border:1.5px solid #cfdcea;border-radius:7px;font-family:inherit;font-size:0.82rem;">'
     + Object.keys(COST_CUR).map(function (c) {
         var ok = c === 'EUR' || (COST.fx && COST.fx[c]);
         return '<option value="' + c + '"' + (COST.cur === c ? ' selected' : '') + (ok ? '' : ' disabled') + '>'
-          + COST_CUR[c] + ' ' + { EUR: 'יורו', USD: 'דולר', ILS: 'שקל' }[c] + '</option>';
+          + COST_CUR[c] + ' ' + (window.LANG === 'en' ? { EUR: 'Euro', USD: 'Dollar', ILS: 'Shekel' } : { EUR: 'יורו', USD: 'דולר', ILS: 'שקל' })[c] + '</option>';
       }).join('')
     + '</select></label>';
   inp.innerHTML =
@@ -9442,23 +9471,23 @@ function _costRender() {
     + curSel
     + (trip
         // say where the nights come from, not just that they come from somewhere
-        ? '<span style="font-size:0.8rem;color:#16314f;"><b>' + COST.nights + ' לילות</b> · לפי תאריכי הטיול, '
+        ? '<span style="font-size:0.8rem;color:#16314f;"><b>' + COST.nights + L(' לילות</b> · לפי תאריכי הטיול, ', ' nights</b> · by the trip dates, ')
           + _tripRangeLabel(TRIP.from, TRIP.to) + '</span>'
-        : '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">לילות <input id="cost-nights" type="number" min="1" max="30" value="' + COST.nights
+        : '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">' + L('לילות', 'Nights') + ' <input id="cost-nights" type="number" min="1" max="30" value="' + COST.nights
           + '" oninput="_costSet(\'nights\',this.value)" dir="ltr" style="' + num2 + '"></label>')
-    + '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">ימי סקי <input id="cost-skidays" type="number" min="1" max="30" value="' + COST.skiDays
+    + '<label style="font-size:0.78rem;color:#555;white-space:nowrap;">' + L('ימי סקי', 'Ski days') + ' <input id="cost-skidays" type="number" min="1" max="30" value="' + COST.skiDays
       + '" oninput="_costSet(\'skiDays\',this.value)" dir="ltr" style="' + num2 + '"></label>'
     // The two passes are one choice: as one flex item they drop to the next
     // line together, and only a screen too narrow for both side by side
     // stacks them - never one up here and one down there.
     + '<span id="cost-pass-group" style="display:flex;flex-wrap:wrap;gap:6px;">'
     + '<label class="ls-opt" style="white-space:nowrap;"><input type="radio" name="cost-pass" value="cervinia"' + (COST.pass === 'cervinia' ? ' checked' : '')
-      + ' onchange="_costPass(this.value)"> פס צ\'רוויניה</label>'
+      + L(' onchange="_costPass(this.value)"> פס צ\'רוויניה</label>', ' onchange="_costPass(this.value)"> Cervinia pass</label>')
     + '<label class="ls-opt" style="white-space:nowrap;"><input type="radio" name="cost-pass" value="zermatt"' + (COST.pass === 'zermatt' ? ' checked' : '')
-      + ' onchange="_costPass(this.value)"> בינלאומי עם צ\'רמט</label>'
+      + L(' onchange="_costPass(this.value)"> בינלאומי עם צ\'רמט</label>', ' onchange="_costPass(this.value)"> International with Zermatt</label>')
     + '</span>'
     + '</div>'
-    + '<div style="font-size:0.72rem;color:#7a8794;margin-bottom:5px;">גולשים</div>'
+    + L('<div style="font-size:0.72rem;color:#7a8794;margin-bottom:5px;">גולשים</div>', '<div style="font-size:0.72rem;color:#7a8794;margin-bottom:5px;">Skiers</div>')
     + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;">' + counter('Adult') + counter('Junior') + '</div>'
     + '<div style="display:flex;gap:6px 12px;flex-wrap:wrap;align-items:center;">' + others + '</div>';
 
@@ -9483,11 +9512,11 @@ function _costRender() {
     return '<div class="cost-row" id="cost-row-' + r.key + '" style="padding:9px 0;border-bottom:1px solid #eef2f6;">'
       + '<div style="display:flex;align-items:center;gap:8px;">'
       + '<span style="flex:1;font-size:0.88rem;"><b>' + r.icon + ' ' + r.he + '</b>'
-      + (x.exact ? ' <span style="font-size:0.68rem;color:#1e8449;background:#eafaf1;border-radius:6px;padding:1px 6px;">מדויק</span>' : '')
+      + (x.exact ? L(' <span style="font-size:0.68rem;color:#1e8449;background:#eafaf1;border-radius:6px;padding:1px 6px;">מדויק</span>', ' <span style="font-size:0.68rem;color:#1e8449;background:#eafaf1;border-radius:6px;padding:1px 6px;">exact</span>') : '')
       + '</span>'
-      + '<span class="cost-sym" style="font-size:0.75rem;color:#888;">' + COST_CUR[COST.cur] + '</span>' + field('min', 'מ-')
-      + '<span style="color:#aaa;">–</span>' + field('max', 'עד')
-      + '<button id="cost-reset-' + r.key + '" onclick="_costReset(\'' + r.key + '\')" title="חזרה לחישוב" aria-label="חזרה לחישוב"'
+      + '<span class="cost-sym" style="font-size:0.75rem;color:#888;">' + COST_CUR[COST.cur] + '</span>' + field('min', L('מ-', 'from'))
+      + '<span style="color:#aaa;">–</span>' + field('max', L('עד', 'to'))
+      + '<button id="cost-reset-' + r.key + '" onclick="_costReset(\'' + r.key + L('\')" title="חזרה לחישוב" aria-label="חזרה לחישוב"', '\\\')" title="Back to the calculation" aria-label="Back to the calculation"')
       + ' style="visibility:' + (x.touched ? 'visible' : 'hidden') + ';border:none;background:none;cursor:pointer;color:#1a73e8;font-size:0.9rem;">↺</button>'
       + '</div>'
       + (r.key === 'car'
@@ -9506,7 +9535,7 @@ function _costRender() {
   var cv = document.getElementById('cost-coverage');
   var line = trip && typeof _stayCoverageLine === 'function' ? _stayCoverageLine() : '';
   if (cv) {
-    cv.innerHTML = line ? '🏨 בדיקת האירוח: ' + line : '';
+    cv.innerHTML = line ? L('🏨 בדיקת האירוח: ', '🏨 Lodging check: ') + line : '';
     cv.style.display = line ? 'block' : 'none';
   }
   _costTotal();
@@ -9524,29 +9553,30 @@ function _costTotal() {
   });
   var box = document.getElementById('cost-total');
   if (!box) return;
-  if (!any) { box.innerHTML = '<span style="opacity:0.8;">אין עדיין סכום — מלאו שורה אחת לפחות</span>'; return; }
+  if (!any) { box.innerHTML = L('<span style="opacity:0.8;">אין עדיין סכום — מלאו שורה אחת לפחות</span>', '<span style="opacity:0.8;">No total yet — fill in at least one line</span>'); return; }
   var rate = _costRate() || 1, sym = COST_CUR[COST.cur];
   var mid = (lo + hi) / 2;
   var money = function (v, sy, rt) { return sy + _costFmt(v * rt); };
   // The headline is the middle of the range, rounded to what an estimate can
   // claim; the range itself sits under it, and the other currency under that.
   var round = function (v) { var r = v * rate; var step = r >= 2000 ? 100 : 10; return Math.round(r / step) * step; };
-  var other = COST.cur === 'ILS' ? 'EUR' : 'ILS';
-  var oRate = other === 'EUR' ? 1 : (COST.fx && COST.fx.ILS);
+  // the second currency: shekels for a Hebrew reader, dollars for an English one
+  var other = window.LANG === 'en' ? (COST.cur === 'USD' ? 'EUR' : 'USD') : (COST.cur === 'ILS' ? 'EUR' : 'ILS');
+  var oRate = other === 'EUR' ? 1 : (COST.fx && COST.fx[other]);
   var second = oRate
     ? '≈ ' + money(lo, COST_CUR[other], oRate) + (hi > lo ? '–' + money(hi, COST_CUR[other], oRate) : '')
-    : 'שער השקל לא זמין כרגע';
-  box.innerHTML = '<div style="font-size:0.76rem;opacity:0.75;">סה"כ משוער</div>'
+    : L('שער השקל לא זמין כרגע', 'Exchange rate not available right now');
+  box.innerHTML = '<div style="font-size:0.76rem;opacity:0.75;">' + L('סה"כ משוער', 'Estimated total') + '</div>'
     + '<div id="cost-total-mid" style="font-size:1.75rem;font-weight:800;line-height:1.25;margin:2px 0;">'
-    + (hi > lo ? 'כ-' : '') + '<bdi dir="ltr">' + sym + _costFmt(round(mid)) + '</bdi></div>'
-    + (hi > lo ? '<div id="cost-total-eur" style="font-size:0.88rem;opacity:0.9;">בין <bdi dir="ltr">' + money(lo, sym, rate)
-        + '</bdi> ל-<bdi dir="ltr">' + money(hi, sym, rate) + '</bdi></div>'
+    + (hi > lo ? L('כ-', 'about ') : '') + '<bdi dir="ltr">' + sym + _costFmt(round(mid)) + '</bdi></div>'
+    + (hi > lo ? '<div id="cost-total-eur" style="font-size:0.88rem;opacity:0.9;">' + L('בין ', 'between ') + '<bdi dir="ltr">' + money(lo, sym, rate)
+        + '</bdi>' + L(' ל-', ' and ') + '<bdi dir="ltr">' + money(hi, sym, rate) + '</bdi></div>'
       : '<div id="cost-total-eur"></div>')
     + '<div id="cost-total-ils"' + (oRate ? ' dir="ltr"' : '') + ' style="font-size:0.8rem;opacity:0.7;margin-top:2px;">' + second + '</div>'
-    + (left.length ? '<div id="cost-left" style="font-size:0.72rem;opacity:0.65;margin-top:6px;">לא נכלל: ' + left.join(' · ') + '</div>' : '')
+    + (left.length ? '<div id="cost-left" style="font-size:0.72rem;opacity:0.65;margin-top:6px;">' + L('לא נכלל: ', 'Not included: ') + left.join(' · ') + '</div>' : '')
     + '<button type="button" onclick="_costIdeasOpen()" style="margin-top:8px;background:rgba(255,255,255,0.12);color:#fff;'
     + 'border:1px solid rgba(255,255,255,0.3);border-radius:18px;padding:5px 14px;font-size:0.8rem;font-family:inherit;cursor:pointer;">'
-    + '💡 רוצה לחסוך? או להתפנק?</button>';
+    + L('💡 רוצה לחסוך? או להתפנק?', '💡 Want to save? Or to treat yourselves?') + '</button>';
   _costIdeas();
 }
 
@@ -9607,10 +9637,10 @@ function _costIdeas() {
   var item = function (kind, text, delta, apply) {
     var tag = delta == null ? ''
       : '<span style="font-size:0.74rem;font-weight:700;white-space:nowrap;color:' + (delta < 0 ? '#1e8449' : '#8a5a00') + ';">'
-        + (delta < 0 ? 'חוסך כ-' : 'מוסיף כ-') + amt(delta) + '</span>';
+        + (delta < 0 ? L('חוסך כ-', 'saves about ') : L('מוסיף כ-', 'adds about ')) + amt(delta) + '</span>';
     return '<div class="cost-idea" data-kind="' + kind + '" style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #eef2f6;">'
       + '<div style="flex:1;font-size:0.78rem;color:#334;line-height:1.6;">' + text + (tag ? ' · ' + tag : '') + '</div>'
-      + (apply ? '<button type="button" onclick="_costApplyIdea(\'' + apply + '\')" style="flex:0 0 auto;font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1.5px solid #c6ddf3;background:#eaf3fd;color:#1a5fa8;cursor:pointer;font-family:inherit;">החל</button>' : '')
+      + (apply ? '<button type="button" onclick="_costApplyIdea(\'' + apply + L('\')" style="flex:0 0 auto;font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1.5px solid #c6ddf3;background:#eaf3fd;color:#1a5fa8;cursor:pointer;font-family:inherit;">החל</button>', '\\\')" style="flex:0 0 auto;font-size:0.72rem;padding:4px 10px;border-radius:14px;border:1.5px solid #c6ddf3;background:#eaf3fd;color:#1a5fa8;cursor:pointer;font-family:inherit;">Apply</button>') : '')
       + '</div>';
   };
   var save = [], fancy = [], S = COST.skiDays;
@@ -9618,15 +9648,15 @@ function _costIdeas() {
   // the pass
   if (COST.pass === 'zermatt') {
     var cv = _costPassTotal('cervinia', S);
-    if (now != null && cv != null) save.push(item('save', 'פס צ\'רוויניה במקום הבינלאומי — ובבוקר שהמעבר פתוח, תוספת יום לצ\'רמט בקופה (€52 למבוגר). המעבר נסגר לא מעט, ואין החזר על יום סגור', cv - now, 'pass-cervinia'));
+    if (now != null && cv != null) save.push(item('save', L('פס צ\'רוויניה במקום הבינלאומי — ובבוקר שהמעבר פתוח, תוספת יום לצ\'רמט בקופה (€52 למבוגר). המעבר נסגר לא מעט, ואין החזר על יום סגור', 'A Cervinia pass instead of the international one — and on a morning the crossing is open, a Zermatt day supplement at the ticket office (€52 for an adult). The crossing closes quite often, and a closed day is not refunded'), cv - now, 'pass-cervinia'));
   } else {
     var zm = _costPassTotal('zermatt', S);
-    if (now != null && zm != null) fancy.push(item('fancy', 'פס בינלאומי — לגלוש גם לצ\'רמט שבשווייץ', zm - now, 'pass-zermatt'));
+    if (now != null && zm != null) fancy.push(item('fancy', L('פס בינלאומי — לגלוש גם לצ\'רמט שבשווייץ', 'An international pass — to ski over to Zermatt in Switzerland too'), zm - now, 'pass-zermatt'));
   }
   // one day fewer
   if (S > 1) {
     var less = _costPassTotal(COST.pass, S - 1);
-    if (now != null && less != null) save.push(item('save', 'יום סקי אחד פחות — יום מנוחה או טיול באמצע', less - now, 'day-less'));
+    if (now != null && less != null) save.push(item('save', L('יום סקי אחד פחות — יום מנוחה או טיול באמצע', 'One ski day fewer — a rest day or an outing in the middle'), less - now, 'day-less'));
   }
   // Half a day (Yossi, 11.11): small money, but whoever skis half a day
   // anyway should know. A one-day trip swaps the day for the half-day
@@ -9639,48 +9669,52 @@ function _costIdeas() {
       var dH = lessH + half - now;
       if (dH < 0) {
         save.push(item('save', S > 1
-          ? 'גולשים רק חצי יום ביום ההגעה או העזיבה? כרטיס חצי יום נפרד, ופס ל-' + (S - 1) + ' ימים'
-          : 'גולשים רק חצי יום? כרטיס חצי יום במקום יום מלא', dH, null));
+          ? L('גולשים רק חצי יום ביום ההגעה או העזיבה? כרטיס חצי יום נפרד, ופס ל-' + (S - 1) + ' ימים',
+              'Skiing only half a day on the arrival or departure day? A separate half-day ticket, and a pass for ' + (S - 1) + ' days')
+          : L('גולשים רק חצי יום? כרטיס חצי יום במקום יום מלא', 'Skiing only half a day? A half-day ticket instead of a full day'), dH, null));
       } else {
-        save.push(item('save', 'גולשים רק חצי יום ביום ההגעה או העזיבה? בפס של ' + S + ' ימים היום הנוסף עולה רק '
-          + amt(now - lessH) + ' — פחות מכרטיס חצי יום נפרד (' + amt(half) + '). כדאי רק אם בטוחים שגולשים את כל הימים: על יום סגור אין החזר', null, null));
+        save.push(item('save', L('גולשים רק חצי יום ביום ההגעה או העזיבה? בפס של ' + S + ' ימים היום הנוסף עולה רק '
+          + amt(now - lessH) + ' — פחות מכרטיס חצי יום נפרד (' + amt(half) + '). כדאי רק אם בטוחים שגולשים את כל הימים: על יום סגור אין החזר',
+          'Skiing only half a day on the arrival or departure day? In a ' + S + '-day pass the extra day costs only '
+          + amt(now - lessH) + ' — less than a separate half-day ticket (' + amt(half) + '). Worth it only if you are sure to ski every day: a closed day is not refunded'), null, null));
       }
     }
   }
   // Buying for every day up front is the real question here (Yossi, 11.11)
   if (S > 2) {
-    save.push(item('save', 'פס לכל הימים מראש? מזג האוויר הפכפך ועל יום סגור אין החזר — <a onclick="openFrom(\'costModal\',\'skipassModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">לכמה ימים לקנות פס</a>', null, null));
+    save.push(item('save', L('פס לכל הימים מראש? מזג האוויר הפכפך ועל יום סגור אין החזר — <a onclick="openFrom(\'costModal\',\'skipassModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">לכמה ימים לקנות פס</a>',
+      'A pass for every day in advance? The weather is changeable and a closed day is not refunded — <a onclick="openFrom(\'costModal\',\'skipassModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">how many days to buy a pass for</a>'), null, null));
   }
   // getting there
   var pl = window._texts && window._texts.transport && window._texts.transport.planner;
   if (pl && COST.transport !== 'bus') {
     var cur = COST.rows.car && COST.rows.car.min, keep = COST.transport;
     COST.transport = 'bus'; var bus = _costCar(); COST.transport = keep;
-    if (cur != null && bus.min != null && bus.min < cur) save.push(item('save', 'אוטובוס מהשדה וקו Linea Blu במקום ' + COST_TRANSPORT[keep], bus.min - cur, 'bus'));
+    if (cur != null && bus.min != null && bus.min < cur) save.push(item('save', L('אוטובוס מהשדה וקו Linea Blu במקום ', 'The airport bus and the Linea Blu instead of: ') + COST_TRANSPORT[keep], bus.min - cur, 'bus'));
   }
   if (pl && COST.transport !== 'transfer') {
     var cur2 = COST.rows.car && COST.rows.car.min, keep2 = COST.transport;
     COST.transport = 'transfer'; var tr = _costCar(); COST.transport = keep2;
-    if (cur2 != null && tr.min != null) fancy.push(item('fancy', 'הסעה פרטית מהשדה עד דלת המלון — בלי החלפות ובלי לוחות זמנים', tr.min - cur2, 'transfer'));
+    if (cur2 != null && tr.min != null) fancy.push(item('fancy', L('הסעה פרטית מהשדה עד דלת המלון — בלי החלפות ובלי לוחות זמנים', 'A private transfer from the airport to the hotel door — no changes and no timetables'), tr.min - cur2, 'transfer'));
   }
   // Lodging first among what cannot be applied: it is where the money is
   // (Yossi, 11.11). In Cervinia itself it is dear and the flats are small;
   // Cielo Alto and the villages down the valley cost less for more room.
-  save.unshift(item('save', '🏆 <b>החיסכון הגדול ביותר — הלינה.</b> בצ\'רוויניה עצמה הלינה יקרה מאוד, ורוב הדירות קטנות ולפעמים צפופות. '
-    + '<b>Cielo Alto</b> — זול יותר, ולרוב מרווח יותר באותו מחיר, אבל רחוק מהעיירה: כ-20 דקות הליכה בעלייה תלולה, רכב, או אוטובוס בשעות מוגבלות. '
-    + '<b>ולטורננש והכפרים במורד העמק</b> — חוסכים הרבה. עד כחצי שעה נסיעה לכל כיוון — הגיוני בתמורה לדירה זולה ונוחה יותר; רק בדקו מראש היכן חונים. '
-    + '<a onclick="openFrom(\'costModal\',\'lodgingModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">מדריך הלינה בכפר</a>', null, null));
+  save.unshift(item('save', L('🏆 <b>החיסכון הגדול ביותר — הלינה.</b> בצ\'רוויניה עצמה הלינה יקרה מאוד, ורוב הדירות קטנות ולפעמים צפופות. ', '🏆 <b>The biggest saving — lodging.</b> In Cervinia itself lodging is very expensive, and most apartments are small and sometimes cramped. ')
+    + L('<b>Cielo Alto</b> — זול יותר, ולרוב מרווח יותר באותו מחיר, אבל רחוק מהעיירה: כ-20 דקות הליכה בעלייה תלולה, רכב, או אוטובוס בשעות מוגבלות. ', '<b>Cielo Alto</b> — cheaper, and usually roomier for the same price, but far from the village: about 20 minutes\' walk up a steep hill, a car, or a bus at limited hours. ')
+    + L('<b>ולטורננש והכפרים במורד העמק</b> — חוסכים הרבה. עד כחצי שעה נסיעה לכל כיוון — הגיוני בתמורה לדירה זולה ונוחה יותר; רק בדקו מראש היכן חונים. ', '<b>Valtournenche and the villages down the valley</b> — save a lot. Up to about half an hour\'s drive each way — reasonable in return for a cheaper, more comfortable apartment; just check in advance where to park. ')
+    + L('<a onclick="openFrom(\'costModal\',\'lodgingModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">מדריך הלינה בכפר</a>', '<a onclick="openFrom(\\\'costModal\\\',\\\'lodgingModal\\\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">The village lodging guide</a>'), null, null));
   // gear: asking is what works; bringing your own is for the few who must
-  save.push(item('save', 'ציוד: חפשו חנות השכרה זולה, ובקשו הנחה', null, null));
-  save.push(item('save', 'אוכל: מביאים מהארץ ומבשלים בדירה — הקצה הנמוך של שורת האוכל', null, null));
-  fancy.push(item('fancy', 'מלון או דירה ברמה גבוהה — צמוד לגונדולה או למעליות, עם ספא במקום, והסעה של המלון אל המעליות וחזרה', null, null));
-  fancy.push(item('fancy', 'שדרוג הרכב — גדול ונוח יותר, עם הנעה כפולה, לעלייה המושלגת לכפר', null, null));
-  fancy.push(item('fancy', 'שיעורי סקי פרטיים, או מדריך צמוד ליום בצ\'רמט — <a onclick="openFrom(\'costModal\',\'lessonsModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">המדריכים באתר</a>', null, null));
-  fancy.push(item('fancy', 'ציוד ברמה גבוהה (Top) עם קסדה — הקצה העליון של שורת הציוד', null, null));
-  fancy.push(item('fancy', 'הליסקי — מסוק אל שלג בתולי, עם מדריך הרים. יש מפעיל בכפר', null, null));
+  save.push(item('save', L('ציוד: חפשו חנות השכרה זולה, ובקשו הנחה', 'Gear: look for a cheap rental shop, and ask for a discount'), null, null));
+  save.push(item('save', L('אוכל: מביאים מהארץ ומבשלים בדירה — הקצה הנמוך של שורת האוכל', 'Food: bring it from home and cook in the apartment — the low end of the food line'), null, null));
+  fancy.push(item('fancy', L('מלון או דירה ברמה גבוהה — צמוד לגונדולה או למעליות, עם ספא במקום, והסעה של המלון אל המעליות וחזרה', 'A high-end hotel or apartment — right by the gondola or the lifts, with a spa on site, and the hotel\'s shuttle to the lifts and back'), null, null));
+  fancy.push(item('fancy', L('שדרוג הרכב — גדול ונוח יותר, עם הנעה כפולה, לעלייה המושלגת לכפר', 'A car upgrade — bigger and more comfortable, with four-wheel drive, for the snowy climb to the village'), null, null));
+  fancy.push(item('fancy', L('שיעורי סקי פרטיים, או מדריך צמוד ליום בצ\'רמט — <a onclick="openFrom(\'costModal\',\'lessonsModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">המדריכים באתר</a>', 'Private ski lessons, or a personal guide for a day in Zermatt — <a onclick="openFrom(\\\'costModal\\\',\\\'lessonsModal\\\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">the instructors on the site</a>'), null, null));
+  fancy.push(item('fancy', L('ציוד ברמה גבוהה (Top) עם קסדה — הקצה העליון של שורת הציוד', 'Top-grade gear (Top) with a helmet — the upper end of the gear line'), null, null));
+  fancy.push(item('fancy', L('הליסקי — מסוק אל שלג בתולי, עם מדריך הרים. יש מפעיל בכפר', 'Heli-skiing — a helicopter to untouched snow, with a mountain guide. There is an operator in the village'), null, null));
   body.innerHTML =
-    '<div style="font-size:0.8rem;font-weight:bold;color:#1e8449;margin:2px 0 2px;">💚 לחסוך</div>' + save.join('')
-    + '<div style="font-size:0.8rem;font-weight:bold;color:#8a5a00;margin:10px 0 2px;">✨ להתפנק</div>' + fancy.join('');
+    L('<div style="font-size:0.8rem;font-weight:bold;color:#1e8449;margin:2px 0 2px;">💚 לחסוך</div>', '<div style="font-size:0.8rem;font-weight:bold;color:#1e8449;margin:2px 0 2px;">💚 Save</div>') + save.join('')
+    + L('<div style="font-size:0.8rem;font-weight:bold;color:#8a5a00;margin:10px 0 2px;">✨ להתפנק</div>', '<div style="font-size:0.8rem;font-weight:bold;color:#8a5a00;margin:10px 0 2px;">✨ Treat yourselves</div>') + fancy.join('');
 }
 
 // A search that ran is a stage passed - the strip shows it on its tab.
@@ -9694,7 +9728,7 @@ function _tripStepDone(tab) {
 // The order a trip is usually put together in: the flight fixes the days,
 // then a bed, then a car. "הכל" did all three at once, so nothing follows it.
 var TRIP_ORDER = ['flight', 'hotel', 'car'];
-var TRIP_STAGE_NAME = { flight: '✈️ טיסה', hotel: '🏨 לינה', car: '🚗 רכב' };
+var TRIP_STAGE_NAME = { flight: L('✈️ טיסה', '✈️ Flight'), hotel: L('🏨 לינה', '🏨 Lodging'), car: L('🚗 רכב', '🚗 Car') };
 function _tripNext() {
   var box = document.getElementById('trip-next');
   if (!box) return;
@@ -9712,7 +9746,7 @@ function _tripNext() {
   if (!next) { box.style.display = 'none'; box.innerHTML = ''; return; }
   box.innerHTML = '<button class="plan-chip" onclick="_tripGoNext(\'' + next + '\')" '
     + 'style="background:#eaf3fd;border-color:#c6ddf3;color:#1a5fa8;font-weight:700;">'
-    + 'השלב הבא: ' + TRIP_STAGE_NAME[next] + ' ←</button>';
+    + L('השלב הבא: ' + TRIP_STAGE_NAME[next] + ' ←', 'Next step: ' + TRIP_STAGE_NAME[next] + ' →') + '</button>';
   box.style.display = 'block';
 }
 function _tripGoNext(t) {
@@ -9729,6 +9763,14 @@ function _isoDay(d) {
 // One month name when both ends share it, and always a two-digit year, so a
 // booking for next winter cannot be read as this one.
 function _tripRangeLabel(a, b) {
+  if (window.LANG === 'en') {
+    var ME = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    if (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth())
+      return a.getDate() + '–' + b.getDate() + ' ' + ME[a.getMonth()] + ' ' + b.getFullYear();
+    if (a.getFullYear() === b.getFullYear())
+      return a.getDate() + ' ' + ME[a.getMonth()] + ' – ' + b.getDate() + ' ' + ME[b.getMonth()] + ' ' + b.getFullYear();
+    return a.getDate() + ' ' + ME[a.getMonth()] + ' ' + a.getFullYear() + ' – ' + b.getDate() + ' ' + ME[b.getMonth()] + ' ' + b.getFullYear();
+  }
   var M = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט',
            'ספטמבר','אוקטובר','נובמבר','דצמבר'];
   // Four digits, not two. "26-29 בדצמבר 26" puts a year that looks exactly
@@ -10692,10 +10734,39 @@ var CONTACT_TEMPLATES = {
 };
 
 // A template is replaceable only for as long as nobody has typed into it.
+// The same forms in English; the keys stay the Hebrew subject values, which
+// are what the message is filed under.
+var CONTACT_TEMPLATES_EN = {
+  'בקשת פרטי מדריך':
+      'Hello, I would like the details of a private ski instructor.\n\n'
+    + 'Approximate dates:\n'
+    + 'Number of participants and ages:\n'
+    + 'Level (beginners / intermediate / advanced):\n'
+    + 'Preferred language:\n',
+  'הוספת מדריך מומלץ':
+      'Hello, I would like to recommend an instructor.\n\n'
+    + 'Instructor\'s name:\n'
+    + 'Their phone or email:\n'
+    + 'Languages:\n'
+    + 'When you skied with them:\n'
+    + 'What was good about them:\n',
+  'נתונים שגויים':
+      'Hello, I found a figure that I think is wrong.\n\n'
+    + 'Where on the site:\n'
+    + 'What it says:\n'
+    + 'What the right figure is, and where from:\n',
+  'דיווח על בעיה':
+      'Hello, I ran into a problem.\n\n'
+    + 'On which screen:\n'
+    + 'What I was trying to do:\n'
+    + 'What actually happened:\n'
+    + 'Phone or computer, and which browser:\n'
+};
+
 function _applyContactTemplate(subject, force) {
   var msg = document.getElementById('cf-message');
   if (!msg) return;
-  var body = CONTACT_TEMPLATES[subject] || '';
+  var body = (window.LANG === 'en' ? CONTACT_TEMPLATES_EN : CONTACT_TEMPLATES)[subject] || '';
   var untouched = !msg.value || msg.value === (msg.dataset.template || '');
   if (!force && !untouched) return;
   msg.value = body;
@@ -14315,6 +14386,7 @@ function _seasonFill(tpl, vals) {
   });
 }
 function _seasonDaysHe(n) {
+  if (window.LANG === 'en') return n === 1 ? 'one day' : n + ' days';
   return n === 1 ? 'יום אחד' : n === 2 ? 'יומיים' : n + ' ימים';
 }
 // The same trip, moved. A move that clears the crowd entirely is worth
@@ -14414,7 +14486,7 @@ function seasonVerdict(from, to) {
           + '\',\'' + _seasonISO(sh.to) + '\')" '
           + 'style="flex:none;padding:4px 11px;background:#1a73e8;color:#fff;border:none;'
           + 'border-radius:7px;font-size:0.74rem;font-weight:bold;cursor:pointer;'
-          + 'font-family:inherit;white-space:nowrap;">🔍 חפש</button></div>';
+          + 'font-family:inherit;white-space:nowrap;">' + L('🔍 חפש', '🔍 Search') + '</button></div>';
       }).join('');
     }
     html += '</div>';
@@ -16103,7 +16175,7 @@ function renderSources() {
   }
   var set = function (id, v) { var e = document.getElementById(id); if (e) e.innerHTML = v || ''; };
   set('src-title', s.title);
-  set('src-updated', 'נבדק לאחרונה: ' + (s.updated || ''));
+  set('src-updated', L('נבדק לאחרונה: ', 'Last checked: ') + (s.updated || ''));
   set('src-intro', s.intro);
   set('src-disclaimer', s.disclaimer);
   set('src-report', s.report);
@@ -21411,7 +21483,7 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
     <div id="src-list"></div>
     <div style="margin-top:16px;padding-top:13px;border-top:1px solid #eee;">
       <div id="src-report" style="font-size:0.82rem;color:#555;margin-bottom:8px;"></div>
-      <button onclick="reportDataError()" style="width:100%;padding:10px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.86rem;font-weight:bold;cursor:pointer;">✉️ דיווח על נתון שגוי</button>
+      <button onclick="reportDataError()" style="width:100%;padding:10px;background:#1a73e8;color:white;border:none;border-radius:9px;font-size:0.86rem;font-weight:bold;cursor:pointer;" data-en="✉️ Report a wrong figure">✉️ דיווח על נתון שגוי</button>
     </div>
   </div>
 </div>
