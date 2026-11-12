@@ -2,6 +2,82 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>
+/* ══ Language (Yossi, 12.11: the site in English too, for skiers from
+   anywhere) ═══════════════════════════════════════════════════════════
+   One page, two languages. The choice comes from ?lang= (so a link can
+   carry it), else from the last choice on this device; Hebrew otherwise -
+   until the English is whole, nobody lands in it by accident. It is set
+   here, before the body is drawn, so the page never flashes the wrong way
+   round. Changing language reloads: every renderer then simply asks L().
+   Content from texts.json: texts.en.json mirrors its shape and is laid
+   over it. Static markup: data-en / data-en-title / data-en-placeholder /
+   data-en-aria-label beside the Hebrew. Code: L('עברית', 'English'). */
+(function () {
+  var l = 'he';
+  try {
+    var q = new URLSearchParams(location.search).get('lang');
+    if (q === 'en' || q === 'he') { l = q; localStorage.setItem('cl_lang', q); }
+    else if (localStorage.getItem('cl_lang') === 'en') l = 'en';
+  } catch (e) {}
+  window.LANG = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === 'en' ? 'ltr' : 'rtl';
+})();
+function L(he, en) { return window.LANG === 'en' && en != null ? en : he; }
+function setLang(l) {
+  try { localStorage.setItem('cl_lang', l); } catch (e) {}
+  var u = new URL(location.href);
+  if (l === 'en') u.searchParams.set('lang', 'en'); else u.searchParams.delete('lang');
+  location.href = u.toString();
+}
+// Static markup: the English sits beside the Hebrew as attributes.
+function _i18nStatic(root) {
+  if (window.LANG !== 'en') return;
+  (root || document).querySelectorAll('[data-en],[data-en-title],[data-en-placeholder],[data-en-aria-label],[data-en-ph]').forEach(function (e) {
+    var v;
+    if ((v = e.getAttribute('data-en')) != null) e.innerHTML = v;
+    if ((v = e.getAttribute('data-en-title')) != null) e.title = v;
+    if ((v = e.getAttribute('data-en-placeholder')) != null) e.placeholder = v;
+    if ((v = e.getAttribute('data-en-aria-label')) != null) e.setAttribute('aria-label', v);
+    if ((v = e.getAttribute('data-en-ph')) != null) e.setAttribute('data-ph', v);
+  });
+}
+// Registered here in the head, so it runs before any renderer's own
+// DOMContentLoaded and they draw over translated markup, not under it.
+var LANG_OPEN = false;   // true once the English site is ready to be offered
+document.addEventListener('DOMContentLoaded', function () {
+  _i18nStatic();
+  var sl = document.getElementById('sm-lang');
+  if (sl && (window.LANG === 'en' || LANG_OPEN)) {
+    sl.style.display = '';
+    document.getElementById('sm-lang-txt').textContent = window.LANG === 'en' ? 'עברית' : 'English';
+  }
+  // the logo carries the Hebrew name; the English one has only the Latin
+  if (window.LANG === 'en') { var lg = document.getElementById('brand-logo'); if (lg) lg.src = './img/logo-en.png'; }
+});
+// texts.en.json over texts.json: objects by key; arrays by "id" where the
+// items carry one (so reordering the Hebrew cannot misplace a translation),
+// else by position. An item not yet translated stays as it was rather than
+// vanishing.
+function _overlayTexts(base, en) {
+  if (en == null) return base;
+  if (Array.isArray(base) && Array.isArray(en)) {
+    var byId = {}, ids = en.length && en.every(function (x) { return x && typeof x === 'object' && x.id != null; });
+    if (ids) en.forEach(function (x) { byId[x.id] = x; });
+    return base.map(function (b, i) {
+      if (ids) return b && b.id != null && byId[b.id] ? _overlayTexts(b, byId[b.id]) : b;
+      return i < en.length ? _overlayTexts(b, en[i]) : b;
+    });
+  }
+  if (base && en && typeof base === 'object' && typeof en === 'object' && !Array.isArray(en)) {
+    var o = {}; for (var k in base) o[k] = base[k];
+    for (var k2 in en) o[k2] = k2 in base ? _overlayTexts(base[k2], en[k2]) : en[k2];
+    return o;
+  }
+  return en;
+}
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -16,7 +92,9 @@
 try {
   if (window.matchMedia && matchMedia('(display-mode: standalone)').matches ||
       window.navigator.standalone === true) {
-    document.title = 'מדריך הסקי בעברית';
+    document.title = window.LANG === 'en' ? 'The Cervinia ski guide' : 'מדריך הסקי בעברית';
+  } else if (window.LANG === 'en') {
+    document.title = 'Cervinia Live · the live ski guide';
   }
 } catch (e) {}
 </script>
@@ -45,7 +123,7 @@ try {
 <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <style>
 :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
-body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; direction: rtl; }
+body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; }  /* direction comes from <html dir> */
 input[type=file] { display: none !important; }
 /* הכותרת ושורת ההתראה נדבקות יחד — ההתראה מתחת לכותרת ונשארת גלויה בגלילה */
 #topstick { position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
@@ -63,6 +141,14 @@ input[type=file] { display: none !important; }
                        flex-wrap: nowrap; }  /* one row again, or the
                        login button drops under the logo */
 .nav-rest { flex: 1 1 auto; min-width: 0; }
+/* ── English (LTR) ──────────────────────────────────────────────────────
+   The layout is written in logical properties (start/end), so it turns
+   round by itself. What remains are elements that said "rtl" outright -
+   for a Hebrew page that was harmless, for an English one it reverses the
+   text. User-written content (forum, reviews) keeps its own direction:
+   it is in whatever language its author wrote. */
+html[dir="ltr"] [style*="direction:rtl"], html[dir="ltr"] [style*="direction: rtl"],
+html[dir="ltr"] [dir="rtl"]:not(.ugc) { direction: ltr !important; }
 /* Local time in Cervinia (Yossi, 12.11): the operator's notices, the lift
    hours and the alerts are all in Italian time, an hour behind Israel. On a
    wide screen it sits in the empty middle of the header row; on a phone that
@@ -75,18 +161,20 @@ input[type=file] { display: none !important; }
                   margin-top: 2px; }
 @media (max-width: 600px) {
   #topstick nav { position: relative; }
-  .cl-clock { position: absolute; left: 3%; top: 24px; }
+  .cl-clock { position: absolute; inset-inline-end: 3%; top: 24px; }
   #topstick.shrunk .cl-clock { display: none; }
   /* the logo moves to the right edge, over the menu button, so the corner
      is really free rather than painted over the mountain's foot */
-  #topstick:not(.shrunk) #brand-logo { margin-left: auto; margin-right: 0; }
+  #topstick:not(.shrunk) #brand-logo { margin-inline-end: auto; margin-inline-start: 0; }
+  /* the English logo is wider for its height; it leaves the clock its corner */
+  html[dir="ltr"] #topstick:not(.shrunk) #brand-logo { height: 60px; }
 }
 @media (max-width: 345px) { .cl-clock { display: none !important; } }
 @media (prefers-reduced-motion: reduce) {
   #brand-logo, #topstick nav { transition: none; }
 }
         nav { background: var(--dark); color: white; padding: 4px 5%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.admin-badge { background: var(--error); color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-left: 10px; }
+.admin-badge { background: var(--error); color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-inline-end: 10px; }
 /* The services, with weights. Ten equal squares carrying one line each left
    the page empty and said nothing about what was behind them; the ones people
    open standing on the mountain are wider now, and every card has a second
@@ -118,7 +206,7 @@ input[type=file] { display: none !important; }
 .service-btn:hover { border-color: #cfe0f2; background: #f7faff; }
 
 .services-grid .service-btn {
-  border-radius: 14px; padding: 13px 15px; text-align: right;
+  border-radius: 14px; padding: 13px 15px; text-align: start;
   display: flex; align-items: center; gap: 12px; font-size: inherit;
   /* border-box, or the padding and border are added to the flex basis and
      three cards no longer fit on a row they were measured for. */
@@ -270,7 +358,7 @@ mark.cl-hit {
   /* The close button is pinned with a PHYSICAL left, so this one must be
      too: inset-inline-start flips in RTL and would throw the pair to
      opposite corners of the panel. */
-  position: absolute; top: 15px; left: 54px;
+  position: absolute; top: 15px; inset-inline-end: 54px;
   font-size: 1.05rem; line-height: 1; cursor: pointer; opacity: 0.55;
   user-select: none; transition: opacity 0.15s; padding: 4px;
 }
@@ -366,7 +454,7 @@ table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
 th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .post { border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 10px; background: white; position: relative; }
-.reply-item { margin: 8px 0 0 0; padding: 10px; background: #f8fbff; border-right: 3px solid var(--accent); border-radius: 4px; }
+.reply-item { margin: 8px 0 0 0; padding: 10px; background: #f8fbff; border-inline-start: 3px solid var(--accent); border-radius: 4px; }
 .r-target { display: block; width: 100%; box-sizing: border-box; }
 .filter-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border:1px solid #ddd; border-radius:20px; font-size:0.78rem; cursor:pointer; background:white; color:#444; }
 .filter-chip:has(input:checked) { background:#e8f4fd; border-color:var(--accent); color:var(--accent); font-weight:bold; }
@@ -384,14 +472,14 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         .result-link .rl-title { font-weight:bold; font-size:0.88rem; }
         .result-link .rl-desc { font-size:0.75rem; color:#888; margin-top:2px; }
         .result-link .rl-arrow { color:#ccc; font-size:1rem; }
-        .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; z-index: 9999; top: 0; inset-inline-end: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
 .modal-content { --mc-pad: 30px; background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; position: relative; max-height: 95vh; overflow-y: auto; }
 .modal-content::-webkit-scrollbar { width: 8px; }
 .modal-content::-webkit-scrollbar-track { background: transparent; }
 .modal-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
 .modal-content::-webkit-scrollbar-thumb:hover { background: #999; }
 .modal-content { scrollbar-width: thin; scrollbar-color: #ccc transparent; }
-.close-btn { position: absolute; left: 20px; top: 16px; cursor: pointer; font-size: 1.5rem; color: #888; z-index: 10; line-height: 1; background: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.close-btn { position: absolute; inset-inline-end: 20px; top: 16px; cursor: pointer; font-size: 1.5rem; color: #888; z-index: 10; line-height: 1; background: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 .close-btn:hover { color: #333; }
 /* A finger is bigger than the drawn button: an invisible ring around it
    takes the tap too, so closing a panel is not a game of aim (Yossi, 11.11). */
@@ -419,7 +507,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   padding: 10px var(--mc-pad, 14px) 7px; border-bottom: 1px solid #eaeef3; }
 
 #modal-float-x {
-  position: fixed; top: 14px; left: 14px; z-index: 100000;
+  position: fixed; top: 14px; inset-inline-end: 14px; z-index: 100000;
   /* top/left are overwritten from the dialog's own rect the moment it shows */
   width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
   background: rgba(10,25,47,0.86); color: white; font-size: 1.05rem; line-height: 1;
@@ -433,7 +521,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
 #why-banner {
   position: fixed; z-index: 9998;
-  bottom: calc(16px + var(--pwa-h, 0px)); right: 14px; left: auto;
+  bottom: calc(16px + var(--pwa-h, 0px)); inset-inline-start: 14px; inset-inline-end: auto;
   display: flex; align-items: center; gap: 2px;
   padding: 7px 8px 7px 4px; border-radius: 26px; cursor: pointer;
   background: linear-gradient(135deg, #0a192f 0%, #1a4376 100%);
@@ -477,7 +565,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 #live-bar { background: var(--dark); border-bottom: 1px solid rgba(76,201,240,0.2); overflow: hidden; }
 #live-bar-inner { display: flex; align-items: stretch; overflow-x: auto; scrollbar-width: none; min-height: 62px; max-width: 1100px; margin: 0 auto; padding: 14px 16px; gap: 10px; }
 #live-bar-inner::-webkit-scrollbar { display: none; }
-.lv-item { display: flex; flex-direction: row; align-items: center; gap: 9px; padding: 0 14px; flex-shrink: 0; border-left: 1px solid rgba(255,255,255,0.08); cursor: default; }
+.lv-item { display: flex; flex-direction: row; align-items: center; gap: 9px; padding: 0 14px; flex-shrink: 0; border-inline-end: 1px solid rgba(255,255,255,0.08); cursor: default; }
 .lv-item:hover { background: rgba(76,201,240,0.07); }
 .lv-emoji { font-size: 1.2rem; flex-shrink: 0; width: 24px; text-align: center; line-height: 1; }
 .lv-text-block { display: flex; flex-direction: column; }
@@ -524,7 +612,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
   50%      { box-shadow: inset 0 -3px 14px rgba(40,167,69,.33); }
 }
 @media (prefers-reduced-motion: reduce) { .alert-strip.severity-good { animation:none; } }
-.alert-close { position:absolute; left:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.1rem; opacity:0.6; background:none; border:none; color:inherit; }
+.alert-close { position:absolute; inset-inline-end:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1.1rem; opacity:0.6; background:none; border:none; color:inherit; }
 .alert-close:hover { opacity:1; }
 .alert-closeall { background:rgba(255,255,255,0.55); border:1px solid rgba(0,0,0,0.15); border-radius:12px; padding:1px 9px; font-size:0.72rem; font-weight:bold; color:inherit; cursor:pointer; font-family:inherit; margin-inline-start:4px; }
 .alert-closeall:hover { background:rgba(255,255,255,0.85); }
@@ -532,7 +620,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
 /* the rest of the alerts, folded under the strip */
 #alert-more { display:none; position:relative; z-index:199; background:#fff; border-bottom:2px solid rgba(0,0,0,0.08); box-shadow:0 4px 8px rgba(0,0,0,0.06); padding:6px 10px 8px; }
-#alert-more .amore-row { display:flex; align-items:flex-start; gap:8px; padding:7px 9px; border-radius:8px; margin-top:4px; font-size:0.82rem; font-weight:bold; line-height:1.4; text-align:right; }
+#alert-more .amore-row { display:flex; align-items:flex-start; gap:8px; padding:7px 9px; border-radius:8px; margin-top:4px; font-size:0.82rem; font-weight:bold; line-height:1.4; text-align:start; }
 #alert-more .amore-meta { font-size:0.68rem; font-weight:normal; opacity:0.65; white-space:nowrap; }
 .amore-danger  { background:#f8d7da; color:#842029; }
 .amore-warning { background:#fff3cd; color:#856404; }
@@ -560,7 +648,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         text-align: center; }
 #shabbat-jump[hidden] { display: none; }
 #shabbat-jump.is-done { opacity: 0; pointer-events: none; }
-.alert-more-btn { font-size:0.72rem; font-weight:bold; background:rgba(0,0,0,0.12); padding:2px 8px; border-radius:10px; margin-right:6px; border:none; color:inherit; cursor:pointer; font-family:inherit; }
+.alert-more-btn { font-size:0.72rem; font-weight:bold; background:rgba(0,0,0,0.12); padding:2px 8px; border-radius:10px; margin-inline-start:6px; border:none; color:inherit; cursor:pointer; font-family:inherit; }
 .alert-more-btn:hover { background:rgba(0,0,0,0.2); }
 .amore-chev { display:inline-block; transition:transform 0.18s; }
 .amore-open .amore-chev { transform:rotate(180deg); }
@@ -575,7 +663,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
              height:160px; text-decoration:none; color:#fff; overflow:hidden; transition:filter 0.2s;
              background:linear-gradient(180deg,#0d2546 0%,#14406c 55%,#1b5886 100%); }
 .wcam-pano:hover { filter:brightness(1.18); }
-.wcam-pano .pano-peaks { position:absolute; left:0; bottom:0; width:100%; height:58px; display:block; opacity:0.5; }
+.wcam-pano .pano-peaks { position:absolute; inset-inline-end:0; bottom:0; width:100%; height:58px; display:block; opacity:0.5; }
 .wcam-pano .pano-badge { position:absolute; top:8px; inset-inline-end:8px; background:rgba(255,255,255,0.18);
              border:1px solid rgba(255,255,255,0.4); border-radius:20px; padding:2px 9px;
              font-size:0.64rem; font-weight:bold; letter-spacing:0.4px; }
@@ -608,7 +696,7 @@ img, svg, video { max-width: 100%; }
   nav { padding: 3px 10px; gap: 6px; flex-wrap: nowrap; }
   nav > div:first-child { flex: 1; min-width: 0; gap: 6px !important; }
   nav > div:first-child > div:nth-child(2) { font-size: 1.05rem !important; }
-  #global-search-bar { margin-right: 4px !important; flex: 1; min-width: 0; }
+  #global-search-bar { margin-inline-start: 4px !important; flex: 1; min-width: 0; }
   #global-search-bar > div { padding: 4px 8px !important; }
   #global-search-input { width: 100% !important; font-size: 0.78rem !important; }
   #global-search-input:focus { width: 100% !important; }
@@ -700,14 +788,14 @@ img, svg, video { max-width: 100%; }
   /* On a phone the corner × was a pale grey glyph at the very edge, easy to
      miss and hard to hit. Larger, darker, on a grey disc that reads as a
      button - still small enough not to cover the heading. */
-  .close-btn { left: 10px !important; top: 9px !important; font-size: 1.45rem !important;
+  .close-btn { inset-inline-end: 10px !important; top: 9px !important; font-size: 1.45rem !important;
                width: 36px !important; height: 36px !important; }
   /* the grey disc only where the panel is light; a × on a dark header (the
      dashboard) keeps its own white on nothing */
   .close-btn:not([style*="background:transparent"]) {
                color: #2d3b4a !important; background: #edf1f6 !important;
                box-shadow: 0 1px 4px rgba(10,25,47,0.14); }
-  .panel-share { left: 54px !important; top: 13px !important; }
+  .panel-share { inset-inline-end: 54px !important; top: 13px !important; }
 
   /* Tables on mobile - allow horizontal scroll */
   table { font-size: 0.82rem; }
@@ -794,7 +882,7 @@ img, svg, video { max-width: 100%; }
   content: '\25C0';
   display: inline-block;
   font-size: 0.72em;
-  margin-left: 6px;
+  margin-inline-end: 6px;
   color: #7a89a8;
   transition: transform 0.15s;
 }
@@ -829,7 +917,7 @@ M6.1 15.5l-3.2.9M6.1 15.5l-.9 3.2M17.9 8.5l3.2.9M17.9 8.5l.9-3.2'/></svg>") no-r
     .plan-card { display: flex; align-items: center; gap: 12px; width: 100%;
             padding: 14px 13px; background: #fff; position: relative; z-index: 1;
             border: 1px solid #d7e7f6; border-radius: 13px; cursor: pointer;
-            font-family: inherit; text-align: right; color: #16314f;
+            font-family: inherit; text-align: start; color: #16314f;
             box-shadow: 0 1px 2px rgba(16,58,98,.05);
             transition: border-color .15s, box-shadow .15s, transform .08s; }
     .plan-card:hover { border-color: #8fbde8; box-shadow: 0 3px 12px rgba(26,115,232,.16); }
@@ -849,7 +937,7 @@ M6.1 15.5l-3.2.9M6.1 15.5l-.9 3.2M17.9 8.5l3.2.9M17.9 8.5l.9-3.2'/></svg>") no-r
     .plan-strip { display: flex; align-items: center; gap: 12px; width: 100%;
             padding: 13px; margin-top: 4px; position: relative; z-index: 1;
             border: 1.5px solid #9cc6ec; border-radius: 13px; cursor: pointer;
-            font-family: inherit; text-align: right; color: #0f2c4d;
+            font-family: inherit; text-align: start; color: #0f2c4d;
             background: linear-gradient(135deg, #ffffff 0%, #e9f3fd 100%);
             box-shadow: 0 1px 3px rgba(16,58,98,.08);
             transition: border-color .15s, box-shadow .15s, transform .08s; }
@@ -925,7 +1013,7 @@ M6.1 15.5l-3.2.9M6.1 15.5l-.9 3.2M17.9 8.5l3.2.9M17.9 8.5l.9-3.2'/></svg>") no-r
               padding: 8px 13px; margin: 16px 0 9px; font-weight: bold;
               color: #0f3b66; font-size: 0.92rem; }
 #prep-fold > .fold-body > .prep-group:first-child { margin-top: 4px; }
-.fold-ico { width: 1.35em; height: 1.35em; vertical-align: -0.33em; margin-left: 6px; }
+.fold-ico { width: 1.35em; height: 1.35em; vertical-align: -0.33em; margin-inline-end: 6px; }
 /* Drawn flags. Windows ships no flag glyphs, so these used to be <svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> and
    render there as the two bare letters "IT".
    Written WITHOUT quotes or spaces in the markup - class=fl-it, not
@@ -948,7 +1036,7 @@ details.fold > summary {
 details.fold > summary::-webkit-details-marker { display: none; }
 details.fold > summary::before {
   content: '\25C0'; display: inline-block; font-size: 0.72em;
-  margin-left: 7px; color: #7a89a8; transition: transform 0.15s;
+  margin-inline-end: 7px; color: #7a89a8; transition: transform 0.15s;
 }
 details.fold[open] > summary::before { transform: rotate(-90deg); }
 details.fold > summary:hover { background: #f2f5f8; border-radius: 10px; }
@@ -1023,13 +1111,14 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 }
 #side-menu-overlay.on { display: block; }
 #side-menu {
-  position: fixed; top: 0; right: 0; height: 100%;
+  position: fixed; top: 0; inset-inline-start: 0; height: 100%;
   width: min(80vw, 300px); background: #fff; z-index: 11001;
   transform: translateX(100%); transition: transform 0.22s ease;
   box-shadow: -10px 0 30px rgba(0,0,0,0.2);
   display: flex; flex-direction: column;
 }
 #side-menu.on { transform: translateX(0); }
+html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it comes in from the start side */
 #side-menu-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 18px; border-bottom: 1px solid #eee;
@@ -1044,7 +1133,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
   display: flex; align-items: center; gap: 12px;
   background: none; border: none; cursor: pointer;
   padding: 14px 20px; font-size: 0.95rem; font-family: inherit;
-  color: #2b3a4a; text-align: right; width: 100%;
+  color: #2b3a4a; text-align: start; width: 100%;
 }
 #side-menu-links button:hover { background: #f3f6fa; }
 #side-menu-links button span { font-size: 1.05rem; width: 1.4em; }
@@ -1150,10 +1239,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 </symbol>
 </svg>
 
-<div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
+<div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.54';
+  var v='v17.55';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1174,9 +1263,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <button id="menu-btn" onclick="openSideMenu()" aria-label="תפריט" aria-expanded="false"
         style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);
                color:white;width:34px;height:34px;border-radius:10px;cursor:pointer;
-               font-size:1rem;line-height:1;flex:none;">☰</button>
+               font-size:1rem;line-height:1;flex:none;" data-en-aria-label="Menu">☰</button>
       <!-- חיפוש בנאב -->
-      <div id="global-search-bar" style="position:relative;margin-right:12px;">
+      <div id="global-search-bar" style="position:relative;margin-inline-start:12px;">
         <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:5px 12px;">
           <span style="color:rgba(255,255,255,0.55);font-size:0.85rem;">🔍</span>
           <!-- type="search" and a name of its own, because an unnamed text input
@@ -1204,15 +1293,15 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             oninput="globalSearch(this.textContent)"
             onfocus="this.style.width='230px'"
             onblur="if(!this.textContent)this.style.width='150px'"
-            style="background:none;border:none;outline:none;color:white;font-size:0.85rem;width:150px;direction:rtl;transition:width 0.15s;white-space:nowrap;overflow:hidden;min-height:1.25em;line-height:1.25;"></div>
+            style="background:none;border:none;outline:none;color:white;font-size:0.85rem;width:150px;direction:rtl;transition:width 0.15s;white-space:nowrap;overflow:hidden;min-height:1.25em;line-height:1.25;" data-en-aria-label="Search the site" data-en-ph="Search..."></div>
         </div>
         <!-- color is set here on purpose: this box hangs inside the dark
              header, which colours its text white, and white on white is the
              empty-looking dropdown this used to be. -->
-        <div id="global-search-results" style="display:none;position:absolute;z-index:9999;top:calc(100% + 6px);right:0;min-width:250px;max-width:min(92vw,380px);background:white;color:#16314f;border:1px solid #ddd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-height:320px;overflow-y:auto;text-align:right;direction:rtl;"></div>
+        <div id="global-search-results" style="display:none;position:absolute;z-index:9999;top:calc(100% + 6px);inset-inline-start:0;min-width:250px;max-width:min(92vw,380px);background:white;color:#16314f;border:1px solid #ddd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-height:320px;overflow-y:auto;text-align:start;direction:rtl;"></div>
       </div>
-      <div id="local-clock" class="cl-clock" style="display:none;" title="השעה המקומית בצ׳רוויניה — שעון איטליה">
-        <b id="local-clock-time">--:--</b><small>🕐 שעון צ׳רוויניה</small>
+      <div id="local-clock" class="cl-clock" style="display:none;" title="השעה המקומית בצ׳רוויניה — שעון איטליה" data-en-title="Local time in Cervinia (Italian time)">
+        <b id="local-clock-time">--:--</b><small data-en="🕐 Cervinia time">🕐 שעון צ׳רוויניה</small>
       </div>
     </div>
 
@@ -1226,22 +1315,25 @@ details.fold > .fold-body { padding: 0 13px 12px; }
      footer is at the end of a long page - this is reachable at any moment.
      It sits outside every container _applyTexts rewrites. -->
 <div id="side-menu-overlay" onclick="closeSideMenu()"></div>
-<aside id="side-menu" role="dialog" aria-modal="true" aria-label="תפריט" aria-hidden="true">
+<aside id="side-menu" role="dialog" aria-modal="true" aria-label="תפריט" aria-hidden="true" data-en-aria-label="Menu">
   <div id="side-menu-head">
-    <span>תפריט</span>
-    <button onclick="closeSideMenu()" aria-label="סגירת התפריט">✕</button>
+    <span data-en="Menu">תפריט</span>
+    <button onclick="closeSideMenu()" aria-label="סגירת התפריט" data-en-aria-label="Close the menu">✕</button>
   </div>
   <div id="side-menu-links" role="navigation">
     <!-- Yossi's order (11.11): what the site does for you first, then what
          backs it, and who we are last - the usual order of a menu. -->
-    <button onclick="smGo('why')"><span>🏔️</span>למה צ׳רוויניה? · קהילה וקישורים</button>
-    <button onclick="smGo('cost')"><span>💶</span>תכל'ס, כמה יעלה לנו?</button>
-    <button id="sm-install" onclick="smGo('install')"><span>📲</span>התקנת האפליקציה</button>
-    <button id="sm-push" onclick="smGo('push')"><span>🔔</span>התראות — הפעלה וביטול</button>
-    <button onclick="smGo('sources')"><span>📚</span>מקורות ואמינות</button>
-    <button onclick="smGo('help')"><span>❓</span>עזרה</button>
-    <button onclick="smGo('contact')"><span>✉️</span>צור קשר</button>
-    <button onclick="smGo('about')"><span>ℹ️</span>עלינו</button>
+    <button onclick="smGo('why')" data-en="&lt;span&gt;🏔️&lt;/span&gt;Why Cervinia? · Community and links"><span>🏔️</span>למה צ׳רוויניה? · קהילה וקישורים</button>
+    <button onclick="smGo('cost')" data-en="&lt;span&gt;💶&lt;/span&gt;So, what will it cost us?"><span>💶</span>תכל'ס, כמה יעלה לנו?</button>
+    <button id="sm-install" onclick="smGo('install')" data-en="&lt;span&gt;📲&lt;/span&gt;Install the app"><span>📲</span>התקנת האפליקציה</button>
+    <button id="sm-push" onclick="smGo('push')" data-en="&lt;span&gt;🔔&lt;/span&gt;Notifications — on and off"><span>🔔</span>התראות — הפעלה וביטול</button>
+    <button onclick="smGo('sources')" data-en="&lt;span&gt;📚&lt;/span&gt;Sources and reliability"><span>📚</span>מקורות ואמינות</button>
+    <button onclick="smGo('help')" data-en="&lt;span&gt;❓&lt;/span&gt;Help"><span>❓</span>עזרה</button>
+    <button onclick="smGo('contact')" data-en="&lt;span&gt;✉️&lt;/span&gt;Contact us"><span>✉️</span>צור קשר</button>
+    <button onclick="smGo('about')" data-en="&lt;span&gt;ℹ️&lt;/span&gt;About us"><span>ℹ️</span>עלינו</button>
+    <!-- The way between the languages. In English it is always there, the
+         way home; in Hebrew it appears once the English is whole (LANG_OPEN). -->
+    <button id="sm-lang" onclick="setLang(window.LANG === 'en' ? 'he' : 'en')" style="display:none;"><span>🌐</span><bdi id="sm-lang-txt">English</bdi></button>
   </div>
   <div id="side-menu-foot">CerviniaLive</div>
 </aside>
@@ -1249,7 +1341,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <!-- 🚨 Alert Strip -->
 <div id="alert-strip" class="alert-strip severity-danger">
   <span id="alert-strip-text"></span>
-  <button class="alert-close" onclick="dismissAlert(event)" title="סגור">✕</button>
+  <button class="alert-close" onclick="dismissAlert(event)" title="סגור" data-en-title="Close">✕</button>
 </div>
 <div id="alert-more"></div>
 </div><!-- /topstick -->
@@ -1275,7 +1367,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
         <div style="text-align:center;">
           <div id="bar-temp" dir="ltr" style="color:white;font-size:1.15rem;font-weight:800;line-height:1;">--°</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🌡️ מזג אויר</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="🌡️ Weather">🌡️ מזג אויר</div>
         </div>
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
@@ -1285,7 +1377,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <span id="bar-slopes-local" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;">--</span>
             <span id="bar-slopes-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
           </div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">⛷️ מסלולים <span id="bar-slopes-scope" style="opacity:0.6;"></span></div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="⛷️ Slopes &lt;span id=&quot;bar-slopes-scope&quot; style=&quot;opacity:0.6;&quot;&gt;&lt;/span&gt;">⛷️ מסלולים <span id="bar-slopes-scope" style="opacity:0.6;"></span></div>
         </div>
 
         <div id="bar-lifts-cell" style="text-align:center;cursor:pointer;" onclick="openM('helpModal')">
@@ -1293,45 +1385,45 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <span id="bar-lifts-local" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;">--</span>
             <span id="bar-lifts-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
           </div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🚡 מעליות <span id="bar-lifts-scope" style="opacity:0.6;"></span></div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="🚡 Lifts &lt;span id=&quot;bar-lifts-scope&quot; style=&quot;opacity:0.6;&quot;&gt;&lt;/span&gt;">🚡 מעליות <span id="bar-lifts-scope" style="opacity:0.6;"></span></div>
         </div>
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
 
         <div style="text-align:center;">
           <div id="bar-wind" dir="ltr" style="color:white;font-size:1.15rem;font-weight:800;line-height:1;">--</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">💨 רוח בכפר</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="💨 Village wind">💨 רוח בכפר</div>
         </div>
 
         <!-- Gusts up at Plateau Rosa. This is the number that decides whether
              the crossing to Zermatt runs, and it has nothing to do with the
              wind in the village beside it - 15 km/h down here can be 77 up
              there. Tapping it opens the full crossing panel. -->
-        <div id="bar-gust-wrap" style="text-align:center;cursor:pointer;" onclick="openZermattForecast()" title="משבי רוח בפלטאו רוזה — פותח את תחזית לינק צ'רמט">
+        <div id="bar-gust-wrap" style="text-align:center;cursor:pointer;" onclick="openZermattForecast()" title="משבי רוח בפלטאו רוזה — פותח את תחזית לינק צ'רמט" data-en-title="Wind gusts at Plateau Rosa — opens the Zermatt link forecast">
           <div id="bar-gust" dir="ltr" style="color:rgba(255,255,255,0.5);font-size:1.15rem;font-weight:800;line-height:1;">--</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">🌬️ משבים ברכס</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="🌬️ Ridge gusts">🌬️ משבים ברכס</div>
         </div>
 
         <!-- The unit was said twice, "20 ס"מ" over "שלג ס"מ", and nothing said
              where the 20 was measured (Yossi, 11.11). The label names the
              station; a tap lists every station the operator measures. -->
-        <div id="bar-snow-cell" style="text-align:center;cursor:pointer;" onclick="openSnowPoints()" title="גובה השלג בכל התחנות">
+        <div id="bar-snow-cell" style="text-align:center;cursor:pointer;" onclick="openSnowPoints()" title="גובה השלג בכל התחנות" data-en-title="Snow depth at every station">
           <div id="bar-snow" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;line-height:1;white-space:nowrap;">--</div>
-          <div id="bar-snow-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;white-space:nowrap;">❄️ שלג</div>
+          <div id="bar-snow-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;white-space:nowrap;" data-en="❄️ Snow">❄️ שלג</div>
         </div>
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
 
         <div style="text-align:center;">
           <div id="bar-weather-desc" style="color:#ffe066;font-size:1.02rem;font-weight:700;line-height:1.15;">--</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;">☁️ מזג</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="☁️ Sky">☁️ מזג</div>
         </div>
 
         <div style="text-align:center;">
           <div id="bar-hours" dir="ltr" style="color:rgba(255,255,255,0.85);font-size:0.95rem;font-weight:700;line-height:1.15rem;white-space:nowrap;">--</div>
           <div style="margin-top:2px;height:0.6875rem;line-height:0.6875rem;">
-            <span id="bar-hours-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;">🕗 שעות</span>
-            <span id="bar-closed-notice" style="display:none;font-size:0.58rem;background:#e74c3c;color:white;border-radius:4px;padding:0 5px;font-weight:bold;line-height:0.6875rem;height:0.6875rem;display:inline-block;vertical-align:top;margin-right:5px;">סגור</span>
+            <span id="bar-hours-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;" data-en="🕗 Hours">🕗 שעות</span>
+            <span id="bar-closed-notice" style="display:none;font-size:0.58rem;background:#e74c3c;color:white;border-radius:4px;padding:0 5px;font-weight:bold;line-height:0.6875rem;height:0.6875rem;display:inline-block;vertical-align:top;margin-inline-start:5px;" data-en="Closed">סגור</span>
           </div>
         </div>
 
@@ -1359,7 +1451,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <!-- קו שלוחה ימנית -->
             <line x1="26" y1="6" x2="35" y2="23" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
             <!-- כיתוב בתוך ההר -->
-            <text id="zermatt-label" x="26" y="37" text-anchor="middle" font-size="6.5" font-weight="bold" fill="#e74c3c" font-family="Arial,sans-serif">חיבור לצ'רמט</text>
+            <text id="zermatt-label" x="26" y="37" text-anchor="middle" font-size="6.5" font-weight="bold" fill="#e74c3c" font-family="Arial,sans-serif" data-en="Zermatt link">חיבור לצ'רמט</text>
             <text id="zermatt-status" x="26" y="47" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,0.55)" font-family="Arial,sans-serif">סגור</text>
             <!-- עיגול מעבר -->
             <circle id="matterhorn-dot" cx="39" cy="9" r="9" fill="#e74c3c" filter="url(#glow)"/>
@@ -1375,10 +1467,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           </div>
           <!-- כפתור תחזית נפרד -->
           <div style="display:flex;flex-direction:column;gap:7px;">
-            <button onclick="openM('forecastModal')" class="fc-btn" style="background:rgba(76,201,240,0.18);border:1.5px solid rgba(76,201,240,0.55);color:#8fe0ff;">
+            <button onclick="openM('forecastModal')" class="fc-btn" style="background:rgba(76,201,240,0.18);border:1.5px solid rgba(76,201,240,0.55);color:#8fe0ff;" data-en="📅 4-day forecast ▼">
               📅 תחזית 4 ימים ▼
             </button>
-            <button onclick="openZermattForecast()" class="fc-btn" style="background:rgba(255,255,255,0.09);border:1.5px solid rgba(255,255,255,0.3);color:#fff;">
+            <button onclick="openZermattForecast()" class="fc-btn" style="background:rgba(255,255,255,0.09);border:1.5px solid rgba(255,255,255,0.3);color:#fff;" data-en="🏔️ Zermatt link forecast">
               🏔️ תחזית לינק צ'רמט
             </button>
           </div>
@@ -1425,7 +1517,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
     </div>
     <div id="svc-lodging" class="service-btn" onclick="openM('lodgingModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-house"/></svg></span>
-      <span class="svc-txt"><b>איפה להתארח</b><small>שלושה אזורים בכפר · סוגי לינה · חניה · מה לשאול</small></span>
+      <span class="svc-txt" data-en="&lt;b&gt;Where to stay&lt;/b&gt;&lt;small&gt;Three areas in the village · types of lodging · parking · what to ask&lt;/small&gt;"><b>איפה להתארח</b><small>שלושה אזורים בכפר · סוגי לינה · חניה · מה לשאול</small></span>
     </div>
     <div id="svc-skipass" class="service-btn" onclick="openM('skipassModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-ticket"/></svg></span>
@@ -1473,11 +1565,11 @@ details.fold > .fold-body { padding: 0 13px 12px; }
        something they had already read. It is now a floating pill that costs
        the layout nothing and carries its own dismiss. -->
   <div id="why-banner" role="button" tabindex="0">
-    <button id="why-banner-x" type="button" aria-label="סגור" onclick="dismissWhyBanner(event)">✕</button>
+    <button id="why-banner-x" type="button" aria-label="סגור" onclick="dismissWhyBanner(event)" data-en-aria-label="Close">✕</button>
     <div id="why-banner-body" onclick="openWhyOnce()">
       <span style="font-size:1.1rem;line-height:1;">🏔️</span>
       <div id="why-banner-title">למה צ'רוויניה?</div>
-      <span style="color:rgba(255,255,255,0.55);font-size:1rem;line-height:1;">←</span>
+      <span style="color:rgba(255,255,255,0.55);font-size:1rem;line-height:1;" data-en="→">←</span>
     </div>
     <div id="why-banner-sub" style="display:none;"></div>
     <div id="why-banner-stats" style="display:none;"></div>
@@ -1489,17 +1581,17 @@ details.fold > .fold-body { padding: 0 13px 12px; }
        its own next to a live data bar - and the whole strip disappears when
        there is nothing to show. -->
   <div id="forum-peek" style="display:none;max-width:750px;margin:0 auto 14px;">
-    <div style="font-size:0.9rem;font-weight:bold;color:#16314f;margin-bottom:8px;">💬 מהפורום</div>
+    <div style="font-size:0.9rem;font-weight:bold;color:#16314f;margin-bottom:8px;" data-en="💬 From the forum">💬 מהפורום</div>
     <div class="peek-wrap">
-      <button id="peek-prev" onclick="peekMove(-1)" aria-label="הודעות חדשות יותר" class="peek-arrow prev"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      <button id="peek-prev" onclick="peekMove(-1)" aria-label="הודעות חדשות יותר" class="peek-arrow prev" data-en-aria-label="Newer posts"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
       <div id="forum-peek-track" style="display:flex;gap:10px;align-items:stretch;"></div>
-      <button id="peek-next" onclick="peekMove(1)" aria-label="הודעות ישנות יותר" class="peek-arrow next"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button id="peek-next" onclick="peekMove(1)" aria-label="הודעות ישנות יותר" class="peek-arrow next" data-en-aria-label="Older posts"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
     </div>
-    <div id="peek-empty" class="peek-empty" style="display:none;">
+    <div id="peek-empty" class="peek-empty" style="display:none;" data-en="No forum posts yet. Be the first to write.">
       אין עדיין הודעות בפורום. היו הראשונים לכתוב.
     </div>
     <div style="text-align:center;margin-top:10px;">
-      <button id="peek-open-btn" onclick="peekOpenForum()" class="peek-all">לפורום המלא ←</button>
+      <button id="peek-open-btn" onclick="peekOpenForum()" class="peek-all" data-en="The full forum →">לפורום המלא ←</button>
     </div>
   </div>
 
@@ -1508,7 +1600,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
        that summarises it, so a reader met the same posts twice and had no way
        to put the second copy away. The summary is the home page now; this
        opens on request and closes again. -->
-  <div class="card" id="forum-card" style="display:none;max-width:750px;margin-left:auto;margin-right:auto;">
+  <div class="card" id="forum-card" style="display:none;max-width:750px;margin-inline-end:auto;margin-inline-start:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
       <div style="font-size:0.95rem;font-weight:bold;color:#16314f;">💬 פורום הגולשים</div>
       <button type="button" onclick="forumClose()" aria-label="סגירת הפורום"
@@ -1558,7 +1650,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="new-post-file" style="display:none;" accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,.heic,.heif,.bmp,.avif,.pdf" onchange="showPickedFile('new-post-file','new-post-file-name')"></label>
         <span id="new-post-file-name" style="font-size:0.78rem;color:#888;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
         <button id="new-post-file-name-clr" onclick="clearAttachment('new-post-file','new-post-file-name')" title="הסר את הקובץ" style="display:none;padding:2px 7px;background:#fff;border:1px solid #d9a; color:#c0392b;border-radius:5px;cursor:pointer;font-size:0.76rem;line-height:1.4;">✕</button>
-        <div style="margin-right:auto;display:flex;gap:8px;">
+        <div style="margin-inline-start:auto;display:flex;gap:8px;">
           <button onclick="clearNewPost()" style="padding:8px 16px;background:#eee;border:none;border-radius:8px;cursor:pointer;">ביטול</button>
           <button id="new-post-send" onclick="submitPost()" style="padding:8px 20px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">שלח</button>
         </div>
@@ -1588,13 +1680,13 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <!-- Footer -->
 <footer style="background:#0a192f;color:rgba(255,255,255,0.6);text-align:center;padding:24px 20px;margin-top:20px;font-size:0.82rem;">
   <div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:12px;">
-    <span onclick="openM('aboutModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">עלינו</span>
+    <span onclick="openM('aboutModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'" data-en="About us">עלינו</span>
     <span style="color:rgba(255,255,255,0.2);">|</span>
-    <span onclick="openM('contactModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">צור קשר</span>
+    <span onclick="openM('contactModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'" data-en="Contact us">צור קשר</span>
     <span style="color:rgba(255,255,255,0.2);">|</span>
-    <span onclick="openM('helpModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">עזרה</span>
+    <span onclick="openM('helpModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'" data-en="Help">עזרה</span>
     <span style="color:rgba(255,255,255,0.2);">|</span>
-    <span onclick="openSources()" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">מקורות ואמינות</span>
+    <span onclick="openSources()" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'" data-en="Sources and reliability">מקורות ואמינות</span>
 
   </div>
   <div style="color:rgba(255,255,255,0.3);font-size:0.75rem;">CerviniaLive © 2026 · נתונים חיים מאתר Cervino Ski Paradise</div>
@@ -1738,7 +1830,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             style="font-size:0.72rem;color:#1a73e8;cursor:pointer;text-decoration:underline;">
             ℹ️ איך נקבעת ההערכה?
           </span>
-          <div id="crossing-explain" style="display:none;margin-top:6px;padding:9px 11px;background:rgba(0,0,0,0.06);border-radius:7px;font-size:0.72rem;color:#444;line-height:1.75;text-align:right;">
+          <div id="crossing-explain" style="display:none;margin-top:6px;padding:9px 11px;background:rgba(0,0,0,0.06);border-radius:7px;font-size:0.72rem;color:#444;line-height:1.75;text-align:start;">
             <b>מה שבאמת סוגר את המעבר זו הרוח</b>, לא הקור. הרכבלים הגבוהים
             נעצרים במשבי רוח, ולפעמים סוגרים את החיבור מראש מחשש שייעצרו.<br><br>
             לכן התחזית כאן נמדדת <b>בפלטאו רוזה עצמו</b> (כ-3,440 מ') ולא בכפר —
@@ -1987,7 +2079,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
                   ההרחבה בלבד, מעבר לפוליסת הבסיס · מטייל אחד בן 30 · נבדק באוקטובר 2026
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
-                  <tr style="background:#f3f6fa;"><th style="text-align:right;padding:4px 6px;">משך</th><th style="text-align:right;padding:4px 6px;">הזול</th><th style="text-align:right;padding:4px 6px;">היקר</th></tr>
+                  <tr style="background:#f3f6fa;"><th style="text-align:start;padding:4px 6px;">משך</th><th style="text-align:start;padding:4px 6px;">הזול</th><th style="text-align:start;padding:4px 6px;">היקר</th></tr>
                   <tr><td style="padding:4px 6px;border-top:1px solid #eee;">5 ימים</td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">$31.9</span></td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">$50</span></td></tr>
                   <tr><td style="padding:4px 6px;border-top:1px solid #eee;">7 ימים</td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">$44.7</span></td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">$70</span></td></tr>
                   <tr><td style="padding:4px 6px;border-top:1px solid #eee;">10 ימים</td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">$63.8</span></td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">$100</span></td></tr>
@@ -2023,7 +2115,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             על הכביש ממילאנו לעמק יש חנויות ספורט גדולות, <b>וזול שם משמעותית —
             גם מהכפר וגם מהארץ</b>. אותו מעיל בדיוק, בדקטלון:
             <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin:7px 0;">
-              <tr style="background:#f3f6fa;"><th style="text-align:right;padding:4px 6px;">דגם</th><th style="text-align:right;padding:4px 6px;">בארץ</th><th style="text-align:right;padding:4px 6px;">באיטליה</th></tr>
+              <tr style="background:#f3f6fa;"><th style="text-align:start;padding:4px 6px;">דגם</th><th style="text-align:start;padding:4px 6px;">בארץ</th><th style="text-align:start;padding:4px 6px;">באיטליה</th></tr>
               <tr><td style="padding:4px 6px;border-top:1px solid #eee;">QUECHUA 500</td><td style="padding:4px 6px;border-top:1px solid #eee;">500 ₪</td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">100 €</span> ≈ 345 ₪</td></tr>
               <tr><td style="padding:4px 6px;border-top:1px solid #eee;">WEDZE 500 AM</td><td style="padding:4px 6px;border-top:1px solid #eee;">660 ₪</td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">130 €</span> ≈ 450 ₪</td></tr>
             </table>
@@ -2087,7 +2179,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <div class="prep-h">דרגת כהות — המספר היחיד שחייבים להכיר</div>
             על כל עדשה רשומה קטגוריה, לפי אחוז האור שהיא מעבירה:
             <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin:7px 0;">
-              <tr style="background:#f3f6fa;"><th style="text-align:right;padding:4px 6px;">קטגוריה</th><th style="text-align:right;padding:4px 6px;">אור עובר</th><th style="text-align:right;padding:4px 6px;">מתי</th></tr>
+              <tr style="background:#f3f6fa;"><th style="text-align:start;padding:4px 6px;">קטגוריה</th><th style="text-align:start;padding:4px 6px;">אור עובר</th><th style="text-align:start;padding:4px 6px;">מתי</th></tr>
               <tr><td style="padding:4px 6px;border-top:1px solid #eee;"><b>S0</b></td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">80–100%</span></td><td style="padding:4px 6px;border-top:1px solid #eee;">סקי לילה, סופת שלג</td></tr>
               <tr><td style="padding:4px 6px;border-top:1px solid #eee;"><b>S1</b></td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">43–80%</span></td><td style="padding:4px 6px;border-top:1px solid #eee;">מעונן, אור שטוח</td></tr>
               <tr><td style="padding:4px 6px;border-top:1px solid #eee;"><b>S2</b></td><td style="padding:4px 6px;border-top:1px solid #eee;"><span dir="ltr">18–43%</span></td><td style="padding:4px 6px;border-top:1px solid #eee;">מעונן חלקית — הכי שימושי</td></tr>
@@ -2854,10 +2946,10 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 
 <!-- ══ סיסמה חדשה, אחרי לחיצה על קישור האיפוס ══ -->
 <div id="pwResetModal" class="modal" style="z-index:10001;">
-  <div class="modal-content" dir="rtl" style="max-width:420px;padding:26px 24px;text-align:right;">
+  <div class="modal-content" dir="rtl" style="max-width:420px;padding:26px 24px;text-align:start;">
     <span class="close-btn" onclick="closeM('pwResetModal')">×</span>
     <h3 style="margin:0 0 6px;font-size:1.1rem;">🔑 בחירת סיסמה חדשה</h3>
-    <p id="pw-reset-intro" dir="rtl" style="color:#888;font-size:0.82rem;margin:0 0 6px;line-height:1.7;text-align:right;">
+    <p id="pw-reset-intro" dir="rtl" style="color:#888;font-size:0.82rem;margin:0 0 6px;line-height:1.7;text-align:start;">
       בחר סיסמה חדשה. היא תיכנס לתוקף מיד.
     </p>
     <!-- The rule used to be the placeholder, which forced a choice between
@@ -2866,7 +2958,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
          letters the text was telling the reader not to use. Out here it is
          readable, right-aligned, and still visible once typing starts, and
          the field can be what a latin password needs. -->
-    <div dir="rtl" style="font-size:0.74rem;color:#9aa0a6;margin:0 0 10px;text-align:right;">
+    <div dir="rtl" style="font-size:0.74rem;color:#9aa0a6;margin:0 0 10px;text-align:start;">
       לפחות 6 תווים, באותיות לועזיות
     </div>
     <!-- Chrome decides which saved password to offer by looking for a
@@ -2899,13 +2991,13 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;
                border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
     </div>
-    <div id="pw-reset-match" dir="rtl" style="font-size:0.74rem;margin:0 0 12px;min-height:16px;text-align:right;color:#9aa0a6;">הקלד שוב לאימות</div>
+    <div id="pw-reset-match" dir="rtl" style="font-size:0.74rem;margin:0 0 12px;min-height:16px;text-align:start;color:#9aa0a6;">הקלד שוב לאימות</div>
     <button id="pw-reset-btn" onclick="submitPasswordReset()"
       style="width:100%;padding:12px;background:var(--accent);color:white;border:none;
              border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
       שמירת הסיסמה
     </button>
-    <div id="pw-reset-msg" dir="rtl" style="display:none;margin-top:11px;font-size:0.84rem;line-height:1.6;text-align:right;"></div>
+    <div id="pw-reset-msg" dir="rtl" style="display:none;margin-top:11px;font-size:0.84rem;line-height:1.6;text-align:start;"></div>
   </div>
 </div>
 
@@ -3208,7 +3300,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
             onkeydown="if(event.key==='Enter') login()">
           <button type="button" onclick="togglePass('login-pass')" tabindex="-1"
-            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
+            style="position:absolute;inset-inline-end:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
       </div>
       <button onclick="login()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
@@ -3240,7 +3332,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <!-- The rule sits beside the label, not inside the box. In the box
              it had to choose between Hebrew sitting on the wrong side and a
              caret inviting the letters it was warning against. -->
-        <div style="font-size:0.74rem;color:#9aa0a6;margin:0 0 5px;direction:rtl;text-align:right;">
+        <div style="font-size:0.74rem;color:#9aa0a6;margin:0 0 5px;direction:rtl;text-align:start;">
           לפחות 6 תווים — אותיות לועזיות, ספרות וסימנים
         </div>
         <div style="position:relative;">
@@ -3248,9 +3340,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
             oninput="checkPassValidity()">
           <button type="button" onclick="togglePass('reg-pass')" tabindex="-1"
-            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
+            style="position:absolute;inset-inline-end:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
-        <div id="pass-validity-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;direction:rtl;text-align:right;"></div>
+        <div id="pass-validity-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;direction:rtl;text-align:start;"></div>
       </div>
       <div style="margin-bottom:16px;">
         <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">אימות סיסמה</label>
@@ -3259,9 +3351,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
             onkeydown="if(event.key==='Enter') register()" oninput="checkPassMatch()">
           <button type="button" onclick="togglePass('reg-pass2')" tabindex="-1"
-            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
+            style="position:absolute;inset-inline-end:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
-        <div id="pass-match-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;direction:rtl;text-align:right;"></div>
+        <div id="pass-match-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;direction:rtl;text-align:start;"></div>
       </div>
       <button onclick="register()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
         ✅ הרשמה
@@ -3284,7 +3376,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
           <span style="font-size:2rem;">🔑</span>
           <div style="font-weight:bold;font-size:0.95rem;margin-top:6px;">איפוס סיסמה</div>
         </div>
-        <div id="forgot-hello" dir="rtl" style="font-size:0.86rem;color:#555;line-height:1.8;text-align:right;margin-bottom:14px;"></div>
+        <div id="forgot-hello" dir="rtl" style="font-size:0.86rem;color:#555;line-height:1.8;text-align:start;margin-bottom:14px;"></div>
         <div id="forgot-name-row" style="margin-bottom:14px;display:none;">
           <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">שם משתמש</label>
           <input id="forgot-email" type="text" placeholder="הכנס את שם המשתמש שלך" dir="rtl"
@@ -3416,7 +3508,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
         <div id="rental-booking-warning" style="font-size:0.78rem;line-height:1.75;font-weight:normal;color:#7a2e00;margin-top:7px;"></div>
       </details>
 
-        <ul id="rental-ski-tips" style="margin:0;padding-right:18px;font-size:0.8rem;color:#555;line-height:1.8;"></ul>
+        <ul id="rental-ski-tips" style="margin:0;padding-inline-start:18px;font-size:0.8rem;color:#555;line-height:1.8;"></ul>
       </div>
     </details>
 
@@ -4256,7 +4348,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <button onclick="mapZoomReset()" style="padding:5px 11px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.78rem;background:white;">100%</button>
       <span id="map-zoom-label" style="font-size:0.78rem;color:#888;min-width:36px;text-align:center;">100%</span>
       <button onclick="mapFullscreen()" style="padding:5px 11px;border-radius:7px;border:1px solid #ddd;cursor:pointer;font-size:0.82rem;background:white;">⛶ מסך מלא</button>
-      <a id="map-download-btn" href="" target="_blank" style="padding:5px 14px;border-radius:7px;background:#27ae60;color:white;font-size:0.78rem;font-weight:bold;text-decoration:none;margin-right:auto;">📥 הורד</a>
+      <a id="map-download-btn" href="" target="_blank" style="padding:5px 14px;border-radius:7px;background:#27ae60;color:white;font-size:0.78rem;font-weight:bold;text-decoration:none;margin-inline-start:auto;">📥 הורד</a>
     </div>
     <!-- אזור תצוגה -->
     <div id="map-container" style="flex:1;border:1px solid #eee;border-radius:10px;overflow:hidden;position:relative;background:#f0f0f0;display:flex;align-items:center;justify-content:center;">
@@ -4305,7 +4397,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
             <!-- .close-btn draws a white disc, and this one asked for a white
                  ✕ on top of it: an empty circle in the corner. The header is
                  dark, so the disc is not wanted here at all. -->
-            <span class="close-btn" onclick="closeM('adminModal')" style="color:white;opacity:0.75;top:12px;left:14px;background:transparent;">×</span>
+            <span class="close-btn" onclick="closeM('adminModal')" style="color:white;opacity:0.75;top:12px;inset-inline-end:14px;background:transparent;">×</span>
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
                 <span style="font-size:1.8rem;">⚙️</span>
                 <div>
@@ -4533,7 +4625,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
       <div style="position:relative;flex-shrink:0;">
         <div id="profile-avatar" onclick="openAvatarMenu()"
              style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:1.55rem;color:white;font-weight:bold;cursor:pointer;overflow:hidden;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.15);"></div>
-        <div onclick="openAvatarMenu()" style="position:absolute;bottom:-2px;left:-2px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;cursor:pointer;border:2px solid white;">📷</div>
+        <div onclick="openAvatarMenu()" style="position:absolute;bottom:-2px;inset-inline-end:-2px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;cursor:pointer;border:2px solid white;">📷</div>
       </div>
       <div>
         <div id="profile-name-display" style="font-weight:bold;font-size:1.02rem;"></div>
@@ -6771,7 +6863,7 @@ function closeReplyBox(targetId) {
 }
 function makeReplyBox(targetId, postId) {
   const sid = safeId(targetId);
-  return '<div id="rbox-' + sid + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'    + '<textarea id="rtxt-' + sid + '" rows="2" placeholder="כתוב תגובה..." '    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;direction:rtl;font-family:inherit;font-size:0.87rem;"></textarea>'    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + sid + '" style="display:none;" accept="' + FORUM_ACCEPT + '" onchange="showPickedFile(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')"></label>'    + '<span id="rfile-name-' + sid + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'    + '<button id="rfile-name-' + sid + '-clr" onclick="clearAttachment(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')" title="הסר את הקובץ" style="display:none;padding:2px 7px;background:#fff;border:1px solid #d9a;color:#c0392b;border-radius:5px;cursor:pointer;font-size:0.76rem;line-height:1.4;">✕</button>'        + '<div style="margin-right:auto;display:flex;gap:6px;">'    + '<button onclick="closeReplyBox(\'' + sid + '\')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'    + '<button id="rsend-' + sid + '" onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'    + '</div></div></div>';
+  return '<div id="rbox-' + sid + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'    + '<textarea id="rtxt-' + sid + '" rows="2" placeholder="כתוב תגובה..." '    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;direction:rtl;font-family:inherit;font-size:0.87rem;"></textarea>'    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + sid + '" style="display:none;" accept="' + FORUM_ACCEPT + '" onchange="showPickedFile(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')"></label>'    + '<span id="rfile-name-' + sid + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'    + '<button id="rfile-name-' + sid + '-clr" onclick="clearAttachment(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')" title="הסר את הקובץ" style="display:none;padding:2px 7px;background:#fff;border:1px solid #d9a;color:#c0392b;border-radius:5px;cursor:pointer;font-size:0.76rem;line-height:1.4;">✕</button>'        + '<div style="margin-inline-start:auto;display:flex;gap:6px;">'    + '<button onclick="closeReplyBox(\'' + sid + '\')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'    + '<button id="rsend-' + sid + '" onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'    + '</div></div></div>';
 }
 async function submitReply(targetId, postId) {
   if (!user) return;
@@ -10273,7 +10365,7 @@ function sharePost(postId) {
         + _candles() + ' זמני השבוע, שבת ומועדים</div>'
         + '<table style="width:100%;border-collapse:collapse;">'
         + '<thead><tr style="background:#f5f5f5;">'
-        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:right;">יום</th>'
+        + '<th style="padding:5px 8px;font-size:0.75rem;text-align:start;">יום</th>'
         + '<th style="padding:5px 8px;font-size:0.75rem;text-align:center;">זריחה</th>'
         + '<th style="padding:5px 8px;font-size:0.75rem;text-align:center;">שקיעה</th>'
         + '<th style="padding:5px 8px;font-size:0.75rem;text-align:center;">שבת / חג</th>'
@@ -11542,7 +11634,7 @@ function _pisteFlat() {
 }
 
 function _pisteCard(p, col) {
-  return '<div style="border:1.5px solid #eee;border-right:4px solid ' + col + ';border-radius:10px;padding:10px 12px;background:white;">'
+  return '<div style="border:1.5px solid #eee;border-inline-start:4px solid ' + col + ';border-radius:10px;padding:10px 12px;background:white;">'
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
     + '<div style="display:flex;align-items:center;gap:6px;">'
     + '<span style="font-size:1rem;">' + p.diff + '</span>'
@@ -11553,7 +11645,7 @@ function _pisteCard(p, col) {
     + '</div>'
     + '<div style="font-size:0.73rem;color:#999;margin-bottom:5px;">📍 ' + _fixNums(p.area) + '</div>'
     + '<div style="font-size:0.8rem;color:#333;line-height:1.55;margin-bottom:5px;">' + p.desc + '</div>'
-    + (p.tip ? '<div style="font-size:0.74rem;color:#444;background:#fff8e1;padding:5px 8px;border-radius:6px;border-right:3px solid #f39c12;">' + _fixPhones(p.tip) + '</div>' : '')
+    + (p.tip ? '<div style="font-size:0.74rem;color:#444;background:#fff8e1;padding:5px 8px;border-radius:6px;border-inline-start:3px solid #f39c12;">' + _fixPhones(p.tip) + '</div>' : '')
     + '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">'
     + (p.tags || []).map(function (t) { return '<span style="font-size:0.66rem;padding:2px 7px;background:#f0f0f0;border-radius:10px;color:#666;">' + t + '</span>'; }).join('')
     + '</div>'
@@ -11739,7 +11831,7 @@ function _routeCard(r) {
     + _routeMapSvg(r)
     + rows
     + ((r.tips || []).length ? '<div style="margin-top:11px;display:flex;flex-direction:column;gap:5px;">'
-        + r.tips.map(function (x) { return '<div style="font-size:0.75rem;color:#444;background:#fff8e1;padding:6px 9px;border-radius:6px;border-right:3px solid #f39c12;line-height:1.5;">' + _fixNums(x) + '</div>'; }).join('')
+        + r.tips.map(function (x) { return '<div style="font-size:0.75rem;color:#444;background:#fff8e1;padding:6px 9px;border-radius:6px;border-inline-start:3px solid #f39c12;line-height:1.5;">' + _fixNums(x) + '</div>'; }).join('')
         + '</div>' : '')
     + (r.warn ? '<div style="margin-top:9px;font-size:0.71rem;color:#888;line-height:1.5;">' + _fixNums(r.warn) + '</div>' : '')
     + '</div>';
@@ -11879,7 +11971,7 @@ function renderPisteGuide() {
         var sub = inArea.filter(function (x) { return x.kind === kk; });
         if (!sub.length) return;
         if (kind === 'runs' && diff === 'all') {
-          bodyHtml += '<div style="font-size:0.72rem;color:#999;margin-top:7px;padding-right:2px;">'
+          bodyHtml += '<div style="font-size:0.72rem;color:#999;margin-top:7px;padding-inline-start:2px;">'
             + KIND_TITLES[kk] + '</div>';
         }
         sub.forEach(function (x) { bodyHtml += _pisteCard(x.p, AREA_COLORS[ak]); });
@@ -12008,7 +12100,7 @@ function renderSkipassPrices() {
     if (!host || !t) return;
 
     var head = '<tr style="background:#0a192f;color:white;">'
-      + '<th style="padding:7px 8px;text-align:right;border-radius:8px 0 0 0;">פס</th>'
+      + '<th style="padding:7px 8px;text-align:start;border-radius:8px 0 0 0;">פס</th>'
       + (p.columns || []).map(function (c, i) {
           var last = i === (p.columns.length - 1);
           return '<th style="padding:7px 6px;text-align:center;'
@@ -12082,7 +12174,7 @@ function openPisteMapFull() {
     ov = document.createElement('div');
     ov.id = 'piste-map-overlay';
     ov.style.cssText = 'position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:10px;';
-    ov.innerHTML = `<div style="position:relative;max-width:100%;max-height:100%;"><img src="${window._pisteMapImg}" style="max-width:90vw;max-height:90vh;border-radius:8px;display:block;"><button onclick="document.getElementById('piste-map-overlay').remove()" style="position:absolute;top:-12px;right:-12px;width:32px;height:32px;border-radius:50%;border:none;background:white;font-size:1rem;cursor:pointer;font-weight:bold;">✕</button><a href="${window._pisteMapImg}" download="cervinia_piste_map.jpg" style="display:block;margin-top:10px;text-align:center;padding:9px;background:#27ae60;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.84rem;">📥 הורד מפה מלאה</a></div>`;
+    ov.innerHTML = `<div style="position:relative;max-width:100%;max-height:100%;"><img src="${window._pisteMapImg}" style="max-width:90vw;max-height:90vh;border-radius:8px;display:block;"><button onclick="document.getElementById('piste-map-overlay').remove()" style="position:absolute;top:-12px;inset-inline-start:-12px;width:32px;height:32px;border-radius:50%;border:none;background:white;font-size:1rem;cursor:pointer;font-weight:bold;">✕</button><a href="${window._pisteMapImg}" download="cervinia_piste_map.jpg" style="display:block;margin-top:10px;text-align:center;padding:9px;background:#27ae60;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.84rem;">📥 הורד מפה מלאה</a></div>`;
     ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
     document.body.appendChild(ov);
   }
@@ -12481,7 +12573,7 @@ function reviewReactsHtml(r) {
       + ' title="' + (user ? '' : 'צריך להתחבר') + '"'
       + ' style="cursor:pointer;font-size:0.9rem;padding:2px 8px;border-radius:8px;border:1.5px solid '
       + (on ? '#93c5fd;background:#dbeafe;font-weight:bold;' : (n ? '#e5e7eb;background:#f3f4f6;' : 'transparent;opacity:0.55;'))
-      + '">' + e + (n ? '<span style="font-size:0.7rem;vertical-align:super;margin-right:2px;">' + n + '</span>' : '')
+      + '">' + e + (n ? '<span style="font-size:0.7rem;vertical-align:super;margin-inline-start:2px;">' + n + '</span>' : '')
       + '</span>';
   }).join('') + '</span>';
 }
@@ -15533,13 +15625,13 @@ function _applyTexts(t) {
     if (tbl && r.price_rows && r.price_cols) {
       var th = 'padding:7px 8px;font-weight:bold;color:#55606b;border-bottom:1.5px solid #e5e9ee;';
       var td = 'padding:8px;border-bottom:1px solid #f0f3f6;';
-      var h = '<thead><tr><th style="' + th + 'text-align:right;"></th>'
+      var h = '<thead><tr><th style="' + th + 'text-align:start;"></th>'
         + r.price_cols.map(function (c) {
             return '<th style="' + th + 'text-align:center;white-space:nowrap;">' + c + '</th>';
           }).join('')
         + '</tr></thead><tbody>';
       h += r.price_rows.map(function (row) {
-        return '<tr><td style="' + td + 'text-align:right;">' + row.label
+        return '<tr><td style="' + td + 'text-align:start;">' + row.label
           + (row.note ? '<div style="font-size:0.7rem;color:#99a3ad;">' + row.note + '</div>' : '')
           + '</td>'
           + row.v.map(function (v) {
@@ -16142,8 +16234,10 @@ async function paintTravelTeaser() {
   // hovering names them and a click opens the trip planner already filled
   // in on those exact days. stopPropagation, or the card's own onclick
   // would open the planner a second time on the tab it always opens on.
-  b.setAttribute('title', 'יציאה ' + _flDay(cheap.date) + ' · חזרה ' +
-    _flDay(cheap.ret) + ' · ' + cheap.nights + ' לילות · לחצו לפתיחה');
+  b.setAttribute('title', L('יציאה ' + _flDay(cheap.date) + ' · חזרה ' +
+    _flDay(cheap.ret) + ' · ' + cheap.nights + ' לילות · לחצו לפתיחה',
+    'Out ' + _flDay(cheap.date) + ' · back ' + _flDay(cheap.ret) + ' · ' +
+    cheap.nights + ' nights · tap to open'));
   b.setAttribute('role', 'button');
   b.setAttribute('tabindex', '0');
   b.style.cursor = 'pointer';
@@ -16152,8 +16246,9 @@ async function paintTravelTeaser() {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openFlightDeal(cheap); }
   };
   b.innerHTML = ' · <b style="color:#0f6b3f;text-decoration:underline;' +
-    'text-decoration-style:dotted;text-underline-offset:3px;">טיסה מ-<bdi>' +
-    cheap.price + ' $</bdi></b>';
+    'text-decoration-style:dotted;text-underline-offset:3px;">' +
+    // the prices are of flights from Tel Aviv, and in English that is said
+    L('טיסה מ-<bdi>' + cheap.price + ' $</bdi>', 'From Tel Aviv: <bdi>$' + cheap.price + '</bdi>') + '</b>';
   host.appendChild(b);
 }
 
@@ -16260,6 +16355,12 @@ async function loadTexts() {
     var res = await fetch('texts.json?v=' + Date.now());
     if (!res.ok) throw new Error('texts.json not found');
     var data = await res.json();
+    if (window.LANG === 'en') {
+      try {
+        var re = await fetch('texts.en.json?v=' + Date.now());
+        if (re.ok) data = _overlayTexts(data, await re.json());
+      } catch (e) { console.warn('texts.en.json not loaded:', e.message); }
+    }
     window._texts = data;
     // מאכלס את PISTES ו-SKI_INSTRUCTORS מהקובץ
     if (data.pistes)          PISTES          = data.pistes;
@@ -16776,38 +16877,38 @@ function _buildSummerModals() {
           </div>
         </div>
 
-        <div style="background:#fff3cd;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;border-right:4px solid #f39c12;">
+        <div style="background:#fff3cd;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;border-inline-start:4px solid #f39c12;">
           💎 <b>נישה ייחודית שמעטים מכירים</b> — כמעט אף ישראלי לא יודע שאפשר לגלוש בצ'רוויניה בקיץ. הקרחון פתוח, המסלולים ריקים, והמחירים נמוכים יותר מהחורף.
         </div>
 
         <div style="display:flex;flex-direction:column;gap:10px;">
 
-          <div style="border:1.5px solid #eee;border-right:4px solid #2563b0;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2563b0;border-radius:10px;padding:12px;">
             <b>🎿 מה יש בקרחון?</b><br>
             <span style="font-size:0.82rem;color:#555;line-height:1.6;">מסלולים לכל הרמות — כחול, אדום ושחור. נבחרות לאומיות מתאמנות כאן בקיץ על מסלולים שמורים. Snow Park ו-Gravity Park לרוכבי סנובורד. חיבור לזרמט.</span>
           </div>
 
-          <div style="border:1.5px solid #eee;border-right:4px solid #e74c3c;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #e74c3c;border-radius:10px;padding:12px;">
             <b>⏰ שעות — זה קריטי!</b><br>
             <span style="font-size:0.82rem;color:#555;line-height:1.6;">הרמות נפתחות בבוקר ונסגרות בדרך כלל ב-<b>13:00–14:00</b> כשהשלג מתרכך. <b>חובה להגיע לכבלית לפני 9:00</b> — השלג הכי טוב בשעות הבוקר המוקדמות.</span>
           </div>
 
-          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
             <b>🧥 לבוש — אל תתפתו!</b><br>
             <span style="font-size:0.82rem;color:#555;line-height:1.6;">חם בכפר (20°+), אבל ב-3,500מ קר מאוד גם באוגוסט — לפעמים מתחת לאפס. קרם שמש חובה — הקרינה בגובה חזקה מאוד.</span>
           </div>
 
-          <div style="border:1.5px solid #eee;border-right:4px solid #8e44ad;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #8e44ad;border-radius:10px;padding:12px;">
             <b>🎫 סקי פס — טיפ חשוב</b><br>
             <span style="font-size:0.82rem;color:#555;line-height:1.6;">פס משולב צ'רוויניה+זרמט <b>זול יותר ב-100 יורו</b> כשקונים מהצד האיטלקי! תמיד קנו בצ'רוויניה ולא בזרמט.</span>
           </div>
 
-          <div style="border:1.5px solid #eee;border-right:4px solid #e67e22;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #e67e22;border-radius:10px;padding:12px;">
             <b>🚡 איך מגיעים לקרחון?</b><br>
             <span style="font-size:0.82rem;color:#555;line-height:1.6;">כבלית מהכפר → Cime Bianche Laghi → Plateau Rosa. כ-30 דקות. הכבלית החדשה מודרנית ומהירה.</span>
           </div>
 
-          <div style="border:1.5px solid #eee;border-right:4px solid #f39c12;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #f39c12;border-radius:10px;padding:12px;">
             <b>☀️ אחר הצהריים — מה עושים?</b><br>
             <span style="font-size:0.82rem;color:#555;line-height:1.6;">אחרי הגלישה הבוקר — הכפר מחכה! Bike Park, טיולים, Alpine Crossing לזרמט, קפה על מרפסת השמש, Lago Blu. יום מלא ועשיר.</span>
           </div>
@@ -16827,19 +16928,19 @@ function _buildSummerModals() {
       </div>
       <div style="padding:16px;max-height:75vh;overflow-y:auto;">
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
             <b>✝️ צלב Carrel — 2,800מ</b><br>
             <span style="font-size:0.82rem;color:#555;">מסלול קלאסי ומרהיב מהכפר. נוף ישיר למטרהורן. כ-3 שעות הלוך-חזור.</span>
           </div>
-          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
             <b>💙 Lago Blu — 2,090מ</b><br>
             <span style="font-size:0.82rem;color:#555;">אגם כחול מרהיב ממש מחוץ לכפר. מסלול קל ומשפחתי. השתקפות המטרהורן במים.</span>
           </div>
-          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
             <b>🏔️ Cime Bianche Laghi — 2,814מ</b><br>
             <span style="font-size:0.82rem;color:#555;">אגמי הפסגה בגבול שווייץ-איטליה. ניתן להגיע בכבלית + קצת הליכה. נוף עוצר נשימה.</span>
           </div>
-          <div style="border:1.5px solid #eee;border-right:4px solid #2e9e5a;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
             <b>🌸 מסלולי אחו פורח</b><br>
             <span style="font-size:0.82rem;color:#555;">מסלולים קלים בין פרחי האלפים סביב הכפר. מתאים לכל הגילאים.</span>
           </div>
@@ -16861,15 +16962,15 @@ function _buildSummerModals() {
           אחד הפארקים הציוריים ביותר באלפים — מסלולי Downhill ו-Cross Country עם נוף מטרהורן.
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="border:1.5px solid #eee;border-right:4px solid #b05a20;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #b05a20;border-radius:10px;padding:12px;">
             <b>🎿 מסלולי Downhill</b><br>
             <span style="font-size:0.82rem;color:#555;">עולים בכבלית, יורדים על אופניים. מסלולים לכל הרמות — מתחילים ועד מתקדמים.</span>
           </div>
-          <div style="border:1.5px solid #eee;border-right:4px solid #b05a20;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #b05a20;border-radius:10px;padding:12px;">
             <b>🌄 Cross Country</b><br>
             <span style="font-size:0.82rem;color:#555;">מסלולי אנדורו ונוף מרהיב. גישה מהכפר בהליכה קצרה לכבלית.</span>
           </div>
-          <div style="border:1.5px solid #eee;border-right:4px solid #b05a20;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #b05a20;border-radius:10px;padding:12px;">
             <b>🛒 השכרת אופניים</b><br>
             <span style="font-size:0.82rem;color:#555;">ניתן לשכור אופני הרים בכפר. שאלו במלון שלכם לגבי המלצות.</span>
           </div>
@@ -16891,19 +16992,19 @@ function _buildSummerModals() {
           ניסיון אלפיני בלתי נשכח מעל 3,800מ — ללא סקי.
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #4a6278;border-radius:10px;padding:12px;">
             <b>🚡 המסלול</b><br>
             <span style="font-size:0.82rem;color:#555;">כבלית מצ'רוויניה → Plateau Rosa → מנהרת קרח → Matterhorn Glacier Paradise (3,883מ) → זרמט</span>
           </div>
-          <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #4a6278;border-radius:10px;padding:12px;">
             <b>🧊 מערת הקרח</b><br>
             <span style="font-size:0.82rem;color:#555;">מערת הקרח הגבוהה ביותר באירופה — פסלים ומנהרות חצובים ישירות בתוך הקרחון. פתוח יומי.</span>
           </div>
-          <div style="border:1.5px solid #eee;border-right:4px solid #4a6278;border-radius:10px;padding:12px;">
+          <div style="border:1.5px solid #eee;border-inline-start:4px solid #4a6278;border-radius:10px;padding:12px;">
             <b>⚠️ חשוב לדעת</b><br>
             <span style="font-size:0.82rem;color:#555;">כרטיס חד-כיווני · יש לתכנן חזרה מזרמט (רכבת/אוטובוס) · לבשו שכבות, קר מאוד</span>
           </div>
-          <div style="border:1.5px solid #fff3cd;border-right:4px solid #f39c12;border-radius:10px;padding:12px;background:#fffbf0;">
+          <div style="border:1.5px solid #fff3cd;border-inline-start:4px solid #f39c12;border-radius:10px;padding:12px;background:#fffbf0;">
             <b>💡 טיפ</b><br>
             <span style="font-size:0.82rem;color:#555;">הזמינו כרטיסים מראש באתר הרשמי. חזרה לצ'רוויניה: אוטובוס מזרמט → ויספ → אייאס → צ'רוויניה (~3 שעות)</span>
           </div>
@@ -17123,7 +17224,7 @@ function renderHeader() {
   const area = document.getElementById('auth-area');
   if (user) {
     const adminBadge = isAdmin() ? '<span class="admin-badge">ADMIN</span>' : '';
-    const gear = isAdmin() ? `<span onclick="openAdminDashboard()" style="cursor:pointer;font-size:1.1rem;margin-left:2px;" title="ניהול">⚙️</span>` : '';
+    const gear = isAdmin() ? `<span onclick="openAdminDashboard()" style="cursor:pointer;font-size:1.1rem;margin-inline-end:2px;" title="ניהול">⚙️</span>` : '';
     const initial = getInitial(user.name);
     let avatarInner;
     if (user.avatar_url) {
@@ -17137,7 +17238,7 @@ function renderHeader() {
   } else {
     // It used to borrow .service-btn, which is now a large card with an icon
     // tile - so the sign-in button grew into a white block in the header.
-    area.innerHTML = `<button onclick="openM('authModal')" class="signin-btn">כניסה / הרשמה</button>`;
+    area.innerHTML = `<button onclick="openM('authModal')" class="signin-btn">${L('כניסה / הרשמה', 'Sign in')}</button>`;
   }
 }
 
@@ -17311,7 +17412,7 @@ async function fetchWttrForecast() {
         const tMax = (td.periods[1] || td.periods[0]).temp.split(' ')[0];
         const wind = td.periods[1] && td.periods[1].wind ? ' · 💨' + td.periods[1].wind : '';
         const windStr = td.periods[1] && td.periods[1].wind ? ' · 💨 ' + td.periods[1].wind + ' km/h' : '';
-        tomorrowEl.textContent = 'מחר: ' + td.periods[0].icon + '  ' + tMin + ' / ' + tMax + windStr;
+        tomorrowEl.textContent = L('מחר: ', 'Tomorrow: ') + td.periods[0].icon + '  ' + tMin + ' / ' + tMax + windStr;
       }
     }
   } catch(e) {
@@ -17379,9 +17480,9 @@ function renderLiveBar(d) {
   // It used to promise "whole area (Cervinia)" even on the line where the
   // feed had no Cervinia figure at all and nothing was in brackets.
   function _scope(area, local) {
-    if (area && local) return 'כל האזור (צ׳רוויניה)';
-    if (area)  return 'כל האזור';
-    if (local) return 'צ׳רוויניה';
+    if (area && local) return L('כל האזור (צ׳רוויניה)', 'whole area (Cervinia)');
+    if (area)  return L('כל האזור', 'whole area');
+    if (local) return L('צ׳רוויניה', 'Cervinia');
     return '';
   }
   // All the live numbers were the same blue, so "0 of 9 slopes open" and
@@ -17413,14 +17514,15 @@ function renderLiveBar(d) {
   function _countTip(word, area, local) {
     const part = (pair, where) => {
       const n = pair.split('/');
-      return n[0] + ' מתוך ' + n[1] + ' ' + where;
+      return n[0] + L(' מתוך ', ' of ') + n[1] + ' ' + where;
     };
     const out = [];
-    if (area)  out.push(part(area,  'בכל אזור Cervino Ski Paradise'));
-    if (local) out.push(part(local, 'בצ׳רוויניה עצמה'));
+    if (area)  out.push(part(area,  L('בכל אזור Cervino Ski Paradise', 'in the whole Cervino Ski Paradise area')));
+    if (local) out.push(part(local, L('בצ׳רוויניה עצמה', 'in Cervinia itself')));
     if (!out.length) return '';
-    return word + ' פתוחים כעת, מתוך אלו שמופעלים בתקופה זו: '
-         + out.join(' · ') + '. לחץ להסבר.';
+    return L(word + ' פתוחים כעת, מתוך אלו שמופעלים בתקופה זו: ',
+             word + ' open now, out of those running this period: ')
+         + out.join(' · ') + L('. לחץ להסבר.', '. Tap for an explanation.');
   }
   function _tip(id, text) {
     const el = document.getElementById(id);
@@ -17442,17 +17544,17 @@ function renderLiveBar(d) {
              && (parseInt(d.slopes_open_local,  10) || 0) === 0;
   set('bar-slopes-local',  sArea || sLocal || (sShut ? '0' : '--'));
   set('bar-slopes-global', (sArea && sLocal) ? ' (' + sLocal + ')' : '');
-  set('bar-slopes-scope',  sShut ? 'אף מסלול לא פתוח' : _scope(sArea, sLocal));
+  set('bar-slopes-scope',  sShut ? L('אף מסלול לא פתוח', 'no slope open') : _scope(sArea, sLocal));
   _tip('bar-slopes-cell',  sShut
-        ? 'הפיד מדווח שאין כרגע מסלול פתוח באזור. לחץ להסבר.'
-        : _countTip('מסלולים', sArea, sLocal));
+        ? L('הפיד מדווח שאין כרגע מסלול פתוח באזור. לחץ להסבר.', 'The feed reports no slope open in the area right now. Tap for an explanation.')
+        : _countTip(L('מסלולים', 'Slopes'), sArea, sLocal));
   _severity('bar-slopes-local', 'bar-slopes-global', sArea || sLocal || (sShut ? '0/1' : null));
   const lArea  = _count(d.lifts_open_global, d.lifts_total_global);
   const lLocal = _count(d.lifts_open_local,  d.lifts_total_local);
   set('bar-lifts-local',   lArea || lLocal || '--');
   set('bar-lifts-global',  (lArea && lLocal) ? ' (' + lLocal + ')' : '');
   set('bar-lifts-scope',   _scope(lArea, lLocal));
-  _tip('bar-lifts-cell',   _countTip('מעליות', lArea, lLocal));
+  _tip('bar-lifts-cell',   _countTip(L('מעליות', 'Lifts'), lArea, lLocal));
   _severity('bar-lifts-local', 'bar-lifts-global', lArea || lLocal);
   set('bar-wind', d.wind_speed != null ? Math.round(d.wind_speed) + ' km/h' : '--');
 
@@ -17461,7 +17563,7 @@ function renderLiveBar(d) {
   const snowNum = rawSnow != null ? parseInt(String(rawSnow)) : null;
   var _bs = document.getElementById('bar-snow');
   if (_bs) _bs.innerHTML = snowNum != null
-    ? snowNum + '<span class="bar-u"> ס"מ</span>' : '--';
+    ? snowNum + '<span class="bar-u"> ' + L('ס"מ', 'cm') + '</span>' : '--';
   // which station that is: the point with the same depth, the middle one first
   // older readings carry no name or call the height alt; fill both in
   var _stName = { top: 'Plateau Rosa', cime: 'Cime Bianche Laghi', mid: 'Plan Maison', base: 'Breuil', basev: 'Breuil' };
@@ -17481,7 +17583,7 @@ function renderLiveBar(d) {
     var here = snowNum == null ? null
       : (_snowPoints.filter(function (p) { return p.station === 'mid' && +p.depth === snowNum; })[0]
          || _snowPoints.filter(function (p) { return +p.depth === snowNum; })[0]);
-    _bsl.innerHTML = '❄️ שלג' + (here && here.name ? ' · <bdi>' + here.name + '</bdi>' : '');
+    _bsl.innerHTML = L('❄️ שלג', '❄️ Snow') + (here && here.name ? ' · <bdi>' + here.name + '</bdi>' : '');
   }
 
   // weather_description — Italian + English → Hebrew
@@ -17506,6 +17608,11 @@ function renderLiveBar(d) {
     'Fog':'🌫️ ערפל', 'Mist':'🌫️ ערפל קל',
     'Thunderstorm':'⛈️ סופה', 'Windy':'💨 רוח חזקה'
   };
+  // the Hebrew words above, in English
+  const weatherEn = { 'בהיר':'Clear', 'יפה':'Fine', 'שמשי':'Sunny', 'נאה':'Fair', 'מעונן חלקית':'Partly cloudy',
+    'מעונן':'Cloudy', 'מעונן מאוד':'Very cloudy', 'מכוסה':'Overcast', 'משתנה':'Variable', 'גשם':'Rain',
+    'גשם קל':'Light rain', 'גשם חזק':'Heavy rain', 'שלג':'Snow', 'שלג קל':'Light snow', 'שלג כבד':'Heavy snow',
+    'ערפל':'Fog', 'ערפל קל':'Mist', 'סופה':'Storm', 'רוח':'Wind', 'רוח חזקה':'Strong wind', 'טפטוף':'Drizzle' };
   const desc = d.weather_description;
   if (desc) {
     const t = desc.trim();
@@ -17517,7 +17624,10 @@ function renderLiveBar(d) {
              || Object.keys(weatherIcons).find(k => k.toLowerCase() === words.slice(1,3).join(' '))
              || Object.keys(weatherIcons).find(k => k.toLowerCase() === words[0])
              || Object.keys(weatherIcons).find(k => k.toLowerCase() === words[words.length-1]);
-    set('bar-weather-desc', key ? weatherIcons[key] : t);
+    // the same icon; in English the words from the table below
+    set('bar-weather-desc', key ? (window.LANG === 'en'
+          ? weatherIcons[key].split(' ')[0] + ' ' + (weatherEn[weatherIcons[key].split(' ').slice(1).join(' ')] || key)
+          : weatherIcons[key]) : t);
   }
 
   // opening_hours
@@ -17612,7 +17722,7 @@ function renderLiveBar(d) {
     const iconMap = { 'sun':'☀️', 'partially-cloudy':'⛅', 'cloudy':'☁️', 'snow':'🌨️', 'rain':'🌧️' };
     const morningIcon = nextDay.periods && nextDay.periods[0] ? (iconMap[nextDay.periods[0].icon] || '🌤️') : '🌤️';
     const tomorrowEl = document.getElementById('forecast-tomorrow-text');
-    if (tomorrowEl) tomorrowEl.textContent = nextDay.date.split(',')[0] + ': ' + morningIcon;
+    if (tomorrowEl) tomorrowEl.textContent = L(nextDay.date.split(',')[0], 'Tomorrow') + ': ' + morningIcon;
   }
 
   // Zermatt big colored badge
@@ -17631,13 +17741,13 @@ function renderLiveBar(d) {
     const status = document.getElementById('zermatt-status');
     let zColor, zText, zBorder;
     if (zVal2 === 'OPEN') {
-      zColor = '#2ecc71'; zText = 'פתוח'; zBorder = 'rgba(46,204,113,0.3)';
+      zColor = '#2ecc71'; zText = L('פתוח', 'Open'); zBorder = 'rgba(46,204,113,0.3)';
     } else if (zVal2 === 'WAITING') {
-      zColor = '#e67e22'; zText = 'ממתין'; zBorder = 'rgba(230,126,34,0.3)';
+      zColor = '#e67e22'; zText = L('ממתין', 'Waiting'); zBorder = 'rgba(230,126,34,0.3)';
     } else {
-      zColor = '#e74c3c'; zText = 'סגור'; zBorder = 'rgba(231,76,60,0.3)';
+      zColor = '#e74c3c'; zText = L('סגור', 'Closed'); zBorder = 'rgba(231,76,60,0.3)';
     }
-    if (zVal2 === 'OPEN' && !_zermattSkiable(d)) zText = 'רכבל בלבד';
+    if (zVal2 === 'OPEN' && !_zermattSkiable(d)) zText = L('רכבל בלבד', 'Cable car only');
     if (dot) { dot.setAttribute('fill', zColor); }
     if (label) { label.setAttribute('fill', zColor); }
     if (status) { status.textContent = zText; }
@@ -18154,7 +18264,7 @@ function renderPostBtn() {
   if (user) {
     area.innerHTML = `<button onclick="showNewPost()" style="padding:12px 28px;background:var(--accent);color:white;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-weight:bold;box-shadow:0 3px 10px rgba(76,201,240,0.35);transition:all 0.15s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">✏️ פוסט חדש</button>`;
   } else {
-    area.innerHTML = `<button onclick="openM('authModal')" class="service-btn" style="padding:8px 18px;">כניסה / הרשמה</button>`;
+    area.innerHTML = `<button onclick="openM('authModal')" class="service-btn" style="padding:8px 18px;">${L('כניסה / הרשמה', 'Sign in')}</button>`;
   }
 }
 
@@ -18564,7 +18674,7 @@ function reactionsHtml(item, isReply) {
       + ' style="' + style + '"'
       + (tooltip ? ' title="' + esc(tooltip) + '"' : '')
       + '>' + e
-      + (count > 0 ? '<span style="font-size:0.7rem;vertical-align:super;margin-right:1px;">' + count + '</span>' : '')
+      + (count > 0 ? '<span style="font-size:0.7rem;vertical-align:super;margin-inline-start:1px;">' + count + '</span>' : '')
       + '</span>';
   }).join('');
 
@@ -18654,7 +18764,7 @@ function editReply(postId, replyId) {
   div.className = 'edit-area';
   div.setAttribute('data-edit-for', safeId(replyId));
   div.style.cssText = 'margin-top:6px;';
-  div.innerHTML = '<textarea data-edit-id="reply" rows="2" style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--accent);border-radius:6px;direction:rtl;font-family:inherit;font-size:0.87rem;resize:vertical;text-align:right;">' + r.content.replace(/</g,'&lt;') + '</textarea>'
+  div.innerHTML = '<textarea data-edit-id="reply" rows="2" style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--accent);border-radius:6px;direction:rtl;font-family:inherit;font-size:0.87rem;resize:vertical;text-align:start;">' + r.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">'
     + '<button onclick="removeEditArea(this)" style="padding:3px 10px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>'
     + '<button onclick="saveEditReply(\'' + postId + '\',\'' + replyId + '\')" style="padding:3px 10px;background:var(--accent);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-weight:bold;">שמור</button>'
@@ -18738,7 +18848,7 @@ function editPost(id) {
   div.className = 'edit-area';
   div.setAttribute('data-edit-for', safeId(id));
   div.style.cssText = 'margin-top:8px;';
-  div.innerHTML = '<textarea data-edit-id="post" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--accent);border-radius:8px;direction:rtl;font-family:inherit;font-size:0.9rem;resize:vertical;text-align:right;">' + p.content.replace(/</g,'&lt;') + '</textarea>'
+  div.innerHTML = '<textarea data-edit-id="post" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--accent);border-radius:8px;direction:rtl;font-family:inherit;font-size:0.9rem;resize:vertical;text-align:start;">' + p.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end;">'
     + '<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">ביטול</button>'
     + '<button onclick="saveEditPost(\'' + id + '\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">שמור</button>'
@@ -18823,7 +18933,7 @@ function renderReplies(replies, postId, depth, query) {
       + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;" onclick="editReply(\'' + postId + '\',\'' + r.id + '\')">✎ ערוך</span>' : '')
       + (canDel ? '<span style="cursor:pointer;color:#e74c3c;" onclick="delReply(\'' + postId + '\',\'' + r.id + '\')">✕ מחק</span>' : '')
       + '</div>';
-    return '<div class="reply-item" id="reply-' + safeId(r.id) + '" style="margin-right:' + indent + 'px;">'
+    return '<div class="reply-item" id="reply-' + safeId(r.id) + '" style="margin-inline-start:' + indent + 'px;">'
       + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + escJs(r.user) + '\')">' + esc(r.user) + '</b> <span style="color:#bbb;font-size:0.72rem;">' + timeAgo(r.timestamp) + '</span>'
       + '<div style="margin:3px 0;">' + highlight(r.content, query) + '</div>'
       + fileHtml
@@ -19102,7 +19212,7 @@ function forumClose() {
 function _syncPeekButton() {
   var btn = document.getElementById('peek-open-btn');
   if (!btn) return;
-  btn.textContent = _forumIsOpen() ? 'סגירת הפורום ▲' : 'לפורום המלא ←';
+  btn.textContent = _forumIsOpen() ? L('סגירת הפורום ▲', 'Close the forum ▲') : L('לפורום המלא ←', 'The full forum →');
 }
 
 // The button under the strip is a toggle: whatever it says, it does.
@@ -19338,7 +19448,7 @@ async function _admRenderUsers() {
             document.body.insertBefore(banner, document.body.firstChild);
         }
         banner.style.background = colors[type] || colors.info;
-        banner.innerHTML = text + ' <span onclick="clearBanner()" style="cursor:pointer;opacity:0.7;margin-right:12px;">×</span>';
+        banner.innerHTML = text + ' <span onclick="clearBanner()" style="cursor:pointer;opacity:0.7;margin-inline-start:12px;">×</span>';
         closeM('adminModal');
     }
 
@@ -20333,7 +20443,7 @@ async function maybeOfferPush() {
       'border:1.5px solid #cfe2ff;border-radius:12px;background:#f3f8ff;' +
       'margin:0 0 14px;" dir="rtl">' +
       '<span style="font-size:1.5rem;line-height:1;">🔔</span>' +
-      '<div style="flex:1;font-size:0.82rem;line-height:1.55;text-align:right;">' +
+      '<div style="flex:1;font-size:0.82rem;line-height:1.55;text-align:start;">' +
         '<b>רוצה לדעת מה קורה בהר?</b><br>' +
         '<span style="color:#666;">' + lead + '</span>' +
       '</div>' +

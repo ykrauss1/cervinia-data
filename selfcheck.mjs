@@ -3999,7 +3999,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const src = fs.readFileSync(PAGE, 'utf8');
   const T = 'the header button says what it actually opens';
 
-  const m = src.match(/class="signin-btn">([^<]*)<\/button>/);
+  // the label is L('Hebrew', 'English') now; the Hebrew is what is checked
+  const m = src.match(/class="signin-btn">\$\{L\('([^']*)'/) || src.match(/class="signin-btn">([^<]*)<\/button>/);
   if (!m) fail(T, 'the header sign-in button is gone'); else {
     ok();
     const label = m[1].replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n));
@@ -7548,7 +7549,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       await new Promise(res => setTimeout(res, 50));
     }
     out.onScreen = onScreen();
-    out.items = [...document.querySelectorAll('#side-menu-links button')].map(b => b.textContent.trim());
+    out.items = [...document.querySelectorAll('#side-menu-links button')].filter(b => getComputedStyle(b).display !== 'none').map(b => b.textContent.trim());
 
     // the drawer has to get out of the way before what it opens appears
     smGo('install');
@@ -8194,7 +8195,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // ── door 1: the side menu ──
     out.inMenu = !![...document.querySelectorAll('#side-menu-links button')].find(b => /תכל'ס, כמה יעלה לנו/.test(b.textContent));
     // Yossi's order (11.11): why, cost, install, notifications, sources, help, contact, about
-    const order = [...document.querySelectorAll('#side-menu-links button')].map(b => (b.getAttribute('onclick') || '').replace(/.*smGo\('([a-z]+)'\).*/, '$1')).join(',');
+    // the language switch stays hidden in Hebrew until the English is ready
+    const order = [...document.querySelectorAll('#side-menu-links button:not(#sm-lang)')].map(b => (b.getAttribute('onclick') || '').replace(/.*smGo\('([a-z]+)'\).*/, '$1')).join(',');
     out.menuOrder = order === 'why,cost,install,push,sources,help,contact,about' ? 'ok' : order;
     out.pushLabel = /התראות — הפעלה וביטול/.test(document.getElementById('sm-push').textContent);
     SIDE_MENU_ACTIONS.cost();
@@ -8709,6 +8711,63 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.open !== 'open-auto,open-person') fail(T, `OPEN after the closing notice leaves: ${r.open}`); else ok();
   if (r.older !== 'open-auto,open-person,shut-auto') fail(T, `an older reading took notices off: ${r.older}`); else ok();
   if (!r.fromBar) fail(T, 'the live bar does not hand its reading to the strip'); else ok();
+}
+
+// ── English (Yossi, 12.11): the main screen, and the Hebrew left alone ──
+{
+  const T_EN = JSON.parse(fs.readFileSync(path.join(path.dirname(TEXTS), 'texts.en.json'), 'utf8'));
+  const he = await page.evaluate(() => ({
+    dir: document.documentElement.dir, lang: document.documentElement.lang,
+    switchHidden: getComputedStyle(document.getElementById('sm-lang')).display === 'none',
+    L: L('א', 'a'), logo: /logo\.png$/.test(document.getElementById('brand-logo').src)
+  }));
+  const T0 = 'the Hebrew site is as it was';
+  if (he.dir !== 'rtl' || he.lang !== 'he') fail(T0, `dir=${he.dir} lang=${he.lang}`); else ok();
+  if (!he.switchHidden) fail(T0, 'the language switch shows before the English is ready'); else ok();
+  if (he.L !== 'א') fail(T0, 'L() gives English on the Hebrew page'); else ok();
+  if (!he.logo) fail(T0, 'the Hebrew logo was replaced'); else ok();
+
+  for (const [w, h] of [[390, 860], [1366, 860]]) {
+    const T1 = `the English main screen at ${w}px`;
+    const p3 = await browser.newPage({ viewport: { width: w, height: h } });
+    const errs = []; p3.on('pageerror', e => errs.push(String(e).split('\n')[0]));
+    await p3.goto('file://' + PAGE + '?lang=en');
+    await p3.waitForTimeout(1200);
+    const r = await p3.evaluate(([T, E]) => {
+      const t = _overlayTexts(T, E);
+      window._texts = t; window.PISTES = t.pistes; _applyTexts(t);
+      const out = { dir: document.documentElement.dir, lang: document.documentElement.lang };
+      out.logo = /logo-en\.png$/.test(document.getElementById('brand-logo').src);
+      out.switch = getComputedStyle(document.getElementById('sm-lang')).display !== 'none'
+                && document.getElementById('sm-lang-txt').textContent === 'עברית';
+      out.card = document.querySelector('#svc-webcam .svc-txt b').textContent;
+      // visible Hebrew outside the panels and outside what users wrote
+      const heb = /[֐-׿]/, left = [];
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+      while ((n = w.nextNode())) {
+        const el = n.parentElement, s = n.textContent.trim();
+        if (!s || !heb.test(s) || !el) continue;
+        if (el.closest('.modal, [id$="Modal"], #side-menu, .ugc, #forum-section, #sm-lang')) continue;
+        const b = el.getBoundingClientRect(), cs = getComputedStyle(el);
+        if (!b.width || !b.height || cs.visibility === 'hidden') continue;
+        left.push((el.id || el.tagName) + ': ' + s.slice(0, 40));
+      }
+      out.left = left;
+      // the overlay matches by id, so the order of the Hebrew cannot misplace it
+      const o = _overlayTexts({ a: [{ id: 'x', l: 'א', k: 1 }, { id: 'y', l: 'ב' }] }, { a: [{ id: 'y', l: 'B' }] });
+      out.overlay = o.a[0].l === 'א' && o.a[0].k === 1 && o.a[1].l === 'B';
+      return out;
+    }, [T, T_EN]);
+    if (r.dir !== 'ltr' || r.lang !== 'en') fail(T1, `dir=${r.dir} lang=${r.lang}`); else ok();
+    if (!r.logo) fail(T1, 'the Hebrew logo is shown'); else ok();
+    if (!r.switch) fail(T1, 'no way back to Hebrew in the menu'); else ok();
+    if (r.card !== 'Webcams') fail(T1, `the webcam card reads "${r.card}"`); else ok();
+    if (r.left.length) fail(T1, 'Hebrew left on screen: ' + r.left.slice(0, 6).join(' | ')); else ok();
+    if (!r.overlay) fail(T1, 'texts.en.json is not laid over by id'); else ok();
+    const real = errs.filter(e => !NOISE.test(e));
+    if (real.length) fail(T1, 'errors: ' + real.slice(0, 3).join(' | ')); else ok();
+    await p3.close();
+  }
 }
 
 // ── Yossi (12.11, evening): the flight search reaches other ski areas ──
