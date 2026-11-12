@@ -6,16 +6,148 @@
   },
   "services": {
     "buttons": [
-      { "id": "svc-piste", "label": "Slopes, huts and après-ski", "sub": "By level · Cervinia, Zermatt and Valtournenche · and where to stop on the way" },
-      { "id": "svc-webcam", "label": "Webcams", "sub": "See the mountain now, before you head out" },
-      { "id": "svc-parking", "label": "Transport, parking and emergencies", "sub": "From the airport to the village · timetables · car hire · snow chains · emergencies" },
-      { "id": "svc-travel", "label": "Trip planning", "sub": "Search flights, lodging and a car — in one query" },
-      { "id": "svc-skipass", "label": "Ski pass", "sub": "Cervinia and Zermatt prices · discounts by age · pass on your phone" },
-      { "id": "svc-rental", "label": "Gear and rental", "sub": "Five shops in the village and three on the way · prices · rent or buy" },
-      { "id": "svc-lessons", "label": "Ski school", "sub": "2026/27 prices · group, private and children · instructors" },
-      { "id": "svc-kosher", "label": "Kosher and Shabbat", "sub": "Shabbat times · supermarket products · delivery · Milan and Turin" },
-      { "id": "svc-maps", "label": "Maps", "sub": "Slopes, the village, Valtournenche and Switzerland" },
-      { "id": "svc-around", "label": "Things to do nearby", "sub": "Stormy days · after skiing · and what is closed in winter" }
+      {
+        "id": "svc-piste",
+        "label": "Slopes, huts and après-ski",
+        "sub": "By level · Cervinia, Zermatt and Valtournenche · and where to stop on the way"
+      },
+      {
+        "id": "svc-webcam",
+        "label": "Webcams",
+        "sub": "See the mountain now, before you head out"
+      },
+      {
+        "id": "svc-parking",
+        "label": "Transport, parking and emergencies",
+        "sub": "From the airport to the village · timetables · car hire · snow chains · emergencies"
+      },
+      {
+        "id": "svc-travel",
+        "label": "Trip planning",
+        "sub": "Search flights, lodging and a car — in one query"
+      },
+      {
+        "id": "svc-skipass",
+        "label": "Ski pass",
+        "sub": "Cervinia and Zermatt prices · discounts by age · pass on your phone"
+      },
+      {
+        "id": "svc-rental",
+        "label": "Gear and rental",
+        "sub": "Five shops in the village and three on the way · prices · rent or buy"
+      },
+      {
+        "id": "svc-lessons",
+        "label": "Ski school",
+        "sub": "2026/27 prices · group, private and children · instructors"
+      },
+      {
+        "id": "svc-kosher",
+        "label": "Kosher and Shabbat",
+        "sub": "Shabbat times · supermarket products · delivery · Milan and Turin"
+      },
+      {
+        "id": "svc-maps",
+        "label": "Maps",
+        "sub": "Slopes, the village, Valtournenche and Switzerland"
+      },
+      {
+        "id": "svc-around",
+        "label": "Things to do nearby",
+        "sub": "Stormy days · after skiing · and what is closed in winter"
+      }
     ]
+  },
+  "modals": {
+    "about": {
+      "title": "🏔️ About us",
+      "text1": "CerviniaLive is an unofficial site built by skiers, for skiers. It updates itself from Cervinia's official websites several times a day.",
+      "text2": "The site has no official connection to Cervino Ski Paradise or any other official body. The data is shown as a service to the community."
+    },
+    "help": {
+      "title": "❓ Help",
+      "faq": [
+        {
+          "q": "The data is not updating?",
+          "a": "The data updates itself every hour. Try refreshing the page."
+        },
+        {
+          "q": "How do I join?",
+          "a": "Tap “Sign in” in the top corner and choose “Join”."
+        },
+        {
+          "q": "What do the numbers in the banner mean?",
+          "a": "The big number is the <b>whole ski area</b> — Cervinia, Valtournenche, Chamois, Torgnon and Zermatt together — the same figure the official website shows. The small number in brackets, when there is one, is Cervinia alone. When there is no separate Cervinia figure, there are no brackets.<br><br><b>The number after the slash is not the total number of lifts</b>, but how many of them are running in the current period. In October, for example, five lifts run in Cervinia and 15 in the whole area; at the height of winter these numbers are several times larger. This is exactly what the operator itself publishes."
+        },
+        {
+          "q": "What is the Zermatt link?",
+          "a": "The crossing between the Cervinia ski area and Zermatt (Switzerland) over the glacier. The cable car (Matterhorn Alpine Crossing) runs all year in good weather, even when no slope is open — then it says “Cable car only”. Crossing on skis is possible only when slopes are open."
+        }
+      ]
+    },
+    "zermatt_link_conditions": [
+      "🌡️ Temperature below 0° at Plateau Rosa",
+      "💨 Wind below 40 km/h",
+      "👁️ Good visibility (no fog or snowstorm)",
+      "📋 Glacier operator's approval"
+    ],
+    "kosher_notice": "The food at the huts is not kosher, and we publish no recommendations about food. You can still sit in the huts and on the terraces overlooking the wonderful view, enjoy the winter sun, and have a beer, a soft drink or something stronger — and every hut has toilets for skiers."
+  },
+  "swiss": {
+    "last_lift": {
+      "label": "The last lift from Zermatt back to Italy",
+      "note": "The time changes on 30 January. It is published every day on the lift operator's website, and in bad weather they close earlier.",
+      "live_label": "Live status of the link →"
+    }
+  },
+  "why_cervinia": {
+    "title": "⛷️ Why Cervinia?",
+    "items": [
+      {
+        "title": "The highest ski area in the Alps",
+        "text": "About 160 km of slopes on the Italian side, and **360 km** together with Swiss Zermatt — one area, one ski pass. The top reaches almost 3,900 m, with reliable snow all season."
+      },
+      {
+        "title": "Snow that does not depend on luck",
+        "text": "The high skiing here sits on the <b>Theodul Glacier on the Swiss side</b>, reached through Plateau Rosà (3,480 m) — the highest and largest summer ski area in Europe, about 25 km of slopes. In practice the season opens as early as October, while most of the Alps are still green."
+      },
+      {
+        "title": "The Zermatt link",
+        "text": "When conditions allow, the crossing to Swiss Zermatt is open. Ski from Plateau Rosa into Italy and Switzerland and back — in a single day."
+      },
+      {
+        "title": "A mountain made for learning and for clocking up kilometres",
+        "text": "Of the 73 slopes on the Italian side only **9 are black** — the rest are blue and red, wide and open. Those still learning, and those who want to cover distance without pressure, get a whole mountain to themselves."
+      },
+      {
+        "title": "A quiet, authentic village",
+        "text": "A small village without bustle, crowds or noise. A real Italian atmosphere — whoever is after quiet and a view will find exactly that here."
+      },
+      {
+        "title": "Airport and ski-pass prices",
+        "text": "Milan's airports are well served and flights there are relatively cheap. An adult day pass is <b>€64</b>, against about €89 in the Dolomiti Superski and CHF 104 in Zermatt. What you buy on the spot costs less too: in the village and on the mountain prices are much lower than on the Swiss side."
+      },
+      {
+        "title": "The Matterhorn — two faces of an icon",
+        "text": "From the Italian side — a perfect, spectacular pyramid. From the Swiss side — the steep peak on the Toblerone. Two completely different views of the same legendary mountain, in one day of skiing."
+      }
+    ],
+    "facebook_title": "The Israeli Facebook group for Cervinia (in Hebrew)",
+    "facebook_sub": "The Israeli community — questions, tips and reports from the slopes",
+    "banner_stats": [
+      "⛷️ 360 km",
+      "❄️ Snow from October",
+      "🇨🇭 Two countries"
+    ]
+  },
+  "community": {
+    "facebook": {
+      "title": "The Israeli Facebook group for Cervinia (in Hebrew)",
+      "sub": "Questions, recommendations and reports from the slopes — the Israeli community"
+    },
+    "whatsapp": {
+      "title": "Cervinia for the observant skier — WhatsApp group",
+      "sub": "Arranging a minyan, Shabbat meals and shared shopping — quick talk among those who are there now"
+    }
   }
 }

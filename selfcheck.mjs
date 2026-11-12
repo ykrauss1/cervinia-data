@@ -8196,7 +8196,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.inMenu = !![...document.querySelectorAll('#side-menu-links button')].find(b => /תכל'ס, כמה יעלה לנו/.test(b.textContent));
     // Yossi's order (11.11): why, cost, install, notifications, sources, help, contact, about
     // the language switch stays hidden in Hebrew until the English is ready
-    const order = [...document.querySelectorAll('#side-menu-links button:not(#sm-lang)')].map(b => (b.getAttribute('onclick') || '').replace(/.*smGo\('([a-z]+)'\).*/, '$1')).join(',');
+    const order = [...document.querySelectorAll('#side-menu-links button')].map(b => (b.getAttribute('onclick') || '').replace(/.*smGo\('([a-z]+)'\).*/, '$1')).join(',');
     out.menuOrder = order === 'why,cost,install,push,sources,help,contact,about' ? 'ok' : order;
     out.pushLabel = /התראות — הפעלה וביטול/.test(document.getElementById('sm-push').textContent);
     SIDE_MENU_ACTIONS.cost();
@@ -8718,12 +8718,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const T_EN = JSON.parse(fs.readFileSync(path.join(path.dirname(TEXTS), 'texts.en.json'), 'utf8'));
   const he = await page.evaluate(() => ({
     dir: document.documentElement.dir, lang: document.documentElement.lang,
-    switchHidden: getComputedStyle(document.getElementById('sm-lang')).display === 'none',
+    // the corner button is there in Hebrew too, but says "soon" and goes nowhere
+    switchHidden: document.getElementById('lang-btn').classList.contains('soon')
+               && document.getElementById('lang-btn').textContent === 'EN' && !LANG_OPEN,
     L: L('א', 'a'), logo: /logo\.png$/.test(document.getElementById('brand-logo').src)
   }));
   const T0 = 'the Hebrew site is as it was';
   if (he.dir !== 'rtl' || he.lang !== 'he') fail(T0, `dir=${he.dir} lang=${he.lang}`); else ok();
-  if (!he.switchHidden) fail(T0, 'the language switch shows before the English is ready'); else ok();
+  if (!he.switchHidden) fail(T0, 'the corner language button leads to the English before it is ready'); else ok();
   if (he.L !== 'א') fail(T0, 'L() gives English on the Hebrew page'); else ok();
   if (!he.logo) fail(T0, 'the Hebrew logo was replaced'); else ok();
 
@@ -8738,8 +8740,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       window._texts = t; window.PISTES = t.pistes; _applyTexts(t);
       const out = { dir: document.documentElement.dir, lang: document.documentElement.lang };
       out.logo = /logo-en\.png$/.test(document.getElementById('brand-logo').src);
-      out.switch = getComputedStyle(document.getElementById('sm-lang')).display !== 'none'
-                && document.getElementById('sm-lang-txt').textContent === 'עברית';
+      const lb = document.getElementById('lang-btn');
+      out.switch = lb.textContent === 'עב' && !lb.classList.contains('soon') && lb.getBoundingClientRect().width > 0;
       out.card = document.querySelector('#svc-webcam .svc-txt b').textContent;
       // visible Hebrew outside the panels and outside what users wrote
       const heb = /[֐-׿]/, left = [];
@@ -8747,7 +8749,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       while ((n = w.nextNode())) {
         const el = n.parentElement, s = n.textContent.trim();
         if (!s || !heb.test(s) || !el) continue;
-        if (el.closest('.modal, [id$="Modal"], #side-menu, .ugc, #forum-section, #sm-lang')) continue;
+        if (el.closest('.modal, [id$="Modal"], #side-menu, .ugc, #forum-section, #lang-btn')) continue;
         const b = el.getBoundingClientRect(), cs = getComputedStyle(el);
         if (!b.width || !b.height || cs.visibility === 'hidden') continue;
         left.push((el.id || el.tagName) + ': ' + s.slice(0, 40));
@@ -8760,7 +8762,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     }, [T, T_EN]);
     if (r.dir !== 'ltr' || r.lang !== 'en') fail(T1, `dir=${r.dir} lang=${r.lang}`); else ok();
     if (!r.logo) fail(T1, 'the Hebrew logo is shown'); else ok();
-    if (!r.switch) fail(T1, 'no way back to Hebrew in the menu'); else ok();
+    if (!r.switch) fail(T1, 'no way back to Hebrew in the corner'); else ok();
     if (r.card !== 'Webcams') fail(T1, `the webcam card reads "${r.card}"`); else ok();
     if (r.left.length) fail(T1, 'Hebrew left on screen: ' + r.left.slice(0, 6).join(' | ')); else ok();
     if (!r.overlay) fail(T1, 'texts.en.json is not laid over by id'); else ok();

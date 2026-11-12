@@ -46,13 +46,16 @@ function _i18nStatic(root) {
 // Registered here in the head, so it runs before any renderer's own
 // DOMContentLoaded and they draw over translated markup, not under it.
 var LANG_OPEN = false;   // true once the English site is ready to be offered
+function langBtn() {
+  if (window.LANG === 'en' || LANG_OPEN) { setLang(window.LANG === 'en' ? 'he' : 'en'); return; }
+  // a phone has no tooltip, so the "soon" is said on the tap
+  uiAlert('האתר באנגלית יעלה בקרוב · English coming soon');
+}
 document.addEventListener('DOMContentLoaded', function () {
   _i18nStatic();
-  var sl = document.getElementById('sm-lang');
-  if (sl && (window.LANG === 'en' || LANG_OPEN)) {
-    sl.style.display = '';
-    document.getElementById('sm-lang-txt').textContent = window.LANG === 'en' ? 'עברית' : 'English';
-  }
+  var lb = document.getElementById('lang-btn');
+  if (lb && window.LANG !== 'en' && !LANG_OPEN) lb.classList.add('soon');
+
   // the logo carries the Hebrew name; the English one has only the Latin
   if (window.LANG === 'en') { var lg = document.getElementById('brand-logo'); if (lg) lg.src = './img/logo-en.png'; }
 });
@@ -141,6 +144,11 @@ input[type=file] { display: none !important; }
                        flex-wrap: nowrap; }  /* one row again, or the
                        login button drops under the logo */
 .nav-rest { flex: 1 1 auto; min-width: 0; }
+#lang-btn { flex: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+            color: #fff; height: 34px; min-width: 38px; padding: 0 8px; border-radius: 10px;
+            cursor: pointer; font: 700 0.8rem/1 inherit; letter-spacing: 0.03em; }
+#lang-btn:hover { background: rgba(255,255,255,0.16); }
+html[dir="rtl"] #lang-btn.soon { opacity: 0.72; }
 /* ── English (LTR) ──────────────────────────────────────────────────────
    The layout is written in logical properties (start/end), so it turns
    round by itself. What remains are elements that said "rtl" outright -
@@ -149,6 +157,8 @@ input[type=file] { display: none !important; }
    it is in whatever language its author wrote. */
 html[dir="ltr"] [style*="direction:rtl"], html[dir="ltr"] [style*="direction: rtl"],
 html[dir="ltr"] [dir="rtl"]:not(.ugc) { direction: ltr !important; }
+/* material that exists only in Hebrew is not offered on the English page */
+html[dir="ltr"] .he-only { display: none !important; }
 /* Local time in Cervinia (Yossi, 12.11): the operator's notices, the lift
    hours and the alerts are all in Italian time, an hour behind Israel. On a
    wide screen it sits in the empty middle of the header row; on a phone that
@@ -167,7 +177,8 @@ html[dir="ltr"] [dir="rtl"]:not(.ugc) { direction: ltr !important; }
      is really free rather than painted over the mountain's foot */
   #topstick:not(.shrunk) #brand-logo { margin-inline-end: auto; margin-inline-start: 0; }
   /* the English logo is wider for its height; it leaves the clock its corner */
-  html[dir="ltr"] #topstick:not(.shrunk) #brand-logo { height: 60px; }
+  html[dir="ltr"] #topstick:not(.shrunk) #brand-logo { height: 70px; flex: 0 0 100% !important;
+    object-fit: contain; object-position: left center; }
 }
 @media (max-width: 345px) { .cl-clock { display: none !important; } }
 @media (prefers-reduced-motion: reduce) {
@@ -1242,7 +1253,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.55';
+  var v='v17.56';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1305,6 +1316,12 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       </div>
     </div>
 
+    <!-- The language switch, in the corner where people look for it (Yossi,
+         12.11). Until the English is whole it is there in Hebrew too, but
+         says "soon" rather than leading to half a site. -->
+    <button id="lang-btn" type="button" onclick="langBtn()" lang="en"
+      title="English — בקרוב" aria-label="English — בקרוב"
+      data-en="עב" data-en-title="עברית" data-en-aria-label="עברית">EN</button>
     <div id="auth-area"></div>
   </nav>
 </header>
@@ -1331,9 +1348,6 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <button onclick="smGo('help')" data-en="&lt;span&gt;❓&lt;/span&gt;Help"><span>❓</span>עזרה</button>
     <button onclick="smGo('contact')" data-en="&lt;span&gt;✉️&lt;/span&gt;Contact us"><span>✉️</span>צור קשר</button>
     <button onclick="smGo('about')" data-en="&lt;span&gt;ℹ️&lt;/span&gt;About us"><span>ℹ️</span>עלינו</button>
-    <!-- The way between the languages. In English it is always there, the
-         way home; in Hebrew it appears once the English is whole (LANG_OPEN). -->
-    <button id="sm-lang" onclick="setLang(window.LANG === 'en' ? 'he' : 'en')" style="display:none;"><span>🌐</span><bdi id="sm-lang-txt">English</bdi></button>
   </div>
   <div id="side-menu-foot">CerviniaLive</div>
 </aside>
@@ -1706,42 +1720,42 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="contactModal" class="modal" onclick="if(event.target===this)closeM('contactModal')">
   <div class="modal-content" style="max-width:460px;">
     <span class="close-btn" onclick="closeM('contactModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.1rem;">✉️ צור קשר</h3>
-    <p style="color:#888;font-size:0.8rem;margin:0 0 16px;">שאלות, הצעות לשיפור או דיווח על בעיה — נשמח לשמוע</p>
+    <h3 style="margin:0 0 4px;font-size:1.1rem;" data-en="✉️ Contact us">✉️ צור קשר</h3>
+    <p style="color:#888;font-size:0.8rem;margin:0 0 16px;" data-en="Questions, ideas for improvement or a problem to report — we would love to hear">שאלות, הצעות לשיפור או דיווח על בעיה — נשמח לשמוע</p>
 
     <!-- Form -->
     <div id="contact-form" style="display:flex;flex-direction:column;gap:11px;">
       <div>
-        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">שם מלא</label>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;" data-en="Full name">שם מלא</label>
         <input id="cf-name" type="text" placeholder="הכנס שם..." dir="rtl"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;">
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;" data-en-placeholder="Your name...">
       </div>
       <div>
-        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">כתובת מייל</label>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;" data-en="Email address">כתובת מייל</label>
         <input id="cf-email" type="email" placeholder="מייל@דוגמה.com" dir="ltr"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;">
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;" data-en-placeholder="email@example.com">
       </div>
       <div>
-        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">נושא</label>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;" data-en="Subject">נושא</label>
         <select id="cf-subject" dir="rtl" onchange="onContactSubjectChange()"
           style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;background:white;color:#333;">
-          <option value="">-- בחר נושא --</option>
-          <option value="שאלה כללית">❓ שאלה כללית</option>
-          <option value="הצעה לשיפור">💡 הצעה לשיפור</option>
-          <option value="דיווח על בעיה">🐛 דיווח על בעיה</option>
-          <option value="נתונים שגויים">📊 נתונים שגויים</option>
-          <option value="בקשת פרטי מדריך">🎿 בקשת פרטי מדריך</option>
-          <option value="הוספת מדריך מומלץ">➕ הוספת מדריך מומלץ</option>
-          <option value="אחר">💬 אחר</option>
+          <option value="" data-en="-- Choose a subject --">-- בחר נושא --</option>
+          <option value="שאלה כללית" data-en="❓ General question">❓ שאלה כללית</option>
+          <option value="הצעה לשיפור" data-en="💡 Idea for improvement">💡 הצעה לשיפור</option>
+          <option value="דיווח על בעיה" data-en="🐛 Report a problem">🐛 דיווח על בעיה</option>
+          <option value="נתונים שגויים" data-en="📊 Wrong data">📊 נתונים שגויים</option>
+          <option value="בקשת פרטי מדריך" data-en="🎿 Ask for an instructor&#x27;s details">🎿 בקשת פרטי מדריך</option>
+          <option value="הוספת מדריך מומלץ" data-en="➕ Recommend an instructor">➕ הוספת מדריך מומלץ</option>
+          <option value="אחר" data-en="💬 Other">💬 אחר</option>
         </select>
       </div>
       <div>
-        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;">הודעה</label>
+        <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;" data-en="Message">הודעה</label>
         <textarea id="cf-message" placeholder="כתוב את הודעתך כאן..." dir="rtl" rows="4"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;resize:vertical;" data-en-placeholder="Write your message here..."></textarea>
       </div>
       <button onclick="submitContactForm()"
-        style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;">
+        style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;" data-en="📤 Send message">
         📤 שלח הודעה
       </button>
     </div>
@@ -1757,8 +1771,8 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="snowModal" class="modal" onclick="if(event.target===this)closeM('snowModal')">
   <div class="modal-content" style="max-width:420px;padding:24px 22px;">
     <span class="close-btn" onclick="closeM('snowModal')">×</span>
-    <h3 style="margin:0 0 4px;">❄️ גובה השלג</h3>
-    <div style="font-size:0.76rem;color:#7a8794;margin-bottom:12px;">לפי התחנות של מפעיל המעליות, מלמעלה למטה</div>
+    <h3 style="margin:0 0 4px;" data-en="❄️ Snow depth">❄️ גובה השלג</h3>
+    <div style="font-size:0.76rem;color:#7a8794;margin-bottom:12px;" data-en="By the lift operator&#x27;s stations, from the top down">לפי התחנות של מפעיל המעליות, מלמעלה למטה</div>
     <div id="snow-points-list"></div>
     <div id="snow-points-foot" style="font-size:0.72rem;color:#7a8794;margin-top:10px;line-height:1.6;"></div>
   </div>
@@ -1767,7 +1781,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="helpModal" class="modal" onclick="if(event.target===this)closeM('helpModal')">
   <div class="modal-content" style="max-width:480px;">
     <span class="close-btn" onclick="closeM('helpModal')">×</span>
-    <h3 style="margin:0 0 16px;font-size:1.1rem;">❓ עזרה</h3>
+    <h3 style="margin:0 0 16px;font-size:1.1rem;" data-en="❓ Help">❓ עזרה</h3>
     <div style="color:#555;font-size:0.88rem;line-height:1.8;">
       <p><b>הנתונים לא מתעדכנים?</b><br>הנתונים מתעדכנים אוטומטית כל שעה. נסה לרענן את הדף.</p>
       <p><b>איך נרשמים?</b><br>לחץ על "כניסה / הרשמה" בפינה העליונה, ובחלון שנפתח בחר בלשונית "הרשמה".</p>
@@ -1789,8 +1803,8 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
   <div class="modal-content" style="max-width:500px;padding:0;border-radius:16px;overflow:hidden;">
     <div style="background:linear-gradient(135deg,#1a0a2e,#2d1b69);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
       <div>
-        <div style="color:white;font-weight:bold;font-size:1rem;">🏔️ תחזית לינק צ'רמט</div>
-        <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;">Plateau Rosa (3480מ) · ניתוח תנאים</div>
+        <div style="color:white;font-weight:bold;font-size:1rem;" data-en="🏔️ Zermatt link forecast">🏔️ תחזית לינק צ'רמט</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;" data-en="Plateau Rosa (3480 m) · conditions analysis">Plateau Rosa (3480מ) · ניתוח תנאים</div>
       </div>
       <span class="close-btn" onclick="closeM('zermattForecastModal')" style="color:white;background:rgba(255,255,255,0.15);">×</span>
     </div>
@@ -1798,23 +1812,23 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 
       <!-- נתוני פלטאו רוזה עכשיו -->
       <div id="zermatt-plateau-now" style="background:linear-gradient(135deg,#0a192f,#1a3a6c);border-radius:12px;padding:14px;color:white;margin-bottom:14px;">
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:10px;">📍 פלטאו רוזה עכשיו (3480מ)</div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:10px;" data-en="📍 Plateau Rosa now (3480 m)">📍 פלטאו רוזה עכשיו (3480מ)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;text-align:center;">
           <div>
             <div id="plateau-temp" dir="ltr" style="font-size:1.25rem;font-weight:bold;">--°</div>
-            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);">🌡️ טמפ'</div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);" data-en="🌡️ Temp">🌡️ טמפ'</div>
           </div>
           <div>
             <div id="plateau-wind" dir="ltr" style="font-size:1.25rem;font-weight:bold;">--</div>
-            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);">💨 רוח</div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);" data-en="💨 Wind">💨 רוח</div>
           </div>
           <div>
             <div id="plateau-gust" dir="ltr" style="font-size:1.25rem;font-weight:bold;color:#ffd166;">--</div>
-            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);">🌬️ משבים</div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);" data-en="🌬️ Gusts">🌬️ משבים</div>
           </div>
           <div>
             <div id="plateau-snow" dir="ltr" style="font-size:1.25rem;font-weight:bold;">--</div>
-            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);">❄️ שלג</div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);" data-en="❄️ Snow">❄️ שלג</div>
           </div>
         </div>
         <div id="plateau-src" style="font-size:0.62rem;color:rgba(255,255,255,0.45);margin-top:8px;text-align:center;"></div>
@@ -1823,14 +1837,26 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <!-- הערכה -->
       <div id="zermatt-crossing-assessment" style="border-radius:10px;padding:14px;text-align:center;background:#f0fff4;border:1.5px solid #66bb6a;margin-bottom:14px;">
         <div style="font-size:1.6rem;margin-bottom:6px;" id="crossing-icon">⏳</div>
-        <div style="font-weight:bold;font-size:0.95rem;" id="crossing-verdict">בודק תנאים...</div>
+        <div style="font-weight:bold;font-size:0.95rem;" id="crossing-verdict" data-en="Checking conditions...">בודק תנאים...</div>
         <div style="font-size:0.75rem;color:#666;margin-top:4px;" id="crossing-reason"></div>
         <div style="margin-top:6px;">
           <span onclick="document.getElementById('crossing-explain').style.display=document.getElementById('crossing-explain').style.display==='none'?'block':'none'"
-            style="font-size:0.72rem;color:#1a73e8;cursor:pointer;text-decoration:underline;">
+            style="font-size:0.72rem;color:#1a73e8;cursor:pointer;text-decoration:underline;" data-en="ℹ️ How is the estimate made?">
             ℹ️ איך נקבעת ההערכה?
           </span>
-          <div id="crossing-explain" style="display:none;margin-top:6px;padding:9px 11px;background:rgba(0,0,0,0.06);border-radius:7px;font-size:0.72rem;color:#444;line-height:1.75;text-align:start;">
+          <div id="crossing-explain" style="display:none;margin-top:6px;padding:9px 11px;background:rgba(0,0,0,0.06);border-radius:7px;font-size:0.72rem;color:#444;line-height:1.75;text-align:start;" data-en="&lt;b&gt;What really closes the crossing is the wind&lt;/b&gt;, not the cold. The high cable cars
+stop in gusts, and sometimes the link is closed in advance for fear they will stop.&lt;br&gt;&lt;br&gt;
+So the forecast here is measured &lt;b&gt;at Plateau Rosa itself&lt;/b&gt; (about 3,440 m) and not in the village —
+the difference is huge, and the village can see a calm day while the ridge has gusts of
+&lt;span dir=&quot;ltr&quot;&gt;80 km/h&lt;/span&gt;.&lt;br&gt;&lt;br&gt;
+The gust bands we use are &lt;b&gt;our own estimate&lt;/b&gt;, not a figure from the
+lift operator: below &lt;span dir=&quot;ltr&quot;&gt;40&lt;/span&gt; the wind is no limit ·
+&lt;span dir=&quot;ltr&quot;&gt;40–60&lt;/span&gt; slowdowns possible ·
+&lt;span dir=&quot;ltr&quot;&gt;60–80&lt;/span&gt; a real chance of closure ·
+above &lt;span dir=&quot;ltr&quot;&gt;80&lt;/span&gt; probably closed.&lt;br&gt;&lt;br&gt;
+No source announces in advance whether the crossing will open. &lt;b&gt;The decision is made that
+morning&lt;/b&gt;, so the buttons below — to the live status of both sides — are
+what counts.">
             <b>מה שבאמת סוגר את המעבר זו הרוח</b>, לא הקור. הרכבלים הגבוהים
             נעצרים במשבי רוח, ולפעמים סוגרים את החיבור מראש מחשש שייעצרו.<br><br>
             לכן התחזית כאן נמדדת <b>בפלטאו רוזה עצמו</b> (כ-3,440 מ') ולא בכפר —
@@ -1851,9 +1877,9 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <!-- הסטטוס הרשמי של שני הצדדים -->
       <div style="display:flex;gap:7px;margin-bottom:14px;">
         <a href="https://www.cervinia.it/en/impianti" target="_blank" rel="noopener"
-           style="flex:1;text-align:center;padding:9px 6px;background:#1a3a6c;color:#fff;border-radius:9px;text-decoration:none;font-size:0.76rem;font-weight:bold;"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> סטטוס צ'רוויניה</a>
+           style="flex:1;text-align:center;padding:9px 6px;background:#1a3a6c;color:#fff;border-radius:9px;text-decoration:none;font-size:0.76rem;font-weight:bold;" data-en="&lt;svg class=fl-it aria-hidden=true&gt;&lt;use href=#flag-it&gt;&lt;/use&gt;&lt;/svg&gt; Cervinia status"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> סטטוס צ'רוויניה</a>
         <a href="https://www.matterhornparadise.ch/en/information/lifts-and-pistes" target="_blank" rel="noopener"
-           style="flex:1;text-align:center;padding:9px 6px;background:#b02a2a;color:#fff;border-radius:9px;text-decoration:none;font-size:0.76rem;font-weight:bold;"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> סטטוס צרמט</a>
+           style="flex:1;text-align:center;padding:9px 6px;background:#b02a2a;color:#fff;border-radius:9px;text-decoration:none;font-size:0.76rem;font-weight:bold;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; Zermatt status"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> סטטוס צרמט</a>
       </div>
 
       <!-- העלייה האחרונה חזרה -->
@@ -1862,7 +1888,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <!-- תחזית 4 ימים לצ'רמט -->
       <div id="zermatt-4day" style="display:flex;flex-direction:column;gap:8px;"></div>
 
-      <div style="font-size:0.68rem;color:#aaa;text-align:center;margin-top:12px;line-height:1.7;">
+      <div style="font-size:0.68rem;color:#aaa;text-align:center;margin-top:12px;line-height:1.7;" data-en="⚠️ A weather estimate only · whether to open is the lift operator&#x27;s decision">
         ⚠️ הערכת מזג אוויר בלבד · ההחלטה אם לפתוח היא של מפעילת הרכבלים
       </div>
     </div>
@@ -1873,9 +1899,9 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
   <div class="modal-content" style="max-width:520px;padding:0;border-radius:16px;overflow:hidden;">
     <div style="background:linear-gradient(135deg,#0a192f,#1a3a6c);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
       <div>
-        <div style="color:white;font-weight:bold;font-size:1rem;">🌤️ תחזית מזג אוויר</div>
+        <div style="color:white;font-weight:bold;font-size:1rem;" data-en="🌤️ Weather forecast">🌤️ תחזית מזג אוויר</div>
         <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;">Cervinia · Valtournenche · Chamois</div>
-        <div style="color:rgba(255,255,255,0.38);font-size:0.66rem;margin-top:1px;">תחזית לגובה הכפר (<bdi dir="ltr">~2,010</bdi> מ׳) · לרכס ולמעבר לצרמט — ראו תחזית לינק צ'רמט</div>
+        <div style="color:rgba(255,255,255,0.38);font-size:0.66rem;margin-top:1px;" data-en="Forecast for the village altitude (&lt;bdi dir=&quot;ltr&quot;&gt;~2,010&lt;/bdi&gt; m) · for the ridge and the crossing to Zermatt — see the Zermatt link forecast">תחזית לגובה הכפר (<bdi dir="ltr">~2,010</bdi> מ׳) · לרכס ולמעבר לצרמט — ראו תחזית לינק צ'רמט</div>
       </div>
       <span class="close-btn" onclick="closeM('forecastModal')" style="color:white;background:rgba(255,255,255,0.15);">×</span>
     </div>
@@ -1885,30 +1911,30 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <div style="display:flex;gap:8px;margin-bottom:14px;" id="snow-points-row">
         <div style="flex:1;background:#e8f4ff;border-radius:10px;padding:10px;text-align:center;">
           <div style="font-size:1.3rem;font-weight:bold;color:#1a3a6c;" id="snow-mid-depth">--</div>
-          <div style="font-size:0.7rem;color:#555;">❄️ שלג — Plan Maison</div>
+          <div style="font-size:0.7rem;color:#555;" data-en="❄️ Snow — Plan Maison">❄️ שלג — Plan Maison</div>
           <div style="font-size:0.65rem;color:#999;" id="snow-mid-alt">--מ'</div>
         </div>
         <div style="flex:1;background:#f0faff;border-radius:10px;padding:10px;text-align:center;">
           <div style="font-size:1.3rem;font-weight:bold;color:#2980b9;" id="snow-base-depth">--</div>
-          <div style="font-size:0.7rem;color:#555;">❄️ שלג — עיירה</div>
+          <div style="font-size:0.7rem;color:#555;" data-en="❄️ Snow — village">❄️ שלג — עיירה</div>
           <div style="font-size:0.65rem;color:#999;" id="snow-base-alt">--מ'</div>
         </div>
         <div style="flex:1;background:#fff8e1;border-radius:10px;padding:10px;text-align:center;">
           <div style="font-size:1.3rem;font-weight:bold;color:#e67e22;" id="bar-avalanche-modal">--</div>
-          <div style="font-size:0.7rem;color:#555;">🏔️ סכנת מפולות</div>
-          <div style="font-size:0.65rem;color:#999;">רמה 1–5</div>
+          <div style="font-size:0.7rem;color:#555;" data-en="🏔️ Avalanche danger">🏔️ סכנת מפולות</div>
+          <div style="font-size:0.65rem;color:#999;" data-en="Level 1–5">רמה 1–5</div>
         </div>
       </div>
 
       <!-- Today forecast -->
       <div id="forecast-today-section" style="margin-bottom:14px;">
-        <div style="font-weight:bold;font-size:0.82rem;color:#0a192f;margin-bottom:8px;" id="forecast-today-date">📅 היום</div>
+        <div style="font-weight:bold;font-size:0.82rem;color:#0a192f;margin-bottom:8px;" id="forecast-today-date" data-en="📅 Today">📅 היום</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="forecast-today-grid"></div>
       </div>
 
       <!-- Next days -->
       <div id="forecast-next-section">
-        <div style="font-weight:bold;font-size:0.82rem;color:#0a192f;margin-bottom:8px;">📆 ימים הבאים</div>
+        <div style="font-weight:bold;font-size:0.82rem;color:#0a192f;margin-bottom:8px;" data-en="📆 Coming days">📆 ימים הבאים</div>
         <div id="forecast-next-grid" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
 
@@ -3277,11 +3303,11 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <!-- Tabs -->
     <div id="auth-tabs" style="display:flex;border-bottom:2px solid #eee;margin-bottom:20px;">
       <button id="auth-tab-login" onclick="switchAuthTab('login')"
-        style="flex:1;padding:10px;border:none;background:none;font-size:0.95rem;font-weight:bold;cursor:pointer;color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px;">
+        style="flex:1;padding:10px;border:none;background:none;font-size:0.95rem;font-weight:bold;cursor:pointer;color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px;" data-en="🔑 Sign in">
         🔑 כניסה
       </button>
       <button id="auth-tab-register" onclick="switchAuthTab('register')"
-        style="flex:1;padding:10px;border:none;background:none;font-size:0.95rem;font-weight:bold;cursor:pointer;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-2px;">
+        style="flex:1;padding:10px;border:none;background:none;font-size:0.95rem;font-weight:bold;cursor:pointer;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-2px;" data-en="✍️ Join">
         ✍️ הרשמה
       </button>
     </div>
@@ -3289,12 +3315,12 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <!-- LOGIN -->
     <div id="auth-panel-login">
       <div style="margin-bottom:10px;">
-        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">שם משתמש או מייל</label>
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;" data-en="Username or email">שם משתמש או מייל</label>
         <input id="login-name" type="text" placeholder="שם משתמש" autocomplete="username"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;">
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;" data-en-placeholder="Username">
       </div>
       <div style="margin-bottom:16px;">
-        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמה</label>
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;" data-en="Password">סיסמה</label>
         <div style="position:relative;">
           <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"
             style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
@@ -3303,12 +3329,12 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
             style="position:absolute;inset-inline-end:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
       </div>
-      <button onclick="login()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+      <button onclick="login()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;" data-en="🔓 Sign in">
         🔓 כניסה
       </button>
       <div style="text-align:center;margin-top:12px;">
         <a href="#" onclick="showForgotPassword();return false;"
-          style="font-size:0.82rem;color:#888;text-decoration:none;border-bottom:1px dashed #ccc;">
+          style="font-size:0.82rem;color:#888;text-decoration:none;border-bottom:1px dashed #ccc;" data-en="Forgot my password">
           שכחתי סיסמה
         </a>
       </div>
@@ -3317,48 +3343,48 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <!-- REGISTER -->
     <div id="auth-panel-register" style="display:none;">
       <div style="margin-bottom:10px;">
-        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">שם משתמש (יוצג בפוסטים)</label>
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;" data-en="Username (shown on your posts)">שם משתמש (יוצג בפוסטים)</label>
         <input id="reg-name" type="text" placeholder="למשל: דני_סקי" autocomplete="username"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;">
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:rtl;font-family:inherit;" data-en-placeholder="e.g. dan_ski">
       </div>
       <div style="margin-bottom:10px;">
-        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">כתובת מייל</label>
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;" data-en="Email address">כתובת מייל</label>
         <input id="reg-email" type="email" placeholder="מייל@דוגמה.com" autocomplete="email" dir="ltr"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;font-family:inherit;">
-        <div style="font-size:0.7rem;color:#bbb;margin-top:3px;">לשחזור סיסמה בעתיד. לא יוצג לאחרים.</div>
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;font-family:inherit;" data-en-placeholder="email@example.com">
+        <div style="font-size:0.7rem;color:#bbb;margin-top:3px;" data-en="To recover your password later. Not shown to others.">לשחזור סיסמה בעתיד. לא יוצג לאחרים.</div>
       </div>
       <div style="margin-bottom:10px;">
-        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">סיסמה</label>
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;" data-en="Password">סיסמה</label>
         <!-- The rule sits beside the label, not inside the box. In the box
              it had to choose between Hebrew sitting on the wrong side and a
              caret inviting the letters it was warning against. -->
-        <div style="font-size:0.74rem;color:#9aa0a6;margin:0 0 5px;direction:rtl;text-align:start;">
+        <div style="font-size:0.74rem;color:#9aa0a6;margin:0 0 5px;direction:rtl;text-align:start;" data-en="At least 6 characters — Latin letters, digits and symbols">
           לפחות 6 תווים — אותיות לועזיות, ספרות וסימנים
         </div>
         <div style="position:relative;">
           <input id="reg-pass" type="password" placeholder="••••••" aria-label="סיסמה" autocomplete="new-password"
             style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
-            oninput="checkPassValidity()">
+            oninput="checkPassValidity()" data-en-aria-label="Password">
           <button type="button" onclick="togglePass('reg-pass')" tabindex="-1"
             style="position:absolute;inset-inline-end:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
         <div id="pass-validity-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;direction:rtl;text-align:start;"></div>
       </div>
       <div style="margin-bottom:16px;">
-        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">אימות סיסמה</label>
+        <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;" data-en="Confirm password">אימות סיסמה</label>
         <div style="position:relative;">
           <input id="reg-pass2" type="password" placeholder="••••••" aria-label="אימות סיסמה" autocomplete="new-password"
             style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;"
-            onkeydown="if(event.key==='Enter') register()" oninput="checkPassMatch()">
+            onkeydown="if(event.key==='Enter') register()" oninput="checkPassMatch()" data-en-aria-label="Confirm password">
           <button type="button" onclick="togglePass('reg-pass2')" tabindex="-1"
             style="position:absolute;inset-inline-end:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
         </div>
         <div id="pass-match-msg" style="font-size:0.74rem;margin-top:4px;min-height:16px;direction:rtl;text-align:start;"></div>
       </div>
-      <button onclick="register()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+      <button onclick="register()" style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;" data-en="✅ Join">
         ✅ הרשמה
       </button>
-      <div style="font-size:0.75rem;color:#aaa;text-align:center;margin-top:10px;line-height:1.5;">
+      <div style="font-size:0.75rem;color:#aaa;text-align:center;margin-top:10px;line-height:1.5;" data-en="More details (ski level, discipline) can be added later in your profile.">
         פרטים נוספים (רמת סקי, ענף) אפשר להשלים דרך הפרופיל.
       </div>
     </div>
@@ -3374,22 +3400,22 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <div id="forgot-ask">
         <div style="text-align:center;margin-bottom:16px;">
           <span style="font-size:2rem;">🔑</span>
-          <div style="font-weight:bold;font-size:0.95rem;margin-top:6px;">איפוס סיסמה</div>
+          <div style="font-weight:bold;font-size:0.95rem;margin-top:6px;" data-en="Reset password">איפוס סיסמה</div>
         </div>
         <div id="forgot-hello" dir="rtl" style="font-size:0.86rem;color:#555;line-height:1.8;text-align:start;margin-bottom:14px;"></div>
         <div id="forgot-name-row" style="margin-bottom:14px;display:none;">
-          <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;">שם משתמש</label>
+          <label style="font-size:0.78rem;color:#888;display:block;margin-bottom:4px;" data-en="Username">שם משתמש</label>
           <input id="forgot-email" type="text" placeholder="הכנס את שם המשתמש שלך" dir="rtl"
             style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.93rem;font-family:inherit;"
-            onkeydown="if(event.key==='Enter') sendPasswordReset()">
+            onkeydown="if(event.key==='Enter') sendPasswordReset()" data-en-placeholder="Enter your username">
         </div>
         <button onclick="sendPasswordReset()" id="forgot-btn"
-          style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+          style="width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;" data-en="📧 Send a reset link">
           📧 שלח קישור לאיפוס
         </button>
         <div id="forgot-msg" style="display:none;margin-top:12px;padding:10px 12px;border-radius:8px;font-size:0.84rem;text-align:center;"></div>
         <div style="text-align:center;margin-top:14px;">
-          <a href="#" onclick="showAuthTab('login');return false;" style="font-size:0.82rem;color:#888;text-decoration:none;border-bottom:1px dashed #ccc;">
+          <a href="#" onclick="showAuthTab('login');return false;" style="font-size:0.82rem;color:#888;text-decoration:none;border-bottom:1px dashed #ccc;" data-en="→ Back to sign in">
             ← חזרה לכניסה
           </a>
         </div>
@@ -3400,13 +3426,13 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
            answer to it. -->
       <div id="forgot-sent" style="display:none;text-align:center;" dir="rtl">
         <span style="font-size:2.2rem;">📧</span>
-        <div style="font-weight:bold;font-size:1rem;margin-top:8px;color:#2e7d32;">הקישור נשלח</div>
-        <div style="font-size:0.87rem;color:#555;margin-top:10px;line-height:1.85;">
+        <div style="font-weight:bold;font-size:1rem;margin-top:8px;color:#2e7d32;" data-en="The link was sent">הקישור נשלח</div>
+        <div style="font-size:0.87rem;color:#555;margin-top:10px;line-height:1.85;" data-en="We sent a reset link to the address registered on your account.&lt;br&gt;It is worth checking the spam folder too.">
           שלחנו קישור לאיפוס לכתובת הרשומה בחשבונך.<br>
           כדאי לבדוק גם בתיקיית הספאם.
         </div>
         <button onclick="closeForgotSent()" id="forgot-ok-btn"
-          style="width:100%;margin-top:18px;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+          style="width:100%;margin-top:18px;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;" data-en="OK">
           אישור
         </button>
       </div>
@@ -3449,18 +3475,18 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     </div>
     <!-- קישורים בעברית -->
     <div style="border-top:1px solid #f0f0f0;padding-top:12px;margin-top:12px;">
-      <div style="font-size:0.75rem;color:#888;font-weight:bold;margin-bottom:8px;">📚 קריאה נוספת בעברית</div>
+      <div style="font-size:0.75rem;color:#888;font-weight:bold;margin-bottom:8px;" data-en="📚 Further reading and video">📚 קריאה נוספת בעברית</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="https://snow.org.il/listing-item/cervinia/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0f8ff;border:1px solid #c0e0f8;border-radius:8px;text-decoration:none;color:#0a192f;font-size:0.8rem;font-weight:bold;">❄️ snow.org.il — צ'רוויניה</a>
-        <a href="https://snow.org.il/listing-item/zermatt/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0fff4;border:1px solid #b8e0c8;border-radius:8px;text-decoration:none;color:#0a2a1a;font-size:0.8rem;font-weight:bold;"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> snow.org.il — זרמט</a>
-        <a href="https://www.youtube.com/watch?v=51HCOZl4g6k" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;">▶️ סרטון בעברית</a>
-        <a href="https://www.youtube.com/watch?v=rcc2cPmg5Uc" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;">▶️ מדריך לאתר (באנגלית)</a>
-        <a href="https://www.youtube.com/watch?v=8RUS22N7P4M" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;">🎬 הסרטון הרשמי לעונה</a>
+        <a class="he-only" href="https://snow.org.il/listing-item/cervinia/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0f8ff;border:1px solid #c0e0f8;border-radius:8px;text-decoration:none;color:#0a192f;font-size:0.8rem;font-weight:bold;">❄️ snow.org.il — צ'רוויניה</a>
+        <a class="he-only" href="https://snow.org.il/listing-item/zermatt/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0fff4;border:1px solid #b8e0c8;border-radius:8px;text-decoration:none;color:#0a2a1a;font-size:0.8rem;font-weight:bold;"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> snow.org.il — זרמט</a>
+        <a class="he-only" href="https://www.youtube.com/watch?v=51HCOZl4g6k" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;">▶️ סרטון בעברית</a>
+        <a href="https://www.youtube.com/watch?v=rcc2cPmg5Uc" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;" data-en="▶️ A guide to the resort">▶️ מדריך לאתר (באנגלית)</a>
+        <a href="https://www.youtube.com/watch?v=8RUS22N7P4M" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;" data-en="🎬 The season&#x27;s official video">🎬 הסרטון הרשמי לעונה</a>
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
-      <button onclick="closeM('whyModal');openM('hotelModal');" style="flex:1;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;">📅 תכנון טיול</button>
-      <button onclick="closeM('whyModal');loadMap('piste');" class="signin-btn" style="flex:1;color:#16314f;background:#eef4fb;border-color:#cfe0f2;">⛷️ מסלולים PDF</button>
+      <button onclick="closeM('whyModal');openM('hotelModal');" style="flex:1;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;" data-en="📅 Plan a trip">📅 תכנון טיול</button>
+      <button onclick="closeM('whyModal');loadMap('piste');" class="signin-btn" style="flex:1;color:#16314f;background:#eef4fb;border-color:#cfe0f2;" data-en="⛷️ Slopes PDF">⛷️ מסלולים PDF</button>
     </div>
           <div id="why-community"></div>
   </div>
@@ -4835,7 +4861,7 @@ const DEMO_LIVE = {
   zermatt_link: 'CLOSED',
   updated_at: new Date().toISOString(),
   forecast_today: {
-    date: 'היום',
+    date: L('היום', 'Today'),
     morning:   { icon: 'sun',              temp_min: -8, temp_max: -4, wind: 18, snow: 0,  desc: 'שמשי' },
     afternoon: { icon: 'partially-cloudy', temp_min: -5, temp_max: -2, wind: 22, snow: 0,  desc: 'חלקית מעונן' }
   },
@@ -4897,18 +4923,18 @@ async function _fetchCrossingWx() {
 // Our own banding, deliberately not presented as an operator figure - no
 // operator publishes one. Gusts in km/h.
 function _gustBand(g) {
-  if (g == null)  return { k: 'unknown', txt: 'אין נתון רוח' };
-  if (g < 40)     return { k: 'ok',   txt: 'הרוח אינה מגבלה' };
-  if (g < 60)     return { k: 'mild', txt: 'ייתכנו האטות במעליות הגבוהות' };
-  if (g < 80)     return { k: 'risk', txt: 'סיכוי ממשי לסגירה' };
-  return            { k: 'bad',  txt: 'סביר שהמעבר סגור' };
+  if (g == null)  return { k: 'unknown', txt: L('אין נתון רוח', 'No wind reading') };
+  if (g < 40)     return { k: 'ok',   txt: L('הרוח אינה מגבלה', 'Wind is no limit') };
+  if (g < 60)     return { k: 'mild', txt: L('ייתכנו האטות במעליות הגבוהות', 'The high lifts may slow down') };
+  if (g < 80)     return { k: 'risk', txt: L('סיכוי ממשי לסגירה', 'A real chance of closure') };
+  return            { k: 'bad',  txt: L('סביר שהמעבר סגור', 'The crossing is probably closed') };
 }
 
 // Open-Meteo WMO codes: 71+ is snowfall, 95+ thunderstorm, 45/48 fog.
 function _visFlag(code) {
-  if (code === 45 || code === 48) return 'צפוי ערפל';
-  if (code >= 95) return 'צפויה סופת רעמים';
-  if (code >= 71 && code <= 86) return 'צפוי שלג';
+  if (code === 45 || code === 48) return L('צפוי ערפל', 'Fog expected');
+  if (code >= 95) return L('צפויה סופת רעמים', 'Thunderstorm expected');
+  if (code >= 71 && code <= 86) return L('צפוי שלג', 'Snow expected');
   return null;
 }
 
@@ -4930,7 +4956,7 @@ async function paintBarGust() {
   el.style.color = { ok: '#8fe3a8', mild: '#ffe066', risk: '#ffa94d', bad: '#ff6b6b' }[k]
                    || 'rgba(255,255,255,0.8)';
   var wrap = document.getElementById('bar-gust-wrap');
-  if (wrap) wrap.title = 'משבי רוח בפלטאו רוזה: ' + Math.round(g)
+  if (wrap) wrap.title = L('משבי רוח בפלטאו רוזה: ', 'Wind gusts at Plateau Rosa: ') + Math.round(g)
     + ' km/h · ' + _gustBand(g).txt;
 }
 
@@ -4958,12 +4984,12 @@ async function openZermattForecast() {
   }
   _setU('plateau-wind', wind != null ? Math.round(wind) : null, ' km/h');
   _setU('plateau-gust', gust != null ? Math.round(gust) : null, ' km/h');
-  _setU('plateau-snow', topSnow != null ? topSnow : null, ' ס"מ');
+  _setU('plateau-snow', topSnow != null ? topSnow : null, L(' ס"מ', ' cm'));
   // deliberately not printing the model's grid elevation next to the 3,480 m in
   // the header: the two differ by a few dozen metres and look like a mistake
   _set('plateau-src', wx
-    ? 'נמדד בפלטאו רוזה, לא בכפר'
-    : 'לא התקבלו נתוני מזג אוויר מהרכס');
+    ? L('נמדד בפלטאו רוזה, לא בכפר', 'Measured at Plateau Rosa, not in the village')
+    : L('לא התקבלו נתוני מזג אוויר מהרכס', 'No weather data came from the ridge'));
 
   // ── the verdict: the operator's own status wins over any forecast ──
   var band = _gustBand(gust);
@@ -4973,37 +4999,40 @@ async function openZermattForecast() {
 
   if (zVal === 'OPEN') {
     var skiable = _zermattSkiable(d);
-    icon = '✅'; verdict = skiable ? 'הלינק פתוח' : 'המעבר פתוח — ברכבל בלבד';
-    reason = (skiable ? 'לפי הסטטוס הרשמי'
-      : 'ה-Matterhorn Alpine Crossing פועל כל השנה, גם כשאין מסלול פתוח. '
-        + 'אפשר לחצות לצ\'רמט ברכבל, לא בגלישה')
+    icon = '✅'; verdict = skiable ? L('הלינק פתוח', 'The link is open') : L('המעבר פתוח — ברכבל בלבד', 'The crossing is open — by cable car only');
+    reason = (skiable ? L('לפי הסטטוס הרשמי', 'According to the official status')
+      : L('ה-Matterhorn Alpine Crossing פועל כל השנה, גם כשאין מסלול פתוח. '
+        + 'אפשר לחצות לצ\'רמט ברכבל, לא בגלישה',
+        'The Matterhorn Alpine Crossing runs all year, even when no slope is open. '
+        + 'You can cross to Zermatt by cable car, not on skis'))
       + (band.k === 'risk' || band.k === 'bad'
-      ? ' — אבל ברכס משבים של ' + Math.round(gust) + ' km/h, וייתכן שייסגר במהלך היום' : '');
+      ? L(' — אבל ברכס משבים של ' + Math.round(gust) + ' km/h, וייתכן שייסגר במהלך היום',
+          ' — but the ridge has gusts of ' + Math.round(gust) + ' km/h, and it may close during the day') : '');
     bg = '#f0fff4'; border = '#66bb6a';
   } else if (zVal === 'CLOSED') {
     // this case used to fall through to amber "conditions possible" whenever
     // the weather looked fine, which contradicted the official status
-    icon = '❌'; verdict = 'הלינק סגור';
-    reason = 'לפי הסטטוס הרשמי' + (band.k === 'ok' ? ' — למרות שהרוח רגועה' : '');
+    icon = '❌'; verdict = L('הלינק סגור', 'The link is closed');
+    reason = L('לפי הסטטוס הרשמי', 'According to the official status') + (band.k === 'ok' ? L(' — למרות שהרוח רגועה', ' — although the wind is calm') : '');
     bg = '#fff5f5'; border = '#ef9a9a';
   } else if (zVal === 'WAITING') {
-    icon = '🕐'; verdict = 'ממתין להחלטה';
-    reason = 'מפעילת הרכבלים בודקת תנאים · ' + band.txt;
+    icon = '🕐'; verdict = L('ממתין להחלטה', 'Awaiting a decision');
+    reason = L('מפעילת הרכבלים בודקת תנאים · ', 'The lift operator is checking conditions · ') + band.txt;
     bg = '#fff8e1'; border = '#ffb300';
   } else if (band.k === 'bad' || band.k === 'risk') {
     icon = band.k === 'bad' ? '❌' : '⚠️';
     verdict = band.txt;
-    reason = 'משבים של ' + Math.round(gust) + ' km/h ברכס' + (vis ? ' · ' + vis : '');
+    reason = L('משבים של ' + Math.round(gust) + ' km/h ברכס', 'Gusts of ' + Math.round(gust) + ' km/h on the ridge') + (vis ? ' · ' + vis : '');
     bg = band.k === 'bad' ? '#fff5f5' : '#fff8e1';
     border = band.k === 'bad' ? '#ef9a9a' : '#ffb300';
   } else if (band.k === 'unknown') {
-    icon = '❔'; verdict = 'אין מספיק נתונים';
-    reason = 'בדקו את הסטטוס הרשמי של שני הצדדים';
+    icon = '❔'; verdict = L('אין מספיק נתונים', 'Not enough data');
+    reason = L('בדקו את הסטטוס הרשמי של שני הצדדים', 'Check the official status of both sides');
     bg = '#f7f7f7'; border = '#ccc';
   } else {
-    icon = '🟡'; verdict = 'מזג האוויר מאפשר';
+    icon = '🟡'; verdict = L('מזג האוויר מאפשר', 'The weather allows it');
     reason = band.txt + (vis ? ' · ' + vis : '')
-      + ' — ההחלטה עצמה נופלת בבוקר אצל מפעילת הרכבלים';
+      + L(' — ההחלטה עצמה נופלת בבוקר אצל מפעילת הרכבלים', ' — the decision itself is made that morning by the lift operator');
     bg = '#fff8e1'; border = '#ffb300';
   }
 
@@ -5021,7 +5050,7 @@ async function openZermattForecast() {
     llEl.innerHTML = '<div style="background:#fff;border:1.5px solid #d33;border-radius:10px;'
       + 'padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;">'
       + '<div style="font-size:0.76rem;color:#555;line-height:1.6;">⏰ ' + ll.label
-      + '<br><span style="font-size:0.68rem;color:#999;">מי שמאחר חוזר בכביש, ‎3.5–5 שעות</span></div>'
+      + '<br><span style="font-size:0.68rem;color:#999;">' + L('מי שמאחר חוזר בכביש, ‎3.5–5 שעות', 'Miss it and you go back by road, 3.5–5 hours') + '</span></div>'
       + '<div dir="ltr" style="font-size:1.3rem;font-weight:bold;color:#d33;">' + w.time + '</div>'
       + '</div>';
   } else if (llEl) { llEl.innerHTML = ''; }
@@ -5035,7 +5064,7 @@ async function openZermattForecast() {
   if (!grid) return;
   if (!wx || !wx.daily || !wx.daily.time) {
     grid.innerHTML = '<div style="font-size:0.75rem;color:#888;text-align:center;">'
-      + 'לא התקבלה תחזית לרכס. בדקו את הסטטוס הרשמי.</div>';
+      + L('לא התקבלה תחזית לרכס. בדקו את הסטטוס הרשמי.', 'No forecast came for the ridge. Check the official status.') + '</div>';
     return;
   }
   var dayBg = { ok: '#f3fbf5', mild: '#fffdf2', risk: '#fff8e1', bad: '#fff5f5', unknown: '#f7f7f7' };
@@ -5047,7 +5076,7 @@ async function openZermattForecast() {
     var b = _gustBand(g);
     var v = _visFlag(wx.daily.weathercode ? wx.daily.weathercode[i] : null);
     var parts = wx.daily.time[i].split('-');
-    var label = i === 0 ? 'היום' : parts[2] + '.' + parts[1];
+    var label = i === 0 ? L('היום', 'Today') : parts[2] + '.' + parts[1];
     rows += '<div style="background:' + dayBg[b.k] + ';border-radius:9px;padding:8px 11px;'
       + 'display:grid;grid-template-columns:54px 82px 1fr;align-items:center;gap:8px;margin-bottom:5px;">'
       + '<div style="font-size:0.78rem;font-weight:bold;">' + label + '</div>'
@@ -5060,10 +5089,11 @@ async function openZermattForecast() {
       + '</div>';
   }
   grid.innerHTML = '<div style="font-weight:bold;font-size:0.8rem;margin-bottom:6px;color:#0a192f;">'
-    + '📆 משבי רוח ברכס — 5 ימים</div>' + rows
+    + L('📆 משבי רוח ברכס — 5 ימים', '📆 Ridge gusts — 5 days') + '</div>' + rows
     + '<div style="font-size:0.66rem;color:#aaa;margin-top:6px;line-height:1.6;">'
-    + 'התחזית היא למשבים בפלטאו רוזה. היא אומרת מתי הרוח מסכנת את המעבר — '
-    + 'לא אם הוא ייפתח.</div>';
+    + L('התחזית היא למשבים בפלטאו רוזה. היא אומרת מתי הרוח מסכנת את המעבר — '
+      + 'לא אם הוא ייפתח.', 'The forecast is for gusts at Plateau Rosa. It says when the wind puts the crossing at risk — '
+      + 'not whether it will open.') + '</div>';
 }
 
 // Every modal has its own X in its header, but the header scrolls away, and
@@ -5082,7 +5112,7 @@ function _ensureFloatX() {
   b = document.createElement('button');
   b.id = 'modal-float-x';
   b.type = 'button';
-  b.setAttribute('aria-label', 'סגור');
+  b.setAttribute('aria-label', L('סגור', 'Close'));
   b.innerHTML = '\u2715';
   b.onclick = function () {
     if (!_openModalId) return;
@@ -5206,8 +5236,8 @@ function _addPanelShare(modalId) {
   b.className = 'panel-share' + (inline ? ' inline' : '');
   b.setAttribute('role', 'button');
   b.setAttribute('tabindex', '0');
-  b.setAttribute('title', 'העתקת קישור ישיר לעמוד הזה');
-  b.setAttribute('aria-label', 'העתקת קישור ישיר לעמוד הזה');
+  b.setAttribute('title', L('העתקת קישור ישיר לעמוד הזה', 'Copy a direct link to this page'));
+  b.setAttribute('aria-label', L('העתקת קישור ישיר לעמוד הזה', 'Copy a direct link to this page'));
   b.textContent = '🔗';
   b.onclick = function (e) { e.stopPropagation(); copyPanelLink(modalId, b); };
   b.onkeydown = function (e) {
@@ -5223,9 +5253,9 @@ function copyPanelLink(modalId, btn) {
     if (!btn) return;
     var was = btn.textContent;
     btn.textContent = ok ? '✓' : '!';
-    btn.setAttribute('title', ok ? 'הקישור הועתק' : url);
+    btn.setAttribute('title', ok ? L('הקישור הועתק', 'Link copied') : url);
     setTimeout(function () { btn.textContent = was;
-      btn.setAttribute('title', 'העתקת קישור ישיר לעמוד הזה'); }, 1800);
+      btn.setAttribute('title', L('העתקת קישור ישיר לעמוד הזה', 'Copy a direct link to this page')); }, 1800);
   };
   // The clipboard API needs a secure context and can still be refused, so
   // the old selection trick stays as the fallback rather than leaving the
@@ -5266,7 +5296,7 @@ function checkResetMatch() {
   var m = document.getElementById('pw-reset-match');
   if (!m) return;
   if (!b) { m.textContent = 'הקלד שוב לאימות'; m.style.color = '#9aa0a6'; return; }
-  m.textContent  = (a === b) ? '✅ הסיסמאות תואמות' : '❌ הסיסמאות אינן תואמות';
+  m.textContent  = (a === b) ? L('✅ הסיסמאות תואמות', '✅ The passwords match') : L('❌ הסיסמאות אינן תואמות', '❌ The passwords do not match');
   m.style.color  = (a === b) ? '#2e7d32' : '#c62828';
 }
 
@@ -5397,7 +5427,7 @@ async function submitPasswordReset() {
   };
   if (pass.length < 6)              return say('נדרשים לפחות 6 תווים', true);
   if (/[\u0590-\u05FF]/.test(pass)) return say('אי אפשר אותיות בעברית — החלף שפה ל-EN', true);
-  if (pass !== pass2)               return say('הסיסמאות אינן תואמות', true);
+  if (pass !== pass2)               return say(L('הסיסמאות אינן תואמות', 'The passwords do not match'), true);
 
   var sb = getSB();
   if (!sb) return say('אין חיבור לשרת', true);
@@ -6220,7 +6250,7 @@ function _mapReset() {
   var _rl = document.getElementById('map-route-layer');
   if (_rl) _rl.style.display = 'none';
   if (frame)  { frame.style.display = 'none'; frame.src = ''; }
-  if (ph)     { ph.style.display = 'flex'; ph.innerHTML = '<span style="font-size:2rem;">⏳</span><span>טוען...</span>'; }
+  if (ph)     { ph.style.display = 'flex'; ph.innerHTML = '<span style="font-size:2rem;">⏳</span><span>' + L('טוען...', 'Loading...') + '</span>'; }
   if (toolbar) toolbar.style.display = 'none';
   var zl = document.getElementById('map-zoom-label');
   if (zl) zl.textContent = '100%';
@@ -6884,7 +6914,7 @@ async function submitReply(targetId, postId) {
     try {
       let fileUrl = null;
       if (file) { setBusy(true, 'מעלה…'); fileUrl = await uploadForumFile(file); }
-      setBusy(true, 'שולח…');
+      setBusy(true, L('שולח…', 'Sending…'));
       const res = await sbInsert('replies', {
         post_id: postId,
         parent_id: String(targetId) === String(postId) ? null : targetId,
@@ -8741,8 +8771,8 @@ function uiDialog(o) {
     try { ok.focus(); } catch (e) {}
   });
 }
-function uiConfirm(text, ok, danger) { return uiDialog({ text: text, ok: ok || 'אישור', cancel: 'ביטול', danger: !!danger }); }
-function uiAlert(text) { return uiDialog({ text: text, ok: 'סגירה', cancel: false }); }
+function uiConfirm(text, ok, danger) { return uiDialog({ text: text, ok: ok || L('אישור', 'OK'), cancel: L('ביטול', 'Cancel'), danger: !!danger }); }
+function uiAlert(text) { return uiDialog({ text: text, ok: L('סגירה', 'Close'), cancel: false }); }
 
 var _snowPoints = [], _snowLastFall = '';
 var SNOW_HE = { 'Plateau Rosa': 'פלטאו רוזה', 'Cime Bianche Laghi': 'צ\'ימה ביאנקה', 'Plan Maison': 'פלאן מייזון', 'Breuil': 'הכפר' };
@@ -8752,18 +8782,20 @@ function _snowFill() {
   var pts = _snowPoints.slice().sort(function (a, b) { return (b.altitude || 0) - (a.altitude || 0); });
   var max = Math.max.apply(null, pts.map(function (p) { return +p.depth || 0; }).concat([1]));
   if (box) box.innerHTML = pts.length ? pts.map(function (p) {
-    var he = SNOW_HE[p.name] || '';
+    // in English the station's own name is the name, and the village is said
+    var he = window.LANG === 'en' ? (p.name === 'Breuil' ? 'Breuil (village)' : '') : (SNOW_HE[p.name] || '');
     var w = Math.max(4, Math.round(100 * (+p.depth || 0) / max));
     return '<div class="snow-pt" style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;background:#f4f8fc;border:1px solid #d8e4f0;border-radius:9px;">'
       + '<div style="flex:1;min-width:0;"><b style="color:#17324c;">' + (he || '<bdi>' + p.name + '</bdi>') + '</b>'
       + (he ? ' <span style="color:#7a8794;font-size:0.74rem;"><bdi>' + p.name + '</bdi></span>' : '')
-      + '<div style="font-size:0.72rem;color:#7a8794;">' + (p.altitude ? '<bdi dir="ltr">' + Number(p.altitude).toLocaleString('en-US') + '</bdi> מ\'' : '') + '</div>'
+      + '<div style="font-size:0.72rem;color:#7a8794;">' + (p.altitude ? '<bdi dir="ltr">' + Number(p.altitude).toLocaleString('en-US') + '</bdi> ' + L('מ\'', 'm') : '') + '</div>'
       + '<div style="height:5px;background:#e3ecf5;border-radius:3px;margin-top:5px;"><div style="height:5px;width:' + w + '%;background:#4cc9f0;border-radius:3px;"></div></div></div>'
-      + '<div style="font-size:1.15rem;font-weight:800;color:#17324c;white-space:nowrap;">' + (p.depth != null ? p.depth + ' <span style="font-size:0.75rem;font-weight:600;">ס"מ</span>' : '—') + '</div></div>';
-  }).join('') : '<div style="color:#888;">אין כרגע נתונים מהתחנות</div>';
+      + '<div style="font-size:1.15rem;font-weight:800;color:#17324c;white-space:nowrap;">' + (p.depth != null ? p.depth + ' <span style="font-size:0.75rem;font-weight:600;">' + L('ס"מ', 'cm') + '</span>' : '—') + '</div></div>';
+  }).join('') : '<div style="color:#888;">' + L('אין כרגע נתונים מהתחנות', 'No readings from the stations right now') + '</div>';
   var foot = document.getElementById('snow-points-foot');
-  if (foot) foot.innerHTML = (_snowLastFall ? 'שלג אחרון: <bdi dir="ltr">' + _snowLastFall + '</bdi> · ' : '')
-    + 'מתוך <a href="https://www.cervinia.it/en/meteo" target="_blank" rel="noopener" style="color:#1a73e8;">האתר הרשמי</a>. בוולטורננש המפעיל לא מפרסם מדידה נפרדת.';
+  if (foot) foot.innerHTML = (_snowLastFall ? L('שלג אחרון: ', 'Last snowfall: ') + '<bdi dir="ltr">' + _snowLastFall + '</bdi> · ' : '')
+    + L('מתוך ', 'From the ') + '<a href="https://www.cervinia.it/en/meteo" target="_blank" rel="noopener" style="color:#1a73e8;">' + L('האתר הרשמי', 'official website') + '</a>'
+    + L('. בוולטורננש המפעיל לא מפרסם מדידה נפרדת.', '. The operator publishes no separate reading for Valtournenche.');
 }
 
 function zcAdj(k, d) {
@@ -12992,7 +13024,7 @@ async function saveProfile() {
   // all, here or anywhere else.
   if (newPass) {
     if (newPass.length < 6) {
-      showProfileMsg('הסיסמה חייבת להכיל לפחות 6 תווים', 'error'); return;
+      showProfileMsg(L('הסיסמה חייבת להכיל לפחות 6 תווים', 'The password must have at least 6 characters'), 'error'); return;
     }
     if (/[\u0590-\u05FF]/.test(newPass)) {
       showProfileMsg('אי אפשר אותיות בעברית בסיסמה — החלף שפה ל-EN', 'error'); return;
@@ -13360,7 +13392,7 @@ async function showUserInfo(username) {
   if (nm) nm.textContent = username;
   if (jd) jd.textContent = '';
   if (bioEl) { bioEl.textContent = ''; bioEl.style.display = 'none'; }
-  if (details) details.innerHTML = '<div style="text-align:center;color:#aaa;">טוען...</div>';
+  if (details) details.innerHTML = '<div style="text-align:center;color:#aaa;">' + L('טוען...', 'Loading...') + '</div>';
   renderAvatarInto(av, { name: username, fontSize: '2rem' });
 
   const users = getUsers();
@@ -13496,7 +13528,7 @@ async function supabaseRegister(username, email, password) {
   // that works before anyone signs in is a query anyone can run, on every
   // row. These three now go through functions that answer about ONE name.
   const { data: taken } = await sb.rpc('cl_username_taken', { p_username: username });
-  if (taken) return { error: 'שם משתמש זה כבר תפוס — בחר שם אחר' };
+  if (taken) return { error: L('שם משתמש זה כבר תפוס — בחר שם אחר', 'This username is taken — choose another') };
   // צור מייל פנימי ייחודי
   const rand = Math.floor(Math.random() * 900000) + 100000;
   const base = username.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -13523,9 +13555,9 @@ async function supabaseLogin(username, password) {
   const sb = getSB(); if (!sb) return { error: 'Supabase not ready' };
   // מצא את המייל הפנימי מהפרופיל
   const { data: internalEmail } = await sb.rpc('cl_login_email', { p_username: username });
-  if (!internalEmail) return { error: 'שם משתמש לא קיים במערכת' };
+  if (!internalEmail) return { error: L('שם משתמש לא קיים במערכת', 'This username does not exist') };
   const { data, error } = await sb.auth.signInWithPassword({ email: internalEmail, password });
-  if (error) return { error: 'שם משתמש או סיסמה שגויים' };
+  if (error) return { error: L('שם משתמש או סיסמה שגויים', 'Wrong username or password') };
   return { data };
 }
 
@@ -13560,10 +13592,10 @@ async function supabaseSendPasswordReset(username) {
     });
     let data = null;
     try { data = await r.json(); } catch (e) {}
-    if (!r.ok) return { error: 'השרת החזיר שגיאה (' + r.status + '). נסה שוב בעוד רגע.' };
+    if (!r.ok) return { error: L('השרת החזיר שגיאה (' + r.status + '). נסה שוב בעוד רגע.', 'The server returned an error (' + r.status + '). Try again in a moment.') };
     return { status: (data && data.status) || 'sent' };
   } catch (e) {
-    return { error: 'לא הצלחנו לשלוח. בדוק את החיבור ונסה שוב.' };
+    return { error: L('לא הצלחנו לשלוח. בדוק את החיבור ונסה שוב.', 'We could not send. Check your connection and try again.') };
   }
 }
 
@@ -13597,10 +13629,10 @@ function checkPassMatch() {
   if (!msg) return;
   if (!p2) { msg.textContent = ''; return; }
   if (p1 === p2) {
-    msg.textContent = '✅ הסיסמאות תואמות';
+    msg.textContent = L('✅ הסיסמאות תואמות', '✅ The passwords match');
     msg.style.color = '#2e7d32';
   } else {
-    msg.textContent = '❌ הסיסמאות אינן תואמות';
+    msg.textContent = L('❌ הסיסמאות אינן תואמות', '❌ The passwords do not match');
     msg.style.color = '#c62828';
   }
 }
@@ -13614,12 +13646,12 @@ function checkPassValidity() {
   // אותיות בעברית - הכשל שחוזר כשהמקלדת נשארה בעברית. הספרות והסימנים
   // מותרים ותמיד היו, ולכן ההודעה לא אומרת עוד "באנגלית".
   if (/[\u0590-\u05FF]/.test(p1)) {
-    msg.textContent = '⚠️ אי אפשר אותיות בעברית — החלף שפה ל-EN';
+    msg.textContent = L('⚠️ אי אפשר אותיות בעברית — החלף שפה ל-EN', '⚠️ No Hebrew letters — switch the keyboard to English');
     msg.style.color = '#c62828';
     return;
   }
   if (p1.length < 6) {
-    msg.textContent = '⚠️ נדרשים לפחות 6 תווים (כרגע: ' + p1.length + ')';
+    msg.textContent = L('⚠️ נדרשים לפחות 6 תווים (כרגע: ' + p1.length + ')', '⚠️ At least 6 characters needed (now: ' + p1.length + ')');
     msg.style.color = '#c62828';
     return;
   }
@@ -13627,10 +13659,10 @@ function checkPassValidity() {
   // מה ההבדל. אין כאן חסימה, רק אמירה.
   var strong = /[A-Z]/.test(p1) && /[^A-Za-z0-9]/.test(p1);
   if (strong) {
-    msg.textContent = '✅ סיסמה חזקה';
+    msg.textContent = L('✅ סיסמה חזקה', '✅ Strong password');
     msg.style.color = '#2e7d32';
   } else {
-    msg.textContent = '✅ הסיסמה תקינה · מומלץ להוסיף אות גדולה וסימן כמו ! או #';
+    msg.textContent = L('✅ הסיסמה תקינה · מומלץ להוסיף אות גדולה וסימן כמו ! או #', '✅ Password OK · a capital letter and a symbol such as ! or # would make it stronger');
     msg.style.color = '#2e7d32';
   }
   // נבדוק שוב את ההתאמה אם כבר הקלידו אימות
@@ -13652,30 +13684,32 @@ async function sendPasswordReset() {
     // Nothing to send to: open the box rather than scold him for an empty
     // field he was never shown.
     _forgotAskForName();
-    showForgotMsg('אנא הכנס שם משתמש', 'error');
+    showForgotMsg(L('אנא הכנס שם משתמש', 'Please enter a username'), 'error');
     return;
   }
   // Hebrew reads right to left, so three dots written BEFORE the word land
   // on its right - which is where English puts them and Hebrew does not.
-  if (btn) { btn.disabled = true; btn.textContent = 'שולח…'; }
+  if (btn) { btn.disabled = true; btn.textContent = L('שולח…', 'Sending…'); }
   const { error, status } = await supabaseSendPasswordReset(username);
-  if (btn) { btn.disabled = false; btn.textContent = '📧 שלח קישור לאיפוס'; }
-  if (error) { showForgotMsg('שגיאה: ' + error, 'error'); return; }
+  if (btn) { btn.disabled = false; btn.textContent = L('📧 שלח קישור לאיפוס', '📧 Send a reset link'); }
+  if (error) { showForgotMsg(L('שגיאה: ', 'Error: ') + error, 'error'); return; }
 
   if (status === 'no-user') {
     _forgotAskForName(username);
-    showForgotMsg('לא נמצא משתמש בשם ״' + username + '״. ' +
-                  'בדוק את האיות, או הירשם מחדש.', 'error');
+    showForgotMsg(L('לא נמצא משתמש בשם ״' + username + '״. ' +
+                  'בדוק את האיות, או הירשם מחדש.', 'No user named “' + username + '” was found. Check the spelling, or join again.'), 'error');
     return;
   }
   if (status === 'no-email') {
-    showForgotMsg('המשתמש ״' + username + '״ קיים, אבל אין בחשבון כתובת מייל ' +
-                  'שאפשר לשלוח אליה. פנה אלינו דרך ״צור קשר״ ונסדר את זה.', 'error');
+    showForgotMsg(L('המשתמש ״' + username + '״ קיים, אבל אין בחשבון כתובת מייל ' +
+                  'שאפשר לשלוח אליה. פנה אלינו דרך ״צור קשר״ ונסדר את זה.',
+                  'The user “' + username + '” exists, but the account has no email address to send to. Write to us through “Contact us” and we will sort it out.'), 'error');
     return;
   }
   if (status === 'send-failed') {
-    showForgotMsg('המשתמש נמצא, אבל שליחת המייל נכשלה. נסה שוב בעוד דקה, ' +
-                  'ואם זה חוזר — פנה אלינו דרך ״צור קשר״.', 'error');
+    showForgotMsg(L('המשתמש נמצא, אבל שליחת המייל נכשלה. נסה שוב בעוד דקה, ' +
+                  'ואם זה חוזר — פנה אלינו דרך ״צור קשר״.',
+                  'The user was found, but sending the email failed. Try again in a minute, and if it happens again — write to us through “Contact us”.'), 'error');
     return;
   }
   // The address itself still does not come back here - it is enough to say
@@ -13691,8 +13725,8 @@ async function sendPasswordReset() {
       try { document.getElementById('forgot-ok-btn').focus(); } catch (e) {}
     }, 120);
   } else {
-    showForgotMsg('✅ שלחנו קישור לאיפוס לכתובת הרשומה בחשבונך. ' +
-                  'בדוק גם בתיקיית הספאם.', 'success');
+    showForgotMsg(L('✅ שלחנו קישור לאיפוס לכתובת הרשומה בחשבונך. ' +
+                  'בדוק גם בתיקיית הספאם.', '✅ We sent a reset link to the address registered on your account. Check the spam folder too.'), 'success');
     if (btn) btn.disabled = true;
   }
 }
@@ -13714,7 +13748,7 @@ function _forgotAskForName(prefill) {
   row.style.display = 'block';
   if (prefill && !fe.value) fe.value = prefill;
   const hello = document.getElementById('forgot-hello');
-  if (hello) hello.innerHTML = 'קישור לאיפוס הסיסמה יישלח למייל שהכנסת בהרשמה.';
+  if (hello) hello.innerHTML = L('קישור לאיפוס הסיסמה יישלח למייל שהכנסת בהרשמה.', 'A password reset link will be sent to the email you gave when you joined.');
   setTimeout(function () { try { fe.focus(); fe.select(); } catch (e) {} }, 120);
 }
 
@@ -13753,7 +13787,7 @@ function showForgotPassword() {
   if (ask)  ask.style.display  = 'block';
   if (sent) sent.style.display = 'none';
   const btn = document.getElementById('forgot-btn');
-  if (btn) { btn.disabled = false; btn.textContent = '📧 שלח קישור לאיפוס'; }
+  if (btn) { btn.disabled = false; btn.textContent = L('📧 שלח קישור לאיפוס', '📧 Send a reset link'); }
 
   // He already typed the name one box ago. Asking for it again is the kind
   // of small rudeness that makes a form feel like it is not listening - and
@@ -13766,11 +13800,11 @@ function showForgotPassword() {
   if (_forgotName) {
     if (row) row.style.display = 'none';
     if (hello) hello.innerHTML =
-      'שלום <b>' + escHtml(_forgotName) + '</b>.<br>' +
-      'קישור לאיפוס הסיסמה יישלח למייל שהכנסת בהרשמה.' +
+      L('שלום ', 'Hello ') + '<b>' + escHtml(_forgotName) + '</b>.<br>' +
+      L('קישור לאיפוס הסיסמה יישלח למייל שהכנסת בהרשמה.', 'A password reset link will be sent to the email you gave when you joined.') +
       '<a href="#" onclick="_forgotAskForName();return false;" ' +
-      'style="display:inline-block;margin-right:6px;font-size:0.78rem;color:#aaa;' +
-      'text-decoration:none;border-bottom:1px dashed #ddd;">לא ' + escHtml(_forgotName) + '?</a>';
+      'style="display:inline-block;margin-inline-start:6px;font-size:0.78rem;color:#aaa;' +
+      'text-decoration:none;border-bottom:1px dashed #ddd;">' + L('לא ', 'Not ') + escHtml(_forgotName) + '?</a>';
     setTimeout(function () { try { document.getElementById('forgot-btn').focus(); } catch (e) {} }, 120);
   } else {
     _forgotAskForName();
@@ -15416,6 +15450,7 @@ function _applyTexts(t) {
   // ── מודאל "עלינו" ──
   if (t.modals && t.modals.about) {
     var a = t.modals.about;
+    if (a.title) _set('about-title', a.title);
     _set('about-text1', a.text1);
     _set('about-text2', a.text2);
   }
@@ -16481,13 +16516,13 @@ async function submitContactForm() {
   const subject = (document.getElementById('cf-subject')?.value || '').trim();
   const message = (document.getElementById('cf-message')?.value || '').trim();
 
-  if (!name)    { showCfMsg('נא להזין שם', false); return; }
-  if (!email || !email.includes('@')) { showCfMsg('נא להזין כתובת מייל תקינה', false); return; }
-  if (!subject) { showCfMsg('נא לבחור נושא', false); return; }
-  if (!message) { showCfMsg('נא לכתוב הודעה', false); return; }
+  if (!name)    { showCfMsg(L('נא להזין שם', 'Please enter a name'), false); return; }
+  if (!email || !email.includes('@')) { showCfMsg(L('נא להזין כתובת מייל תקינה', 'Please enter a valid email address'), false); return; }
+  if (!subject) { showCfMsg(L('נא לבחור נושא', 'Please choose a subject'), false); return; }
+  if (!message) { showCfMsg(L('נא לכתוב הודעה', 'Please write a message'), false); return; }
 
   const btn = document.querySelector('#contact-form button');
-  if (btn) { btn.textContent = '⏳ שולח…'; btn.disabled = true; }
+  if (btn) { btn.textContent = L('⏳ שולח…', '⏳ Sending…'); btn.disabled = true; }
 
   // Two channels, and until now neither said whether it had worked: the
   // copy to Supabase swallowed every error, so a message could vanish
@@ -16509,8 +16544,8 @@ async function submitContactForm() {
   // Send via EmailJS
   if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
     // Dev mode — simulate success
-    if (btn) { btn.textContent = '📤 שלח הודעה'; btn.disabled = false; }
-    showCfMsg('✅ ההודעה התקבלה! (מצב פיתוח — יש להגדיר EmailJS)', true);
+    if (btn) { btn.textContent = L('📤 שלח הודעה', '📤 Send message'); btn.disabled = false; }
+    showCfMsg(L('✅ ההודעה התקבלה! (מצב פיתוח — יש להגדיר EmailJS)', '✅ Message received! (development mode — EmailJS not set up)'), true);
     return;
   }
 
@@ -16549,9 +16584,9 @@ async function submitContactForm() {
         // then delivered it is a separate matter that has already failed
         // once silently. What we DO know is that the message reached us,
         // so that is what it says.
-        + '<div style="font-weight:bold;font-size:1.1rem;margin-bottom:8px;">ההודעה התקבלה!</div>'
-        + '<div style="font-size:0.88rem;color:#666;margin-bottom:24px;">נחזור אליך בהקדם.</div>'
-        + '<button onclick="resetContactForm()" style="padding:10px 24px;background:#1a3a6c;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-weight:bold;">📤 שלח הודעה נוספת</button>'
+        + '<div style="font-weight:bold;font-size:1.1rem;margin-bottom:8px;">' + L('ההודעה התקבלה!', 'Message received!') + '</div>'
+        + '<div style="font-size:0.88rem;color:#666;margin-bottom:24px;">' + L('נחזור אליך בהקדם.', 'We will get back to you soon.') + '</div>'
+        + '<button onclick="resetContactForm()" style="padding:10px 24px;background:#1a3a6c;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-weight:bold;">' + L('📤 שלח הודעה נוספת', '📤 Send another message') + '</button>'
         + '</div>';
     }
   } catch(e) {
@@ -16561,14 +16596,15 @@ async function submitContactForm() {
     // And when the copy to Supabase DID go through, the message is not lost
     // at all: only the mail notification failed, which is ours to chase.
     if (_saved) {
-      showCfMsg('✅ ההודעה התקבלה ונשמרה. נחזור אליך בהקדם.', true);
+      showCfMsg(L('✅ ההודעה התקבלה ונשמרה. נחזור אליך בהקדם.', '✅ Your message was received and saved. We will get back to you soon.'), true);
     } else {
-      showCfMsg('ההודעה לא נשלחה. נסו שוב בעוד רגע — ואם זה חוזר, ' +
-                'ההודעה לא נשמרה ושווה לנסות שוב מאוחר יותר.', false);
+      showCfMsg(L('ההודעה לא נשלחה. נסו שוב בעוד רגע — ואם זה חוזר, ' +
+                'ההודעה לא נשמרה ושווה לנסות שוב מאוחר יותר.',
+                'The message was not sent. Try again in a moment — if it happens again, the message was not saved and it is worth trying later.'), false);
     }
   }
 
-  if (btn) { btn.textContent = '📤 שלח הודעה'; btn.disabled = false; }
+  if (btn) { btn.textContent = L('📤 שלח הודעה', '📤 Send message'); btn.disabled = false; }
 }
 
 window.onload = async function() {
@@ -16580,7 +16616,7 @@ window.onload = async function() {
     renderPosts('');
     loadPostsFromSupabase().then(ok => {
       if (ok) renderPosts('');
-      else forumMsg('לא הצלחנו לטעון את הפורום. נסה לרענן את הדף.', true);
+      else forumMsg(L('לא הצלחנו לטעון את הפורום. נסה לרענן את הדף.', 'We could not load the forum. Try refreshing the page.'), true);
     });
   } else {
     allPosts = DEMO_POSTS.map(p => ({...p}));
@@ -17123,13 +17159,13 @@ function simpleHash(str) {
 async function login() {
   const username = document.getElementById('login-name')?.value.trim();
   const pass = document.getElementById('login-pass')?.value;
-  if (!username || !pass) { showAuthErr('יש למלא שם משתמש וסיסמה'); return; }
+  if (!username || !pass) { showAuthErr(L('יש למלא שם משתמש וסיסמה', 'Please fill in a username and password')); return; }
 
   if (USE_SUPABASE) {
     const btn = document.querySelector('#auth-panel-login button[onclick="login()"]');
-    if (btn) { btn.textContent = '⏳ נכנס...'; btn.disabled = true; }
+    if (btn) { btn.textContent = L('⏳ נכנס...', '⏳ Signing in...'); btn.disabled = true; }
     const { data, error } = await supabaseLogin(username, pass);
-    if (btn) { btn.textContent = '🔓 כניסה'; btn.disabled = false; }
+    if (btn) { btn.textContent = L('🔓 כניסה', '🔓 Sign in'); btn.disabled = false; }
     if (error) { showAuthErr(error); return; }
     const prof = await supabaseGetProfile(data.user.id);
     user = {
@@ -17148,8 +17184,8 @@ async function login() {
 
   // Fallback: localStorage
   const users = getUsers();
-  if (!users[username]) { showAuthErr('משתמש לא קיים — אולי צריך להירשם?'); return; }
-  if (users[username].passHash !== simpleHash(pass)) { showAuthErr('סיסמה שגויה'); return; }
+  if (!users[username]) { showAuthErr(L('משתמש לא קיים — אולי צריך להירשם?', 'No such user — perhaps you need to join?')); return; }
+  if (users[username].passHash !== simpleHash(pass)) { showAuthErr(L('סיסמה שגויה', 'Wrong password')); return; }
   user = { name: username, level: users[username].level, discipline: users[username].discipline };
   saveAndClose();
 }
@@ -17159,17 +17195,17 @@ async function register() {
   const email = document.getElementById('reg-email')?.value.trim().toLowerCase();
   const pass  = document.getElementById('reg-pass')?.value  || '';
   const pass2 = document.getElementById('reg-pass2')?.value || '';
-  if (!name) { showAuthErr('נא להזין שם משתמש'); return; }
-  if (!email || !email.includes('@')) { showAuthErr('נא להזין כתובת מייל תקינה'); return; }
-  if (!pass || pass.length < 6) { showAuthErr('הסיסמה חייבת להכיל לפחות 6 תווים'); return; }
-  if (/[\u0590-\u05FF]/.test(pass)) { showAuthErr('הסיסמה חייבת להיות באנגלית בלבד'); return; }
-  if (pass !== pass2) { showAuthErr('הסיסמאות אינן תואמות'); return; }
+  if (!name) { showAuthErr(L('נא להזין שם משתמש', 'Please enter a username')); return; }
+  if (!email || !email.includes('@')) { showAuthErr(L('נא להזין כתובת מייל תקינה', 'Please enter a valid email address')); return; }
+  if (!pass || pass.length < 6) { showAuthErr(L('הסיסמה חייבת להכיל לפחות 6 תווים', 'The password must have at least 6 characters')); return; }
+  if (/[\u0590-\u05FF]/.test(pass)) { showAuthErr(L('הסיסמה חייבת להיות באנגלית בלבד', 'The password must use Latin characters only')); return; }
+  if (pass !== pass2) { showAuthErr(L('הסיסמאות אינן תואמות', 'The passwords do not match')); return; }
 
   if (USE_SUPABASE) {
     const btn = document.querySelector('#auth-panel-register button[onclick="register()"]');
-    if (btn) { btn.textContent = '⏳ נרשם...'; btn.disabled = true; }
+    if (btn) { btn.textContent = L('⏳ נרשם...', '⏳ Joining...'); btn.disabled = true; }
     const { data, error } = await supabaseRegister(name, email, pass);
-    if (btn) { btn.textContent = '✅ הרשמה'; btn.disabled = false; }
+    if (btn) { btn.textContent = L('✅ הרשמה', '✅ Join'); btn.disabled = false; }
     if (error) { showAuthErr(error); return; }
     user = { name, level: null, discipline: 'ski', sbId: data.user?.id };
     saveAndClose();
@@ -17178,7 +17214,7 @@ async function register() {
 
   // Fallback: localStorage
   const users = getUsers();
-  if (users[name]) { showAuthErr('שם משתמש זה כבר תפוס — בחר שם אחר'); return; }
+  if (users[name]) { showAuthErr(L('שם משתמש זה כבר תפוס — בחר שם אחר', 'This username is taken — choose another')); return; }
   users[name] = { passHash: simpleHash(pass), email, level: null, discipline: 'ski', joined: new Date().toLocaleDateString('he-IL') };
   saveUsers(users);
   user = { name, level: null, discipline: 'ski' };
@@ -17224,7 +17260,7 @@ function renderHeader() {
   const area = document.getElementById('auth-area');
   if (user) {
     const adminBadge = isAdmin() ? '<span class="admin-badge">ADMIN</span>' : '';
-    const gear = isAdmin() ? `<span onclick="openAdminDashboard()" style="cursor:pointer;font-size:1.1rem;margin-inline-end:2px;" title="ניהול">⚙️</span>` : '';
+    const gear = isAdmin() ? `<span onclick="openAdminDashboard()" style="cursor:pointer;font-size:1.1rem;margin-inline-end:2px;" title="${L('ניהול', 'Admin')}">⚙️</span>` : '';
     const initial = getInitial(user.name);
     let avatarInner;
     if (user.avatar_url) {
@@ -17370,8 +17406,8 @@ async function fetchWttrForecast() {
       return {
         date: label,
         periods: [
-          { icon: omCode(code), label: 'בוקר', temp: tMin + '°' },
-          { icon: omCode(code), label: 'אחה"צ', temp: tMax + '°' + (snow ? ' ' + snow : ''), wind: wind }
+          { icon: omCode(code), label: L('בוקר', 'Morning'), temp: tMin + '°' },
+          { icon: omCode(code), label: L('אחה"צ', 'Afternoon'), temp: tMax + '°' + (snow ? ' ' + snow : ''), wind: wind }
         ]
       };
     });
@@ -17396,7 +17432,7 @@ async function fetchWttrForecast() {
           + '</div>'
           + '<div style="font-size:2rem;margin:0 12px;">' + p0.icon + '</div>'
           + '<div style="text-align:center;min-width:64px;">'
-          + '<div style="font-size:0.68rem;color:#999;">מינ׳ / מקס׳</div>'
+          + '<div style="font-size:0.68rem;color:#999;">' + L('מינ׳ / מקס׳', 'Min / Max') + '</div>'
           + '<div style="font-size:0.95rem;font-weight:800;color:#1a3a6c;">' + tMin + '° / ' + tMax + '°</div>'
           + '</div>'
           + '</div>';
@@ -17643,11 +17679,11 @@ function renderLiveBar(d) {
     d.snow_points.forEach(function(sp) {
       const alt = sp.altitude != null ? sp.altitude : sp.alt;
       if (sp.station === 'mid') {
-        if (sp.depth != null) set('snow-mid-depth', sp.depth + ' ס"מ');
-        if (alt != null) set('snow-mid-alt', alt + "מ'");
+        if (sp.depth != null) set('snow-mid-depth', sp.depth + L(' ס"מ', ' cm'));
+        if (alt != null) set('snow-mid-alt', alt + L("מ'", ' m'));
       } else if (sp.station === 'basev' || sp.station === 'base') {
-        if (sp.depth != null) set('snow-base-depth', sp.depth + ' ס"מ');
-        if (alt != null) set('snow-base-alt', alt + "מ'");
+        if (sp.depth != null) set('snow-base-depth', sp.depth + L(' ס"מ', ' cm'));
+        if (alt != null) set('snow-base-alt', alt + L("מ'", ' m'));
       }
     });
   }
@@ -17656,7 +17692,8 @@ function renderLiveBar(d) {
   const avLevel = d.avalanche_level || d.avalanche_risk;
   if (avLevel != null) {
     const avNum = parseInt(String(avLevel));
-    const avLabels = ['','נמוכה','מוגבלת','ניכרת','גבוהה','גבוהה מאוד'];
+    const avLabels = window.LANG === 'en' ? ['','low','moderate','considerable','high','very high']
+                                          : ['','נמוכה','מוגבלת','ניכרת','גבוהה','גבוהה מאוד'];
     const avColors = ['','#27ae60','#f39c12','#e67e22','#e74c3c','#8e44ad'];
     const avEl = document.getElementById('bar-avalanche-modal');
     if (avEl) {
@@ -17700,8 +17737,8 @@ function renderLiveBar(d) {
           + (desc  ? '<div style="font-size:0.65rem;color:#888;margin-top:2px;">'+desc+'</div>'  : '')
           + '</div>';
       }
-      ftGrid.innerHTML = renderPeriod('בוקר 🌅', d.forecast_today.morning)
-                       + renderPeriod('אחה"צ 🌞', d.forecast_today.afternoon);
+      ftGrid.innerHTML = renderPeriod(L('בוקר 🌅', 'Morning 🌅'), d.forecast_today.morning)
+                       + renderPeriod(L('אחה"צ 🌞', 'Afternoon 🌞'), d.forecast_today.afternoon);
     }
   }
 
@@ -17712,7 +17749,7 @@ function renderLiveBar(d) {
   }
   const ng0 = document.getElementById('forecast-next-grid');
   // תמיד שולפים תחזית מ-Open-Meteo (ski_status_history אינה מכילה forecast_next_days)
-  if (ng0) ng0.innerHTML = '<div style="text-align:center;color:#aaa;padding:12px;font-size:0.8rem;">⏳ טוען תחזית...</div>';
+  if (ng0) ng0.innerHTML = '<div style="text-align:center;color:#aaa;padding:12px;font-size:0.8rem;">' + L('⏳ טוען תחזית...', '⏳ Loading the forecast...') + '</div>';
   fetchWttrForecast(); // Open-Meteo — async, כותב ל-grid בעצמו
   paintBarGust();      // משבי הרכס לשורה העליונה — קריאה נפרדת לפלטאו רוזה
 
@@ -18554,7 +18591,7 @@ async function submitPost() {
     if (SUPABASE_URL && SUPABASE_KEY) {
       let fileUrl = null;
       if (file) { setBusy(true, 'מעלה קובץ…'); fileUrl = await uploadForumFile(file); }
-      setBusy(true, 'שולח…');
+      setBusy(true, L('שולח…', 'Sending…'));
       const res = await sbInsert('posts', {
         user: user.name, user_id: user.sbId || null, content: txt, file_url: fileUrl
       });
@@ -19603,15 +19640,15 @@ async function _admRenderUsers() {
 <div id="webcamModal" class="modal" onclick="if(event.target===this)closeM('webcamModal')">
   <div class="modal-content" style="max-width:660px;max-height:94vh;overflow-y:auto;padding:24px 20px;">
     <span class="close-btn" onclick="closeM('webcamModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.15rem;">📷 מצלמות חי — Cervinia</h3>
-    <p style="color:#888;font-size:0.8rem;margin:0 0 16px;">תמונות מתעדכנות כל מספר דקות מהאתר הרשמי</p>
+    <h3 style="margin:0 0 4px;font-size:1.15rem;" data-en="📷 Live webcams — Cervinia">📷 מצלמות חי — Cervinia</h3>
+    <p style="color:#888;font-size:0.8rem;margin:0 0 16px;" data-en="Images refresh every few minutes from the official website">תמונות מתעדכנות כל מספר דקות מהאתר הרשמי</p>
 
     <!-- Area filter tabs -->
     <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
-      <button id="wcam-tab-all"       onclick="filterCams('all')"       class="ttab-btn ttab-active" style="font-size:0.8rem;padding:6px 12px;">🌐 הכל</button>
-      <button id="wcam-tab-cervinia"  onclick="filterCams('cervinia')"  class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> צ'רוויניה</button>
-      <button id="wcam-tab-valt"      onclick="filterCams('valt')"      class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;">🏔️ ולטורנאנש</button>
-      <button id="wcam-tab-zermatt"   onclick="filterCams('zermatt')"   class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צ'רמט</button>
+      <button id="wcam-tab-all"       onclick="filterCams('all')"       class="ttab-btn ttab-active" style="font-size:0.8rem;padding:6px 12px;" data-en="🌐 All">🌐 הכל</button>
+      <button id="wcam-tab-cervinia"  onclick="filterCams('cervinia')"  class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;" data-en="&lt;svg class=fl-it aria-hidden=true&gt;&lt;use href=#flag-it&gt;&lt;/use&gt;&lt;/svg&gt; Cervinia"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> צ'רוויניה</button>
+      <button id="wcam-tab-valt"      onclick="filterCams('valt')"      class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;" data-en="🏔️ Valtournenche">🏔️ ולטורנאנש</button>
+      <button id="wcam-tab-zermatt"   onclick="filterCams('zermatt')"   class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; Zermatt"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צ'רמט</button>
     </div>
 
     <!-- Camera grid -->
@@ -19689,8 +19726,8 @@ async function _admRenderUsers() {
           <svg class="pano-peaks" viewBox="0 0 300 58" preserveAspectRatio="none" aria-hidden="true"><path d="M0 58 L42 22 L70 40 L108 10 L150 44 L188 18 L224 38 L262 14 L300 58 Z" fill="#0a192f"/><path d="M108 10 L96 22 L120 22 Z" fill="#ffffff" opacity="0.85"/><path d="M262 14 L252 25 L272 25 Z" fill="#ffffff" opacity="0.85"/></svg>
           <span class="pano-badge">360°</span>
           <span class="pano-icon">🏔️</span>
-          <span class="pano-main">לחץ לצפייה חיה</span>
-          <span class="pano-sub">פנורמה מסתובבת · Roundshot</span>
+          <span class="pano-main" data-en="Tap to watch live">לחץ לצפייה חיה</span>
+          <span class="pano-sub" data-en="Rotating panorama · Roundshot">פנורמה מסתובבת · Roundshot</span>
         </a>
       </div>
 
@@ -19700,8 +19737,8 @@ async function _admRenderUsers() {
           <svg class="pano-peaks" viewBox="0 0 300 58" preserveAspectRatio="none" aria-hidden="true"><path d="M0 58 L42 22 L70 40 L108 10 L150 44 L188 18 L224 38 L262 14 L300 58 Z" fill="#0a192f"/><path d="M108 10 L96 22 L120 22 Z" fill="#ffffff" opacity="0.85"/><path d="M262 14 L252 25 L272 25 Z" fill="#ffffff" opacity="0.85"/></svg>
           <span class="pano-badge">360°</span>
           <span class="pano-icon">🏔️</span>
-          <span class="pano-main">לחץ לצפייה חיה</span>
-          <span class="pano-sub">פנורמה וארכיון · Panomax</span>
+          <span class="pano-main" data-en="Tap to watch live">לחץ לצפייה חיה</span>
+          <span class="pano-sub" data-en="Panorama and archive · Panomax">פנורמה וארכיון · Panomax</span>
         </a>
       </div>
 
@@ -19709,11 +19746,11 @@ async function _admRenderUsers() {
 
     <!-- Refresh + full site link -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:8px;">
-      <button onclick="refreshCams()" style="padding:8px 16px;background:#0a192f;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.83rem;">
+      <button onclick="refreshCams()" style="padding:8px 16px;background:#0a192f;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.83rem;" data-en="🔄 Refresh images">
         🔄 רענן תמונות
       </button>
       <a href="https://www.cervinia.it/en/webcam" target="_blank"
-         style="font-size:0.8rem;color:#1a73e8;text-decoration:none;">
+         style="font-size:0.8rem;color:#1a73e8;text-decoration:none;" data-en="🌐 All the webcams on the official website ↗">
         🌐 כל המצלמות באתר הרשמי ↗
       </a>
     </div>
@@ -20919,28 +20956,31 @@ function renderInstallHelp() {
   var el = document.getElementById('help-install');
   if (!el) return;
   var why = '<div style="font-size:0.82rem;color:#555;line-height:1.8;">'
-    + 'ההתקנה מוסיפה אייקון למסך הבית ופותחת את האתר במסך מלא. '
-    + '<b>העיקר הוא שהאתר נשמר במכשיר ונפתח גם בלי קליטה</b> — מדריך המסלולים, '
-    + 'הבקתות, לוחות הזמנים, הכשרות ומספרי החירום. רק הנתונים החיים לא יתעדכנו.'
+    + L('ההתקנה מוסיפה אייקון למסך הבית ופותחת את האתר במסך מלא. '
+      + '<b>העיקר הוא שהאתר נשמר במכשיר ונפתח גם בלי קליטה</b> — מדריך המסלולים, '
+      + 'הבקתות, לוחות הזמנים, הכשרות ומספרי החירום. רק הנתונים החיים לא יתעדכנו.',
+      'Installing adds an icon to your home screen and opens the site full screen. '
+      + '<b>Above all, the site is kept on the device and opens even with no signal</b> — the slope guide, '
+      + 'the huts, the timetables, kosher information and the emergency numbers. Only the live data will not update.')
     + '</div>';
   if (_pwaInstalled()) {
-    el.innerHTML = '<b style="font-size:0.88rem;">📲 האפליקציה מותקנת</b>' + why;
+    el.innerHTML = '<b style="font-size:0.88rem;">' + L('📲 האפליקציה מותקנת', '📲 The app is installed') + '</b>' + why;
     return;
   }
   var ua = navigator.userAgent || '';
   var how;
   if (/iPad|iPhone|iPod/.test(ua)) {
-    how = 'באייפון: כפתור <b>שיתוף</b> בתחתית הדפדפן ← <b>הוספה למסך הבית</b>.';
+    how = L('באייפון: כפתור <b>שיתוף</b> בתחתית הדפדפן ← <b>הוספה למסך הבית</b>.', 'On iPhone: the <b>Share</b> button at the bottom of the browser → <b>Add to Home Screen</b>.');
   } else if (/Android/.test(ua)) {
-    how = 'באנדרואיד: תפריט <b>⋮</b> בפינת הדפדפן ← <b>התקנת אפליקציה</b> או <b>הוספה למסך הבית</b>.';
+    how = L('באנדרואיד: תפריט <b>⋮</b> בפינת הדפדפן ← <b>התקנת אפליקציה</b> או <b>הוספה למסך הבית</b>.', 'On Android: the <b>⋮</b> menu in the corner of the browser → <b>Install app</b> or <b>Add to Home screen</b>.');
   } else {
-    how = 'במחשב: סמל ההתקנה בשורת הכתובת של הדפדפן, או תפריט <b>⋮</b> ← <b>התקנה</b>.';
+    how = L('במחשב: סמל ההתקנה בשורת הכתובת של הדפדפן, או תפריט <b>⋮</b> ← <b>התקנה</b>.', 'On a computer: the install icon in the address bar, or the <b>⋮</b> menu → <b>Install</b>.');
   }
-  el.innerHTML = '<b style="font-size:0.88rem;">📲 התקנת האפליקציה</b>' + why
+  el.innerHTML = '<b style="font-size:0.88rem;">' + L('📲 התקנת האפליקציה', '📲 Install the app') + '</b>' + why
     + (deferredPrompt
         ? '<button type="button" onclick="installPWA()" style="margin-top:9px;padding:9px 18px;'
           + 'background:#0a192f;color:white;border:none;border-radius:9px;font-weight:bold;'
-          + 'cursor:pointer;font-family:inherit;font-size:0.85rem;">📲 התקן עכשיו</button>'
+          + 'cursor:pointer;font-family:inherit;font-size:0.85rem;">' + L('📲 התקן עכשיו', '📲 Install now') + '</button>'
         : '')
     + '<div style="margin-top:8px;font-size:0.8rem;color:#667;line-height:1.8;">' + how + '</div>';
 }
@@ -21015,8 +21055,8 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
 <div id="alertModal" class="modal" onclick="if(event.target===this)closeM('alertModal')" style="display:none;">
   <div class="modal-content" style="max-width:480px;max-height:90vh;overflow-y:auto;padding:22px 20px;">
     <span class="close-btn" onclick="closeM('alertModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.05rem;">📢 התראות והודעות</h3>
-    <p style="color:#888;font-size:0.78rem;margin:0 0 14px;">הודעות קבועות, ועדכונים דחופים מגולשים — מסלולים, תנאים, אירועים</p>
+    <h3 style="margin:0 0 4px;font-size:1.05rem;" data-en="📢 Alerts and notices">📢 התראות והודעות</h3>
+    <p style="color:#888;font-size:0.78rem;margin:0 0 14px;" data-en="Standing notices, and urgent updates from skiers — slopes, conditions, events">הודעות קבועות, ועדכונים דחופים מגולשים — מסלולים, תנאים, אירועים</p>
 
     <!-- Notifications for this device -->
     <div id="push-row"></div>
@@ -21026,7 +21066,7 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
 
     <!-- Alerts list -->
     <div id="alerts-list" style="display:flex;flex-direction:column;gap:8px;">
-      <div style="text-align:center;color:#aaa;font-size:0.82rem;padding:16px;">טוען...</div>
+      <div style="text-align:center;color:#aaa;font-size:0.82rem;padding:16px;" data-en="Loading...">טוען...</div>
     </div>
   </div>
 </div>
@@ -21041,7 +21081,7 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
     </div>
     <div id="piste-scroll" style="padding:0 14px 14px;max-height:calc(92vh - 56px);overflow-y:auto;">
       <div id="piste-guide-content">
-        <div style="text-align:center;color:#aaa;font-size:0.82rem;padding:16px;">טוען...</div>
+        <div style="text-align:center;color:#aaa;font-size:0.82rem;padding:16px;" data-en="Loading...">טוען...</div>
       </div>
     </div>
   </div>
