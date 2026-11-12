@@ -63,6 +63,25 @@ input[type=file] { display: none !important; }
                        flex-wrap: nowrap; }  /* one row again, or the
                        login button drops under the logo */
 .nav-rest { flex: 1 1 auto; min-width: 0; }
+/* Local time in Cervinia (Yossi, 12.11): the operator's notices, the lift
+   hours and the alerts are all in Italian time, an hour behind Israel. On a
+   wide screen it sits in the empty middle of the header row; on a phone that
+   row is full, so it takes the free corner beside the logo instead. */
+.cl-clock { margin-inline-start: auto; flex: none; text-align: center;
+            line-height: 1.1; color: #fff; white-space: nowrap; }
+.cl-clock b { display: block; font-size: 0.95rem; font-weight: 800;
+              direction: ltr; unicode-bidi: isolate; }
+.cl-clock small { display: block; font-size: 0.58rem; color: rgba(255,255,255,0.5);
+                  margin-top: 2px; }
+@media (max-width: 600px) {
+  #topstick nav { position: relative; }
+  .cl-clock { position: absolute; left: 3%; top: 24px; }
+  #topstick.shrunk .cl-clock { display: none; }
+  /* the logo moves to the right edge, over the menu button, so the corner
+     is really free rather than painted over the mountain's foot */
+  #topstick:not(.shrunk) #brand-logo { margin-left: auto; margin-right: 0; }
+}
+@media (max-width: 345px) { .cl-clock { display: none !important; } }
 @media (prefers-reduced-motion: reduce) {
   #brand-logo, #topstick nav { transition: none; }
 }
@@ -1134,7 +1153,7 @@ details.fold > .fold-body { padding: 0 13px 12px; }
 <div id="version-badge" style="position:fixed;bottom:6px;left:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.52';
+  var v='v17.53';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1191,6 +1210,9 @@ details.fold > .fold-body { padding: 0 13px 12px; }
              header, which colours its text white, and white on white is the
              empty-looking dropdown this used to be. -->
         <div id="global-search-results" style="display:none;position:absolute;z-index:9999;top:calc(100% + 6px);right:0;min-width:250px;max-width:min(92vw,380px);background:white;color:#16314f;border:1px solid #ddd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);max-height:320px;overflow-y:auto;text-align:right;direction:rtl;"></div>
+      </div>
+      <div id="local-clock" class="cl-clock" style="display:none;" title="השעה המקומית בצ׳רוויניה — שעון איטליה">
+        <b id="local-clock-time">--:--</b><small>🕐 שעון צ׳רוויניה</small>
       </div>
     </div>
 
@@ -19832,7 +19854,7 @@ function _zStale(a) {
   if (!a.auto || !_zLive || !(_zLive.t > a.ts)) return false;
   var t = a.text || '';
   if (/המעבר לצ.רמט נפתח/.test(t)) return _zLive.s !== 'OPEN';
-  if (/המעבר לצ.רמט (נסגר|סגור היום)/.test(t)) return _zLive.s === 'OPEN';
+  if (/המעבר לצ.רמט (נסגר|סגור)/.test(t)) return _zLive.s === 'OPEN';
   return false;
 }
 function getAlerts() {
@@ -20657,6 +20679,22 @@ document.addEventListener('visibilitychange', function () {
 
 // ── Header: large at rest, compact while scrolling ──
 (function () {
+  // The clock in the header. Europe/Rome rather than "Israel minus one",
+  // because the two switch summer time on different weekends.
+  (function _localClock() {
+    var box = document.getElementById('local-clock');
+    var out = document.getElementById('local-clock-time');
+    if (!box || !out) return;
+    function tick() {
+      try {
+        out.textContent = new Date().toLocaleTimeString('en-GB',
+          { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false });
+        box.style.display = '';
+      } catch (e) { box.style.display = 'none'; }
+    }
+    tick();
+    setInterval(tick, 15000);
+  })();
   var stick = document.getElementById('topstick');
   if (!stick) return;
   var shrunk = false;

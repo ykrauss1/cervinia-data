@@ -50,7 +50,7 @@ try {
 // With 08:00-16:45 as the day:
 //   lift window  = 09:00 - 15:15   (+60 / -90)
 //   zermatt      = 08:00 - 15:45   (+0  / -60)
-//   zMorning     = 09:00,  zOpenFrom = max(09:30, 09:30) = 09:30
+//   zMorning     = 08:00,  zOpenFrom = max(09:30, 09:30) = 09:30
 //   wind window  = 07:00 - 15:15   (-60 / -90)
 
 // ── no baseline, no alerts ───────────────────────────────────────────────
@@ -68,12 +68,28 @@ expect('the crossing stops running mid-morning',
 expect('the crossing shuts at the end of the day - that is the timetable',
   keys(read(), read({ zermatt_link: 'CLOSED' }), at(16, 30)), []);
 
-expect('the crossing is still shut an hour into a running day',
+expect('the crossing is shut on a running day',
   keys(read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'CLOSED' }), at(10)),
   ['zermatt-shut-today']);
 
-expect('shut at 08:30 is a mountain waking up, not a fact about the day',
-  keys(read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'CLOSED' }), at(8, 30)), []);
+expect('a real CLOSED reading at 08:30, with the lifts running, is told at once',
+  keys(read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'CLOSED' }), at(8, 30)),
+  ['zermatt-shut-today']);
+expect('before the lifts start, a shut crossing is the night, not news',
+  keys(read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'CLOSED' }), at(7, 45)), []);
+{
+  const t = (o) => detectAutoAlerts(read({ zermatt_link: 'CLOSED' }),
+                                    read(Object.assign({ zermatt_link: 'CLOSED' }, o)), at(10))
+                   .find(a => a.key === 'zermatt-shut-today')?.text;
+  expect('the text names the open slopes',
+    t({ slopes_open_local: 23 }), 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות ו־23 מסלולים פתוחים.');
+  expect('one slope is said as one',
+    t({ slopes_open_local: 1 }), 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות ומסלול אחד פתוח.');
+  expect('no slope count, no slope clause',
+    t({}), 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות.');
+  expect('the text never says "today" - it may still open',
+    /היום/.test(t({ slopes_open_local: 5 })), false);
+}
 
 expect('shut on a day when nothing else runs either is not news about the crossing',
   keys(read({ zermatt_link: 'CLOSED', lifts_open_local: 0 }),
@@ -304,9 +320,9 @@ expect('a day too short to trim keeps the fallback rather than inverting',
   skiDayWindow({ opening_hours: '09:00 - 10:00' }, 60, 90, LIFT_WINDOW), LIFT_WINDOW);
 
 // ── a short day moves the rules with it ──────────────────────────────────
-expect('on a 09:00-15:00 day, 09:30 is still the morning',
+expect('on a 09:00-15:00 day, 08:30 is still before the lifts',
   keys(read({ opening_hours: '09:00 - 15:00', zermatt_link: 'CLOSED' }),
-       read({ opening_hours: '09:00 - 15:00', zermatt_link: 'CLOSED' }), at(9, 30)), []);
+       read({ opening_hours: '09:00 - 15:00', zermatt_link: 'CLOSED' }), at(8, 30)), []);
 expect('and by 10:30 a shut crossing is a fact about that day',
   keys(read({ opening_hours: '09:00 - 15:00', zermatt_link: 'CLOSED' }),
        read({ opening_hours: '09:00 - 15:00', zermatt_link: 'CLOSED' }), at(10, 30)),

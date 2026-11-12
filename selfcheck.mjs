@@ -8711,6 +8711,50 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.fromBar) fail(T, 'the live bar does not hand its reading to the strip'); else ok();
 }
 
+// ── Yossi's notes of 12.11: the clock, and a crossing notice without "today" ──
+{
+  const T = "Yossi's notes of 12.11";
+  const r = await page.evaluate(() => {
+    const $ = id => document.getElementById(id), out = {};
+    const box = $('local-clock');
+    out.shown = !!box && box.style.display !== 'none';  // on a scrolled phone it hides on purpose
+    const want = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false });
+    out.time = $('local-clock-time') && $('local-clock-time').textContent;
+    out.want = want;
+    out.inHeader = !!box && $('sticky-header').contains(box);
+    // the new wording is still retired by a live OPEN reading
+    const keep = _zLive, now = Date.now();
+    _zLive = { s: 'OPEN', t: now };
+    out.staleNew = _zStale({ auto: true, ts: now - 60e3, text: 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות ו־23 מסלולים פתוחים.' });
+    _zLive = { s: 'CLOSED', t: now };
+    out.keptNew = !_zStale({ auto: true, ts: now - 60e3, text: 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות.' });
+    _zLive = keep;
+    return out;
+  });
+  if (!r.shown) fail(T, 'the Cervinia clock is not shown in the header'); else ok();
+  if (!r.inHeader) fail(T, 'the clock is not inside the header'); else ok();
+  if (r.time !== r.want) fail(T, `the clock reads ${r.time}, Cervinia is at ${r.want}`); else ok();
+  if (!r.staleNew) fail(T, 'a "closed" notice in the new wording is not retired by a live OPEN'); else ok();
+  if (!r.keptNew) fail(T, 'a "closed" notice is dropped while the crossing is still closed'); else ok();
+}
+for (const [w, h] of [[360, 740], [390, 800], [1366, 800]]) {
+  const T = `the Cervinia clock fits the header at ${w}px`;
+  const p2 = await browser.newPage({ viewport: { width: w, height: h } });
+  await p2.goto(page.url(), { waitUntil: 'domcontentloaded' });
+  await p2.waitForTimeout(800);
+  const r = await p2.evaluate(() => {
+    const c = document.getElementById('local-clock').getBoundingClientRect();
+    const hit = ['brand-logo', 'global-search-bar', 'auth-area', 'menu-btn'].filter(id => {
+      const b = document.getElementById(id).getBoundingClientRect();
+      return b.width && !(c.right <= b.left || c.left >= b.right || c.bottom <= b.top || c.top >= b.bottom);
+    });
+    return { w: c.width, hit, inView: c.left >= 0 && c.right <= innerWidth };
+  });
+  if (!r.w) fail(T, 'not shown'); else if (r.hit.length) fail(T, 'overlaps ' + r.hit.join(', '));
+  else if (!r.inView) fail(T, 'off screen'); else ok();
+  await p2.close();
+}
+
 // ── Yossi's notes of 11.11, midday ───────────────────────────────────
 {
   const T = "Yossi's notes of 11.11, midday";

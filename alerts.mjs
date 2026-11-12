@@ -155,13 +155,15 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
 
   // Two moments inside that window behave differently from the rest:
   //
-  //   zMorning - by an hour after the lifts start, a crossing that is still
-  //              shut is a fact about today, not a mountain waking up.
+  //   zMorning - once the lifts are running, a reading that actually says
+  //              CLOSED (not "NEXT UPDATE", which the baseline carries over)
+  //              is worth telling at once. Yossi asked for it at the first
+  //              such reading, not an hour later.
   //   zOpenFrom- the crossing opens WITH the lifts every morning, so a
   //              CLOSED->OPEN before this is the timetable. After it, the
   //              same transition means it opened after having been shut,
   //              which is the news somebody who gave up at nine wants.
-  const zMorning  = zermWin[0] + 60;
+  const zMorning  = zermWin[0];
   const zOpenFrom = Math.max(zermWin[0] + 90, 9 * 60 + 30);
 
   // --- the crossing to Zermatt ------------------------------------------
@@ -187,7 +189,7 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
     });
   } else if (zPrev === 'CLOSED' && zNext === 'CLOSED'
              && nowMin >= zMorning && (liftsOpen(next) || 0) > 0) {
-    // Still shut an hour into a day on which the mountain is running. This
+    // Shut on a day on which the mountain is running. This
     // is a STATE, not a transition, which is the point: on a day the
     // crossing never opens at all there is no transition to catch, and
     // somebody planning to cross finds out by going up. The cooldown keeps
@@ -197,7 +199,15 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
       severity: 'warning',
       hours: 7,
       cooldown: 14,
-      text: 'המעבר לצ׳רמט סגור היום, בזמן שהמעליות בצ׳רוויניה פועלות.'
+      // Not "today": it may yet open later, and zermatt-open says so if it
+      // does. The village slope count only - the area figure includes
+      // Zermatt itself.
+      text: (() => {
+        const sl = num(next?.slopes_open_local);
+        const tail = sl > 1 ? ' ו־' + sl + ' מסלולים פתוחים'
+                   : sl === 1 ? ' ומסלול אחד פתוח' : '';
+        return 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות' + tail + '.';
+      })()
     });
   } else if (zPrev === 'CLOSED' && zNext === 'OPEN' && nowMin >= zOpenFrom) {
     // Opened after having been shut - worth telling the person who gave up
