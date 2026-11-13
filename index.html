@@ -1283,7 +1283,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.61';
+  var v='v17.62';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -17402,8 +17402,18 @@ async function submitContactForm() {
   if (btn) { btn.textContent = L('📤 שלח הודעה', '📤 Send message'); btn.disabled = false; }
 }
 
+// The texts used to be fetched from window.onload, which waits for every
+// picture on the page - including the operator's webcam images, which take
+// 8 to 15 seconds. Until then the page showed its built-in Hebrew, so the
+// English site opened half in Hebrew (found live, 13.11). Now they start as
+// soon as the page is parsed, and onload waits for that same request.
+var _textsP = null;
+function loadTextsOnce() { return _textsP || (_textsP = loadTexts()); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadTextsOnce);
+else loadTextsOnce();
+
 window.onload = async function() {
-  await loadTexts(); // ← טעינת טקסטים לפני הכל
+  await loadTextsOnce(); // ← טעינת טקסטים לפני הכל (כבר התחילה ב-DOMContentLoaded)
   try { user = JSON.parse(localStorage.getItem('skiUser')) || null; } catch(e) {}
   renderHeader();
   if (SUPABASE_URL && SUPABASE_KEY) {
