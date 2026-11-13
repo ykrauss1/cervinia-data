@@ -8411,7 +8411,7 @@ function searchFlight() {
   const skUrl = _skyHost() + '/flights/' + org.toLowerCase() + '/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
   const gfWithDates = gFlightsUrl(org, fCode, dr.ci, dr.co, pax);
   const links = [
-    ...(org === 'TLV' ? [{ icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) }] : []),
+    { icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
     { icon: '✈️', title: 'Google Flights', desc: L('לוח מחירים לפי תאריך' + (isDirect || org !== 'TLV' ? '' : ' · ללא ישיר'), 'Price calendar by date'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner', desc: L('השוואת מחירים', 'Price comparison'), url: skUrl },
     { icon: '✈️', title: 'Kayak', desc: L('השוואה כוללת', 'Broad comparison'), url: 'https://www.kayak.com/flights/' + org + '-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
@@ -8625,7 +8625,7 @@ function searchAll() {
   // disappeared from the results, leaving only Google, Skyscanner and Kayak.
   // Nothing in that change had anything to do with the trip planner.
   let links = [
-    ...(org === 'TLV' ? [{ kind: 'flight', icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) }] : []),
+    { kind: 'flight', icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
     { kind: 'flight', icon: '✈️', title: 'Google Flights', desc: L('לוח מחירים לפי תאריך', 'Price calendar by date'), url: gfUrl },
     { kind: 'flight', icon: '✈️', title: 'Skyscanner', desc: L('השוואת מחירים', 'Price comparison'), url: skUrl },
     { kind: 'flight', icon: '✈️', title: 'Kayak', desc: L('השוואה כוללת', 'Broad comparison'), url: 'https://www.kayak.com/flights/' + org + '-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
