@@ -20848,7 +20848,9 @@ function _alertText(a) { return (window.LANG === 'en' && a && a.textEn) ? a.text
 function _rowToAlert(r) {
   return {
     id:       String(r.id),
-    user:     r.author_name || L('משתמש', 'User'),
+    // an automatic alert's author is the site itself; its stored name may be Hebrew
+    user:     (!r.author_id && window.LANG === 'en' && /[\u0590-\u05ff]/.test(r.author_name || '')) ? 'CerviniaLive'
+              : (r.author_name || L('משתמש', 'User')),
     text:     r.text || '',
     // the English wording of an automatic alert; text itself stays Hebrew
     // (_zStale reads it). _alertText picks one at render time, so a mirror
