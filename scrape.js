@@ -674,6 +674,13 @@ async function raiseAutoAlerts(prev, next) {
         console.error('Auto alert "' + a.key + '" rejected:', error.message);
       } else if (data) {
         console.log('Auto alert raised [' + a.severity + '] ' + a.key + ' -> ' + data);
+        // The English wording goes onto the same row. A missing text_en
+        // column (the migration not yet run) costs only the English line:
+        // the alert itself is already saved.
+        if (a.text_en) {
+          const up = await supabase.from('alerts').update({ text_en: a.text_en }).eq('id', data);
+          if (up.error) console.error('Auto alert "' + a.key + '": English text not saved:', up.error.message);
+        }
       } else {
         console.log('Auto alert "' + a.key + '" still in cooldown - not sent.');
       }

@@ -656,6 +656,33 @@ try {
   fail('scrape.js can be read beside these rules', String(e && e.message));
 }
 
+// ── every automatic alert speaks English too ────────────────────────────
+// The English site shows text_en. An alert without it falls back to the
+// Hebrew on an English page; one with Hebrew in it is no better.
+{
+  const seen = {};
+  const cases = [
+    [read({ zermatt_link: 'OPEN' }), read({ zermatt_link: 'CLOSED' }), at(12)],
+    [read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'CLOSED', slopes_open_local: 12 }), at(9)],
+    [read({ zermatt_link: 'CLOSED' }), read({ zermatt_link: 'OPEN' }), at(11)],
+    [read({ zermatt_link: 'OPEN', lifts_open_local: 20 }), read({ zermatt_link: 'OPEN', lifts_open_local: 22, avalanche_level: 1 }), at(8, 30)],
+    [read({ lifts_open_local: 20 }), read({ lifts_open_local: 0 }), at(12)],
+    [read({ lifts_open_local: 20 }), read({ lifts_open_local: 5 }), at(12)],
+    [read({ wind_gust: 50 }), read({ wind_gust: 75 }), at(12)],
+    [read({ wind_gust: 50 }), read({ wind_gust: 110 }), at(12)],
+    [read({ avalanche_level: 2 }), read({ avalanche_level: 4 }), at(12)],
+    [read({ snow_depth: 100 }), read({ snow_depth: 150, snow_points: [{ station: 'mid', name: 'Plan Maison', altitude: 2555, depth: 150 }] }), at(12)],
+    [read({ snow_depth: 100 }), read({ snow_depth: 125 }), at(12)]
+  ];
+  for (const [p, n, m] of cases) for (const a of detectAutoAlerts(p, n, m)) seen[a.key] = a;
+  for (const k of Object.keys(TOPIC_OF)) {
+    const a = seen[k];
+    if (!a) { fail('English text: ' + k, 'no test case raised this alert'); continue; }
+    if (!a.text_en || /[\u0590-\u05ff]/.test(a.text_en)) fail('English text: ' + k, 'text_en is ' + JSON.stringify(a.text_en));
+    else ok();
+  }
+}
+
 // ── report ───────────────────────────────────────────────────────────────
 const line = '─'.repeat(64);
 console.log(line);

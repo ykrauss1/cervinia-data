@@ -185,7 +185,8 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
       severity: 'danger',
       hours: 8,
       cooldown: 10,
-      text: 'המעבר לצ׳רמט נסגר. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.'
+      text: 'המעבר לצ׳רמט נסגר. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.',
+      text_en: 'The crossing to Zermatt has closed. If you planned to cross today, check before you go up.'
     });
   } else if (zPrev === 'CLOSED' && zNext === 'CLOSED'
              && nowMin >= zMorning && (liftsOpen(next) || 0) > 0) {
@@ -207,6 +208,12 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
         const tail = sl > 1 ? ' ו־' + sl + ' מסלולים פתוחים'
                    : sl === 1 ? ' ומסלול אחד פתוח' : '';
         return 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות' + tail + '.';
+      })(),
+      text_en: (() => {
+        const sl = num(next?.slopes_open_local);
+        const tail = sl > 1 ? ' and ' + sl + ' runs are open'
+                   : sl === 1 ? ' and one run is open' : '';
+        return 'The crossing to Zermatt is closed. The lifts in Cervinia are running' + tail + '.';
       })()
     });
   } else if (zPrev === 'CLOSED' && zNext === 'OPEN' && nowMin >= zOpenFrom) {
@@ -226,7 +233,8 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
       severity: 'info',
       hours: 5,
       cooldown: 8,
-      text: 'המעבר לצ׳רמט נפתח — אפשר לעבור לצד השוויצרי.'
+      text: 'המעבר לצ׳רמט נפתח — אפשר לעבור לצד השוויצרי.',
+      text_en: 'The crossing to Zermatt has opened — you can go over to the Swiss side.'
     });
   }
 
@@ -271,7 +279,10 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
         cooldown: 20,
         text: 'יום גלישה טוב — המעבר לצ׳רמט פתוח, ' + oNow + ' מתוך ' + tNow +
               ' מעליות פועלות' +
-              (av !== null && av <= 1 ? ', והשלג יציב' : '') + '.'
+              (av !== null && av <= 1 ? ', והשלג יציב' : '') + '.',
+        text_en: 'A good ski day — the crossing to Zermatt is open, ' + oNow + ' of ' + tNow +
+              ' lifts are running' +
+              (av !== null && av <= 1 ? ', and the snow is stable' : '') + '.'
       });
     }
   }
@@ -290,7 +301,8 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
         severity: 'danger',
         hours: 5,
         cooldown: 8,
-        text: 'כל המעליות בצ׳רוויניה סגורות כרגע. בדקו את המצב לפני שאתם יוצאים.'
+        text: 'כל המעליות בצ׳רוויניה סגורות כרגע. בדקו את המצב לפני שאתם יוצאים.',
+        text_en: 'All the lifts in Cervinia are closed right now. Check the situation before you set out.'
       });
     } else if (
       oPrev !== null && oNext !== null && tNext &&
@@ -301,7 +313,8 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
         severity: 'warning',
         hours: 4,
         cooldown: 8,
-        text: 'רוב המעליות בצ׳רוויניה נסגרו — ' + oNext + ' פתוחות מתוך ' + tNext + '.'
+        text: 'רוב המעליות בצ׳רוויניה נסגרו — ' + oNext + ' פתוחות מתוך ' + tNext + '.',
+        text_en: 'Most of the lifts in Cervinia have closed — ' + oNext + ' of ' + tNext + ' are open.'
       });
     }
   }
@@ -329,7 +342,9 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
           hours: 6,
           cooldown: 10,
           text: 'רוח עזה בהר — משבים עד ' + Math.round(gNext) +
-                ' קמ״ש. צפו לסגירות נרחבות של מעליות.'
+                ' קמ״ש. צפו לסגירות נרחבות של מעליות.',
+          text_en: 'Severe wind on the mountain — gusts up to ' + Math.round(gNext) +
+                ' km/h. Expect widespread lift closures.'
         });
       } else if (gPrev < 70 && gNext >= 70) {
         out.push({
@@ -338,7 +353,9 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
           hours: 5,
           cooldown: 10,
           text: 'רוח חזקה בהר — משבים עד ' + Math.round(gNext) +
-                ' קמ״ש. ייתכנו סגירות של מעליות גבוהות.'
+                ' קמ״ש. ייתכנו סגירות של מעליות גבוהות.',
+          text_en: 'Strong wind on the mountain — gusts up to ' + Math.round(gNext) +
+                ' km/h. High lifts may close.'
         });
       }
     }
@@ -359,7 +376,9 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
       hours: 18,
       cooldown: 20,
       text: 'דרגת סכנת מפולות ' + aNext +
-            ' באיזור. אל תצאו מהפיסטות המסומנות.'
+            ' באיזור. אל תצאו מהפיסטות המסומנות.',
+      text_en: 'Avalanche danger level ' + aNext +
+            ' in the area. Do not leave the marked runs.'
     });
   }
 
@@ -381,6 +400,9 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
     const where = at && at.name
       ? ' ב-' + at.name + (at.altitude ? ' (' + at.altitude.toLocaleString('en-US') + ' מ׳)' : '')
       : '';
+    const whereEn = at && at.name
+      ? ' at ' + at.name + (at.altitude ? ' (' + at.altitude.toLocaleString('en-US') + ' m)' : '')
+      : '';
     // Twenty centimetres and sixty are not the same news, and until now the
     // same flat sentence carried both: "ירד שלג טרי — 30 ס״מ נוספו", in the
     // register of a weather report. Forty is where it stops being a good
@@ -396,7 +418,12 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
             added + ' ס״מ נוספו' + where + '. ' +
             (where ? 'העומק כעת ' : 'עומק השלג כעת ') +
             Math.round(sNext) + ' ס״מ.' +
-            (lots ? ' גלישה מהנה!' : '')
+            (lots ? ' גלישה מהנה!' : ''),
+      text_en: (lots ? 'Lots of fresh snow! ' : 'Fresh snow! ') +
+            added + ' cm fell' + whereEn + '. ' +
+            (whereEn ? 'The depth there is now ' : 'The snow depth is now ') +
+            Math.round(sNext) + ' cm.' +
+            (lots ? ' Enjoy the skiing!' : '')
     });
   }
 

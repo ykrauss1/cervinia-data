@@ -1279,7 +1279,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.58';
+  var v='v17.59';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -13578,7 +13578,7 @@ function refreshAlertStrip() {
   // standing at the lift has to survive here, not only inside the card.
   textEl.innerHTML = (a.kind === 'notice' ? '📌 ' : '')
     + (a.auto ? '<span class="auto-chip">' + L('📡 הודעה אוטומטית', '📡 Automatic notice') + '</span> ' : '')
-    + escHtml(a.text)
+    + escHtml(_alertText(a))
     + ' <span style="font-size:0.72rem;opacity:0.7;font-weight:normal;">— '
     + escHtml(a.user) + ', ' + alertTimeAgo(a.ts) + '</span>'
     + (rest.length
@@ -13600,7 +13600,7 @@ function refreshAlertStrip() {
         return '<div class="amore-row amore-' + s + '">'
           + '<span style="flex:1;">' + (x.kind === 'notice' ? '📌 ' : '')
           + (x.auto ? '<span class="auto-chip">' + L('📡 הודעה אוטומטית', '📡 Automatic notice') + '</span> ' : '')
-          + escHtml(x.text) + '</span>'
+          + escHtml(_alertText(x)) + '</span>'
           + '<span class="amore-meta">' + escHtml(x.user) + ' · ' + alertTimeAgo(x.ts) + '</span>'
           + '</div>';
       }).join('');
@@ -20844,11 +20844,16 @@ function getAlerts() {
 function getLiveAlerts()  { return getAlerts().filter(function (a) { return a.kind !== 'notice'; }); }
 function getLiveNotices() { return getAlerts().filter(function (a) { return a.kind === 'notice'; }); }
 
+function _alertText(a) { return (window.LANG === 'en' && a && a.textEn) ? a.textEn : ((a && a.text) || ''); }
 function _rowToAlert(r) {
   return {
     id:       String(r.id),
     user:     r.author_name || L('משתמש', 'User'),
     text:     r.text || '',
+    // the English wording of an automatic alert; text itself stays Hebrew
+    // (_zStale reads it). _alertText picks one at render time, so a mirror
+    // saved on one language still reads right on the other.
+    textEn:   r.text_en || '',
     severity: (r.severity === 'danger' || r.severity === 'info') ? r.severity : 'warning',
     ts:       new Date(r.created_at).getTime(),
     authorId: r.author_id || '',
@@ -20868,6 +20873,7 @@ function _rowToAlert(r) {
 var _alertsFetching = false;
 var _alertsProblem = '';   // '' | 'offline' | 'server'
 var _alertsHasKind = true; // set to false once the server tells us otherwise
+var _alertsHasTextEn = true; // likewise for text_en (English wording of automatic alerts)
 var _alertsHasPush = true; // likewise for push_requested, added in the push migration
 
 async function fetchAlerts(quiet) {
@@ -20879,10 +20885,16 @@ async function fetchAlerts(quiet) {
       var cols = _alertsHasKind
         ? 'id,author_id,author_name,text,severity,kind,created_at,expires_at'
         : 'id,author_id,author_name,text,severity,created_at,expires_at';
+      // the English wording of automatic alerts, once its column exists
+      var colsEn = _alertsHasTextEn ? cols + ',text_en' : cols;
       var res = await sb.from('alerts')
-        .select(cols)
+        .select(colsEn)
         .order('created_at', { ascending: false })
         .limit(50);
+      if (res.error && /text_en/i.test(res.error.message || '') && _alertsHasTextEn) {
+        _alertsHasTextEn = false;
+        res = await sb.from('alerts').select(cols).order('created_at', { ascending: false }).limit(50);
+      }
 
       // The notices migration may not have been run on this project yet. Rather
       // than go dark over one missing column, drop it and read everything else:
@@ -21588,7 +21600,7 @@ function _alertCardHtml(a) {
     + '<span style="font-size:0.7rem;font-weight:normal;opacity:0.8;">' + tag + '</span>'
     + (a.auto ? ' <span class="auto-chip">' + L('📡 הודעה אוטומטית', '📡 Automatic notice') + '</span>' : '')
     + '<br>'
-    + '<span style="white-space:pre-wrap;">' + escHtml(a.text) + '</span></div>'
+    + '<span style="white-space:pre-wrap;">' + escHtml(_alertText(a)) + '</span></div>'
     + (canDel ? '<button type="button" onclick="deleteAlert(\'' + escHtml(a.id) + '\')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1rem;padding:0 0 0 6px;">🗑️</button>' : '')
     + '</div>'
     + '<div style="display:flex;justify-content:space-between;margin-top:5px;">'
