@@ -663,13 +663,23 @@ async function raiseAutoAlerts(prev, next) {
 
   for (const a of found) {
     try {
-      const { data, error } = await supabase.rpc('cl_auto_alert', {
+      const args = {
         p_key:      a.key,
         p_text:     a.text,
         p_severity: a.severity,
         p_hours:    a.hours,
         p_cooldown: a.cooldown
-      });
+      };
+      // Both wordings in the one insert, so whatever reacts to the new row
+      // (the push) already sees the English. A database that still has the
+      // five-argument function answers "no such function" (PGRST202): then the
+      // alert goes out as before and the English is added straight after.
+      let { data, error } = await supabase.rpc('cl_auto_alert', Object.assign({ p_text_en: a.text_en || null }, args));
+      let enDone = !error;
+      if (error && (error.code === 'PGRST202' || /p_text_en|could not find the function/i.test(error.message || ''))) {
+        ({ data, error } = await supabase.rpc('cl_auto_alert', args));
+        enDone = false;
+      }
       if (error) {
         console.error('Auto alert "' + a.key + '" rejected:', error.message);
       } else if (data) {
@@ -677,7 +687,7 @@ async function raiseAutoAlerts(prev, next) {
         // The English wording goes onto the same row. A missing text_en
         // column (the migration not yet run) costs only the English line:
         // the alert itself is already saved.
-        if (a.text_en) {
+        if (a.text_en && !enDone) {
           const up = await supabase.from('alerts').update({ text_en: a.text_en }).eq('id', data);
           if (up.error) console.error('Auto alert "' + a.key + '": English text not saved:', up.error.message);
         }
