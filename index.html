@@ -1642,18 +1642,18 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
        opens on request and closes again. -->
   <div class="card" id="forum-card" style="display:none;max-width:750px;margin-inline-end:auto;margin-inline-start:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
-      <div style="font-size:0.95rem;font-weight:bold;color:#16314f;">💬 פורום הגולשים</div>
+      <div style="font-size:0.95rem;font-weight:bold;color:#16314f;" data-en="💬 Skiers&#x27; forum">💬 פורום הגולשים</div>
       <button type="button" onclick="forumClose()" aria-label="סגירת הפורום"
-        style="background:none;border:1px solid #dde4ec;border-radius:9px;width:30px;height:30px;cursor:pointer;color:#5a6b7d;font-size:1rem;line-height:1;font-family:inherit;">✕</button>
+        style="background:none;border:1px solid #dde4ec;border-radius:9px;width:30px;height:30px;cursor:pointer;color:#5a6b7d;font-size:1rem;line-height:1;font-family:inherit;" data-en-aria-label="Close the forum">✕</button>
     </div>
     <!-- Forum / Reviews tabs -->
     <div style="display:flex;gap:8px;margin-bottom:14px;">
       <button id="forum-main-tab" onclick="switchForumTab('forum')"
-        style="flex:1;padding:9px;border:none;border-radius:10px;cursor:pointer;font-size:0.92rem;font-weight:bold;background:var(--accent);color:white;transition:all 0.15s;">
+        style="flex:1;padding:9px;border:none;border-radius:10px;cursor:pointer;font-size:0.92rem;font-weight:bold;background:var(--accent);color:white;transition:all 0.15s;" data-en="💬 Forum">
         💬 פורום גולשים
       </button>
       <button id="forum-review-tab" onclick="switchForumTab('reviews')"
-        style="flex:1;padding:9px;border:1.5px solid #ddd;border-radius:10px;cursor:pointer;font-size:0.92rem;font-weight:bold;background:#f5f5f5;color:#555;transition:all 0.15s;">
+        style="flex:1;padding:9px;border:1.5px solid #ddd;border-radius:10px;cursor:pointer;font-size:0.92rem;font-weight:bold;background:#f5f5f5;color:#555;transition:all 0.15s;" data-en="⭐ Reviews">
         ⭐ ביקורות
       </button>
     </div>
@@ -1662,20 +1662,20 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <div id="forum-panel">
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <div style="font-size:0.88rem;color:#888;">שיחות, עדכונים ועצות מהשטח</div>
+      <div style="font-size:0.88rem;color:#888;" data-en="Conversations, updates and tips from the mountain">שיחות, עדכונים ועצות מהשטח</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;" id="filter-area"></div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
       <div id="search-input" contenteditable="true" role="searchbox" spellcheck="false"
         aria-label="חיפוש בפורום" data-ph="חפש בפורום..."
-        style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;background:white;color:#333;white-space:nowrap;overflow:hidden;min-height:1.3em;line-height:1.3;"></div>
+        style="flex:1;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.88rem;direction:rtl;background:white;color:#333;white-space:nowrap;overflow:hidden;min-height:1.3em;line-height:1.3;" data-en-aria-label="Search the forum" data-en-ph="Search the forum..."></div>
       <div style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:0.82rem;color:#888;white-space:nowrap;">מיון לפי:</span>
+        <span style="font-size:0.82rem;color:#888;white-space:nowrap;" data-en="Sort by:">מיון לפי:</span>
         <select id="forum-sort" onchange="filterPosts()" style="padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;color:#555;background:white;">
-          <option value="newest">חדש לישן</option>
-          <option value="oldest">ישן לחדש</option>
-          <option value="popular">הכי פעיל</option>
-          <option value="liked">הכי אהוב</option>
+          <option value="newest" data-en="Newest first">חדש לישן</option>
+          <option value="oldest" data-en="Oldest first">ישן לחדש</option>
+          <option value="popular" data-en="Most active">הכי פעיל</option>
+          <option value="liked" data-en="Most liked">הכי אהוב</option>
         </select>
       </div>
     </div>
@@ -1685,14 +1685,14 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <div id="post-btn-area"></div>
     </div>
     <div id="new-post-area" style="margin-bottom:15px;display:none;">
-      <textarea id="new-post-text" placeholder="שאל שאלה, שתף עדכון או טיפ מהשטח..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;direction:rtl;resize:vertical;font-family:inherit;"></textarea>
+      <textarea id="new-post-text" placeholder="שאל שאלה, שתף עדכון או טיפ מהשטח..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;direction:rtl;resize:vertical;font-family:inherit;" data-en-placeholder="Ask a question, share an update or a tip from the mountain..."></textarea>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
-        <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="new-post-file" style="display:none;" accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,.heic,.heif,.bmp,.avif,.pdf" onchange="showPickedFile('new-post-file','new-post-file-name')"></label>
+        <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;"><span data-en="📎 File">📎 קובץ</span><input type="file" id="new-post-file" style="display:none;" accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,.heic,.heif,.bmp,.avif,.pdf" onchange="showPickedFile('new-post-file','new-post-file-name')"></label>
         <span id="new-post-file-name" style="font-size:0.78rem;color:#888;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-        <button id="new-post-file-name-clr" onclick="clearAttachment('new-post-file','new-post-file-name')" title="הסר את הקובץ" style="display:none;padding:2px 7px;background:#fff;border:1px solid #d9a; color:#c0392b;border-radius:5px;cursor:pointer;font-size:0.76rem;line-height:1.4;">✕</button>
+        <button id="new-post-file-name-clr" onclick="clearAttachment('new-post-file','new-post-file-name')" title="הסר את הקובץ" style="display:none;padding:2px 7px;background:#fff;border:1px solid #d9a; color:#c0392b;border-radius:5px;cursor:pointer;font-size:0.76rem;line-height:1.4;" data-en-title="Remove the file">✕</button>
         <div style="margin-inline-start:auto;display:flex;gap:8px;">
-          <button onclick="clearNewPost()" style="padding:8px 16px;background:#eee;border:none;border-radius:8px;cursor:pointer;">ביטול</button>
-          <button id="new-post-send" onclick="submitPost()" style="padding:8px 20px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">שלח</button>
+          <button onclick="clearNewPost()" style="padding:8px 16px;background:#eee;border:none;border-radius:8px;cursor:pointer;" data-en="Cancel">ביטול</button>
+          <button id="new-post-send" onclick="submitPost()" style="padding:8px 20px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;" data-en="Send">שלח</button>
         </div>
       </div>
       <div id="forum-msg2" style="display:none;margin-top:8px;padding:9px 12px;border-radius:8px;font-size:0.85rem;"></div>
@@ -3153,8 +3153,8 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
 <div id="pwResetModal" class="modal" style="z-index:10001;">
   <div class="modal-content" dir="rtl" style="max-width:420px;padding:26px 24px;text-align:start;">
     <span class="close-btn" onclick="closeM('pwResetModal')">×</span>
-    <h3 style="margin:0 0 6px;font-size:1.1rem;">🔑 בחירת סיסמה חדשה</h3>
-    <p id="pw-reset-intro" dir="rtl" style="color:#888;font-size:0.82rem;margin:0 0 6px;line-height:1.7;text-align:start;">
+    <h3 style="margin:0 0 6px;font-size:1.1rem;" data-en="🔑 Choose a new password">🔑 בחירת סיסמה חדשה</h3>
+    <p id="pw-reset-intro" dir="rtl" style="color:#888;font-size:0.82rem;margin:0 0 6px;line-height:1.7;text-align:start;" data-en="Choose a new password. It takes effect immediately.">
       בחר סיסמה חדשה. היא תיכנס לתוקף מיד.
     </p>
     <!-- The rule used to be the placeholder, which forced a choice between
@@ -3163,7 +3163,7 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
          letters the text was telling the reader not to use. Out here it is
          readable, right-aligned, and still visible once typing starts, and
          the field can be what a latin password needs. -->
-    <div dir="rtl" style="font-size:0.74rem;color:#9aa0a6;margin:0 0 10px;text-align:start;">
+    <div dir="rtl" style="font-size:0.74rem;color:#9aa0a6;margin:0 0 10px;text-align:start;" data-en="At least 6 characters, in Latin letters">
       לפחות 6 תווים, באותיות לועזיות
     </div>
     <!-- Chrome decides which saved password to offer by looking for a
@@ -3178,7 +3178,7 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       <input id="pw-reset-new" type="password" placeholder="••••••" aria-label="סיסמה חדשה"
         autocomplete="new-password" oninput="checkResetMatch()"
         style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;
-               border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;">
+               border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;" data-en-aria-label="New password">
       <button type="button" onclick="togglePass('pw-reset-new')" tabindex="-1"
         style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;
                border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
@@ -3191,15 +3191,15 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
         autocomplete="new-password" oninput="checkResetMatch()"
         onkeydown="if(event.key==='Enter') submitPasswordReset()"
         style="width:100%;box-sizing:border-box;padding:10px 12px 10px 38px;border:1.5px solid #ddd;
-               border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;">
+               border-radius:9px;font-size:0.93rem;direction:ltr;text-align:left;font-family:inherit;" data-en-aria-label="Type it again to confirm">
       <button type="button" onclick="togglePass('pw-reset-new2')" tabindex="-1"
         style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;
                border:none;cursor:pointer;padding:0;font-size:1.1rem;color:#aaa;line-height:1;">👁</button>
     </div>
-    <div id="pw-reset-match" dir="rtl" style="font-size:0.74rem;margin:0 0 12px;min-height:16px;text-align:start;color:#9aa0a6;">הקלד שוב לאימות</div>
+    <div id="pw-reset-match" dir="rtl" style="font-size:0.74rem;margin:0 0 12px;min-height:16px;text-align:start;color:#9aa0a6;" data-en="Type it again to confirm">הקלד שוב לאימות</div>
     <button id="pw-reset-btn" onclick="submitPasswordReset()"
       style="width:100%;padding:12px;background:var(--accent);color:white;border:none;
-             border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;">
+             border-radius:10px;font-size:1rem;cursor:pointer;font-weight:bold;" data-en="Save password">
       שמירת הסיסמה
     </button>
     <div id="pw-reset-msg" dir="rtl" style="display:none;margin-top:11px;font-size:0.84rem;line-height:1.6;text-align:start;"></div>
@@ -5005,7 +5005,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
 <div id="profileModal" class="modal" onclick="if(event.target===this)closeM('profileModal')">
   <div class="modal-content" style="max-width:420px;padding:22px 24px;">
     <span class="close-btn" onclick="closeM('profileModal')">×</span>
-    <h3 style="margin:0 0 12px;font-size:1.05rem;">👤 הפרופיל שלי</h3>
+    <h3 style="margin:0 0 12px;font-size:1.05rem;" data-en="👤 My profile">👤 הפרופיל שלי</h3>
 
     <!-- Avatar + name row -->
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:10px 12px;background:#f8f9fa;border-radius:10px;">
@@ -5022,22 +5022,22 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
 
     <!-- About me -->
     <div style="margin-bottom:10px;">
-      <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;">קצת על עצמי</label>
+      <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;" data-en="About me">קצת על עצמי</label>
       <textarea id="prof-bio" maxlength="300" rows="2" placeholder="ספר קצת על עצמך..."
         style="width:100%;box-sizing:border-box;padding:8px 11px;border:1.5px solid #ddd;border-radius:8px;font-size:0.88rem;font-family:inherit;direction:rtl;resize:vertical;min-height:50px;"
-        oninput="updateBioCounter()"></textarea>
+        oninput="updateBioCounter()" data-en-placeholder="Tell us a little about yourself..."></textarea>
       <div style="text-align:left;font-size:0.68rem;color:#aaa;margin-top:1px;"><span id="bio-counter">0</span>/300</div>
     </div>
 
     <!-- Discipline -->
     <div style="margin-bottom:10px;">
-      <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;">ענף</label>
+      <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;" data-en="Sport">ענף</label>
       <div style="display:flex;gap:6px;">
         <label id="prof-ski-lbl" style="display:flex;align-items:center;gap:5px;cursor:pointer;flex:1;padding:7px;border:1.5px solid #ddd;border-radius:8px;font-size:0.85rem;transition:all 0.15s;">
-          <input type="radio" name="prof-disc" value="ski"> ⛷️ סקי
+          <input type="radio" name="prof-disc" value="ski"> <span data-en="⛷️ Ski">⛷️ סקי</span>
         </label>
         <label id="prof-sb-lbl" style="display:flex;align-items:center;gap:5px;cursor:pointer;flex:1;padding:7px;border:1.5px solid #ddd;border-radius:8px;font-size:0.85rem;transition:all 0.15s;">
-          <input type="radio" name="prof-disc" value="snowboard"> 🏂 סנובורד
+          <input type="radio" name="prof-disc" value="snowboard"> <span data-en="🏂 Snowboard">🏂 סנובורד</span>
         </label>
       </div>
     </div>
@@ -5045,40 +5045,40 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
     <!-- Level + Visits side by side -->
     <div style="display:flex;gap:8px;margin-bottom:10px;">
       <div style="flex:1;">
-        <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;">רמת סקי</label>
+        <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;" data-en="Level">רמת סקי</label>
         <select id="prof-level" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:0.87rem;font-family:inherit;background:white;">
-          <option value="">לא צוין</option>
-          <option value="מתחיל">🟢 מתחיל</option>
-          <option value="בינוני">🟡 בינוני</option>
-          <option value="מתקדם">🔴 מתקדם</option>
-          <option value="מקצועי">⚫ מקצועי</option>
+          <option value="" data-en="Not given">לא צוין</option>
+          <option value="מתחיל" data-en="🟢 Beginner">🟢 מתחיל</option>
+          <option value="בינוני" data-en="🟡 Intermediate">🟡 בינוני</option>
+          <option value="מתקדם" data-en="🔴 Advanced">🔴 מתקדם</option>
+          <option value="מקצועי" data-en="⚫ Expert">⚫ מקצועי</option>
         </select>
       </div>
       <div style="flex:1;">
-        <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;">ביקורים בצ'רוויניה</label>
+        <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;" data-en="Visits to Cervinia">ביקורים בצ'רוויניה</label>
         <select id="prof-visits" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:0.87rem;font-family:inherit;background:white;">
-          <option value="">לא צוין</option>
-          <option value="ראשון">🆕 פעם ראשונה</option>
-          <option value="1">1 פעם</option>
-          <option value="2-3">2-3 פעמים</option>
-          <option value="4+">4+ פעמים</option>
-          <option value="וותיק">🏔️ וותיק מושבע</option>
+          <option value="" data-en="Not given">לא צוין</option>
+          <option value="ראשון" data-en="🆕 First time">🆕 פעם ראשונה</option>
+          <option value="1" data-en="Once">1 פעם</option>
+          <option value="2-3" data-en="2–3 times">2-3 פעמים</option>
+          <option value="4+" data-en="4+ times">4+ פעמים</option>
+          <option value="וותיק" data-en="🏔️ A regular">🏔️ וותיק מושבע</option>
         </select>
       </div>
     </div>
 
     <!-- Change password -->
     <details style="margin-bottom:10px;">
-      <summary style="font-size:0.8rem;color:#888;cursor:pointer;padding:5px 0;">🔑 שינוי סיסמה</summary>
+      <summary style="font-size:0.8rem;color:#888;cursor:pointer;padding:5px 0;" data-en="🔑 Change password">🔑 שינוי סיסמה</summary>
       <div style="padding:7px 0 0;">
         <input id="prof-pass-old" type="password" placeholder="סיסמה נוכחית"
-          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;margin-bottom:6px;font-size:0.87rem;direction:ltr;text-align:left;font-family:inherit;">
+          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;margin-bottom:6px;font-size:0.87rem;direction:ltr;text-align:left;font-family:inherit;" data-en-placeholder="Current password">
         <input id="prof-pass-new" type="password" placeholder="סיסמה חדשה — לפחות 6 תווים, לא בעברית"
-          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;font-size:0.87rem;direction:ltr;text-align:left;font-family:inherit;">
+          style="width:100%;box-sizing:border-box;padding:7px 11px;border:1.5px solid #ddd;border-radius:7px;font-size:0.87rem;direction:ltr;text-align:left;font-family:inherit;" data-en-placeholder="New password — at least 6 characters, Latin letters">
       </div>
     </details>
 
-    <button onclick="saveProfile()" style="width:100%;padding:10px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
+    <button onclick="saveProfile()" style="width:100%;padding:10px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;" data-en="💾 Save changes">
       💾 שמור שינויים
     </button>
 
@@ -5093,18 +5093,18 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
 <div id="avatarMenuModal" class="modal" onclick="if(event.target===this)closeM('avatarMenuModal')">
   <div class="modal-content" style="max-width:320px;">
     <span class="close-btn" onclick="closeM('avatarMenuModal')">×</span>
-    <h3 style="margin:0 0 16px;font-size:1.05rem;text-align:center;">תמונת פרופיל</h3>
+    <h3 style="margin:0 0 16px;font-size:1.05rem;text-align:center;" data-en="Profile picture">תמונת פרופיל</h3>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <button onclick="triggerAvatarUpload('camera')" style="padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
+      <button onclick="triggerAvatarUpload('camera')" style="padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;" data-en="📷 Take a photo">
         📷 צלם תמונה
       </button>
-      <button onclick="triggerAvatarUpload('gallery')" style="padding:12px;background:#4cc9f0;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
+      <button onclick="triggerAvatarUpload('gallery')" style="padding:12px;background:#4cc9f0;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;" data-en="🖼️ Choose from gallery">
         🖼️ בחר מהגלריה
       </button>
-      <button id="avatar-delete-btn" onclick="deleteAvatar()" style="display:none;padding:12px;background:#e74c3c;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
+      <button id="avatar-delete-btn" onclick="deleteAvatar()" style="display:none;padding:12px;background:#e74c3c;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;" data-en="🗑️ Delete picture">
         🗑️ מחק תמונה
       </button>
-      <button onclick="closeM('avatarMenuModal')" style="padding:10px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+      <button onclick="closeM('avatarMenuModal')" style="padding:10px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;" data-en="Cancel">
         ביטול
       </button>
     </div>
@@ -5115,22 +5115,22 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
 <div id="avatarCamModal" class="modal" onclick="if(event.target===this)closeWebcam()">
   <div class="modal-content" style="max-width:480px;padding:20px;">
     <span class="close-btn" onclick="closeWebcam()">×</span>
-    <h3 style="margin:0 0 12px;font-size:1.05rem;text-align:center;">צילום תמונה</h3>
+    <h3 style="margin:0 0 12px;font-size:1.05rem;text-align:center;" data-en="Take a photo">צילום תמונה</h3>
     <div style="background:#000;border-radius:10px;overflow:hidden;margin-bottom:12px;position:relative;">
       <video id="webcam-video" autoplay playsinline muted
         style="display:block;width:100%;max-height:60vh;transform:scaleX(-1);"></video>
-      <div id="webcam-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:0.95rem;background:rgba(0,0,0,0.7);">
+      <div id="webcam-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:0.95rem;background:rgba(0,0,0,0.7);" data-en="⏳ Starting the camera...">
         ⏳ מאתחל מצלמה...
       </div>
     </div>
     <div id="webcam-error" style="display:none;background:#ffe0e0;border:1px solid #e74c3c;color:#c0392b;padding:10px;border-radius:8px;margin-bottom:12px;font-size:0.85rem;text-align:center;"></div>
     <div style="display:flex;gap:8px;">
       <button onclick="captureFromWebcam()" id="webcam-capture-btn" disabled
-        style="flex:2;padding:12px;background:#27ae60;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;opacity:0.5;">
+        style="flex:2;padding:12px;background:#27ae60;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;opacity:0.5;" data-en="📸 Capture">
         📸 צלם
       </button>
       <button onclick="closeWebcam()"
-        style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+        style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;" data-en="Cancel">
         ביטול
       </button>
     </div>
@@ -5141,25 +5141,25 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
 <div id="cropperModal" class="modal" onclick="if(event.target===this)cancelCrop()">
   <div class="modal-content" style="max-width:420px;">
     <span class="close-btn" onclick="cancelCrop()">×</span>
-    <h3 style="margin:0 0 14px;font-size:1.05rem;text-align:center;">חיתוך התמונה</h3>
+    <h3 style="margin:0 0 14px;font-size:1.05rem;text-align:center;" data-en="Crop the picture">חיתוך התמונה</h3>
     <div style="background:#000;border-radius:10px;overflow:hidden;margin-bottom:14px;max-height:60vh;">
       <img id="cropper-image" style="display:block;max-width:100%;max-height:60vh;">
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button onclick="confirmCrop()" id="crop-confirm-btn"
-        style="flex:1;min-width:100px;padding:12px;background:#27ae60;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;">
+        style="flex:1;min-width:100px;padding:12px;background:#27ae60;color:white;border:none;border-radius:10px;font-size:0.95rem;cursor:pointer;font-weight:bold;" data-en="✅ Done">
         ✅ אישור
       </button>
       <button onclick="triggerAvatarUpload('retake')"
-        style="flex:1;min-width:100px;padding:12px;background:#4cc9f0;color:white;border:none;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+        style="flex:1;min-width:100px;padding:12px;background:#4cc9f0;color:white;border:none;border-radius:10px;font-size:0.9rem;cursor:pointer;" data-en="🔄 Retake">
         🔄 צלם שוב
       </button>
       <button onclick="cancelCrop()"
-        style="flex:1;min-width:80px;padding:12px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;">
+        style="flex:1;min-width:80px;padding:12px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;border-radius:10px;font-size:0.9rem;cursor:pointer;" data-en="Cancel">
         ביטול
       </button>
     </div>
-    <div id="crop-progress" style="display:none;text-align:center;margin-top:10px;font-size:0.85rem;color:#888;">
+    <div id="crop-progress" style="display:none;text-align:center;margin-top:10px;font-size:0.85rem;color:#888;" data-en="⏳ Uploading picture...">
       ⏳ מעלה תמונה...
     </div>
   </div>
@@ -5223,8 +5223,8 @@ const DEMO_LIVE = {
   updated_at: new Date().toISOString(),
   forecast_today: {
     date: L('היום', 'Today'),
-    morning:   { icon: 'sun',              temp_min: -8, temp_max: -4, wind: 18, snow: 0,  desc: 'שמשי' },
-    afternoon: { icon: 'partially-cloudy', temp_min: -5, temp_max: -2, wind: 22, snow: 0,  desc: 'חלקית מעונן' }
+    morning:   { icon: 'sun',              temp_min: -8, temp_max: -4, wind: 18, snow: 0,  desc: L('שמשי', 'Sunny') },
+    afternoon: { icon: 'partially-cloudy', temp_min: -5, temp_max: -2, wind: 22, snow: 0,  desc: L('חלקית מעונן', 'Partly cloudy') }
   },
   forecast_next_days: [
     { date: 'מחר',     periods: [{label:'בוקר', icon:'partially-cloudy',temp_min:-7,temp_max:-3},{label:'אחה"צ',icon:'sun',temp_min:-5,temp_max:-1}] },
@@ -5656,7 +5656,7 @@ function checkResetMatch() {
   var b = (document.getElementById('pw-reset-new2') || {}).value || '';
   var m = document.getElementById('pw-reset-match');
   if (!m) return;
-  if (!b) { m.textContent = 'הקלד שוב לאימות'; m.style.color = '#9aa0a6'; return; }
+  if (!b) { m.textContent = L('הקלד שוב לאימות', 'Type it again to confirm'); m.style.color = '#9aa0a6'; return; }
   m.textContent  = (a === b) ? L('✅ הסיסמאות תואמות', '✅ The passwords match') : L('❌ הסיסמאות אינן תואמות', '❌ The passwords do not match');
   m.style.color  = (a === b) ? '#2e7d32' : '#c62828';
 }
@@ -5697,7 +5697,7 @@ async function openPasswordReset() {
   var m = document.getElementById('pw-reset-msg');
   if (m) { m.textContent = ''; m.style.display = 'none'; }
   var mm = document.getElementById('pw-reset-match');
-  if (mm) { mm.textContent = 'הקלד שוב לאימות'; mm.style.color = '#9aa0a6'; }
+  if (mm) { mm.textContent = L('הקלד שוב לאימות', 'Type it again to confirm'); mm.style.color = '#9aa0a6'; }
   ['pw-reset-new', 'pw-reset-new2'].forEach(function (id) {
     var f = document.getElementById(id);
     if (f) { f.value = ''; f.disabled = false; f.style.background = ''; }
@@ -5705,7 +5705,7 @@ async function openPasswordReset() {
   var btn0 = document.getElementById('pw-reset-btn');
   if (btn0) {
     btn0.disabled = false;
-    btn0.textContent = 'שמירת הסיסמה';
+    btn0.textContent = L('שמירת הסיסמה', 'Save password');
     btn0.onclick = submitPasswordReset;
   }
   // If a dead link emptied this box last time, put its own words back
@@ -5761,11 +5761,11 @@ function _pwResetDead() {
     if (!intro.getAttribute('data-dead'))
       intro.setAttribute('data-live', intro.textContent.trim());
     intro.setAttribute('data-dead', '1');
-    intro.textContent = 'הקישור פג או כבר נוצל. קישורי איפוס טובים לשעה ולפעם אחת.';
+    intro.textContent = L('הקישור פג או כבר נוצל. קישורי איפוס טובים לשעה ולפעם אחת.', 'The link has expired or was already used. Reset links are good for one hour and one use.');
   }
   if (btn) {
     btn.disabled = false;
-    btn.textContent = 'בקשת קישור חדש';
+    btn.textContent = L('בקשת קישור חדש', 'Request a new link');
     btn.onclick = function () {
       closeM('pwResetModal');
       _pwResetOpen = false;
@@ -5786,20 +5786,20 @@ async function submitPasswordReset() {
     msg.textContent = text;
     msg.style.color = bad ? '#c62828' : '#2e7d32';
   };
-  if (pass.length < 6)              return say('נדרשים לפחות 6 תווים', true);
-  if (/[\u0590-\u05FF]/.test(pass)) return say('אי אפשר אותיות בעברית — החלף שפה ל-EN', true);
+  if (pass.length < 6)              return say(L('נדרשים לפחות 6 תווים', 'At least 6 characters are needed'), true);
+  if (/[\u0590-\u05FF]/.test(pass)) return say(L('אי אפשר אותיות בעברית — החלף שפה ל-EN', 'Hebrew letters can\'t be used — switch your keyboard to English'), true);
   if (pass !== pass2)               return say(L('הסיסמאות אינן תואמות', 'The passwords do not match'), true);
 
   var sb = getSB();
-  if (!sb) return say('אין חיבור לשרת', true);
+  if (!sb) return say(L('אין חיבור לשרת', 'No connection to the server'), true);
   var btn = document.getElementById('pw-reset-btn');
-  if (btn) { btn.disabled = true; btn.textContent = 'שומר…'; }
+  if (btn) { btn.disabled = true; btn.textContent = L('שומר…', 'Saving…'); }
   var res = await sb.auth.updateUser({ password: pass });
-  if (btn) { btn.disabled = false; btn.textContent = 'שמירת הסיסמה'; }
+  if (btn) { btn.disabled = false; btn.textContent = L('שמירת הסיסמה', 'Save password'); }
   if (res && res.error) {
     var em = String((res.error && res.error.message) || '');
     if (/different from the old|same.*password/i.test(em))
-      return say('הסיסמה החדשה זהה לקודמת. בחר סיסמה אחרת.', true);
+      return say(L('הסיסמה החדשה זהה לקודמת. בחר סיסמה אחרת.', 'The new password is the same as the old one. Choose another.'), true);
 
     // The link signs him in BEFORE it is spent, so a failure here leaves a
     // header with his name on it over a session that no longer exists -
@@ -5813,11 +5813,11 @@ async function submitPasswordReset() {
     if (!alive) {
       try { await supabaseLogout(); } catch (e) {}
       try { logout(); } catch (e) {}
-      return say('הקישור פג. בקש קישור חדש דרך ״שכחתי סיסמה״.', true);
+      return say(L('הקישור פג. בקש קישור חדש דרך ״שכחתי סיסמה״.', 'The link has expired. Request a new one through "Forgot password".'), true);
     }
-    return say('לא הצלחנו לעדכן. נסה שוב בעוד רגע.', true);
+    return say(L('לא הצלחנו לעדכן. נסה שוב בעוד רגע.', 'We couldn\'t update it. Try again in a moment.'), true);
   }
-  say('✅ הסיסמה עודכנה. אפשר להיכנס איתה מעכשיו.');
+  say(L('✅ הסיסמה עודכנה. אפשר להיכנס איתה מעכשיו.', '✅ Password updated. You can sign in with it from now on.'));
   _markPwResetDone();
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   setTimeout(function () { closeM('pwResetModal'); }, 2200);
@@ -8408,7 +8408,7 @@ function searchFlight() {
   const skUrl = _skyHost() + '/flights/' + org.toLowerCase() + '/' + fCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + pax + '&adultsv2=' + pax + '&infants=0&cabinclass=economy';
   const gfWithDates = gFlightsUrl(org, fCode, dr.ci, dr.co, pax);
   const links = [
-    { icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
+    ...(org === 'TLV' ? [{ icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) }] : []),
     { icon: '✈️', title: 'Google Flights', desc: L('לוח מחירים לפי תאריך' + (isDirect || org !== 'TLV' ? '' : ' · ללא ישיר'), 'Price calendar by date'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner', desc: L('השוואת מחירים', 'Price comparison'), url: skUrl },
     { icon: '✈️', title: 'Kayak', desc: L('השוואה כוללת', 'Broad comparison'), url: 'https://www.kayak.com/flights/' + org + '-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
@@ -8622,7 +8622,7 @@ function searchAll() {
   // disappeared from the results, leaving only Google, Skyscanner and Kayak.
   // Nothing in that change had anything to do with the trip planner.
   let links = [
-    { kind: 'flight', icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) },
+    ...(org === 'TLV' ? [{ kind: 'flight', icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(airCode, dr.ci, dr.co, adults) }] : []),
     { kind: 'flight', icon: '✈️', title: 'Google Flights', desc: L('לוח מחירים לפי תאריך', 'Price calendar by date'), url: gfUrl },
     { kind: 'flight', icon: '✈️', title: 'Skyscanner', desc: L('השוואת מחירים', 'Price comparison'), url: skUrl },
     { kind: 'flight', icon: '✈️', title: 'Kayak', desc: L('השוואה כוללת', 'Broad comparison'), url: 'https://www.kayak.com/flights/' + org + '-' + airCode + '/' + dr.ci + '/' + dr.co + '?adults=' + adults },
@@ -12906,6 +12906,13 @@ const REVIEWS_KEY = 'skiReviews';          // offline mirror only
 const REVIEW_CATS_DEFAULT = ['🏨 לינה','⛷️ מסלולים','🚡 רכבלים','👶 ילדים','🌤️ תנאים',
                              '🍽️ אוכל כשר','🎫 סקי פס','🚗 הגעה וחניה','🏫 הדרכה'];
 const REVIEW_CAT_OTHER = '💬 אחר';
+// Categories are stored in Hebrew - a review keeps the category it was
+// written under. The English page shows the defaults in English; one an
+// admin added stays as he wrote it.
+var REVIEW_CAT_EN = { '🏨 לינה': '🏨 Lodging', '⛷️ מסלולים': '⛷️ Runs', '🚡 רכבלים': '🚡 Lifts', '👶 ילדים': '👶 Children',
+  '🌤️ תנאים': '🌤️ Conditions', '🍽️ אוכל כשר': '🍽️ Kosher food', '🎫 סקי פס': '🎫 Ski pass', '🚗 הגעה וחניה': '🚗 Getting there and parking',
+  '🏫 הדרכה': '🏫 Lessons', '💬 אחר': '💬 Other' };
+function revCatLabel(c) { return window.LANG === 'en' && REVIEW_CAT_EN[c] ? REVIEW_CAT_EN[c] : c; }
 var REVIEW_CATS = REVIEW_CATS_DEFAULT.concat([REVIEW_CAT_OTHER]);
 
 // "other" is appended, never stored: an admin who deletes every category
@@ -13027,7 +13034,7 @@ function renderReviewWriteArea() {
   const area = document.getElementById('review-write-area');
   if (!area) return;
   if (!user) {
-    area.innerHTML = `<div style="background:#f5f9ff;border:1.5px solid #d8e6fb;border-radius:12px;text-align:center;color:#6b7a8c;font-size:0.85rem;padding:14px;">כדי לכתוב ביקורת — <a href="#" onclick="openM('authModal')" style="color:var(--accent);font-weight:bold;">כניסה או הרשמה</a></div>`;
+    area.innerHTML = `<div style="background:#f5f9ff;border:1.5px solid #d8e6fb;border-radius:12px;text-align:center;color:#6b7a8c;font-size:0.85rem;padding:14px;">${L('כדי לכתוב ביקורת — ', 'To write a review — ')}<a href="#" onclick="openM('authModal')" style="color:var(--accent);font-weight:bold;">${L('כניסה או הרשמה', 'sign in or register')}</a></div>`;
     return;
   }
   reviewDraft = { rating: 0, cat: '', text: '' };
@@ -13035,19 +13042,19 @@ function renderReviewWriteArea() {
   // cards, a box that looked like them read as part of the last one.
   area.innerHTML = '<div style="background:#f5f9ff;border:1.5px solid #d8e6fb;'
     + 'border-radius:12px;padding:14px;">'
-    + '<div style="font-weight:bold;font-size:0.92rem;margin-bottom:10px;color:#16314f;">✍️ כתבו ביקורת</div>'
+    + L('<div style="font-weight:bold;font-size:0.92rem;margin-bottom:10px;color:#16314f;">✍️ כתבו ביקורת</div>', '<div style="font-weight:bold;font-size:0.92rem;margin-bottom:10px;color:#16314f;">✍️ Write a review</div>')
     // category
-    + '<div style="font-size:0.78rem;color:#888;margin-bottom:6px;">קטגוריה:</div>'
+    + L('<div style="font-size:0.78rem;color:#888;margin-bottom:6px;">קטגוריה:</div>', '<div style="font-size:0.78rem;color:#888;margin-bottom:6px;">Category:</div>')
     + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">'
     + REVIEW_CATS.map(function(c){ return '<label style="padding:5px 10px;border:1.5px solid #ddd;border-radius:20px;font-size:0.78rem;cursor:pointer;">'
-      + '<input type="radio" name="rev-cat" value="' + c + '" style="display:none;" onchange="reviewDraft.cat=this.value;renderCatChips()"> ' + c + '</label>'; }).join('')
+      + '<input type="radio" name="rev-cat" value="' + c + '" style="display:none;" onchange="reviewDraft.cat=this.value;renderCatChips()"> ' + revCatLabel(c) + '</label>'; }).join('')
     + '</div>'
     // stars
-    + '<div style="font-size:0.78rem;color:#888;margin-bottom:4px;">דירוג:</div>'
+    + L('<div style="font-size:0.78rem;color:#888;margin-bottom:4px;">דירוג:</div>', '<div style="font-size:0.78rem;color:#888;margin-bottom:4px;">Rating:</div>')
     + '<div style="margin-bottom:10px;" id="review-stars">' + starsHtml(0, true, 'setReviewStar') + '</div>'
     // text
-    + '<textarea id="review-text" rows="3" placeholder="ספר על החוויה שלך..." style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;direction:rtl;resize:none;font-family:inherit;margin-bottom:10px;"></textarea>'
-    + '<button onclick="submitReview()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">⭐ פרסמו ביקורת</button>'
+    + L('<textarea id="review-text" rows="3" placeholder="ספר על החוויה שלך..." style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;direction:rtl;resize:none;font-family:inherit;margin-bottom:10px;"></textarea>', '<textarea id="review-text" rows="3" placeholder="Tell us about your experience..." style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;direction:ltr;resize:none;font-family:inherit;margin-bottom:10px;"></textarea>')
+    + L('<button onclick="submitReview()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">⭐ פרסמו ביקורת</button>', '<button onclick="submitReview()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">⭐ Post review</button>')
     // A browser alert says "cervinialive.co.il says" above it and puts an OK
     // button under it. It is the browser talking, not the site, and it looks
     // it. The message belongs on the page, next to what it is about.
@@ -13075,19 +13082,19 @@ var RC = {
       return '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;' +
              'border:1.5px solid #ddd;border-radius:20px;font-size:0.8rem;background:#fff;">' +
              esc(c) +
-             '<button onclick="RC.remove(' + i + ')" title="הסרה" style="border:none;background:none;' +
+             '<button onclick="RC.remove(' + i + L(')" title="הסרה" style="border:none;background:none;', ')" title="Remove" style="border:none;background:none;') +
              'color:#c0392b;cursor:pointer;font-size:0.9rem;line-height:1;padding:0;">×</button></span>';
     }).join('') +
     '<span style="display:inline-flex;align-items:center;padding:5px 10px;border:1.5px dashed #ccc;' +
-    'border-radius:20px;font-size:0.8rem;color:#888;">' + esc(REVIEW_CAT_OTHER) + ' · קבוע</span>';
+    'border-radius:20px;font-size:0.8rem;color:#888;">' + esc(REVIEW_CAT_OTHER) + L(' · קבוע</span>', ' · fixed</span>');
   },
   add: function () {
     var inp = document.getElementById('rc-new');
     var v = (inp && inp.value || '').trim();
     if (!v) return;
-    if (v === REVIEW_CAT_OTHER) { RC.msg('"אחר" נוסף תמיד ממילא', true); return; }
+    if (v === REVIEW_CAT_OTHER) { RC.msg(L('"אחר" נוסף תמיד ממילא', '"Other" is always added anyway'), true); return; }
     if (!RC.draft) RC.open();
-    if (RC.draft.indexOf(v) !== -1) { RC.msg('הקטגוריה כבר ברשימה', true); return; }
+    if (RC.draft.indexOf(v) !== -1) { RC.msg(L('הקטגוריה כבר ברשימה', 'The category is already in the list'), true); return; }
     RC.draft.push(v);
     if (inp) inp.value = '';
     RC.msg('');
@@ -13106,9 +13113,9 @@ var RC = {
   save: async function (btn) {
     if (!RC.draft) RC.open();
     var was = btn ? btn.textContent : '';
-    if (btn) { btn.disabled = true; btn.textContent = 'שומר…'; }
+    if (btn) { btn.disabled = true; btn.textContent = L('שומר…', 'Saving…'); }
     try {
-      var token = await requireAuth('לשמור את קטגוריות הביקורות');
+      var token = await requireAuth(L('לשמור את קטגוריות הביקורות', 'save the review categories'));
       if (!token) { if (btn) { btn.disabled = false; btn.textContent = was; } return; }
       var res = await fetch(SUPABASE_URL + '/rest/v1/settings?id=eq.1', {
         method: 'PATCH',
@@ -13122,16 +13129,16 @@ var RC = {
         // refusal, and sending the admin to check permissions over a
         // missing column wastes his evening.
         RC.msg(/review_cats/.test(txt)
-          ? 'העמודה review_cats חסרה בטבלת settings. יש להריץ את ה-SQL שצורף.'
-          : 'השמירה נדחתה. ודאו שאתם מחוברים כמנהל.', true);
+          ? L('העמודה review_cats חסרה בטבלת settings. יש להריץ את ה-SQL שצורף.', 'The review_cats column is missing from the settings table. Run the attached SQL.')
+          : L('השמירה נדחתה. ודאו שאתם מחוברים כמנהל.', 'Saving was refused. Make sure you are signed in as an admin.'), true);
         return;
       }
       _setReviewCats(RC.draft);
       renderReviewWriteArea();
       renderReviews();
-      RC.msg('נשמר. הקטגוריות החדשות כבר באתר.');
+      RC.msg(L('נשמר. הקטגוריות החדשות כבר באתר.', 'Saved. The new categories are already on the site.'));
     } catch (e) {
-      RC.msg('השמירה נכשלה. בדקו את החיבור.', true);
+      RC.msg(L('השמירה נכשלה. בדקו את החיבור.', 'Saving failed. Check your connection.'), true);
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = was; }
     }
@@ -13162,13 +13169,13 @@ function reviewMsg(text, bad) {
 async function submitReview() {
   const text = (document.getElementById('review-text')?.value || '').trim();
   reviewMsg('');
-  if (!reviewDraft.cat)    { reviewMsg('בחרו קטגוריה — באיזה נושא הביקורת?', true); return; }
-  if (!reviewDraft.rating) { reviewMsg('בחרו דירוג בכוכבים', true); return; }
-  if (text.length < 2)     { reviewMsg('כתבו משפט אחד לפחות', true); return; }
-  if (text.length > 1000)  { reviewMsg('הביקורת ארוכה מדי — עד 1000 תווים', true); return; }
+  if (!reviewDraft.cat)    { reviewMsg(L('בחרו קטגוריה — באיזה נושא הביקורת?', 'Choose a category — what is the review about?'), true); return; }
+  if (!reviewDraft.rating) { reviewMsg(L('בחרו דירוג בכוכבים', 'Choose a star rating'), true); return; }
+  if (text.length < 2)     { reviewMsg(L('כתבו משפט אחד לפחות', 'Write at least one sentence'), true); return; }
+  if (text.length > 1000)  { reviewMsg(L('הביקורת ארוכה מדי — עד 1000 תווים', 'The review is too long — up to 1000 characters'), true); return; }
 
   const sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
-  if (!sb || !user || !user.sbId) { reviewMsg('צריך להיות מחובר כדי לפרסם ביקורת', true); return; }
+  if (!sb || !user || !user.sbId) { reviewMsg(L('צריך להיות מחובר כדי לפרסם ביקורת', 'You need to be signed in to post a review'), true); return; }
 
   try {
     const res = await sb.from('reviews').insert({
@@ -13183,7 +13190,7 @@ async function submitReview() {
     renderReviews();
     renderReviewWriteArea();
   } catch (e) {
-    reviewMsg('הפרסום נכשל. בדקו את החיבור ונסו שוב.', true);
+    reviewMsg(L('הפרסום נכשל. בדקו את החיבור ונסו שוב.', 'Posting failed. Check your connection and try again.'), true);
   }
 }
 
@@ -13210,7 +13217,7 @@ function renderReviews() {
     const avg = (reviews.reduce(function(s,r){ return s + r.rating; }, 0) / reviews.length).toFixed(1);
     headerHtml = '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fffbf0;border:1px solid #fde8a0;border-radius:10px;margin-bottom:12px;">'
       + '<span style="font-size:2rem;font-weight:bold;color:#f5a623;">' + avg + '</span>'
-      + '<div>' + starsHtml(Math.round(avg), false, '') + '<div style="font-size:0.75rem;color:#888;">' + reviews.length + ' ביקורות</div></div>'
+      + '<div>' + starsHtml(Math.round(avg), false, '') + '<div style="font-size:0.75rem;color:#888;">' + reviews.length + L(' ביקורות</div></div>', ' reviews</div></div>')
       + '</div>';
   }
 
@@ -13221,22 +13228,22 @@ function renderReviews() {
         const isActive = c === activeCat;
         return '<button type="button" class="rev-filter-btn' + (isActive ? ' rev-active' : '') + '" data-cat="' + escHtml(c) + '" onclick="setRevFilter(this)"'
           + ' style="padding:4px 10px;border:1.5px solid ' + (isActive ? 'var(--accent)' : '#ddd') + ';border-radius:20px;background:' + (isActive ? 'var(--accent)' : 'white') + ';color:' + (isActive ? 'white' : '#555') + ';font-size:0.76rem;cursor:pointer;">'
-          + (c === 'all' ? '🌐 הכל' : c) + '</button>';
+          + (c === 'all' ? L('🌐 הכל', '🌐 All') : revCatLabel(c)) + '</button>';
       }).join('')
     + '</div>';
 
   const offlineNote = _reviewsOnline ? '' :
     '<div style="padding:8px 10px;margin-bottom:10px;border-radius:8px;background:#fff8e1;border:1px solid #ffe08a;font-size:0.76rem;color:#8a6d3b;text-align:center;">'
-    + '📡 אין חיבור — מוצגות הביקורות שנשמרו במכשיר</div>';
+    + L('📡 אין חיבור — מוצגות הביקורות שנשמרו במכשיר</div>', '📡 No connection — showing the reviews saved on this device</div>');
 
   if (!filtered.length) {
     list.innerHTML = offlineNote + headerHtml + filterBtns
-      + '<div style="color:#aaa;text-align:center;padding:20px;">אין ביקורות עדיין בקטגוריה זו</div>';
+      + L('<div style="color:#aaa;text-align:center;padding:20px;">אין ביקורות עדיין בקטגוריה זו</div>', '<div style="color:#aaa;text-align:center;padding:20px;">No reviews in this category yet</div>');
     return;
   }
 
   const listTitle = '<div style="font-weight:bold;font-size:0.92rem;color:#16314f;margin:4px 0 10px;">'
-    + '💬 מה כתבו הגולשים</div>';
+    + L('💬 מה כתבו הגולשים</div>', '💬 What skiers wrote</div>');
 
   list.innerHTML = offlineNote + listTitle + headerHtml + filterBtns + filtered.map(function(r) {
     const mine   = !!(user && user.sbId && user.sbId === r.authorId);
@@ -13245,7 +13252,7 @@ function renderReviews() {
     return '<div style="padding:12px 14px;border:1px solid #eee;border-radius:10px;background:white;">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
       + '<span style="font-weight:bold;font-size:0.88rem;">' + escHtml(r.user) + '</span>'
-      + '<span style="font-size:0.7rem;background:#f0f4ff;padding:2px 8px;border-radius:10px;">' + escHtml(r.cat) + '</span>'
+      + '<span style="font-size:0.7rem;background:#f0f4ff;padding:2px 8px;border-radius:10px;">' + escHtml(revCatLabel(r.cat)) + '</span>'
       + '</div>'
       + '<div style="margin-bottom:5px;">' + starsHtml(r.rating, false, '') + '</div>'
       + '<div style="font-size:0.85rem;color:#333;line-height:1.6;white-space:pre-wrap;">' + escHtml(r.text) + '</div>'
@@ -13253,16 +13260,16 @@ function renderReviews() {
       + reviewReactsHtml(r)
       + '<span style="display:flex;align-items:center;gap:10px;">'
       + '<span style="font-size:0.72rem;color:#bbb;">' + timeAgo(r.timestamp) + '</span>'
-      + (mine ? '<span style="font-size:0.78rem;color:#1a73e8;cursor:pointer;" onclick="editReview(\'' + escHtml(r.id) + '\')">✏️ עריכה</span>' : '')
-      + (canDel ? '<span style="font-size:0.78rem;color:#e74c3c;cursor:pointer;" onclick="deleteReview(\'' + escHtml(r.id) + '\')">🗑 מחק</span>' : '')
+      + (mine ? '<span style="font-size:0.78rem;color:#1a73e8;cursor:pointer;" onclick="editReview(\'' + escHtml(r.id) + L('\')">✏️ עריכה</span>', '\')">✏️ Edit</span>') : '')
+      + (canDel ? '<span style="font-size:0.78rem;color:#e74c3c;cursor:pointer;" onclick="deleteReview(\'' + escHtml(r.id) + L('\')">🗑 מחק</span>', '\')">🗑 Delete</span>') : '')
       + '</span>'
       + '</div>'
       // asked right under the review, the way the forum asks (Yossi, 11.11)
       + (canDel && _revDeleting === String(r.id)
           ? '<div class="del-confirm rev-del-confirm" style="background:#fff3f3;border:1px solid #e74c3c;border-radius:8px;padding:8px 12px;margin-top:8px;display:flex;gap:10px;align-items:center;font-size:0.85rem;">'
-            + '<span>למחוק את הביקורת?</span>'
-            + '<button type="button" onclick="confirmDelReview(\'' + escHtml(r.id) + '\')" style="padding:3px 12px;background:#e74c3c;color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-family:inherit;">מחק</button>'
-            + '<button type="button" onclick="deleteReview(null)" style="padding:3px 12px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-family:inherit;">ביטול</button>'
+            + L('<span>למחוק את הביקורת?</span>', '<span>Delete the review?</span>')
+            + '<button type="button" onclick="confirmDelReview(\'' + escHtml(r.id) + L('\')" style="padding:3px 12px;background:#e74c3c;color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-family:inherit;">מחק</button>', '\')" style="padding:3px 12px;background:#e74c3c;color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-family:inherit;">Delete</button>')
+            + L('<button type="button" onclick="deleteReview(null)" style="padding:3px 12px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-family:inherit;">ביטול</button>', '<button type="button" onclick="deleteReview(null)" style="padding:3px 12px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-family:inherit;">Cancel</button>')
             + '</div>'
           : '')
       + '</div>';
@@ -13281,7 +13288,7 @@ function reviewReactsHtml(r) {
     var n = (r.reacts && r.reacts.counts && r.reacts.counts[e]) || 0;
     var on = mine === e;
     return '<span onclick="reactReview(\'' + escJs(String(r.id)) + '\',\'' + e + '\')"'
-      + ' title="' + (user ? '' : 'צריך להתחבר') + '"'
+      + ' title="' + (user ? '' : L('צריך להתחבר', 'You need to sign in')) + '"'
       + ' style="cursor:pointer;font-size:0.9rem;padding:2px 8px;border-radius:8px;border:1.5px solid '
       + (on ? '#93c5fd;background:#dbeafe;font-weight:bold;' : (n ? '#e5e7eb;background:#f3f4f6;' : 'transparent;opacity:0.55;'))
       + '">' + e + (n ? '<span style="font-size:0.7rem;vertical-align:super;margin-inline-start:2px;">' + n + '</span>' : '')
@@ -13323,14 +13330,14 @@ function setEditStar(n) { _revEditDraft.rating = n;
 
 function reviewEditHtml(r) {
   return '<div style="padding:12px 14px;border:1.5px solid #93c5fd;border-radius:10px;background:#f5f9ff;">'
-    + '<div style="font-weight:bold;font-size:0.86rem;margin-bottom:8px;color:#16314f;">✏️ עריכת הביקורת שלך</div>'
+    + L('<div style="font-weight:bold;font-size:0.86rem;margin-bottom:8px;color:#16314f;">✏️ עריכת הביקורת שלך</div>', '<div style="font-weight:bold;font-size:0.86rem;margin-bottom:8px;color:#16314f;">✏️ Edit your review</div>')
     + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">'
     + REVIEW_CATS.map(function (c) {
         var on = c === _revEditDraft.cat;
         return '<span onclick="_revEditDraft.cat=' + JSON.stringify(c).replace(/"/g, '&quot;')
           + ';renderReviews()" style="padding:5px 10px;border:1.5px solid '
           + (on ? 'var(--accent);background:var(--accent);color:white;' : '#ddd;background:white;color:#444;')
-          + 'border-radius:20px;font-size:0.78rem;cursor:pointer;">' + escHtml(c) + '</span>';
+          + 'border-radius:20px;font-size:0.78rem;cursor:pointer;">' + escHtml(revCatLabel(c)) + '</span>';
       }).join('')
     + '</div>'
     + '<div id="rev-edit-stars" style="margin-bottom:8px;">' + starsHtml(_revEditDraft.rating, true, 'setEditStar') + '</div>'
@@ -13570,14 +13577,14 @@ function refreshAlertStrip() {
   // panel at all - so the distinction between a measurement and a person
   // standing at the lift has to survive here, not only inside the card.
   textEl.innerHTML = (a.kind === 'notice' ? '📌 ' : '')
-    + (a.auto ? '<span class="auto-chip">📡 הודעה אוטומטית</span> ' : '')
+    + (a.auto ? '<span class="auto-chip">' + L('📡 הודעה אוטומטית', '📡 Automatic notice') + '</span> ' : '')
     + escHtml(a.text)
     + ' <span style="font-size:0.72rem;opacity:0.7;font-weight:normal;">— '
     + escHtml(a.user) + ', ' + alertTimeAgo(a.ts) + '</span>'
     + (rest.length
         ? ' <button type="button" class="alert-more-btn" onclick="toggleAlertMore(event)">'
-          + 'ועוד ' + rest.length + ' <span class="amore-chev">▾</span></button>'
-          + ' <button type="button" class="alert-closeall" onclick="dismissAllAlerts(event)">✕ סגור הכל</button>'
+          + L('ועוד ', '+') + rest.length + L('', ' more') + ' <span class="amore-chev">▾</span></button>'
+          + ' <button type="button" class="alert-closeall" onclick="dismissAllAlerts(event)">' + L('✕ סגור הכל', '✕ Close all') + '</button>'
         : '');
 
   strip.style.display = 'block';
@@ -13592,7 +13599,7 @@ function refreshAlertStrip() {
               : (x.severity || 'warning'));
         return '<div class="amore-row amore-' + s + '">'
           + '<span style="flex:1;">' + (x.kind === 'notice' ? '📌 ' : '')
-          + (x.auto ? '<span class="auto-chip">📡 הודעה אוטומטית</span> ' : '')
+          + (x.auto ? '<span class="auto-chip">' + L('📡 הודעה אוטומטית', '📡 Automatic notice') + '</span> ' : '')
           + escHtml(x.text) + '</span>'
           + '<span class="amore-meta">' + escHtml(x.user) + ' · ' + alertTimeAgo(x.ts) + '</span>'
           + '</div>';
@@ -13706,7 +13713,7 @@ async function saveProfile() {
       showProfileMsg(L('הסיסמה חייבת להכיל לפחות 6 תווים', 'The password must have at least 6 characters'), 'error'); return;
     }
     if (/[\u0590-\u05FF]/.test(newPass)) {
-      showProfileMsg('אי אפשר אותיות בעברית בסיסמה — החלף שפה ל-EN', 'error'); return;
+      showProfileMsg(L('אי אפשר אותיות בעברית בסיסמה — החלף שפה ל-EN', 'Hebrew letters can\'t be used in a password — switch your keyboard to English'), 'error'); return;
     }
     const sbNow = (typeof getSB === 'function') ? getSB() : null;
     if (USE_SUPABASE && user.sbId && sbNow) {
@@ -13716,20 +13723,20 @@ async function saveProfile() {
       try {
         const { data: { session } } = await sbNow.auth.getSession();
         const loginEmail = session && session.user && session.user.email;
-        if (!loginEmail) { showProfileMsg('צריך להתחבר מחדש כדי לשנות סיסמה', 'error'); return; }
+        if (!loginEmail) { showProfileMsg(L('צריך להתחבר מחדש כדי לשנות סיסמה', 'You need to sign in again to change your password'), 'error'); return; }
         const check = await sbNow.auth.signInWithPassword({ email: loginEmail, password: oldPass || '' });
-        if (check.error) { showProfileMsg('סיסמה נוכחית שגויה', 'error'); return; }
+        if (check.error) { showProfileMsg(L('סיסמה נוכחית שגויה', 'The current password is wrong'), 'error'); return; }
         const upd = await sbNow.auth.updateUser({ password: newPass });
-        if (upd.error) { showProfileMsg('הסיסמה לא עודכנה. נסה שוב.', 'error'); return; }
+        if (upd.error) { showProfileMsg(L('הסיסמה לא עודכנה. נסה שוב.', 'The password was not updated. Try again.'), 'error'); return; }
       } catch (e) {
-        showProfileMsg('הסיסמה לא עודכנה. נסה שוב.', 'error'); return;
+        showProfileMsg(L('הסיסמה לא עודכנה. נסה שוב.', 'The password was not updated. Try again.'), 'error'); return;
       }
     } else {
       if (!users[user.name].passHash) {
-        showProfileMsg('שינוי סיסמה לא זמין למשתמש זה', 'error'); return;
+        showProfileMsg(L('שינוי סיסמה לא זמין למשתמש זה', 'Password change isn\'t available for this user'), 'error'); return;
       }
       if (simpleHash(oldPass) !== users[user.name].passHash) {
-        showProfileMsg('סיסמה נוכחית שגויה', 'error'); return;
+        showProfileMsg(L('סיסמה נוכחית שגויה', 'The current password is wrong'), 'error'); return;
       }
       users[user.name].passHash = simpleHash(newPass);
     }
@@ -13750,18 +13757,18 @@ async function saveProfile() {
 
   // Sync to Supabase if connected — await to detect errors
   if (USE_SUPABASE && user.sbId) {
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ שומר...'; }
+    if (btn) { btn.disabled = true; btn.textContent = L('⏳ שומר...', '⏳ Saving...'); }
     const res = await supabaseUpdateProfile(user.sbId, { level, discipline: disc, visits, bio });
-    if (btn) { btn.disabled = false; btn.textContent = '💾 שמור שינויים'; }
+    if (btn) { btn.disabled = false; btn.textContent = L('💾 שמור שינויים', '💾 Save changes'); }
     if (res && res.error) {
-      showProfileMsg('⚠️ נשמר מקומית אך לא בענן: ' + res.error, 'error');
+      showProfileMsg(L('⚠️ נשמר מקומית אך לא בענן: ', '⚠️ Saved on this device but not online: ') + res.error, 'error');
       renderHeader();
       return;
     }
   }
 
   renderHeader();
-  showProfileMsg('✅ הפרופיל עודכן!', 'success');
+  showProfileMsg(L('✅ הפרופיל עודכן!', '✅ Profile updated!'), 'success');
   // סגירה אוטומטית אחרי הצגת הודעת ההצלחה
   setTimeout(() => closeM('profileModal'), 1200);
 }
@@ -13819,7 +13826,7 @@ let _webcamStream = null;
 async function openWebcam() {
   // Check support
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    uiAlert('הדפדפן לא תומך בגישה למצלמה. אנא בחר תמונה מהקובץ.');
+    uiAlert(L('הדפדפן לא תומך בגישה למצלמה. אנא בחר תמונה מהקובץ.', 'This browser can\'t access the camera. Please choose a picture from a file.'));
     return;
   }
   openM('avatarCamModal');
@@ -13847,13 +13854,13 @@ async function openWebcam() {
   } catch (err) {
     console.error('Webcam error:', err);
     if (loading) loading.style.display = 'none';
-    let msg = 'לא ניתן לגשת למצלמה';
+    let msg = L('לא ניתן לגשת למצלמה', 'Can\'t access the camera');
     if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      msg = 'הגישה למצלמה נדחתה. אנא אפשר גישה למצלמה בהגדרות הדפדפן.';
+      msg = L('הגישה למצלמה נדחתה. אנא אפשר גישה למצלמה בהגדרות הדפדפן.', 'Camera access was denied. Please allow it in the browser settings.');
     } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-      msg = 'לא נמצאה מצלמה במחשב.';
+      msg = L('לא נמצאה מצלמה במחשב.', 'No camera was found on this computer.');
     } else if (err.name === 'NotReadableError') {
-      msg = 'המצלמה בשימוש על ידי תוכנה אחרת.';
+      msg = L('המצלמה בשימוש על ידי תוכנה אחרת.', 'The camera is in use by another program.');
     }
     if (errEl) { errEl.textContent = '⚠️ ' + msg; errEl.style.display = 'block'; }
   }
@@ -13891,11 +13898,11 @@ function handleAvatarFile(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) {
-    uiAlert('אנא בחר קובץ תמונה');
+    uiAlert(L('אנא בחר קובץ תמונה', 'Please choose an image file'));
     return;
   }
   if (file.size > 10 * 1024 * 1024) {
-    uiAlert('הקובץ גדול מדי. גודל מקסימלי: 10MB');
+    uiAlert(L('הקובץ גדול מדי. גודל מקסימלי: 10MB', 'The file is too large. Maximum size: 10MB'));
     return;
   }
   const reader = new FileReader();
@@ -13903,7 +13910,7 @@ function handleAvatarFile(event) {
     showCropper(e.target.result);
   };
   reader.onerror = function() {
-    uiAlert('שגיאה בקריאת הקובץ');
+    uiAlert(L('שגיאה בקריאת הקובץ', 'Error reading the file'));
   };
   reader.readAsDataURL(file);
 }
@@ -13920,7 +13927,7 @@ function showCropper(imageDataUrl) {
   if (confirmBtn) confirmBtn.disabled = false;
   setTimeout(() => {
     if (typeof Cropper === 'undefined') {
-      uiAlert('שגיאה: ספריית החיתוך לא נטענה');
+      uiAlert(L('שגיאה: ספריית החיתוך לא נטענה', 'Error: the cropping library did not load'));
       return;
     }
     _cropper = new Cropper(img, {
@@ -13964,12 +13971,12 @@ async function confirmCrop() {
       imageSmoothingEnabled: true,
       imageSmoothingQuality: 'high'
     });
-    if (!canvas) throw new Error('שגיאה ביצירת תמונה');
+    if (!canvas) throw new Error(L('שגיאה ביצירת תמונה', 'Error creating the picture'));
 
     const blob = await new Promise((resolve, reject) => {
       canvas.toBlob(b => {
         if (b) resolve(b);
-        else reject(new Error('שגיאה בהמרת התמונה'));
+        else reject(new Error(L('שגיאה בהמרת התמונה', 'Error converting the picture')));
       }, 'image/jpeg', 0.85);
     });
 
@@ -13980,14 +13987,14 @@ async function confirmCrop() {
       if (blob2 && blob2.size <= 2 * 1024 * 1024) {
         await uploadAvatarBlob(blob2);
       } else {
-        throw new Error('התמונה גדולה מדי גם אחרי דחיסה');
+        throw new Error(L('התמונה גדולה מדי גם אחרי דחיסה', 'The picture is still too large after compression'));
       }
     } else {
       await uploadAvatarBlob(blob);
     }
   } catch (e) {
     console.error(e);
-    uiAlert('שגיאה: ' + (e.message || e));
+    uiAlert(L('שגיאה: ', 'Error: ') + (e.message || e));
     if (confirmBtn) confirmBtn.disabled = false;
     if (prog) prog.style.display = 'none';
   }
@@ -13995,7 +14002,7 @@ async function confirmCrop() {
 
 async function uploadAvatarBlob(blob) {
   if (!USE_SUPABASE || !user || !user.sbId) {
-    uiAlert('אינך מחובר למערכת');
+    uiAlert(L('אינך מחובר למערכת', 'You are not signed in'));
     return;
   }
   const path = user.sbId + '/avatar.jpg';
@@ -14007,11 +14014,11 @@ async function uploadAvatarBlob(blob) {
       contentType: 'image/jpeg'
     });
   if (upErr) {
-    throw new Error('שגיאת העלאה: ' + upErr.message);
+    throw new Error(L('שגיאת העלאה: ', 'Upload error: ') + upErr.message);
   }
   const { data: urlData } = _sb.storage.from('avatars').getPublicUrl(path);
   const publicUrl = urlData?.publicUrl || '';
-  if (!publicUrl) throw new Error('לא התקבל URL לתמונה');
+  if (!publicUrl) throw new Error(L('לא התקבל URL לתמונה', 'No URL was returned for the picture'));
 
   await supabaseUpdateProfile(user.sbId, { avatar_url: publicUrl });
 
@@ -14029,12 +14036,12 @@ async function uploadAvatarBlob(blob) {
 
   destroyCropper();
   closeM('cropperModal');
-  showProfileMsg('✅ תמונת הפרופיל עודכנה!', 'success');
+  showProfileMsg(L('✅ תמונת הפרופיל עודכנה!', '✅ Profile picture updated!'), 'success');
 }
 
 async function deleteAvatar() {
   if (!user || !user.avatar_url) { closeM('avatarMenuModal'); return; }
-  if (!(await uiConfirm('למחוק את תמונת הפרופיל?', 'מחיקה', true))) return;
+  if (!(await uiConfirm(L('למחוק את תמונת הפרופיל?', 'Delete your profile picture?'), L('מחיקה', 'Delete'), true))) return;
   closeM('avatarMenuModal');
   try {
     if (USE_SUPABASE && user.sbId) {
@@ -14052,10 +14059,10 @@ async function deleteAvatar() {
     const av = document.getElementById('profile-avatar');
     renderAvatarInto(av, { name: user.name, avatarUrl: null });
     renderHeader();
-    showProfileMsg('✅ התמונה נמחקה', 'success');
+    showProfileMsg(L('✅ התמונה נמחקה', '✅ Picture deleted'), 'success');
   } catch (e) {
     console.error(e);
-    uiAlert('שגיאה במחיקת התמונה');
+    uiAlert(L('שגיאה במחיקת התמונה', 'Error deleting the picture'));
   }
 }
 
@@ -14093,9 +14100,9 @@ async function showUserInfo(username) {
   if (jd) {
     if (p.created_at) {
       const d = new Date(p.created_at);
-      jd.textContent = 'הצטרף ב-' + d.toLocaleDateString('he-IL');
+      jd.textContent = L('הצטרף ב-', 'Joined ') + d.toLocaleDateString(window.LANG === 'en' ? 'en-GB' : 'he-IL');
     } else if (local && local.joined) {
-      jd.textContent = 'הצטרף ב-' + local.joined;
+      jd.textContent = L('הצטרף ב-', 'Joined ') + local.joined;
     }
   }
   if (bioEl && p.bio) {
@@ -14105,19 +14112,22 @@ async function showUserInfo(username) {
   if (details) {
     const rows = [];
     if (p.discipline) {
-      const lbl = p.discipline === 'snowboard' ? '🏂 סנובורד' : '⛷️ סקי';
-      rows.push('<div><span style="color:#888;">ענף:</span> ' + lbl + '</div>');
+      const lbl = p.discipline === 'snowboard' ? L('🏂 סנובורד', '🏂 Snowboard') : L('⛷️ סקי', '⛷️ Ski');
+      rows.push('<div><span style="color:#888;">' + L('ענף:', 'Sport:') + '</span> ' + lbl + '</div>');
     }
     if (p.level) {
-      rows.push('<div><span style="color:#888;">רמה:</span> ' + p.level + '</div>');
+      // the level is stored in Hebrew, as the profile form's values are
+      const LV = { 'מתחיל': 'Beginner', 'בינוני': 'Intermediate', 'מתקדם': 'Advanced', 'מקצועי': 'Expert' };
+      rows.push('<div><span style="color:#888;">' + L('רמה:', 'Level:') + '</span> ' + esc(window.LANG === 'en' ? (LV[p.level] || p.level) : p.level) + '</div>');
     }
     if (p.visits) {
-      const v = p.visits === 'ראשון' ? 'פעם ראשונה (מתכנן)'
-              : p.visits === 'וותיק' ? 'וותיק מושבע'
-              : p.visits + ' פעמים';
-      rows.push('<div><span style="color:#888;">ביקורים בצ\'רוויניה:</span> ' + v + '</div>');
+      const v = p.visits === 'ראשון' ? L('פעם ראשונה (מתכנן)', 'First time (planning)')
+              : p.visits === 'וותיק' ? L('וותיק מושבע', 'A regular')
+              : p.visits === '1' ? L('פעם אחת', 'Once')
+              : p.visits + L(' פעמים', ' times');
+      rows.push('<div><span style="color:#888;">' + L('ביקורים בצ\'רוויניה:', 'Visits to Cervinia:') + '</span> ' + v + '</div>');
     }
-    details.innerHTML = rows.length ? rows.join('') : '<div style="color:#aaa;text-align:center;font-size:0.85rem;">אין פרטים נוספים</div>';
+    details.innerHTML = rows.length ? rows.join('') : '<div style="color:#aaa;text-align:center;font-size:0.85rem;">' + L('אין פרטים נוספים', 'No further details') + '</div>';
   }
 }
 
@@ -14540,8 +14550,8 @@ async function requireAuth(action) {
   try { localStorage.removeItem('skiUser'); } catch (e) {}
   user = null;
   try { renderHeader(); renderPostBtn(); } catch (e) {}
-  const what = action ? ' כדי ' + action : '';
-  const msg = 'ההתחברות פגה — יש להתחבר מחדש' + what + '.';
+  const what = action ? L(' כדי ', ' to ') + action : '';
+  const msg = L('ההתחברות פגה — יש להתחבר מחדש', 'Your session has expired — sign in again') + what + '.';
   if (typeof forumMsg === 'function') forumMsg(msg, true);
   else uiAlert(msg);
   try { openM('authModal'); } catch (e) {}
@@ -18099,11 +18109,11 @@ var DATA_FRESH_MIN = 90;    // under this: live
 var DATA_STALE_MIN = 6 * 60; // over this: say so in red
 
 function _dataAgeText(min) {
-  if (min < 60) return 'לפני ' + Math.max(1, Math.round(min)) + ' דק׳';
+  if (min < 60) return L('לפני ' + Math.max(1, Math.round(min)) + ' דק׳', Math.max(1, Math.round(min)) + ' min ago');
   var h = Math.floor(min / 60);
-  if (h < 24) return 'לפני ' + h + (h === 1 ? ' שעה' : ' שעות');
+  if (h < 24) return L('לפני ' + h + (h === 1 ? ' שעה' : ' שעות'), h + (h === 1 ? ' hour ago' : ' hours ago'));
   var d = Math.floor(h / 24);
-  return 'לפני ' + d + (d === 1 ? ' יום' : ' ימים');
+  return L('לפני ' + d + (d === 1 ? ' יום' : ' ימים'), d + (d === 1 ? ' day ago' : ' days ago'));
 }
 
 function showDataSourceBadge(mode, updatedAt) {
@@ -18660,6 +18670,12 @@ const SEARCH_INDEX = [
   { text: 'סנובורד גלשן מגני פרקי כף יד רגל קדמית regular goofy', action: "openM('rentalModal')", icon: '🏂', label: 'סנובורד' },
   { text: 'מגפי סקי מגלשיים פלקס מידה DIN מקלות השכרה', action: "openM('rentalModal')", icon: '🎿', label: 'הציוד הכבד' },
 ];
+// English: the same entries, searchable by English words and labelled in English.
+if (window.LANG === 'en') {
+  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"]].forEach(function (e, k) {
+    if (SEARCH_INDEX[k]) { SEARCH_INDEX[k].text += ' ' + e[0]; SEARCH_INDEX[k].label = e[1]; }
+  });
+}
 
 // The rest of the page reads these boxes as if they were inputs - and so
 // does the forum's own filter, in half a dozen places. Rather than rewrite
@@ -18999,7 +19015,7 @@ function globalSearch(q) {
   });
   const results = [...indexResults, ...panelResults, ...postResults];
   if (!results.length) {
-    box.innerHTML = '<div style="padding:12px 16px;color:#aaa;font-size:0.85rem;">אין תוצאות</div>';
+    box.innerHTML = '<div style="padding:12px 16px;color:#aaa;font-size:0.85rem;">' + L('אין תוצאות', 'No results') + '</div>';
   } else {
     box.innerHTML = results.map(function(r) {
       return '<div onclick="' + r.action + ';closeGlobalSearch()"'
@@ -19042,9 +19058,10 @@ if (document.readyState === 'loading') {
 
 function timeAgo(ts) {
   const diff = (Date.now() - ts) / 1000;
-  if (diff < 3600) return 'לפני ' + Math.floor(diff/60) + ' דק\u0027';
-  if (diff < 86400) return 'לפני ' + Math.floor(diff/3600) + ' שע\u0027';
-  return 'לפני ' + Math.floor(diff/86400) + ' ימים';
+  if (diff < 3600) return L('לפני ' + Math.floor(diff/60) + ' דק\u0027', Math.floor(diff/60) + ' min ago');
+  if (diff < 86400) return L('לפני ' + Math.floor(diff/3600) + ' שע\u0027', Math.floor(diff/3600) + ' h ago');
+  var dd = Math.floor(diff/86400);
+  return L('לפני ' + dd + ' ימים', dd + (dd === 1 ? ' day ago' : ' days ago'));
 }
 
 
@@ -19053,14 +19070,14 @@ function renderFilterChips() {
   if (!area) return;
   // Tags to filter posts by topic
   const filters = [
-    { label: '⛷️ מסלולים', val: 'מסלול' },
-    { label: "<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צ'רמט", val: "צ'רמט" },
-    { label: '❄️ שלג', val: 'שלג' },
-    { label: '🚌 הסעות', val: 'הסע' },
-    { label: '🏨 לינה', val: 'לינ' },
+    { label: L('⛷️ מסלולים', '⛷️ Runs'), val: 'מסלול|run|slope|piste' },
+    { label: "<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> " + L("צ'רמט", 'Zermatt'), val: "צ'רמט|zermatt" },
+    { label: L('❄️ שלג', '❄️ Snow'), val: 'שלג|snow' },
+    { label: L('🚌 הסעות', '🚌 Transfers'), val: 'הסע|transfer|shuttle|bus' },
+    { label: L('🏨 לינה', '🏨 Lodging'), val: 'לינ|hotel|apartment|lodg|stay' },
   ];
   area.innerHTML = filters.map(f =>
-    '<label class="filter-chip" title="סנן פוסטים לפי ' + f.label + '">'
+    '<label class="filter-chip" title="' + L('סנן פוסטים לפי ', 'Filter posts by ') + f.label.replace(/<[^>]*>/g, '').trim() + '">'
     + '<input type="checkbox" value="' + f.val + '" onchange="filterPosts()"> '
     + f.label + '</label>'
   ).join('');
@@ -19145,13 +19162,13 @@ function _forumHandlePaste(e) {
     input.files = dt.files;
   } catch (err) {
     // Older browsers will not let a script fill a file input.
-    forumMsg('הדפדפן הזה לא מאפשר הדבקת תמונה. אפשר לצרף אותה בכפתור 📎.', true);
+    forumMsg(L('הדפדפן הזה לא מאפשר הדבקת תמונה. אפשר לצרף אותה בכפתור 📎.', 'This browser doesn\'t allow pasting an image. You can attach it with the 📎 button.'), true);
     return;
   }
   showPickedFile(inputId, inputId === 'new-post-file'
     ? 'new-post-file-name'
     : inputId.replace('rfile-', 'rfile-name-'));
-  forumMsg('התמונה צורפה. אפשר לכתוב ולשלוח.');
+  forumMsg(L('התמונה צורפה. אפשר לכתוב ולשלוח.', 'The image is attached. You can write and send.'));
 }
 document.addEventListener('paste', _forumHandlePaste);
 
@@ -19165,12 +19182,12 @@ function showPickedFile(inputId, labelId) {
   if (!f) { lab.textContent = ''; show(false); return; }
   if (!FORUM_ALLOWED.test(f.name)) {
     lab.textContent = ''; inp.value = ''; show(false);
-    forumMsg('סוג הקובץ אינו נתמך. אפשר לצרף תמונה (JPG, PNG, GIF, WEBP, HEIC, BMP) או PDF.', true);
+    forumMsg(L('סוג הקובץ אינו נתמך. אפשר לצרף תמונה (JPG, PNG, GIF, WEBP, HEIC, BMP) או PDF.', 'This file type isn\'t supported. You can attach an image (JPG, PNG, GIF, WEBP, HEIC, BMP) or a PDF.'), true);
     return;
   }
   if (f.size > FORUM_MAX_MB * 1024 * 1024) {
     lab.textContent = ''; inp.value = ''; show(false);
-    forumMsg('הקובץ גדול מדי — עד ' + FORUM_MAX_MB + 'MB.', true);
+    forumMsg(L('הקובץ גדול מדי — עד ', 'The file is too large — up to ') + FORUM_MAX_MB + 'MB.', true);
     return;
   }
   forumMsg('');
@@ -19194,24 +19211,24 @@ function fileMeta(url) {
 
 async function uploadForumFile(file) {
   if (!file) return null;
-  if (!USE_SUPABASE || !_sb || !user || !user.sbId) throw new Error('צריך להיות מחובר כדי לצרף קובץ');
-  if (!FORUM_ALLOWED.test(file.name)) throw new Error('אפשר לצרף תמונות או PDF בלבד');
-  if (file.size > FORUM_MAX_MB * 1024 * 1024) throw new Error('הקובץ גדול מדי (עד ' + FORUM_MAX_MB + 'MB)');
+  if (!USE_SUPABASE || !_sb || !user || !user.sbId) throw new Error(L('צריך להיות מחובר כדי לצרף קובץ', 'You need to be signed in to attach a file'));
+  if (!FORUM_ALLOWED.test(file.name)) throw new Error(L('אפשר לצרף תמונות או PDF בלבד', 'Only images or PDFs can be attached'));
+  if (file.size > FORUM_MAX_MB * 1024 * 1024) throw new Error(L('הקובץ גדול מדי (עד ', 'The file is too large (up to ') + FORUM_MAX_MB + 'MB)');
   const safe = file.name.replace(/[^\w.\-]/g, '_').slice(-60);
   const path = user.sbId + '/' + Date.now() + '_' + safe;
   const up = await _sb.storage.from(FORUM_BUCKET).upload(path, file, {
     cacheControl: '3600', upsert: false, contentType: file.type || undefined
   });
-  if (up.error) throw new Error('שגיאת העלאה: ' + up.error.message);
+  if (up.error) throw new Error(L('שגיאת העלאה: ', 'Upload error: ') + up.error.message);
   const pub = _sb.storage.from(FORUM_BUCKET).getPublicUrl(path);
   const url = pub && pub.data && pub.data.publicUrl;
-  if (!url) throw new Error('לא התקבלה כתובת לקובץ');
+  if (!url) throw new Error(L('לא התקבלה כתובת לקובץ', 'No address was returned for the file'));
   return url;
 }
 
 // הוספה עמידה: אם עמודה אופציונלית עדיין לא קיימת — נסה שוב בלעדיה
 async function sbInsert(table, body) {
-  const token = await requireAuth('לפרסם');
+  const token = await requireAuth(L('לפרסם', 'post'));
   // requireAuth has already said what happened and opened the login box, so
   // the callers must not paint a second, vaguer message over it.
   if (!token) return { ok: false, status: 401, sessionExpired: true,
@@ -19360,25 +19377,25 @@ async function submitPost() {
   const txt  = (ta && ta.value.trim()) || '';
   const fi   = document.getElementById('new-post-file');
   const file = fi && fi.files ? fi.files[0] : null;
-  if (!txt && !file) { forumMsg('אין מה לשלוח — כתוב טקסט או צרף קובץ.', true); return; }
+  if (!txt && !file) { forumMsg(L('אין מה לשלוח — כתוב טקסט או צרף קובץ.', 'Nothing to send — write some text or attach a file.'), true); return; }
   const btn = document.getElementById('new-post-send');
   const setBusy = function(on, label) {
     if (!btn) return;
     btn.disabled = on;
     btn.style.opacity = on ? '0.6' : '';
-    btn.textContent = on ? label : 'שלח';
+    btn.textContent = on ? label : L('שלח', 'Send');
   };
   try {
     if (SUPABASE_URL && SUPABASE_KEY) {
       let fileUrl = null;
-      if (file) { setBusy(true, 'מעלה קובץ…'); fileUrl = await uploadForumFile(file); }
+      if (file) { setBusy(true, L('מעלה קובץ…', 'Uploading file…')); fileUrl = await uploadForumFile(file); }
       setBusy(true, L('שולח…', 'Sending…'));
       const res = await sbInsert('posts', {
         user: user.name, user_id: user.sbId || null, content: txt, file_url: fileUrl
       });
       if (res.sessionExpired) return;
       if (!res.ok) {
-        forumMsg('לא הצלחנו לשמור את הפוסט. נסה להתנתק ולהתחבר מחדש.', true);
+        forumMsg(L('לא הצלחנו לשמור את הפוסט. נסה להתנתק ולהתחבר מחדש.', 'We couldn\'t save the post. Try signing out and in again.'), true);
         return;
       }
       clearNewPost();
@@ -19392,7 +19409,7 @@ async function submitPost() {
     clearNewPost();
     renderPosts('');
   } catch (e) {
-    forumMsg(e.message || 'שגיאה בשליחת הפוסט', true);
+    forumMsg(e.message || L('שגיאה בשליחת הפוסט', 'Error sending the post'), true);
   } finally {
     setBusy(false);
   }
@@ -19584,8 +19601,8 @@ function editReply(postId, replyId) {
   div.style.cssText = 'margin-top:6px;';
   div.innerHTML = '<textarea data-edit-id="reply" rows="2" style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--accent);border-radius:6px;direction:rtl;font-family:inherit;font-size:0.87rem;resize:vertical;text-align:start;">' + r.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">'
-    + '<button onclick="removeEditArea(this)" style="padding:3px 10px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>'
-    + '<button onclick="saveEditReply(\'' + postId + '\',\'' + replyId + '\')" style="padding:3px 10px;background:var(--accent);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-weight:bold;">שמור</button>'
+    + L('<button onclick="removeEditArea(this)" style="padding:3px 10px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>', '<button onclick="removeEditArea(this)" style="padding:3px 10px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">Cancel</button>')
+    + '<button onclick="saveEditReply(\'' + postId + '\',\'' + replyId + L('\')" style="padding:3px 10px;background:var(--accent);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-weight:bold;">שמור</button>', '\')" style="padding:3px 10px;background:var(--accent);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-weight:bold;">Save</button>')
     + '</div>';
   insertAboveReplies(replyEl, div);
   focusAtEnd(div.querySelector('textarea'));
@@ -19594,14 +19611,14 @@ async function saveEditReply(postId, replyId) {
   const txt = document.querySelector('.edit-area[data-edit-for="' + safeId(replyId) + '"] textarea')?.value.trim();
   if (!txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const token = await requireAuth('לערוך תגובה');
+    const token = await requireAuth(L('לערוך תגובה', 'edit a reply'));
     if (!token) return;
     const res = await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
       method: 'PATCH',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
       body: JSON.stringify({ content: txt })
     });
-    if (!res.ok) { forumMsg('העריכה לא נשמרה — אין לך הרשאה או שהחיבור נכשל.', true); return; }
+    if (!res.ok) { forumMsg(L('העריכה לא נשמרה — אין לך הרשאה או שהחיבור נכשל.', 'The edit wasn\'t saved — you don\'t have permission or the connection failed.'), true); return; }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
@@ -19625,21 +19642,21 @@ function delReply(postId, replyId) {
   const div = document.createElement('div');
   div.className = 'del-confirm';
   div.style.cssText = 'background:#fff3f3;border:1px solid #e74c3c;border-radius:6px;padding:6px 10px;margin-top:6px;display:flex;gap:8px;align-items:center;font-size:0.82rem;';
-  div.innerHTML = '<span>למחוק?</span>'
-    + '<button onclick="confirmDelReply(\'' + postId + '\',\'' + replyId + '\')" style="padding:2px 10px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">מחק</button>'
-    + '<button onclick="removeDelConfirm(this)" style="padding:2px 10px;background:#eee;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">ביטול</button>';
+  div.innerHTML = L('<span>למחוק?</span>', '<span>Delete?</span>')
+    + '<button onclick="confirmDelReply(\'' + postId + '\',\'' + replyId + L('\')" style="padding:2px 10px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">מחק</button>', '\')" style="padding:2px 10px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">Delete</button>')
+    + L('<button onclick="removeDelConfirm(this)" style="padding:2px 10px;background:#eee;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">ביטול</button>', '<button onclick="removeDelConfirm(this)" style="padding:2px 10px;background:#eee;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">Cancel</button>');
   insertAboveReplies(replyEl, div);
   div.scrollIntoView({ block: 'nearest' });
 }
 async function confirmDelReply(postId, replyId) {
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const token = await requireAuth('למחוק תגובה');
+    const token = await requireAuth(L('למחוק תגובה', 'delete a reply'));
     if (!token) return;
     const res = await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
-    if (!res.ok) { forumMsg('המחיקה נכשלה — אין לך הרשאה.', true); return; }
+    if (!res.ok) { forumMsg(L('המחיקה נכשלה — אין לך הרשאה.', 'Deleting failed — you don\'t have permission.'), true); return; }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
@@ -19668,8 +19685,8 @@ function editPost(id) {
   div.style.cssText = 'margin-top:8px;';
   div.innerHTML = '<textarea data-edit-id="post" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--accent);border-radius:8px;direction:rtl;font-family:inherit;font-size:0.9rem;resize:vertical;text-align:start;">' + p.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end;">'
-    + '<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">ביטול</button>'
-    + '<button onclick="saveEditPost(\'' + id + '\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">שמור</button>'
+    + L('<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">ביטול</button>', '<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">Cancel</button>')
+    + '<button onclick="saveEditPost(\'' + id + L('\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">שמור</button>', '\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">Save</button>')
     + '</div>';
   insertAboveReplies(postEl, div);
   focusAtEnd(div.querySelector('textarea'));
@@ -19679,14 +19696,14 @@ async function saveEditPost(id) {
   const txt = document.querySelector('.edit-area[data-edit-for="' + safeId(id) + '"] textarea')?.value.trim();
   if (!p || !txt) return;
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const token = await requireAuth('לערוך פוסט');
+    const token = await requireAuth(L('לערוך פוסט', 'edit a post'));
     if (!token) return;
     const res = await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
       method: 'PATCH',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
       body: JSON.stringify({ content: txt })
     });
-    if (!res.ok) { forumMsg('העריכה לא נשמרה — אין לך הרשאה או שהחיבור נכשל.', true); return; }
+    if (!res.ok) { forumMsg(L('העריכה לא נשמרה — אין לך הרשאה או שהחיבור נכשל.', 'The edit wasn\'t saved — you don\'t have permission or the connection failed.'), true); return; }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
@@ -19704,15 +19721,15 @@ function delPost(id) {
   const div = document.createElement('div');
   div.className = 'del-confirm';
   div.style.cssText = 'background:#fff3f3;border:1px solid #e74c3c;border-radius:8px;padding:8px 12px;margin-top:8px;display:flex;gap:10px;align-items:center;font-size:0.85rem;';
-  div.innerHTML = '<span>למחוק את הפוסט?</span>'
-    + '<button onclick="confirmDelPost(\'' + id + '\')" style="padding:3px 12px;background:#e74c3c;color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">מחק</button>'
-    + '<button onclick="removeDelConfirm(this)" style="padding:3px 12px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>';
+  div.innerHTML = L('<span>למחוק את הפוסט?</span>', '<span>Delete the post?</span>')
+    + '<button onclick="confirmDelPost(\'' + id + L('\')" style="padding:3px 12px;background:#e74c3c;color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">מחק</button>', '\')" style="padding:3px 12px;background:#e74c3c;color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">Delete</button>')
+    + L('<button onclick="removeDelConfirm(this)" style="padding:3px 12px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>', '<button onclick="removeDelConfirm(this)" style="padding:3px 12px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">Cancel</button>');
   insertAboveReplies(postEl, div);
   div.scrollIntoView({ block: 'nearest' });
 }
 async function confirmDelPost(id) {
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const token = await requireAuth('למחוק פוסט');
+    const token = await requireAuth(L('למחוק פוסט', 'delete a post'));
     if (!token) return;
     await fetch(SUPABASE_URL + '/rest/v1/replies?post_id=eq.' + id, {
       method: 'DELETE',
@@ -19722,7 +19739,7 @@ async function confirmDelPost(id) {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
-    if (!res.ok) { forumMsg('מחיקת הפוסט נכשלה — אין לך הרשאה.', true); return; }
+    if (!res.ok) { forumMsg(L('מחיקת הפוסט נכשלה — אין לך הרשאה.', 'Deleting the post failed — you don\'t have permission.'), true); return; }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
@@ -19747,9 +19764,9 @@ function renderReplies(replies, postId, depth, query) {
         : '<div style="margin:4px 0;"><a href="' + esc(safeUrl(r.file.url)) + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:0.82rem;">📎 ' + esc(r.file.name) + '</a></div>'
     ) : '';
     const actions = '<div style="display:flex;gap:8px;margin-top:5px;font-size:0.8rem;color:#888;align-items:center;flex-wrap:wrap;">'
-      + '<span style="color:var(--accent);cursor:pointer;" onclick="openReplyBox(\'' + r.id + '\',\'' + postId + '\')">↩ השב</span>'
-      + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;" onclick="editReply(\'' + postId + '\',\'' + r.id + '\')">✎ ערוך</span>' : '')
-      + (canDel ? '<span style="cursor:pointer;color:#e74c3c;" onclick="delReply(\'' + postId + '\',\'' + r.id + '\')">✕ מחק</span>' : '')
+      + '<span style="color:var(--accent);cursor:pointer;" onclick="openReplyBox(\'' + r.id + '\',\'' + postId + L('\')">↩ השב</span>', '\')">↩ Reply</span>')
+      + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;" onclick="editReply(\'' + postId + '\',\'' + r.id + L('\')">✎ ערוך</span>', '\')">✎ Edit</span>') : '')
+      + (canDel ? '<span style="cursor:pointer;color:#e74c3c;" onclick="delReply(\'' + postId + '\',\'' + r.id + L('\')">✕ מחק</span>', '\')">✕ Delete</span>') : '')
       + '</div>';
     return '<div class="reply-item" id="reply-' + safeId(r.id) + '" style="margin-inline-start:' + indent + 'px;">'
       + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + escJs(r.user) + '\')">' + esc(r.user) + '</b> <span style="color:#bbb;font-size:0.72rem;">' + timeAgo(r.timestamp) + '</span>'
@@ -19782,7 +19799,8 @@ function renderPosts(query, sort, chips) {
     const c = String(p.content || '').toLowerCase();
     const u = String(p.user || '').toLowerCase();
     const matchQ = !nq || c.indexOf(nq) !== -1 || u.indexOf(nq) !== -1;
-    const matchC = chips.length === 0 || chips.some(function(k){ return c.indexOf(String(k).toLowerCase()) !== -1; });
+    // a chip may carry several keywords, '|'-separated: the Hebrew stem and the English word
+    const matchC = chips.length === 0 || chips.some(function(k){ return String(k).toLowerCase().split('|').some(function (w) { return w && c.indexOf(w) !== -1; }); });
     return matchQ && matchC;
   });
   if (sort === 'newest') filtered.sort(function(a,b){ return b.timestamp - a.timestamp; });
@@ -19797,16 +19815,16 @@ function renderPosts(query, sort, chips) {
   const banner = filtering
     ? '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;'
       + 'background:#eef4ff;border:1px solid #d0d8f0;border-radius:8px;padding:7px 11px;margin-bottom:9px;font-size:0.82rem;color:#456;">'
-      + '<span>סינון פעיל — מוצגים ' + filtered.length + ' מתוך ' + allPosts.length + '</span>'
+      + L('<span>סינון פעיל — מוצגים ', '<span>Filter on — showing ') + filtered.length + L(' מתוך ', ' of ') + allPosts.length + '</span>'
       + '<button onclick="clearForumFilter()" style="padding:3px 11px;background:white;border:1px solid #9ab;'
-      + 'border-radius:6px;cursor:pointer;font-size:0.8rem;color:#456;">✕ נקה סינון</button>'
+      + L('border-radius:6px;cursor:pointer;font-size:0.8rem;color:#456;">✕ נקה סינון</button>', 'border-radius:6px;cursor:pointer;font-size:0.8rem;color:#456;">✕ Clear filter</button>')
       + '</div>'
     : '';
 
   if (!filtered.length) {
     list.innerHTML = banner
       + '<div style="color:#aaa;text-align:center;padding:20px;">'
-      + (filtering ? 'אין תוצאות לסינון הנוכחי' : 'אין פוסטים עדיין')
+      + (filtering ? L('אין תוצאות לסינון הנוכחי', 'No results for the current filter') : L('אין פוסטים עדיין', 'No posts yet'))
       + '</div>';
     return;
   }
@@ -19838,11 +19856,11 @@ function renderPosts(query, sort, chips) {
       + fileHtml
       + reactionsHtml(p, false)
       + '<div style="display:flex;gap:10px;margin-top:6px;font-size:0.85rem;color:#888;align-items:center;flex-wrap:wrap;">'
-      + '<span style="color:var(--accent);cursor:pointer;font-weight:bold;" onclick="openReplyBox(\'' + p.id + '\',\'' + p.id + '\')">↩ השב</span>'
+      + '<span style="color:var(--accent);cursor:pointer;font-weight:bold;" onclick="openReplyBox(\'' + p.id + '\',\'' + p.id + L('\')">↩ השב</span>', '\')">↩ Reply</span>')
       + ((p.replies||[]).length > 0 ? '<span>💬 ' + p.replies.length + '</span>' : '')
-      + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;font-size:0.82rem;" onclick="editPost(\'' + p.id + '\')">✎ ערוך</span>' : '')
-      + '<span style="cursor:pointer;color:#888;font-size:0.82rem;" onclick="sharePost(\'' + p.id + '\')" title="שתף">📤 שתף</span>'
-      + (canDel ? '<span style="cursor:pointer;color:#e74c3c;font-size:0.82rem;" onclick="delPost(\'' + p.id + '\')">✕ מחק</span>' : '')
+      + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;font-size:0.82rem;" onclick="editPost(\'' + p.id + L('\')">✎ ערוך</span>', '\')">✎ Edit</span>') : '')
+      + '<span style="cursor:pointer;color:#888;font-size:0.82rem;" onclick="sharePost(\'' + p.id + L('\')" title="שתף">📤 שתף</span>', '\')" title="Share">📤 Share</span>')
+      + (canDel ? '<span style="cursor:pointer;color:#e74c3c;font-size:0.82rem;" onclick="delPost(\'' + p.id + L('\')">✕ מחק</span>', '\')">✕ Delete</span>') : '')
       + '</div>'
       + makeReplyBox(p.id, p.id)
       + renderReplies(p.replies, p.id, 1, query)
@@ -19877,7 +19895,7 @@ function refreshServiceCam() {
     if (txt && !txt.querySelector('.svc-livedot')) {
       var dot = document.createElement('span');
       dot.className = 'svc-livedot';
-      dot.innerHTML = '<i></i>פלאן מייזון · עכשיו';
+      dot.innerHTML = '<i></i>' + L('פלאן מייזון · עכשיו', 'Plan Maison · now');
       txt.appendChild(dot);
     }
   };
@@ -19964,7 +19982,7 @@ function renderForumPeek() {
       + '</div>'
       + '<div class="peek-body">' + esc(body) + '</div>'
       + ((p.replies || []).length
-          ? '<div style="font-size:0.72rem;color:#7b8a99;">💬 ' + p.replies.length + ' תגובות</div>' : '')
+          ? '<div style="font-size:0.72rem;color:#7b8a99;">💬 ' + p.replies.length + L(' תגובות</div>', ' replies</div>') : '')
       + '</div>';
   }).join('');
 
@@ -20116,11 +20134,11 @@ async function _admRenderUsers() {
     // stranger calling this gets nothing back whatever the page thinks.
     if (!user || !user.isAdmin) {
         host.innerHTML = '<div style="color:#7b8a99;font-size:0.82rem;text-align:center;' +
-            'padding:20px;">רשימת המשתמשים זמינה למנהלים בלבד</div>';
+            L('padding:20px;">רשימת המשתמשים זמינה למנהלים בלבד</div>', 'padding:20px;">The user list is available to admins only</div>');
         return;
     }
     host.innerHTML = '<div style="color:#aaa;font-size:0.82rem;text-align:center;' +
-        'padding:20px;">טוען…</div>';
+        L('padding:20px;">טוען…</div>', 'padding:20px;">Loading…</div>');
     var rows;
     try {
         rows = await sbFetchAuth('profiles?select=username,email,level,discipline,is_admin,created_at&order=created_at.desc');
@@ -20129,20 +20147,20 @@ async function _admRenderUsers() {
     if (!Array.isArray(rows)) {
         // "could not ask" is not "nobody registered"
         host.innerHTML = '<div style="color:#b26a00;background:#fff8e1;border-radius:8px;' +
-            'padding:12px 14px;font-size:0.82rem;line-height:1.7;">לא הצלחנו לקרוא את ' +
-            'רשימת המשתמשים. ייתכן שאין חיבור, או שהרשאות הקריאה בטבלה חוסמות.</div>';
+            L('padding:12px 14px;font-size:0.82rem;line-height:1.7;">לא הצלחנו לקרוא את ', 'padding:12px 14px;font-size:0.82rem;line-height:1.7;">We couldn\'t read ') +
+            L('רשימת המשתמשים. ייתכן שאין חיבור, או שהרשאות הקריאה בטבלה חוסמות.</div>', 'the user list. There may be no connection, or the table\'s read permissions are blocking it.</div>');
         return;
     }
     if (!rows.length) {
         host.innerHTML = '<div style="color:#aaa;font-size:0.82rem;text-align:center;' +
-            'padding:20px;">אין עדיין משתמשים רשומים</div>';
+            L('padding:20px;">אין עדיין משתמשים רשומים</div>', 'padding:20px;">No registered users yet</div>');
         return;
     }
 
-    var LVL = { beginner: 'מתחיל', intermediate: 'בינוני', advanced: 'מתקדם', expert: 'מומחה' };
+    var LVL = window.LANG === 'en' ? { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced', expert: 'Expert' } : { beginner: 'מתחיל', intermediate: 'בינוני', advanced: 'מתקדם', expert: 'מומחה' };
     host.innerHTML =
         '<div style="font-size:0.78rem;color:#888;margin-bottom:8px;">' +
-          rows.length + ' משתמשים רשומים</div>' +
+          rows.length + L(' משתמשים רשומים</div>', ' registered users</div>') +
         rows.map(function (u) {
             var when = u.created_at ? String(u.created_at).slice(0, 10).split('-').reverse().join('.') : '';
             var lvl = LVL[u.level] || u.level || '';
@@ -20151,18 +20169,18 @@ async function _admRenderUsers() {
                 'color:#1a73e8;text-decoration:none;font-size:0.72rem;' +
                 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
                 esc(u.email) + '</a>'
-              : '<span style="display:block;color:#c3ccd6;font-size:0.72rem;">אין מייל רשום</span>';
+              : L('<span style="display:block;color:#c3ccd6;font-size:0.72rem;">אין מייל רשום</span>', '<span style="display:block;color:#c3ccd6;font-size:0.72rem;">No email registered</span>');
             return '<div style="display:flex;align-items:center;gap:9px;padding:7px 0;' +
               'border-bottom:1px solid #f0f0f0;font-size:0.82rem;">' +
               '<span style="flex:1;min-width:0;">' +
                 '<b style="color:#16314f;">' + esc(u.username || '—') + '</b>' + mail +
               '</span>' +
               (u.is_admin ? '<span style="flex:none;background:#4a1a6e;color:#fff;' +
-                 'border-radius:5px;padding:1px 7px;font-size:0.68rem;">מנהל</span>' : '') +
+                 L('border-radius:5px;padding:1px 7px;font-size:0.68rem;">מנהל</span>', 'border-radius:5px;padding:1px 7px;font-size:0.68rem;">Admin</span>') : '') +
               (lvl ? '<span style="flex:none;color:#7b8a99;font-size:0.74rem;">' +
                  esc(lvl) + '</span>' : '') +
               (u.discipline ? '<span style="flex:none;color:#9aa5b1;font-size:0.74rem;">' +
-                 (u.discipline === 'snowboard' ? 'סנובורד' : 'סקי') + '</span>' : '') +
+                 (u.discipline === 'snowboard' ? L('סנובורד', 'Snowboard') : L('סקי', 'Ski')) + '</span>' : '') +
               '<span style="flex:none;color:#b0bac6;font-size:0.72rem;">' + esc(when) + '</span>' +
               '</div>';
         }).join('');
@@ -20212,7 +20230,7 @@ async function _admRenderUsers() {
                 <span><b>${p.user}</b>: ${(p.content||'').substring(0,40)}${p.content?.length>40?'...':''}</span>
                 <span style="color:#aaa;font-size:0.75rem;">${timeAgo(p.timestamp)}</span>
             </div>`
-        ).join('') || '<div style="color:#aaa;font-size:0.82rem;">אין פוסטים עדיין</div>';
+        ).join('') || L('<div style="color:#aaa;font-size:0.82rem;">אין פוסטים עדיין</div>', '<div style="color:#aaa;font-size:0.82rem;">No posts yet</div>');
         document.getElementById('admin-recent-posts').innerHTML = recentHtml;
 
         // live data status
@@ -20238,7 +20256,7 @@ async function _admRenderUsers() {
                     <span onclick="delPost('${p.id}')" style="cursor:pointer;color:#e74c3c;" title="מחק">✔️</span>
                 </div>
             </div>`
-        ).join('') || '<div style="color:#aaa;">אין פוסטים</div>';
+        ).join('') || L('<div style="color:#aaa;">אין פוסטים</div>', '<div style="color:#aaa;">No posts</div>');
 
         // משתמשים
         _admRenderUsers();
@@ -20774,15 +20792,15 @@ var _alerts       = [];     // live list, newest first
 var _alertsOnline = false;  // did the last read actually reach Supabase
 
 var ALERT_PRESETS = [
-  { icon: '⛷️', text: 'מסלול סגור',                severity: 'danger'  },
-  { icon: '🌨️', text: 'סופת שלג — ראות מוגבלת',    severity: 'danger'  },
-  { icon: '🧊', text: 'קרח על המסלול — מסוכן',      severity: 'danger'  },
-  { icon: '🚡', text: 'עצירת רכבל זמנית',          severity: 'warning' },
-  { icon: '🏥', text: 'אירוע רפואי בשטח',          severity: 'danger'  },
-  { icon: '👥', text: 'עומס רב על המסלולים',        severity: 'info'    }
+  { icon: '⛷️', text: L('מסלול סגור', 'Run closed'),                severity: 'danger'  },
+  { icon: '🌨️', text: L('סופת שלג — ראות מוגבלת', 'Snowstorm — poor visibility'),    severity: 'danger'  },
+  { icon: '🧊', text: L('קרח על המסלול — מסוכן', 'Ice on the run — dangerous'),      severity: 'danger'  },
+  { icon: '🚡', text: L('עצירת רכבל זמנית', 'Lift temporarily stopped'),          severity: 'warning' },
+  { icon: '🏥', text: L('אירוע רפואי בשטח', 'Medical incident on the mountain'),          severity: 'danger'  },
+  { icon: '👥', text: L('עומס רב על המסלולים', 'The runs are very crowded'),        severity: 'info'    }
 ];
 
-var SEVERITY_LABEL = { danger: '🔴 מסוכן', warning: '🟡 שימו לב', info: '🔵 לידיעה' };
+var SEVERITY_LABEL = { danger: L('🔴 מסוכן', '🔴 Danger'), warning: L('🟡 שימו לב', '🟡 Caution'), info: L('🔵 לידיעה', '🔵 For information') };
 
 var _alertDraft = { severity: 'warning' };
 
@@ -20829,7 +20847,7 @@ function getLiveNotices() { return getAlerts().filter(function (a) { return a.ki
 function _rowToAlert(r) {
   return {
     id:       String(r.id),
-    user:     r.author_name || 'משתמש',
+    user:     r.author_name || L('משתמש', 'User'),
     text:     r.text || '',
     severity: (r.severity === 'danger' || r.severity === 'info') ? r.severity : 'warning',
     ts:       new Date(r.created_at).getTime(),
@@ -20946,7 +20964,7 @@ function renderAlertWriteArea() {
   if (!el) return;
   if (!user) {
     el.innerHTML = '<div style="padding:11px;background:#f8f9fa;border-radius:9px;font-size:0.8rem;color:#888;text-align:center;">'
-      + '🔒 <a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;">התחבר</a> כדי לפרסם התראה</div>';
+      + L('🔒 <a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;">התחבר</a> כדי לפרסם התראה</div>', '🔒 <a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;">Sign in</a> to post an alert</div>');
     return;
   }
   _alertDraft = { severity: 'warning', kind: 'alert', days: 7 };
@@ -20956,11 +20974,11 @@ function renderAlertWriteArea() {
     '<div id="alert-box" style="background:#fff5f5;border:1.5px solid #f5b5b5;border-radius:10px;padding:12px;">'
     + (canNotice
         ? '<div style="display:flex;gap:6px;margin-bottom:10px;">'
-          + '<button type="button" id="akind-alert"  onclick="setAlertKind(\'alert\')"  style="flex:1;padding:6px;border-radius:8px;font-size:0.78rem;cursor:pointer;border:1.5px solid #ddd;background:white;">⚠️ התראה</button>'
-          + '<button type="button" id="akind-notice" onclick="setAlertKind(\'notice\')" style="flex:1;padding:6px;border-radius:8px;font-size:0.78rem;cursor:pointer;border:1.5px solid #ddd;background:white;">📌 הודעה</button>'
+          + L('<button type="button" id="akind-alert"  onclick="setAlertKind(\'alert\')"  style="flex:1;padding:6px;border-radius:8px;font-size:0.78rem;cursor:pointer;border:1.5px solid #ddd;background:white;">⚠️ התראה</button>', '<button type="button" id="akind-alert"  onclick="setAlertKind(\'alert\')"  style="flex:1;padding:6px;border-radius:8px;font-size:0.78rem;cursor:pointer;border:1.5px solid #ddd;background:white;">⚠️ Alert</button>')
+          + L('<button type="button" id="akind-notice" onclick="setAlertKind(\'notice\')" style="flex:1;padding:6px;border-radius:8px;font-size:0.78rem;cursor:pointer;border:1.5px solid #ddd;background:white;">📌 הודעה</button>', '<button type="button" id="akind-notice" onclick="setAlertKind(\'notice\')" style="flex:1;padding:6px;border-radius:8px;font-size:0.78rem;cursor:pointer;border:1.5px solid #ddd;background:white;">📌 Notice</button>')
           + '</div>'
         : '')
-    + '<div id="alert-title" style="font-size:0.78rem;font-weight:bold;margin-bottom:8px;color:#c0392b;">⚠️ פרסם התראה</div>'
+    + L('<div id="alert-title" style="font-size:0.78rem;font-weight:bold;margin-bottom:8px;color:#c0392b;">⚠️ פרסם התראה</div>', '<div id="alert-title" style="font-size:0.78rem;font-weight:bold;margin-bottom:8px;color:#c0392b;">⚠️ Post an alert</div>')
     + '<div id="alert-presets" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;">'
     + ALERT_PRESETS.map(function (p, i) {
         return '<button type="button" onclick="selectAlertPreset(' + i + ')" '
@@ -20969,7 +20987,7 @@ function renderAlertWriteArea() {
       }).join('')
     + '</div>'
     + '<textarea id="alert-text" maxlength="' + ALERT_TEXT_MAX + '" oninput="updateAlertCount()" '
-    + 'placeholder="תאר את ההתראה (מסלול, מיקום, פרטים)..." '
+    + L('placeholder="תאר את ההתראה (מסלול, מיקום, פרטים)..." ', 'placeholder="Describe the alert — run, place, details..." ')
     + 'style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.82rem;height:62px;resize:none;font-family:inherit;direction:rtl;"></textarea>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;">'
     + '<div style="display:flex;gap:5px;" id="alert-sev-row">'
@@ -20982,8 +21000,8 @@ function renderAlertWriteArea() {
     + '<span id="alert-count" style="font-size:0.7rem;color:#bbb;">0/' + ALERT_TEXT_MAX + '</span>'
     + '</div>'
     + '<div id="alert-days" style="display:none;margin-top:8px;align-items:center;gap:6px;">'
-    + '<span style="font-size:0.72rem;color:#777;">להציג למשך:</span>'
-    + [[1,'יום'],[7,'שבוע'],[30,'חודש'],[180,'כל העונה']].map(function (d) {
+    + L('<span style="font-size:0.72rem;color:#777;">להציג למשך:</span>', '<span style="font-size:0.72rem;color:#777;">Show for:</span>')
+    + [[1,L('יום', 'A day')],[7,L('שבוע', 'A week')],[30,L('חודש', 'A month')],[180,L('כל העונה', 'The whole season')]].map(function (d) {
         return '<button type="button" id="adays-' + d[0] + '" onclick="setAlertDays(' + d[0] + ')" '
           + 'style="padding:4px 9px;border-radius:14px;font-size:0.72rem;cursor:pointer;border:1.5px solid #ddd;background:white;color:#666;">' + d[1] + '</button>';
       }).join('')
@@ -20992,12 +21010,12 @@ function renderAlertWriteArea() {
         ? '<div id="alert-pushrow" style="display:none;align-items:center;gap:7px;margin-top:9px;">'
           + '<input type="checkbox" id="alert-push" style="width:15px;height:15px;cursor:pointer;flex:none;">'
           + '<label for="alert-push" style="font-size:0.74rem;color:#555;cursor:pointer;line-height:1.4;">'
-          + 'שלח גם כהתראה לטלפונים שנרשמו</label></div>'
+          + L('שלח גם כהתראה לטלפונים שנרשמו</label></div>', 'Also send as a push notification to subscribed phones</label></div>')
         : '')
     + '<div id="alert-err" style="display:none;margin-top:7px;font-size:0.78rem;color:#c0392b;"></div>'
     + '<button id="alert-send" type="button" onclick="submitAlert()" '
     + 'style="margin-top:7px;width:100%;padding:9px;background:#e74c3c;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.86rem;">'
-    + '📢 פרסם התראה</button>'
+    + L('📢 פרסם התראה</button>', '📢 Post alert</button>')
     + '</div>';
   setAlertSeverity('warning');
   if (canNotice) setAlertKind('alert');
@@ -21027,18 +21045,18 @@ function setAlertKind(k) {
   });
   if (box)   { box.style.background = isNotice ? '#f3f8ff' : '#fff5f5';
                box.style.borderColor = isNotice ? '#b9d4f5' : '#f5b5b5'; }
-  if (title) { title.textContent = isNotice ? '📌 פרסם הודעה' : '⚠️ פרסם התראה';
+  if (title) { title.textContent = isNotice ? L('📌 פרסם הודעה', '📌 Post notice') : L('⚠️ פרסם התראה', '⚠️ Post an alert');
                title.style.color = isNotice ? '#0a58ca' : '#c0392b'; }
   if (pres)  pres.style.display = isNotice ? 'none' : 'flex';
   if (sev)   sev.style.display  = isNotice ? 'none' : 'flex';
   if (days)  days.style.display = isNotice ? 'flex' : 'none';
   var prow = document.getElementById('alert-pushrow');
   if (prow) prow.style.display = isNotice ? 'flex' : 'none';
-  if (send)  { send.textContent = isNotice ? '📌 פרסם הודעה' : '📢 פרסם התראה';
+  if (send)  { send.textContent = isNotice ? L('📌 פרסם הודעה', '📌 Post notice') : L('📢 פרסם התראה', '📢 Post alert');
                send.style.background = isNotice ? '#0d6efd' : '#e74c3c'; }
   if (ta)    ta.placeholder = isNotice
-               ? 'לדוגמה: מנין שחרית כל יום ב-06:45 בלובי של מלון אדלווייס'
-               : 'תאר את ההתראה (מסלול, מיקום, פרטים)...';
+               ? L('לדוגמה: מנין שחרית כל יום ב-06:45 בלובי של מלון אדלווייס', 'e.g. Shacharit minyan every day at 06:45 in the Hotel Edelweiss lobby')
+               : L('תאר את ההתראה (מסלול, מיקום, פרטים)...', 'Describe the alert — run, place, details...');
   if (isNotice) setAlertDays(_alertDraft.days || 7);
 }
 
@@ -21099,16 +21117,16 @@ async function submitAlert() {
   var text = ta ? ta.value.trim() : '';
   _alertError('');
 
-  if (text.length < 2) { _alertError('כתוב לפחות שתי אותיות'); if (ta) ta.focus(); return; }
-  if (text.length > ALERT_TEXT_MAX) { _alertError('ההתראה ארוכה מדי'); return; }
+  if (text.length < 2) { _alertError(L('כתוב לפחות שתי אותיות', 'Write at least two letters')); if (ta) ta.focus(); return; }
+  if (text.length > ALERT_TEXT_MAX) { _alertError(L('ההתראה ארוכה מדי', 'The alert is too long')); return; }
 
   var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
   if (!sb || !user.sbId) {
-    _alertError('צריך להיות מחובר כדי לפרסם התראה');
+    _alertError(L('צריך להיות מחובר כדי לפרסם התראה', 'You need to be signed in to post an alert'));
     return;
   }
 
-  if (btn) { btn.disabled = true; btn.textContent = 'מפרסם...'; }
+  if (btn) { btn.disabled = true; btn.textContent = L('מפרסם...', 'Posting...'); }
   try {
     var isNotice = (_alertDraft.kind === 'notice');
     var row = {
@@ -21141,15 +21159,15 @@ async function submitAlert() {
     // the rate limit and the ownership rule both come back as a policy error
     if (/row-level security|policy/i.test(msg)) {
       _alertError(_alertDraft.kind === 'notice'
-        ? 'רק מנהל יכול לפרסם הודעה'
-        : 'פרסמת כבר שלוש התראות בעשר הדקות האחרונות. נסה שוב בעוד כמה דקות.');
+        ? L('רק מנהל יכול לפרסם הודעה', 'Only an admin can post a notice')
+        : L('פרסמת כבר שלוש התראות בעשר הדקות האחרונות. נסה שוב בעוד כמה דקות.', 'You\'ve already posted three alerts in the last ten minutes. Try again in a few minutes.'));
     } else if (/check constraint/i.test(msg)) {
-      _alertError('הטקסט קצר או ארוך מדי');
+      _alertError(L('הטקסט קצר או ארוך מדי', 'The text is too short or too long'));
     } else {
-      _alertError('הפרסום נכשל. בדוק חיבור ונסה שוב.');
+      _alertError(L('הפרסום נכשל. בדוק חיבור ונסה שוב.', 'Posting failed. Check your connection and try again.'));
     }
   }
-  if (btn) { btn.disabled = false; btn.textContent = '📢 פרסם התראה'; }
+  if (btn) { btn.disabled = false; btn.textContent = L('📢 פרסם התראה', '📢 Post alert'); }
 }
 
 async function deleteAlert(id) {
@@ -21258,8 +21276,8 @@ async function maybeOfferPush() {
 
   var ios = (st === 'ios-install');
   var lead = ios
-    ? 'באייפון צריך קודם להוסיף את האתר למסך הבית: שתף ⬆️ ← הוסף למסך הבית.'
-    : 'המעבר לצ׳רמט נפתח, יורד שלג, רכבל נעצר — נודיע לך בטלפון, גם כשהאפליקציה סגורה.';
+    ? L('באייפון צריך קודם להוסיף את האתר למסך הבית: שתף ⬆️ ← הוסף למסך הבית.', 'On iPhone, first add the site to the home screen: Share ⬆️ → Add to Home Screen.')
+    : L('המעבר לצ׳רמט נפתח, יורד שלג, רכבל נעצר — נודיע לך בטלפון, גם כשהאפליקציה סגורה.', 'The crossing to Zermatt opens, it\'s snowing, a lift stops — we\'ll tell you on your phone, even when the app is closed.');
 
   el.innerHTML =
     '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;' +
@@ -21267,15 +21285,15 @@ async function maybeOfferPush() {
       'margin:0 0 14px;" dir="rtl">' +
       '<span style="font-size:1.5rem;line-height:1;">🔔</span>' +
       '<div style="flex:1;font-size:0.82rem;line-height:1.55;text-align:start;">' +
-        '<b>רוצה לדעת מה קורה בהר?</b><br>' +
+        L('<b>רוצה לדעת מה קורה בהר?</b><br>', '<b>Want to know what\'s happening on the mountain?</b><br>') +
         '<span style="color:#666;">' + lead + '</span>' +
       '</div>' +
       (ios ? '' :
         '<button type="button" onclick="acceptPushInvite()" ' +
         'style="padding:8px 16px;border-radius:18px;border:none;background:#0d6efd;' +
         'color:white;font-size:0.8rem;font-weight:bold;cursor:pointer;white-space:nowrap;">' +
-        'הפעל</button>') +
-      '<button type="button" onclick="dismissPushInvite()" aria-label="לא עכשיו" ' +
+        L('הפעל</button>', 'Turn on</button>')) +
+      L('<button type="button" onclick="dismissPushInvite()" aria-label="לא עכשיו" ', '<button type="button" onclick="dismissPushInvite()" aria-label="Not now" ') +
       'style="background:none;border:none;color:#9aa0a6;font-size:1.1rem;' +
       'cursor:pointer;padding:0 2px;line-height:1;">✕</button>' +
     '</div>';
@@ -21385,16 +21403,16 @@ async function _healPush() {
 // belongs to from its key, so nothing is stored twice and a new rule lands
 // in the right place without a migration.
 var PUSH_TOPICS = [
-  { k: 'zermatt',   ico: '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg>', label: 'המעבר לצ׳רמט',  sub: 'נסגר, נפתח, או סגור כל היום' },
-  { k: 'lifts',     ico: '🚡', label: 'מעליות',          sub: 'עצירה באמצע יום הסקי' },
-  { k: 'weather',   ico: '💨', label: 'רוח ומפולות',     sub: 'משבים חזקים, דרגת סכנה' },
+  { k: 'zermatt',   ico: '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg>', label: L('המעבר לצ׳רמט', 'The crossing to Zermatt'),  sub: L('נסגר, נפתח, או סגור כל היום', 'Closes, opens, or is closed all day') },
+  { k: 'lifts',     ico: '🚡', label: L('מעליות', 'Lifts'),          sub: L('עצירה באמצע יום הסקי', 'A stop in the middle of the ski day') },
+  { k: 'weather',   ico: '💨', label: L('רוח ומפולות', 'Wind and avalanches'),     sub: L('משבים חזקים, דרגת סכנה', 'Strong gusts, danger level') },
   // It does reach the phone. This line said it did not, and so did a comment
   // beside the rule in scrape.js - both written on the assumption that an
   // "info" alert stays on the strip. It does not: cl_auto_alert pushes these,
   // and a fresh-snow notification arriving on a phone is what proved it. A
   // toggle that misdescribes what it controls is worse than no toggle.
-  { k: 'snow',      ico: '❄️', label: 'שלג ותנאים טובים', sub: 'שלג טרי, ובוקר שההר כולו פתוח' },
-  { k: 'community', ico: '💬', label: 'דיווחים מהשטח',   sub: 'מה שגולשים מדווחים' }
+  { k: 'snow',      ico: '❄️', label: L('שלג ותנאים טובים', 'Snow and good conditions'), sub: L('שלג טרי, ובוקר שההר כולו פתוח', 'Fresh snow, and a morning when the whole mountain is open') },
+  { k: 'community', ico: '💬', label: L('דיווחים מהשטח', 'Reports from the mountain'),   sub: L('מה שגולשים מדווחים', 'What skiers report') }
 ];
 var _pushTopicsCache = null;
 var _pushTopicBusy = false;
@@ -21432,18 +21450,18 @@ async function togglePushTopic(k) {
   // All of them off is a phone that has agreed to be notified and never
   // will be. Turning notifications off is what the בטל button is for, and
   // it removes the row properly instead of leaving a deaf one behind.
-  if (!next.length) { await renderPushRow('כדי להפסיק לגמרי, השתמשו בכפתור "בטל".'); return; }
+  if (!next.length) { await renderPushRow(L('כדי להפסיק לגמרי, השתמשו בכפתור "בטל".', 'To stop completely, use the "Cancel" button.')); return; }
 
   _pushTopicBusy = true;
   var sb = await _pushSb(), ep = await _pushEndpoint(), err = '';
   if (sb && ep) {
     try {
       var res = await sb.rpc('cl_push_set_topics', { p_endpoint: ep, p_topics: next });
-      if (res.error) err = 'לא הצלחנו לשמור את הבחירה. נסו שוב.';
+      if (res.error) err = L('לא הצלחנו לשמור את הבחירה. נסו שוב.', 'We couldn\'t save your choice. Try again.');
       else _pushTopicsCache = Array.isArray(res.data) ? res.data : next;
-    } catch (e) { err = 'לא הצלחנו לשמור את הבחירה. נסו שוב.'; }
+    } catch (e) { err = L('לא הצלחנו לשמור את הבחירה. נסו שוב.', 'We couldn\'t save your choice. Try again.'); }
   } else {
-    err = 'אין חיבור לשרת כרגע.';
+    err = L('אין חיבור לשרת כרגע.', 'No connection to the server right now.');
   }
   _pushTopicBusy = false;
   await renderPushRow(err);
@@ -21454,7 +21472,7 @@ function _pushTopicsHtml() {
   var on = _pushTopicsCache;
   return '<div style="margin:-6px 0 12px;padding:10px 12px;border:1px solid #e3e5e9;'
        + 'border-radius:10px;background:#fbfcfd;">'
-    + '<div style="font-size:0.74rem;color:#7b8a99;margin-bottom:8px;">מה ישלח לטלפון הזה</div>'
+    + L('<div style="font-size:0.74rem;color:#7b8a99;margin-bottom:8px;">מה ישלח לטלפון הזה</div>', '<div style="font-size:0.74rem;color:#7b8a99;margin-bottom:8px;">What will be sent to this phone</div>')
     + PUSH_TOPICS.map(function (t) {
         var isOn = on.indexOf(t.k) >= 0;
         return '<label style="display:flex;align-items:flex-start;gap:9px;padding:5px 0;cursor:pointer;">'
@@ -21481,11 +21499,11 @@ async function togglePush() {
     else             await enablePush();
   } catch (e) {
     var m = (e && e.message) ? e.message : '';
-    if (m === 'blocked')        err = 'הדפדפן חוסם התראות. אפשר להחזיר דרך הגדרות האתר.';
-    else if (m === 'dismissed') err = 'לא אישרת. אפשר לנסות שוב.';
-    else if (m === 'offline')   err = 'אין חיבור לשרת כרגע.';
-    else if (m === 'nosw')      err = 'האתר עדיין נטען. נסה שוב בעוד רגע.';
-    else                        err = 'ההרשמה נכשלה. נסה שוב.';
+    if (m === 'blocked')        err = L('הדפדפן חוסם התראות. אפשר להחזיר דרך הגדרות האתר.', 'The browser is blocking notifications. You can allow them again in the site settings.');
+    else if (m === 'dismissed') err = L('לא אישרת. אפשר לנסות שוב.', 'You didn\'t allow it. You can try again.');
+    else if (m === 'offline')   err = L('אין חיבור לשרת כרגע.', 'No connection to the server right now.');
+    else if (m === 'nosw')      err = L('האתר עדיין נטען. נסה שוב בעוד רגע.', 'The site is still loading. Try again in a moment.');
+    else                        err = L('ההרשמה נכשלה. נסה שוב.', 'Subscribing failed. Try again.');
   }
   _pushBusy = false;
   await renderPushRow(err);
@@ -21504,27 +21522,27 @@ async function renderPushRow(err) {
 
   var body, action = '';
   if (st === 'ios-install') {
-    body = '<b>כדי לקבל התראות באייפון</b><br>'
-         + '<span style="color:#777;">שתף <span style="font-size:0.95em;">⬆️</span> ← הוסף למסך הבית. '
-         + 'אחר כך פתח את האתר מהמסך הראשי והפעל כאן.</span>';
+    body = L('<b>כדי לקבל התראות באייפון</b><br>', '<b>To get notifications on iPhone</b><br>')
+         + L('<span style="color:#777;">שתף <span style="font-size:0.95em;">⬆️</span> ← הוסף למסך הבית. ', '<span style="color:#777;">Share <span style="font-size:0.95em;">⬆️</span> → Add to Home Screen. ')
+         + L('אחר כך פתח את האתר מהמסך הראשי והפעל כאן.</span>', 'Then open the site from the home screen and turn it on here.</span>');
   } else if (st === 'unsupported') {
-    body = '<b>הדפדפן הזה לא תומך בהתראות</b><br>'
-         + '<span style="color:#777;">נסה מכרום או מאדג\', או מהטלפון.</span>';
+    body = L('<b>הדפדפן הזה לא תומך בהתראות</b><br>', '<b>This browser doesn\'t support notifications</b><br>')
+         + L('<span style="color:#777;">נסה מכרום או מאדג\', או מהטלפון.</span>', '<span style="color:#777;">Try Chrome or Edge, or your phone.</span>');
   } else if (st === 'blocked') {
-    body = '<b>התראות חסומות</b><br>'
-         + '<span style="color:#777;">לחץ על סמל המנעול שליד כתובת האתר ואפשר התראות.</span>';
+    body = L('<b>התראות חסומות</b><br>', '<b>Notifications are blocked</b><br>')
+         + L('<span style="color:#777;">לחץ על סמל המנעול שליד כתובת האתר ואפשר התראות.</span>', '<span style="color:#777;">Click the lock icon next to the site address and allow notifications.</span>');
   } else if (on) {
-    body = '<b>התראות פעילות במכשיר הזה</b><br>'
-         + '<span style="color:#777;">תקבל הודעה על התראות דחופות, גם כשהאפליקציה סגורה.</span>';
+    body = L('<b>התראות פעילות במכשיר הזה</b><br>', '<b>Notifications are on for this device</b><br>')
+         + L('<span style="color:#777;">תקבל הודעה על התראות דחופות, גם כשהאפליקציה סגורה.</span>', '<span style="color:#777;">You\'ll be notified of urgent alerts, even when the app is closed.</span>');
     action = '<button type="button" id="push-btn" onclick="togglePush()" '
            + 'style="padding:6px 14px;border-radius:16px;border:1.5px solid #cfd4da;background:white;'
-           + 'color:#666;font-size:0.76rem;cursor:pointer;white-space:nowrap;">בטל</button>';
+           + L('color:#666;font-size:0.76rem;cursor:pointer;white-space:nowrap;">בטל</button>', 'color:#666;font-size:0.76rem;cursor:pointer;white-space:nowrap;">Cancel</button>');
   } else {
-    body = '<b>קבל התראות דחופות לטלפון</b><br>'
-         + '<span style="color:#777;">מסלול שנסגר, רכבל שנעצר - גם כשהאפליקציה סגורה.</span>';
+    body = L('<b>קבל התראות דחופות לטלפון</b><br>', '<b>Get urgent alerts on your phone</b><br>')
+         + L('<span style="color:#777;">מסלול שנסגר, רכבל שנעצר - גם כשהאפליקציה סגורה.</span>', '<span style="color:#777;">A run that closes, a lift that stops — even when the app is closed.</span>');
     action = '<button type="button" id="push-btn" onclick="togglePush()" '
            + 'style="padding:6px 14px;border-radius:16px;border:none;background:#0d6efd;'
-           + 'color:white;font-size:0.76rem;font-weight:bold;cursor:pointer;white-space:nowrap;">הפעל</button>';
+           + L('color:white;font-size:0.76rem;font-weight:bold;cursor:pointer;white-space:nowrap;">הפעל</button>', 'color:white;font-size:0.76rem;font-weight:bold;cursor:pointer;white-space:nowrap;">Turn on</button>');
   }
 
   el.innerHTML =
@@ -21541,19 +21559,19 @@ async function renderPushRow(err) {
 // ---- time ----
 function alertTimeAgo(ts) {
   var diff = Math.floor((Date.now() - ts) / 60000);
-  if (diff < 1) return 'כרגע';
-  if (diff < 60) return 'לפני ' + diff + ' דק\'';
+  if (diff < 1) return L('כרגע', 'just now');
+  if (diff < 60) return L('לפני ' + diff + ' דק\'', diff + ' min ago');
   var h = Math.floor(diff / 60);
-  return 'לפני ' + h + ' שע\'';
+  return L('לפני ' + h + ' שע\'', h + ' h ago');
 }
 
 function timeLeft(a) {
   var until = (a && a.until) ? a.until : (a + ALERTS_EXPIRY_MS);
   var left = Math.floor((until - Date.now()) / 60000);
-  if (left <= 0)   return 'מסתיים כעת';
-  if (left < 60)   return 'עוד ' + left + ' דק\'';
-  if (left < 1440) return 'עוד ' + Math.floor(left / 60) + ' שע\'';
-  return 'עוד ' + Math.floor(left / 1440) + ' ימים';
+  if (left <= 0)   return L('מסתיים כעת', 'ending now');
+  if (left < 60)   return L('עוד ' + left + ' דק\'', left + ' min left');
+  if (left < 1440) return L('עוד ' + Math.floor(left / 60) + ' שע\'', Math.floor(left / 60) + ' h left');
+  return L('עוד ' + Math.floor(left / 1440) + ' ימים', Math.floor(left / 1440) + ' days left');
 }
 
 // ---- the list in the panel ----
@@ -21563,12 +21581,12 @@ function _alertCardHtml(a) {
   var border = { danger: '#fde', warning: '#ffe9b0', info: '#cfeef5', notice: '#c9ddf7' };
   var bg     = { danger: '#fff9f9', warning: '#fffdf5', info: '#f7fdff', notice: '#f5f9ff' };
   var canDel = !!(user && (user.isAdmin || (user.sbId && user.sbId === a.authorId)));
-  var tag = isNotice ? '📌 הודעה' : SEVERITY_LABEL[sev];
+  var tag = isNotice ? L('📌 הודעה', '📌 Notice') : SEVERITY_LABEL[sev];
   return '<div style="padding:11px 13px;border:1.5px solid ' + border[sev] + ';border-radius:10px;background:' + bg[sev] + ';margin-bottom:8px;">'
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
     + '<div style="font-size:0.88rem;font-weight:bold;line-height:1.5;flex:1;">'
     + '<span style="font-size:0.7rem;font-weight:normal;opacity:0.8;">' + tag + '</span>'
-    + (a.auto ? ' <span class="auto-chip">📡 הודעה אוטומטית</span>' : '')
+    + (a.auto ? ' <span class="auto-chip">' + L('📡 הודעה אוטומטית', '📡 Automatic notice') + '</span>' : '')
     + '<br>'
     + '<span style="white-space:pre-wrap;">' + escHtml(a.text) + '</span></div>'
     + (canDel ? '<button type="button" onclick="deleteAlert(\'' + escHtml(a.id) + '\')" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:1rem;padding:0 0 0 6px;">🗑️</button>' : '')
@@ -21590,13 +21608,13 @@ function renderAlerts() {
   var offline = !_alertsOnline
     ? '<div style="padding:8px 10px;margin-bottom:10px;border-radius:8px;background:#fff8e1;border:1px solid #ffe08a;font-size:0.76rem;color:#8a6d3b;text-align:center;">'
       + (_alertsProblem === 'server'
-          ? '⚠️ השרת לא מגיב כרגע — מוצג מה שנשמר במכשיר'
-          : '📡 אין חיבור — מוצג מה שנשמר במכשיר')
+          ? L('⚠️ השרת לא מגיב כרגע — מוצג מה שנשמר במכשיר', '⚠️ The server isn\'t responding — showing what was saved on this device')
+          : L('📡 אין חיבור — מוצג מה שנשמר במכשיר', '📡 No connection — showing what was saved on this device'))
       + '</div>'
     : '';
 
   if (!notices.length && !alerts.length) {
-    el.innerHTML = offline + '<div style="text-align:center;color:#aaa;font-size:0.82rem;padding:20px;">אין התראות פעילות כרגע 👍</div>';
+    el.innerHTML = offline + L('<div style="text-align:center;color:#aaa;font-size:0.82rem;padding:20px;">אין התראות פעילות כרגע 👍</div>', '<div style="text-align:center;color:#aaa;font-size:0.82rem;padding:20px;">No active alerts right now 👍</div>');
     return;
   }
 
@@ -21607,8 +21625,8 @@ function renderAlerts() {
   };
 
   el.innerHTML = offline
-    + (notices.length ? head('📌 הודעות') + notices.map(_alertCardHtml).join('') : '')
-    + (alerts.length  ? head('⚠️ התראות שטח') + alerts.map(_alertCardHtml).join('') : '');
+    + (notices.length ? head(L('📌 הודעות', '📌 Notices')) + notices.map(_alertCardHtml).join('') : '')
+    + (alerts.length  ? head(L('⚠️ התראות שטח', '⚠️ Alerts from the mountain')) + alerts.map(_alertCardHtml).join('') : '');
 }
 
 // ---- live updates ----
