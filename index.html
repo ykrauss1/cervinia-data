@@ -1279,7 +1279,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.56';
+  var v='v17.57';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2731,14 +2731,15 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       <div id="trip-saved" style="display:none;margin-top:8px;"></div>
     </div>
 
-    <!-- Where you fly from. The Hebrew site is for travellers from Israel, so
-         there it is always Tel Aviv; the English one has to ask. -->
-    <div class="en-only" style="margin-bottom:14px;">
-      <label for="fl-origin" style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;">🛫 Flying from</label>
-      <input type="text" id="fl-origin" list="fl-origin-list" autocomplete="off" placeholder="City or airport code, e.g. London or LHR"
+    <!-- Where you fly from. Hebrew starts at Tel Aviv and can change it;
+         English starts empty and asks. -->
+    <div style="margin-bottom:14px;">
+      <label for="fl-origin" style="font-size:0.75rem;color:#888;display:block;margin-bottom:5px;" data-en="🛫 Flying from">🛫 טסים מ־</label>
+      <input type="text" id="fl-origin" list="fl-origin-list" autocomplete="off" placeholder="עיר או קוד שדה, למשל תל אביב או TLV"
+        data-en-placeholder="City or airport code, e.g. London or LHR"
         onchange="flOriginSave(this.value)"
         style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:10px;box-sizing:border-box;font-size:0.88rem;font-family:inherit;background:white;">
-      <datalist id="fl-origin-list"><option value="London Heathrow (LHR)"></option><option value="London Gatwick (LGW)"></option><option value="London Stansted (STN)"></option><option value="London Luton (LTN)"></option><option value="Manchester (MAN)"></option><option value="Edinburgh (EDI)"></option><option value="Dublin (DUB)"></option><option value="Amsterdam (AMS)"></option><option value="Brussels (BRU)"></option><option value="Paris Charles de Gaulle (CDG)"></option><option value="Paris Orly (ORY)"></option><option value="Frankfurt (FRA)"></option><option value="Munich (MUC)"></option><option value="Berlin (BER)"></option><option value="Hamburg (HAM)"></option><option value="Düsseldorf (DUS)"></option><option value="Zurich (ZRH)"></option><option value="Geneva (GVA)"></option><option value="Vienna (VIE)"></option><option value="Copenhagen (CPH)"></option><option value="Stockholm Arlanda (ARN)"></option><option value="Oslo (OSL)"></option><option value="Helsinki (HEL)"></option><option value="Madrid (MAD)"></option><option value="Barcelona (BCN)"></option><option value="Lisbon (LIS)"></option><option value="Rome Fiumicino (FCO)"></option><option value="Athens (ATH)"></option><option value="Warsaw (WAW)"></option><option value="Prague (PRG)"></option><option value="Budapest (BUD)"></option><option value="Istanbul (IST)"></option><option value="Tel Aviv (TLV)"></option><option value="Dubai (DXB)"></option><option value="New York JFK (JFK)"></option><option value="Newark (EWR)"></option><option value="Boston (BOS)"></option><option value="Chicago O&#39;Hare (ORD)"></option><option value="Washington Dulles (IAD)"></option><option value="Miami (MIA)"></option><option value="Los Angeles (LAX)"></option><option value="San Francisco (SFO)"></option><option value="Toronto (YYZ)"></option><option value="Montreal (YUL)"></option><option value="São Paulo (GRU)"></option><option value="Johannesburg (JNB)"></option><option value="Sydney (SYD)"></option><option value="Melbourne (MEL)"></option><option value="Singapore (SIN)"></option><option value="Hong Kong (HKG)"></option></datalist>
+      <datalist id="fl-origin-list"></datalist>
     </div>
     <!-- Date + passengers row -->
     <div style="margin-bottom:18px;">
@@ -8019,33 +8020,52 @@ function _pbInt(f, n) { return [].concat(_pbKey(f, 0), _pbVarint(n)); }
 function _pbLeg(date, from, to) {
   return [].concat(_pbStr(2, date), _pbMsg(13, _pbStr(2, from)), _pbMsg(14, _pbStr(2, to)));
 }
-// Where the flight starts. Hebrew: Tel Aviv, always. English: whatever the
-// reader typed - an airport code, or a city we know the code of - and
-// nothing at all until they do, rather than a guess.
+// Where the flight starts. Hebrew: Tel Aviv unless the reader changed it.
+// English: whatever the reader typed - an airport code, or a city we know
+// the code of - and nothing at all until they do, rather than a guess.
+var FL_ORIGINS = [
+  ['TLV','Tel Aviv','תל אביב'],['ETM','Eilat Ramon','אילת רמון'],
+  ['LHR','London Heathrow','לונדון הית\'רו'],['LGW','London Gatwick','לונדון גטוויק'],['STN','London Stansted','לונדון סטנסטד'],['LTN','London Luton','לונדון לוטון'],
+  ['MAN','Manchester','מנצ\'סטר'],['EDI','Edinburgh','אדינבורו'],['DUB','Dublin','דבלין'],['AMS','Amsterdam','אמסטרדם'],['BRU','Brussels','בריסל'],
+  ['CDG','Paris Charles de Gaulle','פריז שארל דה גול'],['ORY','Paris Orly','פריז אורלי'],['FRA','Frankfurt','פרנקפורט'],['MUC','Munich','מינכן'],['BER','Berlin','ברלין'],
+  ['HAM','Hamburg','המבורג'],['DUS','Düsseldorf','דיסלדורף'],['ZRH','Zurich','ציריך'],['GVA','Geneva','ז\'נבה'],['VIE','Vienna','וינה'],['CPH','Copenhagen','קופנהגן'],
+  ['ARN','Stockholm Arlanda','שטוקהולם'],['OSL','Oslo','אוסלו'],['HEL','Helsinki','הלסינקי'],['MAD','Madrid','מדריד'],['BCN','Barcelona','ברצלונה'],['LIS','Lisbon','ליסבון'],
+  ['FCO','Rome Fiumicino','רומא'],['ATH','Athens','אתונה'],['LCA','Larnaca','לרנקה'],['WAW','Warsaw','ורשה'],['PRG','Prague','פראג'],['BUD','Budapest','בודפשט'],
+  ['OTP','Bucharest','בוקרשט'],['IST','Istanbul','איסטנבול'],['DXB','Dubai','דובאי'],
+  ['JFK','New York JFK','ניו יורק JFK'],['EWR','Newark','ניוארק'],['BOS','Boston','בוסטון'],['ORD','Chicago O\'Hare','שיקגו'],['IAD','Washington Dulles','וושינגטון'],
+  ['MIA','Miami','מיאמי'],['LAX','Los Angeles','לוס אנג\'לס'],['SFO','San Francisco','סן פרנסיסקו'],['YYZ','Toronto','טורונטו'],['YUL','Montreal','מונטריאול'],
+  ['GRU','São Paulo','סאו פאולו'],['JNB','Johannesburg','יוהנסבורג'],['SYD','Sydney','סידני'],['MEL','Melbourne','מלבורן'],['SIN','Singapore','סינגפור'],['HKG','Hong Kong','הונג קונג']
+];
+function _flOriginLabel(o) { return (window.LANG === 'en' ? o[1] : o[2]) + ' (' + o[0] + ')'; }
 function flOrigin() {
-  if (window.LANG !== 'en') return 'TLV';
   var el = document.getElementById('fl-origin');
   var v = String((el && el.value) || '').trim();
   if (!v) { try { v = localStorage.getItem('cl_origin') || ''; } catch (e) {} }
+  if (!v) return window.LANG === 'en' ? null : 'TLV';
   var m = v.match(/\(([A-Za-z]{3})\)\s*$/) || v.match(/^([A-Za-z]{3})$/);
   if (m) return m[1].toUpperCase();
-  var low = v.toLowerCase(), opts = document.querySelectorAll('#fl-origin-list option');
-  for (var i = 0; i < opts.length; i++) {
-    var ov = opts[i].value, name = ov.replace(/\s*\([A-Z]{3}\)$/, '').toLowerCase();
-    if (low && (name === low || name.indexOf(low) === 0)) return ov.slice(-4, -1);
+  var low = v.toLowerCase();
+  for (var i = 0; i < FL_ORIGINS.length; i++) {
+    var o = FL_ORIGINS[i];
+    if ([o[1], o[2]].some(function (n) { n = n.toLowerCase(); return n === low || n.indexOf(low) === 0; })) return o[0];
   }
-  return null;
+  return window.LANG === 'en' ? null : 'TLV';
 }
 function flOriginSave(v) { try { localStorage.setItem('cl_origin', String(v || '').trim()); } catch (e) {} }
 // No origin on the English page: say so at the field, and search nothing.
 function flNeedOrigin() {
   var el = document.getElementById('fl-origin');
   if (el) { el.style.borderColor = '#e67e22'; el.focus(); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-  uiAlert('Where are you flying from? Enter a city or an airport code.');
+  uiAlert(L('מאיפה טסים? כתבו עיר או קוד שדה.', 'Where are you flying from? Enter a city or an airport code.'));
 }
 document.addEventListener('DOMContentLoaded', function () {
+  var dl = document.getElementById('fl-origin-list');
+  if (dl) dl.innerHTML = FL_ORIGINS.map(function (o) { return '<option value="' + esc(_flOriginLabel(o)) + '"></option>'; }).join('');
   var el = document.getElementById('fl-origin');
-  if (el && !el.value) { try { el.value = localStorage.getItem('cl_origin') || ''; } catch (e) {} }
+  if (el && !el.value) {
+    try { el.value = localStorage.getItem('cl_origin') || ''; } catch (e) {}
+    if (!el.value && window.LANG !== 'en') el.value = _flOriginLabel(FL_ORIGINS[0]);
+  }
 });
 function _skyHost() { return window.LANG === 'en' ? 'https://www.skyscanner.net' : 'https://www.skyscanner.co.il'; }
 
@@ -8389,7 +8409,7 @@ function searchFlight() {
   const gfWithDates = gFlightsUrl(org, fCode, dr.ci, dr.co, pax);
   const links = [
     { icon: _svcIcon('ico-candle'), title: L('Kosher Fly — המנוע שלנו', 'Kosher Fly — our search engine') + ' <span style="font-size:0.62rem;font-weight:bold;background:#f0a500;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;">BETA</span>', desc: L('סינון שבת וחג ועוד אפשרויות רבות · בהרצה — ייתכנו טעויות', 'Filters out Shabbat and holidays, and much more · in testing — there may be errors'), url: kosherFlyUrl(fCode, dr.ci, dr.co, pax) },
-    { icon: '✈️', title: 'Google Flights', desc: L('לוח מחירים לפי תאריך' + (isDirect ? '' : ' · ללא ישיר'), 'Price calendar by date'), url: gfWithDates },
+    { icon: '✈️', title: 'Google Flights', desc: L('לוח מחירים לפי תאריך' + (isDirect || org !== 'TLV' ? '' : ' · ללא ישיר'), 'Price calendar by date'), url: gfWithDates },
     { icon: '✈️', title: 'Skyscanner', desc: L('השוואת מחירים', 'Price comparison'), url: skUrl },
     { icon: '✈️', title: 'Kayak', desc: L('השוואה כוללת', 'Broad comparison'), url: 'https://www.kayak.com/flights/' + org + '-' + fCode + '/' + dr.ci + '/' + dr.co + '?adults=' + pax },
   ];
@@ -8398,7 +8418,7 @@ function searchFlight() {
   res.innerHTML = '<div style="background:#f0f7ff;border:1.5px solid #bcd;border-radius:11px;padding:12px 14px;">'
     + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:8px;">' + L('✈️ טיסות — ', '✈️ Flights — ')
     + (window.LANG === 'en' ? 'from ' + org + ' to ' + esc(fCity) + ' (' + fCode + ')'
-       : (fOther ? 'מתל אביב ל' + esc(fHe) + ' (' + fCode + ')' : 'ברירת מחדל: מילאנו (MXP)')) + '</div>'
+       : (org !== 'TLV' ? 'מ־<bdi>' + org + '</bdi> ל' + esc(fHe) + ' (' + fCode + ')' : fOther ? 'מתל אביב ל' + esc(fHe) + ' (' + fCode + ')' : 'ברירת מחדל: מילאנו (MXP)')) + '</div>'
     + makeResultLinks(links) + '</div>';
   // The snapshot answers instantly from a file; the links below it are the
   // live sites. Painted after the links so a slow first load of the file
@@ -8595,7 +8615,7 @@ function searchAll() {
   const d2 = dr.co.replace(/-/g,'').slice(2);
   const gfUrl = gFlightsUrl(org, airCode, dr.ci, dr.co, adults);
   const skUrl = _skyHost() + '/flights/' + org.toLowerCase() + '/' + airCode.toLowerCase() + '/' + d1 + '/' + d2 + '/?adults=' + adults + '&adultsv2=' + adults + '&infants=0&cabinclass=economy';
-  const airLabel = (airCode === 'TRN' && window.LANG !== 'en') ? airCity + ' (ללא טיסה ישירה)' : airCity;
+  const airLabel = (airCode === 'TRN' && window.LANG !== 'en' && org === 'TLV') ? airCity + ' (ללא טיסה ישירה)' : airCity;
   // kind, not the icon, decides which box a link lands in. It used to be the
   // icon string - and the day Kosher Fly's candle emoji became an inline SVG,
   // our own engine stopped matching '🕯️', fell out of all three boxes and
@@ -16813,7 +16833,8 @@ function _flAge(gen) {
 
 // The price the snapshot holds, for the dates the reader actually chose.
 function flightForDatesHtml(dest, ci, co, pax) {
-  if (window.LANG === 'en') return '';   // the snapshot is of flights from Tel Aviv
+  // the snapshot is of flights from Tel Aviv - for any other origin it would mislead
+  if (window.LANG === 'en' || flOrigin() !== 'TLV') return '';
   if (!_FLIGHTS) return '';
   // The daily price list covers only the airports near Cervinia. For any
   // other the live links are the answer, and "no saved price for this
