@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-13T01:30:58.283Z",
-  "temperature": 1.1,
+  "updated_at": "2026-11-13T02:11:04.087Z",
+  "temperature": 0.3,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 19,
@@ -12,9 +12,9 @@
   "slopes_total_local": 6,
   "snow_depth": "15 cm",
   "last_snowfall": "06/11/2026",
-  "wind_speed": 16.9,
+  "wind_speed": 19.1,
   "wind_gust": 37.4,
-  "humidity": null,
+  "humidity": 84,
   "avalanche_level": "1",
   "avalanche_text": null,
   "weather_description": "Nuvoloso con nevicate",
@@ -50,66 +50,45 @@
     }
   ],
   "forecast_today": {
-    "date": "Thursday, November 12",
+    "date": "Friday, November 13",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Valtournenche",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Chamois",
-        "icon": "rain-snow"
+        "icon": "partially-cloudy"
       },
       {
         "name": "Torgnon",
-        "icon": "rain"
+        "icon": "partially-cloudy"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "snow"
+        "icon": "sun"
       },
       {
         "name": "Valtournenche",
-        "icon": "rain"
+        "icon": "sun"
       },
       {
         "name": "Chamois",
-        "icon": "rain-snow"
+        "icon": "sun"
       },
       {
         "name": "Torgnon",
-        "icon": "rain"
+        "icon": "sun"
       }
     ]
   },
   "forecast_next_days": [
-    {
-      "date": "Saturday, November 14",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "sun"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "partially-cloudy"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "cloudy"
-        }
-      ]
-    },
     {
       "date": "Sunday, November 15",
       "periods": [
