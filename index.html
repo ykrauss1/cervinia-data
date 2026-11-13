@@ -1279,7 +1279,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.59';
+  var v='v17.60';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -21368,6 +21368,15 @@ async function enablePush() {
     try { await sub.unsubscribe(); } catch (e2) {}
     throw res.error;
   }
+  await _pushSetLang(sb, sub.endpoint);
+}
+
+// The language the notifications on this device arrive in: the one the site
+// was last read in here. Sent on subscribing and again on every visit (from
+// _healPush), so switching the site's language switches the phone's too.
+// Best effort - an older database without cl_push_set_lang just stays Hebrew.
+async function _pushSetLang(sb, endpoint) {
+  try { await sb.rpc('cl_push_set_lang', { p_endpoint: endpoint, p_lang: window.LANG === 'en' ? 'en' : 'he' }); } catch (e) {}
 }
 
 async function disablePush() {
@@ -21404,6 +21413,7 @@ async function _healPush() {
       p_auth:     j.keys && j.keys.auth,
       p_ua:       navigator.userAgent
     });
+    await _pushSetLang(sb, sub.endpoint);
   } catch (e) {}
 }
 
