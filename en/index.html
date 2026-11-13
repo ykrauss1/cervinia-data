@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The English address of the site. The site itself is one page in two
+     languages (index.html, ?lang=en); this page exists so that a shared
+     link and a search result show English - title, description and picture
+     are read from here by WhatsApp, Facebook and Google - and then hands
+     the reader to the site in English. -->
+<title>Cervinia Live · the live ski guide</title>
+<meta name="description" content="Everything for a ski holiday in Cervinia: lifts and runs live, a piste guide with huts, getting there from the airport, ski passes, equipment rental and costs.">
+<link rel="canonical" href="https://cervinialive.co.il/en/">
+<link rel="alternate" hreflang="en" href="https://cervinialive.co.il/en/">
+<link rel="alternate" hreflang="he" href="https://cervinialive.co.il/">
+<link rel="alternate" hreflang="x-default" href="https://cervinialive.co.il/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cervinia Live">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="he_IL">
+<meta property="og:url" content="https://cervinialive.co.il/en/">
+<meta property="og:title" content="Cervinia Live — the live ski guide to Cervinia">
+<meta property="og:description" content="Lifts and runs live, a piste guide with huts, getting there from the airport, ski passes and equipment rental.">
+<meta property="og:image" content="https://cervinialive.co.il/og-image-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Cervinia Live — the live ski guide to Cervinia">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cervinia Live — the live ski guide to Cervinia">
+<meta name="twitter:description" content="Lifts and runs live, a piste guide with huts, getting there from the airport, ski passes and equipment rental.">
+<meta name="twitter:image" content="https://cervinialive.co.il/og-image-en.png">
+<link rel="icon" href="../favicon.ico">
+<script>
+// Into the site, in English, carrying along anything the link held
+// (?open=alerts, #pisteModal ...). replace(), so Back does not land here.
+(function () {
+  var q = location.search.replace(/^\?/, '').split('&').filter(function (p) { return p && !/^lang=/.test(p); });
+  q.unshift('lang=en');
+  location.replace('../?' + q.join('&') + location.hash);
+})();
+</script>
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+         background: #0a192f; color: #cbd8e6; font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: #4cc9f0; }
+</style>
+</head>
+<body>
+  <p>Opening <a href="../?lang=en">Cervinia Live in English</a>…</p>
+</body>
+</html>

@@ -55,7 +55,7 @@ function _i18nStatic(root) {
 }
 // Registered here in the head, so it runs before any renderer's own
 // DOMContentLoaded and they draw over translated markup, not under it.
-var LANG_OPEN = false;   // true once the English site is ready to be offered
+var LANG_OPEN = true;    // the English site is offered (Yossi, 13.11)
 function langBtn() {
   if (window.LANG === 'en' || LANG_OPEN) { setLang(window.LANG === 'en' ? 'he' : 'en'); return; }
   // a phone has no tooltip, so the "soon" is said on the tap
@@ -130,6 +130,10 @@ try {
      which is most of the reason a link does or does not get opened. -->
 <meta name="description" content="כל מה שצריך לחופשת סקי בצ׳רוויניה, בעברית: מצב מעליות ומסלולים בזמן אמת, מדריך מסלולים ובקתות, כשרות ושבת, תחבורה מהשדה, השכרת ציוד ומחירים.">
 <link rel="canonical" href="https://cervinialive.co.il/">
+<!-- The same site in English, at its own address (en/index.html). -->
+<link rel="alternate" hreflang="he" href="https://cervinialive.co.il/">
+<link rel="alternate" hreflang="en" href="https://cervinialive.co.il/en/">
+<link rel="alternate" hreflang="x-default" href="https://cervinialive.co.il/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="צ׳רוויניה לייב">
 <meta property="og:locale" content="he_IL">
@@ -1279,7 +1283,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.60';
+  var v='v17.61';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1343,10 +1347,9 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     </div>
 
     <!-- The language switch, in the corner where people look for it (Yossi,
-         12.11). Until the English is whole it is there in Hebrew too, but
-         says "soon" rather than leading to half a site. -->
+         12.11). Open since 13.11: EN on the Hebrew page, עב on the English. -->
     <button id="lang-btn" type="button" onclick="langBtn()" lang="en"
-      title="English — בקרוב" aria-label="English — בקרוב"
+      title="English · האתר באנגלית" aria-label="English · האתר באנגלית"
       data-en="עב" data-en-title="עברית" data-en-aria-label="עברית">EN</button>
     <div id="auth-area"></div>
   </nav>
@@ -13255,7 +13258,8 @@ function renderReviews() {
       + '<span style="font-size:0.7rem;background:#f0f4ff;padding:2px 8px;border-radius:10px;">' + escHtml(revCatLabel(r.cat)) + '</span>'
       + '</div>'
       + '<div style="margin-bottom:5px;">' + starsHtml(r.rating, false, '') + '</div>'
-      + '<div style="font-size:0.85rem;color:#333;line-height:1.6;white-space:pre-wrap;">' + escHtml(r.text) + '</div>'
+      + '<div class="ugc" dir="auto" style="font-size:0.85rem;color:#333;line-height:1.6;white-space:pre-wrap;">' + escHtml(r.text) + '</div>'
+      + _xlateLink(r.text)
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px;flex-wrap:wrap;">'
       + reviewReactsHtml(r)
       + '<span style="display:flex;align-items:center;gap:10px;">'
@@ -19065,6 +19069,27 @@ function timeAgo(ts) {
 }
 
 
+// One forum for both languages (Yossi, 12.11): a post stays as its author
+// wrote it, and a reader who meets one in the other language gets a link
+// that opens it in Google Translate. Nothing is stored and nothing is sent
+// anywhere until the reader asks.
+function _textLang(t) {
+  t = String(t || '');
+  var he = (t.match(/[\u0590-\u05ff]/g) || []).length;
+  var la = (t.match(/[A-Za-z]/g) || []).length;
+  if (!he && !la) return '';
+  return he >= la ? 'he' : 'en';
+}
+function _xlateLink(t) {
+  var tl = window.LANG === 'en' ? 'en' : 'iw';
+  var lg = _textLang(t);
+  if (!lg || lg === (window.LANG === 'en' ? 'en' : 'he')) return '';
+  var u = 'https://translate.google.com/?sl=auto&tl=' + tl + '&op=translate&text=' + encodeURIComponent(String(t).slice(0, 1500));
+  return '<a href="' + esc(u) + '" target="_blank" rel="noopener" '
+    + 'style="display:inline-block;font-size:0.76rem;color:#1a73e8;text-decoration:none;margin:0 0 5px;">'
+    + L('🌐 תרגום לעברית', '🌐 Translate to English') + '</a>';
+}
+
 function renderFilterChips() {
   const area = document.getElementById('filter-area');
   if (!area) return;
@@ -19770,7 +19795,8 @@ function renderReplies(replies, postId, depth, query) {
       + '</div>';
     return '<div class="reply-item" id="reply-' + safeId(r.id) + '" style="margin-inline-start:' + indent + 'px;">'
       + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + escJs(r.user) + '\')">' + esc(r.user) + '</b> <span style="color:#bbb;font-size:0.72rem;">' + timeAgo(r.timestamp) + '</span>'
-      + '<div style="margin:3px 0;">' + highlight(r.content, query) + '</div>'
+      + '<div class="ugc" dir="auto" style="margin:3px 0;">' + highlight(r.content, query) + '</div>'
+      + _xlateLink(r.content)
       + fileHtml
       + reactionsHtml(r, true)
       + actions
@@ -19852,7 +19878,8 @@ function renderPosts(query, sort, chips) {
       +     '<span style="color:#bbb;font-size:0.75rem;">' + timeAgo(p.timestamp) + '</span>'
       +   '</div>'
       + '</div>'
-      + '<div style="margin:8px 0 6px;">' + highlight(p.content, query) + '</div>'
+      + '<div class="ugc" dir="auto" style="margin:8px 0 6px;">' + highlight(p.content, query) + '</div>'
+      + _xlateLink(p.content)
       + fileHtml
       + reactionsHtml(p, false)
       + '<div style="display:flex;gap:10px;margin-top:6px;font-size:0.85rem;color:#888;align-items:center;flex-wrap:wrap;">'

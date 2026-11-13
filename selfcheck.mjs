@@ -8718,14 +8718,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const T_EN = JSON.parse(fs.readFileSync(path.join(path.dirname(TEXTS), 'texts.en.json'), 'utf8'));
   const he = await page.evaluate(() => ({
     dir: document.documentElement.dir, lang: document.documentElement.lang,
-    // the corner button is there in Hebrew too, but says "soon" and goes nowhere
-    switchHidden: document.getElementById('lang-btn').classList.contains('soon')
-               && document.getElementById('lang-btn').textContent === 'EN' && !LANG_OPEN,
+    // the corner button is open (13.11): EN on the Hebrew page, leading to English
+    switchHidden: !document.getElementById('lang-btn').classList.contains('soon')
+               && document.getElementById('lang-btn').textContent === 'EN' && LANG_OPEN === true,
     L: L('א', 'a'), logo: /logo\.png$/.test(document.getElementById('brand-logo').src)
   }));
   const T0 = 'the Hebrew site is as it was';
   if (he.dir !== 'rtl' || he.lang !== 'he') fail(T0, `dir=${he.dir} lang=${he.lang}`); else ok();
-  if (!he.switchHidden) fail(T0, 'the corner language button leads to the English before it is ready'); else ok();
+  if (!he.switchHidden) fail(T0, 'the corner language button does not offer the English site'); else ok();
   if (he.L !== 'א') fail(T0, 'L() gives English on the Hebrew page'); else ok();
   if (!he.logo) fail(T0, 'the Hebrew logo was replaced'); else ok();
 
