@@ -4522,8 +4522,8 @@
         "cat": "close",
         "icon": "🎿",
         "name": "Sci di fondo Breuil-Cervinia",
-        "he": "מסלול סקי עממי בכניסה לכפר",
-        "what": "לולאה קלה של כ-2 ק\"מ בגובה 2,050 מ', ממש ליד החניון הגדול בכניסה לצ'רוויניה, מוקפת ברכס Grandes Murailles והמטרהורן מאחור. שלג טבעי. **לא צריך שום מעלית** — יוצאים מהכפר ברגל.",
+        "he": "מסלול סקי מישור (סקי עממי) בכניסה לכפר",
+        "what": "לולאה של כ-3 ק\"מ, שמתאימה גם למתחילים, בגובה 2,050 מ', ממש ליד החניון הגדול בכניסה לצ'רוויניה, מוקפת ברכס Grandes Murailles והמטרהורן מאחור. שלג טבעי. **לא צריך שום מעלית** — יוצאים מהכפר ברגל.",
         "drive": "בכפר עצמו, בהליכה",
         "open": "כל החורף, 10:00–16:00",
         "storm": true,
@@ -4541,10 +4541,67 @@
         "drive": "ולטורננש (Valtournenche) · כ-9 ק\"מ",
         "open": "כל החורף",
         "storm": true,
-        "warn": "זה המסלול היחיד בסביבת צ'רוויניה שלא תלוי במעלית — כלומר היחיד שעובד בדיוק ביום שבו המעליות סגורות",
+        "warn": "זה מסלול נעלי השלג המסומן הקרוב ביותר לצ'רוויניה שלא תלוי במעלית — כלומר עובד גם ביום שבו המעליות סגורות",
         "map": "Valtournenche",
         "url": "https://cervinia.it/en/cosa-fare/ciaspole",
         "latlon": "45.9115338,7.641799"
+      },
+      {
+        "cat": "close",
+        "icon": "🎿",
+        "name": "Sci di fondo Champlève",
+        "he": "מסלולי סקי מישור בשמפלב, מעל ולטורננש",
+        "what": "רמה שקטה ושטופת שמש מעל ולטורננש (Valtournenche), בין יערות וכרי מרעה מושלגים, עם נוף לרכס <bdi>Grandes Murailles</bdi>. **שלוש לולאות**: כ-3 ק\"מ למתחילים, 2.5 ק\"מ בדרגה בינונית, ו-3.8 ק\"מ עם עלייה בינונית–קשה. לא צריך מעלית.",
+        "drive": "ולטורננש (Valtournenche) · כמה ק\"מ ממרכז ולטורננש, בכיוון <bdi>Cheneil</bdi>",
+        "open": "כל החורף, כשיש שלג — אילו לולאות פתוחות, בדוח השלג",
+        "storm": true,
+        "price": "כרטיס יומי 7 אירו, מוזל 5 אירו · הכרטיסים נמכרים בבר שליד המסלול",
+        "warn": "השכרת ציוד בכפר ולטורננש, בחנות <bdi>Pellissier Sport</bdi>. לפני הנסיעה אפשר לטלפן למרכז הספורט: 0166 92698",
+        "map": "Champlève Valtournenche",
+        "url": "https://www.cervinia.it/en/inverno/sci-di-fondo"
+      },
+      {
+        "cat": "close",
+        "icon": "🎿",
+        "name": "Foyer du Fond Lo Vierdzà, Torgnon",
+        "he": "מרכז סקי מישור גדול — וגם הליכה על שלג",
+        "what": "מרכז הסקי מישור הגדול בסביבה. מסלול **<bdi>Grandes Montagnes</bdi>** של כ-20 ק\"מ (קל–בינוני, בשני קטעים), ולולאות **<bdi>Maisonnettes</bdi>**: 3 ק\"מ קלה על שלג מלאכותי, ו-7.5 ק\"מ בינונית שמתחברת למסלולי <bdi>Verrayes</bdi>. במרכז יש **השכרת מגלשי סקי מישור ונעלי שלג**, בית ספר לשיעורים פרטיים וקבוצתיים, ומלתחות ומקלחות (בתשלום). ולמי שרק הולך: מ-<bdi>Plan Prorion</bdi> יוצא **שביל הליכה על שלג מהודק אל <bdi>Gordzà</bdi>** — כשעה, 200 מ' עלייה, ליד ה-<bdi>Winter Park</bdi>.",
+        "drive": "<bdi>Torgnon</bdi> · <bdi>Plan Prorion</bdi>, מעל הכפר <bdi>Torgnon</bdi>",
+        "open": "כל החורף, כשיש שלג — אילו מסלולים פתוחים, בדוח השלג",
+        "storm": true,
+        "price": "כרטיס יומי לסקי מישור 12 אירו · גילאי 7–13: 7 אירו · השביל להולכי רגל חינם",
+        "warn": "בשביל להולכי רגל לא דורכים על מסלולי הסקי, ומ-<bdi>Châtelard</bdi> פונים שמאלה אל <bdi>Gordzà</bdi> — הקטע שאחריו שמור לגולשים. אחרי שלג טרי נעלי שלג. טלפון המרכז: 349 340 4632 · הקופה במרכז <bdi>Torgnon</bdi>: 0166 540212",
+        "kids": "גילאי 7–13 במחיר מוזל, ולולאה קלה של 3 ק\"מ",
+        "map": "Foyer du Fond Lo Vierdzà Torgnon",
+        "url": "https://balteus.lovevda.it/en/database/5/cross-country-skiing/torgnon/torgnon-pistes/2588"
+      },
+      {
+        "cat": "close",
+        "icon": "🥾",
+        "name": "Percorso pedonale Plan Maison – Fornet",
+        "he": "שביל הליכה על השלג, על ההר",
+        "what": "שביל מסומן ומבוקר, מהודק, לצד הכיסא שעולה אל <bdi>Fornet</bdi>: מ-<bdi>Plan Maison</bdi> (2,561 מ') ועד <bdi>Fornet / Bontadini</bdi> (3,000 מ') — **4.5 ק\"מ ו-439 מ' עלייה, כשעתיים עלייה**. נוף פנורמי למטרהורן ולרכס <bdi>Grandes Murailles</bdi>, ובקתות עם מסעדה לאורך הדרך ובסופה.",
+        "drive": "עולים מהכפר בגונדולה אל <bdi>Plan Maison</bdi>",
+        "open": "רק כשהמעליות פועלות",
+        "storm": false,
+        "price": "השביל חינם; הגונדולה בתשלום — שאלו בקופה על כרטיס להולכי רגל",
+        "warn": "בגובה 3,000 מ' קר ונושב הרבה יותר מבכפר. נעלי חורף או נעלי שלג",
+        "map": "Plan Maison Breuil-Cervinia",
+        "url": "https://www.lovevda.it/en/database/7/pathways-on-the-snow/breuil-cervinia/plan-maison-fornet/2811"
+      },
+      {
+        "cat": "close",
+        "icon": "🥾",
+        "name": "Tour di Mande, Salette",
+        "he": "לולאות שלג מעל ולטורננש",
+        "what": "מסלול טיול חופשי ברגל או בנעלי שלג, שיוצא מהתחנה העליונה של הרכבל <bdi>Valtournenche–Salette</bdi> (2,281 מ'). **לולאות של 4, 5 ו-7 ק\"מ**, עם נוף לרכס <bdi>Grandes Murailles</bdi>.",
+        "drive": "ולטורננש (Valtournenche) · הרכבל יוצא מ-<bdi>Plan de la Glaea</bdi>",
+        "open": "כשהרכבל פועל",
+        "storm": false,
+        "price": "המסלול חינם; הרכבל בתשלום",
+        "warn": "⚠️ המסלול מסומן ומוכשר, אבל **לא מבוקר** — לא יוצאים אליו לבד, ובודקים לפני את דוח המפולות",
+        "map": "Funivia Valtournenche Salette",
+        "url": "https://www.lovevda.it/en/database/7/pathways-on-the-snow/valtournenche/excursion-path-tour-di-mande/2773"
       },
       {
         "cat": "close",
@@ -4581,7 +4638,7 @@
         "icon": "🚡",
         "name": "Chamois",
         "he": "הכפר ללא מכוניות",
-        "what": "הכפר הגבוה ביותר בעמק אאוסטה (Aosta), 1,800 מ', ו**ללא מכוניות בכלל** — מגיעים רק ברגל או ברכבל. חונים ב-Buisson ועולים. למעלה יש אתר סקי קטן (1,800–2,500 מ', כ-14–16 ק\"מ מסלולים), מסלולי הליכה בשלג, והאגם Lago di Lod — שאליו יש כיסא פעיל בחורף, או כ-40 דקות הליכה מהכפר.",
+        "what": "הכפר הגבוה ביותר בעמק אאוסטה (Aosta), 1,800 מ', ו**ללא מכוניות בכלל** — מגיעים רק ברגל או ברכבל. חונים ב-Buisson ועולים. למעלה יש אתר סקי קטן (1,800–2,500 מ', כ-14–16 ק\"מ מסלולים), מסלולי הליכה בשלג, והאגם Lago di Lod — שאליו יש כיסא פעיל בחורף, או כ-40 דקות הליכה מהכפר. מתחנת הרכבל למעלה יוצא **שביל הליכה על שלג מהודק**, לרוחב כל דרך העפר: כ-1.5 ק\"מ שטוחים עד הצומת של <bdi>Col Pilaz</bdi>, משם לספסל הענק ולתצפית על כרי <bdi>Champlong</bdi> והמטרהורן. **לא צריך נעלי שלג**; אחרי שלג טרי בדקו שכבר הודק.",
         "drive": "Buisson · כ-20 ק\"מ, כחצי שעה (משוער)",
         "open": "הרכבל פועל כל השנה, 07:00–22:30, יציאה כל חצי שעה",
         "storm": true,
@@ -5357,6 +5414,48 @@
             "name": "עיריית אאוסטה — שווקים",
             "url": "https://www.comune.aosta.it/it/page/mercati-2",
             "covers": "ימי השוק העירוני והשוק המקורה",
+            "quote": ""
+          },
+          {
+            "name": "סקי מישור בצ'רוויניה ובשמפלב",
+            "url": "https://www.cervinia.it/en/inverno/sci-di-fondo",
+            "covers": "אורך הלולאה בכפר, שלוש הלולאות בשמפלב והטלפון",
+            "quote": ""
+          },
+          {
+            "name": "מסלולי ולטורננש (שמפלב)",
+            "url": "https://balteus.lovevda.it/en/database/5/cross-country-skiing/valtournenche/valtournenche-runs/2622",
+            "covers": "מחיר היום, מכירת הכרטיסים בבר והשכרת הציוד",
+            "quote": ""
+          },
+          {
+            "name": "מסלולי Torgnon",
+            "url": "https://balteus.lovevda.it/en/database/5/cross-country-skiing/torgnon/torgnon-pistes/2588",
+            "covers": "המסלולים ואורכם, המחירים, ההשכרה, בית הספר והטלפונים",
+            "quote": ""
+          },
+          {
+            "name": "ברגל על השלג — מדריך התיירות של החבל",
+            "url": "https://lovevda.it/Media/LovevdaResp/Allegati-PDF/ITA_Passeggiate_A_piedi_sulla_neve.pdf",
+            "covers": "השביל Plan Prorion–Gordzà בטורניון: זמן, עלייה והכללים",
+            "quote": ""
+          },
+          {
+            "name": "שביל Plan Maison – Fornet",
+            "url": "https://www.lovevda.it/en/database/7/pathways-on-the-snow/breuil-cervinia/plan-maison-fornet/2811",
+            "covers": "אורך, עלייה, זמן, גבהים וציוד",
+            "quote": ""
+          },
+          {
+            "name": "Tour di Mande",
+            "url": "https://www.lovevda.it/en/database/7/pathways-on-the-snow/valtournenche/excursion-path-tour-di-mande/2773",
+            "covers": "נקודת היציאה והלולאות",
+            "quote": ""
+          },
+          {
+            "name": "שביל Chamois – Col Pilaz",
+            "url": "https://lovevda.it/en/database/7/pathways-on-the-snow/chamois/pedestrian-path-chamois-col-pilaz-belvedere-champlong/3056",
+            "covers": "השביל המהודק מתחנת הרכבל ועד Col Pilaz",
             "quote": ""
           }
         ]

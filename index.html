@@ -1283,7 +1283,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.63';
+  var v='v17.64';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -9320,7 +9320,7 @@ function _costBandHe(k, withAges) {
 //  daily      - a ticket each morning: Cervinia, or international on a Zermatt day
 //  forecast   - short passes of up to 4 days, as far as a forecast reaches
 // The cheapest is marked, and so is how many days are paid before they are seen.
-var ZC = { n: 5, z: 2 };
+var ZC = { n: 5, z: 2, h: 0 };
 // ── the site's own dialogs ───────────────────────────────────────────────
 // The browser's confirm() and alert() put up a box headed with the address
 // ("האתר cervinialive.co.il אומר") in the browser's own colours, and block
@@ -9402,81 +9402,149 @@ function _snowFill() {
 }
 
 function zcAdj(k, d) {
-  if (k === 'n') { ZC.n = Math.max(1, Math.min(8, ZC.n + d)); ZC.z = Math.min(ZC.z, ZC.n); }
+  // full days may drop to none when there are half days: a beginner's week
+  // can be half days only
+  if (k === 'n') { ZC.n = Math.max(ZC.h ? 0 : 1, Math.min(8, ZC.n + d)); ZC.z = Math.min(ZC.z, ZC.n); }
+  else if (k === 'h') { ZC.h = Math.max(ZC.n ? 0 : 1, Math.min(8 - ZC.n, ZC.h + d)); }
   else ZC.z = Math.max(0, Math.min(ZC.n, ZC.z + d));
   zcRender();
 }
-function zcPlans(N, Z) {
+// The tariff's half day (morning to 13:00 or afternoon from 12:00) - for the
+// Cervinia pass only; the international table has none. The row label is
+// read in either language, "חצי יום" / "Half day".
+function _halfPrice(band) {
+  var p = window._texts && window._texts.skipass && window._texts.skipass.prices;
+  var row = p && p.cervinia && (p.cervinia.rows || []).filter(function (r) { return /חצי יום|half day/i.test(r[0]); })[0];
+  if (!row) return null;
+  if (band === 'Baby' || band === 'Over 80') return 0;
+  var col = (p.columns || []).indexOf(band);
+  if (col < 0) return null;
+  var v = parseFloat(String(row[col + 1]).replace(/[^\d.]/g, ''));
+  return isFinite(v) ? v : null;
+}
+function zcPlans(N, Z, H) {
+  H = H || 0;
   var C = function (d) { return _costPassPrice('cervinia', 'Adult', d); };
   var I = function (d) { return _costPassPrice('zermatt', 'Adult', d); };
   var p = window._texts && window._texts.skipass && window._texts.skipass.prices;
   var sup = p && p.zermatt && p.zermatt.day_supplement && p.zermatt.day_supplement.Adult;
+  var half = _halfPrice('Adult');
   if (C(1) == null || I(1) == null || !sup) return null;
+  if (H && half == null) return null;
+  var en = window.LANG === 'en';
+  var nHalf = function (h) { return en ? (h === 1 ? 'a half-day ticket' : h + ' half-day tickets') : (h === 1 ? 'כרטיס חצי יום' : h + ' כרטיסי חצי יום'); };
   var plans = [];
+  // One pass for the stay. A half day is either bought apart (a half-day
+  // ticket) or folded into the pass as one more day, whichever is cheaper -
+  // in a long pass the extra day often costs less than the half-day ticket.
+  var onePass = function (P, withSup) {
+    var best = null;
+    var tryLen = function (len, apart) {
+      if (len < 1 || P(len) == null) return;
+      if (withSup && Z && len < 2) return; // the supplement needs a multi-day pass
+      var c = P(len) + (withSup ? Z * sup : 0) + apart * half;
+      if (!best || c < best.cost) best = { cost: c, len: len, apart: apart };
+    };
+    tryLen(N, H);
+    if (H) tryLen(N + H, 0);
+    return best;
+  };
   // the supplement is sold to holders of a multi-day pass only
-  if (N >= 2 && C(N) != null) plans.push({ id: 'local', cost: C(N) + Z * sup, ahead: N,
-    label: L('פס צ\'רוויניה ל-' + N + ' ימים' + (Z ? ', ועוד תוספת יום לצ\'רמט (€' + sup + ') בבוקר שהמעבר פתוח' : ''),
-             'A ' + N + '-day Cervinia pass' + (Z ? ', plus a Zermatt day supplement (€' + sup + ') on each morning the crossing is open' : '')) });
-  if (Z && I(N) != null) plans.push({ id: 'intl', cost: I(N), ahead: N,
-    label: L('פס בינלאומי ל-' + N + ' ימים', 'A ' + N + '-day international pass') });
-  plans.push({ id: 'daily', cost: (N - Z) * C(1) + Z * I(1), ahead: 0,
-    label: L('כרטיס יומי בכל בוקר' + (Z ? ' — וביום של צ\'רמט, בינלאומי ליום אחד' : ''),
-             'A day ticket every morning' + (Z ? ' — and on a Zermatt day, a one-day international' : '')) });
-  // short passes as far as a forecast reaches: the best split into runs of 1-4 days
-  if (N >= 3) {
+  var lp = onePass(C, true);
+  if (lp && lp.len >= 2) plans.push({ id: 'local', cost: lp.cost, ahead: lp.len,
+    label: L('פס צ\'רוויניה ל-' + lp.len + ' ימים' + (Z ? ', ועוד תוספת יום לצ\'רמט (€' + sup + ') בבוקר שהמעבר פתוח' : '')
+               + (H ? (lp.apart ? ', ועוד ' + nHalf(lp.apart) : ' — חצאי הימים בתוכו, כימים מלאים') : ''),
+             _anDays(lp.len) + lp.len + '-day Cervinia pass' + (Z ? ', plus a Zermatt day supplement (€' + sup + ') on each morning the crossing is open' : '')
+               + (H ? (lp.apart ? ', plus ' + nHalf(lp.apart) : ' — the half days inside it, as full days') : '')) });
+  var ip = Z ? onePass(I, false) : null;
+  if (ip) plans.push({ id: 'intl', cost: ip.cost, ahead: ip.len,
+    label: L('פס בינלאומי ל-' + ip.len + ' ימים' + (H ? (ip.apart ? ', ועוד ' + nHalf(ip.apart) + ' בצד של צ\'רוויניה' : ' — חצאי הימים בתוכו, כימים מלאים') : ''),
+             _anDays(ip.len) + ip.len + '-day international pass' + (H ? (ip.apart ? ', plus ' + nHalf(ip.apart) + ' on the Cervinia side' : ' — the half days inside it, as full days') : '')) });
+  plans.push({ id: 'daily', cost: (N - Z) * C(1) + Z * I(1) + H * half, ahead: 0,
+    label: N ? L('כרטיס יומי בכל בוקר' + (Z ? ' — וביום של צ\'רמט, בינלאומי ליום אחד' : '') + (H ? ', וביום של חצי יום — כרטיס חצי יום' : ''),
+                 'A day ticket every morning' + (Z ? ' — and on a Zermatt day, a one-day international' : '') + (H ? ', and on a half day, a half-day ticket' : ''))
+             : L('כרטיס חצי יום בכל יום', 'A half-day ticket each day') });
+  // short passes as far as a forecast reaches: the best split into runs of
+  // 1-4 days; a run of one half day alone is a half-day ticket
+  if (N + H >= 3) {
     var memo = {};
-    var f = function (n, z) {
-      if (!n) return z ? null : { cost: 0, parts: [] };
-      var key = n + ',' + z;
+    var f = function (n, z, h) {
+      if (!n && !h) return z ? null : { cost: 0, parts: [] };
+      var key = n + ',' + z + ',' + h;
       if (key in memo) return memo[key];
       var best = null;
-      for (var Lr = 1; Lr <= Math.min(4, n); Lr++) {
-        for (var k = 0; k <= Math.min(Lr, z); k++) {
-          // a run of days is a Cervinia pass (+ the supplement on its Zermatt
-          // days) or, when it holds Zermatt days, an international pass
-          var opts = Lr === 1 ? [{ c: k ? I(1) : C(1), t: k ? 'i' : 'c' }]
-                             : [{ c: C(Lr) + k * sup, t: 'c' }].concat(k ? [{ c: I(Lr), t: 'i' }] : []);
-          var rest = f(n - Lr, z - k);
-          if (!rest) continue;
-          opts.forEach(function (o) {
-            if (!best || o.c + rest.cost < best.cost)
-              best = { cost: o.c + rest.cost, parts: [{ L: Lr, k: k, t: o.t }].concat(rest.parts) };
-          });
+      for (var Lr = 1; Lr <= Math.min(4, n + h); Lr++) {
+        for (var j = Math.max(0, Lr - n); j <= Math.min(Lr, h); j++) {
+          for (var k = 0; k <= Math.min(Lr - j, z); k++) {
+            // a run is a Cervinia pass (+ the supplement on its Zermatt days)
+            // or, when it holds Zermatt days, an international pass
+            var opts = Lr === 1 ? [{ c: j ? half : (k ? I(1) : C(1)), t: j ? 'h' : (k ? 'i' : 'c') }]
+                               : [{ c: C(Lr) + k * sup, t: 'c' }].concat(k ? [{ c: I(Lr), t: 'i' }] : []);
+            var rest = f(n - (Lr - j), z - k, h - j);
+            if (!rest) continue;
+            opts.forEach(function (o) {
+              if (!best || o.c + rest.cost < best.cost)
+                best = { cost: o.c + rest.cost, parts: [{ L: Lr, k: k, j: j, t: o.t }].concat(rest.parts) };
+            });
+          }
         }
       }
       return (memo[key] = best);
     };
-    var fc = f(N, Z);
+    var fc = f(N, Z, H);
     if (fc && fc.parts.length > 1 && fc.parts.some(function (x) { return x.L > 1; })) {
-      fc.parts.sort(function (a, b) { return b.L - a.L || a.k - b.k; });
-      if (window.LANG === 'en') {
+      fc.parts.sort(function (a, b) { return b.L - a.L || a.k - b.k || a.j - b.j; });
+      if (en) {
         var dayE = function (k) { return k === 1 ? 'one day' : k + ' days'; };
+        var inE = function (x) { return x.j ? ' (' + (x.j === 1 ? 'a half day' : x.j + ' half days') + ' in it)' : ''; };
         plans.push({ id: 'forecast', cost: fc.cost, ahead: fc.parts[0].L, parts: fc.parts,
-          label: 'Short passes by the forecast: ' + fc.parts.map(function (x) {
-            if (x.L === 1) return x.k ? 'a one-day international (Zermatt)' : 'a one-day ticket';
-            if (x.t === 'i') return 'a ' + x.L + '-day international pass' + (x.k < x.L ? ' (' + dayE(x.k) + ' of them in Zermatt)' : ' (Zermatt days in a row)');
-            return 'a ' + x.L + '-day Cervinia pass' + (x.k ? ' + Zermatt supplement for ' + dayE(x.k) : '');
-          }).join(' · ') });
+          label: 'Short passes by the forecast: ' + _zcGroup(fc.parts.map(function (x) {
+            if (x.L === 1) return x.t === 'h' ? 'a half-day ticket' : (x.k ? 'a one-day international (Zermatt)' : 'a one-day ticket');
+            if (x.t === 'i') return 'a ' + x.L + '-day international pass' + (x.k < x.L ? ' (' + dayE(x.k) + ' of them in Zermatt)' : ' (Zermatt days in a row)') + inE(x);
+            return 'a ' + x.L + '-day Cervinia pass' + (x.k ? ' + Zermatt supplement for ' + dayE(x.k) : '') + inE(x);
+          })).join(' · ') });
       } else {
       var day = function (k) { return k === 1 ? 'יום אחד' : k + ' ימים'; };
+      var inH = function (x) { return x.j ? ' (' + (x.j === 1 ? 'חצי יום' : x.j + ' חצאי ימים') + ' בתוכו)' : ''; };
       plans.push({ id: 'forecast', cost: fc.cost, ahead: fc.parts[0].L, parts: fc.parts,
-        label: 'פסים קצרים לפי התחזית: ' + fc.parts.map(function (x) {
-          if (x.L === 1) return x.k ? 'בינלאומי ליום אחד (צ\'רמט)' : 'כרטיס ליום אחד';
-          if (x.t === 'i') return 'פס בינלאומי ל-' + x.L + ' ימים' + (x.k < x.L ? ' (' + day(x.k) + ' מהם בצ\'רמט)' : ' (ימי צ\'רמט ברצף)');
-          return 'פס צ\'רוויניה ל-' + x.L + ' ימים' + (x.k ? ' + תוספת צ\'רמט ל' + day(x.k) : '');
-        }).join(' · ') });
+        label: 'פסים קצרים לפי התחזית: ' + _zcGroup(fc.parts.map(function (x) {
+          if (x.L === 1) return x.t === 'h' ? 'כרטיס חצי יום' : (x.k ? 'בינלאומי ליום אחד (צ\'רמט)' : 'כרטיס ליום אחד');
+          if (x.t === 'i') return 'פס בינלאומי ל-' + x.L + ' ימים' + (x.k < x.L ? ' (' + day(x.k) + ' מהם בצ\'רמט)' : ' (ימי צ\'רמט ברצף)') + inH(x);
+          return 'פס צ\'רוויניה ל-' + x.L + ' ימים' + (x.k ? ' + תוספת צ\'רמט ל' + day(x.k) : '') + inH(x);
+        })).join(' · ') });
       }
     }
   }
+  // the same plan twice is noise: a forecast split that is the one pass
+  plans = plans.filter(function (pl) {
+    return pl.id !== 'forecast' || !plans.some(function (o) { return o !== pl && o.cost === pl.cost && o.ahead === pl.ahead; });
+  });
   plans.sort(function (a, b) { return a.cost - b.cost; });
   return plans;
 }
+// "a half-day ticket · a half-day ticket" reads as "2 half-day tickets"
+var ZC_MANY = {
+  'כרטיס חצי יום': function (n) { return n + ' כרטיסי חצי יום'; },
+  'כרטיס ליום אחד': function (n) { return n + ' כרטיסים ליום אחד'; },
+  'בינלאומי ליום אחד (צ\'רמט)': function (n) { return n + ' כרטיסים בינלאומיים ליום אחד (צ\'רמט)'; },
+  'a half-day ticket': function (n) { return n + ' half-day tickets'; },
+  'a one-day ticket': function (n) { return n + ' one-day tickets'; },
+  'a one-day international (Zermatt)': function (n) { return n + ' one-day internationals (Zermatt)'; }
+};
+function _zcGroup(list) {
+  var out = [], cnt = {};
+  list.forEach(function (t) { if (cnt[t]) cnt[t]++; else { cnt[t] = 1; out.push(t); } });
+  return out.map(function (t) { return cnt[t] > 1 && ZC_MANY[t] ? ZC_MANY[t](cnt[t]) : (cnt[t] > 1 ? cnt[t] + ' × ' + t : t); });
+}
+// "an 8-day", "an 11-day" - the English article follows the sound
+function _anDays(n) { return (n === 8 || n === 11 || n === 18) ? 'An ' : 'A '; }
 function zcRender() {
   var out = document.getElementById('zc-out');
   if (!out) return;
   document.getElementById('zc-n').textContent = ZC.n;
   document.getElementById('zc-z').textContent = ZC.z;
-  var plans = zcPlans(ZC.n, ZC.z);
+  var hEl = document.getElementById('zc-h'); if (hEl) hEl.textContent = ZC.h;
+  var plans = zcPlans(ZC.n, ZC.z, ZC.h);
   if (!plans) { out.innerHTML = '<span style="color:#888;">' + L('המחירון לא נטען', 'The price list did not load') + '</span>'; return; }
   var min = plans[0].cost;
   var eur = function (v) { return '<bdi dir="ltr">€' + (Math.round(v * 2) / 2).toLocaleString('en-US') + '</bdi>'; };
@@ -9488,7 +9556,8 @@ function zcRender() {
       + '<div style="font-size:0.72rem;color:#7a8794;">' + (pl.ahead ? L('משלמים מראש על ' + pl.ahead + ' ימים — יום סגור לא מוחזר', 'Paid in advance for ' + pl.ahead + ' days — a closed day is not refunded') : L('לא משלמים מראש: ביום סגור פשוט לא קונים', 'Nothing paid in advance: on a closed day you simply do not buy')) + '</div></div>'
       + '<div style="font-weight:bold;white-space:nowrap;">' + eur(pl.cost) + (top ? '' : '<div style="font-size:0.7rem;font-weight:normal;color:#8a5a00;">+' + eur(pl.cost - min) + '</div>') + '</div></div>';
   }).join('')
-  + '<div style="font-size:0.72rem;color:#7a8794;margin-top:4px;">' + L('למבוגר, לפי המחירון הרשמי. תוספת היום לצ\'רמט נמכרת רק למי שיש לו פס לכמה ימים, ותקפה ביום הקנייה בלבד.', 'For an adult, by the official price list. The Zermatt day supplement is sold only to holders of a multi-day pass, and is valid on the day of purchase only.') + '</div>';
+  + '<div style="font-size:0.72rem;color:#7a8794;margin-top:4px;">' + L('למבוגר, לפי המחירון הרשמי. תוספת היום לצ\'רמט נמכרת רק למי שיש לו פס לכמה ימים, ותקפה ביום הקנייה בלבד.', 'For an adult, by the official price list. The Zermatt day supplement is sold only to holders of a multi-day pass, and is valid on the day of purchase only.')
+  + (ZC.h ? L(' כרטיס חצי יום קיים רק לצד של צ\'רוויניה — אין חצי יום בינלאומי. ולפי הפס של כמה ימים: הימים ברצף.', ' A half-day ticket exists for the Cervinia side only — there is no international half day. And a multi-day pass runs on consecutive days.') : '') + '</div>';
 }
 
 function _costPassPrice(pass, band, days) {
@@ -9990,7 +10059,7 @@ function _costPassTotal(pass, days) {
 function _costHalfTotal() {
   // the tariff's half day exists for the Cervinia pass only
   var b = COST.bands || {}, t = 0, p = window._texts && window._texts.skipass && window._texts.skipass.prices;
-  var row = p && p.cervinia && (p.cervinia.rows || []).filter(function (r) { return /חצי יום/.test(r[0]); })[0];
+  var row = p && p.cervinia && (p.cervinia.rows || []).filter(function (r) { return /חצי יום|half day/i.test(r[0]); })[0];
   if (!row) return null;
   for (var i = 0; i < COST_BANDS.length; i++) {
     var k = COST_BANDS[i], n = b[k] || 0;
@@ -20382,9 +20451,9 @@ async function _admRenderUsers() {
          Four ways to buy for N days with Z of them in Zermatt, priced from
          the official tariff for one adult. -->
     <div id="zc-box" style="padding:12px 14px;background:#fff;border:1.5px solid #d8e4f0;border-radius:11px;margin-bottom:14px;font-size:0.8rem;color:#334;line-height:1.7;">
-      <div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;" data-en="🧮 Days in Zermatt — what is the cheapest way to buy?">🧮 ימים בצ'רמט — איך הכי משתלם לקנות?</div>
+      <div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;" data-en="🧮 Full days, Zermatt days, half days — what is the cheapest way to buy?">🧮 ימים מלאים, ימים בצ'רמט, חצאי ימים — איך הכי משתלם לקנות?</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:10px;">
-        <span style="display:inline-flex;align-items:center;gap:6px;"><span data-en="Ski days">ימי סקי</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span data-en="Full days">ימים מלאים</span>
           <button class="c-btn" type="button" onclick="zcAdj('n',-1)">-</button>
           <b id="zc-n" style="min-width:1.4em;text-align:center;">5</b>
           <button class="c-btn" type="button" onclick="zcAdj('n',1)">+</button></span>
@@ -20392,7 +20461,12 @@ async function _admRenderUsers() {
           <button class="c-btn" type="button" onclick="zcAdj('z',-1)">-</button>
           <b id="zc-z" style="min-width:1.4em;text-align:center;">2</b>
           <button class="c-btn" type="button" onclick="zcAdj('z',1)">+</button></span>
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span data-en="Half days">חצאי ימים</span>
+          <button class="c-btn" type="button" onclick="zcAdj('h',-1)">-</button>
+          <b id="zc-h" style="min-width:1.4em;text-align:center;">0</b>
+          <button class="c-btn" type="button" onclick="zcAdj('h',1)">+</button></span>
       </div>
+      <div style="font-size:0.72rem;color:#7a8794;margin:-4px 0 8px;" data-en="Half a day — on the arrival or departure day, or for a beginner. A morning ticket runs until 13:00, an afternoon one from 12:00, on the Cervinia side only.">חצי יום — ביום ההגעה או העזיבה, או למתחיל. כרטיס בוקר תקף עד 13:00, ואחר הצהריים מ-12:00, בצד של צ'רוויניה בלבד.</div>
       <div id="zc-out"></div>
     </div>
 

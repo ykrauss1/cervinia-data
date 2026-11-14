@@ -8661,6 +8661,24 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     openM('skipassModal'); ZC.n = 5; ZC.z = 2; zcRender();
     out.zcShown = $('zc-out').querySelectorAll('.zc-plan').length === pl.length && /🏆/.test($('zc-out').textContent);
     zcAdj('z', 9); out.zcCap = ZC.z === 5; zcAdj('n', -9); out.zcCap = out.zcCap && ZC.n === 1 && ZC.z === 1;
+    // half days (Yossi, 14.11): priced from the tariff's half-day row, and
+    // whichever is cheaper - a half-day ticket apart or one more pass day
+    const H = _halfPrice('Adult');
+    const p51 = zcPlans(5, 0, 1), b51 = id => (p51.find(x => x.id === id) || {}).cost;
+    out.halfMath = H === 51 && b51('local') === Math.min(C(6), C(5) + H) && b51('daily') === 5 * C(1) + H
+      && p51[0].cost === Math.min(...p51.map(x => x.cost));
+    const p003 = zcPlans(0, 0, 3);
+    out.halfOnly = !!p003 && p003[0].id === 'daily' && p003[0].cost === 3 * H;
+    const p412 = zcPlans(4, 1, 2), f412 = p412.find(x => x.id === 'forecast');
+    out.halfForecast = !!f412 && f412.cost === C(3) + 2 * H + I(1) && /2 כרטיסי חצי יום/.test(f412.label);
+    // no plan is listed twice
+    const p201 = zcPlans(2, 0, 1);
+    out.halfNoDup = p201.filter(x => x.cost === p201[0].cost).length === 1;
+    ZC.n = 1; ZC.z = 0; ZC.h = 0; zcAdj('h', 1); zcAdj('n', -1);
+    out.halfCap = ZC.n === 0 && ZC.h === 1 && /חצי יום/.test($('zc-out').textContent);
+    zcAdj('h', -1); out.halfCap = out.halfCap && ZC.h === 1; // never no days at all
+    zcAdj('h', 20); out.halfCap = out.halfCap && ZC.h === 8;
+    ZC.n = 5; ZC.z = 2; ZC.h = 0; zcRender();
     closeM('skipassModal');
     // a percent sign stays with its number on a Hebrew line
     out.pct = /<span dir="ltr">12%<\/span>/.test(_fixNums('כ-12% פחות'));
@@ -8677,6 +8695,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!/פס בינלאומי ל-2 ימים|תוספת צ'רמט|בינלאומי ליום אחד/.test(r.zcSays)) fail(T, `the forecast plan does not say which pass covers Zermatt: "${r.zcSays}"`); else ok();
   if (!r.zcShown || !r.zcCap) fail(T, `the calculator does not show its plans (${r.zcShown}) or keep its days in range (${r.zcCap})`); else ok();
   if (!r.pct) fail(T, 'a percent sign is left outside its number on a Hebrew line'); else ok();
+  if (!r.halfMath) fail(T, 'half days do not add up against the tariff (a half-day ticket or one more pass day, whichever is cheaper)'); else ok();
+  if (!r.halfOnly) fail(T, 'a stay of half days only is not priced as half-day tickets'); else ok();
+  if (!r.halfForecast) fail(T, 'the forecast plan does not price half days as half-day tickets'); else ok();
+  if (!r.halfNoDup) fail(T, 'the same plan is listed twice'); else ok();
+  if (!r.halfCap) fail(T, 'the half-days control does not keep its range (no days at all, or more than 8)'); else ok();
 }
 
 // ── the live reading outranks an older crossing notice ───────────────
