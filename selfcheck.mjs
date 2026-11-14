@@ -8702,6 +8702,36 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.halfCap) fail(T, 'the half-days control does not keep its range (no days at all, or more than 8)'); else ok();
 }
 
+// ── a walk says where it starts and how you get back ────────────────
+// Yossi, 14.11: a route card gives its starting point on the map, and a
+// route that ends somewhere else says how to get back; the extra official
+// links are drawn as links.
+{
+  const T = 'a walk says where it starts and how you get back';
+  const r = await page.evaluate(() => {
+    const out = { noStart: [], noBack: [], pts: [], drawn: false, links: 0 };
+    const routes = /Champlève|Foyer du Fond|Fornet|Tour di Mande|Ussel|Lago di Loz/;
+    const ok = v => { const c = String(v || '').split(',').map(Number); return c.length === 2 && c[0] > 45.6 && c[0] < 46 && c[1] > 7.5 && c[1] < 7.8; };
+    _texts.around.places.forEach(p => {
+      if (!routes.test(p.name)) return;
+      if (!p.start || !ok(p.start_latlon || p.latlon)) out.noStart.push(p.name);
+      if (p.end_latlon && !p.back) out.noBack.push(p.name);
+      [p.latlon, p.start_latlon, p.end_latlon].concat((p.links || []).map(k => k.latlon)).forEach(v => { if (v && !ok(v)) out.pts.push(p.name + ' ' + v); });
+    });
+    openM('aroundModal'); switchAroundTab('trips');
+    const box = document.getElementById('around-list');
+    const card = [...box.children].find(c => /Ussel/.test(c.textContent));
+    out.drawn = !!card && /🚩/.test(card.textContent) && /↩️/.test(card.textContent);
+    out.links = card ? card.querySelectorAll('a[href*="google.com/maps"]').length : 0;
+    switchAroundTab('close'); closeM('aroundModal');
+    return out;
+  });
+  if (r.noStart.length) fail(T, `route cards without a starting point on the map: ${r.noStart.join(', ')}`); else ok();
+  if (r.noBack.length) fail(T, `one-way routes that do not say how to get back: ${r.noBack.join(', ')}`); else ok();
+  if (r.pts.length) fail(T, `points outside the valley: ${r.pts.join(', ')}`); else ok();
+  if (!r.drawn || r.links < 4) fail(T, `the Ussel card does not show its start, way back and map points (drawn ${r.drawn}, map links ${r.links})`); else ok();
+}
+
 // ── the live reading outranks an older crossing notice ───────────────
 // Yossi, 11.11: the strip said the crossing had opened while the mountain
 // badge and the operator said shut. A newer reading takes the notice off.

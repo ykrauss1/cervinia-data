@@ -1636,7 +1636,8 @@
     "what": "A circular ciaspole route (walking in snow with snowshoes) of 3.7 km with a 227 m climb, set up by Valtournenche municipality. You start from the hamlet of Losanche or from the cable-car car park.",
     "drive": "Valtournenche · about 9 km",
     "open": "All winter",
-    "warn": "This is the nearest marked snowshoe route to Cervinia that does not depend on a lift — so it works even on a day the lifts are closed"
+    "warn": "This is the nearest marked snowshoe route to Cervinia that does not depend on a lift — so it works even on a day the lifts are closed",
+    "start": "In the hamlet of Losanche, or at the cable-car car park at Plan de la Glaea — a loop"
    },
    {
     "he": "Cross-country loops at Champlève, above Valtournenche",
@@ -1644,7 +1645,13 @@
     "drive": "Valtournenche · a few km from the centre of Valtournenche, towards Cheneil",
     "open": "All winter, when there is snow — which loops are open is in the snow report",
     "price": "Day ticket €7, reduced €5 · tickets are sold at the bar by the track",
-    "warn": "Equipment rental in Valtournenche village, at Pellissier Sport. Before you go you can phone the sports centre: 0166 92698"
+    "warn": "Equipment rental in Valtournenche village, at Pellissier Sport. Before you go you can phone the sports centre: 0166 92698",
+    "start": "In the hamlet of Champlève, by the Lo Baraquién bar — where you also buy the ticket. Loops that come back to the same point",
+    "links": [
+     {
+      "t": "The runs on the regional tourist site"
+     }
+    ]
    },
    {
     "he": "A big cross-country centre — and a snow walk too",
@@ -1653,7 +1660,14 @@
     "open": "All winter, when there is snow — which runs are open is in the snow report",
     "price": "Cross-country day ticket €12 · ages 7–13: €7 · the walking path is free",
     "warn": "On the walking path, keep off the ski tracks, and at Châtelard turn left for Gordzà — the stretch beyond is for skiers. After fresh snow, snowshoes. Centre phone: 349 340 4632 · ticket office in Torgnon centre: 0166 540212",
-    "kids": "Ages 7–13 at a reduced price, and an easy 3 km loop"
+    "kids": "Ages 7–13 at a reduced price, and an easy 3 km loop",
+    "start": "The centre itself, at Plan Prorion — for the ski runs and for the path to Gordzà alike",
+    "back": "The ski runs are loops. The walking path to Gordzà goes one way, about an hour — come back the same way",
+    "links": [
+     {
+      "t": "The Gordzà path — in the region's on-foot-on-snow leaflet"
+     }
+    ]
    },
    {
     "he": "A snow walking path, on the mountain",
@@ -1661,7 +1675,14 @@
     "drive": "Take the gondola up from the village to Plan Maison",
     "open": "Only when the lifts are running",
     "price": "The path is free; the gondola is paid — ask at the ticket office for a pedestrian ticket",
-    "warn": "At 3,000 m it is far colder and windier than in the village. Winter boots or snowshoes"
+    "warn": "At 3,000 m it is far colder and windier than in the village. Winter boots or snowshoes",
+    "start": "The top station of the gondola at Plan Maison. The gondola leaves from the village. The \"On the map\" link shows the boarding station in the village",
+    "back": "The path goes one way, to the top of the Fornet chairlift. Walk back down the same path to Plan Maison, and take the gondola down to the village",
+    "links": [
+     {
+      "t": "Which lifts are open now — the official site"
+     }
+    ]
    },
    {
     "he": "Snow loops above Valtournenche",
@@ -1669,7 +1690,14 @@
     "drive": "Valtournenche · the cable car leaves from Plan de la Glaea",
     "open": "When the cable car is running",
     "price": "The trail is free; the cable car is paid",
-    "warn": "⚠️ The trail is marked and prepared, but **not patrolled** — do not go out on it alone, and check the avalanche bulletin first"
+    "warn": "⚠️ The trail is marked and prepared, but **not patrolled** — do not go out on it alone, and check the avalanche bulletin first",
+    "start": "The top station of the cable car at Salette. The cable car leaves from Plan de la Glaea in Valtournenche. The \"On the map\" link shows the boarding station",
+    "back": "Loops that come back to Salette, and from there you ride the cable car down",
+    "links": [
+     {
+      "t": "Which lifts are open now — the official site"
+     }
+    ]
    },
    {
     "he": "Dog sledding",
@@ -1694,7 +1722,13 @@
     "drive": "Buisson · about 20 km, about half an hour (estimated)",
     "open": "The cable car runs all year, 07:00–22:30, a departure every half hour",
     "price": "The cable-car ticket is bought at the Buisson station",
-    "warn": "The attraction is the village itself — small, snowy and car-free — not the view. So it works even in poor visibility. Plan around the half-hourly departures"
+    "warn": "The attraction is the village itself — small, snowy and car-free — not the view. So it works even in poor visibility. Plan around the half-hourly departures",
+    "start": "The groomed path sets off from the top cable-car station, in Chamois village — a loop",
+    "links": [
+     {
+      "t": "The Col Pilaz path on the regional tourist site"
+     }
+    ]
    },
    {
     "he": "Snow tubing and a children's snow park",
@@ -1912,7 +1946,23 @@
     "drive": "Châtillon · 27 km, 40–50 minutes",
     "open": "All year, free",
     "price": "Free · park at Châtillon railway station",
-    "warn": "⚠️ The official brochure is not written for winter: the climb through the woods to the castle is steep and can be slippery after a frost — walking shoes with a good sole. And when it storms in Cervinia it may rain in the valley: check the forecast for Châtillon itself. It combines with the Castello Gamba, also in Châtillon (closed on Mondays)"
+    "warn": "⚠️ The official brochure is not written for winter: the climb through the woods to the castle is steep and can be slippery after a frost — walking shoes with a good sole. And when it storms in Cervinia it may rain in the valley: check the forecast for Châtillon itself. It combines with the Castello Gamba, also in Châtillon (closed on Mondays)",
+    "start": "The Ussel loop: Châtillon-Saint-Vincent railway station, and park there. The Ru de la Plaine: Châtillon church, on Via Chanoux",
+    "back": "Ussel — a loop, back to the station along the river. The Ru de la Plaine — one way, to Les Moulins in Saint-Vincent: walk back the same way (about an hour and a quarter), or arrange a car pick-up there in advance",
+    "links": [
+     {
+      "t": "🏰 Castello di Ussel on the map"
+     },
+     {
+      "t": "🚩 Ru de la Plaine — the starting point on the map"
+     },
+     {
+      "t": "🏁 Ru de la Plaine — the finish on the map"
+     },
+     {
+      "t": "The Ru de la Plaine on the regional tourist site"
+     }
+    ]
    }
   ],
   "footer": "All times are estimates: every trip from Cervinia starts with the same 27 km of hairpins dropping about 1,470 m to Châtillon, and the times published online are optimistic for winter. Add a quarter of an hour to the first leg, and check road and lift conditions before you set out."

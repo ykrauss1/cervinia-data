@@ -4544,7 +4544,10 @@
         "warn": "זה מסלול נעלי השלג המסומן הקרוב ביותר לצ'רוויניה שלא תלוי במעלית — כלומר עובד גם ביום שבו המעליות סגורות",
         "map": "Valtournenche",
         "url": "https://cervinia.it/en/cosa-fare/ciaspole",
-        "latlon": "45.9115338,7.641799"
+        "latlon": "45.9115338,7.641799",
+        "start": "בכפרון <bdi>Losanche</bdi>, או בחניון הרכבל ב-<bdi>Plan de la Glaea</bdi> — מסלול מעגלי",
+        "start_latlon": "45.885371,7.627198",
+        "start_map": "Losanche Valtournenche"
       },
       {
         "cat": "close",
@@ -4558,7 +4561,15 @@
         "price": "כרטיס יומי 7 אירו, מוזל 5 אירו · הכרטיסים נמכרים בבר שליד המסלול",
         "warn": "השכרת ציוד בכפר ולטורננש, בחנות <bdi>Pellissier Sport</bdi>. לפני הנסיעה אפשר לטלפן למרכז הספורט: 0166 92698",
         "map": "Champlève Valtournenche",
-        "url": "https://www.cervinia.it/en/inverno/sci-di-fondo"
+        "url": "https://www.cervinia.it/en/inverno/sci-di-fondo",
+        "latlon": "45.876770,7.637982",
+        "start": "בכפרון <bdi>Champlève</bdi>, ליד הבר <bdi>Lo Baraquién</bdi> — שם גם קונים כרטיס. לולאות שחוזרות לאותה נקודה",
+        "links": [
+          {
+            "t": "דף המסלולים באתר התיירות של החבל",
+            "u": "https://balteus.lovevda.it/en/database/5/cross-country-skiing/valtournenche/valtournenche-runs/2622"
+          }
+        ]
       },
       {
         "cat": "close",
@@ -4573,7 +4584,16 @@
         "warn": "בשביל להולכי רגל לא דורכים על מסלולי הסקי, ומ-<bdi>Châtelard</bdi> פונים שמאלה אל <bdi>Gordzà</bdi> — הקטע שאחריו שמור לגולשים. אחרי שלג טרי נעלי שלג. טלפון המרכז: 349 340 4632 · הקופה במרכז <bdi>Torgnon</bdi>: 0166 540212",
         "kids": "גילאי 7–13 במחיר מוזל, ולולאה קלה של 3 ק\"מ",
         "map": "Foyer du Fond Lo Vierdzà Torgnon",
-        "url": "https://balteus.lovevda.it/en/database/5/cross-country-skiing/torgnon/torgnon-pistes/2588"
+        "url": "https://balteus.lovevda.it/en/database/5/cross-country-skiing/torgnon/torgnon-pistes/2588",
+        "latlon": "45.802336,7.552719",
+        "start": "המרכז עצמו, ב-<bdi>Plan Prorion</bdi> — גם למסלולי הסקי וגם לשביל אל <bdi>Gordzà</bdi>",
+        "back": "מסלולי הסקי הם לולאות. השביל להולכי רגל אל <bdi>Gordzà</bdi> הוא בכיוון אחד, כשעה — חוזרים באותה דרך",
+        "links": [
+          {
+            "t": "השביל אל Gordzà — בחוברת ההליכה על שלג של החבל",
+            "u": "https://lovevda.it/Media/LovevdaResp/Allegati-PDF/ITA_Passeggiate_A_piedi_sulla_neve.pdf"
+          }
+        ]
       },
       {
         "cat": "close",
@@ -4586,8 +4606,22 @@
         "storm": false,
         "price": "השביל חינם; הגונדולה בתשלום — שאלו בקופה על כרטיס להולכי רגל",
         "warn": "בגובה 3,000 מ' קר ונושב הרבה יותר מבכפר. נעלי חורף או נעלי שלג",
-        "map": "Plan Maison Breuil-Cervinia",
-        "url": "https://www.lovevda.it/en/database/7/pathways-on-the-snow/breuil-cervinia/plan-maison-fornet/2811"
+        "map": "Funivia Breuil-Cervinia Plan Maison",
+        "url": "https://www.lovevda.it/en/database/7/pathways-on-the-snow/breuil-cervinia/plan-maison-fornet/2811",
+        "latlon": "45.934276,7.633659",
+        "lifts": true,
+        "start": "התחנה העליונה של הגונדולה ב-<bdi>Plan Maison</bdi>. הגונדולה יוצאת מהכפר. הקישור \"במפה\" מראה את תחנת העלייה בכפר",
+        "start_latlon": "45.940796,7.654177",
+        "start_map": "Plan Maison Breuil-Cervinia",
+        "end_latlon": "45.947643,7.695325",
+        "end_map": "Fornet Valtournenche",
+        "back": "השביל בכיוון אחד, אל ראש הכיסא של <bdi>Fornet</bdi>. חוזרים ברגל באותו שביל ל-<bdi>Plan Maison</bdi>, ומשם בגונדולה לכפר",
+        "links": [
+          {
+            "t": "אילו מעליות פתוחות עכשיו — האתר הרשמי",
+            "u": "https://www.cervinia.it/en/impianti"
+          }
+        ]
       },
       {
         "cat": "close",
@@ -4601,7 +4635,19 @@
         "price": "המסלול חינם; הרכבל בתשלום",
         "warn": "⚠️ המסלול מסומן ומוכשר, אבל **לא מבוקר** — לא יוצאים אליו לבד, ובודקים לפני את דוח המפולות",
         "map": "Funivia Valtournenche Salette",
-        "url": "https://www.lovevda.it/en/database/7/pathways-on-the-snow/valtournenche/excursion-path-tour-di-mande/2773"
+        "url": "https://www.lovevda.it/en/database/7/pathways-on-the-snow/valtournenche/excursion-path-tour-di-mande/2773",
+        "latlon": "45.888234,7.623995",
+        "lifts": true,
+        "start": "התחנה העליונה של הרכבל ב-<bdi>Salette</bdi>. הרכבל יוצא מ-<bdi>Plan de la Glaea</bdi> בוולטורננש. הקישור \"במפה\" מראה את תחנת העלייה",
+        "start_latlon": "45.893147,7.647290",
+        "start_map": "Salette Valtournenche",
+        "back": "לולאות שחוזרות ל-<bdi>Salette</bdi>, ומשם יורדים ברכבל",
+        "links": [
+          {
+            "t": "אילו מעליות פתוחות עכשיו — האתר הרשמי",
+            "u": "https://www.cervinia.it/en/impianti"
+          }
+        ]
       },
       {
         "cat": "close",
@@ -4646,7 +4692,16 @@
         "url": "https://balteus.lovevda.it/en/database/5/ski-lifts/antey-saint-andre/buisson-chamois-cablecar/3982",
         "warn": "האטרקציה היא הכפר עצמו — קטן, מושלג וללא רכבים — ולא הנוף. לכן הוא דווקא עובד בראות גרועה. תכננו סביב היציאות של חצי השעה",
         "map": "Funivia Buisson Chamois",
-        "latlon": "45.835259,7.609960"
+        "latlon": "45.835259,7.609960",
+        "start": "השביל המהודק יוצא מהתחנה העליונה של הרכבל, בכפר <bdi>Chamois</bdi> — מסלול מעגלי",
+        "start_latlon": "45.837958,7.618778",
+        "start_map": "Chamois funivia",
+        "links": [
+          {
+            "t": "השביל אל Col Pilaz באתר התיירות של החבל",
+            "u": "https://lovevda.it/en/database/7/pathways-on-the-snow/chamois/pedestrian-path-chamois-col-pilaz-belvedere-champlong/3056"
+          }
+        ]
       },
       {
         "cat": "close",
@@ -5048,8 +5103,32 @@
         "storm": true,
         "price": "חינם · חניה בתחנת הרכבת של <bdi>Châtillon</bdi>",
         "warn": "⚠️ החוברת הרשמית לא כתובה לחורף: העלייה ביער לטירה תלולה, ואחרי כפור עלולה להיות חלקה — נעלי הליכה עם סוליה טובה. וכשסוער בצ'רוויניה, בעמק יכול לרדת גשם: בדקו תחזית ל-<bdi>Châtillon</bdi> עצמה. אפשר לחבר ל-<bdi>Castello Gamba</bdi>, שנמצא גם הוא ב-<bdi>Châtillon</bdi> (סגור בימי שני)",
-        "map": "Castello di Ussel Châtillon",
-        "url": "https://gestwww.lovevda.it/Media/Default/Allegati-PDF/pagina%20singola_S-VincenetIT.pdf"
+        "map": "Stazione di Châtillon-Saint-Vincent",
+        "url": "https://gestwww.lovevda.it/Media/Default/Allegati-PDF/pagina%20singola_S-VincenetIT.pdf",
+        "latlon": "45.743448,7.619366",
+        "start": "מסלול <bdi>Ussel</bdi>: תחנת הרכבת <bdi>Châtillon-Saint-Vincent</bdi>, וחונים שם. <bdi>Ru de la Plaine</bdi>: הכנסייה של <bdi>Châtillon</bdi>, ברחוב <bdi>Via Chanoux</bdi>",
+        "back": "<bdi>Ussel</bdi> — מסלול מעגלי, חוזרים לתחנה לאורך הנהר. <bdi>Ru de la Plaine</bdi> — בכיוון אחד, עד <bdi>Les Moulins</bdi> ב-<bdi>Saint-Vincent</bdi>: חוזרים ברגל באותה דרך (כשעה ורבע), או מתאמים מראש איסוף ברכב משם",
+        "links": [
+          {
+            "t": "🏰 Castello di Ussel במפה",
+            "map": "Castello di Ussel Châtillon",
+            "latlon": "45.741664,7.628352"
+          },
+          {
+            "t": "🚩 Ru de la Plaine — נקודת היציאה במפה",
+            "map": "Chiesa Parrocchiale San Pietro Châtillon",
+            "latlon": "45.749151,7.612337"
+          },
+          {
+            "t": "🏁 Ru de la Plaine — נקודת הסיום במפה",
+            "map": "Les Moulins Saint-Vincent",
+            "latlon": "45.755144,7.645809"
+          },
+          {
+            "t": "Ru de la Plaine באתר התיירות של החבל",
+            "u": "https://www.lovevda.it/en/database/7/healthy-route/saint-vincent/equipped-ru-de-la-plaine-trail/2902"
+          }
+        ]
       }
     ],
     "footer": "כל הזמנים הם הערכות: כל נסיעה מצ'רוויניה מתחילה באותם 27 ק\"מ של סרפנטינות שיורדות כ-1,470 מ' עד שאטיון (Châtillon), והזמנים המפורסמים ברשת אופטימיים לחורף. הוסיפו רבע שעה לרגל הראשונה, ובדקו מצב כבישים ומעליות לפני שיוצאים."

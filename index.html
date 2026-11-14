@@ -1283,7 +1283,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.65';
+  var v='v17.66';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -11759,12 +11759,13 @@ CE.FIELD = {
   addr: 'כתובת', piste: 'על איזה מסלול', len: 'אורך', diff: 'דרגה',
   phone: 'טלפון', url: 'קישור', label: 'תווית', note: 'הערה', icon: 'אייקון',
   kashrut: 'כשרות', covers: 'מה מכסה', quote: 'ציטוט מהמקור', badge: 'תג',
-  summary: 'תקציר', num: 'מספר מסלול', season: 'עונה'
+  summary: 'תקציר', num: 'מספר מסלול', season: 'עונה',
+  start: 'נקודת יציאה', back: 'איך חוזרים', t: 'טקסט הקישור', u: 'כתובת הקישור'
 };
 
 // Editing any of these breaks a link, a pin or a filter. They stay reachable,
 // behind a disclosure, so a stray keystroke cannot reach them by accident.
-CE.TECH = ['map','mapy','xy','latlon','start_latlon','trail','geo','area_key',
+CE.TECH = ['map','mapy','xy','latlon','start_latlon','start_map','end_latlon','end_map','lifts','trail','geo','area_key',
            'cat','id','k','type','tags','bg','rule','q','until','season_until',
            'xy_approx','storm'];
 
@@ -15983,6 +15984,10 @@ function renderAroundList() {
     h += row('🕑', _aEsc(pl.open));
     h += row('💶', _aEsc(pl.price));
     h += row('👨‍👩‍👧', _aEsc(pl.kids), '#1a4b8c');
+    // a route says where it starts, and - when it ends somewhere else - how
+    // to get back (Yossi, 14.11)
+    h += row('🚩', _aEsc(pl.start));
+    h += row('↩️', _aEsc(pl.back));
 
     if (pl.warn && _aLive(pl.warn_until)) {
       h += '<div style="font-size:0.78rem;color:#8a5a00;background:#fffaf0;border-right:3px solid #f0c674;'
@@ -16000,8 +16005,23 @@ function renderAroundList() {
         + 'style="font-size:0.78rem;color:#1a4b8c;text-decoration:underline;">'
         + _gLabel(pl.xy_approx) + '</a>');
     }
+    var aSty = 'style="font-size:0.78rem;color:#1a4b8c;text-decoration:underline;"';
+    if (pl.start_latlon) {
+      links.push('<a href="' + _gUrl(pl.start_map || pl.map || pl.name, pl.start_latlon) + '" target="_blank" rel="noopener" ' + aSty + '>'
+        + L('🚩 נקודת היציאה במפה', '🚩 The starting point on the map') + '</a>');
+    }
+    if (pl.end_latlon) {
+      links.push('<a href="' + _gUrl(pl.end_map || pl.name, pl.end_latlon) + '" target="_blank" rel="noopener" ' + aSty + '>'
+        + L('🏁 נקודת הסיום במפה', '🏁 The finish on the map') + '</a>');
+    }
+    // more official pages, or a second route's point: { t, u } or { t, map, latlon }
+    (pl.links || []).forEach(function (k) {
+      if (!k || !k.t) return;
+      var href = k.u || (k.map ? _gUrl(k.map, k.latlon) : '');
+      if (href) links.push('<a href="' + href + '" target="_blank" rel="noopener" ' + aSty + '>' + _aEsc(k.t) + '</a>');
+    });
     if (links.length) {
-      h += '<div style="margin-top:9px;display:flex;gap:14px;flex-wrap:wrap;">' + links.join('') + '</div>';
+      h += '<div style="margin-top:9px;display:flex;gap:6px 14px;flex-wrap:wrap;">' + links.join('') + '</div>';
     }
     return h + '</div>';
   }).join('');
