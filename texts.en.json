@@ -3952,12 +3952,13 @@
  "ski_areas": {
   "title": "🎿 Other ski areas nearby",
   "sub": "How far, how high, and which is worth it compared with Cervinia",
-  "intro": "Cervinia is the highest resort in the Aosta Valley, linked to Zermatt — **360 km of runs together**, 160 of them on the Italian side. Its height is also its weakness: in strong wind the high lifts close. Here are the other ski areas around — both for one day when it is stormy in Cervinia, and **as an alternative for the whole holiday**, for anyone still choosing where to go.",
+  "intro": "Cervinia is the highest resort in the Aosta Valley, linked to Zermatt — **360 km of runs together**, 160 of them on the Italian side. Its height is also its weakness: in strong wind the high lifts close. Here are the other ski areas around — both for one day when it is stormy in Cervinia, and **as an alternative for the whole holiday**, for anyone still deciding where to go.",
   "table": {
    "fancy": true,
    "cols": [
     "Area",
-    "Drive from Cervinia",
+    "From Cervinia",
+    "From Malpensa",
     "Top",
     "Runs"
    ],
@@ -3965,38 +3966,44 @@
     [
      "Cervinia",
      "—",
-     "3,480 m",
-     "160 km<br>360 with Zermatt"
+     "182&nbsp;km<br>about 2 h 10",
+     "3,480&nbsp;m",
+     "160&nbsp;km<br>360 with Zermatt"
     ],
     [
      "Torgnon",
-     "25 km<br>about 40 min",
-     "2,246 m",
+     "25&nbsp;km<br>about 40&nbsp;min",
+     "170&nbsp;km<br>about 2 h",
+     "2,246&nbsp;m",
      "small"
     ],
     [
      "Pila",
-     "55 km<br>about an hour + gondola",
-     "about 2,800 m",
-     "about 70 km"
+     "55&nbsp;km<br>about an hour + gondola",
+     "179&nbsp;km<br>about 1 h 50",
+     "about 2,800&nbsp;m",
+     "about 70&nbsp;km"
     ],
     [
      "Monterosa",
-     "63 km<br>about 1.5 hours",
-     "3,275 m",
+     "63&nbsp;km<br>about 1.5 hours",
+     "169&nbsp;km<br>about 2 h",
+     "3,275&nbsp;m",
      "3 valleys"
     ],
     [
      "Courmayeur",
-     "87 km<br>about 1 h 20",
-     "2,755 m",
-     "42 km"
+     "87&nbsp;km<br>about 1 h 20",
+     "212&nbsp;km<br>about 2 h",
+     "2,755&nbsp;m",
+     "42&nbsp;km"
     ],
     [
      "La Thuile",
-     "94 km<br>about 1.5 hours",
-     "2,800 m",
-     "156 km"
+     "94&nbsp;km<br>about 1.5 hours",
+     "218&nbsp;km<br>about 2 h 20",
+     "2,800&nbsp;m",
+     "156&nbsp;km"
     ]
    ]
   },
@@ -4008,10 +4015,10 @@
    "🗻 <b>Courmayeur — if you want Mont Blanc.</b> It is low too, but a quarter of an hour farther than Pila, with fewer marked runs (42 km) and a pricier day pass (€75 against €60).",
    "☀️ <b>Monterosa — for a fine day, not a windy one.</b> Almost as high as Cervinia. And <b>La Thuile</b> — an hour and a half each way, a lot of driving for one day.",
    "<b style=\"color:#1a3a6c;\">As an alternative for the whole holiday</b>",
-   "As a base for the holiday, the distance from Cervinia no longer matters — what each place offers does. From Malpensa airport they are all about the same distance: Pila about 1 h 50, Cervinia about 2 h 10.",
+   "As a base for the holiday, the distance from Cervinia no longer matters — what each place offers does. From Malpensa airport they are all about the same distance — between 1 h 50 and 2 h 20; see the table.",
    "🏙️ <b>Pila — sleep in town.</b> You stay in Aosta, a town with a railway station, and go up each morning by an 18-minute gondola — no driving on a snowy mountain road. Far lower, with runs in forest, and the day pass is cheaper (€60 against €64). On the other hand: only about 70 km of runs, no Zermatt, and a shorter season.",
    "🗻 <b>Courmayeur — a town below Mont Blanc.</b> Low, with runs in forest, the Skyway, and the Mont Blanc Unlimited pass that also covers Chamonix in France. On the other hand: only 42 km of marked runs, and a pricier day pass.",
-   "⛷️ <b>Monterosa — for strong skiers.</b> Three linked valleys, and a whole freeride area (Monterosa Freeride Paradise). On the other hand: high and exposed to wind like Cervinia.",
+   "⛷️ <b>Monterosa — for experienced skiers.</b> Three linked valleys, and a whole freeride area (Monterosa Freeride Paradise). On the other hand: high and exposed to wind like Cervinia.",
    "🇫🇷 <b>La Thuile — a big area in two countries.</b> 156 km together with La Rosière in France. On the other hand: the crossing to France is open only from 12/12 to 11/04.",
    "🎟️ <b>The pass:</b> a Cervinia pass of 3 days or more lets you ski one of its days at any of these areas — not an extra day, but one of the days you bought. <a href=\"#\" onclick=\"openFrom('skiAreasModal','skipassModal');return false;\">Details in the ski pass card</a>.",
    "⚠️ <b>Before you drive</b> — check the area's link for which lifts are open there that morning. In strong wind the upper lifts close at the lower areas too."
