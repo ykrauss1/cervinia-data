@@ -4003,7 +4003,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const m = src.match(/class="signin-btn">\$\{L\('([^']*)'/) || src.match(/class="signin-btn">([^<]*)<\/button>/);
   if (!m) fail(T, 'the header sign-in button is gone'); else {
     ok();
-    const label = m[1].replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n));
+    // the " / הרשמה" half sits in a span the folded phone header hides
+    const label = m[1].replace(/<[^>]*>/g, '').replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n));
     if (!/כניסה/.test(label) || !/הרשמה/.test(label)) fail(T,
       `the button reads "${label}"; it has to name both, because somebody ` +
       'without an account cannot tell that it is where they sign up'); else ok();
@@ -8639,7 +8640,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const box = $('skipass-howmany');
     out.txt = box ? box.innerText : '';
     const fold = $('skipass-prices-fold');
-    out.before = !!box && !!fold && !!(box.compareDocumentPosition(fold) & Node.DOCUMENT_POSITION_FOLLOWING);
+    // the price list is one folded line at the top (Yossi, 15.11) - the
+    // advice still comes before the long tables, which stay closed
+    out.before = !!box && !!fold && !fold.open
+      && !!(fold.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING)
+      && /2026\/2027/.test(fold.querySelector('summary').textContent);
     out.visible = !!box && box.offsetParent !== null;
     closeM('skipassModal');
     openCost('free');
@@ -8687,7 +8692,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   });
   const need = [/אין החזר/, /4 ימים קדימה/, /14 ימים/, /שבוע שלם ברצף/, /€52/, /בכל בוקר כרטיס יומי/, /היעזרו במחשבון/, /ולטורננש/];
   const miss = need.filter(re => !re.test(r.txt)).map(String);
-  if (!r.visible || !r.before) fail(T, `the advice is not shown above the tariff (shown ${r.visible}, before ${r.before})`); else ok();
+  if (!r.visible || !r.before) fail(T, `the price list is not a closed line at the top with the advice under it (shown ${r.visible}, order ${r.before})`); else ok();
   if (miss.length) fail(T, `the advice lacks: ${miss.join(' ')}`); else ok();
   if (!r.supp || !r.link) fail(T, `the calculator does not offer the local pass with the day supplement (${r.supp}) or the way to the advice (${r.link})`); else ok();
   if (!r.halfCaveat) fail(T, 'keeping the half day in the pass is offered without the no-refund caveat'); else ok();
@@ -8700,6 +8705,32 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.halfForecast) fail(T, 'the forecast plan does not price half days as half-day tickets'); else ok();
   if (!r.halfNoDup) fail(T, 'the same plan is listed twice'); else ok();
   if (!r.halfCap) fail(T, 'the half-days control does not keep its range (no days at all, or more than 8)'); else ok();
+}
+
+// ── Latin names on a Hebrew line are laid out as one unit ───────────
+// Yossi, 15.11: "Cime" and "Bianche" with the quotes on the wrong sides, a
+// house number on the far side of its street. Each Latin run is isolated.
+{
+  const T = 'Latin names on a Hebrew line are laid out as one unit';
+  const r = await page.evaluate(async () => {
+    const box = document.createElement('div');
+    box.innerHTML = '<p id="bl1">לא לבלבל עם מלון "Cime Bianche" שלמטה</p>'
+      + '<p id="bl2">' + _fixNums('בניין Fior di Roccia במרכז (Via Gorret 5) ובניין') + '</p>'
+      + '<p id="bl3">שבין Plateau Rosà לקולה.</p>'
+      + '<p id="bl4" class="ugc">שלום Plan Maison</p>';
+    document.body.appendChild(box);
+    await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+    const bd = id => [...document.querySelectorAll('#' + id + ' bdi')].map(b => b.textContent);
+    const out = { q: bd('bl1'), num: bd('bl2'), dot: bd('bl3'), ugc: bd('bl4'),
+      text: box.textContent };
+    box.remove();
+    return out;
+  });
+  if (!r.q.includes('"Cime Bianche"')) fail(T, `the quotes are not kept with the name: ${JSON.stringify(r.q)}`); else ok();
+  if (!r.num.some(x => /^Via Gorret\s+5$/.test(x))) fail(T, `the house number is not kept with its street: ${JSON.stringify(r.num)}`); else ok();
+  if (!r.dot.includes('Plateau Rosà')) fail(T, `the full stop went into the name: ${JSON.stringify(r.dot)}`); else ok();
+  if (r.ugc.length) fail(T, 'a user post was rewritten'); else ok();
+  if (!/Via Gorret\s+5/.test(r.text) || !/"Cime Bianche"/.test(r.text)) fail(T, 'the text itself changed'); else ok();
 }
 
 // ── a walk says where it starts and how you get back ────────────────

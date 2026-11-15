@@ -82,6 +82,103 @@ document.addEventListener('DOMContentLoaded', function () {
   // the logo carries the Hebrew name; the English one has only the Latin
   if (window.LANG === 'en') { var lg = document.getElementById('brand-logo'); if (lg) lg.src = './img/logo-en.png'; }
 });
+// ── Latin names on a Hebrew line (Yossi, 15.11) ─────────────────────────
+// A Hebrew line with "Loc. Rocce Nere, Plan Maison ~2,750" or "מלון
+// "Cime Bianche"" in it is laid out by the bidi algorithm, and the commas,
+// quotes and dots between the Latin words are neutral: they get pulled to
+// the Hebrew side, and the line reads scrambled - more so where it wraps.
+// Each Latin run - words, the commas and dashes joining them, and quotes
+// around it - is isolated in a <bdi>, so it is laid out as one unit and
+// placed in the Hebrew sentence as one. Done on the page rather than in the
+// data, so every renderer, the static markup and anything added later are
+// covered alike. The Hebrew page only; skipped where the text is not ours
+// to touch (user posts, inputs, editable fields, code) or already isolated.
+var _LAT_W = "[A-Za-zÀ-ɏ][A-Za-z0-9À-ɏ'’.&\\-]*";
+var _LAT_RUN = new RegExp('(["“„]?)(' + _LAT_W
+  + '(?:(?:[  ]+|,[  ]+|[  ][—–\\-][  ]|\\/)(?:' + _LAT_W + '|\\d[\\d.,]*(?=[  ]*$|[  ]+[A-Za-z])))*)(["”]?)', 'g');
+var _LAT_SKIP = 'bdi,[dir="ltr"],script,style,textarea,input,select,option,code,pre,svg,.ugc,[contenteditable],[data-no-bidi]';
+function _bidiLatin(root) {
+  if (window.LANG === 'en' || !root || !document.createTreeWalker) return;
+  if (root.nodeType === 3) root = root.parentNode;
+  if (!root || root.nodeType !== 1 || (root.closest && root.closest(_LAT_SKIP))) return;
+  var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), list = [], n;
+  while ((n = w.nextNode())) {
+    if (/[A-Za-zÀ-ɏ]/.test(n.nodeValue) && n.parentNode && !n.parentNode.closest(_LAT_SKIP)) list.push(n);
+  }
+  list.forEach(function (t) {
+    var v = t.nodeValue, frag = null, last = 0, m;
+    // an element with no Hebrew in it at all - a run's title "Baby La
+    // Vieille 1 · 2" - is laid out in its own direction, whole: as one Latin
+    // run and a loose "1 · 2" on a Hebrew line it read "2 · 1 Baby La Vieille"
+    var par = t.parentNode;
+    if (par && par !== document.body && !par.hasAttribute('dir')
+        && !/[\u0590-\u05ff]/.test(par.textContent)) { par.setAttribute('dir', 'auto'); return; }
+    if (par && par.getAttribute('dir') === 'auto') return;
+    _LAT_RUN.lastIndex = 0;
+    while ((m = _LAT_RUN.exec(v))) {
+      var q1 = m[1], run = m[2], q2 = m[3], start = m.index;
+      // a quote counts only as a pair around the run
+      if (!(q1 && q2)) { if (q1) { start += 1; } q1 = q2 = ''; }
+      // a full stop that ends the sentence is not part of the name
+      var tail = (run.match(/[.\-]+$/) || [''])[0];
+      if (tail && !/\.[A-Za-z]/.test(run.slice(-3))) run = run.slice(0, run.length - tail.length); else tail = '';
+      var whole = q1 + run + q2;
+      if (!frag) frag = document.createDocumentFragment();
+      frag.appendChild(document.createTextNode(v.slice(last, start)));
+      var b = document.createElement('bdi'); b.textContent = whole;
+      // a short name stays on one line rather than "Plateau" at the end of
+      // one and "Rosà" at the start of the next
+      if (whole.length <= 24) b.className = 'nw';
+      frag.appendChild(b);
+      last = start + whole.length;
+      _LAT_RUN.lastIndex = last;
+      // a house number the page already set apart ("Via Gorret 5") belongs
+      // to the street: on its own it lands on the street's Hebrew side
+      if (!q2 && /^[ \u00a0]*$/.test(v.slice(last)) && t.nextSibling && t.nextSibling.nodeType === 1
+          && t.nextSibling.tagName === 'SPAN' && t.nextSibling.getAttribute('dir') === 'ltr'
+          && /^\d[\d.,]*[A-Za-z]?$/.test(t.nextSibling.textContent)) {
+        b.dataset.num = '1';
+      }
+    }
+    if (!frag) return;
+    // a text node that is nothing but one Latin run inside a Latin-only
+    // element (a name in its own <b>) is already one unit
+    if (last === v.length && frag.childNodes.length === 2 && !frag.firstChild.nodeValue
+        && !/[֐-׿]/.test(t.parentNode.textContent)) return;
+    frag.appendChild(document.createTextNode(v.slice(last)));
+    var nx = t.nextSibling, lastB = frag.lastChild && frag.lastChild.previousSibling;
+    t.parentNode.replaceChild(frag, t);
+    if (lastB && lastB.dataset && lastB.dataset.num && nx && nx.parentNode) {
+      lastB.appendChild(document.createTextNode(lastB.nextSibling.nodeValue || ' '));
+      lastB.nextSibling.nodeValue = '';
+      lastB.appendChild(nx);
+      lastB.className = '';
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.LANG === 'en' || !window.MutationObserver) return;
+  _bidiLatin(document.body);
+  var pend = [], queued = false;
+  new MutationObserver(function (muts) {
+    for (var i = 0; i < muts.length; i++) {
+      var add = muts[i].addedNodes;
+      for (var j = 0; j < add.length; j++) {
+        var a = add[j];
+        if (a.nodeType === 1 && a.tagName === 'BDI') continue;
+        if (a.nodeType === 1 || a.nodeType === 3) pend.push(a);
+      }
+    }
+    if (!queued && pend.length) {
+      queued = true;
+      // after the renderer has finished the whole block, not halfway
+      (window.requestAnimationFrame || setTimeout)(function () {
+        queued = false; var l = pend; pend = [];
+        l.forEach(function (x) { if (x.isConnected) _bidiLatin(x); });
+      });
+    }
+  }).observe(document.body, { childList: true, subtree: true });
+});
 // texts.en.json over texts.json: objects by key; arrays by "id" where the
 // items carry one (so reordering the Hebrew cannot misplace a translation),
 // else by position. An item not yet translated stays as it was rather than
@@ -152,6 +249,7 @@ try {
 <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <style>
+bdi.nw { white-space: nowrap; }
 :root { --dark: #0a192f; --accent: #4cc9f0; --bg: #f4f7f9; --error: #e74c3c; --success: #2ecc71; --warning: #f1c40f; }
 body { font-family: 'Segoe UI', system-ui; background: var(--bg); margin: 0; }  /* direction comes from <html dir> */
 input[type=file] { display: none !important; }
@@ -211,6 +309,21 @@ html[dir="ltr"] #map-route-off { float: right !important; margin: -2px 0 0 -4px 
     object-fit: contain; object-position: left center; }
 }
 @media (max-width: 345px) { .cl-clock { display: none !important; } }
+/* Signed in, on a phone (Yossi, 15.11): name, level and the ADMIN tag beside
+   the avatar pushed the row onto a third line. The avatar opens the profile,
+   which shows all three; the gear and the sign-out stay. */
+@media (max-width: 600px) {
+  #auth-area .au-name, #auth-area .admin-badge { display: none !important; }
+  #auth-area > div { gap: 4px !important; }
+  /* folded into one row with the logo there is less still: the gear and the
+     sign-out wait for the top of the page, and the search keeps room for
+     its magnifier at least */
+  #topstick.shrunk #auth-area .au-gear, #topstick.shrunk #auth-area .au-out { display: none !important; }
+  #global-search-bar { min-width: 38px !important; }
+  #topstick.shrunk .si-more { display: none; }
+  #topstick.shrunk #brand-logo { height: 34px; }
+}
+@media (max-width: 350px) { #topstick.shrunk #brand-logo { height: 28px; } }
 @media (prefers-reduced-motion: reduce) {
   #brand-logo, #topstick nav { transition: none; }
 }
@@ -1283,7 +1396,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.66';
+  var v='v17.67';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -18154,7 +18267,7 @@ function renderHeader() {
   const area = document.getElementById('auth-area');
   if (user) {
     const adminBadge = isAdmin() ? '<span class="admin-badge">ADMIN</span>' : '';
-    const gear = isAdmin() ? `<span onclick="openAdminDashboard()" style="cursor:pointer;font-size:1.1rem;margin-inline-end:2px;" title="${L('ניהול', 'Admin')}">⚙️</span>` : '';
+    const gear = isAdmin() ? `<span class="au-gear" onclick="openAdminDashboard()" style="cursor:pointer;font-size:1.1rem;margin-inline-end:2px;" title="${L('ניהול', 'Admin')}">⚙️</span>` : '';
     const initial = getInitial(user.name);
     let avatarInner;
     if (user.avatar_url) {
@@ -18164,11 +18277,11 @@ function renderHeader() {
     }
     const avatar = `<div onclick="openM('profileModal')" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:0.95rem;color:white;font-weight:bold;cursor:pointer;border:2px solid rgba(255,255,255,0.3);overflow:hidden;">${avatarInner}</div>`;
     const lvEmoji = {'מתחיל':'🟢','בינוני':'🔵','מתקדם':'🔴','מקצועי':'⚫'}[user.level] || '';
-    area.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">${adminBadge}${gear}${avatar}<div style="display:flex;flex-direction:column;line-height:1.2;cursor:pointer;" onclick="openM('profileModal')"><b style="color:white;font-size:0.9rem;">${user.name}</b>${user.level?`<span style="color:#4cc9f0;font-size:0.68rem;">${lvEmoji} ${user.level}</span>`:''}</div><button onclick="logout()" title="התנתקות" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:0.8rem;padding:4px 6px;border-radius:6px;transition:color 0.15s;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">⏏</button></div>`;
+    area.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">${adminBadge}${gear}${avatar}<div class="au-name" style="display:flex;flex-direction:column;line-height:1.2;cursor:pointer;" onclick="openM('profileModal')"><b style="color:white;font-size:0.9rem;">${user.name}</b>${user.level?`<span style="color:#4cc9f0;font-size:0.68rem;">${lvEmoji} ${user.level}</span>`:''}</div><button class="au-out" onclick="logout()" title="${L('התנתקות', 'Sign out')}" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:0.8rem;padding:4px 6px;border-radius:6px;transition:color 0.15s;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">⏏</button></div>`;
   } else {
     // It used to borrow .service-btn, which is now a large card with an icon
     // tile - so the sign-in button grew into a white block in the header.
-    area.innerHTML = `<button onclick="openM('authModal')" class="signin-btn">${L('כניסה / הרשמה', 'Sign in')}</button>`;
+    area.innerHTML = `<button onclick="openM('authModal')" class="signin-btn">${L('כניסה<span class="si-more"> / הרשמה</span>', 'Sign in')}</button>`;
   }
 }
 
@@ -20461,7 +20574,38 @@ async function _admRenderUsers() {
   <div class="modal-content" style="max-width:580px;max-height:92vh;overflow-y:auto;padding:26px 24px;">
     <span class="close-btn" onclick="closeM('skipassModal')">×</span>
     <h3 style="margin:0 0 4px;font-size:1.15rem;" data-en="🎫 Ski pass — Cervinia">🎫 סקי פס — צ'רוויניה</h3>
-    <p style="color:#888;font-size:0.82rem;margin:0 0 18px;" data-en="2026/2027 season · official price list of Cervino S.p.A.">עונת 2026/2027 · מחירון רשמי של Cervino S.p.A.</p>
+
+    <!-- The tables are long, and most people come here to buy rather than to
+         read a tariff, so they fold away behind one line like the rental ones.
+         The line sits at the top, in place of the season subtitle it now
+         carries (Yossi, 15.11). -->
+    <details class="fold" id="skipass-prices-fold" style="margin:10px 0 14px;">
+      <summary data-en="💶 Official price list 2026/2027 — Cervino S.p.A.">💶 מחירון רשמי 2026/2027 — <bdi>Cervino S.p.A.</bdi></summary>
+      <div class="fold-body">
+    <!-- Pass type tabs -->
+    <div style="display:flex;gap:8px;margin:4px 0 18px;">
+      <button id="pass-tab-cervinia" onclick="switchPassTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> Cervinia</button>
+      <button id="pass-tab-zermatt" onclick="switchPassTab('zermatt')" class="ttab-btn" style="flex:1;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; + Zermatt"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> + צ'רמט</button>
+    </div>
+
+    <!-- CERVINIA ONLY -->
+    <div id="pass-panel-cervinia">
+      <!-- Category legend - filled by renderSkipassAges() from texts.json -->
+      <div id="skipass-legend-cervinia" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;font-size:0.71rem;"></div>
+      <!-- Price table - filled by renderSkipassPrices() from texts.json -->
+      <div id="skipass-table-cervinia"></div>
+    </div>
+    <div id="pass-panel-zermatt" style="display:none;">
+      <div style="padding:10px 14px;background:#e8f4fd;border-radius:9px;border:1px solid #c0d8f0;margin-bottom:12px;font-size:0.82rem;color:#1a5276;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; The combined pass covers all of Zermatt&#x27;s lifts (Zermatt Bergbahnen + GGB). ⚠️ &lt;b&gt;Take an ID&lt;/b&gt; to Switzerland.">
+        <svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> הפס המשולב כולל גישה לכל רמות צ'רמט (Zermatt Bergbahnen + GGB). ⚠️ <b>יש לצאת עם תעודת זהות</b> לשווייץ.
+      </div>
+      <div id="skipass-legend-zermatt" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;font-size:0.71rem;"></div>
+      <div id="skipass-table-zermatt"></div>
+      <div id="skipass-zermatt-notice" style="font-size:0.71rem;color:#888;margin-bottom:6px;line-height:1.6;"></div>
+    </div>
+      </div>
+    </details>
+
 
     <!-- How many days to buy (Yossi, 11.11): the weather turns, a closed day
          is not refunded, and the link to Zermatt opens day by day - the
@@ -20490,34 +20634,6 @@ async function _admRenderUsers() {
       <div id="zc-out"></div>
     </div>
 
-    <!-- The tables are long, and most people come here to buy rather than to
-         read a tariff, so they fold away behind one line like the rental ones. -->
-    <details class="fold" id="skipass-prices-fold" style="margin-bottom:14px;">
-      <summary data-en="💶 Ski-pass price lists">💶 מחירוני הסקי פס</summary>
-      <div class="fold-body">
-    <!-- Pass type tabs -->
-    <div style="display:flex;gap:8px;margin:4px 0 18px;">
-      <button id="pass-tab-cervinia" onclick="switchPassTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> Cervinia</button>
-      <button id="pass-tab-zermatt" onclick="switchPassTab('zermatt')" class="ttab-btn" style="flex:1;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; + Zermatt"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> + צ'רמט</button>
-    </div>
-
-    <!-- CERVINIA ONLY -->
-    <div id="pass-panel-cervinia">
-      <!-- Category legend - filled by renderSkipassAges() from texts.json -->
-      <div id="skipass-legend-cervinia" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;font-size:0.71rem;"></div>
-      <!-- Price table - filled by renderSkipassPrices() from texts.json -->
-      <div id="skipass-table-cervinia"></div>
-    </div>
-    <div id="pass-panel-zermatt" style="display:none;">
-      <div style="padding:10px 14px;background:#e8f4fd;border-radius:9px;border:1px solid #c0d8f0;margin-bottom:12px;font-size:0.82rem;color:#1a5276;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; The combined pass covers all of Zermatt&#x27;s lifts (Zermatt Bergbahnen + GGB). ⚠️ &lt;b&gt;Take an ID&lt;/b&gt; to Switzerland.">
-        <svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> הפס המשולב כולל גישה לכל רמות צ'רמט (Zermatt Bergbahnen + GGB). ⚠️ <b>יש לצאת עם תעודת זהות</b> לשווייץ.
-      </div>
-      <div id="skipass-legend-zermatt" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;font-size:0.71rem;"></div>
-      <div id="skipass-table-zermatt"></div>
-      <div id="skipass-zermatt-notice" style="font-size:0.71rem;color:#888;margin-bottom:6px;line-height:1.6;"></div>
-    </div>
-      </div>
-    </details>
     <div id="skipass-keycard" style="padding:13px 15px;background:#fffdf5;border:1.5px solid #e8d9a8;border-radius:11px;margin-bottom:14px;font-size:0.78rem;color:#444;line-height:1.75;"></div>
 
     <!-- Skipas Mobile -->
