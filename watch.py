@@ -40,12 +40,10 @@ UA = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
 HUBS = [
     'https://www.cervinia.it/en/impianti',
     'https://www.cervinia.it/en/skirama',
-    'https://www.cervinia.it/it/impianti',
     'https://www.cervinia.it/eventi/accesso-alle-biglietterie-e-acquisto-ticket-online',
     'https://www.cervinia.it/en/parcheggio-cervino-ski-paradise',
     'https://www.torgnon.org/',
     'https://www.matterhornparadise.ch/en/book/tickets',
-    'https://www.lovevda.it/en/sports/ski/breuil-cervinia',
 ]
 
 DOC = re.compile(r'\.pdf(\?|$)|drive\.google\.com/file/d/', re.I)
@@ -59,6 +57,22 @@ def season_names(today=None):
     a, b = y, y + 1
     return [f'{a}/{b}', f'{a}/{str(b)[2:]}', f'{a}-{b}', f'{a}-{str(b)[2:]}',
             f'{str(a)[2:]}/{str(b)[2:]}', f'{str(a)[2:]}-{str(b)[2:]}']
+
+
+def season_named(text, seasons):
+    """The next season, as the page's visible text names it. The full forms
+    (2027/2028, 2027/28) stand on their own; a short one ("27-28") counts
+    only beside a season word - on its own it is as likely a date, "26-27-28
+    gennaio"."""
+    word = r'(?:stagione|season|saison|inverno|winter|hiver|skipass|ski pass|tariff|prezzi|listino)'
+    for s in seasons:
+        pat = r'(?<![\d-])' + re.escape(s) + r'(?![\d-])'
+        if len(s) >= 7:
+            if re.search(pat, text):
+                return [s]
+        elif re.search(word + r'.{0,40}' + pat + '|' + pat + r'.{0,40}' + word, text):
+            return [s]
+    return []
 
 
 def fetch(url):
@@ -173,8 +187,7 @@ def main():
                 changes.append(({'name': url.split('/')[2], 'url': url, 'covers': 'מסמך חדש בעמוד מרכזי'},
                                 'קישור חדש למסמך: %s' % l))
         rec['links'] = links
-        t = raw.decode('utf-8', 'replace')
-        named = [s for s in seasons if re.search(r'(?<!\d)' + re.escape(s) + r'(?!\d)', t)]
+        named = season_named(page_text(raw), seasons)
         if named and not rec.get('season_seen'):
             changes.append(({'name': url.split('/')[2], 'url': url, 'covers': 'העונה הבאה'},
                             'העונה הבאה (%s) מופיעה בעמוד — אולי פורסם מחירון חדש' % named[0]))
