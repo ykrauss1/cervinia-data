@@ -8764,7 +8764,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
                   link: typeof openWizzGuide === 'function' };
     pick(['trolley', 'seat']);
     _wzReset(box.querySelector('button[onclick^="_wzReset"]'));
-    out.afterReset = box.querySelectorAll('.wz-opt[aria-pressed="true"]').length;
+    out.afterReset = [...box.querySelectorAll('.wz-opt[aria-pressed="true"]')].map(b => b.dataset.k).join(',');
     out.resetText = box.querySelector('.wz-out').textContent;
     // the picker comes after what each bundle includes and before the example
     const card = box.parentElement, tabs = [...card.querySelectorAll('table')];
@@ -8784,7 +8784,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!/32/.test(r.heavy)) fail(T, 'a suitcase over 20 kg does not point to the 32 kg one'); else ok();
     if (!/WIZZ Plus/.test(first(r.flex)) || !/Flex/.test(r.flex)) fail(T, 'a date change does not point to Plus / Flex'); else ok();
     if (r.ret) fail(T, 'the return-trip chip is back - it changed nothing (Yossi, 15.11)'); else ok();
-    if (r.afterReset !== 0 || r.resetText !== r.none) fail(T, 'reset does not clear the chips and the answer'); else ok();
+    if (r.afterReset !== 'small' || r.resetText !== r.none) fail(T, 'reset does not go back to "small bag only" and its answer: ' + r.afterReset); else ok();
     if (!r.order) fail(T, 'the picker is not between the bundle table and the worked example'); else ok();
     if (!r.link) fail(T, 'openWizzGuide() is missing - the flight search points to it'); else ok();
   }
@@ -8850,7 +8850,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const g = window._texts.transport.groups.find(x => x.id === 'il_air').calc.prices;
     const out = { all: pick(['trolley', 'bag', 'ski']), one: pick(['bag']), g, ret: !!box.querySelector('.wz-opt[data-k="ret"]') };
     _wzReset(box.querySelector('button[onclick^="_wzReset"]'));
-    out.afterReset = box.querySelectorAll('.wz-opt[aria-pressed="true"]').length;
+    out.afterReset = [...box.querySelectorAll('.wz-opt[aria-pressed="true"]')].map(b => b.dataset.k).join(',');
     closeM('parkingModal');
     return out;
   });
@@ -8861,7 +8861,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!/\$60/.test(r.one) || !/\$65/.test(r.one)) fail(T, 'one suitcase does not show Arkia $60 and Israir $65'); else ok();
     if (!/Classic\s*(כלול|included)/.test(r.one)) fail(T, 'El Al Classic does not show the suitcase as included'); else ok();
     if (r.ret) fail(T, 'the return-trip chip is back'); else ok();
-    if (r.afterReset !== 0) fail(T, 'reset does not clear the chips'); else ok();
+    if (r.afterReset !== 'small') fail(T, 'reset does not go back to "small bag only"'); else ok();
   }
 }
 

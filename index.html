@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.74';
+  var v='v17.75';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -12510,8 +12510,9 @@ function _fixNumsText(s) {
     // 3PMSF, came out as PMSF3.
     .replace(/\b\d{1,2}[A-Z]{2,6}\b/g, function (m) { return '\u0001' + m + '\u0002'; })
     // A range of two prices is one unit as well: as two separate runs with a
-    // neutral dash between them, "\u20ac87\u2013\u20ac344" came out as "\u20ac344\u2013\u20ac87".
-    .replace(/[\u20ac$\u20aa\u00a3]\s?\d[\d.,]*\s*[\u2013-]\s*[\u20ac$\u20aa\u00a3]?\s?\d[\d.,]*/g,
+    // neutral dash between them, "\u20ac87\u2013\u20ac344" came out as "\u20ac344\u2013\u20ac87". A full stop after it ends the
+    // sentence, not the number: "€65–75." took the stop into the run.
+    .replace(/[\u20ac$\u20aa\u00a3]\s?\d(?:[\d.,]*\d)?\s*[\u2013-]\s*[\u20ac$\u20aa\u00a3]?\s?\d(?:[\d.,]*\d)?/g,
              function (m) { return '\u0001' + m + '\u0002'; })
     // A percent sign belongs to its number (Yossi, 11.11): left outside the
     // LTR run it fell to the far side on a Hebrew line, "12%" read as "%12".
@@ -16139,23 +16140,33 @@ function _groupsHtml(tr) {
       if (t.title) h += '<div style="font-size:0.8rem;font-weight:bold;color:#444;'
                       + 'margin:4px 0 5px;">' + _aEsc(t.title) + '</div>';
       var cols = t.cols || [];
-      h += '<table style="width:100%;border-collapse:collapse;font-size:0.79rem;margin-bottom:9px;">';
+      // A comparison table (fancy) reads as one (Yossi, 15.11): a tinted
+      // header with the names in bold, the first column in bold, light
+      // stripes, and the column that holds the answer (hi) picked out.
+      var fz = !!t.fancy, hi = t.hi, bold = t.bold || [];
+      h += '<table style="width:100%;border-collapse:' + (fz ? 'separate;border-spacing:0;border:1px solid #dbe4f0;border-radius:9px;overflow:hidden' : 'collapse')
+         + ';font-size:0.79rem;margin-bottom:' + (fz ? '12px' : '9px') + ';">';
       if (cols.length) {
-        h += '<thead><tr style="border-bottom:1px solid #dde3ea;color:#667;font-size:0.73rem;">';
+        h += '<thead><tr style="' + (fz ? 'background:#eaf1fb;color:#1a3a6c;font-size:0.77rem;' : 'border-bottom:1px solid #dde3ea;color:#667;font-size:0.73rem;') + '">';
         cols.forEach(function (c, i) {
-          h += '<th style="text-align:' + (i ? 'center' : 'right') + ';padding:4px 6px;'
-             + 'font-weight:normal;">' + _aEsc(c) + '</th>';
+          h += '<th style="text-align:' + (i ? 'center' : 'right') + ';padding:' + (fz ? '7px 6px' : '4px 6px') + ';'
+             + 'font-weight:' + (fz ? 'bold' : 'normal') + ';' + (fz && i === hi ? 'background:#dcebff;' : '') + '">' + _aEsc(c) + '</th>';
         });
         h += '</tr></thead>';
       }
       h += '<tbody>';
-      t.rows.forEach(function (r) {
+      t.rows.forEach(function (r, ri) {
         var cells = Array.isArray(r) ? r : [r.a, r.b, r.c];
-        h += '<tr>';
+        h += '<tr' + (fz && ri % 2 ? ' style="background:#f8fafd;"' : '') + '>';
         cells.forEach(function (c, i) {
           if (c === undefined || c === null) return;
-          h += '<td style="padding:4px 6px;text-align:' + (i ? 'center' : 'right')
-             + ';border-bottom:1px solid #f0f3f7;">' + _fixNums(_aEsc(String(c))) + '</td>';
+          var st = 'padding:' + (fz ? '6px 6px' : '4px 6px') + ';text-align:' + (i ? 'center' : 'right')
+                 + ';border-bottom:1px solid #f0f3f7;';
+          if (fz && i === 0) st += 'font-weight:bold;color:#333;';
+          if (fz && i === hi) st += 'font-weight:bold;color:#1a4b8c;background:#eef5ff;';
+          if (fz && bold.indexOf(i) >= 0) st += 'font-weight:bold;';
+          if (fz && i && i !== hi && bold.indexOf(i) < 0) st += 'color:#555;';
+          h += '<td style="' + st + '">' + _fixNums(_aEsc(String(c))) + '</td>';
         });
         h += '</tr>';
       });
@@ -16211,10 +16222,14 @@ function _wzPickerHtml(g) {
         + 'color:#1a4b8c;font-size:0.74rem;cursor:pointer;font-family:inherit;text-decoration:underline;white-space:nowrap;">'
         + _aEsc(p.reset || L('↺ איפוס', '↺ Reset')) + '</button></div>'
         + '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+  // "small bag only" is a choice of its own and the one that starts pressed
+  // (Yossi, 15.11): with nothing pressed nobody could tell what the answer
+  // was an answer to.
   (p.opts || []).forEach(function (o) {
-    h += '<button type="button" class="wz-opt" data-k="' + _aEsc(o[0]) + '" aria-pressed="false" '
-       + 'onclick="_wzToggle(this)" style="padding:5px 10px;border-radius:16px;border:1.5px solid #c9d6e8;'
-       + 'background:#f5f8fc;color:#234;font-size:0.76rem;cursor:pointer;font-family:inherit;">'
+    var on = o[0] === 'small';
+    h += '<button type="button" class="wz-opt" data-k="' + _aEsc(o[0]) + '" aria-pressed="' + on + '" '
+       + 'onclick="_wzToggle(this)" style="padding:5px 10px;border-radius:16px;border:1.5px solid ' + (on ? '#1a73e8' : '#c9d6e8') + ';'
+       + 'background:' + (on ? '#1a73e8' : '#f5f8fc') + ';color:' + (on ? '#fff' : '#234') + ';font-size:0.76rem;cursor:pointer;font-family:inherit;">'
        + _aEsc(o[1]) + '</button>';
   });
   h += '</div><div class="wz-out" aria-live="polite" style="font-size:0.79rem;color:#333;'
@@ -16252,13 +16267,25 @@ function _wzRefresh(box) {
   box.querySelectorAll('.wz-opt[aria-pressed="true"]').forEach(function (b) { s[b.getAttribute('data-k')] = 1; });
   box.querySelector('.wz-out').innerHTML = g.calc ? _ilAnswer(g.calc, s) : _wzAnswer(g.picker, s);
 }
+function _wzSmall(box, on) {
+  var sm = box.querySelector('.wz-opt[data-k="small"]');
+  if (sm) _wzPaint(sm, on);
+}
 function _wzToggle(btn) {
-  _wzPaint(btn, btn.getAttribute('aria-pressed') !== 'true');
-  _wzRefresh(btn.closest('.wz-pick'));
+  var box = btn.closest('.wz-pick'), k = btn.getAttribute('data-k');
+  if (k === 'small') {
+    // the small bag alone: everything else off
+    box.querySelectorAll('.wz-opt').forEach(function (b) { _wzPaint(b, b === btn); });
+  } else {
+    _wzPaint(btn, btn.getAttribute('aria-pressed') !== 'true');
+    var any = box.querySelector('.wz-opt[aria-pressed="true"]:not([data-k="small"])');
+    _wzSmall(box, !any);
+  }
+  _wzRefresh(box);
 }
 function _wzReset(btn) {
   var box = btn.closest('.wz-pick');
-  box.querySelectorAll('.wz-opt').forEach(function (b) { _wzPaint(b, false); });
+  box.querySelectorAll('.wz-opt').forEach(function (b) { _wzPaint(b, b.getAttribute('data-k') === 'small'); });
   _wzRefresh(box);
 }
 // The Israeli airlines sell each extra at a fixed published price (Arkia,
@@ -16266,14 +16293,14 @@ function _wzReset(btn) {
 // what the extras come to per passenger, per direction, on each airline.
 function _ilAnswer(c, s) {
   var keys = ['trolley', 'bag', 'ski'].filter(function (k) { return s[k]; });
-  if (!keys.length) return '<span style="color:#667;">' + _aEsc(c.empty || '') + '</span>';
+  if (!keys.length) return '<div style="font-size:0.86rem;font-weight:bold;color:#1a3a6c;">👉 ' + _aEsc(c.empty || '') + '</div>';
   var rows = ['elal_c', 'elal_l', 'arkia', 'israir'].map(function (a) {
     var pr = (c.prices || {})[a] || {}, sum = 0, unknown = false;
     keys.forEach(function (k) { if (pr[k] == null) unknown = true; else sum += pr[k]; });
     var val = sum ? '$' + sum : (unknown ? '' : c.incl);
     if (unknown) val += (val ? ' ' + c.plus + ' ' : '') + c.var;
-    return '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f3f7;">' + _aEsc(c.names[a]) + '</td>'
-         + '<td style="padding:3px 6px;border-bottom:1px solid #f0f3f7;font-weight:bold;">' + _aEsc(val) + '</td></tr>';
+    return '<tr><td style="padding:3px 10px 3px 6px;border-bottom:1px solid #f0f3f7;font-weight:bold;color:#333;">' + _aEsc(c.names[a]) + '</td>'
+         + '<td style="padding:3px 6px;border-bottom:1px solid #f0f3f7;font-weight:bold;color:#1a4b8c;">' + _fixNums(_aEsc(val)) + '</td></tr>';
   });
   var h = '<table style="border-collapse:collapse;font-size:0.8rem;margin-bottom:4px;">' + rows.join('') + '</table>'
         + '<span style="color:#667;">' + _aEsc(c.tail) + '</span>';

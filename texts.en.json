@@ -757,7 +757,7 @@
     "id": "wizz",
     "icon": "🎫",
     "title": "Wizz Air — which fare to buy",
-    "lead": "Wizz is the main low-cost airline between Tel Aviv and Milan (Malpensa). In the booking you pick a bundle — Basic, Go, Smart or Plus — and it cannot be changed later. Tick what you take, and the picker tells you what comes out cheapest, from a real check on Wizz's site.",
+    "lead": "Wizz is the main low-cost airline between Tel Aviv and Milan (Malpensa). In the booking you pick a bundle — Basic, Go, Smart or Plus — and it cannot be changed later. Tick what you take, and the picker suggests the best-value option, from a real check on Wizz's site.",
     "tables": [
      {
       "cols": [
@@ -810,7 +810,8 @@
         "—",
         "✓"
        ]
-      ]
+      ],
+      "fancy": true
      },
      {
       "title": "A real example — 17–24 January 2027, one passenger, return (checked on Wizz's site on 15.11.2026)",
@@ -857,12 +858,21 @@
         "€337.58",
         "Smart and a suitcase<br>€377.38<br>Go and Priority<br>€425.18"
        ]
+      ],
+      "fancy": true,
+      "hi": 1,
+      "bold": [
+       2
       ]
      }
     ],
     "picker": {
      "q": "What are you taking? (per passenger)",
      "opts": [
+      [
+       "small",
+       "👜 Small bag only"
+      ],
       [
        "trolley",
        "🧳 Cabin trolley"
@@ -972,23 +982,23 @@
        [
         "Trolley",
         "goes in the hold, free",
-        "✓ cabin · up to 8 kg",
-        "$25 · up to 8 kg",
-        "$30 · up to 10 kg"
+        "✓ cabin<br>up to 8 kg",
+        "$25<br>up to 8 kg",
+        "$30<br>up to 10 kg"
        ],
        [
         "Checked suitcase",
         "variable price",
         "✓ 23 kg",
         "$60",
-        "$65 · up to 23 kg"
+        "$65<br>up to 23 kg"
        ],
        [
         "Ski gear",
-        "$70 · at the airport",
+        "$70<br>at the airport",
         "✓ free, on top of the suitcase",
         "$50",
-        "$80 · up to 20 kg"
+        "$80<br>up to 20 kg"
        ],
        [
         "Seat selection",
@@ -997,7 +1007,8 @@
         "paid",
         "paid"
        ]
-      ]
+      ],
+      "fancy": true
      }
     ],
     "calc": {
@@ -1026,6 +1037,10 @@
      },
      "opts": [
       [
+       "small",
+       "👜 Small bag only"
+      ],
+      [
        "trolley",
        "🧳 Trolley"
       ],
@@ -1049,7 +1064,7 @@
      "plus": "plus",
      "tail": "Each way, on top of the ticket. Compare the ticket with the extras, not the ticket alone.",
      "liteTrolley": "On Lite the trolley goes in the hold — only the small bag comes into the cabin.",
-     "empty": "Tick above what you take, and it shows what that adds on each airline."
+     "empty": "Small bag only — included on every airline, no extra."
     },
     "notes": [
      "⛷️ El Al — for skiers with their own gear: on Classic and above, ski or snowboard gear flies free, on top of the suitcase, in one bag up to 32 kg. Not on Lite, where the gear is paid for at the airport only.",
