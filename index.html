@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.76';
+  var v='v17.77';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1745,7 +1745,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     </div>
     <div id="svc-around" class="service-btn svc-wide" onclick="openM('aroundModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-snow-capped-mountain"/></svg></span>
-      <span class="svc-txt"><b>מה לעשות באזור</b><small>ימים סוערים · אחרי הסקי · ומה סגור בחורף</small></span>
+      <span class="svc-txt"><b>מה לעשות באזור</b><small>ימים סוערים · פילה ומונטרוזה · אחרי הסקי</small></span>
     </div>
   </div>
 
@@ -10872,6 +10872,19 @@ function switchKoshMain(tab) {
   if (typeof _wireShabbatJump === 'function') setTimeout(_wireShabbatJump, 30);
 }
 
+// The lodging guide mentions the organised kosher holiday; the link lands
+// on its box in the kosher panel, open, instead of on the Shabbat times.
+function openKosherGroup(from) {
+  if (from) openFrom(from, 'kosherModal'); else openM('kosherModal');
+  setTimeout(function () {
+    switchKoshMain('kosher');
+    var box = document.getElementById('kosher-group-box');
+    if (!box) return;
+    var d = box.querySelector('details'); if (d) d.open = true;
+    box.scrollIntoView({ block: 'start' });
+  }, 80);
+}
+
 function openKosherShabbat() {
   openM('kosherModal');
   setTimeout(function() {
@@ -16476,6 +16489,16 @@ function toggleAroundBox(which) {
   if (caret) caret.textContent = opening ? '▲' : '▼';
 }
 
+// Open "things to do nearby" straight at one category - the ski pass card
+// links to the other ski areas this way, so a reader asking "where else can
+// we ski on a windy day" lands on the answer and not on the first tab.
+function openAroundCat(id, from) {
+  if (from) openFrom(from, 'aroundModal'); else openM('aroundModal');
+  switchAroundTab(id);
+  var t = document.getElementById('around-tabs');
+  if (t) setTimeout(function () { t.scrollIntoView({ block: 'start' }); }, 60);
+}
+
 function switchAroundTab(id) {
   _aroundCat = id;
   var tabs = document.querySelectorAll('#around-tabs .ttab-btn');
@@ -19210,10 +19233,11 @@ const SEARCH_INDEX = [
   { text: 'מגפי סקי מגלשיים פלקס מידה DIN מקלות השכרה', action: "openM('rentalModal')", icon: '🎿', label: 'הציוד הכבד' },
   { text: 'וויז wizz כרטיס חבילה טרולי מזוודה מושב priority flex לואו קוסט', action: "openWizzGuide()", icon: '🎫', label: 'וויז — איזו חבילה לקנות' },
   { text: 'אל על ארקיע ישראייר כרטיס lite classic flex טרולי מזוודה ציוד סקי כבודה', action: "openWizzGuide('il_air')", icon: '🧳', label: 'אל על, ארקיע, ישראייר — מה כלול' },
+  { text: 'פילה pila מונטרוזה monterosa שמפולוק champoluc גרסוני gressoney אתר סקי אחר רוח סגור', action: "openAroundCat('ski')", icon: '🎿', label: 'סקי באתר אחר — פילה ומונטרוזה' },
 ];
 // English: the same entries, searchable by English words and labelled in English.
 if (window.LANG === 'en') {
-  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"]].forEach(function (e, k) {
+  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"], ["pila monterosa champoluc gressoney other ski area resort wind closed", "Skiing elsewhere — Pila and Monterosa"]].forEach(function (e, k) {
     if (SEARCH_INDEX[k]) { SEARCH_INDEX[k].text += ' ' + e[0]; SEARCH_INDEX[k].label = e[1]; }
   });
 }
