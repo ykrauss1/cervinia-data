@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-15T01:40:56.621Z",
-  "temperature": -6.3,
+  "updated_at": "2026-11-15T02:21:02.782Z",
+  "temperature": -6.2,
   "zermatt_link": "CLOSED",
   "lifts_open_global": 0,
   "lifts_total_global": 21,
@@ -12,7 +12,7 @@
   "slopes_total_local": 13,
   "snow_depth": "35 cm",
   "last_snowfall": "13/11/2026",
-  "wind_speed": 7.6,
+  "wind_speed": 2.2,
   "wind_gust": 13.7,
   "humidity": null,
   "avalanche_level": "1",
@@ -50,65 +50,43 @@
     }
   ],
   "forecast_today": {
-    "date": "Saturday, November 14",
+    "date": "Sunday, November 15",
     "morning": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "sun"
+        "icon": "snow"
       },
       {
         "name": "Valtournenche",
-        "icon": "cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Chamois",
-        "icon": "cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Torgnon",
-        "icon": "cloudy"
+        "icon": "snow-low"
       }
     ],
     "afternoon": [
       {
         "name": "Breuil-Cervinia",
-        "icon": "partially-cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Valtournenche",
-        "icon": "partially-cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Chamois",
-        "icon": "partially-cloudy"
+        "icon": "snow-low"
       },
       {
         "name": "Torgnon",
-        "icon": "partially-cloudy"
+        "icon": "snow-low"
       }
     ]
   },
-  "forecast_next_days": [
-    {
-      "date": "Monday, November 16",
-      "periods": [
-        {
-          "label": "Morning\n(08.00 - 12.00)",
-          "icon": "snow"
-        },
-        {
-          "label": "Afternoon\n(13.00 - 17.00)",
-          "icon": "snow"
-        },
-        {
-          "label": "Evening\n(18.00 - 24.00)",
-          "icon": "snow"
-        },
-        {
-          "label": "Notte\n(01.00 - 07.00)",
-          "icon": "snow"
-        }
-      ]
-    }
-  ]
+  "forecast_next_days": []
 }
