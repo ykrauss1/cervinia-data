@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.73';
+  var v='v17.74';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -13658,6 +13658,58 @@ async function confirmDelReview(id) {
 }
 
 // ── Webcams ──
+// The official site's webcam page has a "panoramic" tab: Panomax 360°
+// stations. The latest image of each sits at a fixed recent_* address, so no
+// API call is needed; the strip scrolls sideways. aim is where along the
+// picture it opens (0 = left edge): on the Matterhorn from Plan Maison,
+// otherwise the middle. Loaded only when the tab is opened.
+var WCAM_PANOS = [
+  { name: 'Plateau Rosa', alt: 3480, img: 'https://panodata42.panomax.com/cams/931/', url: 'https://cervinia.panomax.com/plateau-rosa', aim: 0.5 },
+  { name: 'Plan Maison', alt: 2545, img: 'https://panodata40.panomax.com/cams/867/', url: 'https://cervinia.panomax.com/matterhorn', aim: 0.15 },
+  { name: 'Chamois — Colle Fontana Fredda', alt: 2512, img: 'https://panodata42.panomax.com/cams/1319/', url: 'https://chamois.panomax.com/', aim: 0.5 },
+  { name: 'Torgnon — Chantorne', alt: 1860, img: 'https://panodata40.panomax.com/cams/987/', url: 'https://torgnon-skiarea.panomax.com/', aim: 0.5 },
+  { name: 'La Magdeleine', alt: null, img: 'https://panodata40.panomax.com/cams/1209/', url: 'https://lamagdeleine.panomax.com/', aim: 0.5 }
+];
+function _wcamPanoHtml() {
+  var h = '';
+  WCAM_PANOS.forEach(function (p, i) {
+    h += '<div style="margin-bottom:14px;border:1px solid #e3e8ef;border-radius:10px;overflow:hidden;background:#0a192f;">'
+       + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:7px 10px;background:#fff;">'
+       + '<b dir="ltr" style="font-size:0.84rem;color:#1a3a6c;">' + _aEsc(p.name) + (p.alt ? ' · ' + p.alt.toLocaleString('en') + ' m' : '') + '</b>'
+       + '<a href="' + p.url + '" target="_blank" rel="noopener" style="font-size:0.76rem;color:#1a73e8;white-space:nowrap;">'
+       + L('360° אינטראקטיבי ↗', 'Interactive 360° ↗') + '</a></div>'
+       + '<div class="wcam-pano-strip" dir="ltr" style="overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;height:170px;">'
+       + '<img data-i="' + i + '" alt="' + _aEsc(p.name) + ' 360°" style="height:170px;width:auto;max-width:none;display:block;" '
+       + 'onload="_wcamPanoAim(this)" onerror="this.closest(\'div\').parentElement.style.display=\'none\'">'
+       + '</div></div>';
+  });
+  h += '<div style="font-size:0.76rem;color:#667;line-height:1.8;">'
+     + L('וגם בצד השוויצרי: ', 'And on the Swiss side: ')
+     + '<a href="https://zbag.roundshot.com/matterhornglacierparadise/#/" target="_blank" rel="noopener" style="color:#1a73e8;">'
+     + 'Matterhorn Glacier Paradise · Roundshot ↗</a></div>';
+  return h;
+}
+function _wcamPanoAim(img) {
+  var p = WCAM_PANOS[+img.getAttribute('data-i')], strip = img.parentElement;
+  if (!p || !strip) return;
+  strip.scrollLeft = Math.max(0, (p.aim || 0.5) * img.offsetWidth - strip.clientWidth / 2);
+}
+function wcamMode(mode) {
+  ['live', 'pano'].forEach(function (m) {
+    var b = document.getElementById('wcam-mode-' + m), d = document.getElementById('wcam-' + m);
+    if (b) b.classList.toggle('ttab-active', m === mode);
+    if (d) d.style.display = m === mode ? '' : 'none';
+  });
+  if (mode !== 'pano') return;
+  var list = document.getElementById('wcam-pano-list');
+  if (!list.firstChild) list.innerHTML = _wcamPanoHtml();
+  // a fresh picture each time the tab is opened, as the refresh button does
+  var t = Date.now();
+  list.querySelectorAll('img[data-i]').forEach(function (img) {
+    img.src = WCAM_PANOS[+img.getAttribute('data-i')].img + 'recent_optimized.jpg?t=' + t;
+  });
+}
+
 function filterCams(area) {
   ['all','cervinia','valt','zermatt'].forEach(a => {
     const btn = document.getElementById('wcam-tab-' + a);
@@ -15205,6 +15257,33 @@ function seasonHint(from, to) {
 // Which ski season today belongs to. A season is named for the year it
 // starts in, and it runs from the autumn to the following spring, so
 // anything before June still belongs to the season that began last year.
+// Content tied to a date - one holiday, one event - goes once the date has
+// passed (Yossi, 15.11: "after Hanukkah the mention should go"). until is the
+// last day it is shown, as YYYY-MM-DD in Israel time. A list entry carries
+// until itself; inside a text, <span data-until="..."> is hidden by
+// _hideExpired, which runs on load and on everything rendered later.
+function _todayIL() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }); }
+  catch (e) { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+}
+function _isPast(until) { return !!until && _todayIL() > until; }
+function _hideExpired(root) {
+  (root || document).querySelectorAll('[data-until]').forEach(function (el) {
+    if (_isPast(el.getAttribute('data-until'))) el.style.display = 'none';
+  });
+}
+(function () {
+  var run = function () {
+    _hideExpired(document);
+    var pending = false;
+    new MutationObserver(function () {
+      if (pending) return; pending = true;
+      requestAnimationFrame(function () { pending = false; _hideExpired(document); });
+    }).observe(document.body, { childList: true, subtree: true });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
+})();
+
 function _currentSeason(now) {
   var d = now || new Date();
   var y = d.getFullYear() - (d.getMonth() < 6 ? 1 : 0);
@@ -15262,7 +15341,7 @@ function renderSeason(se) {
   // passed, an "annual" row keeps its text and loses its dates rather than
   // printing last year's, because a confident wrong date is worse than none.
   var stale = _seasonIsStale(se);
-  var periods = (se.periods || []).map(function (p) {
+  var periods = (se.periods || []).filter(function (p) { return !_isPast(p.until); }).map(function (p) {
     var c = SEASON_TINT[p.kind] || SEASON_TINT.special;
     var when = _periodWhen(p, stale);
     return '<div style="display:flex;gap:9px;align-items:flex-start;padding:6px 0;">'
@@ -16052,7 +16131,11 @@ function _groupsHtml(tr) {
     if (fold) h += '<details class="tr-fold" style="margin:2px 0 10px;">'
                  + '<summary style="cursor:pointer;font-size:0.8rem;font-weight:bold;color:#1a4b8c;padding:6px 0;">📋 '
                  + _aEsc(g.collapse_tables) + '</summary>';
-    tables.forEach(function (t) {
+    // A picker can sit between tables (picker_at): the Wizz one comes after
+    // what each bundle includes and before the worked example.
+    var pickerDone = false;
+    tables.forEach(function (t, ti) {
+      if ((g.picker || g.calc) && ti === g.picker_at) { h += _wzPickerHtml(g); pickerDone = true; }
       if (t.title) h += '<div style="font-size:0.8rem;font-weight:bold;color:#444;'
                       + 'margin:4px 0 5px;">' + _aEsc(t.title) + '</div>';
       var cols = t.cols || [];
@@ -16080,7 +16163,7 @@ function _groupsHtml(tr) {
     });
     if (fold) h += '</details>';
 
-    if (g.picker || g.calc) h += _wzPickerHtml(g);
+    if ((g.picker || g.calc) && !pickerDone) h += _wzPickerHtml(g);
 
     (g.notes || []).forEach(function (n) {
       h += '<div style="font-size:0.79rem;color:#444;line-height:1.8;margin-bottom:6px;">'
@@ -16122,8 +16205,12 @@ function _wzPickerHtml(g) {
   var p = g.picker || g.calc;
   var h = '<div class="wz-pick" data-gid="' + _aEsc(g.id) + '" style="border:1px solid #dbe4f0;'
         + 'border-radius:9px;background:#fff;padding:10px 11px;margin:2px 0 10px;">'
-        + '<div style="font-size:0.8rem;font-weight:bold;color:#1a3a6c;margin-bottom:7px;">'
-        + _aEsc(p.q) + '</div><div style="display:flex;flex-wrap:wrap;gap:6px;">';
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:7px;">'
+        + '<div style="font-size:0.8rem;font-weight:bold;color:#1a3a6c;">' + _aEsc(p.q) + '</div>'
+        + '<button type="button" onclick="_wzReset(this)" style="background:none;border:none;padding:0;'
+        + 'color:#1a4b8c;font-size:0.74rem;cursor:pointer;font-family:inherit;text-decoration:underline;white-space:nowrap;">'
+        + _aEsc(p.reset || L('↺ איפוס', '↺ Reset')) + '</button></div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
   (p.opts || []).forEach(function (o) {
     h += '<button type="button" class="wz-opt" data-k="' + _aEsc(o[0]) + '" aria-pressed="false" '
        + 'onclick="_wzToggle(this)" style="padding:5px 10px;border-radius:16px;border:1.5px solid #c9d6e8;'
@@ -16134,28 +16221,30 @@ function _wzPickerHtml(g) {
      + 'line-height:1.8;margin-top:9px;">' + (g.calc ? _ilAnswer(p, {}) : _wzAnswer(p, {})) + '</div></div>';
   return h;
 }
+// One answer for what is ticked: the bundle (or bundle and add-ons) that came
+// out cheapest in the worked example, and the one line of why (Yossi, 15.11:
+// "clear, and no repetition"). res entries are [what to buy, why].
 function _wzAnswer(p, s) {
   var r = p.res || {}, out;
   if (s.flex) out = r.flex;
   else if (s.trolley && (s.bag || s.heavy)) out = r.plus;
   else if (s.heavy) out = r.heavy;
-  else if (s.bag && s.seat && r.goseat) out = r.goseat;
+  else if (s.bag && s.seat) out = r.goseat;
   else if (s.bag) out = r.go;
   else if (s.trolley) out = r.smart;
   else if (s.seat) out = r.seat;
-  else out = p.none;
-  var h = '<b>👉 ' + _aEsc(out) + '</b>';
-  if (s.ret && r.ret) h += '<br>' + _aEsc(r.ret);
-  if (r.ski) h += '<br>' + _aEsc(r.ski);
-  return h;
+  else out = r.none;
+  if (!out) return '';
+  return '<div style="font-size:0.86rem;font-weight:bold;color:#1a3a6c;">👉 ' + _aEsc(out[0]) + '</div>'
+       + (out[1] ? '<div style="color:#555;">' + _fixNums(_aEsc(out[1])) + '</div>' : '');
 }
-function _wzToggle(btn) {
-  var on = btn.getAttribute('aria-pressed') !== 'true';
+function _wzPaint(btn, on) {
   btn.setAttribute('aria-pressed', on ? 'true' : 'false');
   btn.style.background = on ? '#1a73e8' : '#f5f8fc';
   btn.style.color = on ? '#fff' : '#234';
   btn.style.borderColor = on ? '#1a73e8' : '#c9d6e8';
-  var box = btn.closest('.wz-pick');
+}
+function _wzRefresh(box) {
   var g = ((window._texts && window._texts.transport && window._texts.transport.groups) || [])
             .filter(function (x) { return x.id === box.getAttribute('data-gid'); })[0];
   if (!g || !(g.picker || g.calc)) return;
@@ -16163,20 +16252,31 @@ function _wzToggle(btn) {
   box.querySelectorAll('.wz-opt[aria-pressed="true"]').forEach(function (b) { s[b.getAttribute('data-k')] = 1; });
   box.querySelector('.wz-out').innerHTML = g.calc ? _ilAnswer(g.calc, s) : _wzAnswer(g.picker, s);
 }
+function _wzToggle(btn) {
+  _wzPaint(btn, btn.getAttribute('aria-pressed') !== 'true');
+  _wzRefresh(btn.closest('.wz-pick'));
+}
+function _wzReset(btn) {
+  var box = btn.closest('.wz-pick');
+  box.querySelectorAll('.wz-opt').forEach(function (b) { _wzPaint(b, false); });
+  _wzRefresh(box);
+}
 // The Israeli airlines sell each extra at a fixed published price (Arkia,
 // Israir) or fold it into the ticket type (El Al), so here the ticks add up:
-// what the extras come to per passenger on each airline, one way or return.
+// what the extras come to per passenger, per direction, on each airline.
 function _ilAnswer(c, s) {
-  var legs = s.ret ? 2 : 1, keys = ['trolley', 'bag', 'ski'].filter(function (k) { return s[k]; });
+  var keys = ['trolley', 'bag', 'ski'].filter(function (k) { return s[k]; });
   if (!keys.length) return '<span style="color:#667;">' + _aEsc(c.empty || '') + '</span>';
   var rows = ['elal_c', 'elal_l', 'arkia', 'israir'].map(function (a) {
     var pr = (c.prices || {})[a] || {}, sum = 0, unknown = false;
-    keys.forEach(function (k) { if (pr[k] == null) unknown = true; else sum += pr[k] * legs; });
+    keys.forEach(function (k) { if (pr[k] == null) unknown = true; else sum += pr[k]; });
     var val = sum ? '$' + sum : (unknown ? '' : c.incl);
     if (unknown) val += (val ? ' ' + c.plus + ' ' : '') + c.var;
-    return '<b>' + _aEsc(c.names[a]) + '</b>: ' + _aEsc(val);
+    return '<tr><td style="padding:3px 6px;border-bottom:1px solid #f0f3f7;">' + _aEsc(c.names[a]) + '</td>'
+         + '<td style="padding:3px 6px;border-bottom:1px solid #f0f3f7;font-weight:bold;">' + _aEsc(val) + '</td></tr>';
   });
-  var h = rows.join('<br>') + '<br><span style="color:#667;">' + _aEsc(c.per) + ' · ' + _aEsc(c.tail) + '</span>';
+  var h = '<table style="border-collapse:collapse;font-size:0.8rem;margin-bottom:4px;">' + rows.join('') + '</table>'
+        + '<span style="color:#667;">' + _aEsc(c.tail) + '</span>';
   if (s.trolley && c.liteTrolley) h += '<br><span style="color:#667;">' + _aEsc(c.liteTrolley) + '</span>';
   return h;
 }
@@ -16765,7 +16865,9 @@ function _applyTexts(t) {
     _set('kosher-cervinia-text',     ko.cervinia_text);
     if (ko.cervinia_group && ko.cervinia_group.text) {
       _set('kosher-group-title', ko.cervinia_group.title);
-      _set('kosher-group-text',  ko.cervinia_group.text);
+      // after the dated holiday only the general line stays (Yossi, 15.11)
+      _set('kosher-group-text',  (_isPast(ko.cervinia_group.until) && ko.cervinia_group.text_after)
+                                   || ko.cervinia_group.text);
       var _gb = document.getElementById('kosher-group-box');
       if (_gb) _gb.style.display = 'block';
     }
@@ -20889,6 +20991,18 @@ async function _admRenderUsers() {
     <h3 style="margin:0 0 4px;font-size:1.15rem;" data-en="📷 Live webcams — Cervinia">📷 מצלמות חי — Cervinia</h3>
     <p style="color:#888;font-size:0.8rem;margin:0 0 16px;" data-en="Images refresh every few minutes from the official website">תמונות מתעדכנות כל מספר דקות מהאתר הרשמי</p>
 
+    <!-- Cameras or panoramas, as on the official site (Yossi, 15.11) -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;">
+      <button id="wcam-mode-live" onclick="wcamMode('live')" class="ttab-btn ttab-active" style="flex:1;" data-en="📷 Webcams">📷 מצלמות</button>
+      <button id="wcam-mode-pano" onclick="wcamMode('pano')" class="ttab-btn" style="flex:1;" data-en="🌄 Panoramas">🌄 פנורמות</button>
+    </div>
+
+    <div id="wcam-pano" style="display:none;">
+      <p style="color:#888;font-size:0.78rem;margin:0 0 12px;" data-en="A full 360° picture from each station, updated every ten minutes. Swipe sideways to look around; the link opens the interactive view with the archive.">תמונה של 360° מכל תחנה, מתעדכנת כל עשר דקות. החליקו הצידה כדי להסתכל מסביב; הקישור פותח את התצוגה האינטראקטיבית עם הארכיון.</p>
+      <div id="wcam-pano-list"></div>
+    </div>
+
+    <div id="wcam-live">
     <!-- Area filter tabs -->
     <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
       <button id="wcam-tab-all"       onclick="filterCams('all')"       class="ttab-btn ttab-active" style="font-size:0.8rem;padding:6px 12px;" data-en="🌐 All">🌐 הכל</button>
@@ -20977,17 +21091,6 @@ async function _admRenderUsers() {
         </a>
       </div>
 
-      <div class="wcam-card" data-area="zermatt">
-        <div class="wcam-label"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> Plateau Rosa — Panoramic</div>
-        <a class="wcam-pano" href="https://cervinia.panomax.com/plateau-rosa" target="_blank" rel="noopener">
-          <svg class="pano-peaks" viewBox="0 0 300 58" preserveAspectRatio="none" aria-hidden="true"><path d="M0 58 L42 22 L70 40 L108 10 L150 44 L188 18 L224 38 L262 14 L300 58 Z" fill="#0a192f"/><path d="M108 10 L96 22 L120 22 Z" fill="#ffffff" opacity="0.85"/><path d="M262 14 L252 25 L272 25 Z" fill="#ffffff" opacity="0.85"/></svg>
-          <span class="pano-badge">360°</span>
-          <span class="pano-icon">🏔️</span>
-          <span class="pano-main" data-en="Tap to watch live">לחץ לצפייה חיה</span>
-          <span class="pano-sub" data-en="Panorama and archive · Panomax">פנורמה וארכיון · Panomax</span>
-        </a>
-      </div>
-
     </div>
 
     <!-- Refresh + full site link -->
@@ -21000,6 +21103,7 @@ async function _admRenderUsers() {
         🌐 כל המצלמות באתר הרשמי ↗
       </a>
     </div>
+    </div><!-- /wcam-live -->
 
     <!-- Fullscreen overlay -->
     <div id="cam-fullscreen" onclick="closeCamFull()"

@@ -300,7 +300,7 @@
     "title": "And outside the village",
     "notes": [
      {
-      "text": "🚡 <b><bdi>Plan Maison</bdi></b> (about 2,550 m) — one hotel on the mountain: <b><bdi dir=\"ltr\">Hotel Lo Stambecco</bdi></b>, right at the lift station and on the slope. <b>No road leads to it</b> — only the lift.<details style=\"margin-top:6px;\"><summary style=\"cursor:pointer;color:#1a73e8;font-weight:bold;font-size:0.8rem;\">More about the hotel</summary>The lift runs 8:30–16:30 and is free for hotel guests; outside those hours — a private snowmobile transfer on booking, so plan your arrival time. The hotel has a gym, billiards and a reading room, and sells ski passes and rents equipment. At Hanukkah it hosts the kosher holiday group of <b><bdi>Fun Fit Family</bdi></b> — see the Kosher and Shabbat card.</details>"
+      "text": "🚡 <b><bdi>Plan Maison</bdi></b> (about 2,550 m) — one hotel on the mountain: <b><bdi dir=\"ltr\">Hotel Lo Stambecco</bdi></b>, right at the lift station and on the slope. <b>No road leads to it</b> — only the lift.<details style=\"margin-top:6px;\"><summary style=\"cursor:pointer;color:#1a73e8;font-weight:bold;font-size:0.8rem;\">More about the hotel</summary>The lift runs 8:30–16:30 and is free for hotel guests; outside those hours — a private snowmobile transfer on booking, so plan your arrival time. The hotel has a gym, billiards and a reading room, and sells ski passes and rents equipment. <span data-until=\"2026-12-13\">At Hanukkah it hosts the kosher holiday group of <b><bdi>Fun Fit Family</bdi></b> — see the Kosher and Shabbat card.</span></details>"
      },
      {
       "text": "🏘️ <b><bdi>Valtournenche</bdi></b> — a village down the valley, on the same lift network and the same ski pass. Lodging here is <b>much cheaper</b>. On the other hand, the way to Cervinia on skis is long, and <b>the way up the mountain from the village is by an old, awkward gondola, half standing</b>, and <b>the first chairlift you meet after it, along slope 4, is truly ancient</b>. <b>Be careful not to fall when getting off it.</b> The season here also opens later. And there is an advantage: on a day of strong wind, when Cervinia's high lifts are closed, lower Valtournenche can sometimes still be skied."
@@ -757,7 +757,7 @@
     "id": "wizz",
     "icon": "🎫",
     "title": "Wizz Air — which fare to buy",
-    "lead": "Wizz is the main low-cost airline between Tel Aviv and Milan (Malpensa). When you book you pick a bundle: Basic, WIZZ Go, WIZZ Smart (when offered) or WIZZ Plus. Decide in advance, by what you really take — tick below and it tells you what to check.",
+    "lead": "Wizz is the main low-cost airline between Tel Aviv and Milan (Malpensa). In the booking you pick a bundle — Basic, Go, Smart or Plus — and it cannot be changed later. Tick what you take, and the picker tells you what comes out cheapest, from a real check on Wizz's site.",
     "tables": [
      {
       "cols": [
@@ -861,7 +861,7 @@
      }
     ],
     "picker": {
-     "q": "What are you taking? (per passenger, per flight)",
+     "q": "What are you taking? (per passenger)",
      "opts": [
       [
        "trolley",
@@ -882,34 +882,50 @@
       [
        "flex",
        "📅 Option to change the date"
-      ],
-      [
-       "ret",
-       "↔️ Return trip"
       ]
      ],
-     "none": "None of these — Basic is enough: one bag under the seat, and a random seat at check-in.",
      "res": {
-      "flex": "WIZZ Plus — it covers all the rest. WIZZ Flex can be bought only in the booking itself, not later. It is also sold on its own in the booking — compare.",
-      "plus": "WIZZ Plus — in the example below it is the cheapest of all combinations for a trolley and a suitcase together.",
-      "heavy": "WIZZ Plus (suitcase up to 32 kg), or Basic + a heavier suitcase — compare.",
-      "go": "WIZZ Go, or Basic + a suitcase (and a seat, if you want one) — compare.",
-      "smart": "WIZZ Smart — in the example below it costs less than Priority alone, with a seat thrown in. If the flight has no Smart — Basic + WIZZ Priority.",
-      "seat": "Basic and a seat — in the example below a seat was €15–18 a flight, far less than Smart (€44.80). Smart is worth it only with a trolley.",
-      "ret": "↔️ Every extra counts per flight — on a return trip the difference doubles. WIZZ Flex inside Plus applies to all passengers and all flights in the booking.",
-      "ski": "⛷️ Ski gear is in no bundle — it is added on its own, best already in the booking, since the room for sports equipment on each flight is limited.",
-      "goseat": "WIZZ Go — in the example below it is €10 cheaper than Basic, suitcase and seat, even with the cheapest seat."
+      "none": [
+       "Basic",
+       "A small bag under the seat for free, and a random seat at check-in. A seat you choose costs from €15."
+      ],
+      "seat": [
+       "Basic + a seat",
+       "A seat was €15–18 a flight in the example. Smart (€44.80) is worth it only with a trolley."
+      ],
+      "smart": [
+       "WIZZ Smart",
+       "€44.80 a flight in the example — less than Priority alone (€58.80), and the seat is included. If the flight has no Smart: Basic + Priority."
+      ],
+      "go": [
+       "Basic + a suitcase",
+       "€58.80–79 a flight in the example. Go (€78.80) adds a seat, and is worth it if you want one."
+      ],
+      "goseat": [
+       "WIZZ Go",
+       "€78.80 a flight in the example, with suitcase and seat — €10 less than Basic, suitcase and seat separately."
+      ],
+      "heavy": [
+       "WIZZ Plus",
+       "A suitcase up to 32 kg, plus trolley, seat and Priority — €93.80 a flight in the example."
+      ],
+      "plus": [
+       "WIZZ Plus",
+       "€93.80 a flight in the example — less than any other mix of trolley and suitcase, with a 32 kg suitcase and date change too."
+      ],
+      "flex": [
+       "WIZZ Plus",
+       "A date change (WIZZ Flex) is sold only in the booking, and Plus includes it with everything else. Flex alone is also sold in the booking — compare."
+      ]
      }
     },
     "notes": [
-     "🔎 What the example shows: <b>Priority alone was €58.80 a flight, and Smart — which includes Priority and a seat — only €44.80.</b> A 20 kg suitcase alone was €58.80 out and €79.00 back, and Go — suitcase and seat — €78.80 each way. And for a trolley and a suitcase, Plus (€93.80 a flight) is cheaper than any other combination, and also has a 32 kg suitcase and a date change.",
-     "🔎 Also from the example: ski gear — €65 a flight, with any bundle. Check-in at the airport desk costs €50 with Basic and Smart, and is free with Go and Plus. And Wizz itself says a suitcase added after booking costs more.",
-     "💺 Seat prices in the example, per flight — the same out and back: a middle seat at the back or in the centre €15, a window or aisle there €16, rows 5–14 €17–18, rows 2–4 €30–36, and extra-legroom rows (1, 18, 19, 29) €35–39. The table uses the cheapest seat, €15. Smart and Go include a standard seat — not rows 1–4 and not extra legroom — and Plus any seat.",
-     "💡 The cabin trolley comes only with WIZZ Priority — on its own, or inside Smart or Plus. Go has a checked suitcase, but no trolley.",
-     "⚠️ The bundle is chosen in the booking itself — so decide in advance. Afterwards you can only add a suitcase, a seat or Priority, each on its own and at that moment's price, and WIZZ Flex can no longer be bought at all. The bundles group several extras at a discount, so if you need a few of them, check the bundle before you finish. Priority alone costs €10–60 online and €65–75 at the airport.",
-     "⛷️ Skis and snowboards travel in the hold as sports equipment, paid separately, up to 32 kg. Add them in the booking or up to 3 hours before the flight, but room is limited — better early.",
+     "⚠️ <b>The bundle is chosen in the booking itself, so decide in advance.</b> Afterwards you can only add items one by one, and Wizz says a suitcase added after booking costs more. WIZZ Flex can no longer be bought, and Priority at the airport costs €65–75.",
+     "💺 Seat prices in the example, per flight: middle at the back or centre €15, window or aisle €16, rows 5–14 €17–18, rows 2–4 €30–36, and extra legroom (rows 1, 18, 19, 29) €35–39. Smart and Go include a standard seat (not rows 1–4, not extra legroom), and Plus any seat.",
+     "⛷️ Ski gear is in no bundle: €65 a flight in the example, up to 32 kg. Room for sports equipment on each flight is limited — add it in the booking.",
+     "🛂 Check-in at the airport desk costs €50 with Basic and Smart. With Go and Plus it is free.",
      "👨‍👩‍👧 When you add children to the booking, Wizz shows Family Go and Family Plus in place of Go and Plus, at a discount.",
-     "Wizz prices change by flight, date and even from one search to the next — the example shows the proportions, not a price that will come back. Your own total is on the booking screen."
+     "Wizz prices change by flight, date and even from one search to the next. The example shows the proportions — your own total is on the booking screen."
     ],
     "links": [
      {
@@ -928,7 +944,8 @@
       "label": "Sports equipment — Wizz",
       "url": "https://www.wizzair.com/en-gb/help-centre/booking-information-and-services/baggage/special-baggage"
      }
-    ]
+    ],
+    "picker_at": 1
    },
    {
     "id": "il_air",
@@ -984,7 +1001,7 @@
      }
     ],
     "calc": {
-     "q": "What are you taking? (extras per passenger)",
+     "q": "What are you taking? (extras per passenger, each way)",
      "prices": {
       "elal_c": {
        "trolley": 0,
@@ -1019,10 +1036,6 @@
       [
        "ski",
        "🎿 Ski gear"
-      ],
-      [
-       "ret",
-       "↔️ Return trip"
       ]
      ],
      "names": {
@@ -1034,14 +1047,13 @@
      "incl": "included",
      "var": "the suitcase at a variable price",
      "plus": "plus",
-     "per": "on top of the ticket",
-     "tail": "Compare the ticket price together with the extras, not the ticket price alone.",
+     "tail": "Each way, on top of the ticket. Compare the ticket with the extras, not the ticket alone.",
      "liteTrolley": "On Lite the trolley goes in the hold — only the small bag comes into the cabin.",
      "empty": "Tick above what you take, and it shows what that adds on each airline."
     },
     "notes": [
      "⛷️ El Al — for skiers with their own gear: on Classic and above, ski or snowboard gear flies free, on top of the suitcase, in one bag up to 32 kg. Not on Lite, where the gear is paid for at the airport only.",
-     "💡 El Al Lite: on flights to Europe the trolley goes in the hold free of charge (except club members of Silver and up) — only a small personal item comes into the cabin. Flex adds a second cabin bag, wider seat choice and changes without a change fee.",
+     "💡 El Al Flex: two cabin bags, a wider seat choice and changes without a change fee.",
      "💡 On El Al the ticket type is chosen in the booking. On Arkia and Israir each item is added separately — the lower price only when booked in advance on the site (Israir up to 9 hours before the flight; on Arkia, if you booked less than 6 hours before, only at the desk, at a higher price).",
      "At the Tel Aviv airport: Arkia — trolley $30, suitcase $100. Israir — trolley $40, suitcase $100.",
      "⚠️ On Israir, paying for a trolley does not guarantee it goes into the cabin — it may be sent to the hold. On Arkia whether the trolley goes into the cabin is the airline's call.",
@@ -1585,7 +1597,8 @@
    },
    {
     "label": "🕍 Kosher ski holiday at Hanukkah",
-    "note": "Fun Fit Family run an all-inclusive kosher holiday in Cervinia on these dates — a hotel with a kosher kitchen, full board, equipment, a 5-day ski pass, kids' club and airport transfers. From €1,800 per adult. Details in the Kosher card."
+    "note": "Fun Fit Family run an all-inclusive kosher holiday in Cervinia on these dates — a hotel with a kosher kitchen, full board, equipment, a 5-day ski pass, kids' club and airport transfers. From €1,800 per adult. Details in the Kosher card.",
+    "until": "2026-12-13"
    },
    {
     "label": "🔴 The Immacolata bridge — busy",
@@ -2377,7 +2390,9 @@
   "cervinia_text": "In Cervinia itself <b>there are no kosher restaurants, no kosher bakeries and no synagogue</b>.<br>The village has a small supermarket, <b>Crai</b>, with basic groceries.<br>At busy times Israelis on the spot often organise themselves — a minyan, a Shabbat meal, shared shopping. It is worth checking the <b>Israeli Facebook group</b> for Cervinia (in Hebrew) before the trip — the arrangements are posted there, and WhatsApp groups for particular dates usually start from there too.",
   "cervinia_group": {
    "title": "🕍 One way to eat kosher in Cervinia: travel with a group",
-   "text": "<b>Fun Fit Family</b> run kosher ski holidays in Cervinia — a whole hotel with a kosher kitchen, full board, equipment rental included, a separate children's programme with staff, and a traditional Shabbat on site. The hotel is <b><bdi dir=\"ltr\">Hotel Lo Stambecco</bdi></b> at Plan Maison, at <b>2,550 m</b> — ski-in/ski-out right on the slope. <b>No road leads to it:</b> the only access is by the lift from the village, which runs 8:30–16:30 and is free for guests, and outside those hours you can book a private snowmobile transfer. Plan your arrival time accordingly.<br>They have run such holidays since 2021, in Cervinia and in Pinzolo. The next date is <b>Hanukkah, 6–13 December 2026</b>.<br><b>Kashrut:</b> a resident mashgiach, glatt meat and chalav Yisrael, unless stated otherwise.<br><b>What is included at Hanukkah, by their own announcement:</b> kosher full board, ski equipment rental, a 5-day ski pass, kids' club and ski school, evening activities and entertainment, and group airport transfers. <b>Price: from €1,800 per adult.</b><br>To book, for details and cancellation terms — contact them directly: WhatsApp <bdi dir=\"ltr\" style=\"white-space:nowrap;\">+39 320 349 3380</bdi> or email <bdi dir=\"ltr\" style=\"white-space:nowrap;\">info@funfit-fam.com</bdi>.<br><a href=\"https://www.funfit-fam.com/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a73e8;font-weight:bold;\">Their website →</a> · <a href=\"https://www.lostambecco.it/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a73e8;font-weight:bold;\">The hotel's website →</a>"
+   "text": "<b>Fun Fit Family</b> run kosher ski holidays in Cervinia — a whole hotel with a kosher kitchen, full board, equipment rental included, a separate children's programme with staff, and a traditional Shabbat on site. The hotel is <b><bdi dir=\"ltr\">Hotel Lo Stambecco</bdi></b> at Plan Maison, at <b>2,550 m</b> — ski-in/ski-out right on the slope. <b>No road leads to it:</b> the only access is by the lift from the village, which runs 8:30–16:30 and is free for guests, and outside those hours you can book a private snowmobile transfer. Plan your arrival time accordingly.<br>They have run such holidays since 2021, in Cervinia and in Pinzolo. The next date is <b>Hanukkah, 6–13 December 2026</b>.<br><b>Kashrut:</b> a resident mashgiach, glatt meat and chalav Yisrael, unless stated otherwise.<br><b>What is included at Hanukkah, by their own announcement:</b> kosher full board, ski equipment rental, a 5-day ski pass, kids' club and ski school, evening activities and entertainment, and group airport transfers. <b>Price: from €1,800 per adult.</b><br>To book, for details and cancellation terms — contact them directly: WhatsApp <bdi dir=\"ltr\" style=\"white-space:nowrap;\">+39 320 349 3380</bdi> or email <bdi dir=\"ltr\" style=\"white-space:nowrap;\">info@funfit-fam.com</bdi>.<br><a href=\"https://www.funfit-fam.com/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a73e8;font-weight:bold;\">Their website →</a> · <a href=\"https://www.lostambecco.it/\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a73e8;font-weight:bold;\">The hotel's website →</a>",
+   "until": "2026-12-13",
+   "text_after": "<b>Fun Fit Family</b> run kosher family ski holidays in Cervinia and elsewhere. One took place in Cervinia at Hanukkah 2026.<br>For their next holidays: WhatsApp <bdi dir=\"ltr\" style=\"white-space:nowrap;\">+39 320 349 3380</bdi> or email <bdi dir=\"ltr\" style=\"white-space:nowrap;\">info@funfit-fam.com</bdi>."
   },
   "cervinia_tips_title": "💡 How to check a product in the supermarket",
   "cervinia_tips": [

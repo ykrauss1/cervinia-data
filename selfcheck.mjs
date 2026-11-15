@@ -8743,13 +8743,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 
 // ── Which Wizz fare to buy ───────────────────────────────────────────────
 // The bundle is chosen once, in the booking (Yossi, 15.11). The reader ticks
-// what they take and is told which bundle to weigh against which add-ons;
-// the trolley comes only with Priority, the date change only in the booking.
+// what they take and gets one answer - the cheapest way in the worked
+// example - and a reset puts every chip back.
 {
   const T = 'the Wizz picker names the right bundle for what you take';
   const r = await page.evaluate(() => {
     openParkTransport();
-    const box = document.querySelector('#transport-body .wz-pick');
+    const box = document.querySelector('#transport-body .wz-pick[data-gid="wizz"]');
     if (!box) { closeM('parkingModal'); return null; }
     const pick = ks => {
       box.querySelectorAll('.wz-opt').forEach(b => {
@@ -8758,24 +8758,79 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       });
       return box.querySelector('.wz-out').textContent;
     };
-    const out = { none: pick([]), trolley: pick(['trolley']), bag: pick(['bag']), both: pick(['trolley', 'bag']),
-                  heavy: pick(['heavy']), flex: pick(['flex', 'bag']), ret: pick(['seat', 'ret']),
+    const out = { none: pick([]), seat: pick(['seat']), trolley: pick(['trolley']), bag: pick(['bag']),
+                  bagseat: pick(['bag', 'seat']), both: pick(['trolley', 'bag']), heavy: pick(['heavy']),
+                  flex: pick(['flex', 'bag']), ret: !!box.querySelector('.wz-opt[data-k="ret"]'),
                   link: typeof openWizzGuide === 'function' };
-    pick([]); closeM('parkingModal');
+    pick(['trolley', 'seat']);
+    _wzReset(box.querySelector('button[onclick^="_wzReset"]'));
+    out.afterReset = box.querySelectorAll('.wz-opt[aria-pressed="true"]').length;
+    out.resetText = box.querySelector('.wz-out').textContent;
+    // the picker comes after what each bundle includes and before the example
+    const card = box.parentElement, tabs = [...card.querySelectorAll('table')];
+    out.order = tabs.length >= 2 && (tabs[0].compareDocumentPosition(box) & 4) && (box.compareDocumentPosition(tabs[1]) & 4);
+    closeM('parkingModal');
     return out;
   });
   if (!r) fail(T, 'the picker is missing from the transport panel');
   else {
-    if (!/Basic/.test(r.none) || /Plus|Go\b/.test(r.none.split('⛷️')[0])) fail(T, 'nothing ticked does not say Basic: ' + r.none.slice(0, 80)); else ok();
-    if (!/Smart/.test(r.trolley) || !/Priority/.test(r.trolley)) fail(T, 'a trolley alone does not point to Smart or Priority'); else ok();
-    if (!/WIZZ Go/.test(r.bag) || /Plus/.test(r.bag.split('⛷️')[0])) fail(T, 'a suitcase alone does not point to WIZZ Go'); else ok();
-    if (!/WIZZ Plus/.test(r.both)) fail(T, 'a trolley and a suitcase do not point to WIZZ Plus'); else ok();
+    const first = t => t.split(/[.—]/)[0];
+    if (!/Basic/.test(first(r.none))) fail(T, 'nothing ticked does not say Basic: ' + r.none.slice(0, 80)); else ok();
+    if (!/Basic/.test(first(r.seat)) || /Smart/.test(first(r.seat))) fail(T, 'a seat alone does not point to Basic + a seat'); else ok();
+    if (!/Smart/.test(first(r.trolley))) fail(T, 'a trolley alone does not point to Smart'); else ok();
+    if (!/Basic/.test(first(r.bag))) fail(T, 'a suitcase alone does not point to Basic + a suitcase'); else ok();
+    if (!/WIZZ Go/.test(first(r.bagseat))) fail(T, 'a suitcase and a seat do not point to WIZZ Go'); else ok();
+    if (!/WIZZ Plus/.test(first(r.both))) fail(T, 'a trolley and a suitcase do not point to WIZZ Plus'); else ok();
     if (!/32/.test(r.heavy)) fail(T, 'a suitcase over 20 kg does not point to the 32 kg one'); else ok();
-    if (!/WIZZ Plus/.test(r.flex) || !/Flex/.test(r.flex)) fail(T, 'a date change does not point to Plus / Flex'); else ok();
-    if (!/↔️/.test(r.ret)) fail(T, 'a return trip does not say the extras count per flight'); else ok();
-    if (!/⛷️/.test(r.none)) fail(T, 'the ski-gear line is missing'); else ok();
+    if (!/WIZZ Plus/.test(first(r.flex)) || !/Flex/.test(r.flex)) fail(T, 'a date change does not point to Plus / Flex'); else ok();
+    if (r.ret) fail(T, 'the return-trip chip is back - it changed nothing (Yossi, 15.11)'); else ok();
+    if (r.afterReset !== 0 || r.resetText !== r.none) fail(T, 'reset does not clear the chips and the answer'); else ok();
+    if (!r.order) fail(T, 'the picker is not between the bundle table and the worked example'); else ok();
     if (!r.link) fail(T, 'openWizzGuide() is missing - the flight search points to it'); else ok();
   }
+}
+
+// ── Dated content goes after its date ───────────────────────────────────
+// The Hanukkah holiday (6-13.12.2026) is mentioned in three places; after
+// the 13th only a general line with the contacts stays (Yossi, 15.11).
+{
+  const T = 'content tied to a date is hidden once the date has passed';
+  const r = await page.evaluate(() => {
+    const keep = window._todayIL, out = {};
+    const t = window._texts || {};
+    const find = (o, k) => { if (!o || typeof o !== 'object') return null; if (k in o) return o[k];
+      for (const v of Object.values(o)) { const x = find(v, k); if (x) return x; } return null; };
+    const cg = find(t, 'cervinia_group');
+    out.until = cg && cg.until; out.after = !!(cg && cg.text_after && /info@funfit-fam\.com/.test(cg.text_after) && /3380/.test(cg.text_after));
+    out.afterNoPrice = !!(cg && cg.text_after && !/1,800|1800/.test(cg.text_after));
+    const per = (find(t, 'periods') || []).filter(p => /Fun Fit/.test(p.note || ''));
+    out.periodUntil = per.length && per.every(p => p.until === '2026-12-13');
+    const span = document.createElement('span'); span.setAttribute('data-until', '2026-12-13'); span.textContent = 'x';
+    document.body.appendChild(span);
+    window._todayIL = () => '2026-12-13'; _hideExpired(document); out.onDay = span.style.display;
+    window._todayIL = () => '2026-12-14'; _hideExpired(document); out.dayAfter = span.style.display;
+    window._todayIL = keep; span.remove();
+    return out;
+  });
+  if (r.until !== '2026-12-13' || !r.after) fail(T, 'the kosher-group card has no until date or no general text with the phone and email after it'); else ok();
+  if (!r.afterNoPrice) fail(T, 'the after-Hanukkah text still carries the holiday price'); else ok();
+  if (!r.periodUntil) fail(T, 'the Hanukkah line in the season calendar has no until date'); else ok();
+  if (r.onDay === 'none' || r.dayAfter !== 'none') fail(T, `data-until shows on the last day and hides the day after: ${r.onDay} / ${r.dayAfter}`); else ok();
+}
+
+// ── Panoramas next to the webcams ───────────────────────────────────────
+{
+  const T = 'the webcams have a panoramas tab like the official site';
+  const r = await page.evaluate(() => {
+    openM('webcamModal'); wcamMode('pano');
+    const imgs = [...document.querySelectorAll('#wcam-pano-list img[data-i]')].map(i => i.getAttribute('src') || '');
+    const shown = getComputedStyle(document.getElementById('wcam-pano')).display !== 'none'
+               && getComputedStyle(document.getElementById('wcam-live')).display === 'none';
+    wcamMode('live'); closeM('webcamModal');
+    return { n: imgs.length, ok: imgs.every(u => /^https:\/\/panodata\d+\.panomax\.com\/cams\/\d+\/recent_optimized\.jpg/.test(u)), shown };
+  });
+  if (r.n < 5 || !r.ok) fail(T, `expected 5 Panomax panoramas at their recent_ addresses, got ${r.n}`); else ok();
+  if (!r.shown) fail(T, 'the panoramas tab does not swap the view'); else ok();
 }
 
 // ── El Al, Arkia, Israir: what the extras add up to ─────────────────────
@@ -8793,16 +8848,20 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       return box.querySelector('.wz-out').textContent;
     };
     const g = window._texts.transport.groups.find(x => x.id === 'il_air').calc.prices;
-    const out = { all: pick(['trolley', 'bag', 'ski', 'ret']), one: pick(['bag']), g };
-    pick([]); closeM('parkingModal');
+    const out = { all: pick(['trolley', 'bag', 'ski']), one: pick(['bag']), g, ret: !!box.querySelector('.wz-opt[data-k="ret"]') };
+    _wzReset(box.querySelector('button[onclick^="_wzReset"]'));
+    out.afterReset = box.querySelectorAll('.wz-opt[aria-pressed="true"]').length;
+    closeM('parkingModal');
     return out;
   });
   if (!r) fail(T, 'the calculator is missing from the transport panel');
   else {
-    const p = r.g, ar = 2 * (p.arkia.trolley + p.arkia.bag + p.arkia.ski), is = 2 * (p.israir.trolley + p.israir.bag + p.israir.ski);
-    if (r.all.indexOf('$' + ar) < 0 || r.all.indexOf('$' + is) < 0) fail(T, `a return trip with trolley, suitcase and skis does not come to $${ar} / $${is}: ` + r.all.slice(0, 160)); else ok();
-    if (!/\$60/.test(r.one) || !/\$65/.test(r.one)) fail(T, 'one suitcase one way does not show Arkia $60 and Israir $65'); else ok();
-    if (r.one.indexOf('$') > r.one.indexOf(r.g ? 'Classic' : '') && !/Classic[^$]*?(כלול|included)/.test(r.one)) fail(T, 'El Al Classic does not show the suitcase as included'); else ok();
+    const p = r.g, ar = p.arkia.trolley + p.arkia.bag + p.arkia.ski, is = p.israir.trolley + p.israir.bag + p.israir.ski;
+    if (r.all.indexOf('$' + ar) < 0 || r.all.indexOf('$' + is) < 0) fail(T, `trolley, suitcase and skis each way do not come to $${ar} / $${is}: ` + r.all.slice(0, 160)); else ok();
+    if (!/\$60/.test(r.one) || !/\$65/.test(r.one)) fail(T, 'one suitcase does not show Arkia $60 and Israir $65'); else ok();
+    if (!/Classic\s*(כלול|included)/.test(r.one)) fail(T, 'El Al Classic does not show the suitcase as included'); else ok();
+    if (r.ret) fail(T, 'the return-trip chip is back'); else ok();
+    if (r.afterReset !== 0) fail(T, 'reset does not clear the chips'); else ok();
   }
 }
 
