@@ -93,36 +93,80 @@ document.addEventListener('DOMContentLoaded', function () {
 // data, so every renderer, the static markup and anything added later are
 // covered alike. The Hebrew page only; skipped where the text is not ours
 // to touch (user posts, inputs, editable fields, code) or already isolated.
-var _LAT_W = "[A-Za-zÀ-ɏ][A-Za-z0-9À-ɏ'’.&\\-]*";
+var _LAT_L = "A-Za-zÀ-ÖØ-öø-ɏ";
+var _LAT_W = "[" + _LAT_L + "][0-9'’.&\\-" + _LAT_L + "]*";
+// words joined by spaces, ", ", " - ", "/" or a dash ("Ivrea–Aosta"), and a
+// number that follows a name ("Via Gorret 5", "CHF 104", "Plan Maison 2,555")
 var _LAT_RUN = new RegExp('(["“„]?)(' + _LAT_W
-  + '(?:(?:[  ]+|,[  ]+|[  ][—–\\-][  ]|\\/)(?:' + _LAT_W + '|\\d[\\d.,]*(?=[  ]*$|[  ]+[A-Za-z])))*)(["”]?)', 'g');
-var _LAT_SKIP = 'bdi,[dir="ltr"],script,style,textarea,input,select,option,code,pre,svg,.ugc,[contenteditable],[data-no-bidi]';
+  + '(?:(?:[  ]+|,[  ]+|[  ]?[—–\\-/][  ]?|[  ]*\\/[  ]*)(?:' + _LAT_W + '|\\d+(?:[.,]\\d+)*(?![\\d]))'
+  + ')*)(["”]?)', 'g');
+var _LAT_HAS = new RegExp('[' + _LAT_L + ']');
+var _LAT_SKIP = 'bdi,[dir="ltr"],[dir="auto"],script,style,textarea,input,select,option,code,pre,svg,.ugc,[contenteditable],[data-no-bidi]';
+var _HEB = /[֐-׿]/;
+function _paraOf(el) {
+  // the element the line is laid out in: the nearest one that is not inline
+  // (a flex item counts - its display is computed as block)
+  while (el && el !== document.body && getComputedStyle(el).display === 'inline') el = el.parentElement;
+  return el;
+}
 function _bidiLatin(root) {
   if (window.LANG === 'en' || !root || !document.createTreeWalker) return;
   if (root.nodeType === 3) root = root.parentNode;
   if (!root || root.nodeType !== 1 || (root.closest && root.closest(_LAT_SKIP))) return;
   var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), list = [], n;
   while ((n = w.nextNode())) {
-    if (/[A-Za-zÀ-ɏ]/.test(n.nodeValue) && n.parentNode && !n.parentNode.closest(_LAT_SKIP)) list.push(n);
+    if (_LAT_HAS.test(n.nodeValue) && n.parentNode && !n.parentNode.closest(_LAT_SKIP)) list.push(n);
   }
   list.forEach(function (t) {
-    var v = t.nodeValue, frag = null, last = 0, m;
-    // an element with no Hebrew in it at all - a run's title "Baby La
-    // Vieille 1 · 2" - is laid out in its own direction, whole: as one Latin
-    // run and a loose "1 · 2" on a Hebrew line it read "2 · 1 Baby La Vieille"
-    var par = t.parentNode;
-    if (par && par !== document.body && !par.hasAttribute('dir')
-        && !/[\u0590-\u05ff]/.test(par.textContent)) { par.setAttribute('dir', 'auto'); return; }
-    if (par && par.getAttribute('dir') === 'auto') return;
+    var v = t.nodeValue, frag = null, last = 0, m, par = t.parentNode;
+    if (!par || !par.isConnected) return;
+    // A line with no Hebrew in it at all - an address "Via Carrel 2,
+    // Breuil-Cervinia", "Ride'em / New Ski School" - already lays out as one
+    // Latin run, and cutting it into pieces is what turns it round. It is
+    // left alone - except a Latin-only element that is a line of its own
+    // (a flex item, a run's title "Baby La Vieille 1 · 2"), which is given
+    // its own direction; its size follows its text, so nothing moves.
+    if (!_HEB.test(par.textContent)) {
+      var para = _paraOf(par);
+      if (para && !_HEB.test(para.textContent)) {
+        if (para === par && /^(SPAN|B|STRONG|EM|I|A|SMALL|LABEL)$/.test(par.tagName) && !par.hasAttribute('dir')) par.setAttribute('dir', 'auto');
+        return;
+      }
+      // a Latin-only element inside a Hebrew line (<b>Via Carrel 2</b>) is
+      // one unit as it stands
+      if (/^(SPAN|B|STRONG|EM|I|A|SMALL|LABEL|U|MARK)$/.test(par.tagName) && !par.hasAttribute('dir')) { par.setAttribute('dir', 'auto'); return; }
+    }
     _LAT_RUN.lastIndex = 0;
     while ((m = _LAT_RUN.exec(v))) {
       var q1 = m[1], run = m[2], q2 = m[3], start = m.index;
+      // a unit glued to its number - "2050m", "45.94°N", "4x4" - is part of
+      // the number, not a name
+      var prev = start > 0 ? v.charAt(start - 1) : '';
+      if (!q1 && /[\d°%.,]/.test(prev)) { _LAT_RUN.lastIndex = start + Math.max(1, m[0].length); continue; }
       // a quote counts only as a pair around the run
       if (!(q1 && q2)) { if (q1) { start += 1; } q1 = q2 = ''; }
+      // a number after a full stop starts the next sentence ("Ventina. 45
+      // מקומות"): the name ends at the stop
+      var cut = run.match(/^(.*?[^.\s])\.[ \u00a0]+\d[\d.,]*$/);
+      if (cut && !/\.[A-Za-z]/.test(cut[1].slice(-3))) run = cut[1] + '.';
       // a full stop that ends the sentence is not part of the name
       var tail = (run.match(/[.\-]+$/) || [''])[0];
       if (tail && !/\.[A-Za-z]/.test(run.slice(-3))) run = run.slice(0, run.length - tail.length); else tail = '';
       var whole = q1 + run + q2;
+      if (!whole) { _LAT_RUN.lastIndex = start + 1; continue; }
+      // "<b>Via Carrel 2</b>, Breuil-Cervinia": the bold part and the rest are
+      // one address - set apart separately, the two swap places
+      var pv = t.previousSibling;
+      if (!frag && /^[ ,\u00a0\u2013\u2014-]*$/.test(v.slice(0, start)) && pv && pv.nodeType === 1
+          && (pv.tagName === 'BDI' || pv.getAttribute('dir') === 'auto') && !_HEB.test(pv.textContent)) {
+        var jb = document.createElement('bdi');
+        par.insertBefore(jb, pv);
+        jb.appendChild(pv);
+        jb.appendChild(document.createTextNode(v.slice(0, start + whole.length)));
+        t.nodeValue = v = v.slice(start + whole.length);
+        _LAT_RUN.lastIndex = 0; last = 0;
+        continue;
+      }
       if (!frag) frag = document.createDocumentFragment();
       frag.appendChild(document.createTextNode(v.slice(last, start)));
       var b = document.createElement('bdi'); b.textContent = whole;
@@ -134,20 +178,16 @@ function _bidiLatin(root) {
       _LAT_RUN.lastIndex = last;
       // a house number the page already set apart ("Via Gorret 5") belongs
       // to the street: on its own it lands on the street's Hebrew side
-      if (!q2 && /^[ \u00a0]*$/.test(v.slice(last)) && t.nextSibling && t.nextSibling.nodeType === 1
+      if (!q2 && /^[  ]*$/.test(v.slice(last)) && t.nextSibling && t.nextSibling.nodeType === 1
           && t.nextSibling.tagName === 'SPAN' && t.nextSibling.getAttribute('dir') === 'ltr'
           && /^\d[\d.,]*[A-Za-z]?$/.test(t.nextSibling.textContent)) {
         b.dataset.num = '1';
       }
     }
     if (!frag) return;
-    // a text node that is nothing but one Latin run inside a Latin-only
-    // element (a name in its own <b>) is already one unit
-    if (last === v.length && frag.childNodes.length === 2 && !frag.firstChild.nodeValue
-        && !/[֐-׿]/.test(t.parentNode.textContent)) return;
     frag.appendChild(document.createTextNode(v.slice(last)));
     var nx = t.nextSibling, lastB = frag.lastChild && frag.lastChild.previousSibling;
-    t.parentNode.replaceChild(frag, t);
+    par.replaceChild(frag, t);
     if (lastB && lastB.dataset && lastB.dataset.num && nx && nx.parentNode) {
       lastB.appendChild(document.createTextNode(lastB.nextSibling.nodeValue || ' '));
       lastB.nextSibling.nodeValue = '';
@@ -1396,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.67';
+  var v='v17.68';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -20614,8 +20654,11 @@ async function _admRenderUsers() {
     <!-- Days with Zermatt, worked out (Yossi, 11.11): "לי מסובך לחשב את זה".
          Four ways to buy for N days with Z of them in Zermatt, priced from
          the official tariff for one adult. -->
-    <div id="zc-box" style="padding:12px 14px;background:#fff;border:1.5px solid #d8e4f0;border-radius:11px;margin-bottom:14px;font-size:0.8rem;color:#334;line-height:1.7;">
-      <div style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;" data-en="🧮 Full days, Zermatt days, half days — what is the cheapest way to buy?">🧮 ימים מלאים, ימים בצ'רמט, חצאי ימים — איך הכי משתלם לקנות?</div>
+    <!-- One line that opens (Yossi, 15.11): the advice above stays in view,
+         the working-out folds away like the price list. -->
+    <details class="fold" id="zc-fold" style="margin-bottom:14px;">
+    <summary data-en="🧮 Calculator: full days, Zermatt days, half days — what is the cheapest way to buy?">🧮 מחשבון: ימים מלאים, ימים בצ'רמט, חצאי ימים — איך הכי משתלם לקנות?</summary>
+    <div id="zc-box" class="fold-body" style="font-size:0.8rem;color:#334;line-height:1.7;">
       <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:10px;">
         <span style="display:inline-flex;align-items:center;gap:6px;"><span data-en="Full days">ימים מלאים</span>
           <button class="c-btn" type="button" onclick="zcAdj('n',-1)">-</button>
@@ -20633,6 +20676,7 @@ async function _admRenderUsers() {
       <div style="font-size:0.72rem;color:#7a8794;margin:-4px 0 8px;" data-en="Half a day — on the arrival or departure day, or for a beginner. A morning ticket runs until 13:00, an afternoon one from 12:00, on the Cervinia side only.">חצי יום — ביום ההגעה או העזיבה, או למתחיל. כרטיס בוקר תקף עד 13:00, ואחר הצהריים מ-12:00, בצד של צ'רוויניה בלבד.</div>
       <div id="zc-out"></div>
     </div>
+    </details>
 
     <div id="skipass-keycard" style="padding:13px 15px;background:#fffdf5;border:1.5px solid #e8d9a8;border-radius:11px;margin-bottom:14px;font-size:0.78rem;color:#444;line-height:1.75;"></div>
 

@@ -8717,11 +8717,21 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     box.innerHTML = '<p id="bl1">לא לבלבל עם מלון "Cime Bianche" שלמטה</p>'
       + '<p id="bl2">' + _fixNums('בניין Fior di Roccia במרכז (Via Gorret 5) ובניין') + '</p>'
       + '<p id="bl3">שבין Plateau Rosà לקולה.</p>'
-      + '<p id="bl4" class="ugc">שלום Plan Maison</p>';
+      + '<p id="bl4" class="ugc">שלום Plan Maison</p>'
+      + '<p id="bl5">של ה-Ventina. 45 מקומות</p>'
+      + '<p id="bl6">קו הרכבת Ivrea–Aosta סגור, ומ-CHF 104 בצרמט</p>'
+      + '<div id="bl7"><span>⛰️</span> <span>2050m</span> <span>45.94°N</span></div>'
+      + '<div id="bl8">📍 <b>Piazzale Funivie</b>, Breuil-Cervinia · מאז 1999</div>'
+      + '<div id="bl9">📍 <b>Via Carrel 2</b>, Breuil-Cervinia</div>'
+      + '<p id="bl10"><span class="close-btn">×</span> שלום</p>';
     document.body.appendChild(box);
     await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
     const bd = id => [...document.querySelectorAll('#' + id + ' bdi')].map(b => b.textContent);
     const out = { q: bd('bl1'), num: bd('bl2'), dot: bd('bl3'), ugc: bd('bl4'),
+      stop: bd('bl5'), dash: bd('bl6'), unit: document.querySelectorAll('#bl7 bdi, #bl7 [dir]').length,
+      addr: [...document.querySelectorAll('#bl8 > bdi')].map(b => b.textContent),
+      latinLine: document.querySelectorAll('#bl9 bdi').length + document.querySelectorAll('#bl9 [dir]').length,
+      x: document.querySelector('#bl10 .close-btn').hasAttribute('dir'),
       text: box.textContent };
     box.remove();
     return out;
@@ -8730,6 +8740,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.num.some(x => /^Via Gorret\s+5$/.test(x))) fail(T, `the house number is not kept with its street: ${JSON.stringify(r.num)}`); else ok();
   if (!r.dot.includes('Plateau Rosà')) fail(T, `the full stop went into the name: ${JSON.stringify(r.dot)}`); else ok();
   if (r.ugc.length) fail(T, 'a user post was rewritten'); else ok();
+  if (!r.stop.includes('Ventina') || r.stop.some(x => /45/.test(x))) fail(T, `a number after a full stop was pulled into the name: ${JSON.stringify(r.stop)}`); else ok();
+  if (!r.dash.includes('Ivrea–Aosta') || !r.dash.includes('CHF 104')) fail(T, `"Ivrea–Aosta" or "CHF 104" was cut apart: ${JSON.stringify(r.dash)}`); else ok();
+  if (r.unit) fail(T, 'a unit glued to its number (2050m, 45.94°N) was set apart from it'); else ok();
+  if (!r.addr.some(x => /Piazzale Funivie\s*,\s*Breuil-Cervinia/.test(x))) fail(T, `the bold street and the town after it are not one address: ${JSON.stringify(r.addr)}`); else ok();
+  if (r.latinLine) fail(T, 'a line with no Hebrew in it was cut into pieces'); else ok();
+  if (r.x) fail(T, 'the × of a close button was taken for a Latin letter'); else ok();
   if (!/Via Gorret\s+5/.test(r.text) || !/"Cime Bianche"/.test(r.text)) fail(T, 'the text itself changed'); else ok();
 }
 
