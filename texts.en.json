@@ -754,6 +754,132 @@
     ]
    },
    {
+    "id": "wizz",
+    "icon": "🎫",
+    "title": "Wizz Air — which fare to buy",
+    "lead": "Wizz is the main low-cost airline between Tel Aviv and Milan (Malpensa). When you book you pick a bundle: Basic, WIZZ Go, WIZZ Smart (when offered) or WIZZ Plus. Decide in advance, by what you really take — tick below and it tells you what to check.",
+    "tables": [
+     {
+      "cols": [
+       "",
+       "Basic",
+       "Go",
+       "Smart",
+       "Plus"
+      ],
+      "rows": [
+       [
+        "Under-seat bag 40×30×20",
+        "✓",
+        "✓",
+        "✓",
+        "✓"
+       ],
+       [
+        "Cabin trolley 55×40×23, up to 10 kg",
+        "—",
+        "—",
+        "✓",
+        "✓"
+       ],
+       [
+        "Checked suitcase",
+        "—",
+        "20 kg",
+        "—",
+        "32 kg"
+       ],
+       [
+        "Seat selection",
+        "—",
+        "standard",
+        "standard",
+        "incl. extra legroom"
+       ],
+       [
+        "Priority boarding",
+        "—",
+        "—",
+        "✓",
+        "✓"
+       ],
+       [
+        "Date change (WIZZ Flex)",
+        "—",
+        "—",
+        "—",
+        "✓"
+       ]
+      ]
+     }
+    ],
+    "picker": {
+     "q": "What are you taking? (per passenger, per flight)",
+     "opts": [
+      [
+       "trolley",
+       "🧳 Cabin trolley"
+      ],
+      [
+       "bag",
+       "🛄 Checked suitcase"
+      ],
+      [
+       "heavy",
+       "⚖️ Suitcase over 20 kg"
+      ],
+      [
+       "seat",
+       "💺 A seat I choose"
+      ],
+      [
+       "flex",
+       "📅 Option to change the date"
+      ],
+      [
+       "ret",
+       "↔️ Return trip"
+      ]
+     ],
+     "none": "None of these — Basic is enough: one bag under the seat, and a random seat at check-in.",
+     "res": {
+      "flex": "WIZZ Plus — it covers all the rest. WIZZ Flex can be bought only in the booking itself, not later. It is also sold on its own in the booking — compare.",
+      "plus": "WIZZ Plus, or WIZZ Go + WIZZ Priority — compare the two totals on the booking screen.",
+      "heavy": "WIZZ Plus (suitcase up to 32 kg), or Basic + a heavier suitcase — compare.",
+      "go": "WIZZ Go, or Basic + a suitcase (and a seat, if you want one) — compare.",
+      "smart": "WIZZ Smart if the flight offers it, otherwise Basic + WIZZ Priority.",
+      "seat": "Basic + a seat.",
+      "ret": "↔️ Every extra counts per flight — on a return trip the difference doubles. WIZZ Flex inside Plus applies to all passengers and all flights in the booking.",
+      "ski": "⛷️ Ski gear is in no bundle — it is added on its own, best already in the booking, since the room for sports equipment on each flight is limited."
+     }
+    },
+    "notes": [
+     "💡 The cabin trolley comes only with WIZZ Priority — on its own, or inside Smart or Plus. Go has a checked suitcase, but no trolley.",
+     "💡 A suitcase, a seat and Priority can also be added after booking, on the booking page. Only WIZZ Flex is sold in the booking itself and nowhere else. Priority costs €10–60 online and €65–75 at the airport.",
+     "⛷️ Skis and snowboards travel in the hold as sports equipment, paid separately, up to 32 kg. Add them in the booking or up to 3 hours before the flight, but room is limited — better early.",
+     "👨‍👩‍👧 When you add children to the booking, Wizz shows Family Go and Family Plus in place of Go and Plus, at a discount.",
+     "Prices change by flight and date, so we did not write them — the decision is what you need, and the total is on the booking screen. What a bundle includes is always as shown in the booking."
+    ],
+    "links": [
+     {
+      "label": "The bundles — Wizz",
+      "url": "https://www.wizzair.com/en-gb/information-and-services/prices-discounts/fares-bundles"
+     },
+     {
+      "label": "WIZZ Priority",
+      "url": "https://www.wizzair.com/en-gb/information-and-services/wizz-services/wizz-priority"
+     },
+     {
+      "label": "WIZZ Flex",
+      "url": "https://www.wizzair.com/en-gb/information-and-services/wizz-services/wizz-flex"
+     },
+     {
+      "label": "Sports equipment — Wizz",
+      "url": "https://www.wizzair.com/en-gb/help-centre/booking-information-and-services/baggage/special-baggage"
+     }
+    ]
+   },
+   {
     "id": "transfer",
     "title": "Airport transfer",
     "lead": "A private transfer comes to the hotel door and is booked in advance. The price is per vehicle, not per person.",

@@ -8739,6 +8739,43 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.section) fail(T, 'the "A night near the airport" section is missing from the transport panel'); else ok();
 }
 
+// ── Which Wizz fare to buy ───────────────────────────────────────────────
+// The bundle is chosen once, in the booking (Yossi, 15.11). The reader ticks
+// what they take and is told which bundle to weigh against which add-ons;
+// the trolley comes only with Priority, the date change only in the booking.
+{
+  const T = 'the Wizz picker names the right bundle for what you take';
+  const r = await page.evaluate(() => {
+    openParkTransport();
+    const box = document.querySelector('#transport-body .wz-pick');
+    if (!box) { closeM('parkingModal'); return null; }
+    const pick = ks => {
+      box.querySelectorAll('.wz-opt').forEach(b => {
+        const want = ks.indexOf(b.getAttribute('data-k')) >= 0;
+        if ((b.getAttribute('aria-pressed') === 'true') !== want) _wzToggle(b);
+      });
+      return box.querySelector('.wz-out').textContent;
+    };
+    const out = { none: pick([]), trolley: pick(['trolley']), bag: pick(['bag']), both: pick(['trolley', 'bag']),
+                  heavy: pick(['heavy']), flex: pick(['flex', 'bag']), ret: pick(['seat', 'ret']),
+                  link: typeof openWizzGuide === 'function' };
+    pick([]); closeM('parkingModal');
+    return out;
+  });
+  if (!r) fail(T, 'the picker is missing from the transport panel');
+  else {
+    if (!/Basic/.test(r.none) || /Plus|Go\b/.test(r.none.split('⛷️')[0])) fail(T, 'nothing ticked does not say Basic: ' + r.none.slice(0, 80)); else ok();
+    if (!/Smart/.test(r.trolley) || !/Priority/.test(r.trolley)) fail(T, 'a trolley alone does not point to Smart or Priority'); else ok();
+    if (!/WIZZ Go/.test(r.bag) || /Plus/.test(r.bag.split('⛷️')[0])) fail(T, 'a suitcase alone does not point to WIZZ Go'); else ok();
+    if (!/WIZZ Plus/.test(r.both) || !/Priority/.test(r.both)) fail(T, 'a trolley and a suitcase do not weigh Plus against Go + Priority'); else ok();
+    if (!/32/.test(r.heavy)) fail(T, 'a suitcase over 20 kg does not point to the 32 kg one'); else ok();
+    if (!/WIZZ Plus/.test(r.flex) || !/Flex/.test(r.flex)) fail(T, 'a date change does not point to Plus / Flex'); else ok();
+    if (!/↔️/.test(r.ret)) fail(T, 'a return trip does not say the extras count per flight'); else ok();
+    if (!/⛷️/.test(r.none)) fail(T, 'the ski-gear line is missing'); else ok();
+    if (!r.link) fail(T, 'openWizzGuide() is missing - the flight search points to it'); else ok();
+  }
+}
+
 // ── Latin names on a Hebrew line are laid out as one unit ───────────
 // Yossi, 15.11: "Cime" and "Bianche" with the quotes on the wrong sides, a
 // house number on the far side of its street. Each Latin run is isolated.

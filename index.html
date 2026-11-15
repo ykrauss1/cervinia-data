@@ -98,7 +98,7 @@ var _LAT_W = "[" + _LAT_L + "][0-9'’.&\\-" + _LAT_L + "]*";
 // words joined by spaces, ", ", " - ", "/" or a dash ("Ivrea–Aosta"), and a
 // number that follows a name ("Via Gorret 5", "CHF 104", "Plan Maison 2,555")
 var _LAT_RUN = new RegExp('(["“„]?)(' + _LAT_W
-  + '(?:(?:[  ]+|,[  ]+|[  ]?[—–\\-/][  ]?|[  ]*\\/[  ]*)(?:' + _LAT_W + '|\\d+(?:[.,]\\d+)*(?![\\d]))'
+  + '(?:(?:[  ]+|,[  ]+|[  ]?[—–\\-/][  ]?|[  ]*\\/[  ]*|[  ]\\+[  ])(?:' + _LAT_W + '|\\d+(?:[.,]\\d+)*(?![\\d]))'
   + ')*)(["”]?)', 'g');
 var _LAT_HAS = new RegExp('[' + _LAT_L + ']');
 var _LAT_SKIP = 'bdi,[dir="ltr"],[dir="auto"],script,style,textarea,input,select,option,code,pre,svg,.ugc,[contenteditable],[data-no-bidi]';
@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.70';
+  var v='v17.71';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -8575,7 +8575,10 @@ function searchFlight() {
     + '<div style="font-size:0.78rem;font-weight:bold;color:#1a3a6c;margin-bottom:8px;">' + L('✈️ טיסות — ', '✈️ Flights — ')
     + (window.LANG === 'en' ? 'from ' + org + ' to ' + esc(fCity) + ' (' + fCode + ')'
        : (org !== 'TLV' ? 'מ־<bdi>' + org + '</bdi> ל' + esc(fHe) + ' (' + fCode + ')' : fOther ? 'מתל אביב ל' + esc(fHe) + ' (' + fCode + ')' : 'ברירת מחדל: מילאנו (MXP)')) + '</div>'
-    + makeResultLinks(links) + '</div>';
+    + makeResultLinks(links)
+    + '<button type="button" onclick="openWizzGuide()" style="margin-top:8px;background:none;border:none;padding:0;'
+    + 'color:#1a4b8c;font-size:0.76rem;font-weight:bold;cursor:pointer;font-family:inherit;text-decoration:underline;">'
+    + L('🎫 טסים בוויז? איזו חבילה לקנות ←', '🎫 Flying Wizz? Which fare bundle to buy →') + '</button></div>';
   // The snapshot answers instantly from a file; the links below it are the
   // live sites. Painted after the links so a slow first load of the file
   // never holds them up.
@@ -10643,6 +10646,14 @@ function openParkTransport() {
 // The arrival planner and the "when to go" card are both buried a scroll or a
 // click deep inside a panel, which is fine once you know they are there and
 // useless if you do not. The search bar is how people find out.
+// the Wizz fare guide sits in the transport panel; the flight search points to it
+function openWizzGuide() {
+  openParkTransport();
+  setTimeout(function () {
+    var el = document.querySelector('#transport-body .wz-pick');
+    if (el && el.parentElement && el.parentElement.scrollIntoView) el.parentElement.scrollIntoView({ block: 'start' });
+  }, 220);
+}
 function openArrivalPlanner() {
   openParkTransport();
   setTimeout(function () {
@@ -16059,6 +16070,8 @@ function _groupsHtml(tr) {
     });
     if (fold) h += '</details>';
 
+    if (g.picker) h += _wzPickerHtml(g);
+
     (g.notes || []).forEach(function (n) {
       h += '<div style="font-size:0.79rem;color:#444;line-height:1.8;margin-bottom:6px;">'
          + _fixPhones(_fixNums(_aEsc(n.text || n))) + '</div>';
@@ -16089,6 +16102,55 @@ function _groupsHtml(tr) {
   if (tr.footer) h += '<div style="font-size:0.74rem;color:#888;line-height:1.75;margin-top:4px;">'
                     + _fixNums(_aEsc(tr.footer)) + '</div>';
   return h;
+}
+
+// Which Wizz fare to buy (Yossi, 15.11): the bundle is chosen once, in the
+// booking, so the reader ticks what they take and is told which bundle - or
+// which bundle against which add-ons - to compare on the booking screen. No
+// prices: they change by flight and date, the choice does not.
+function _wzPickerHtml(g) {
+  var p = g.picker;
+  var h = '<div class="wz-pick" data-gid="' + _aEsc(g.id) + '" style="border:1px solid #dbe4f0;'
+        + 'border-radius:9px;background:#fff;padding:10px 11px;margin:2px 0 10px;">'
+        + '<div style="font-size:0.8rem;font-weight:bold;color:#1a3a6c;margin-bottom:7px;">'
+        + _aEsc(p.q) + '</div><div style="display:flex;flex-wrap:wrap;gap:6px;">';
+  (p.opts || []).forEach(function (o) {
+    h += '<button type="button" class="wz-opt" data-k="' + _aEsc(o[0]) + '" aria-pressed="false" '
+       + 'onclick="_wzToggle(this)" style="padding:5px 10px;border-radius:16px;border:1.5px solid #c9d6e8;'
+       + 'background:#f5f8fc;color:#234;font-size:0.76rem;cursor:pointer;font-family:inherit;">'
+       + _aEsc(o[1]) + '</button>';
+  });
+  h += '</div><div class="wz-out" aria-live="polite" style="font-size:0.79rem;color:#333;'
+     + 'line-height:1.8;margin-top:9px;">' + _wzAnswer(p, {}) + '</div></div>';
+  return h;
+}
+function _wzAnswer(p, s) {
+  var r = p.res || {}, out;
+  if (s.flex) out = r.flex;
+  else if (s.trolley && (s.bag || s.heavy)) out = r.plus;
+  else if (s.heavy) out = r.heavy;
+  else if (s.bag) out = r.go;
+  else if (s.trolley) out = r.smart;
+  else if (s.seat) out = r.seat;
+  else out = p.none;
+  var h = '<b>👉 ' + _aEsc(out) + '</b>';
+  if (s.ret && r.ret) h += '<br>' + _aEsc(r.ret);
+  if (r.ski) h += '<br>' + _aEsc(r.ski);
+  return h;
+}
+function _wzToggle(btn) {
+  var on = btn.getAttribute('aria-pressed') !== 'true';
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  btn.style.background = on ? '#1a73e8' : '#f5f8fc';
+  btn.style.color = on ? '#fff' : '#234';
+  btn.style.borderColor = on ? '#1a73e8' : '#c9d6e8';
+  var box = btn.closest('.wz-pick');
+  var g = ((window._texts && window._texts.transport && window._texts.transport.groups) || [])
+            .filter(function (x) { return x.id === box.getAttribute('data-gid'); })[0];
+  if (!g || !g.picker) return;
+  var s = {};
+  box.querySelectorAll('.wz-opt[aria-pressed="true"]').forEach(function (b) { s[b.getAttribute('data-k')] = 1; });
+  box.querySelector('.wz-out').innerHTML = _wzAnswer(g.picker, s);
 }
 
 function renderSwissBox() {
@@ -18989,10 +19051,11 @@ const SEARCH_INDEX = [
   { text: 'ביטוח ספורט חורף חובה צד שלישי קנס קסדה חוק איטליה חילוץ', action: "openPlanner('prep')", icon: '🛡️', label: 'ביטוח וקסדה — חובה בחוק' },
   { text: 'סנובורד גלשן מגני פרקי כף יד רגל קדמית regular goofy', action: "openM('rentalModal')", icon: '🏂', label: 'סנובורד' },
   { text: 'מגפי סקי מגלשיים פלקס מידה DIN מקלות השכרה', action: "openM('rentalModal')", icon: '🎿', label: 'הציוד הכבד' },
+  { text: 'וויז wizz כרטיס חבילה טרולי מזוודה מושב priority flex לואו קוסט', action: "openWizzGuide()", icon: '🎫', label: 'וויז — איזו חבילה לקנות' },
 ];
 // English: the same entries, searchable by English words and labelled in English.
 if (window.LANG === 'en') {
-  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"]].forEach(function (e, k) {
+  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"]].forEach(function (e, k) {
     if (SEARCH_INDEX[k]) { SEARCH_INDEX[k].text += ' ' + e[0]; SEARCH_INDEX[k].label = e[1]; }
   });
 }
