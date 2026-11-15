@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.77';
+  var v='v17.78';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1745,7 +1745,11 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     </div>
     <div id="svc-around" class="service-btn svc-wide" onclick="openM('aroundModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-snow-capped-mountain"/></svg></span>
-      <span class="svc-txt"><b>מה לעשות באזור</b><small>ימים סוערים · פילה ומונטרוזה · אחרי הסקי</small></span>
+      <span class="svc-txt"><b>מה לעשות באזור</b><small>ימים סוערים · אחרי הסקי · ומה סגור בחורף</small></span>
+    </div>
+    <div id="svc-skiareas" class="service-btn" onclick="openM('skiAreasModal')">
+      <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-skis"/></svg></span>
+      <span class="svc-txt"><b>אתרי סקי נוספים באזור</b><small>פילה, קורמאיור, מונטרוזה — מה עדיף ולמה</small></span>
     </div>
   </div>
 
@@ -4483,6 +4487,23 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
     <div id="les-videos" style="margin-top:14px;padding:12px 14px;background:#fff8f8;border:1.5px solid #f3d0d0;border-radius:11px;"></div>
   </div>
 </div>
+<!-- Other ski areas in the valley: how far, how high, and which one is
+     worth the drive on a windy day (Yossi, 15.11). -->
+<div id="skiAreasModal" class="modal" onclick="if(event.target===this)closeM('skiAreasModal')">
+  <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;">
+    <span class="close-btn" onclick="closeM('skiAreasModal')">×</span>
+    <h3 id="ska-title" style="margin:0 0 4px;font-size:1.1rem;"></h3>
+    <div id="ska-sub" style="font-size:0.8rem;color:#888;margin-bottom:12px;"></div>
+    <div id="ska-intro" style="font-size:0.84rem;color:#555;line-height:1.85;margin-bottom:12px;"></div>
+    <div id="ska-table" style="overflow-x:auto;"></div>
+    <div id="ska-verdict-title" style="font-weight:bold;font-size:0.95rem;color:#1a3a6c;margin:6px 0 8px;"></div>
+    <div id="ska-verdict" style="font-size:0.82rem;color:#444;line-height:1.85;margin-bottom:12px;"></div>
+    <div id="ska-cards-title" style="font-weight:bold;font-size:0.95rem;color:#1a3a6c;margin:12px 0 8px;"></div>
+    <div id="ska-cards"></div>
+    <div id="ska-footer" style="font-size:0.76rem;color:#888;line-height:1.7;margin-top:6px;"></div>
+  </div>
+</div>
+
 <div id="aroundModal" class="modal" onclick="if(event.target===this)closeM('aroundModal')">
   <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;padding:0 24px 24px;">
     <span class="close-btn" onclick="closeM('aroundModal')">×</span>
@@ -5683,6 +5704,7 @@ var PANEL_LINKS = {
   lessons:  'lessonsModal',  skipass: 'skipassModal',
   parking:  'parkingModal',  maps:    'mapModal',
   around:   'aroundModal',   trip:    'hotelModal',
+  'ski-areas': 'skiAreasModal',
   why:      'whyModal',      about:   'aboutModal',
   sources:  'sourcesModal',  contact: 'contactModal',
   forecast: 'forecastModal', alerts:  'alertModal',
@@ -16152,38 +16174,7 @@ function _groupsHtml(tr) {
       if ((g.picker || g.calc) && ti === g.picker_at) { h += _wzPickerHtml(g); pickerDone = true; }
       if (t.title) h += '<div style="font-size:0.8rem;font-weight:bold;color:#444;'
                       + 'margin:4px 0 5px;">' + _aEsc(t.title) + '</div>';
-      var cols = t.cols || [];
-      // A comparison table (fancy) reads as one (Yossi, 15.11): a tinted
-      // header with the names in bold, the first column in bold, light
-      // stripes, and the column that holds the answer (hi) picked out.
-      var fz = !!t.fancy, hi = t.hi, bold = t.bold || [];
-      h += '<table style="width:100%;border-collapse:' + (fz ? 'separate;border-spacing:0;border:1px solid #dbe4f0;border-radius:9px;overflow:hidden' : 'collapse')
-         + ';font-size:0.79rem;margin-bottom:' + (fz ? '12px' : '9px') + ';">';
-      if (cols.length) {
-        h += '<thead><tr style="' + (fz ? 'background:#eaf1fb;color:#1a3a6c;font-size:0.77rem;' : 'border-bottom:1px solid #dde3ea;color:#667;font-size:0.73rem;') + '">';
-        cols.forEach(function (c, i) {
-          h += '<th style="text-align:' + (i ? 'center' : 'right') + ';padding:' + (fz ? '7px 6px' : '4px 6px') + ';'
-             + 'font-weight:' + (fz ? 'bold' : 'normal') + ';' + (fz && i === hi ? 'background:#dcebff;' : '') + '">' + _aEsc(c) + '</th>';
-        });
-        h += '</tr></thead>';
-      }
-      h += '<tbody>';
-      t.rows.forEach(function (r, ri) {
-        var cells = Array.isArray(r) ? r : [r.a, r.b, r.c];
-        h += '<tr' + (fz && ri % 2 ? ' style="background:#f8fafd;"' : '') + '>';
-        cells.forEach(function (c, i) {
-          if (c === undefined || c === null) return;
-          var st = 'padding:' + (fz ? '6px 6px' : '4px 6px') + ';text-align:' + (i ? 'center' : 'right')
-                 + ';border-bottom:1px solid #f0f3f7;';
-          if (fz && i === 0) st += 'font-weight:bold;color:#333;';
-          if (fz && i === hi) st += 'font-weight:bold;color:#1a4b8c;background:#eef5ff;';
-          if (fz && bold.indexOf(i) >= 0) st += 'font-weight:bold;';
-          if (fz && i && i !== hi && bold.indexOf(i) < 0) st += 'color:#555;';
-          h += '<td style="' + st + '">' + _fixNums(_aEsc(String(c))) + '</td>';
-        });
-        h += '</tr>';
-      });
-      h += '</tbody></table>';
+      h += _trTableHtml(t);
     });
     if (fold) h += '</details>';
 
@@ -16382,6 +16373,43 @@ function _aEsc(v) {
   return String(v).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
 }
 
+function _trTableHtml(t) {
+  var h = '';
+  var cols = t.cols || [];
+  // A comparison table (fancy) reads as one (Yossi, 15.11): a tinted
+  // header with the names in bold, the first column in bold, light
+  // stripes, and the column that holds the answer (hi) picked out.
+  var fz = !!t.fancy, hi = t.hi, bold = t.bold || [];
+  h += '<table style="width:100%;border-collapse:' + (fz ? 'separate;border-spacing:0;border:1px solid #dbe4f0;border-radius:9px;overflow:hidden' : 'collapse')
+     + ';font-size:0.79rem;margin-bottom:' + (fz ? '12px' : '9px') + ';">';
+  if (cols.length) {
+    h += '<thead><tr style="' + (fz ? 'background:#eaf1fb;color:#1a3a6c;font-size:0.77rem;' : 'border-bottom:1px solid #dde3ea;color:#667;font-size:0.73rem;') + '">';
+    cols.forEach(function (c, i) {
+      h += '<th style="text-align:' + (i ? 'center' : 'start') + ';padding:' + (fz ? '7px 6px' : '4px 6px') + ';'
+         + 'font-weight:' + (fz ? 'bold' : 'normal') + ';' + (fz && i === hi ? 'background:#dcebff;' : '') + '">' + _aEsc(c) + '</th>';
+    });
+    h += '</tr></thead>';
+  }
+  h += '<tbody>';
+  t.rows.forEach(function (r, ri) {
+    var cells = Array.isArray(r) ? r : [r.a, r.b, r.c];
+    h += '<tr' + (fz && ri % 2 ? ' style="background:#f8fafd;"' : '') + '>';
+    cells.forEach(function (c, i) {
+      if (c === undefined || c === null) return;
+      var st = 'padding:' + (fz ? '6px 6px' : '4px 6px') + ';text-align:' + (i ? 'center' : 'start')
+             + ';border-bottom:1px solid #f0f3f7;';
+      if (fz && i === 0) st += 'font-weight:bold;color:#333;';
+      if (fz && i === hi) st += 'font-weight:bold;color:#1a4b8c;background:#eef5ff;';
+      if (fz && bold.indexOf(i) >= 0) st += 'font-weight:bold;';
+      if (fz && i && i !== hi && bold.indexOf(i) < 0) st += 'color:#555;';
+      h += '<td style="' + st + '">' + _fixNums(_aEsc(String(c))) + '</td>';
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table>';
+  return h;
+}
+
 function renderAroundList() {
   var box = document.getElementById('around-list');
   if (!box || !_aroundData) return;
@@ -16400,7 +16428,11 @@ function renderAroundList() {
     return;
   }
 
-  box.innerHTML = items.map(function (pl) {
+  box.innerHTML = items.map(_aroundCardHtml).join('');
+}
+
+// One place card - the list above and the ski areas panel draw the same one.
+function _aroundCardHtml(pl) {
     var h = '<div style="border:1.5px solid #e3e8ef;border-radius:12px;padding:13px;margin-bottom:11px;background:#fff;">';
 
     h += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;">'
@@ -16471,7 +16503,6 @@ function renderAroundList() {
       h += '<div style="margin-top:9px;display:flex;gap:6px 14px;flex-wrap:wrap;">' + links.join('') + '</div>';
     }
     return h + '</div>';
-  }).join('');
 }
 
 function toggleAroundBox(which) {
@@ -16507,6 +16538,26 @@ function switchAroundTab(id) {
     tabs[i].className = 'ttab-btn' + (on ? ' ttab-active' : '');
   }
   renderAroundList();
+}
+
+// The ski areas panel: a table against Cervinia, which one is worth it and
+// why, and then the same place cards the nearby list uses (cat "ski").
+var _skiAreasData = null;
+function renderSkiAreas(k) {
+  if (!k) return;
+  _skiAreasData = k;
+  function put(id, v) { var e = document.getElementById(id); if (e && v !== undefined) e.innerHTML = v; }
+  put('ska-title', k.title); put('ska-sub', k.sub); put('ska-intro', _aEsc(k.intro));
+  put('ska-verdict-title', k.verdict_title); put('ska-cards-title', k.cards_title); put('ska-footer', k.footer);
+  if (k.table) put('ska-table', _trTableHtml(k.table));
+  if (k.verdict) put('ska-verdict', k.verdict.map(function (v) {
+    return '<div style="margin-bottom:9px;">' + _fixNums(_aEsc(v)) + '</div>';
+  }).join(''));
+  var places = (_aroundData && _aroundData.places) || [];
+  put('ska-cards', places.filter(function (p) { return p.cat === 'ski'; }).map(_aroundCardHtml).join(''));
+}
+function openSkiAreas(from) {
+  if (from) openFrom(from, 'skiAreasModal'); else openM('skiAreasModal');
 }
 
 function renderAround(a) {
@@ -16898,6 +16949,7 @@ function _applyTexts(t) {
 
   // ── מה לעשות באזור ──
   if (t.around) renderAround(t.around);
+  if (t.ski_areas) renderSkiAreas(t.ski_areas);
 
   // ── כשרות ושבת: כותרות וטיפים ──
   if (t.kosher) {
@@ -17209,6 +17261,7 @@ var MODAL_ICONS = {
   skipassModal: 'ico-ticket',   rentalModal:  'ico-skis',
   lessonsModal: 'ico-school',   kosherModal:  'ico-candle',
   mapModal:     'ico-world-map', aroundModal: 'ico-snow-capped-mountain',
+  skiAreasModal: 'ico-skis',
   lodgingModal: 'ico-house'
 };
 // A leading run of emoji, including variation selectors, zero-width joiners
@@ -19233,11 +19286,11 @@ const SEARCH_INDEX = [
   { text: 'מגפי סקי מגלשיים פלקס מידה DIN מקלות השכרה', action: "openM('rentalModal')", icon: '🎿', label: 'הציוד הכבד' },
   { text: 'וויז wizz כרטיס חבילה טרולי מזוודה מושב priority flex לואו קוסט', action: "openWizzGuide()", icon: '🎫', label: 'וויז — איזו חבילה לקנות' },
   { text: 'אל על ארקיע ישראייר כרטיס lite classic flex טרולי מזוודה ציוד סקי כבודה', action: "openWizzGuide('il_air')", icon: '🧳', label: 'אל על, ארקיע, ישראייר — מה כלול' },
-  { text: 'פילה pila מונטרוזה monterosa שמפולוק champoluc גרסוני gressoney אתר סקי אחר רוח סגור', action: "openAroundCat('ski')", icon: '🎿', label: 'סקי באתר אחר — פילה ומונטרוזה' },
+  { text: 'פילה pila קורמאיור courmayeur לה טואיל la thuile מונטרוזה monterosa שמפולוק champoluc גרסוני gressoney אתר סקי אחר רוח סגור', action: "openSkiAreas()", icon: '🎿', label: 'אתרי סקי נוספים באזור' },
 ];
 // English: the same entries, searchable by English words and labelled in English.
 if (window.LANG === 'en') {
-  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"], ["pila monterosa champoluc gressoney other ski area resort wind closed", "Skiing elsewhere — Pila and Monterosa"]].forEach(function (e, k) {
+  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"], ["pila courmayeur la thuile monterosa champoluc gressoney other ski area resort wind closed", "Other ski areas nearby"]].forEach(function (e, k) {
     if (SEARCH_INDEX[k]) { SEARCH_INDEX[k].text += ' ' + e[0]; SEARCH_INDEX[k].label = e[1]; }
   });
 }

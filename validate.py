@@ -132,6 +132,8 @@ for sec, fields in NEED.items():
 A = d.get('around', {})
 if A:
     CATS = set(c['id'] for c in A.get('cats', []))
+    # 'ski' has no tab here: those cards are drawn in the ski areas panel
+    if d.get('ski_areas'): CATS.add('ski')
     if not CATS: err('around: no categories defined')
     seen_names = {}
     for i, pl in enumerate(A.get('places', [])):

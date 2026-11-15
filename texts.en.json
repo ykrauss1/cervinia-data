@@ -54,7 +54,12 @@
    {
     "id": "svc-around",
     "label": "Things to do nearby",
-    "sub": "Stormy days · Pila and Monterosa · after skiing"
+    "sub": "Stormy days · after skiing · and what is closed in winter"
+   },
+   {
+    "id": "svc-skiareas",
+    "label": "Other ski areas nearby",
+    "sub": "Pila, Courmayeur, Monterosa — which is worth it and why"
    }
   ]
  },
@@ -426,7 +431,7 @@
    "👥 <b>Groups</b> — one free pass for every 15 bought (the 16th pass)",
    "🗓️ <b>Buying online</b> — saves the queue at the ticket office, but the price is the same as the price list. <b>Note:</b> the online shop, the automatic machines and the intermediate stations sell <b>the adult rate only</b> — age discounts are given only at the staffed ticket office.",
    "🎟️ <b>Freedom Pass</b> — 8 rides €76, 10 rides €95, 12 rides €114 · <b>Explore Pass</b> — single ride from €13, return from €20 (Cervinia–Plan Maison)",
-   "🏔️ <b>A multi-day pass opens other resorts</b> — a <b>3–5 day</b> pass lets you ski <b>one day</b> at another resort in the Aosta Valley (Torgnon, Chamois, Courmayeur, Pila and more), and a <b>6–8 day</b> pass — <b>two days</b>. The days are counted from the pass you bought and are not extra. The Buisson–Chamois cable car is never included. <a href=\"#\" onclick=\"openAroundCat('ski','skipassModal');return false;\">Pila and Monterosa — what to know</a>",
+   "🏔️ <b>A multi-day pass opens other resorts</b> — a <b>3–5 day</b> pass lets you ski <b>one day</b> at another resort in the Aosta Valley (Torgnon, Chamois, Courmayeur, Pila and more), and a <b>6–8 day</b> pass — <b>two days</b>. The days are counted from the pass you bought and are not extra. The Buisson–Chamois cable car is never included. <a href=\"#\" onclick=\"openSkiAreas('skipassModal');return false;\">Other ski areas nearby — which is worth it and why</a>",
    "🗺️ <b>Regional ski pass (Valle d'Aosta)</b> — valid at 20 resorts in the valley, and also at La Rosière in France and at Alagna. Sold as a season pass or as <b>3–14 consecutive days</b>; there is no regional day ticket. A regional season pass also includes up to <b>6 ski days in the 4 Vallées/Verbier</b>, one day a week.",
    "🚑 <b>Rescue from the slope costs €200</b> anywhere in the Aosta Valley. Insurance at the ticket office costs <b>€3.50 a day</b> (a child born after 31/10/2018 — €1.50), or €49 for the season. <b>It cannot be added after purchase.</b>",
    "🪪 <b>The pass is personal and not transferable</b>, with no refund and no exchange. From <b>3 days up, a full name is written</b> on the pass. The \"days of your choice\" ticket has no group or over-80 discounts. Tickets sold at intermediate stations, at machines and in the online shop — <b>at the adult price only</b>.",
@@ -455,7 +460,7 @@
     "📊 <b>What we saw in the data we collected</b> (<bdi dir=\"ltr\" style=\"white-space:nowrap\">20/2–3/5/2026</bdi>, 73 days): Cervinia itself closed almost completely on one day, and on about four more days only some of the lifts ran. <b>The crossing to Zermatt was closed on 14 days</b> — nearly one day in five — and once for <b>a whole week in a row</b> (<bdi dir=\"ltr\" style=\"white-space:nowrap\">25–31/3</bdi>). These are end-of-season figures; we have not yet measured the heart of winter.",
     "💡 <b>A multi-day pass saves only a little</b>: 6 days cost €338 for an adult, against €64 for a single day — about 12% less. So it is worth buying a pass for the days with a good forecast, and the rest separately. For example a 4-day pass plus two single days — about €25 more than a 6-day pass, but without paying for closed days.",
     "🏔️ <b>When it is stormy in Cervinia</b>, lower Valtournenche — on the same pass — is usually still open. But you have to travel there and back, and not all of its slopes will be open.",
-    "🎿 <b>There are other resorts nearby.</b> <b>Pila</b>, above Aosta, is far lower than Cervinia, with some runs in forest — about an hour's drive plus 18 minutes by gondola. <b>Monterosa Ski</b> is bigger, but almost as high as Cervinia and about an hour and a half's drive. A Cervinia pass of 3 days or more lets you ski one of its days at either. Pila's upper lifts close in strong wind too — <a href=\"#\" onclick=\"openAroundCat('ski','skipassModal');return false;\">details on both</a>.",
+    "🎿 <b>There are other resorts nearby.</b> <b>Pila</b>, above Aosta, is far lower than Cervinia, with some runs in forest — about an hour's drive plus 18 minutes by gondola. <b>Monterosa Ski</b> is bigger, but almost as high as Cervinia and about an hour and a half's drive. A Cervinia pass of 3 days or more lets you ski one of its days at either. Pila's upper lifts close in strong wind too — <a href=\"#\" onclick=\"openSkiAreas('skipassModal');return false;\">a comparison of the areas</a>.",
     "🇨🇭 <b>A multi-day international pass is usually not worth it</b>, because you cannot know in advance when the crossing will be open. <b>Two options:</b> either buy a day ticket every morning as needed — local or international. Or buy a Cervinia pass, and on a morning when the crossing is open buy at the ticket office <b>a Zermatt day supplement — €52 for an adult</b> (for multi-day pass holders; valid on the day of purchase only). Use the calculator below."
    ]
   },
@@ -1991,7 +1996,7 @@
  "around": {
   "title": "🏔️ Things to do nearby",
   "sub": "Stormy days, afternoons after skiing, and a day without skis",
-  "intro": "Cervinia is a purpose-built ski resort, not a historic village — on a day the lifts are closed there is not much to do in the village itself. But just below, in the Aosta Valley (Valle d'Aosta), there are castles, hot baths, a whole Roman town and a huge fortress. Everything here was checked against official sources, including what is closed in winter.",
+  "intro": "Cervinia is a purpose-built ski resort, not a historic village — on a day the lifts are closed there is not much to do in the village itself. But just below, in the Aosta Valley (Valle d'Aosta), there are castles, hot baths, a whole Roman town and a huge fortress. Everything here was checked against official sources, including what is closed in winter. And for skiing somewhere else when it is stormy here — <a href=\"#\" onclick=\"openSkiAreas('aroundModal');return false;\">other ski areas nearby</a>.",
   "rules_title": "📋 Three rules that save a wasted trip",
   "rules": [
    "🗓️ <b>Monday is the problem.</b> <b>All</b> the castles in the area are closed on Mondays — Fénis · Issogne · Verrès · Sarre · Aymavilles · Saint-Pierre · Castel Savoia · Castello Gamba — and so are Forte di Bard and the MegaMuseo. By contrast, <b>the Roman sites in Aosta are open every day with no weekly closing day</b>.<br><b style=\"color:#1a7a3a;\">So: a stormy Monday — go to Aosta.</b>",
@@ -2004,10 +2009,6 @@
    {
     "id": "close",
     "label": "🏔️ Near the village"
-   },
-   {
-    "id": "ski",
-    "label": "🎿 Skiing elsewhere"
    },
    {
     "id": "heritage",
@@ -2360,7 +2361,7 @@
     "drive": "Aosta · about 55 km, about an hour — plus 18 minutes by gondola",
     "start": "The Aosta–Pila gondola station in Aosta, next to the railway station and the motorway exit. **A large free car park.**",
     "open": "28/11/2026–11/04/2027, every day 8:25–17:30",
-    "price": "Adult day pass €60, 4 hours €55. Children under 8 free with an adult buying a similar pass. **A Cervinia pass of 3 days or more lets you ski one of its days at Pila** — not an extra day, but one of the days you bought. <a href=\"#\" onclick=\"openFrom('aroundModal','skipassModal');return false;\">Details in the ski pass card</a>.",
+    "price": "Adult day pass €60, 4 hours €55. Children under 8 free with an adult buying a similar pass. **A Cervinia pass of 3 days or more lets you ski one of its days at Pila** — not an extra day, but one of the days you bought. <a href=\"#\" onclick=\"openFrom('skiAreasModal','skipassModal');return false;\">Details in the ski pass card</a>.",
     "warn": "⚠️ **Pila's upper lifts close in strong wind too.** It is not wind-free, only lower and more sheltered. Before driving an hour, check the link for which lifts are open there that morning.",
     "links": [
      {
@@ -2375,12 +2376,28 @@
     ]
    },
    {
+    "he": "Courmayeur — below Mont Blanc",
+    "what": "**42 km of marked runs**, and with the off-piste terrain **about 100 km**, between 1,210 m and 2,755 m — **far lower than Cervinia**. On the Val Veny side some runs go through forest. What sets it apart is the view of Mont Blanc, and the Skyway cable car that leaves from the town.",
+    "drive": "Courmayeur · about 87 km, about an hour and 20 minutes on the motorway (toll)",
+    "start": "The Courmayeur cable car or the Dolonne gondola",
+    "open": "<bdi dir=\"ltr\">28/11/2026–11/04/2027</bdi>",
+    "price": "Adult day pass **€75** on the price list; on the official site the price varies and buying ahead is cheaper. A day that includes the Skyway — €90. Children under 8 free if an adult buys the same ticket. **A Cervinia pass of 3 days or more lets you ski one of its days here** — not an extra day. <a href=\"#\" onclick=\"openFrom('skiAreasModal','skipassModal');return false;\">Details in the ski pass card</a>.",
+    "links": [
+     {
+      "t": "Daily prices"
+     },
+     {
+      "t": "Area figures (PDF)"
+     }
+    ]
+   },
+   {
     "he": "Champoluc, Gressoney and Alagna — three linked valleys",
     "what": "A large ski area of **three valleys linked by lifts**: Champoluc in the Ayas valley, Gressoney and Alagna. The lifts reach **3,275 m** — almost as high as Cervinia — so **it is not an escape from the wind**, but a day trip to another area when the weather is good. And for anyone still deciding where to spend the holiday — it is also an alternative to Cervinia itself.",
     "drive": "Champoluc · about 63 km, about an hour and a half — down to Châtillon and up the Ayas valley. To Gressoney — about 88 km, about an hour and 50 minutes",
     "start": "The Champoluc–Crest cable car in Champoluc",
     "open": "<bdi dir=\"ltr\">28/11/2026–11/04/2027</bdi> — the three linked valleys",
-    "price": "**The price changes with the date.** Buy ahead on the official site; at the ticket office there is a €5 surcharge per ticket. **A Cervinia pass of 3 days or more lets you ski one of its days at another Aosta Valley resort** — not an extra day, but one of the days you bought. <a href=\"#\" onclick=\"openFrom('aroundModal','skipassModal');return false;\">Details in the ski pass card</a>.",
+    "price": "**The price changes with the date.** Buy ahead on the official site; at the ticket office there is a €5 surcharge per ticket. **A Cervinia pass of 3 days or more lets you ski one of its days at another Aosta Valley resort** — not an extra day, but one of the days you bought. <a href=\"#\" onclick=\"openFrom('skiAreasModal','skipassModal');return false;\">Details in the ski pass card</a>.",
     "links": [
      {
       "t": "Lifts and runs open now"
@@ -2394,9 +2411,16 @@
     ]
    },
    {
+    "he": "La Thuile — linked to La Rosière in France",
+    "what": "La Thuile in Italy and La Rosière in France are one area, **Espace San Bernardo**: **156 km of runs** between 1,176 m and 2,800 m, and 39 lifts. A large area with skiing across two countries — but **the farthest one here**.",
+    "drive": "La Thuile · about 94 km, about an hour and a half on the motorway (toll)",
+    "open": "<bdi dir=\"ltr\">12/12/2026–17/04/2027</bdi>; the link between Italy and France — until <bdi dir=\"ltr\">11/04/2027</bdi>",
+    "price": "**A Cervinia pass of 3 days or more lets you ski one of its days at La Thuile** — not an extra day. <a href=\"#\" onclick=\"openFrom('skiAreasModal','skipassModal');return false;\">Details in the ski pass card</a>."
+   },
+   {
     "he": "The rotating cable car to Mont Blanc",
     "what": "A two-stage cable car with **rotating cabins**: from Pontal d'Entrèves at 1,300 m, via the Pavillon du Mont Fréty at 2,200 m, up to **Punta Helbronner at 3,466 m** — a circular panoramic terrace and the Sky Vertigo glass walkway. At the middle station: a terrace, a restaurant, the Cave Mont Blanc winery, the Hangar 2.173 cable-car museum, and a children's corner.",
-    "drive": "Courmayeur · about 110–120 km, about two hours (estimated)",
+    "drive": "Courmayeur · about 87 km, about an hour and 20 minutes on the motorway (toll)",
     "open": "Runs through the winter season — check status and hours on the day itself",
     "price": "The price varies by season — on the operator's website",
     "warn": "⚠️ **The whole product is the view.** On a cloudy day it is money paid for white fog, and it is also the longest drive on the list. **Only on a clear day** — and check the Courmayeur webcams before you set out"
@@ -3924,5 +3948,69 @@
     }
    }
   }
+ },
+ "ski_areas": {
+  "title": "🎿 Other ski areas nearby",
+  "sub": "How far, how high, and which is worth it compared with Cervinia",
+  "intro": "Cervinia is the highest resort in the Aosta Valley, linked to Zermatt — **360 km of runs together**, 160 of them on the Italian side. Its height is also its weakness: in strong wind the high lifts close. Here are the other ski areas around, so you know when it is worth driving to one of them — and to which.",
+  "table": {
+   "fancy": true,
+   "cols": [
+    "Area",
+    "Drive from Cervinia",
+    "Top",
+    "Runs"
+   ],
+   "rows": [
+    [
+     "Cervinia",
+     "—",
+     "3,480 m",
+     "160 km<br>360 with Zermatt"
+    ],
+    [
+     "Torgnon",
+     "25 km<br>about 40 min",
+     "2,246 m",
+     "small"
+    ],
+    [
+     "Pila",
+     "55 km<br>about an hour + gondola",
+     "about 2,800 m",
+     "about 70 km"
+    ],
+    [
+     "Monterosa",
+     "63 km<br>about 1.5 hours",
+     "3,275 m",
+     "3 valleys"
+    ],
+    [
+     "Courmayeur",
+     "87 km<br>about 1 h 20",
+     "2,755 m",
+     "42 km"
+    ],
+    [
+     "La Thuile",
+     "94 km<br>about 1.5 hours",
+     "2,800 m",
+     "156 km"
+    ]
+   ]
+  },
+  "verdict_title": "Which is worth it and why",
+  "verdict": [
+   "🏔️ <b>For the holiday itself — Cervinia.</b> It is the highest in the valley, its season is the longest (24/10 to 2/5, while the others open roughly from late November to mid-April), and it has the crossing to Zermatt. The others are good for a day, not instead of it.",
+   "💨 <b>For a windy day — Pila.</b> About an hour's drive plus 18 minutes by gondola, far lower, with some runs in forest. It is the only one here that really works as a one-day alternative: close enough, and big enough to be worth the drive.",
+   "🗻 <b>Courmayeur — if you want Mont Blanc.</b> It is low too, but a quarter of an hour farther than Pila, with fewer marked runs (42 km) and a pricier day pass (€75 against €60). Worth it when the view and the Skyway are part of the plan.",
+   "☀️ <b>Monterosa — for a fine day, not a windy one.</b> Big, but almost as high as Cervinia. Good for skiing a day somewhere else when the weather is good.",
+   "🇫🇷 <b>La Thuile — big, but the farthest.</b> An hour and a half each way. A lot of driving for one day from Cervinia.",
+   "🎟️ <b>The pass:</b> a Cervinia pass of 3 days or more lets you ski one of its days at any of these areas — not an extra day, but one of the days you bought. <a href=\"#\" onclick=\"openFrom('skiAreasModal','skipassModal');return false;\">Details in the ski pass card</a>.",
+   "⚠️ <b>Before you drive</b> — check the area's link for which lifts are open there that morning. In strong wind the upper lifts close at the lower areas too."
+  ],
+  "cards_title": "The areas",
+  "footer": "Drive times from Google Maps, in normal traffic and without snow. The figures are from each area's official site, checked on 15/11/2026."
  }
 }
