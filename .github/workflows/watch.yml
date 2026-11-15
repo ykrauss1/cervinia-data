@@ -1,0 +1,67 @@
+name: Source watch
+
+# Once a week: have the official sources changed under the site's facts?
+# It never edits the site. What it finds becomes a GitHub issue, which
+# GitHub e-mails to the repo owner - "asks whether to update" (Yossi, 15.11).
+on:
+  schedule:
+    # Sunday morning, off the busy minutes of the hour
+    - cron: "17 5 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: source-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: בדיקת המקורות
+        run: python3 watch.py
+
+      # One open issue at a time: a new finding is added to it as a comment,
+      # so a busy week does not bury the mailbox.
+      - name: דיווח
+        if: hashFiles('watch-report.md') != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh label create source-watch --color FBCA04 --description "שינוי במקור רשמי" 2>/dev/null || true
+          num=$(gh issue list --label source-watch --state open --json number --jq '.[0].number // empty')
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --body-file watch-report.md
+          else
+            gh issue create --label source-watch \
+              --title "🔔 מקור רשמי השתנה — לבדוק אם לעדכן את האתר" \
+              --body-file watch-report.md
+          fi
+
+      - name: שמירת המצב
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          rm -f watch-report.md
+          if [ -z "$(git status --porcelain watch-state.json)" ]; then exit 0; fi
+          git add watch-state.json
+          git commit -m "Source watch [$(date -u '+%Y-%m-%d')]"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && exit 0
+            sleep 10
+          done
+          exit 1

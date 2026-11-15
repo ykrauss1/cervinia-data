@@ -119,7 +119,8 @@ def build():
     cov = covers_map(txt)
     items = []
     for url in reg.get('exact', []):
-        note = reg.get(url)
+        # notes sit beside the URL list, or (newer ones) under _notes
+        note = reg.get(url) or reg.get('_notes', {}).get(url)
         if not isinstance(note, str):
             # A source on the always-check list belongs in the worklist even
             # if nobody has written an excerpt for it yet.
