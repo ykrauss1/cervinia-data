@@ -811,6 +811,53 @@
         "✓"
        ]
       ]
+     },
+     {
+      "title": "A real example — 17–24 January 2027, one passenger, return (checked on Wizz's site on 15.11.2026)",
+      "cols": [
+       "Taking",
+       "Cheapest",
+       "Total",
+       "The other ways"
+      ],
+      "rows": [
+       [
+        "Small bag only",
+        "Basic",
+        "€149.98",
+        "—"
+       ],
+       [
+        "A seat, no trolley",
+        "Basic and a seat",
+        "€149.98 plus the seats",
+        "Smart: €239.58 — with a trolley too. Better value if the seat costs over €44.80 a flight"
+       ],
+       [
+        "Trolley, with or without a seat",
+        "Smart both ways",
+        "€239.58",
+        "Basic and Priority<br>€267.58 — and no seat"
+       ],
+       [
+        "Suitcase, no seat",
+        "Basic and a suitcase",
+        "€287.78",
+        "Go<br>€307.58"
+       ],
+       [
+        "Suitcase and a seat",
+        "Go",
+        "€307.58",
+        "Basic, suitcase and seat<br>€287.78 plus the seats — dearer once the two seats cost over €19.80"
+       ],
+       [
+        "Trolley and suitcase, with or without a seat",
+        "Plus",
+        "€337.58",
+        "Smart and a suitcase<br>€377.38<br>Go and Priority<br>€425.18"
+       ]
+      ]
      }
     ],
     "picker": {
@@ -844,21 +891,25 @@
      "none": "None of these — Basic is enough: one bag under the seat, and a random seat at check-in.",
      "res": {
       "flex": "WIZZ Plus — it covers all the rest. WIZZ Flex can be bought only in the booking itself, not later. It is also sold on its own in the booking — compare.",
-      "plus": "WIZZ Plus, or WIZZ Go + WIZZ Priority — compare the two totals on the booking screen.",
+      "plus": "WIZZ Plus — in the example below it is the cheapest of all combinations for a trolley and a suitcase together.",
       "heavy": "WIZZ Plus (suitcase up to 32 kg), or Basic + a heavier suitcase — compare.",
       "go": "WIZZ Go, or Basic + a suitcase (and a seat, if you want one) — compare.",
-      "smart": "WIZZ Smart if the flight offers it, otherwise Basic + WIZZ Priority.",
-      "seat": "Basic + a seat.",
+      "smart": "WIZZ Smart — in the example below it costs less than Priority alone, with a seat thrown in. If the flight has no Smart — Basic + WIZZ Priority.",
+      "seat": "Basic and a seat — if the seat costs less than Smart (€44.80 a flight in the example). If more — Smart, which has a trolley too.",
       "ret": "↔️ Every extra counts per flight — on a return trip the difference doubles. WIZZ Flex inside Plus applies to all passengers and all flights in the booking.",
-      "ski": "⛷️ Ski gear is in no bundle — it is added on its own, best already in the booking, since the room for sports equipment on each flight is limited."
+      "ski": "⛷️ Ski gear is in no bundle — it is added on its own, best already in the booking, since the room for sports equipment on each flight is limited.",
+      "goseat": "WIZZ Go — in the example below it beats Basic, suitcase and seat once the two seats together cost over €19.80."
      }
     },
     "notes": [
+     "🔎 What the example shows: <b>Priority alone was €58.80 a flight, and Smart — which includes Priority and a seat — only €44.80.</b> A 20 kg suitcase alone was €58.80 out and €79.00 back, and Go — suitcase and seat — €78.80 each way. And for a trolley and a suitcase, Plus (€93.80 a flight) is cheaper than any other combination, and also has a 32 kg suitcase and a date change.",
+     "🔎 Also from the example: ski gear — €65 a flight, with any bundle. Check-in at the airport desk costs €50 with Basic and Smart, and is free with Go and Plus. And Wizz itself says a suitcase added after booking costs more.",
+     "💺 A seat on its own costs €4–60 a flight on Wizz (their service-fee list) — the price on your flight is on the booking screen. Smart and Go already include a standard seat, and Plus a front-row or extra-legroom one too.",
      "💡 The cabin trolley comes only with WIZZ Priority — on its own, or inside Smart or Plus. Go has a checked suitcase, but no trolley.",
      "⚠️ The bundle is chosen in the booking itself — so decide in advance. Afterwards you can only add a suitcase, a seat or Priority, each on its own and at that moment's price, and WIZZ Flex can no longer be bought at all. The bundles group several extras at a discount, so if you need a few of them, check the bundle before you finish. Priority alone costs €10–60 online and €65–75 at the airport.",
      "⛷️ Skis and snowboards travel in the hold as sports equipment, paid separately, up to 32 kg. Add them in the booking or up to 3 hours before the flight, but room is limited — better early.",
      "👨‍👩‍👧 When you add children to the booking, Wizz shows Family Go and Family Plus in place of Go and Plus, at a discount.",
-     "Prices change by flight and date, so we did not write them — the decision is what you need, and the total is on the booking screen. What a bundle includes is always as shown in the booking."
+     "Wizz prices change by flight, date and even from one search to the next — the example shows the proportions, not a price that will come back. Your own total is on the booking screen."
     ],
     "links": [
      {
@@ -1247,7 +1298,7 @@
    },
    {
     "id": "rentaldesks",
-    "title": "Rental desks — hours and traps",
+    "title": "Hire car — desk hours and traps",
     "lead": "<b>None of the four airports has a desk open 24 hours.</b> Land at night without arranging it in advance — and you find a closed door.",
     "tables": [
      {
@@ -1299,16 +1350,16 @@
     "lead": "<b>Two cases where one night by the airport saves a lot:</b> a late landing — when the car-hire desks have already closed, or the drive up would end after midnight on a mountain road — and an early morning flight, which would mean leaving Cervinia in the middle of the night. First the hotels you can reach from the terminal on foot, then — for the way back with a car — cheaper hotels nearby, with parking.",
     "notes": [
      {
-      "text": "✈️ <b>Malpensa, Terminal 1 — Sheraton Milan Malpensa Airport.</b> Direct access from Terminal 1, no shuttle needed. ☎ +39 02 23351"
+      "text": "✈️ <b>Malpensa, Terminal 1 — Sheraton Milan Malpensa Airport.</b> Direct access from Terminal 1, no shuttle needed. ☎ <a href=\"tel:+390223351\">+39 02 23351</a> · <a href=\"https://www.marriott.com/en-us/hotels/milmp-sheraton-milan-malpensa-airport-hotel-and-conference-centre/overview/\" target=\"_blank\" rel=\"noopener\">hotel site</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Sheraton+Milan+Malpensa+Airport\" target=\"_blank\" rel=\"noopener\">map</a>"
      },
      {
-      "text": "✈️ <b>Malpensa, Terminal 2 — Moxy Milan Malpensa Airport.</b> Right beside Terminal 2 and connected to it. A free bus runs between the two terminals about every quarter of an hour."
+      "text": "✈️ <b>Malpensa, Terminal 2 — Moxy Milan Malpensa Airport.</b> Right beside Terminal 2 and connected to it. A free bus runs between the two terminals about every quarter of an hour. · <a href=\"https://www.marriott.com/en-us/hotels/milox-moxy-milan-malpensa-airport/overview/\" target=\"_blank\" rel=\"noopener\">hotel site</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Moxy+Milan+Malpensa+Airport\" target=\"_blank\" rel=\"noopener\">map</a>"
      },
      {
-      "text": "✈️ <b>Linate — Moxy Milan Linate Airport.</b> About 300 m from the airport, a few minutes' walk. No shuttle. ☎ +39 02 9475 6401"
+      "text": "✈️ <b>Linate — Moxy Milan Linate Airport.</b> About 300 m from the airport, a few minutes' walk. No shuttle. ☎ <a href=\"tel:+390294756401\">+39 02 9475 6401</a> · <a href=\"https://www.marriott.com/en-us/hotels/milol-moxy-milan-linate-airport/overview/\" target=\"_blank\" rel=\"noopener\">hotel site</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Moxy+Milan+Linate+Airport\" target=\"_blank\" rel=\"noopener\">map</a>"
      },
      {
-      "text": "✈️ <b>Bergamo — NH Orio al Serio Airport.</b> Opposite the airport: about a quarter of an hour on foot through an underground passage. ☎ +39 035 421 2011"
+      "text": "✈️ <b>Bergamo — NH Orio al Serio Airport.</b> Opposite the airport: about a quarter of an hour on foot through an underground passage. ☎ <a href=\"tel:+390354212011\">+39 035 421 2011</a> · <a href=\"https://www.nh-hotels.com/en/hotel/nh-orio-al-serio-airport\" target=\"_blank\" rel=\"noopener\">hotel site</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=NH+Orio+al+Serio+Airport\" target=\"_blank\" rel=\"noopener\">map</a>"
      },
      {
       "text": "✈️ <b>Turin</b> — we found no hotel you can walk to from the terminal. From Turin the drive to Cervinia is also the shortest, about an hour and three quarters."
@@ -1317,13 +1368,13 @@
       "text": "🚗 <b>On the way back, with a hire car — a hotel near the airport rather than at it usually costs much less.</b> Come down from the mountain the evening before, sleep at a hotel with free parking a few minutes from the airport, and in the morning drive to the airport and return the car. No shuttle needed."
      },
      {
-      "text": "🅿️ <b>Malpensa — Crowne Plaza Milan Malpensa Airport</b>, at Case Nuove, under 5 km from the airport. Free parking during the stay. On a shuttle to the airport the official page contradicts itself — if you need one, check with the hotel. ☎ +39 0331 21161"
+      "text": "🅿️ <b>Malpensa — Crowne Plaza Milan Malpensa Airport</b>, at Case Nuove, under 5 km from the airport. Free parking during the stay. ☎ <a href=\"tel:+39033121161\">+39 0331 21161</a> · <a href=\"https://www.ihg.com/crowneplaza/hotels/us/en/somma-lombardo/milma/hoteldetail/amenities\" target=\"_blank\" rel=\"noopener\">hotel site</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Crowne+Plaza+Milan+Malpensa+Airport\" target=\"_blank\" rel=\"noopener\">map</a>"
      },
      {
-      "text": "🅿️ <b>Malpensa — Holiday Inn Express Milan Malpensa Airport</b>, also at Case Nuove. Free parking during the stay. Shuttle to the airport on request: €5 per person by day and €10 at night, children up to 13 free. ☎ +39 0331 18330"
+      "text": "🅿️ <b>Malpensa — Holiday Inn Express Milan Malpensa Airport</b>, also at Case Nuove. Free parking during the stay. Shuttle to the airport on request: €5 per person by day and €10 at night, children up to 13 free. ☎ <a href=\"tel:+39033118330\">+39 0331 18330</a> · <a href=\"https://www.ihg.com/holidayinnexpress/hotels/us/en/somma-lombardo/milap/hoteldetail/amenities\" target=\"_blank\" rel=\"noopener\">hotel site</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Holiday+Inn+Express+Milan+Malpensa+Airport\" target=\"_blank\" rel=\"noopener\">map</a>"
      },
      {
-      "text": "🅿️ <b>Linate — NH Linate</b>, about ten minutes' drive from the airport. Free parking (it cannot be booked in advance)."
+      "text": "🅿️ <b>Linate — NH Linate</b>, about ten minutes' drive from the airport. Free parking (it cannot be booked in advance). · <a href=\"https://www.minorhotels.com/it/destinations/italy/milan/nh-linate\" target=\"_blank\" rel=\"noopener\">hotel site</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=NH+Linate+Peschiera+Borromeo\" target=\"_blank\" rel=\"noopener\">map</a>"
      },
      {
       "text": "🅿️ <b>Bergamo</b> — the NH Orio al Serio Airport above also has parking: €10 a day."
@@ -1337,31 +1388,13 @@
     ],
     "links": [
      {
-      "label": "Sheraton Malpensa"
-     },
-     {
       "label": "Malpensa's airport hotels"
-     },
-     {
-      "label": "Moxy Linate"
-     },
-     {
-      "label": "NH Orio al Serio"
-     },
-     {
-      "label": "Crowne Plaza Malpensa"
-     },
-     {
-      "label": "Holiday Inn Express Malpensa"
-     },
-     {
-      "label": "NH Linate"
      }
     ]
    },
    {
     "id": "carprices",
-    "title": "What it really costs",
+    "title": "Hire car — what it really costs",
     "lead": "One real comparison, for the same dates and the same airport, because a price list alone says little.",
     "tables": [
      {
@@ -1397,7 +1430,7 @@
    },
    {
     "id": "winter",
-    "title": "The law in winter, and the road up",
+    "title": "Driving in winter — the law and the road up",
     "notes": [
      {
       "text": "📅 <b>15 October to 15 April</b> — in the Aosta Valley winter tyres <u>or</u> chains in the car are compulsory. A month earlier than the rest of Italy. The fine: <b>€87–€344</b>."

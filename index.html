@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.71';
+  var v='v17.72';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -12488,6 +12488,13 @@ function _fixNums(s) {
 
 function _fixNumsText(s) {
   return String(s)
+    // A phone number is one unit (Yossi, 15.11): split into one span per
+    // group, "+39 0331 21161" came out as "21161 0331 39+" - and _fixPhones,
+    // which runs after this, no longer saw a number to join. Same rule as
+    // there: eight digits or more.
+    .replace(/\+?\d{1,4}(?:[ \u00a0]\d{2,7}){1,4}/g, function (m) {
+      return (m.match(/\d/g) || []).length >= 8 ? '\u0001' + m + '\u0002' : m;
+    })
     .replace(/(\d)\s*\u05de\u05f3?(?=[\s,.\u2190\u2013)\]]|$)/g, '$1 \u05de\u05f3')
     // a clock time and a date are single units: split across spans they come
     // out as 50:14 and 2027/01/07 on a Hebrew line
@@ -16132,6 +16139,7 @@ function _wzAnswer(p, s) {
   if (s.flex) out = r.flex;
   else if (s.trolley && (s.bag || s.heavy)) out = r.plus;
   else if (s.heavy) out = r.heavy;
+  else if (s.bag && s.seat && r.goseat) out = r.goseat;
   else if (s.bag) out = r.go;
   else if (s.trolley) out = r.smart;
   else if (s.seat) out = r.seat;

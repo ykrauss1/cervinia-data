@@ -8769,7 +8769,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!/Basic/.test(r.none) || /Plus|Go\b/.test(r.none.split('⛷️')[0])) fail(T, 'nothing ticked does not say Basic: ' + r.none.slice(0, 80)); else ok();
     if (!/Smart/.test(r.trolley) || !/Priority/.test(r.trolley)) fail(T, 'a trolley alone does not point to Smart or Priority'); else ok();
     if (!/WIZZ Go/.test(r.bag) || /Plus/.test(r.bag.split('⛷️')[0])) fail(T, 'a suitcase alone does not point to WIZZ Go'); else ok();
-    if (!/WIZZ Plus/.test(r.both) || !/Priority/.test(r.both)) fail(T, 'a trolley and a suitcase do not weigh Plus against Go + Priority'); else ok();
+    if (!/WIZZ Plus/.test(r.both)) fail(T, 'a trolley and a suitcase do not point to WIZZ Plus'); else ok();
     if (!/32/.test(r.heavy)) fail(T, 'a suitcase over 20 kg does not point to the 32 kg one'); else ok();
     if (!/WIZZ Plus/.test(r.flex) || !/Flex/.test(r.flex)) fail(T, 'a date change does not point to Plus / Flex'); else ok();
     if (!/↔️/.test(r.ret)) fail(T, 'a return trip does not say the extras count per flight'); else ok();

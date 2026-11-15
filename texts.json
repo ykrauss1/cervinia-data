@@ -5742,6 +5742,53 @@
                 "✓"
               ]
             ]
+          },
+          {
+            "title": "דוגמה אמיתית — 17–24 בינואר 2027, נוסע אחד, הלוך וחזור (בדקנו באתר וויז ב-15.11.2026)",
+            "cols": [
+              "מה לוקחים",
+              "הכי משתלם",
+              "סה\"כ",
+              "החלופות"
+            ],
+            "rows": [
+              [
+                "רק תיק קטן",
+                "Basic",
+                "€149.98",
+                "—"
+              ],
+              [
+                "מושב, בלי טרולי",
+                "Basic ומושב",
+                "€149.98 ועוד המושבים",
+                "Smart: €239.58 — כולל גם טרולי. משתלם יותר אם המושב עולה מעל €44.80 לטיסה"
+              ],
+              [
+                "טרולי, עם או בלי מושב",
+                "Smart בשני הכיוונים",
+                "€239.58",
+                "Basic ו-Priority<br>€267.58 — ובלי מושב"
+              ],
+              [
+                "מזוודה, בלי מושב",
+                "Basic ומזוודה",
+                "€287.78",
+                "Go<br>€307.58"
+              ],
+              [
+                "מזוודה ומושב",
+                "Go",
+                "€307.58",
+                "Basic, מזוודה ומושב<br>€287.78 ועוד המושבים — יקר יותר ברגע ששני המושבים עולים מעל €19.80"
+              ],
+              [
+                "טרולי ומזוודה, עם או בלי מושב",
+                "Plus",
+                "€337.58",
+                "Smart ומזוודה<br>€377.38<br>Go ו-Priority<br>€425.18"
+              ]
+            ]
           }
         ],
         "picker": {
@@ -5775,21 +5822,25 @@
           "none": "בלי כלום מזה — Basic מספיק: תיק אחד מתחת למושב, ומושב אקראי בצ'ק-אין.",
           "res": {
             "flex": "WIZZ Plus — כולל את כל השאר. את WIZZ Flex אפשר לקנות רק בהזמנה עצמה, לא אחר כך. אפשר גם לקנות אותו בנפרד בהזמנה — השוו.",
-            "plus": "WIZZ Plus, או WIZZ Go + WIZZ Priority — השוו את שני הסכומים במסך ההזמנה.",
+            "plus": "WIZZ Plus — בדוגמה שלמטה הוא הזול מכל הצירופים לטרולי ומזוודה יחד.",
             "heavy": "WIZZ Plus (מזוודה עד 32 ק\"ג), או Basic + מזוודה כבדה יותר — השוו.",
             "go": "WIZZ Go, או Basic + מזוודה (ומושב, אם רציתם) — השוו.",
-            "smart": "WIZZ Smart אם מוצעת בטיסה, אחרת Basic + WIZZ Priority.",
-            "seat": "Basic + מושב.",
+            "smart": "WIZZ Smart — בדוגמה שלמטה זול יותר מ-Priority לבד, ומושב בפנים. אם Smart לא מוצעת בטיסה — Basic + WIZZ Priority.",
+            "seat": "Basic ומושב — אם המושב עולה פחות מ-Smart (€44.80 לטיסה בדוגמה). אם יותר — Smart, ובו גם טרולי.",
             "ret": "↔️ כל תוספת נספרת לכל טיסה בנפרד — בהלוך וחזור ההפרש כפול. WIZZ Flex שבתוך Plus חל על כל הנוסעים ועל כל הטיסות שבהזמנה.",
-            "ski": "⛷️ ציוד סקי לא כלול באף חבילה — מוסיפים אותו בנפרד, ועדיף כבר בהזמנה, כי המקום לציוד ספורט בכל טיסה מוגבל."
+            "ski": "⛷️ ציוד סקי לא כלול באף חבילה — מוסיפים אותו בנפרד, ועדיף כבר בהזמנה, כי המקום לציוד ספורט בכל טיסה מוגבל.",
+            "goseat": "WIZZ Go — בדוגמה שלמטה הוא זול מ-Basic, מזוודה ומושב ברגע ששני המושבים עולים יחד מעל €19.80."
           }
         },
         "notes": [
+          "🔎 מה מראה הדוגמה: <b>Priority לבד עלה €58.80 לטיסה, ו-Smart — שכולל Priority ומושב — רק €44.80.</b> מזוודה של 20 ק\"ג לבד עלתה €58.80 בהלוך ו-€79.00 בחזור, ו-Go — מזוודה ומושב — €78.80 בכל כיוון. ומי שלוקח טרולי ומזוודה — Plus (€93.80 לטיסה) זול מכל צירוף אחר, ויש בו גם מזוודה של 32 ק\"ג ושינוי תאריך.",
+          "🔎 עוד מהדוגמה: ציוד סקי — €65 לטיסה, בכל חבילה. צ'ק-אין בדלפק בשדה עולה €50 ב-Basic וב-Smart, וב-Go וב-Plus הוא בחינם. ווויז עצמה כותבת שמזוודה שמוסיפים אחרי ההזמנה עולה יותר.",
+          "💺 מושב לבד עולה בוויז €4–60 לטיסה (לפי מחירון השירותים שלהם) — את המחיר בטיסה שלכם רואים במסך ההזמנה. ב-Smart וב-Go מושב רגיל כבר כלול, וב-Plus גם מושב בשורות הקדמיות או עם מקום לרגליים.",
           "💡 הטרולי לתא מגיע רק עם WIZZ Priority — לבד, או בתוך Smart או Plus. ב-Go יש מזוודה לבטן, אבל אין טרולי.",
           "⚠️ את החבילה בוחרים בהזמנה עצמה — לכן כדאי להחליט מראש. אחר כך אפשר רק להוסיף מזוודה, מושב או Priority, כל אחד בנפרד ובמחיר של אותו רגע, ואת WIZZ Flex כבר אי אפשר לקנות בכלל. החבילות מרכזות כמה תוספות במחיר מוזל, אז מי שצריך כמה מהן — שיבדוק את החבילה לפני שהוא מסיים. Priority לבד עולה €10–60 באתר, ובשדה €65–75.",
           "⛷️ סקי וסנובורד נוסעים בבטן כציוד ספורט, בתשלום נפרד, עד 32 ק\"ג. מוסיפים בהזמנה או עד 3 שעות לפני הטיסה, אבל המקום מוגבל — עדיף מראש.",
           "👨‍👩‍👧 כשמוסיפים ילדים להזמנה, וויז מציגה במקום Go ו-Plus את Family Go ו-Family Plus, בהנחה.",
-          "המחירים משתנים לפי טיסה ותאריך, ולכן לא כתבנו אותם — ההחלטה היא מה צריך, ואת הסכום רואים במסך ההזמנה. מה בדיוק כלול בחבילה — תמיד לפי מה שמוצג בהזמנה."
+          "מחירי וויז משתנים לפי טיסה, תאריך ואפילו בין חיפוש לחיפוש — הדוגמה מראה את היחסים, לא מחיר שיחזור. את הסכום שלכם רואים במסך ההזמנה."
         ],
         "links": [
           {
@@ -6045,7 +6096,7 @@
       },
       {
         "id": "malpensa",
-        "icon": "🧳",
+        "icon": "🛫",
         "title": "מלפנסה ⇄ שאטיון — לוח הזמנים",
         "lead": "ארבע נסיעות ביום בשישי, שבת וראשון, ואחת בשני ואחת בחמישי. בשלישי וברביעי אין שירות. שעת היציאה היא מטרמינל 1; מטרמינל 2 חמש דקות קודם.",
         "notes": [
@@ -6306,7 +6357,7 @@
       {
         "id": "rentaldesks",
         "icon": "🚘",
-        "title": "דלפקי ההשכרה — שעות ומלכודות",
+        "title": "השכרת רכב — שעות הדלפקים ומלכודות",
         "lead": "<b>באף אחד מארבעת השדות אין דלפק פתוח 24 שעות.</b> מי שנוחת בלילה ולא סידר מראש — מוצא דלת סגורה.",
         "tables": [
           {
@@ -6365,16 +6416,16 @@
         "lead": "<b>שני מקרים שבהם לילה אחד ליד השדה חוסך הרבה:</b> נחיתה מאוחרת — כשדלפקי השכרת הרכב כבר סגורים, או שהנסיעה למעלה תסתיים אחרי חצות על כביש הררי — וטיסה מוקדמת בבוקר, שבגללה צריך לצאת מצ'רוויניה באמצע הלילה. קודם המלונות שמגיעים אליהם מהטרמינל ברגל, ואחריהם — לדרך חזרה עם רכב — מלונות קרובים וזולים יותר עם חניה.",
         "notes": [
           {
-            "text": "✈️ <b>מלפנסה, טרמינל 1 — <bdi>Sheraton Milan Malpensa Airport</bdi>.</b> גישה ישירה מטרמינל 1, בלי הסעה. ☎ +39 02 23351"
+            "text": "✈️ <b>מלפנסה, טרמינל 1 — <bdi>Sheraton Milan Malpensa Airport</bdi>.</b> גישה ישירה מטרמינל 1, בלי הסעה. ☎ <a href=\"tel:+390223351\">+39 02 23351</a> · <a href=\"https://www.marriott.com/en-us/hotels/milmp-sheraton-milan-malpensa-airport-hotel-and-conference-centre/overview/\" target=\"_blank\" rel=\"noopener\">אתר המלון</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Sheraton+Milan+Malpensa+Airport\" target=\"_blank\" rel=\"noopener\">מפה</a>"
           },
           {
-            "text": "✈️ <b>מלפנסה, טרמינל 2 — <bdi>Moxy Milan Malpensa Airport</bdi>.</b> צמוד לטרמינל 2 ומחובר אליו. בין שני הטרמינלים נוסע אוטובוס חינם, בערך כל רבע שעה."
+            "text": "✈️ <b>מלפנסה, טרמינל 2 — <bdi>Moxy Milan Malpensa Airport</bdi>.</b> צמוד לטרמינל 2 ומחובר אליו. בין שני הטרמינלים נוסע אוטובוס חינם, בערך כל רבע שעה. · <a href=\"https://www.marriott.com/en-us/hotels/milox-moxy-milan-malpensa-airport/overview/\" target=\"_blank\" rel=\"noopener\">אתר המלון</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Moxy+Milan+Malpensa+Airport\" target=\"_blank\" rel=\"noopener\">מפה</a>"
           },
           {
-            "text": "✈️ <b>לינאטה — <bdi>Moxy Milan Linate Airport</bdi>.</b> כ-300 מ' מהשדה, כמה דקות הליכה. אין הסעה. ☎ +39 02 9475 6401"
+            "text": "✈️ <b>לינאטה — <bdi>Moxy Milan Linate Airport</bdi>.</b> כ-300 מ' מהשדה, כמה דקות הליכה. אין הסעה. ☎ <a href=\"tel:+390294756401\">+39 02 9475 6401</a> · <a href=\"https://www.marriott.com/en-us/hotels/milol-moxy-milan-linate-airport/overview/\" target=\"_blank\" rel=\"noopener\">אתר המלון</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Moxy+Milan+Linate+Airport\" target=\"_blank\" rel=\"noopener\">מפה</a>"
           },
           {
-            "text": "✈️ <b>ברגמו — <bdi>NH Orio al Serio Airport</bdi>.</b> מול השדה: כרבע שעה הליכה במעבר תת-קרקעי. ☎ +39 035 421 2011"
+            "text": "✈️ <b>ברגמו — <bdi>NH Orio al Serio Airport</bdi>.</b> מול השדה: כרבע שעה הליכה במעבר תת-קרקעי. ☎ <a href=\"tel:+390354212011\">+39 035 421 2011</a> · <a href=\"https://www.nh-hotels.com/en/hotel/nh-orio-al-serio-airport\" target=\"_blank\" rel=\"noopener\">אתר המלון</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=NH+Orio+al+Serio+Airport\" target=\"_blank\" rel=\"noopener\">מפה</a>"
           },
           {
             "text": "✈️ <b>טורינו</b> — לא מצאנו מלון שאפשר ללכת אליו מהטרמינל. מטורינו גם הנסיעה לצ'רוויניה הקצרה ביותר, כשעה ושלושה רבעים."
@@ -6383,13 +6434,13 @@
             "text": "🚗 <b>בדרך חזרה, עם רכב שכור — מלון קרוב ולא צמוד יוצא בדרך כלל זול בהרבה.</b> יורדים מההר ערב לפני, ישנים במלון עם חניה חינם כמה דקות מהשדה, ובבוקר נוסעים לשדה ומחזירים את הרכב. לא צריך הסעה."
           },
           {
-            "text": "🅿️ <b>מלפנסה — <bdi>Crowne Plaza Milan Malpensa Airport</bdi></b>, ב-<bdi>Case Nuove</bdi>, פחות מ-5 ק\"מ מהשדה. חניה חינם בזמן השהות. על הסעה לשדה הדף הרשמי סותר את עצמו — אם תצטרכו אותה, בררו מול המלון. ☎ +39 0331 21161"
+            "text": "🅿️ <b>מלפנסה — <bdi>Crowne Plaza Milan Malpensa Airport</bdi></b>, ב-<bdi>Case Nuove</bdi>, פחות מ-5 ק\"מ מהשדה. חניה חינם בזמן השהות. ☎ <a href=\"tel:+39033121161\">+39 0331 21161</a> · <a href=\"https://www.ihg.com/crowneplaza/hotels/us/en/somma-lombardo/milma/hoteldetail/amenities\" target=\"_blank\" rel=\"noopener\">אתר המלון</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Crowne+Plaza+Milan+Malpensa+Airport\" target=\"_blank\" rel=\"noopener\">מפה</a>"
           },
           {
-            "text": "🅿️ <b>מלפנסה — <bdi>Holiday Inn Express Milan Malpensa Airport</bdi></b>, גם הוא ב-<bdi>Case Nuove</bdi>. חניה חינם בזמן השהות. הסעה לשדה לפי בקשה: 5 אירו לאדם ביום ו-10 בלילה, ילדים עד 13 חינם. ☎ +39 0331 18330"
+            "text": "🅿️ <b>מלפנסה — <bdi>Holiday Inn Express Milan Malpensa Airport</bdi></b>, גם הוא ב-<bdi>Case Nuove</bdi>. חניה חינם בזמן השהות. הסעה לשדה לפי בקשה: 5 אירו לאדם ביום ו-10 בלילה, ילדים עד 13 חינם. ☎ <a href=\"tel:+39033118330\">+39 0331 18330</a> · <a href=\"https://www.ihg.com/holidayinnexpress/hotels/us/en/somma-lombardo/milap/hoteldetail/amenities\" target=\"_blank\" rel=\"noopener\">אתר המלון</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=Holiday+Inn+Express+Milan+Malpensa+Airport\" target=\"_blank\" rel=\"noopener\">מפה</a>"
           },
           {
-            "text": "🅿️ <b>לינאטה — <bdi>NH Linate</bdi></b>, כעשר דקות נסיעה מהשדה. חניה חינם (אי אפשר להזמין אותה מראש)."
+            "text": "🅿️ <b>לינאטה — <bdi>NH Linate</bdi></b>, כעשר דקות נסיעה מהשדה. חניה חינם (אי אפשר להזמין אותה מראש). · <a href=\"https://www.minorhotels.com/it/destinations/italy/milan/nh-linate\" target=\"_blank\" rel=\"noopener\">אתר המלון</a> · <a href=\"https://www.google.com/maps/search/?api=1&query=NH+Linate+Peschiera+Borromeo\" target=\"_blank\" rel=\"noopener\">מפה</a>"
           },
           {
             "text": "🅿️ <b>ברגמו</b> — ל-<bdi>NH Orio al Serio Airport</bdi> שלמעלה יש גם חניה: 10 אירו ליום."
@@ -6403,39 +6454,15 @@
         ],
         "links": [
           {
-            "label": "Sheraton Malpensa",
-            "url": "https://www.marriott.com/en-us/hotels/milmp-sheraton-milan-malpensa-airport-hotel-and-conference-centre/overview/"
-          },
-          {
             "label": "מלונות השדה — מלפנסה",
             "url": "https://milanomalpensa-airport.com/en/airport/hotel"
-          },
-          {
-            "label": "Moxy Linate",
-            "url": "https://www.marriott.com/en-us/hotels/milol-moxy-milan-linate-airport/overview/"
-          },
-          {
-            "label": "NH Orio al Serio",
-            "url": "https://www.nh-hotels.com/en/hotel/nh-orio-al-serio-airport"
-          },
-          {
-            "label": "Crowne Plaza Malpensa",
-            "url": "https://www.ihg.com/crowneplaza/hotels/us/en/somma-lombardo/milma/hoteldetail/amenities"
-          },
-          {
-            "label": "Holiday Inn Express Malpensa",
-            "url": "https://www.ihg.com/holidayinnexpress/hotels/us/en/somma-lombardo/milap/hoteldetail/amenities"
-          },
-          {
-            "label": "NH Linate",
-            "url": "https://www.minorhotels.com/it/destinations/italy/milan/nh-linate"
           }
         ]
       },
       {
         "id": "carprices",
         "icon": "💶",
-        "title": "כמה זה עולה באמת",
+        "title": "רכב — כמה זה עולה באמת",
         "lead": "השוואה אחת אמיתית, לאותם תאריכים ולאותו שדה, כי מחירון לבדו לא אומר הרבה.",
         "tables": [
           {
@@ -6476,7 +6503,7 @@
       {
         "id": "winter",
         "icon": "❄️",
-        "title": "החוק בחורף, והכביש למעלה",
+        "title": "נהיגה בחורף — החוק והכביש למעלה",
         "notes": [
           {
             "text": "📅 <b>15 באוקטובר עד 15 באפריל</b> — בוואלה ד'אוסטה חובה צמיגי חורף <u>או</u> שרשראות ברכב. חודש מוקדם יותר משאר איטליה. הקנס: <b>€87–€344</b>."
