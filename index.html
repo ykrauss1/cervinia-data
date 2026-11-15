@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.69';
+  var v='v17.70';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -15883,9 +15883,17 @@ function _stayWhy(ap, kind, A, B) {
 function _stayCard(ap, kind, A, B) {
   var why = _stayWhy(ap, kind, A, B);
   if (!why) return '';
-  var list = (ap.stay || []).map(function (s) {
-    return '🛏️ <bdi><b>' + _aEsc(s.name) + '</b></bdi> — ' + _aEsc(s.how);
-  }).join('<br>');
+  var row = function (icon) { return function (s) {
+    return icon + ' <bdi><b>' + _aEsc(s.name) + '</b></bdi> — ' + _aEsc(s.how);
+  }; };
+  var list = (ap.stay || []).map(row('🛏️')).join('<br>');
+  // the way back with a car: a hotel a few minutes out, with parking, costs
+  // much less than one at the terminal - and the car is returned in the
+  // morning anyway (Yossi, 15.11)
+  if (kind === 'out' && (ap.stay_car || []).length)
+    list += (list ? '<br>' : '') + L('<span style="color:#667;">ועם רכב — מלונות קרובים עם חניה, בדרך כלל זולים יותר:</span><br>',
+                                     '<span style="color:#667;">And with a car — hotels nearby with parking, usually cheaper:</span><br>')
+         + ap.stay_car.map(row('🅿️')).join('<br>');
   var what = kind === 'in'
     ? L('<b>אפשר לישון ליד השדה ולעלות בבוקר</b>, באור יום ועם דלפקים פתוחים.',
         '<b>You can sleep by the airport and drive up in the morning</b>, in daylight and with the desks open.')

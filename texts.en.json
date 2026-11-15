@@ -1030,7 +1030,7 @@
    {
     "id": "airport_stay",
     "title": "A night near the airport",
-    "lead": "<b>Two cases where one night by the airport saves a lot:</b> a late landing — when the car-hire desks have already closed, or the drive up would end after midnight on a mountain road — and an early morning flight, which would mean leaving Cervinia in the middle of the night. These are the hotels you can reach from the terminal on foot.",
+    "lead": "<b>Two cases where one night by the airport saves a lot:</b> a late landing — when the car-hire desks have already closed, or the drive up would end after midnight on a mountain road — and an early morning flight, which would mean leaving Cervinia in the middle of the night. First the hotels you can reach from the terminal on foot, then — for the way back with a car — cheaper hotels nearby, with parking.",
     "notes": [
      {
       "text": "✈️ <b>Malpensa, Terminal 1 — Sheraton Milan Malpensa Airport.</b> Direct access from Terminal 1, no shuttle needed. ☎ +39 02 23351"
@@ -1048,6 +1048,24 @@
       "text": "✈️ <b>Turin</b> — we found no hotel you can walk to from the terminal. From Turin the drive to Cervinia is also the shortest, about an hour and three quarters."
      },
      {
+      "text": "🚗 <b>On the way back, with a hire car — a hotel near the airport rather than at it usually costs much less.</b> Come down from the mountain the evening before, sleep at a hotel with free parking a few minutes from the airport, and in the morning drive to the airport and return the car. No shuttle needed."
+     },
+     {
+      "text": "🅿️ <b>Malpensa — Crowne Plaza Milan Malpensa Airport</b>, at Case Nuove, under 5 km from the airport. Free parking during the stay. On a shuttle to the airport the official page contradicts itself — if you need one, check with the hotel. ☎ +39 0331 21161"
+     },
+     {
+      "text": "🅿️ <b>Malpensa — Holiday Inn Express Milan Malpensa Airport</b>, also at Case Nuove. Free parking during the stay. Shuttle to the airport on request: €5 per person by day and €10 at night, children up to 13 free. ☎ +39 0331 18330"
+     },
+     {
+      "text": "🅿️ <b>Linate — NH Linate</b>, about ten minutes' drive from the airport. Free parking (it cannot be booked in advance)."
+     },
+     {
+      "text": "🅿️ <b>Bergamo</b> — the NH Orio al Serio Airport above also has parking: €10 a day."
+     },
+     {
+      "text": "🏠 <b>An apartment instead of a hotel:</b> in the villages around the airports — Case Nuove, Ferno and Somma Lombardo by Malpensa, Orio al Serio by Bergamo — there are apartments to rent too. Search Airbnb and Booking, and filter for free parking."
+     },
+     {
       "text": "💡 When booking for a late landing, give your arrival time. And in the morning — most car-hire desks at Malpensa open at 07:00."
      }
     ],
@@ -1063,6 +1081,15 @@
      },
      {
       "label": "NH Orio al Serio"
+     },
+     {
+      "label": "Crowne Plaza Malpensa"
+     },
+     {
+      "label": "Holiday Inn Express Malpensa"
+     },
+     {
+      "label": "NH Linate"
      }
     ]
    },
@@ -1180,6 +1207,14 @@
       {
        "how": "right beside Terminal 2"
       }
+     ],
+     "stay_car": [
+      {
+       "how": "under 5 km, free parking"
+      },
+      {
+       "how": "under 5 km, free parking"
+      }
      ]
     },
     {
@@ -1189,6 +1224,11 @@
      "stay": [
       {
        "how": "a few minutes' walk from the airport"
+      }
+     ],
+     "stay_car": [
+      {
+       "how": "about ten minutes' drive, free parking"
       }
      ]
     },

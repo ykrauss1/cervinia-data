@@ -6096,7 +6096,7 @@
         "id": "airport_stay",
         "icon": "🛏️",
         "title": "לינה ליד שדה התעופה",
-        "lead": "<b>שני מקרים שבהם לילה אחד ליד השדה חוסך הרבה:</b> נחיתה מאוחרת — כשדלפקי השכרת הרכב כבר סגורים, או שהנסיעה למעלה תסתיים אחרי חצות על כביש הררי — וטיסה מוקדמת בבוקר, שבגללה צריך לצאת מצ'רוויניה באמצע הלילה. אלה המלונות שמגיעים אליהם מהטרמינל ברגל.",
+        "lead": "<b>שני מקרים שבהם לילה אחד ליד השדה חוסך הרבה:</b> נחיתה מאוחרת — כשדלפקי השכרת הרכב כבר סגורים, או שהנסיעה למעלה תסתיים אחרי חצות על כביש הררי — וטיסה מוקדמת בבוקר, שבגללה צריך לצאת מצ'רוויניה באמצע הלילה. קודם המלונות שמגיעים אליהם מהטרמינל ברגל, ואחריהם — לדרך חזרה עם רכב — מלונות קרובים וזולים יותר עם חניה.",
         "notes": [
           {
             "text": "✈️ <b>מלפנסה, טרמינל 1 — <bdi>Sheraton Milan Malpensa Airport</bdi>.</b> גישה ישירה מטרמינל 1, בלי הסעה. ☎ +39 02 23351"
@@ -6112,6 +6112,24 @@
           },
           {
             "text": "✈️ <b>טורינו</b> — לא מצאנו מלון שאפשר ללכת אליו מהטרמינל. מטורינו גם הנסיעה לצ'רוויניה הקצרה ביותר, כשעה ושלושה רבעים."
+          },
+          {
+            "text": "🚗 <b>בדרך חזרה, עם רכב שכור — מלון קרוב ולא צמוד יוצא בדרך כלל זול בהרבה.</b> יורדים מההר ערב לפני, ישנים במלון עם חניה חינם כמה דקות מהשדה, ובבוקר נוסעים לשדה ומחזירים את הרכב. לא צריך הסעה."
+          },
+          {
+            "text": "🅿️ <b>מלפנסה — <bdi>Crowne Plaza Milan Malpensa Airport</bdi></b>, ב-<bdi>Case Nuove</bdi>, פחות מ-5 ק\"מ מהשדה. חניה חינם בזמן השהות. על הסעה לשדה הדף הרשמי סותר את עצמו — אם תצטרכו אותה, בררו מול המלון. ☎ +39 0331 21161"
+          },
+          {
+            "text": "🅿️ <b>מלפנסה — <bdi>Holiday Inn Express Milan Malpensa Airport</bdi></b>, גם הוא ב-<bdi>Case Nuove</bdi>. חניה חינם בזמן השהות. הסעה לשדה לפי בקשה: 5 אירו לאדם ביום ו-10 בלילה, ילדים עד 13 חינם. ☎ +39 0331 18330"
+          },
+          {
+            "text": "🅿️ <b>לינאטה — <bdi>NH Linate</bdi></b>, כעשר דקות נסיעה מהשדה. חניה חינם (אי אפשר להזמין אותה מראש)."
+          },
+          {
+            "text": "🅿️ <b>ברגמו</b> — ל-<bdi>NH Orio al Serio Airport</bdi> שלמעלה יש גם חניה: 10 אירו ליום."
+          },
+          {
+            "text": "🏠 <b>דירה במקום מלון:</b> בכפרים שסביב השדות — <bdi>Case Nuove</bdi>, <bdi>Ferno</bdi> ו-<bdi>Somma Lombardo</bdi> ליד מלפנסה, <bdi>Orio al Serio</bdi> ליד ברגמו — יש גם דירות להשכרה. אפשר לחפש ב-Airbnb ובבוקינג, ולסנן לפי חניה חינם."
           },
           {
             "text": "💡 בהזמנה לנחיתה מאוחרת ציינו את שעת ההגעה. ובבוקר — רוב דלפקי השכרת הרכב במלפנסה נפתחים ב-07:00."
@@ -6133,6 +6151,18 @@
           {
             "label": "NH Orio al Serio",
             "url": "https://www.nh-hotels.com/en/hotel/nh-orio-al-serio-airport"
+          },
+          {
+            "label": "Crowne Plaza Malpensa",
+            "url": "https://www.ihg.com/crowneplaza/hotels/us/en/somma-lombardo/milma/hoteldetail/amenities"
+          },
+          {
+            "label": "Holiday Inn Express Malpensa",
+            "url": "https://www.ihg.com/holidayinnexpress/hotels/us/en/somma-lombardo/milap/hoteldetail/amenities"
+          },
+          {
+            "label": "NH Linate",
+            "url": "https://www.minorhotels.com/it/destinations/italy/milan/nh-linate"
           }
         ]
       },
@@ -6269,6 +6299,16 @@
               "name": "Moxy Milan Malpensa Airport",
               "how": "צמוד לטרמינל 2"
             }
+          ],
+          "stay_car": [
+            {
+              "name": "Crowne Plaza Milan Malpensa Airport",
+              "how": "פחות מ-5 ק\"מ, חניה חינם"
+            },
+            {
+              "name": "Holiday Inn Express Milan Malpensa Airport",
+              "how": "פחות מ-5 ק\"מ, חניה חינם"
+            }
           ]
         },
         {
@@ -6285,6 +6325,12 @@
             {
               "name": "Moxy Milan Linate Airport",
               "how": "כמה דקות הליכה מהשדה"
+            }
+          ],
+          "stay_car": [
+            {
+              "name": "NH Linate",
+              "how": "כעשר דקות נסיעה, חניה חינם"
             }
           ]
         },
