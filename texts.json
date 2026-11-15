@@ -6093,6 +6093,50 @@
         ]
       },
       {
+        "id": "airport_stay",
+        "icon": "🛏️",
+        "title": "לינה ליד שדה התעופה",
+        "lead": "<b>שני מקרים שבהם לילה אחד ליד השדה חוסך הרבה:</b> נחיתה מאוחרת — כשדלפקי השכרת הרכב כבר סגורים, או שהנסיעה למעלה תסתיים אחרי חצות על כביש הררי — וטיסה מוקדמת בבוקר, שבגללה צריך לצאת מצ'רוויניה באמצע הלילה. אלה המלונות שמגיעים אליהם מהטרמינל ברגל.",
+        "notes": [
+          {
+            "text": "✈️ <b>מלפנסה, טרמינל 1 — <bdi>Sheraton Milan Malpensa Airport</bdi>.</b> גישה ישירה מטרמינל 1, בלי הסעה. ☎ +39 02 23351"
+          },
+          {
+            "text": "✈️ <b>מלפנסה, טרמינל 2 — <bdi>Moxy Milan Malpensa Airport</bdi>.</b> צמוד לטרמינל 2 ומחובר אליו. בין שני הטרמינלים נוסע אוטובוס חינם, בערך כל רבע שעה."
+          },
+          {
+            "text": "✈️ <b>לינאטה — <bdi>Moxy Milan Linate Airport</bdi>.</b> כ-300 מ' מהשדה, כמה דקות הליכה. אין הסעה. ☎ +39 02 9475 6401"
+          },
+          {
+            "text": "✈️ <b>ברגמו — <bdi>NH Orio al Serio Airport</bdi>.</b> מול השדה: כרבע שעה הליכה במעבר תת-קרקעי. ☎ +39 035 421 2011"
+          },
+          {
+            "text": "✈️ <b>טורינו</b> — לא מצאנו מלון שאפשר ללכת אליו מהטרמינל. מטורינו גם הנסיעה לצ'רוויניה הקצרה ביותר, כשעה ושלושה רבעים."
+          },
+          {
+            "text": "💡 בהזמנה לנחיתה מאוחרת ציינו את שעת ההגעה. ובבוקר — רוב דלפקי השכרת הרכב במלפנסה נפתחים ב-07:00."
+          }
+        ],
+        "links": [
+          {
+            "label": "Sheraton Malpensa",
+            "url": "https://www.marriott.com/en-us/hotels/milmp-sheraton-milan-malpensa-airport-hotel-and-conference-centre/overview/"
+          },
+          {
+            "label": "מלונות השדה — מלפנסה",
+            "url": "https://milanomalpensa-airport.com/en/airport/hotel"
+          },
+          {
+            "label": "Moxy Linate",
+            "url": "https://www.marriott.com/en-us/hotels/milol-moxy-milan-linate-airport/overview/"
+          },
+          {
+            "label": "NH Orio al Serio",
+            "url": "https://www.nh-hotels.com/en/hotel/nh-orio-al-serio-airport"
+          }
+        ]
+      },
+      {
         "id": "carprices",
         "icon": "💶",
         "title": "כמה זה עולה באמת",
@@ -6215,7 +6259,17 @@
           "t_small": 430,
           "t_big": 470,
           "desk_close": "23:30",
-          "line_down": "mxp_down"
+          "line_down": "mxp_down",
+          "stay": [
+            {
+              "name": "Sheraton Milan Malpensa Airport",
+              "how": "בטרמינל 1, גישה ישירה"
+            },
+            {
+              "name": "Moxy Milan Malpensa Airport",
+              "how": "צמוד לטרמינל 2"
+            }
+          ]
         },
         {
           "id": "lin",
@@ -6226,7 +6280,13 @@
           "t_big": 508,
           "no_bus": "אין קו אוטובוס משדה התעופה לינאטה. בתחבורה ציבורית צריך להגיע קודם לתחנת Lampugnano במילאנו (הקו האדום של הרכבת התחתית), ומשם אוטובוס לשאטיון.",
           "desk_close": "23:00",
-          "line_down": null
+          "line_down": null,
+          "stay": [
+            {
+              "name": "Moxy Milan Linate Airport",
+              "how": "כמה דקות הליכה מהשדה"
+            }
+          ]
         },
         {
           "id": "trn",
@@ -6249,7 +6309,13 @@
           "t_big": 1012,
           "no_bus": "אין קו אוטובוס מברגמו לעמק. בתחבורה ציבורית צריך להגיע קודם למילאנו, ומשם אוטובוס לשאטיון.",
           "desk_close": "23:00",
-          "line_down": null
+          "line_down": null,
+          "stay": [
+            {
+              "name": "NH Orio al Serio Airport",
+              "how": "כרבע שעה הליכה, במעבר תת-קרקעי"
+            }
+          ]
         }
       ],
       "lines": {

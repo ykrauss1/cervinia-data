@@ -8707,6 +8707,38 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.halfCap) fail(T, 'the half-days control does not keep its range (no days at all, or more than 8)'); else ok();
 }
 
+// ── a night by the airport, offered when it is needed ───────────────
+// Yossi, 15.11: a late landing or an early flight - the planner offers the
+// hotels a walk from that terminal, and only then.
+{
+  const T = 'a night by the airport is offered when it is needed';
+  const r = await page.evaluate(() => {
+    openParkTransport();
+    const run = (a, d, t, od, ot) => {
+      const s = (i, v) => { const e = document.getElementById(i); if (e) e.value = v; };
+      s('ap-airport', a); s('ap-date', d); s('ap-time', t); s('dp-date', od); s('dp-time', ot);
+      planTrip();
+      const c = [...document.querySelectorAll('#ap-out > div')].filter(x => /🛏️/.test(x.textContent));
+      return c.map(x => x.textContent).join(' | ');
+    };
+    const out = {
+      late: run('mxp', '2026-12-20', '22:40', '', ''),
+      day: run('mxp', '2026-12-20', '14:00', '', ''),
+      early: run('bgy', '', '', '2026-12-27', '07:00'),
+      noon: run('mxp', '', '', '2026-12-27', '13:00'),
+      turin: run('trn', '2026-12-20', '23:10', '', ''),
+      section: !!document.querySelector('#transport-body [data-toc*="🛏️"]'),
+    };
+    resetArrival(); closeM('parkingModal');
+    return out;
+  });
+  if (!/Sheraton/.test(r.late) || !/Moxy/.test(r.late)) fail(T, `a 22:40 landing at Malpensa does not offer the airport hotels: "${r.late.slice(0, 120)}"`); else ok();
+  if (r.day || r.noon) fail(T, 'a night by the airport is offered for a midday landing or flight'); else ok();
+  if (!/NH Orio al Serio/.test(r.early)) fail(T, 'an early flight from Bergamo does not offer the hotel by the terminal'); else ok();
+  if (!r.turin || /Sheraton|Moxy|NH/.test(r.turin)) fail(T, 'Turin, with no hotel a walk from the terminal, names one or says nothing'); else ok();
+  if (!r.section) fail(T, 'the "A night near the airport" section is missing from the transport panel'); else ok();
+}
+
 // ── Latin names on a Hebrew line are laid out as one unit ───────────
 // Yossi, 15.11: "Cime" and "Bianche" with the quotes on the wrong sides, a
 // house number on the far side of its street. Each Latin run is isolated.

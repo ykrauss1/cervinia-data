@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.68';
+  var v='v17.69';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -15835,18 +15835,74 @@ function planTrip() {
 
   if (A) {
     html += '<div style="font-size:0.75rem;color:#8a95a3;margin:10px 0 7px;">🛬 ' + A.head + '</div>'
-          + A.cards.join('');
+          + A.cards.join('') + _stayCard(ap, 'in', A, null);
     if (!B) html += _tripDrive(pl, ap, pax, 'in', A);
   }
   if (B) {
     html += '<div style="font-size:0.75rem;color:#8a95a3;margin:10px 0 7px;">🛫 ' + B.head + '</div>'
-          + B.cards.join('');
+          + B.cards.join('') + _stayCard(ap, 'out', null, B);
   }
   html += _tripDrive(pl, ap, pax, (A && B) ? 'both' : (B ? 'out' : 'in'), A, B);
 
   out.innerHTML = html;
   var rb = document.getElementById('ap-reset');
   if (rb) rb.style.display = 'block';
+}
+
+// A night by the airport (Yossi, 15.11): landing late - the hire desks shut,
+// or the drive up would end after midnight on a mountain road - or a flight
+// so early that the drive down starts in the middle of the night. Offered
+// only then, with the hotels a walk from that airport's terminal.
+var STAY_LATE_IN = 24 * 60;          // in Cervinia after midnight
+var STAY_EARLY_OUT = 4 * 60 + 30;    // out of the hotel before 04:30
+function _stayWhy(ap, kind, A, B) {
+  if (kind === 'in' && A) {
+    var up = A.arriveBy + ap.drive_min;
+    if (A.desk && A.desk.level === 2)
+      return L('הדלפקים של השכרת הרכב כבר ייסגרו כשתצאו מהטרמינל.',
+               'The car-hire desks will have closed by the time you are out of the terminal.');
+    if (up >= STAY_LATE_IN)
+      return L("ברכב תגיעו לצ'רוויניה רק בערך ב-" + _hhmm(up % (24 * 60)) + ' בלילה, אחרי נסיעה של '
+               + _waitHe(ap.drive_min) + ' בכביש הררי.',
+               'By car you would reach Cervinia only at about ' + _hhmm(up % (24 * 60))
+               + ' at night, after ' + _waitHe(ap.drive_min) + ' of driving, the last part on a mountain road.');
+    return '';
+  }
+  if (kind === 'out' && B) {
+    if (B.leaveBy == null)
+      return L('טיסה בשעה כזו לא משאירה זמן לנסיעה מההר באותו בוקר.',
+               'A flight at that hour leaves no time to drive down from the mountain that morning.');
+    var go = B.leaveBy - ap.drive_min - 30;
+    if (go < STAY_EARLY_OUT)
+      return L("כדי להספיק, ברכב צריך לצאת מצ'רוויניה בערך ב-" + _hhmm((go + 24 * 60) % (24 * 60)) + ' בלילה.',
+               'To make it by car you would have to leave Cervinia at about '
+               + _hhmm((go + 24 * 60) % (24 * 60)) + ' at night.');
+  }
+  return '';
+}
+function _stayCard(ap, kind, A, B) {
+  var why = _stayWhy(ap, kind, A, B);
+  if (!why) return '';
+  var list = (ap.stay || []).map(function (s) {
+    return '🛏️ <bdi><b>' + _aEsc(s.name) + '</b></bdi> — ' + _aEsc(s.how);
+  }).join('<br>');
+  var what = kind === 'in'
+    ? L('<b>אפשר לישון ליד השדה ולעלות בבוקר</b>, באור יום ועם דלפקים פתוחים.',
+        '<b>You can sleep by the airport and drive up in the morning</b>, in daylight and with the desks open.')
+    : L('<b>אפשר לרדת יום קודם וללון ליד השדה.</b>',
+        '<b>You can come down the day before and spend the night by the airport.</b>');
+  var body = why + ' ' + what
+    + (list ? '<br>' + list
+            : '<br>' + L('ליד השדה הזה לא מצאנו מלון שמגיעים אליו מהטרמינל ברגל.',
+                         'At this airport we found no hotel you can reach from the terminal on foot.'))
+    + '<br><a href="#" onclick="event.preventDefault();_showStay()" style="color:#1a4b8c;">'
+    + L('הטלפונים והקישורים — בסעיף "לינה ליד שדה התעופה"', 'Phones and links — in "A night near the airport"') + '</a>';
+  return _apCard('#f6f3ff', '#b7a6e8', '#4b3a8c', L('🛏️ שווה לשקול: לילה ליד השדה', '🛏️ Worth considering: a night near the airport'), body);
+}
+function _showStay() {
+  var el = [].slice.call(document.querySelectorAll('#transport-body [data-toc]'))
+    .filter(function (e) { return /🛏️/.test(e.getAttribute('data-toc')); })[0];
+  if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
 
 // The two options that always work, priced for however many legs were asked.

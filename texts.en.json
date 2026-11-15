@@ -1028,6 +1028,45 @@
     ]
    },
    {
+    "id": "airport_stay",
+    "title": "A night near the airport",
+    "lead": "<b>Two cases where one night by the airport saves a lot:</b> a late landing — when the car-hire desks have already closed, or the drive up would end after midnight on a mountain road — and an early morning flight, which would mean leaving Cervinia in the middle of the night. These are the hotels you can reach from the terminal on foot.",
+    "notes": [
+     {
+      "text": "✈️ <b>Malpensa, Terminal 1 — Sheraton Milan Malpensa Airport.</b> Direct access from Terminal 1, no shuttle needed. ☎ +39 02 23351"
+     },
+     {
+      "text": "✈️ <b>Malpensa, Terminal 2 — Moxy Milan Malpensa Airport.</b> Right beside Terminal 2 and connected to it. A free bus runs between the two terminals about every quarter of an hour."
+     },
+     {
+      "text": "✈️ <b>Linate — Moxy Milan Linate Airport.</b> About 300 m from the airport, a few minutes' walk. No shuttle. ☎ +39 02 9475 6401"
+     },
+     {
+      "text": "✈️ <b>Bergamo — NH Orio al Serio Airport.</b> Opposite the airport: about a quarter of an hour on foot through an underground passage. ☎ +39 035 421 2011"
+     },
+     {
+      "text": "✈️ <b>Turin</b> — we found no hotel you can walk to from the terminal. From Turin the drive to Cervinia is also the shortest, about an hour and three quarters."
+     },
+     {
+      "text": "💡 When booking for a late landing, give your arrival time. And in the morning — most car-hire desks at Malpensa open at 07:00."
+     }
+    ],
+    "links": [
+     {
+      "label": "Sheraton Malpensa"
+     },
+     {
+      "label": "Malpensa's airport hotels"
+     },
+     {
+      "label": "Moxy Linate"
+     },
+     {
+      "label": "NH Orio al Serio"
+     }
+    ]
+   },
+   {
     "id": "carprices",
     "title": "What it really costs",
     "lead": "One real comparison, for the same dates and the same airport, because a price list alone says little.",
@@ -1133,12 +1172,25 @@
    "airports": [
     {
      "id": "mxp",
-     "name": "Milan Malpensa"
+     "name": "Milan Malpensa",
+     "stay": [
+      {
+       "how": "at Terminal 1, direct access"
+      },
+      {
+       "how": "right beside Terminal 2"
+      }
+     ]
     },
     {
      "id": "lin",
      "name": "Milan Linate",
-     "no_bus": "There is no bus line from Linate airport. By public transport you first get to Lampugnano station in Milan (the red metro line), and from there a bus to Châtillon."
+     "no_bus": "There is no bus line from Linate airport. By public transport you first get to Lampugnano station in Milan (the red metro line), and from there a bus to Châtillon.",
+     "stay": [
+      {
+       "how": "a few minutes' walk from the airport"
+      }
+     ]
     },
     {
      "id": "trn",
@@ -1148,7 +1200,12 @@
     {
      "id": "bgy",
      "name": "Bergamo",
-     "no_bus": "There is no bus line from Bergamo to the valley. By public transport you first get to Milan, and from there a bus to Châtillon."
+     "no_bus": "There is no bus line from Bergamo to the valley. By public transport you first get to Milan, and from there a bus to Châtillon.",
+     "stay": [
+      {
+       "how": "about a quarter of an hour on foot, through an underpass"
+      }
+     ]
     }
    ],
    "lines": {
