@@ -880,6 +880,146 @@
     ]
    },
    {
+    "id": "il_air",
+    "icon": "🧳",
+    "title": "El Al, Arkia, Israir — what's included, what it costs",
+    "lead": "The Israeli airlines have no bundles like Wizz: El Al sells ticket types (Lite, Classic or Flex), and on Arkia and Israir the ticket includes only a small bag, with everything else bought separately. Prices here are per passenger, per direction, booked in advance on the airline's site — at the airport it costs more. Who flies on your dates — in the flight search.",
+    "tables": [
+     {
+      "cols": [
+       "",
+       "El Al Lite",
+       "El Al Classic",
+       "Arkia",
+       "Israir"
+      ],
+      "rows": [
+       [
+        "Under-seat bag",
+        "✓",
+        "✓",
+        "✓",
+        "✓"
+       ],
+       [
+        "Trolley",
+        "goes in the hold, free",
+        "✓ cabin · up to 8 kg",
+        "$25 · up to 8 kg",
+        "$30 · up to 10 kg"
+       ],
+       [
+        "Checked suitcase",
+        "variable price",
+        "✓ 23 kg",
+        "$60",
+        "$65 · up to 23 kg"
+       ],
+       [
+        "Ski gear",
+        "$70 · at the airport",
+        "✓ free, on top of the suitcase",
+        "$50",
+        "$80 · up to 20 kg"
+       ],
+       [
+        "Seat selection",
+        "paid",
+        "✓ standard",
+        "paid",
+        "paid"
+       ]
+      ]
+     }
+    ],
+    "calc": {
+     "q": "What are you taking? (extras per passenger)",
+     "prices": {
+      "elal_c": {
+       "trolley": 0,
+       "bag": 0,
+       "ski": 0
+      },
+      "elal_l": {
+       "trolley": 0,
+       "bag": null,
+       "ski": 70
+      },
+      "arkia": {
+       "trolley": 25,
+       "bag": 60,
+       "ski": 50
+      },
+      "israir": {
+       "trolley": 30,
+       "bag": 65,
+       "ski": 80
+      }
+     },
+     "opts": [
+      [
+       "trolley",
+       "🧳 Trolley"
+      ],
+      [
+       "bag",
+       "🛄 Suitcase"
+      ],
+      [
+       "ski",
+       "🎿 Ski gear"
+      ],
+      [
+       "ret",
+       "↔️ Return trip"
+      ]
+     ],
+     "names": {
+      "elal_c": "El Al Classic",
+      "elal_l": "El Al Lite",
+      "arkia": "Arkia",
+      "israir": "Israir"
+     },
+     "incl": "included",
+     "var": "the suitcase at a variable price",
+     "plus": "plus",
+     "per": "on top of the ticket",
+     "tail": "Compare the ticket price together with the extras, not the ticket price alone.",
+     "liteTrolley": "On Lite the trolley goes in the hold — only the small bag comes into the cabin.",
+     "empty": "Tick above what you take, and it shows what that adds on each airline."
+    },
+    "notes": [
+     "⛷️ El Al — for skiers with their own gear: on Classic and above, ski or snowboard gear flies free, on top of the suitcase, in one bag up to 32 kg. Not on Lite, where the gear is paid for at the airport only.",
+     "💡 El Al Lite: on flights to Europe the trolley goes in the hold free of charge (except club members of Silver and up) — only a small personal item comes into the cabin. Flex adds a second cabin bag, wider seat choice and changes without a change fee.",
+     "💡 On El Al the ticket type is chosen in the booking. On Arkia and Israir each item is added separately — the lower price only when booked in advance on the site (Israir up to 9 hours before the flight; on Arkia, if you booked less than 6 hours before, only at the desk, at a higher price).",
+     "At the Tel Aviv airport: Arkia — trolley $30, suitcase $100. Israir — trolley $40, suitcase $100.",
+     "⚠️ On Israir, paying for a trolley does not guarantee it goes into the cabin — it may be sent to the hold. On Arkia whether the trolley goes into the cabin is the airline's call.",
+     "Prices are from the airlines' baggage pages (checked November 2026) and change from time to time — check the link before you book."
+    ],
+    "links": [
+     {
+      "label": "Ticket types — El Al",
+      "url": "https://www.elal.com/heb/useful-info/branded-fares"
+     },
+     {
+      "label": "Trolley and hand baggage — El Al",
+      "url": "https://www.elal.com/heb/baggage/hand-baggage"
+     },
+     {
+      "label": "Sports equipment — El Al",
+      "url": "https://www.elal.com/heb/baggage/sport"
+     },
+     {
+      "label": "Baggage — Arkia",
+      "url": "https://www.arkia.co.il/he/luggage-information"
+     },
+     {
+      "label": "Baggage — Israir",
+      "url": "https://www.israir.co.il/Passengers_Info/Baggage_Policy.html"
+     }
+    ]
+   },
+   {
     "id": "transfer",
     "title": "Airport transfer",
     "lead": "A private transfer comes to the hotel door and is booked in advance. The price is per vehicle, not per person.",
@@ -1320,7 +1460,7 @@
   ],
   "footer": "The prices and fares here were checked against the official sources in October 2026. Before travelling, it is worth confirming a timetable or fare on the official page — see 'Sources and reliability'.",
   "planner": {
-   "title": "🛬🛫 When you arrive and when you go back",
+   "title": "🛬🧳 When you arrive and when you go back",
    "lead": "Fill in the arrival, the return, or just one of them — and we will show what is possible at exactly those hours.",
    "airports": [
     {

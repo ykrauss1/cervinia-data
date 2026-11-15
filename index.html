@@ -8578,7 +8578,10 @@ function searchFlight() {
     + makeResultLinks(links)
     + '<button type="button" onclick="openWizzGuide()" style="margin-top:8px;background:none;border:none;padding:0;'
     + 'color:#1a4b8c;font-size:0.76rem;font-weight:bold;cursor:pointer;font-family:inherit;text-decoration:underline;">'
-    + L('🎫 טסים בוויז? איזו חבילה לקנות ←', '🎫 Flying Wizz? Which fare bundle to buy →') + '</button></div>';
+    + L('🎫 טסים בוויז? איזו חבילה לקנות ←', '🎫 Flying Wizz? Which fare bundle to buy →') + '</button><br>'
+    + '<button type="button" onclick="openWizzGuide(\'il_air\')" style="margin-top:6px;background:none;border:none;padding:0;'
+    + 'color:#1a4b8c;font-size:0.76rem;font-weight:bold;cursor:pointer;font-family:inherit;text-decoration:underline;">'
+    + L('🧳 אל על, ארקיע, ישראייר — מה כלול ומה עולה ←', '🧳 El Al, Arkia, Israir — what is included →') + '</button></div>';
   // The snapshot answers instantly from a file; the links below it are the
   // live sites. Painted after the links so a slow first load of the file
   // never holds them up.
@@ -10647,10 +10650,10 @@ function openParkTransport() {
 // click deep inside a panel, which is fine once you know they are there and
 // useless if you do not. The search bar is how people find out.
 // the Wizz fare guide sits in the transport panel; the flight search points to it
-function openWizzGuide() {
+function openWizzGuide(gid) {
   openParkTransport();
   setTimeout(function () {
-    var el = document.querySelector('#transport-body .wz-pick');
+    var el = document.querySelector('#transport-body .wz-pick[data-gid="' + (gid || 'wizz') + '"]');
     if (el && el.parentElement && el.parentElement.scrollIntoView) el.parentElement.scrollIntoView({ block: 'start' });
   }, 220);
 }
@@ -16070,7 +16073,7 @@ function _groupsHtml(tr) {
     });
     if (fold) h += '</details>';
 
-    if (g.picker) h += _wzPickerHtml(g);
+    if (g.picker || g.calc) h += _wzPickerHtml(g);
 
     (g.notes || []).forEach(function (n) {
       h += '<div style="font-size:0.79rem;color:#444;line-height:1.8;margin-bottom:6px;">'
@@ -16109,7 +16112,7 @@ function _groupsHtml(tr) {
 // which bundle against which add-ons - to compare on the booking screen. No
 // prices: they change by flight and date, the choice does not.
 function _wzPickerHtml(g) {
-  var p = g.picker;
+  var p = g.picker || g.calc;
   var h = '<div class="wz-pick" data-gid="' + _aEsc(g.id) + '" style="border:1px solid #dbe4f0;'
         + 'border-radius:9px;background:#fff;padding:10px 11px;margin:2px 0 10px;">'
         + '<div style="font-size:0.8rem;font-weight:bold;color:#1a3a6c;margin-bottom:7px;">'
@@ -16121,7 +16124,7 @@ function _wzPickerHtml(g) {
        + _aEsc(o[1]) + '</button>';
   });
   h += '</div><div class="wz-out" aria-live="polite" style="font-size:0.79rem;color:#333;'
-     + 'line-height:1.8;margin-top:9px;">' + _wzAnswer(p, {}) + '</div></div>';
+     + 'line-height:1.8;margin-top:9px;">' + (g.calc ? _ilAnswer(p, {}) : _wzAnswer(p, {})) + '</div></div>';
   return h;
 }
 function _wzAnswer(p, s) {
@@ -16147,10 +16150,27 @@ function _wzToggle(btn) {
   var box = btn.closest('.wz-pick');
   var g = ((window._texts && window._texts.transport && window._texts.transport.groups) || [])
             .filter(function (x) { return x.id === box.getAttribute('data-gid'); })[0];
-  if (!g || !g.picker) return;
+  if (!g || !(g.picker || g.calc)) return;
   var s = {};
   box.querySelectorAll('.wz-opt[aria-pressed="true"]').forEach(function (b) { s[b.getAttribute('data-k')] = 1; });
-  box.querySelector('.wz-out').innerHTML = _wzAnswer(g.picker, s);
+  box.querySelector('.wz-out').innerHTML = g.calc ? _ilAnswer(g.calc, s) : _wzAnswer(g.picker, s);
+}
+// The Israeli airlines sell each extra at a fixed published price (Arkia,
+// Israir) or fold it into the ticket type (El Al), so here the ticks add up:
+// what the extras come to per passenger on each airline, one way or return.
+function _ilAnswer(c, s) {
+  var legs = s.ret ? 2 : 1, keys = ['trolley', 'bag', 'ski'].filter(function (k) { return s[k]; });
+  if (!keys.length) return '<span style="color:#667;">' + _aEsc(c.empty || '') + '</span>';
+  var rows = ['elal_c', 'elal_l', 'arkia', 'israir'].map(function (a) {
+    var pr = (c.prices || {})[a] || {}, sum = 0, unknown = false;
+    keys.forEach(function (k) { if (pr[k] == null) unknown = true; else sum += pr[k] * legs; });
+    var val = sum ? '$' + sum : (unknown ? '' : c.incl);
+    if (unknown) val += (val ? ' ' + c.plus + ' ' : '') + c.var;
+    return '<b>' + _aEsc(c.names[a]) + '</b>: ' + _aEsc(val);
+  });
+  var h = rows.join('<br>') + '<br><span style="color:#667;">' + _aEsc(c.per) + ' · ' + _aEsc(c.tail) + '</span>';
+  if (s.trolley && c.liteTrolley) h += '<br><span style="color:#667;">' + _aEsc(c.liteTrolley) + '</span>';
+  return h;
 }
 
 function renderSwissBox() {
@@ -19052,10 +19072,11 @@ const SEARCH_INDEX = [
   { text: 'סנובורד גלשן מגני פרקי כף יד רגל קדמית regular goofy', action: "openM('rentalModal')", icon: '🏂', label: 'סנובורד' },
   { text: 'מגפי סקי מגלשיים פלקס מידה DIN מקלות השכרה', action: "openM('rentalModal')", icon: '🎿', label: 'הציוד הכבד' },
   { text: 'וויז wizz כרטיס חבילה טרולי מזוודה מושב priority flex לואו קוסט', action: "openWizzGuide()", icon: '🎫', label: 'וויז — איזו חבילה לקנות' },
+  { text: 'אל על ארקיע ישראייר כרטיס lite classic flex טרולי מזוודה ציוד סקי כבודה', action: "openWizzGuide('il_air')", icon: '🧳', label: 'אל על, ארקיע, ישראייר — מה כלול' },
 ];
 // English: the same entries, searchable by English words and labelled in English.
 if (window.LANG === 'en') {
-  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"]].forEach(function (e, k) {
+  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"]].forEach(function (e, k) {
     if (SEARCH_INDEX[k]) { SEARCH_INDEX[k].text += ' ' + e[0]; SEARCH_INDEX[k].label = e[1]; }
   });
 }

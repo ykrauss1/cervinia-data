@@ -8495,7 +8495,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     for (let i = 0; i < Math.min(5, chips.length); i++) {
       box.scrollTo({ top: 0 });
       chips[i].click();
-      await new Promise(res => setTimeout(res, 900));
+      // a smooth scroll takes longer the farther it goes; 900 ms ran out
+      // once the fare guides made the panel longer (15.11)
+      await new Promise(res => setTimeout(res, 1600));
       const gap = secs[i].getBoundingClientRect().top - strip.getBoundingClientRect().bottom;
       const on = chips.filter(c => c.classList.contains('on'));
       out.landed.push([Math.round(gap), on.length === 1 && on[0] === chips[i]]);
@@ -8773,6 +8775,34 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!/↔️/.test(r.ret)) fail(T, 'a return trip does not say the extras count per flight'); else ok();
     if (!/⛷️/.test(r.none)) fail(T, 'the ski-gear line is missing'); else ok();
     if (!r.link) fail(T, 'openWizzGuide() is missing - the flight search points to it'); else ok();
+  }
+}
+
+// ── El Al, Arkia, Israir: what the extras add up to ─────────────────────
+{
+  const T = 'the Israeli-airlines calculator adds the extras right';
+  const r = await page.evaluate(() => {
+    openParkTransport();
+    const box = document.querySelector('#transport-body .wz-pick[data-gid="il_air"]');
+    if (!box) { closeM('parkingModal'); return null; }
+    const pick = ks => {
+      box.querySelectorAll('.wz-opt').forEach(b => {
+        const want = ks.indexOf(b.getAttribute('data-k')) >= 0;
+        if ((b.getAttribute('aria-pressed') === 'true') !== want) _wzToggle(b);
+      });
+      return box.querySelector('.wz-out').textContent;
+    };
+    const g = window._texts.transport.groups.find(x => x.id === 'il_air').calc.prices;
+    const out = { all: pick(['trolley', 'bag', 'ski', 'ret']), one: pick(['bag']), g };
+    pick([]); closeM('parkingModal');
+    return out;
+  });
+  if (!r) fail(T, 'the calculator is missing from the transport panel');
+  else {
+    const p = r.g, ar = 2 * (p.arkia.trolley + p.arkia.bag + p.arkia.ski), is = 2 * (p.israir.trolley + p.israir.bag + p.israir.ski);
+    if (r.all.indexOf('$' + ar) < 0 || r.all.indexOf('$' + is) < 0) fail(T, `a return trip with trolley, suitcase and skis does not come to $${ar} / $${is}: ` + r.all.slice(0, 160)); else ok();
+    if (!/\$60/.test(r.one) || !/\$65/.test(r.one)) fail(T, 'one suitcase one way does not show Arkia $60 and Israir $65'); else ok();
+    if (r.one.indexOf('$') > r.one.indexOf(r.g ? 'Classic' : '') && !/Classic[^$]*?(כלול|included)/.test(r.one)) fail(T, 'El Al Classic does not show the suitcase as included'); else ok();
   }
 }
 
