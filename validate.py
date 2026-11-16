@@ -756,6 +756,26 @@ for _f, _t in _src:
             err('%s:%d: "%s" - the site spells it %s' % (_f, _n, _m.group(0),
                 'צרמט' if 'רמט' in _m.group(0) else ('שמואה' if 'מואה' in _m.group(0) else 'טורגנון')))
 
+# ── one reader, singular masculine (Yossi, 16.11) ──────────────────────
+# The cost panel spoke to "you" both as one person and as many. The site is
+# moving to the singular. What was already plural is counted in
+# plural_baseline.json; a NEW plural form fails here, and fixing an old one
+# means lowering its count there.
+try:
+    _pb = json.load(open(near('plural_baseline.json'), encoding='utf-8'))
+    _PW = _re2.compile(r'(?<![א-ת])(' + '|'.join(sorted(_pb['words'], key=len, reverse=True)) + r')(?![א-ת])')
+    for _f, _base in _pb['counts'].items():
+        try: _t = open(near(_f), encoding='utf-8').read()
+        except Exception: continue
+        _c = {}
+        for _m in _PW.finditer(_t): _c[_m.group(1)] = _c.get(_m.group(1), 0) + 1
+        for _w, _n in _c.items():
+            if _n > _base.get(_w, 0):
+                _ln = [str(i + 1) for i, l in enumerate(_t.split('\n')) if _re2.search(r'(?<![א-ת])' + _w + r'(?![א-ת])', l)]
+                err('%s: "%s" %d times, was %d - write to one reader, singular masculine (lines %s)' % (_f, _w, _n, _base.get(_w, 0), ', '.join(_ln[:8])))
+except FileNotFoundError:
+    pass
+
 print('--- %s ---' % path)
 for e in ERR:  print('ERROR  ', e)
 for w in WARN: print('warn   ', w)
