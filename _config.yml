@@ -1,0 +1,5 @@
+# GitHub Pages runs Jekyll, which skips folders that start with a dot.
+# .well-known/assetlinks.json links the site to the Android app
+# (il.co.cervinialive), so it has to be published.
+include:
+  - .well-known
