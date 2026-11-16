@@ -1437,7 +1437,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.97';
+  var v='v17.98';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -10239,16 +10239,16 @@ function _costTotal() {
   var oRate = other === 'EUR' ? 1 : (COST.fx && COST.fx[other]);
   var second = oRate
     ? '≈ ' + money(lo, COST_CUR[other], oRate) + (hi > lo ? '–' + money(hi, COST_CUR[other], oRate) : '')
-    : L('שער השקל לא זמין כרגע', 'Exchange rate not available right now');
-  box.innerHTML = '<div style="font-size:0.76rem;opacity:0.75;">' + (mine ? L('סה"כ משוער', 'Estimated total') : L('סה"כ משוער לדוגמה', 'Estimated total, as an example')) + '</div>'
+    : '';
+  box.innerHTML = (mine ? '' : _costBasisHtml())
+    + '<div style="font-size:0.76rem;opacity:0.75;">' + (mine ? L('סה"כ משוער', 'Estimated total') : L('סה"כ משוער לדוגמה', 'Estimated total, as an example')) + '</div>'
     + '<div id="cost-total-mid" style="font-size:' + (mine ? '1.75rem' : '1.3rem') + ';font-weight:' + (mine ? 800 : 700) + ';line-height:1.25;margin:2px 0;transition:transform .2s;">'
     + (hi > lo ? L('כ-', 'about ') : '') + '<bdi dir="ltr">' + sym + _costFmt(round(mid)) + '</bdi></div>'
     + (hi > lo ? '<div id="cost-total-eur" style="font-size:0.88rem;opacity:0.9;">' + L('בין ', 'between ') + '<bdi dir="ltr">' + money(lo, sym, rate)
         + '</bdi>' + L(' ל-', ' and ') + '<bdi dir="ltr">' + money(hi, sym, rate) + '</bdi></div>'
       : '<div id="cost-total-eur"></div>')
-    + '<div id="cost-total-ils"' + (oRate ? ' dir="ltr"' : '') + ' style="font-size:0.8rem;opacity:0.7;margin-top:2px;">' + second + '</div>'
+    + (second ? '<div id="cost-total-ils" dir="ltr" style="font-size:0.8rem;opacity:0.7;margin-top:2px;">' + second + '</div>' : '')
     + (left.length ? '<div id="cost-left" style="font-size:0.72rem;opacity:0.65;margin-top:6px;">' + L('לא נכלל: ', 'Not included: ') + left.join(' · ') + '</div>' : '')
-    + _costBasisHtml(mine)
     + '<button type="button" onclick="_costIdeasOpen()" style="margin-top:8px;background:' + (mine ? 'rgba(255,255,255,0.12);color:#fff;' : '#fff;color:#16314f;')
     + 'border:1px solid ' + (mine ? 'rgba(255,255,255,0.3)' : '#c9d5e3') + ';border-radius:18px;padding:5px 14px;font-size:0.8rem;font-family:inherit;cursor:pointer;">'
     + L('💡 רוצה לחסוך? או להתפנק?', '💡 Want to save? Or to treat yourselves?') + '</button>';
@@ -10264,7 +10264,9 @@ function _costTotal() {
 }
 
 // What the sum is the sum OF: people, nights, ski days, pass, transport.
-function _costBasisHtml(mine) {
+// While the sum is an example, the box above it says which trip it priced.
+// Once the reader enters his own details it goes: the sum is his.
+function _costBasisHtml() {
   var b = COST.bands || {};
   var who = COST_BANDS.filter(function (k) { return b[k] > 0; }).map(function (k) {
     return b[k] + ' ' + _costBandHe(k, false);
@@ -10275,14 +10277,10 @@ function _costBasisHtml(mine) {
     COST.pass === 'zermatt' ? L('פס בינלאומי עם צרמט', 'international pass with Zermatt') : L('פס צ\'רוויניה', 'Cervinia pass'),
     COST_TRANSPORT[COST.transport] || ''
   ]).filter(Boolean);
-  var trip = COST.mode === 'trip' && TRIP.from;
-  var head = trip ? L('לפי הטיול שתכננתם', 'By the trip you planned') + (typeof _tripRangeLabel === 'function' ? ' (' + _tripRangeLabel(TRIP.from, TRIP.to) + ')' : '')
-    : mine ? L('לפי מה שבחרתם', 'By what you chose') : L('דוגמה לחישוב', 'An example');
-  return '<div id="cost-basis" style="font-size:0.76rem;line-height:1.6;margin-top:8px;padding:6px 10px;border-radius:9px;'
-    + (mine ? 'background:rgba(255,255,255,0.08);' : 'background:#fff8e6;color:#6b5512;') + '">'
-    + '📋 <b>' + head + ':</b> ' + parts.join(' · ')
-    + ' · <a href="#" onclick="_costToFields();return false;" style="color:' + (mine ? '#9fd3ff' : '#1a5fb4') + ';white-space:nowrap;">' + L('שינוי ↓', 'change ↓') + '</a>'
-    + (mine ? '' : L('<div style="margin-top:2px;opacity:0.85;">שנו את הפרטים למטה, והחישוב יהיה שלכם.</div>', '<div style="margin-top:2px;opacity:0.85;">Change the details below, and the sum becomes yours.</div>'))
+  return '<div id="cost-basis" style="font-size:0.76rem;line-height:1.6;margin-bottom:9px;padding:6px 10px;border-radius:9px;background:#fff8e6;color:#6b5512;">'
+    + '📋 <b>' + L('דוגמה לחישוב', 'An example') + ':</b> ' + parts.join(' · ')
+    + '<div style="margin-top:2px;">' + L('שנו את הפרטים למטה לחישוב לפי הנתונים שלכם', 'Change the details below to price your own trip')
+    + ' · <a href="#" onclick="_costToFields();return false;" style="color:#1a5fb4;white-space:nowrap;">' + L('שינוי ↓', 'change ↓') + '</a></div>'
     + '</div>';
 }
 function _costScroller() { var m = document.getElementById('costModal'); return m && m.querySelector('.modal-content'); }
