@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.92';
+  var v='v17.93';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -16405,6 +16405,10 @@ function _trTableHtml(t) {
   // header with the names in bold, the first column in bold, light
   // stripes, and the column that holds the answer (hi) picked out.
   var fz = !!t.fancy, hi = t.hi, bold = t.bold || [];
+  // In a box of its own that scrolls sideways: a five-column comparison
+  // does not fit a 320px phone, and without the box it widened the whole
+  // dialog, so every line in the panel slid under the edge with it.
+  h += '<div style="overflow-x:auto;max-width:100%;">';
   h += '<table style="width:100%;border-collapse:' + (fz ? 'separate;border-spacing:0;border:1px solid #dbe4f0;border-radius:9px;overflow:hidden' : 'collapse')
      + ';font-size:0.79rem;margin-bottom:' + (fz ? '12px' : '9px') + ';">';
   if (cols.length) {
@@ -16431,7 +16435,7 @@ function _trTableHtml(t) {
     });
     h += '</tr>';
   });
-  h += '</tbody></table>';
+  h += '</tbody></table></div>';
   return h;
 }
 
