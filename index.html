@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.82';
+  var v='v17.83';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -21956,8 +21956,13 @@ var _isIOS = /iP(hone|ad|od)/.test(navigator.userAgent)
           || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 function _isInstalled() {
-  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
-      || navigator.standalone === true;
+  // An installed window on a computer is not always "standalone": it can be
+  // minimal-ui, window-controls-overlay or tabbed, depending on the browser
+  // and how it was installed (Yossi's desktop app, 16.11).
+  if (navigator.standalone === true) return true;
+  if (!window.matchMedia) return false;
+  return ['standalone', 'minimal-ui', 'fullscreen', 'window-controls-overlay', 'tabbed']
+    .some(function (m) { return window.matchMedia('(display-mode: ' + m + ')').matches; });
 }
 
 // ---- the invitation ----------------------------------------------------
@@ -22521,8 +22526,13 @@ function installPWA() {
 // Safari never offers one at all - so this says plainly what to do by hand on
 // each platform, and uses the real prompt when there happens to be one.
 function _pwaInstalled() {
-  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
-      || navigator.standalone === true;
+  // An installed window on a computer is not always "standalone": it can be
+  // minimal-ui, window-controls-overlay or tabbed, depending on the browser
+  // and how it was installed (Yossi's desktop app, 16.11).
+  if (navigator.standalone === true) return true;
+  if (!window.matchMedia) return false;
+  return ['standalone', 'minimal-ui', 'fullscreen', 'window-controls-overlay', 'tabbed']
+    .some(function (m) { return window.matchMedia('(display-mode: ' + m + ')').matches; });
 }
 function renderInstallHelp() {
   var el = document.getElementById('help-install');
