@@ -738,6 +738,24 @@ if os.path.exists(_idx):
             'the slash lands inside the value, so the flag draws empty - '
             'write <use href=#flag-xx></use>')
 
+# ── one spelling for each place name (Yossi, 16.11) ──────────────────────
+# The site had צ'רמט, זרמט and צרמט side by side, טורניון beside טורגנון,
+# and one צ'מואה among the שמואה. The forms are צרמט, טורגנון, שמואה. The
+# search box and the notice reader still accept the others on purpose -
+# those lines (a .replace( or a .test() are left alone.
+import re as _re2
+_BAD = _re2.compile(r"זרמט|צ(?:'|׳|’|\\')רמט|צ(?:'|׳|’|\\')מואה|טורניון")
+_src = [('texts.json', open(near('texts.json'), encoding='utf-8').read())]
+try: _src.append(('index.html', open(near('index.html'), encoding='utf-8').read()))
+except Exception: pass
+for _f, _t in _src:
+    for _n, _l in enumerate(_t.split('\n'), 1):
+        if '.replace(' in _l or '.test(' in _l: continue
+        _m = _BAD.search(_l)
+        if _m:
+            err('%s:%d: "%s" - the site spells it %s' % (_f, _n, _m.group(0),
+                'צרמט' if 'רמט' in _m.group(0) else ('שמואה' if 'מואה' in _m.group(0) else 'טורגנון')))
+
 print('--- %s ---' % path)
 for e in ERR:  print('ERROR  ', e)
 for w in WARN: print('warn   ', w)

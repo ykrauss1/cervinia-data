@@ -82,11 +82,11 @@ expect('before the lifts start, a shut crossing is the night, not news',
                                     read(Object.assign({ zermatt_link: 'CLOSED' }, o)), at(10))
                    .find(a => a.key === 'zermatt-shut-today')?.text;
   expect('the text names the open slopes',
-    t({ slopes_open_local: 23 }), 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות ו־23 מסלולים פתוחים.');
+    t({ slopes_open_local: 23 }), 'המעבר לצרמט סגור. המעליות בצ׳רוויניה פועלות ו־23 מסלולים פתוחים.');
   expect('one slope is said as one',
-    t({ slopes_open_local: 1 }), 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות ומסלול אחד פתוח.');
+    t({ slopes_open_local: 1 }), 'המעבר לצרמט סגור. המעליות בצ׳רוויניה פועלות ומסלול אחד פתוח.');
   expect('no slope count, no slope clause',
-    t({}), 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות.');
+    t({}), 'המעבר לצרמט סגור. המעליות בצ׳רוויניה פועלות.');
   expect('the text never says "today" - it may still open',
     /היום/.test(t({ slopes_open_local: 5 })), false);
 }
@@ -393,7 +393,7 @@ expect('a missing value upper-cases to empty', upper(null), '');
     if (a && /9 מתוך 9 מעליות פועלות/.test(a.text)) ok();
     else fail('it says how much of the mountain is running, in words',
       `"${a && a.text}"`);
-    if (a && /צ׳רמט/.test(a.text)) ok();
+    if (a && /צרמט/.test(a.text)) ok();
     else fail('it says the crossing is open', `"${a && a.text}"`);
   }
 

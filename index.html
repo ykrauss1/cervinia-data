@@ -1437,7 +1437,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.95';
+  var v='v17.96';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1596,7 +1596,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
              the crossing to Zermatt runs, and it has nothing to do with the
              wind in the village beside it - 15 km/h down here can be 77 up
              there. Tapping it opens the full crossing panel. -->
-        <div id="bar-gust-wrap" style="text-align:center;cursor:pointer;" onclick="openZermattForecast()" title="משבי רוח בפלטאו רוזה — פותח את תחזית לינק צ'רמט" data-en-title="Wind gusts at Plateau Rosa — opens the Zermatt link forecast">
+        <div id="bar-gust-wrap" style="text-align:center;cursor:pointer;" onclick="openZermattForecast()" title="משבי רוח בפלטאו רוזה — פותח את תחזית לינק צרמט" data-en-title="Wind gusts at Plateau Rosa — opens the Zermatt link forecast">
           <div id="bar-gust" dir="ltr" style="color:rgba(255,255,255,0.5);font-size:1.15rem;font-weight:800;line-height:1;">--</div>
           <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="🌬️ Ridge gusts">🌬️ משבים ברכס</div>
         </div>
@@ -1626,7 +1626,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 
       </div>
 
-      <!-- Right: מטרהורן + זרמט + כפתור תחזית -->
+      <!-- Right: מטרהורן + צרמט + כפתור תחזית -->
       <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
 
         <!-- קו הפרדה -->
@@ -1648,7 +1648,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
             <!-- קו שלוחה ימנית -->
             <line x1="26" y1="6" x2="35" y2="23" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
             <!-- כיתוב בתוך ההר -->
-            <text id="zermatt-label" x="26" y="37" text-anchor="middle" font-size="6.5" font-weight="bold" fill="#e74c3c" font-family="Arial,sans-serif" data-en="Zermatt link">חיבור לצ'רמט</text>
+            <text id="zermatt-label" x="26" y="37" text-anchor="middle" font-size="6.5" font-weight="bold" fill="#e74c3c" font-family="Arial,sans-serif" data-en="Zermatt link">חיבור לצרמט</text>
             <text id="zermatt-status" x="26" y="47" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,0.55)" font-family="Arial,sans-serif" data-en="Closed">סגור</text>
             <!-- עיגול מעבר -->
             <circle id="matterhorn-dot" cx="39" cy="9" r="9" fill="#e74c3c" filter="url(#glow)"/>
@@ -1668,7 +1668,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
               📅 תחזית 4 ימים ▼
             </button>
             <button onclick="openZermattForecast()" class="fc-btn" style="background:rgba(255,255,255,0.09);border:1.5px solid rgba(255,255,255,0.3);color:#fff;" data-en="🏔️ Zermatt link forecast">
-              🏔️ תחזית לינק צ'רמט
+              🏔️ תחזית לינק צרמט
             </button>
           </div>
           <div id="forecast-tomorrow-text" style="color:rgba(255,255,255,0.45);font-size:0.62rem;"></div>
@@ -1701,7 +1701,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <div id="svc-piste" class="service-btn" onclick="openM('pisteModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-skier"/></svg></span>
       <span class="svc-txt"><b>מסלולים, בקתות ואפרה סקי</b>
-        <small>לפי רמה · צ'רוויניה, צ'רמט וולטורננש · ואיפה עוצרים בדרך</small></span>
+        <small>לפי רמה · צ'רוויניה, צרמט וולטורננש · ואיפה עוצרים בדרך</small></span>
     </div>
     <div id="svc-parking" class="service-btn" onclick="openM('parkingModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-bus"/></svg></span>
@@ -1718,7 +1718,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     </div>
     <div id="svc-skipass" class="service-btn" onclick="openM('skipassModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-ticket"/></svg></span>
-      <span class="svc-txt"><b>סקי פס</b><small>מחירון צ'רוויניה וצ'רמט · הנחות לפי גיל · פס בסמארטפון</small></span>
+      <span class="svc-txt"><b>סקי פס</b><small>מחירון צ'רוויניה וצרמט · הנחות לפי גיל · פס בסמארטפון</small></span>
     </div>
     <div id="svc-rental" class="service-btn" onclick="openM('rentalModal')">
       <!-- The icon is 🎿 drawn rather than typed. U+1F3BF is "skis and ski
@@ -1973,7 +1973,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <p><b>הנתונים לא מתעדכנים?</b><br>הנתונים מתעדכנים אוטומטית כל שעה. נסה לרענן את הדף.</p>
       <p><b>איך נרשמים?</b><br>לחץ על "כניסה / הרשמה" בפינה העליונה, ובחלון שנפתח בחר בלשונית "הרשמה".</p>
       <p><b>מה אומרים המספרים בבאנר?</b><br>המספר הגדול הוא כל מרחב הסקי; הקטן בסוגריים הוא צ'רוויניה בלבד.</p>
-      <p><b>מה זה חיבור לצ'רמט?</b><br>מעבר בין מרחב הסקי של צ'רוויניה לצ'רמט (שוויץ) דרך הקרחון. פתוח בתנאי מזג אוויר טובים בחורף.</p>
+      <p><b>מה זה חיבור לצרמט?</b><br>מעבר בין מרחב הסקי של צ'רוויניה לצרמט (שוויץ) דרך הקרחון. פתוח בתנאי מזג אוויר טובים בחורף.</p>
     </div>
     <!-- The install banner appears once and is gone for good after a tap.
          This is where it can always be found again. It sits OUTSIDE the FAQ
@@ -1990,7 +1990,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
   <div class="modal-content" style="max-width:500px;padding:0;border-radius:16px;overflow:hidden;">
     <div style="background:linear-gradient(135deg,#1a0a2e,#2d1b69);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
       <div>
-        <div style="color:white;font-weight:bold;font-size:1rem;" data-en="🏔️ Zermatt link forecast">🏔️ תחזית לינק צ'רמט</div>
+        <div style="color:white;font-weight:bold;font-size:1rem;" data-en="🏔️ Zermatt link forecast">🏔️ תחזית לינק צרמט</div>
         <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;" data-en="Plateau Rosa (3480 m) · conditions analysis">Plateau Rosa (3480מ) · ניתוח תנאים</div>
       </div>
       <span class="close-btn" onclick="closeM('zermattForecastModal')" style="color:white;background:rgba(255,255,255,0.15);">×</span>
@@ -2072,7 +2072,7 @@ what counts.">
       <!-- העלייה האחרונה חזרה -->
       <div id="zermatt-last-lift" style="margin-bottom:14px;"></div>
 
-      <!-- תחזית 4 ימים לצ'רמט -->
+      <!-- תחזית 4 ימים לצרמט -->
       <div id="zermatt-4day" style="display:flex;flex-direction:column;gap:8px;"></div>
 
       <div style="font-size:0.68rem;color:#aaa;text-align:center;margin-top:12px;line-height:1.7;" data-en="⚠️ A weather estimate only · whether to open is the lift operator&#x27;s decision">
@@ -2088,7 +2088,7 @@ what counts.">
       <div>
         <div style="color:white;font-weight:bold;font-size:1rem;" data-en="🌤️ Weather forecast">🌤️ תחזית מזג אוויר</div>
         <div style="color:rgba(255,255,255,0.5);font-size:0.72rem;">Cervinia · Valtournenche · Chamois</div>
-        <div style="color:rgba(255,255,255,0.38);font-size:0.66rem;margin-top:1px;" data-en="Forecast for the village altitude (&lt;bdi dir=&quot;ltr&quot;&gt;~2,010&lt;/bdi&gt; m) · for the ridge and the crossing to Zermatt — see the Zermatt link forecast">תחזית לגובה הכפר (<bdi dir="ltr">~2,010</bdi> מ׳) · לרכס ולמעבר לצרמט — ראו תחזית לינק צ'רמט</div>
+        <div style="color:rgba(255,255,255,0.38);font-size:0.66rem;margin-top:1px;" data-en="Forecast for the village altitude (&lt;bdi dir=&quot;ltr&quot;&gt;~2,010&lt;/bdi&gt; m) · for the ridge and the crossing to Zermatt — see the Zermatt link forecast">תחזית לגובה הכפר (<bdi dir="ltr">~2,010</bdi> מ׳) · לרכס ולמעבר לצרמט — ראו תחזית לינק צרמט</div>
       </div>
       <span class="close-btn" onclick="closeM('forecastModal')" style="color:white;background:rgba(255,255,255,0.15);">×</span>
     </div>
@@ -3799,8 +3799,8 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       </div>
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:2rem;"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg></span>
-        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">חיבור לצ'רמט</div>
-        <div style="font-size:0.85rem;color:#444;line-height:1.6;">כשהתנאים מאפשרים, המעבר לצ'רמט השוויצרי פתוח. גולשים מה-Plateau Rosa לאיטליה ולשוויץ וחזרה — ביום אחד.</div></div>
+        <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">חיבור לצרמט</div>
+        <div style="font-size:0.85rem;color:#444;line-height:1.6;">כשהתנאים מאפשרים, המעבר לצרמט השוויצרי פתוח. גולשים מה-Plateau Rosa לאיטליה ולשוויץ וחזרה — ביום אחד.</div></div>
       </div>
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:2rem;">🏘️</span>
@@ -3810,7 +3810,7 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:2rem;">💲</span>
         <div><div style="font-weight:700;font-size:1rem;color:#0a192f;margin-bottom:4px;">מחיר שדה תעופה + סקי פס</div>
-        <div style="font-size:0.85rem;color:#444;line-height:1.6;">טיסות למילאנו זולות יחסית. סקי פס זול ב-20-40% מצ'רמט או קורטינה.</div></div>
+        <div style="font-size:0.85rem;color:#444;line-height:1.6;">טיסות למילאנו זולות יחסית. סקי פס זול ב-20-40% מצרמט או קורטינה.</div></div>
       </div>
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:2rem;">🏔️</span>
@@ -3823,7 +3823,7 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       <div style="font-size:0.75rem;color:#888;font-weight:bold;margin-bottom:8px;" data-en="📚 Further reading and video">📚 קריאה נוספת בעברית</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <a class="he-only" href="https://snow.org.il/listing-item/cervinia/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0f8ff;border:1px solid #c0e0f8;border-radius:8px;text-decoration:none;color:#0a192f;font-size:0.8rem;font-weight:bold;">❄️ snow.org.il — צ'רוויניה</a>
-        <a class="he-only" href="https://snow.org.il/listing-item/zermatt/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0fff4;border:1px solid #b8e0c8;border-radius:8px;text-decoration:none;color:#0a2a1a;font-size:0.8rem;font-weight:bold;"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> snow.org.il — זרמט</a>
+        <a class="he-only" href="https://snow.org.il/listing-item/zermatt/" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#f0fff4;border:1px solid #b8e0c8;border-radius:8px;text-decoration:none;color:#0a2a1a;font-size:0.8rem;font-weight:bold;"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> snow.org.il — צרמט</a>
         <a class="he-only" href="https://www.youtube.com/watch?v=51HCOZl4g6k" target="_blank" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;">▶️ סרטון בעברית</a>
         <a href="https://www.youtube.com/watch?v=rcc2cPmg5Uc" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;" data-en="▶️ A guide to the resort">▶️ מדריך לאתר (באנגלית)</a>
         <a href="https://www.youtube.com/watch?v=8RUS22N7P4M" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff0f0;border:1px solid #ffb3b3;border-radius:8px;text-decoration:none;color:#c00;font-size:0.8rem;font-weight:bold;" data-en="🎬 The season&#x27;s official video">🎬 הסרטון הרשמי לעונה</a>
@@ -5157,7 +5157,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                             <input type="text" id="manual-temp" placeholder="למשל: -5°C" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #ddd;border-radius:6px;font-size:0.85rem;margin-top:3px;">
                         </div>
                         <div>
-                            <label style="font-size:0.75rem;color:#888;">סטטוס צ'רמט</label>
+                            <label style="font-size:0.75rem;color:#888;">סטטוס צרמט</label>
                             <select id="manual-zermatt" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #ddd;border-radius:6px;font-size:0.85rem;margin-top:3px;">
                                 <option value="">— לפי scraper —</option>
                                 <option value="OPEN">OPEN</option>
@@ -5191,7 +5191,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                         ⬜ מחשבון עלויות טיול<br>
                         ⬜ מפת מסלולים אינטראקטיבית<br>
                         ⬜ Supabase — users/posts אמיתיים<br>
-                        ⬜ Push notifications (שינוי סטטוס צ'רמט)<br>
+                        ⬜ Push notifications (שינוי סטטוס צרמט)<br>
                         ⬜ אמוג'י גולש — לעדכן כשנמצא<br>
                         ⬜ עמוד שגרירים / משתמשים מובילים
                     </div>
@@ -5565,7 +5565,7 @@ async function openZermattForecast() {
     icon = '✅'; verdict = skiable ? L('הלינק פתוח', 'The link is open') : L('המעבר פתוח — ברכבל בלבד', 'The crossing is open — by cable car only');
     reason = (skiable ? L('לפי הסטטוס הרשמי', 'According to the official status')
       : L('ה-Matterhorn Alpine Crossing פועל כל השנה, גם כשאין מסלול פתוח. '
-        + 'אפשר לחצות לצ\'רמט ברכבל, לא בגלישה',
+        + 'אפשר לחצות לצרמט ברכבל, לא בגלישה',
         'The Matterhorn Alpine Crossing runs all year, even when no slope is open. '
         + 'You can cross to Zermatt by cable car, not on skis'))
       + (band.k === 'risk' || band.k === 'bad'
@@ -9659,7 +9659,7 @@ function zcPlans(N, Z, H) {
   // the supplement is sold to holders of a multi-day pass only
   var lp = onePass(C, true);
   if (lp && lp.len >= 2) plans.push({ id: 'local', cost: lp.cost, ahead: lp.len,
-    label: L('פס צ\'רוויניה ל-' + lp.len + ' ימים' + (Z ? ', ועוד תוספת יום לצ\'רמט (€' + sup + ') בבוקר שהמעבר פתוח' : '')
+    label: L('פס צ\'רוויניה ל-' + lp.len + ' ימים' + (Z ? ', ועוד תוספת יום לצרמט (€' + sup + ') בבוקר שהמעבר פתוח' : '')
                + (H ? (lp.apart ? ', ועוד ' + nHalf(lp.apart) : ' — חצאי הימים בתוכו, כימים מלאים') : ''),
              _anDays(lp.len) + lp.len + '-day Cervinia pass' + (Z ? ', plus a Zermatt day supplement (€' + sup + ') on each morning the crossing is open' : '')
                + (H ? (lp.apart ? ', plus ' + nHalf(lp.apart) : ' — the half days inside it, as full days') : '')) });
@@ -9668,7 +9668,7 @@ function zcPlans(N, Z, H) {
     label: L('פס בינלאומי ל-' + ip.len + ' ימים' + (H ? (ip.apart ? ', ועוד ' + nHalf(ip.apart) + ' בצד של צ\'רוויניה' : ' — חצאי הימים בתוכו, כימים מלאים') : ''),
              _anDays(ip.len) + ip.len + '-day international pass' + (H ? (ip.apart ? ', plus ' + nHalf(ip.apart) + ' on the Cervinia side' : ' — the half days inside it, as full days') : '')) });
   plans.push({ id: 'daily', cost: (N - Z) * C(1) + Z * I(1) + H * half, ahead: 0,
-    label: N ? L('כרטיס יומי בכל בוקר' + (Z ? ' — וביום של צ\'רמט, בינלאומי ליום אחד' : '') + (H ? ', וביום של חצי יום — כרטיס חצי יום' : ''),
+    label: N ? L('כרטיס יומי בכל בוקר' + (Z ? ' — וביום של צרמט, בינלאומי ליום אחד' : '') + (H ? ', וביום של חצי יום — כרטיס חצי יום' : ''),
                  'A day ticket every morning' + (Z ? ' — and on a Zermatt day, a one-day international' : '') + (H ? ', and on a half day, a half-day ticket' : ''))
              : L('כרטיס חצי יום בכל יום', 'A half-day ticket each day') });
   // short passes as far as a forecast reaches: the best split into runs of
@@ -9715,9 +9715,9 @@ function zcPlans(N, Z, H) {
       var inH = function (x) { return x.j ? ' (' + (x.j === 1 ? 'חצי יום' : x.j + ' חצאי ימים') + ' בתוכו)' : ''; };
       plans.push({ id: 'forecast', cost: fc.cost, ahead: fc.parts[0].L, parts: fc.parts,
         label: 'פסים קצרים לפי התחזית: ' + _zcGroup(fc.parts.map(function (x) {
-          if (x.L === 1) return x.t === 'h' ? 'כרטיס חצי יום' : (x.k ? 'בינלאומי ליום אחד (צ\'רמט)' : 'כרטיס ליום אחד');
-          if (x.t === 'i') return 'פס בינלאומי ל-' + x.L + ' ימים' + (x.k < x.L ? ' (' + day(x.k) + ' מהם בצ\'רמט)' : ' (ימי צ\'רמט ברצף)') + inH(x);
-          return 'פס צ\'רוויניה ל-' + x.L + ' ימים' + (x.k ? ' + תוספת צ\'רמט ל' + day(x.k) : '') + inH(x);
+          if (x.L === 1) return x.t === 'h' ? 'כרטיס חצי יום' : (x.k ? 'בינלאומי ליום אחד (צרמט)' : 'כרטיס ליום אחד');
+          if (x.t === 'i') return 'פס בינלאומי ל-' + x.L + ' ימים' + (x.k < x.L ? ' (' + day(x.k) + ' מהם בצרמט)' : ' (ימי צרמט ברצף)') + inH(x);
+          return 'פס צ\'רוויניה ל-' + x.L + ' ימים' + (x.k ? ' + תוספת צרמט ל' + day(x.k) : '') + inH(x);
         })).join(' · ') });
       }
     }
@@ -9733,7 +9733,7 @@ function zcPlans(N, Z, H) {
 var ZC_MANY = {
   'כרטיס חצי יום': function (n) { return n + ' כרטיסי חצי יום'; },
   'כרטיס ליום אחד': function (n) { return n + ' כרטיסים ליום אחד'; },
-  'בינלאומי ליום אחד (צ\'רמט)': function (n) { return n + ' כרטיסים בינלאומיים ליום אחד (צ\'רמט)'; },
+  'בינלאומי ליום אחד (צרמט)': function (n) { return n + ' כרטיסים בינלאומיים ליום אחד (צרמט)'; },
   'a half-day ticket': function (n) { return n + ' half-day tickets'; },
   'a one-day ticket': function (n) { return n + ' one-day tickets'; },
   'a one-day international (Zermatt)': function (n) { return n + ' one-day internationals (Zermatt)'; }
@@ -9763,7 +9763,7 @@ function zcRender() {
       + '<div style="font-size:0.72rem;color:#7a8794;">' + (pl.ahead ? L('משלמים מראש על ' + pl.ahead + ' ימים — יום סגור לא מוחזר', 'Paid in advance for ' + pl.ahead + ' days — a closed day is not refunded') : L('לא משלמים מראש: ביום סגור פשוט לא קונים', 'Nothing paid in advance: on a closed day you simply do not buy')) + '</div></div>'
       + '<div style="font-weight:bold;white-space:nowrap;">' + eur(pl.cost) + (top ? '' : '<div style="font-size:0.7rem;font-weight:normal;color:#8a5a00;">+' + eur(pl.cost - min) + '</div>') + '</div></div>';
   }).join('')
-  + '<div style="font-size:0.72rem;color:#7a8794;margin-top:4px;">' + L('למבוגר, לפי המחירון הרשמי. תוספת היום לצ\'רמט נמכרת רק למי שיש לו פס לכמה ימים, ותקפה ביום הקנייה בלבד.', 'For an adult, by the official price list. The Zermatt day supplement is sold only to holders of a multi-day pass, and is valid on the day of purchase only.')
+  + '<div style="font-size:0.72rem;color:#7a8794;margin-top:4px;">' + L('למבוגר, לפי המחירון הרשמי. תוספת היום לצרמט נמכרת רק למי שיש לו פס לכמה ימים, ותקפה ביום הקנייה בלבד.', 'For an adult, by the official price list. The Zermatt day supplement is sold only to holders of a multi-day pass, and is valid on the day of purchase only.')
   + (ZC.h ? L(' כרטיס חצי יום קיים רק לצד של צ\'רוויניה — אין חצי יום בינלאומי. ולפי הפס של כמה ימים: הימים ברצף.', ' A half-day ticket exists for the Cervinia side only — there is no international half day. And a multi-day pass runs on consecutive days.') : '') + '</div>';
 }
 
@@ -9794,7 +9794,7 @@ function _costSkipass() {
     total += one * n;
     who.push(n + ' ' + _costBandHe(k, false));
   });
-  var name = COST.pass === 'zermatt' ? L('פס בינלאומי עם צ\'רמט', 'International pass with Zermatt') : L('פס צ\'רוויניה', 'Cervinia pass');
+  var name = COST.pass === 'zermatt' ? L('פס בינלאומי עם צרמט', 'International pass with Zermatt') : L('פס צ\'רוויניה', 'Cervinia pass');
   if (!who.length && !missing) return { min: null, max: null, note: L('אין גולשים בחישוב', 'No skiers in the calculation') };
   if (missing) return { min: null, max: null,
     note: S > 8 ? L('מעל 8 ימים אין במחירון פס רב-יומי — ראו "עונה מלאה" במחירון הסקי פס', 'Above 8 days the price list has no multi-day pass — see "Full season" in the ski-pass price list')
@@ -10145,7 +10145,7 @@ function _costRender() {
     + '<label class="ls-opt" style="white-space:nowrap;"><input type="radio" name="cost-pass" value="cervinia"' + (COST.pass === 'cervinia' ? ' checked' : '')
       + L(' onchange="_costPass(this.value)"> פס צ\'רוויניה</label>', ' onchange="_costPass(this.value)"> Cervinia pass</label>')
     + '<label class="ls-opt" style="white-space:nowrap;"><input type="radio" name="cost-pass" value="zermatt"' + (COST.pass === 'zermatt' ? ' checked' : '')
-      + L(' onchange="_costPass(this.value)"> בינלאומי עם צ\'רמט</label>', ' onchange="_costPass(this.value)"> International with Zermatt</label>')
+      + L(' onchange="_costPass(this.value)"> בינלאומי עם צרמט</label>', ' onchange="_costPass(this.value)"> International with Zermatt</label>')
     + '</span>'
     + '</div>'
     + L('<div style="font-size:0.72rem;color:#7a8794;margin-bottom:5px;">גולשים</div>', '<div style="font-size:0.72rem;color:#7a8794;margin-bottom:5px;">Skiers</div>')
@@ -10309,10 +10309,10 @@ function _costIdeas() {
   // the pass
   if (COST.pass === 'zermatt') {
     var cv = _costPassTotal('cervinia', S);
-    if (now != null && cv != null) save.push(item('save', L('פס צ\'רוויניה במקום הבינלאומי — ובבוקר שהמעבר פתוח, תוספת יום לצ\'רמט בקופה (€52 למבוגר). המעבר נסגר לא מעט, ואין החזר על יום סגור', 'A Cervinia pass instead of the international one — and on a morning the crossing is open, a Zermatt day supplement at the ticket office (€52 for an adult). The crossing closes quite often, and a closed day is not refunded'), cv - now, 'pass-cervinia'));
+    if (now != null && cv != null) save.push(item('save', L('פס צ\'רוויניה במקום הבינלאומי — ובבוקר שהמעבר פתוח, תוספת יום לצרמט בקופה (€52 למבוגר). המעבר נסגר לא מעט, ואין החזר על יום סגור', 'A Cervinia pass instead of the international one — and on a morning the crossing is open, a Zermatt day supplement at the ticket office (€52 for an adult). The crossing closes quite often, and a closed day is not refunded'), cv - now, 'pass-cervinia'));
   } else {
     var zm = _costPassTotal('zermatt', S);
-    if (now != null && zm != null) fancy.push(item('fancy', L('פס בינלאומי — לגלוש גם לצ\'רמט שבשווייץ', 'An international pass — to ski over to Zermatt in Switzerland too'), zm - now, 'pass-zermatt'));
+    if (now != null && zm != null) fancy.push(item('fancy', L('פס בינלאומי — לגלוש גם לצרמט שבשווייץ', 'An international pass — to ski over to Zermatt in Switzerland too'), zm - now, 'pass-zermatt'));
   }
   // one day fewer
   if (S > 1) {
@@ -10370,7 +10370,7 @@ function _costIdeas() {
   save.push(item('save', L('אוכל: מביאים מהארץ ומבשלים בדירה — הקצה הנמוך של שורת האוכל', 'Food: bring it from home and cook in the apartment — the low end of the food line'), null, null));
   fancy.push(item('fancy', L('מלון או דירה ברמה גבוהה — צמוד לגונדולה או למעליות, עם ספא במקום, והסעה של המלון אל המעליות וחזרה', 'A high-end hotel or apartment — right by the gondola or the lifts, with a spa on site, and the hotel\'s shuttle to the lifts and back'), null, null));
   fancy.push(item('fancy', L('שדרוג הרכב — גדול ונוח יותר, עם הנעה כפולה, לעלייה המושלגת לכפר', 'A car upgrade — bigger and more comfortable, with four-wheel drive, for the snowy climb to the village'), null, null));
-  fancy.push(item('fancy', L('שיעורי סקי פרטיים, או מדריך צמוד ליום בצ\'רמט — <a onclick="openFrom(\'costModal\',\'lessonsModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">המדריכים באתר</a>', 'Private ski lessons, or a personal guide for a day in Zermatt — <a onclick="openFrom(\\\'costModal\\\',\\\'lessonsModal\\\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">the instructors on the site</a>'), null, null));
+  fancy.push(item('fancy', L('שיעורי סקי פרטיים, או מדריך צמוד ליום בצרמט — <a onclick="openFrom(\'costModal\',\'lessonsModal\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">המדריכים באתר</a>', 'Private ski lessons, or a personal guide for a day in Zermatt — <a onclick="openFrom(\\\'costModal\\\',\\\'lessonsModal\\\')" style="color:#1a73e8;cursor:pointer;text-decoration:underline;">the instructors on the site</a>'), null, null));
   fancy.push(item('fancy', L('ציוד ברמה גבוהה (Top) עם קסדה — הקצה העליון של שורת הציוד', 'Top-grade gear (Top) with a helmet — the upper end of the gear line'), null, null));
   fancy.push(item('fancy', L('הליסקי — מסוק אל שלג בתולי, עם מדריך הרים. יש מפעיל בכפר', 'Heli-skiing — a helicopter to untouched snow, with a mountain guide. There is an operator in the village'), null, null));
   body.innerHTML =
@@ -12466,23 +12466,23 @@ var PISTES = {
       tip:'⚠️ בדוק מפת סכנות שלגים לפני (Aineva) — רמה 3+ = סגור', tags:['אוף-פיסט','פריירייד','קרן','פנורמה'], map:'' },
   ],
 
-  // ─── הצד השוויצרי ─── זרמט ───
+  // ─── הצד השוויצרי ─── צרמט ───
   zermatt: [
     { num:'Z-1', diff:'🔵', name:'Theodul Glacier — Easy Run', area:'Plateau Rosa 3480מ → Trockener Steg 2939מ', len:'3.8 ק"מ',
       desc:'הגלישה הראשונה לשוויץ — ירידה נוחה יחסית על הקרחון. נוף מדהים לאיטליה ולמטרהורן. מסלול ירוק-כחול.',
-      tip:'💡 פתוח רק כשחיבור צ\'רמט פעיל — בדוק בבר הנתונים', tags:['זרמט','קרחון','נוח','נוף'], map:'' },
+      tip:'💡 פתוח רק כשחיבור צרמט פעיל — בדוק בבר הנתונים', tags:['צרמט','קרחון','נוח','נוף'], map:'' },
     { num:'Z-2', diff:'🔴', name:'Theodul — Furggsattel', area:'Furggsattel 3365מ → Trockener Steg', len:'4.2 ק"מ',
       desc:'מסלול אדום על שפת הקרחון — ירידה לעבר Trockener Steg עם נוף ישיר למטרהורן. מרהיב.',
-      tip:'💡 בצד השוויצרי השלג בדרך כלל טוב יותר — שווה את ההמתנה לחיבור', tags:['זרמט','אדום','מטרהורן','קרחון'], map:'' },
+      tip:'💡 בצד השוויצרי השלג בדרך כלל טוב יותר — שווה את ההמתנה לחיבור', tags:['צרמט','אדום','מטרהורן','קרחון'], map:'' },
     { num:'Z-3', diff:'🔴', name:'Schwarzsee — Zermatt', area:'Schwarzsee 2583מ → Zermatt 1620מ', len:'7.5 ק"מ',
-      desc:'הגלישה כל הדרך לתוך צ\'רמט — ירידה של 960מ בגובה. נוף יפהפה לכפר ולמטרהורן. עושים מדי יום.',
-      tip:'💡 הרכבל אחורה לאיטליה עולה כסף נוסף — קנה סקי פס בינלאומי', tags:['זרמט','ארוך','לכפר','סקי פס בינלאומי'], map:'' },
+      desc:'הגלישה כל הדרך לתוך צרמט — ירידה של 960מ בגובה. נוף יפהפה לכפר ולמטרהורן. עושים מדי יום.',
+      tip:'💡 הרכבל אחורה לאיטליה עולה כסף נוסף — קנה סקי פס בינלאומי', tags:['צרמט','ארוך','לכפר','סקי פס בינלאומי'], map:'' },
     { num:'Z-4', diff:'⚫', name:'Triftji — Black Run', area:'Hohtälli 3286מ → Zermatt', len:'5.8 ק"מ',
-      desc:'מסלול שחור מהמפורסמים בצ\'רמט — שיפוע קיצוני, חפירות ותנאים משתנים. לגולשים מנוסים בלבד.',
-      tip:'⚠️ רק לגולשים בטוחים — קשה גם בתנאים טובים', tags:['זרמט','שחור','מתקדמים','מפורסם'], map:'' },
+      desc:'מסלול שחור מהמפורסמים בצרמט — שיפוע קיצוני, חפירות ותנאים משתנים. לגולשים מנוסים בלבד.',
+      tip:'⚠️ רק לגולשים בטוחים — קשה גם בתנאים טובים', tags:['צרמט','שחור','מתקדמים','מפורסם'], map:'' },
     { num:'Z-5', diff:'🔴', name:'Plateau Rosa — Matterhorn Glacier Paradise', area:'Klein Matterhorn 3883מ → Trockener Steg', len:'5.0 ק"מ',
       desc:'מתחנת Klein Matterhorn — הנקודה הגבוהה ביותר בגוש הסקי (3883מ!). ירידה עם נוף ל-38 פסגות.',
-      tip:'💡 עולים ברכבל מ-Trockener Steg — כרטיס נפרד', tags:['זרמט','גובה','Klein Matterhorn','נוף 360°'], map:'' },
+      tip:'💡 עולים ברכבל מ-Trockener Steg — כרטיס נפרד', tags:['צרמט','גובה','Klein Matterhorn','נוף 360°'], map:'' },
   ],
 
   // ─── בקתות ומסעדות על ההר ───
@@ -12602,7 +12602,7 @@ var PISTE_AREAS = [
   {k:'all',           label:L('🎿 הכל', '🎿 All')},
   {k:'cervinia',      label:"<svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> " + L("צ'רוויניה", 'Cervinia')},
   {k:'valtournenche', label:L('🏘️ ולטורננש', '🏘️ Valtournenche')},
-  {k:'zermatt',       label:L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> זרמט', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> Zermatt')},
+  {k:'zermatt',       label:L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צרמט', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> Zermatt')},
   {k:'small',         label:L('🚡 טורגנון ושמואה', '🚡 Torgnon & Chamois')}
 ];
 var PISTE_KINDS = [
@@ -12620,7 +12620,7 @@ var PISTE_DIFFS = [
 var AREA_TITLES = {
   cervinia:      "<svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> " + L("צ'רוויניה", 'Cervinia'),
   valtournenche: L('🏘️ ולטורננש — אותה רשת מעליות', '🏘️ Valtournenche — the same lift network'),
-  zermatt:       L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> זרמט — הצד השוויצרי', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> Zermatt — the Swiss side'),
+  zermatt:       L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צרמט — הצד השוויצרי', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> Zermatt — the Swiss side'),
   torgnon:       L('🚡 טורגנון', '🚡 Torgnon'),
   chamois:       L('🚡 שמואה', '🚡 Chamois')
 };
@@ -18266,7 +18266,7 @@ function applySummerMode() {
     _seasonHide(el);
   });
 
-  // הסתר סמל חיבור לצ'רמט והחלף בנוף קייצי
+  // הסתר סמל חיבור לצרמט והחלף בנוף קייצי
   var zermattBar = document.getElementById('bar-zermatt');
   if (zermattBar) {
     // stash the winter markup once, so leaving summer can restore it
@@ -18298,7 +18298,7 @@ function applySummerMode() {
     zermattBar.onclick = null;
   }
 
-  // הסתר כפתור תחזית לינק צ'רמט
+  // הסתר כפתור תחזית לינק צרמט
   var zermattBtn = document.querySelector('button[onclick="openZermattForecast()"]');
   _seasonHide(zermattBtn);
   // ונשנה את תיבת ה-snow-points-row להציג רק top + מידע קרחון
@@ -18421,12 +18421,12 @@ function _buildSummerModals() {
     + stat(L('כ-25 ק"מ', 'about 25 km'), L('מסלולים', 'of runs')) + stat(L('3,899מ', '3,899 m'), L('הנקודה הגבוהה', 'top point')) + stat(L('מאי–ספט׳', 'May–Sept'), L('עונת קיץ', 'summer season'))
     + '</div></div>'
     + '<div style="background:#fff3cd;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;border-inline-start:4px solid #f39c12;">'
-    + L('💎 <b>נישה ייחודית שמעטים מכירים</b> — כמעט אף ישראלי לא יודע שאפשר לגלוש בצ\'רוויניה בקיץ. הגלישה היא על הקרחון שבין Plateau Rosa ל-Klein Matterhorn, משותף לצ\'רוויניה ולזרמט. השלג תלוי בקיץ עצמו: בקיץ 2026, למשל, הגלישה הופסקה מסוף יולי בגלל מחסור בשלג, אז כדאי לבדוק לפני שנוסעים.',
+    + L('💎 <b>נישה ייחודית שמעטים מכירים</b> — כמעט אף ישראלי לא יודע שאפשר לגלוש בצ\'רוויניה בקיץ. הגלישה היא על הקרחון שבין Plateau Rosa ל-Klein Matterhorn, משותף לצ\'רוויניה ולצרמט. השלג תלוי בקיץ עצמו: בקיץ 2026, למשל, הגלישה הופסקה מסוף יולי בגלל מחסור בשלג, אז כדאי לבדוק לפני שנוסעים.',
         '💎 <b>A little-known gem</b> — hardly anyone knows you can ski in Cervinia in summer. The skiing is on the glacier between Plateau Rosa and the Klein Matterhorn, shared by Cervinia and Zermatt. The snow depends on the summer itself: in summer 2026, for example, skiing was suspended from late July for lack of snow, so check before you go.')
     + '</div>'
     + list([
       card('#2563b0', L('🎿 מה יש בקרחון?', '🎿 What is on the glacier?'),
-        L('מסלולים לכל הרמות — כחול, אדום ושחור. נבחרות לאומיות מתאמנות כאן בקיץ על מסלולים שמורים. Snow Park ו-Gravity Park לרוכבי סנובורד. חיבור לזרמט.',
+        L('מסלולים לכל הרמות — כחול, אדום ושחור. נבחרות לאומיות מתאמנות כאן בקיץ על מסלולים שמורים. Snow Park ו-Gravity Park לרוכבי סנובורד. חיבור לצרמט.',
           'Runs for every level — blue, red and black. National teams train here in summer on reserved runs. A Snow Park and Gravity Park for snowboarders. A link to Zermatt.')),
       card('#e74c3c', L('⏰ שעות — זה קריטי!', '⏰ Hours — this matters!'),
         L('הרמות נפתחות בבוקר ונסגרות בדרך כלל ב-<b>13:00–14:00</b> כשהשלג מתרכך. <b>חובה להגיע לכבלית לפני 9:00</b> — השלג הכי טוב בשעות הבוקר המוקדמות.',
@@ -18435,13 +18435,13 @@ function _buildSummerModals() {
         L('חם בכפר (20°+), אבל ב-3,500מ קר מאוד גם באוגוסט — לפעמים מתחת לאפס. קרם שמש חובה — הקרינה בגובה חזקה מאוד.',
           'It is warm in the village (20°+), but at 3,500 m it is very cold even in August — sometimes below zero. Sunscreen is a must — the sun is very strong at altitude.')),
       card('#8e44ad', L('🎫 סקי פס — טיפ חשוב', '🎫 Ski pass — an important tip'),
-        L('הסקי פס הבינלאומי (צ\'רוויניה + זרמט) <b>זול בהרבה כשקונים אותו בצד האיטלקי</b>. בחורף 2025/26, למשל, יום אחד עלה 87 יורו בצ\'רוויניה ו-125 יורו בצד השוויצרי. בקיץ המחירים אחרים: בזרמט סקי פס קיץ ליום מ-99 פרנק (2026). כדאי להשוות לפני שקונים.',
+        L('הסקי פס הבינלאומי (צ\'רוויניה + צרמט) <b>זול בהרבה כשקונים אותו בצד האיטלקי</b>. בחורף 2025/26, למשל, יום אחד עלה 87 יורו בצ\'רוויניה ו-125 יורו בצד השוויצרי. בקיץ המחירים אחרים: בצרמט סקי פס קיץ ליום מ-99 פרנק (2026). כדאי להשוות לפני שקונים.',
           'The international ski pass (Cervinia + Zermatt) <b>costs much less on the Italian side</b>. In winter 2025/26, for example, a day cost €87 in Cervinia and €125 on the Swiss side. Summer prices differ: in Zermatt a summer day pass is from CHF 99 (2026). Compare before you buy.')),
       card('#e67e22', L('🚡 איך מגיעים לקרחון?', '🚡 How do you get to the glacier?'),
         L('גונדולות מהכפר → Plan Maison → Cime Bianche Laghi, ומשם רכבל ל-Plateau Rosa. כ-30 דקות.',
           'Gondolas from the village → Plan Maison → Cime Bianche Laghi, then the cable car to Plateau Rosa. About 30 minutes.')),
       card('#f39c12', L('☀️ אחר הצהריים — מה עושים?', '☀️ What to do in the afternoon?'),
-        L('אחרי הגלישה הבוקר — הכפר מחכה! Bike Park, טיולים, Alpine Crossing לזרמט, קפה על מרפסת השמש, Lago Blu. יום מלא ועשיר.',
+        L('אחרי הגלישה הבוקר — הכפר מחכה! Bike Park, טיולים, Alpine Crossing לצרמט, קפה על מרפסת השמש, Lago Blu. יום מלא ועשיר.',
           'After the morning on the glacier, the village awaits! Bike Park, hikes, the Alpine Crossing to Zermatt, coffee on a sunny terrace, Lago Blu. A full day.'))
     ])
     + foot('https://www.cervinia.it/en/cosa-fare/sci-estivo', '#2563b0', L('🌐 מידע רשמי — גלישת קיץ', '🌐 Official information — summer skiing'));
@@ -18477,12 +18477,12 @@ function _buildSummerModals() {
   var cross = head('summerCrossModal', 'linear-gradient(135deg,#2c3e50,#4a6278)', '🏔️ Matterhorn Alpine Crossing')
     + '<div style="background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">'
     + '<svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> '
-    + L('<b>מעבר ייחודי מצ\'רוויניה לזרמט — ברגל!</b><br>ניסיון אלפיני בלתי נשכח מעל 3,800מ — ללא סקי, הלוך וחזור במעליות.',
+    + L('<b>מעבר ייחודי מצ\'רוויניה לצרמט — ברגל!</b><br>ניסיון אלפיני בלתי נשכח מעל 3,800מ — ללא סקי, הלוך וחזור במעליות.',
         '<b>A unique crossing from Cervinia to Zermatt — on foot!</b><br>An unforgettable alpine experience above 3,800 m — no skiing, there and back by lift.')
     + '</div>'
     + list([
       card('#4a6278', L('🚡 המסלול', '🚡 The route'),
-        L('גונדולות מצ\'רוויניה → Plan Maison → Cime Bianche Laghi → רכבל ל-Plateau Rosa (Testa Grigia) → Matterhorn Alpine Crossing → Matterhorn Glacier Paradise (3,883מ) → גונדולות דרך Trockener Steg עד זרמט. כשעה וחצי לכל כיוון.',
+        L('גונדולות מצ\'רוויניה → Plan Maison → Cime Bianche Laghi → רכבל ל-Plateau Rosa (Testa Grigia) → Matterhorn Alpine Crossing → Matterhorn Glacier Paradise (3,883מ) → גונדולות דרך Trockener Steg עד צרמט. כשעה וחצי לכל כיוון.',
           'Gondolas from Cervinia → Plan Maison → Cime Bianche Laghi → cable car to Plateau Rosa (Testa Grigia) → Matterhorn Alpine Crossing → Matterhorn Glacier Paradise (3,883 m) → gondolas via Trockener Steg down to Zermatt. About an hour and a half each way.')),
       card('#4a6278', L('🧊 מערת הקרח', '🧊 The Glacier Palace'),
         L('בתחנה העליונה, Matterhorn Glacier Paradise: מערת הקרח (Glacier Palace) הגבוהה בעולם, 15 מטר מתחת לפני הקרחון. יורדים אליה במעלית, ויש בה פסלי קרח שמתחלפים מדי פעם, מגלשת קרח וסדק בקרחון שהולכים לאורכו. פתוחה כל השנה.',
@@ -19630,6 +19630,9 @@ function _hilite(text, q) {
 function globalSearch(q) {
   const box = document.getElementById('global-search-results');
   q = String(q || '').trim();
+  // The site spells these one way only (צרמט, שמואה, טורגנון); a reader
+  // typing another common spelling still finds them.
+  q = q.replace(/זרמט|צ['׳’]רמט/g, 'צרמט').replace(/צ['׳’]מואה|שאמואה/g, 'שמואה').replace(/טורניון/g, 'טורגנון');
   if (!q || q.length < 2) { box.style.display = 'none'; return; }
   const ql = q.toLowerCase();
   const indexResults = SEARCH_INDEX.filter(item =>
@@ -19758,7 +19761,7 @@ function renderFilterChips() {
   // Tags to filter posts by topic
   const filters = [
     { label: L('⛷️ מסלולים', '⛷️ Runs'), val: 'מסלול|run|slope|piste' },
-    { label: "<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> " + L("צ'רמט", 'Zermatt'), val: "צ'רמט|zermatt" },
+    { label: "<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> " + L("צרמט", 'Zermatt'), val: "צרמט|zermatt" },
     { label: L('❄️ שלג', '❄️ Snow'), val: 'שלג|snow' },
     { label: L('🚌 הסעות', '🚌 Transfers'), val: 'הסע|transfer|shuttle|bus' },
     { label: L('🏨 לינה', '🏨 Lodging'), val: 'לינ|hotel|apartment|lodg|stay' },
@@ -20941,7 +20944,7 @@ async function _admRenderUsers() {
             🌡️ טמפ': <b>${window._liveData?.temperature ?? '—'}°C</b><br>
             ⛷️ מסלולים: <b>${window._liveData?.slopes_open_local ?? '—'}/${window._liveData?.slopes_total_local ?? '—'}</b><br>
             🚡 מעליות: <b>${window._liveData?.lifts_open_local ?? '—'}/${window._liveData?.lifts_total_local ?? '—'}</b><br>
-            <svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צ'רמט: <b>${window._liveData?.zermatt_link ?? '—'}</b>
+            <svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צרמט: <b>${window._liveData?.zermatt_link ?? '—'}</b>
         `;
 
         // ניהול פוסטים
@@ -21044,7 +21047,7 @@ async function _admRenderUsers() {
     <!-- Pass type tabs -->
     <div style="display:flex;gap:8px;margin:4px 0 18px;">
       <button id="pass-tab-cervinia" onclick="switchPassTab('cervinia')" class="ttab-btn ttab-active" style="flex:1;"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> Cervinia</button>
-      <button id="pass-tab-zermatt" onclick="switchPassTab('zermatt')" class="ttab-btn" style="flex:1;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; + Zermatt"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> + צ'רמט</button>
+      <button id="pass-tab-zermatt" onclick="switchPassTab('zermatt')" class="ttab-btn" style="flex:1;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; + Zermatt"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> + צרמט</button>
     </div>
 
     <!-- CERVINIA ONLY -->
@@ -21056,7 +21059,7 @@ async function _admRenderUsers() {
     </div>
     <div id="pass-panel-zermatt" style="display:none;">
       <div style="padding:10px 14px;background:#e8f4fd;border-radius:9px;border:1px solid #c0d8f0;margin-bottom:12px;font-size:0.82rem;color:#1a5276;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; The combined pass covers all of Zermatt&#x27;s lifts (Zermatt Bergbahnen + GGB). ⚠️ &lt;b&gt;Take an ID&lt;/b&gt; to Switzerland.">
-        <svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> הפס המשולב כולל גישה לכל רמות צ'רמט (Zermatt Bergbahnen + GGB). ⚠️ <b>יש לצאת עם תעודת זהות</b> לשווייץ.
+        <svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> הפס המשולב כולל גישה לכל רמות צרמט (Zermatt Bergbahnen + GGB). ⚠️ <b>יש לצאת עם תעודת זהות</b> לשווייץ.
       </div>
       <div id="skipass-legend-zermatt" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;font-size:0.71rem;"></div>
       <div id="skipass-table-zermatt"></div>
@@ -21076,14 +21079,14 @@ async function _admRenderUsers() {
     <!-- One line that opens (Yossi, 15.11): the advice above stays in view,
          the working-out folds away like the price list. -->
     <details class="fold" id="zc-fold" style="margin-bottom:14px;">
-    <summary data-en="🧮 Calculator: full days, Zermatt days, half days — what is the cheapest way to buy?">🧮 מחשבון: ימים מלאים, ימים בצ'רמט, חצאי ימים — איך הכי משתלם לקנות?</summary>
+    <summary data-en="🧮 Calculator: full days, Zermatt days, half days — what is the cheapest way to buy?">🧮 מחשבון: ימים מלאים, ימים בצרמט, חצאי ימים — איך הכי משתלם לקנות?</summary>
     <div id="zc-box" class="fold-body" style="font-size:0.8rem;color:#334;line-height:1.7;">
       <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:10px;">
         <span style="display:inline-flex;align-items:center;gap:6px;"><span data-en="Full days">ימים מלאים</span>
           <button class="c-btn" type="button" onclick="zcAdj('n',-1)">-</button>
           <b id="zc-n" style="min-width:1.4em;text-align:center;">5</b>
           <button class="c-btn" type="button" onclick="zcAdj('n',1)">+</button></span>
-        <span style="display:inline-flex;align-items:center;gap:6px;"><span data-en="Of them in Zermatt">מהם בצ'רמט</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span data-en="Of them in Zermatt">מהם בצרמט</span>
           <button class="c-btn" type="button" onclick="zcAdj('z',-1)">-</button>
           <b id="zc-z" style="min-width:1.4em;text-align:center;">2</b>
           <button class="c-btn" type="button" onclick="zcAdj('z',1)">+</button></span>
@@ -21169,7 +21172,7 @@ async function _admRenderUsers() {
       <button id="wcam-tab-all"       onclick="filterCams('all')"       class="ttab-btn ttab-active" style="font-size:0.8rem;padding:6px 12px;" data-en="🌐 All">🌐 הכל</button>
       <button id="wcam-tab-cervinia"  onclick="filterCams('cervinia')"  class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;" data-en="&lt;svg class=fl-it aria-hidden=true&gt;&lt;use href=#flag-it&gt;&lt;/use&gt;&lt;/svg&gt; Cervinia"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> צ'רוויניה</button>
       <button id="wcam-tab-valt"      onclick="filterCams('valt')"      class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;" data-en="🏔️ Valtournenche">🏔️ ולטורנאנש</button>
-      <button id="wcam-tab-zermatt"   onclick="filterCams('zermatt')"   class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; Zermatt"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צ'רמט</button>
+      <button id="wcam-tab-zermatt"   onclick="filterCams('zermatt')"   class="ttab-btn"             style="font-size:0.8rem;padding:6px 12px;" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; Zermatt"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צרמט</button>
     </div>
 
     <!-- Camera grid -->
@@ -21544,8 +21547,8 @@ var _zLive = null;   // { s: 'OPEN'|'CLOSED'|..., t: ms of that reading }
 function _zStale(a) {
   if (!a.auto || !_zLive || !(_zLive.t > a.ts)) return false;
   var t = a.text || '';
-  if (/המעבר לצ.רמט נפתח/.test(t)) return _zLive.s !== 'OPEN';
-  if (/המעבר לצ.רמט (נסגר|סגור)/.test(t)) return _zLive.s === 'OPEN';
+  if (/המעבר ל(?:צ.?רמט|זרמט) נפתח/.test(t)) return _zLive.s !== 'OPEN';
+  if (/המעבר ל(?:צ.?רמט|זרמט) (נסגר|סגור)/.test(t)) return _zLive.s === 'OPEN';
   return false;
 }
 function getAlerts() {
@@ -22008,7 +22011,7 @@ async function maybeOfferPush() {
   var ios = (st === 'ios-install');
   var lead = ios
     ? L('באייפון צריך קודם להוסיף את האתר למסך הבית: שתף ⬆️ ← הוסף למסך הבית.', 'On iPhone, first add the site to the home screen: Share ⬆️ → Add to Home Screen.')
-    : L('המעבר לצ׳רמט נפתח, יורד שלג, רכבל נעצר — נודיע לך בטלפון, גם כשהאפליקציה סגורה.', 'The crossing to Zermatt opens, it\'s snowing, a lift stops — we\'ll tell you on your phone, even when the app is closed.');
+    : L('המעבר לצרמט נפתח, יורד שלג, רכבל נעצר — נודיע לך בטלפון, גם כשהאפליקציה סגורה.', 'The crossing to Zermatt opens, it\'s snowing, a lift stops — we\'ll tell you on your phone, even when the app is closed.');
 
   el.innerHTML =
     '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;' +
@@ -22144,7 +22147,7 @@ async function _healPush() {
 // belongs to from its key, so nothing is stored twice and a new rule lands
 // in the right place without a migration.
 var PUSH_TOPICS = [
-  { k: 'zermatt',   ico: '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg>', label: L('המעבר לצ׳רמט', 'The crossing to Zermatt'),  sub: L('נסגר, נפתח, או סגור כל היום', 'Closes, opens, or is closed all day') },
+  { k: 'zermatt',   ico: '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg>', label: L('המעבר לצרמט', 'The crossing to Zermatt'),  sub: L('נסגר, נפתח, או סגור כל היום', 'Closes, opens, or is closed all day') },
   { k: 'lifts',     ico: '🚡', label: L('מעליות', 'Lifts'),          sub: L('עצירה באמצע יום הסקי', 'A stop in the middle of the ski day') },
   { k: 'weather',   ico: '💨', label: L('רוח ומפולות', 'Wind and avalanches'),     sub: L('משבים חזקים, דרגת סכנה', 'Strong gusts, danger level') },
   // It does reach the phone. This line said it did not, and so did a comment

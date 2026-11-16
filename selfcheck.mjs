@@ -7729,7 +7729,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const r = await page.evaluate(() => {
     const sys = _rowToAlert({
       id: 'sys-1', author_id: null, author_name: 'צ׳רוויניה לייב',
-      text: 'המעבר לצ׳רמט סגור.', severity: 'danger', kind: 'alert',
+      text: 'המעבר לצרמט סגור.', severity: 'danger', kind: 'alert',
       created_at: new Date().toISOString(),
       expires_at: new Date(Date.now() + 36e5).toISOString()
     });
@@ -8656,7 +8656,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     openCost('free');
     COST.skiDays = 6; COST.pass = 'zermatt'; COST.rows = {}; _costRecalc(); _costRender();
     const t1 = $('cost-ideas-body').textContent;
-    out.supp = /תוספת יום לצ'רמט/.test(t1) && /€52/.test(t1);
+    out.supp = /תוספת יום לצרמט/.test(t1) && /€52/.test(t1);
     out.link = !!$('cost-ideas-body').querySelector('a[onclick*="skipassModal"]');
     COST.pass = 'cervinia'; COST.rows = {}; _costRecalc(); _costRender();
     const halfIdea = [...$('cost-ideas-body').querySelectorAll('.cost-idea')].find(x => /חצי יום/.test(x.textContent));
@@ -8703,7 +8703,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.supp || !r.link) fail(T, `the calculator does not offer the local pass with the day supplement (${r.supp}) or the way to the advice (${r.link})`); else ok();
   if (!r.halfCaveat) fail(T, 'keeping the half day in the pass is offered without the no-refund caveat'); else ok();
   if (!r.zcMath) fail(T, 'the Zermatt days calculator does not add up against the tariff'); else ok();
-  if (!/פס בינלאומי ל-2 ימים|תוספת צ'רמט|בינלאומי ליום אחד/.test(r.zcSays)) fail(T, `the forecast plan does not say which pass covers Zermatt: "${r.zcSays}"`); else ok();
+  if (!/פס בינלאומי ל-2 ימים|תוספת צרמט|בינלאומי ליום אחד/.test(r.zcSays)) fail(T, `the forecast plan does not say which pass covers Zermatt: "${r.zcSays}"`); else ok();
   if (!r.zcShown || !r.zcCap) fail(T, `the calculator does not show its plans (${r.zcShown}) or keep its days in range (${r.zcCap})`); else ok();
   if (!r.pct) fail(T, 'a percent sign is left outside its number on a Hebrew line'); else ok();
   if (!r.halfMath) fail(T, 'half days do not add up against the tariff (a half-day ticket or one more pass day, whichever is cheaper)'); else ok();
@@ -8951,9 +8951,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const now = Date.now(), hour = 3600e3;
     const mk = (id, text, auto, ts) => ({ id, text, auto, ts, until: now + 5 * hour, kind: 'alert', severity: 'info', user: '', authorId: auto ? '' : 'u1' });
     _alerts = [
-      mk('open-auto', 'המעבר לצ׳רמט נפתח — אפשר לעבור לצד השוויצרי.', true, now - hour),
-      mk('open-person', 'המעבר לצ׳רמט נפתח, ראיתי בעצמי', false, now - hour),
-      mk('shut-auto', 'המעבר לצ׳רמט נסגר. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.', true, now - 2 * hour)
+      mk('open-auto', 'המעבר לצרמט נפתח — אפשר לעבור לצד השוויצרי.', true, now - hour),
+      mk('open-person', 'המעבר לצרמט נפתח, ראיתי בעצמי', false, now - hour),
+      mk('shut-auto', 'המעבר לצרמט נסגר. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.', true, now - 2 * hour)
     ];
     const ids = () => getAlerts().map(a => a.id).sort().join(',');
     const out = {};
@@ -9095,9 +9095,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // the new wording is still retired by a live OPEN reading
     const keep = _zLive, now = Date.now();
     _zLive = { s: 'OPEN', t: now };
-    out.staleNew = _zStale({ auto: true, ts: now - 60e3, text: 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות ו־23 מסלולים פתוחים.' });
+    out.staleNew = _zStale({ auto: true, ts: now - 60e3, text: 'המעבר לצרמט סגור. המעליות בצ׳רוויניה פועלות ו־23 מסלולים פתוחים.' });
     _zLive = { s: 'CLOSED', t: now };
-    out.keptNew = !_zStale({ auto: true, ts: now - 60e3, text: 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות.' });
+    out.keptNew = !_zStale({ auto: true, ts: now - 60e3, text: 'המעבר לצרמט סגור. המעליות בצ׳רוויניה פועלות.' });
     _zLive = keep;
     return out;
   });

@@ -185,7 +185,7 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
       severity: 'danger',
       hours: 8,
       cooldown: 10,
-      text: 'המעבר לצ׳רמט נסגר. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.',
+      text: 'המעבר לצרמט נסגר. מי שתכנן לחצות היום — בדקו לפני שאתם עולים.',
       text_en: 'The crossing to Zermatt has closed. If you planned to cross today, check before you go up.'
     });
   } else if (zPrev === 'CLOSED' && zNext === 'CLOSED'
@@ -207,7 +207,7 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
         const sl = num(next?.slopes_open_local);
         const tail = sl > 1 ? ' ו־' + sl + ' מסלולים פתוחים'
                    : sl === 1 ? ' ומסלול אחד פתוח' : '';
-        return 'המעבר לצ׳רמט סגור. המעליות בצ׳רוויניה פועלות' + tail + '.';
+        return 'המעבר לצרמט סגור. המעליות בצ׳רוויניה פועלות' + tail + '.';
       })(),
       text_en: (() => {
         const sl = num(next?.slopes_open_local);
@@ -233,7 +233,7 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
       severity: 'info',
       hours: 5,
       cooldown: 8,
-      text: 'המעבר לצ׳רמט נפתח — אפשר לעבור לצד השוויצרי.',
+      text: 'המעבר לצרמט נפתח — אפשר לעבור לצד השוויצרי.',
       text_en: 'The crossing to Zermatt has opened — you can go over to the Swiss side.'
     });
   }
@@ -277,7 +277,7 @@ function detectAutoAlerts(prev, next, nowMin = romeMinutes()) {
         severity: 'info',
         hours: 7,
         cooldown: 20,
-        text: 'יום גלישה טוב — המעבר לצ׳רמט פתוח, ' + oNow + ' מתוך ' + tNow +
+        text: 'יום גלישה טוב — המעבר לצרמט פתוח, ' + oNow + ' מתוך ' + tNow +
               ' מעליות פועלות' +
               (av !== null && av <= 1 ? ', והשלג יציב' : '') + '.',
         text_en: 'A good ski day — the crossing to Zermatt is open, ' + oNow + ' of ' + tNow +
