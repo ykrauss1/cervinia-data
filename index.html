@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.88';
+  var v='v17.89';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -18304,8 +18304,8 @@ function applySummerMode() {
 
   // הוסף כפתורי קיץ
   var summerBtns = [
-    { id:'svc-summer-ski',    icon:'⛷️', label:'גלישת קיץ בקרחון',   onclick:"openM('summerSkiModal')" },
-    { id:'svc-summer-hike',   icon:'🥾', label:'טיולים ומסלולי הרים', onclick:"openM('summerHikeModal')" },
+    { id:'svc-summer-ski',    icon:'⛷️', label:L('גלישת קיץ בקרחון','Summer glacier skiing'),   onclick:"openM('summerSkiModal')" },
+    { id:'svc-summer-hike',   icon:'🥾', label:L('טיולים ומסלולי הרים','Hikes and trails'), onclick:"openM('summerHikeModal')" },
     { id:'svc-summer-bike',   icon:'🚵', label:'Bike Park',            onclick:"openM('summerBikeModal')" },
     { id:'svc-summer-cross',  icon:'🏔️', label:'Alpine Crossing',      onclick:"openM('summerCrossModal')" },
   ];
@@ -18329,19 +18329,19 @@ function applySummerMode() {
   var summerBanner = document.createElement('div');
   summerBanner.style.cssText = 'background:linear-gradient(135deg,#1a6c3a,#2e9e5a);color:white;padding:14px 16px;border-radius:12px;margin:0 0 18px 0;';
   summerBanner.innerHTML = ''
-    + '<div style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:6px;">☀️ קיץ בצ\'רוויניה — הכפר חי גם בקיץ!</div>'
-    + '<div style="font-size:0.78rem;text-align:center;opacity:0.9;margin-bottom:10px;">גלישה בקרחון · טיולים · Bike Park · Alpine Crossing</div>'
-    + '<div style="font-size:0.72rem;text-align:center;opacity:0.8;margin-bottom:8px;">עונת חורף הבאה נפתחת ב-25 באוקטובר</div>'
+    + '<div style="font-size:1.1rem;font-weight:bold;text-align:center;margin-bottom:6px;">' + L('☀️ קיץ בצ\'רוויניה — הכפר חי גם בקיץ!', '☀️ Summer in Cervinia — the village is alive in summer too!') + '</div>'
+    + '<div style="font-size:0.78rem;text-align:center;opacity:0.9;margin-bottom:10px;">' + L('גלישה בקרחון · טיולים · Bike Park · Alpine Crossing', 'Glacier skiing · Hikes · Bike Park · Alpine Crossing') + '</div>'
+    + '<div style="font-size:0.72rem;text-align:center;opacity:0.8;margin-bottom:8px;">' + L('עונת חורף הבאה נפתחת ב-25 באוקטובר', 'The next winter season opens on 25 October') + '</div>'
     // ספירה לאחור
     + '<div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:10px;">'
-    + _countdownBox('cd-days',  'ימים',   '1.6rem', true)
+    + _countdownBox('cd-days',  L('ימים','days'),   '1.6rem', true)
     + '<div style="font-size:1.4rem;opacity:0.5;margin:0 4px;">·</div>'
-    + _countdownBox('cd-secs',  'שניות', '1.6rem', false)
-    + _countdownBox('cd-mins',  'דקות',  '1.6rem', false)
-    + _countdownBox('cd-hours', 'שעות',  '1.6rem', false)
+    + _countdownBox('cd-secs',  L('שניות','sec'), '1.6rem', false)
+    + _countdownBox('cd-mins',  L('דקות','min'),  '1.6rem', false)
+    + _countdownBox('cd-hours', L('שעות','hours'),  '1.6rem', false)
     + '</div>'
     // פס התקדמות
-    + '<div style="font-size:0.68rem;opacity:0.8;text-align:center;margin-bottom:4px;">מסגירת העונה (3 במאי) — עברו ' + progressPct + '% מהדרך לחורף הבא ❄️</div>'
+    + '<div style="font-size:0.68rem;opacity:0.8;text-align:center;margin-bottom:4px;">' + L('מסגירת העונה (3 במאי) — עברו ' + progressPct + '% מהדרך לחורף הבא ❄️', 'Since the season closed (3 May): ' + progressPct + '% of the way to next winter ❄️') + '</div>'
     + '<div style="background:rgba(255,255,255,0.25);border-radius:20px;height:8px;overflow:hidden;">'
     + '<div style="background:white;height:100%;border-radius:20px;width:' + progressPct + '%;transition:width 1s;"></div>'
     + '</div>';
@@ -18381,175 +18381,119 @@ function applySummerMode() {
 }
 
 function _buildSummerModals() {
-  return `
-  <div id="summerSkiModal" class="modal" onclick="if(event.target===this)closeM('summerSkiModal')">
-    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
-      <div style="background:linear-gradient(135deg,#1a3a6c,#2563b0);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
-        <h2 style="color:white;margin:0;font-size:1.1rem;">⛷️ גלישת קיץ בקרחון</h2>
-        <button onclick="closeM('summerSkiModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
-      </div>
-      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
+  // Hebrew and English side by side; the page reloads on a language switch,
+  // so choosing at build time is enough (Yossi: the whole site bilingual).
+  var dir = L('rtl', 'ltr');
+  function card(color, title, body) {
+    return '<div style="border:1.5px solid #eee;border-inline-start:4px solid ' + color + ';border-radius:10px;padding:12px;">'
+      + '<b>' + title + '</b><br><span style="font-size:0.82rem;color:#555;line-height:1.6;">' + body + '</span></div>';
+  }
+  function head(id, bg, title) {
+    return '<div id="' + id + '" class="modal" onclick="if(event.target===this)closeM(\'' + id + '\')">'
+      + '<div class="modal-content" style="max-width:500px;direction:' + dir + ';padding:0;border-radius:16px;overflow:hidden;">'
+      + '<div style="background:' + bg + ';padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">'
+      + '<h2 style="color:white;margin:0;font-size:1.1rem;">' + title + '</h2>'
+      + '<button onclick="closeM(\'' + id + '\')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>'
+      + '</div><div style="padding:16px;max-height:75vh;overflow-y:auto;">';
+  }
+  function foot(href, bg, text) {
+    return '<a href="' + href + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:14px;padding:10px;background:' + bg + ';color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">' + text + '</a>'
+      + '</div></div></div>';
+  }
+  function stat(v, l) {
+    return '<div style="text-align:center;"><div style="font-size:1.2rem;font-weight:bold;">' + v + '</div><div style="font-size:0.65rem;opacity:0.7;">' + l + '</div></div>';
+  }
+  var list = function (a) { return '<div style="display:flex;flex-direction:column;gap:10px;">' + a.join('') + '</div>'; };
 
-        <div style="background:linear-gradient(135deg,#0a192f,#1a3a6c);border-radius:10px;padding:12px;margin-bottom:12px;color:white;text-align:center;">
-          <div style="font-size:1.3rem;font-weight:bold;">Plateau Rosa — 3,480מ</div>
-          <div style="font-size:0.78rem;opacity:0.8;margin-top:4px;">הקרחון הגדול והגבוה ביותר לגלישת קיץ באירופה</div>
-          <div style="display:flex;justify-content:center;gap:20px;margin-top:10px;">
-            <div style="text-align:center;">
-              <div style="font-size:1.2rem;font-weight:bold;">26 ק"מ</div>
-              <div style="font-size:0.65rem;opacity:0.7;">מסלולים</div>
-            </div>
-            <div style="text-align:center;">
-              <div style="font-size:1.2rem;font-weight:bold;">3,900מ</div>
-              <div style="font-size:0.65rem;opacity:0.7;">גובה מקסימלי</div>
-            </div>
-            <div style="text-align:center;">
-              <div style="font-size:1.2rem;font-weight:bold;">יוני–ספט׳</div>
-              <div style="font-size:0.65rem;opacity:0.7;">עונת קיץ</div>
-            </div>
-          </div>
-        </div>
+  var ski = head('summerSkiModal', 'linear-gradient(135deg,#1a3a6c,#2563b0)', L('⛷️ גלישת קיץ בקרחון', '⛷️ Summer skiing on the glacier'))
+    + '<div style="background:linear-gradient(135deg,#0a192f,#1a3a6c);border-radius:10px;padding:12px;margin-bottom:12px;color:white;text-align:center;">'
+    + '<div style="font-size:1.3rem;font-weight:bold;">Plateau Rosa — ' + L('3,480מ', '3,480 m') + '</div>'
+    + '<div style="font-size:0.78rem;opacity:0.8;margin-top:4px;">' + L('הקרחון הגדול והגבוה ביותר לגלישת קיץ באירופה', 'The largest and highest summer-skiing glacier in Europe') + '</div>'
+    + '<div style="display:flex;justify-content:center;gap:20px;margin-top:10px;">'
+    + stat(L('26 ק"מ', '26 km'), L('מסלולים', 'of runs')) + stat(L('3,900מ', '3,900 m'), L('גובה מקסימלי', 'top height')) + stat(L('יוני–ספט׳', 'June–Sept'), L('עונת קיץ', 'summer season'))
+    + '</div></div>'
+    + '<div style="background:#fff3cd;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;border-inline-start:4px solid #f39c12;">'
+    + L('💎 <b>נישה ייחודית שמעטים מכירים</b> — כמעט אף ישראלי לא יודע שאפשר לגלוש בצ\'רוויניה בקיץ. הקרחון פתוח, המסלולים ריקים, והמחירים נמוכים יותר מהחורף.',
+        '💎 <b>A little-known gem</b> — hardly anyone knows you can ski in Cervinia in summer. The glacier is open, the runs are empty, and prices are lower than in winter.')
+    + '</div>'
+    + list([
+      card('#2563b0', L('🎿 מה יש בקרחון?', '🎿 What is on the glacier?'),
+        L('מסלולים לכל הרמות — כחול, אדום ושחור. נבחרות לאומיות מתאמנות כאן בקיץ על מסלולים שמורים. Snow Park ו-Gravity Park לרוכבי סנובורד. חיבור לזרמט.',
+          'Runs for every level — blue, red and black. National teams train here in summer on reserved runs. A Snow Park and Gravity Park for snowboarders. A link to Zermatt.')),
+      card('#e74c3c', L('⏰ שעות — זה קריטי!', '⏰ Hours — this matters!'),
+        L('הרמות נפתחות בבוקר ונסגרות בדרך כלל ב-<b>13:00–14:00</b> כשהשלג מתרכך. <b>חובה להגיע לכבלית לפני 9:00</b> — השלג הכי טוב בשעות הבוקר המוקדמות.',
+          'The lifts open in the morning and usually close at <b>13:00–14:00</b>, when the snow softens. <b>Be at the cable car before 9:00</b> — the snow is best early in the morning.')),
+      card('#2e9e5a', L('🧥 לבוש — אל תתפתו!', '🧥 Clothing — don\'t be fooled!'),
+        L('חם בכפר (20°+), אבל ב-3,500מ קר מאוד גם באוגוסט — לפעמים מתחת לאפס. קרם שמש חובה — הקרינה בגובה חזקה מאוד.',
+          'It is warm in the village (20°+), but at 3,500 m it is very cold even in August — sometimes below zero. Sunscreen is a must — the sun is very strong at altitude.')),
+      card('#8e44ad', L('🎫 סקי פס — טיפ חשוב', '🎫 Ski pass — an important tip'),
+        L('פס משולב צ\'רוויניה+זרמט <b>זול יותר ב-100 יורו</b> כשקונים מהצד האיטלקי! תמיד קנו בצ\'רוויניה ולא בזרמט.',
+          'A combined Cervinia + Zermatt pass is <b>€100 cheaper</b> when bought on the Italian side! Always buy in Cervinia, not in Zermatt.')),
+      card('#e67e22', L('🚡 איך מגיעים לקרחון?', '🚡 How do you get to the glacier?'),
+        L('כבלית מהכפר → Cime Bianche Laghi → Plateau Rosa. כ-30 דקות. הכבלית החדשה מודרנית ומהירה.',
+          'Cable car from the village → Cime Bianche Laghi → Plateau Rosa. About 30 minutes. The new cable car is modern and fast.')),
+      card('#f39c12', L('☀️ אחר הצהריים — מה עושים?', '☀️ What to do in the afternoon?'),
+        L('אחרי הגלישה הבוקר — הכפר מחכה! Bike Park, טיולים, Alpine Crossing לזרמט, קפה על מרפסת השמש, Lago Blu. יום מלא ועשיר.',
+          'After the morning on the glacier, the village awaits! Bike Park, hikes, the Alpine Crossing to Zermatt, coffee on a sunny terrace, Lago Blu. A full day.'))
+    ])
+    + foot('https://www.cervinia.it/en/cosa-fare/sci-estivo', '#2563b0', L('🌐 מידע רשמי — גלישת קיץ', '🌐 Official information — summer skiing'));
 
-        <div style="background:#fff3cd;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;border-inline-start:4px solid #f39c12;">
-          💎 <b>נישה ייחודית שמעטים מכירים</b> — כמעט אף ישראלי לא יודע שאפשר לגלוש בצ'רוויניה בקיץ. הקרחון פתוח, המסלולים ריקים, והמחירים נמוכים יותר מהחורף.
-        </div>
+  var hike = head('summerHikeModal', 'linear-gradient(135deg,#1a6c3a,#2e9e5a)', L('🥾 טיולים ומסלולי הרים', '🥾 Hikes and mountain trails'))
+    + list([
+      card('#2e9e5a', L('✝️ צלב Carrel — 2,800מ', '✝️ Carrel Cross — 2,800 m'),
+        L('מסלול קלאסי ומרהיב מהכפר. נוף ישיר למטרהורן. כ-3 שעות הלוך-חזור.', 'A classic, spectacular hike from the village, facing the Matterhorn. About 3 hours there and back.')),
+      card('#2e9e5a', L('💙 Lago Blu — 2,090מ', '💙 Lago Blu — 2,090 m'),
+        L('אגם כחול מרהיב ממש מחוץ לכפר. מסלול קל ומשפחתי. השתקפות המטרהורן במים.', 'A stunning blue lake just outside the village. An easy family walk, with the Matterhorn reflected in the water.')),
+      card('#2e9e5a', L('🏔️ Cime Bianche Laghi — 2,814מ', '🏔️ Cime Bianche Laghi — 2,814 m'),
+        L('אגמי הפסגה בגבול שווייץ-איטליה. ניתן להגיע בכבלית + קצת הליכה. נוף עוצר נשימה.', 'High lakes on the Swiss–Italian border. Reached by cable car and a short walk. Breathtaking views.')),
+      card('#2e9e5a', L('🌸 מסלולי אחו פורח', '🌸 Flower-meadow walks'),
+        L('מסלולים קלים בין פרחי האלפים סביב הכפר. מתאים לכל הגילאים.', 'Easy walks among alpine flowers around the village. Suitable for all ages.'))
+    ])
+    + foot('https://www.cervinia.it/en/summer/hiking', '#2e9e5a', L('🌐 מסלולי הליכה רשמיים', '🌐 Official hiking trails'));
 
-        <div style="display:flex;flex-direction:column;gap:10px;">
+  var bike = head('summerBikeModal', 'linear-gradient(135deg,#6c3a1a,#b05a20)', L('🚵 Bike Park — אופני הרים', '🚵 Bike Park — mountain biking'))
+    + '<div style="background:#fff3e8;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">'
+    + '🚵 <b>Cervinia/Valtournenche Bike Park</b><br>'
+    + L('אחד הפארקים הציוריים ביותר באלפים — מסלולי Downhill ו-Cross Country עם נוף מטרהורן.', 'One of the most scenic bike parks in the Alps — Downhill and Cross Country trails with a view of the Matterhorn.')
+    + '</div>'
+    + list([
+      card('#b05a20', L('🎿 מסלולי Downhill', '🎿 Downhill trails'),
+        L('עולים בכבלית, יורדים על אופניים. מסלולים לכל הרמות — מתחילים ועד מתקדמים.', 'Up by cable car, down by bike. Trails for every level, from beginners to advanced.')),
+      card('#b05a20', '🌄 Cross Country',
+        L('מסלולי אנדורו ונוף מרהיב. גישה מהכפר בהליכה קצרה לכבלית.', 'Enduro trails and stunning views. A short walk from the village to the cable car.')),
+      card('#b05a20', L('🛒 השכרת אופניים', '🛒 Bike rental'),
+        L('ניתן לשכור אופני הרים בכפר. שאלו במלון שלכם לגבי המלצות.', 'Mountain bikes can be rented in the village. Ask at your hotel for recommendations.'))
+    ])
+    + foot('https://www.cervinia.it/en/summer/bike', '#b05a20', L('🌐 מידע על Bike Park', '🌐 About the Bike Park'));
 
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2563b0;border-radius:10px;padding:12px;">
-            <b>🎿 מה יש בקרחון?</b><br>
-            <span style="font-size:0.82rem;color:#555;line-height:1.6;">מסלולים לכל הרמות — כחול, אדום ושחור. נבחרות לאומיות מתאמנות כאן בקיץ על מסלולים שמורים. Snow Park ו-Gravity Park לרוכבי סנובורד. חיבור לזרמט.</span>
-          </div>
+  var cross = head('summerCrossModal', 'linear-gradient(135deg,#2c3e50,#4a6278)', '🏔️ Matterhorn Alpine Crossing')
+    + '<div style="background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">'
+    + '<svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> '
+    + L('<b>מעבר ייחודי מצ\'רוויניה לזרמט — ברגל!</b><br>ניסיון אלפיני בלתי נשכח מעל 3,800מ — ללא סקי, הלוך וחזור במעליות.',
+        '<b>A unique crossing from Cervinia to Zermatt — on foot!</b><br>An unforgettable alpine experience above 3,800 m — no skiing, there and back by lift.')
+    + '</div>'
+    + list([
+      card('#4a6278', L('🚡 המסלול', '🚡 The route'),
+        L('גונדולות מצ\'רוויניה → Plan Maison → Cime Bianche Laghi → רכבל ל-Plateau Rosa (Testa Grigia) → Matterhorn Alpine Crossing → Matterhorn Glacier Paradise (3,883מ) → גונדולות דרך Trockener Steg עד זרמט. כשעה וחצי לכל כיוון.',
+          'Gondolas from Cervinia → Plan Maison → Cime Bianche Laghi → cable car to Plateau Rosa (Testa Grigia) → Matterhorn Alpine Crossing → Matterhorn Glacier Paradise (3,883 m) → gondolas via Trockener Steg down to Zermatt. About an hour and a half each way.')),
+      card('#4a6278', L('🧊 מערת הקרח', '🧊 The Glacier Palace'),
+        L('בתחנה העליונה, Matterhorn Glacier Paradise: מערת הקרח (Glacier Palace) הגבוהה בעולם, 15 מטר מתחת לפני הקרחון. יורדים אליה במעלית, ויש בה פסלי קרח שמתחלפים מדי פעם, מגלשת קרח וסדק בקרחון שהולכים לאורכו. פתוחה כל השנה.',
+          'At the top station, Matterhorn Glacier Paradise: the highest glacier palace in the world, 15 m below the glacier surface. A lift takes you down to ice sculptures that are replaced from time to time, an ice slide and a glacier crevasse you can walk along. Open all year.')
+        + '<br><a href="https://matterhornparadise.ch/en/experience/peaks/matterhorn-glacier-paradise/glacier-palace" target="_blank" rel="noopener" style="color:#2c5f8a;">' + L('על מערת הקרח', 'About the Glacier Palace') + '</a>'),
+      card('#4a6278', L('🔭 התצפית הגבוהה באלפים', '🔭 The highest viewing platform in the Alps'),
+        L('באותה תחנה, מעלית שחצובה בצוק עולה לרחבת התצפית בגובה 3,883 מ\': נוף של 360 מעלות על 38 פסגות שגובהן מעל 4,000 מ\' ועל 14 קרחונים, כולל מון בלאן.',
+          'At the same station, a lift cut into the rock rises to the viewing platform at 3,883 m: a 360° view of 38 peaks over 4,000 m and 14 glaciers, Mont Blanc among them.')),
+      card('#4a6278', L('⚠️ חשוב לדעת', '⚠️ Good to know'),
+        L('יש כרטיס לכיוון אחד ויש הלוך-חזור. מי שחוזר באותו יום חוזר באותה דרך במעליות, וכדאי לבדוק מתי יוצאת הגונדולה האחרונה חזרה · לבשו שכבות, קר מאוד',
+          'There are one-way and return tickets. If you come back the same day, you return the same way by lift — check when the last gondola back leaves · Wear layers, it is very cold')),
+      '<div style="border:1.5px solid #fff3cd;border-inline-start:4px solid #f39c12;border-radius:10px;padding:12px;background:#fffbf0;"><b>' + L('💡 טיפ', '💡 Tip') + '</b><br><span style="font-size:0.82rem;color:#555;">'
+        + L('הזמינו כרטיסים מראש באתר הרשמי. הגונדולה פועלת רק כשמזג האוויר מאפשר, אז כדאי לבדוק את מצב המעבר בבוקר.',
+            'Book tickets ahead on the official site. The gondola only runs when the weather allows, so check the crossing status in the morning.')
+        + '</span></div>'
+    ])
+    + foot('https://www.matterhornparadise.ch/en/experience/matterhorn-alpine-crossing', '#4a6278', L('🌐 הזמן כרטיסים — Alpine Crossing', '🌐 Book tickets — Alpine Crossing'));
 
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #e74c3c;border-radius:10px;padding:12px;">
-            <b>⏰ שעות — זה קריטי!</b><br>
-            <span style="font-size:0.82rem;color:#555;line-height:1.6;">הרמות נפתחות בבוקר ונסגרות בדרך כלל ב-<b>13:00–14:00</b> כשהשלג מתרכך. <b>חובה להגיע לכבלית לפני 9:00</b> — השלג הכי טוב בשעות הבוקר המוקדמות.</span>
-          </div>
-
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
-            <b>🧥 לבוש — אל תתפתו!</b><br>
-            <span style="font-size:0.82rem;color:#555;line-height:1.6;">חם בכפר (20°+), אבל ב-3,500מ קר מאוד גם באוגוסט — לפעמים מתחת לאפס. קרם שמש חובה — הקרינה בגובה חזקה מאוד.</span>
-          </div>
-
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #8e44ad;border-radius:10px;padding:12px;">
-            <b>🎫 סקי פס — טיפ חשוב</b><br>
-            <span style="font-size:0.82rem;color:#555;line-height:1.6;">פס משולב צ'רוויניה+זרמט <b>זול יותר ב-100 יורו</b> כשקונים מהצד האיטלקי! תמיד קנו בצ'רוויניה ולא בזרמט.</span>
-          </div>
-
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #e67e22;border-radius:10px;padding:12px;">
-            <b>🚡 איך מגיעים לקרחון?</b><br>
-            <span style="font-size:0.82rem;color:#555;line-height:1.6;">כבלית מהכפר → Cime Bianche Laghi → Plateau Rosa. כ-30 דקות. הכבלית החדשה מודרנית ומהירה.</span>
-          </div>
-
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #f39c12;border-radius:10px;padding:12px;">
-            <b>☀️ אחר הצהריים — מה עושים?</b><br>
-            <span style="font-size:0.82rem;color:#555;line-height:1.6;">אחרי הגלישה הבוקר — הכפר מחכה! Bike Park, טיולים, Alpine Crossing לזרמט, קפה על מרפסת השמש, Lago Blu. יום מלא ועשיר.</span>
-          </div>
-
-        </div>
-
-        <a href="https://www.cervinia.it/en/cosa-fare/sci-estivo" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#2563b0;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 מידע רשמי — גלישת קיץ</a>
-      </div>
-    </div>
-  </div>
-
-  <div id="summerHikeModal" class="modal" onclick="if(event.target===this)closeM('summerHikeModal')">
-    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
-      <div style="background:linear-gradient(135deg,#1a6c3a,#2e9e5a);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
-        <h2 style="color:white;margin:0;font-size:1.1rem;">🥾 טיולים ומסלולי הרים</h2>
-        <button onclick="closeM('summerHikeModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
-      </div>
-      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
-            <b>✝️ צלב Carrel — 2,800מ</b><br>
-            <span style="font-size:0.82rem;color:#555;">מסלול קלאסי ומרהיב מהכפר. נוף ישיר למטרהורן. כ-3 שעות הלוך-חזור.</span>
-          </div>
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
-            <b>💙 Lago Blu — 2,090מ</b><br>
-            <span style="font-size:0.82rem;color:#555;">אגם כחול מרהיב ממש מחוץ לכפר. מסלול קל ומשפחתי. השתקפות המטרהורן במים.</span>
-          </div>
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
-            <b>🏔️ Cime Bianche Laghi — 2,814מ</b><br>
-            <span style="font-size:0.82rem;color:#555;">אגמי הפסגה בגבול שווייץ-איטליה. ניתן להגיע בכבלית + קצת הליכה. נוף עוצר נשימה.</span>
-          </div>
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #2e9e5a;border-radius:10px;padding:12px;">
-            <b>🌸 מסלולי אחו פורח</b><br>
-            <span style="font-size:0.82rem;color:#555;">מסלולים קלים בין פרחי האלפים סביב הכפר. מתאים לכל הגילאים.</span>
-          </div>
-        </div>
-        <a href="https://www.cervinia.it/en/summer/hiking" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#2e9e5a;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 מסלולי הליכה רשמיים</a>
-      </div>
-    </div>
-  </div>
-
-  <div id="summerBikeModal" class="modal" onclick="if(event.target===this)closeM('summerBikeModal')">
-    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
-      <div style="background:linear-gradient(135deg,#6c3a1a,#b05a20);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
-        <h2 style="color:white;margin:0;font-size:1.1rem;">🚵 Bike Park — אופני הרים</h2>
-        <button onclick="closeM('summerBikeModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
-      </div>
-      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
-        <div style="background:#fff3e8;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">
-          🚵 <b>Cervinia/Valtournenche Bike Park</b><br>
-          אחד הפארקים הציוריים ביותר באלפים — מסלולי Downhill ו-Cross Country עם נוף מטרהורן.
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #b05a20;border-radius:10px;padding:12px;">
-            <b>🎿 מסלולי Downhill</b><br>
-            <span style="font-size:0.82rem;color:#555;">עולים בכבלית, יורדים על אופניים. מסלולים לכל הרמות — מתחילים ועד מתקדמים.</span>
-          </div>
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #b05a20;border-radius:10px;padding:12px;">
-            <b>🌄 Cross Country</b><br>
-            <span style="font-size:0.82rem;color:#555;">מסלולי אנדורו ונוף מרהיב. גישה מהכפר בהליכה קצרה לכבלית.</span>
-          </div>
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #b05a20;border-radius:10px;padding:12px;">
-            <b>🛒 השכרת אופניים</b><br>
-            <span style="font-size:0.82rem;color:#555;">ניתן לשכור אופני הרים בכפר. שאלו במלון שלכם לגבי המלצות.</span>
-          </div>
-        </div>
-        <a href="https://www.cervinia.it/en/summer/bike" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#b05a20;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 מידע על Bike Park</a>
-      </div>
-    </div>
-  </div>
-
-  <div id="summerCrossModal" class="modal" onclick="if(event.target===this)closeM('summerCrossModal')">
-    <div class="modal-content" style="max-width:500px;direction:rtl;padding:0;border-radius:16px;overflow:hidden;">
-      <div style="background:linear-gradient(135deg,#2c3e50,#4a6278);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
-        <h2 style="color:white;margin:0;font-size:1.1rem;">🏔️ Matterhorn Alpine Crossing</h2>
-        <button onclick="closeM('summerCrossModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
-      </div>
-      <div style="padding:16px;max-height:75vh;overflow-y:auto;">
-        <div style="background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:12px;font-size:0.85rem;line-height:1.7;">
-          <svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> <b>מעבר ייחודי מצ'רוויניה לזרמט — ברגל!</b><br>
-          ניסיון אלפיני בלתי נשכח מעל 3,800מ — ללא סקי, הלוך וחזור במעליות.
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #4a6278;border-radius:10px;padding:12px;">
-            <b>🚡 המסלול</b><br>
-            <span style="font-size:0.82rem;color:#555;">גונדולות מצ'רוויניה → Plan Maison → Cime Bianche Laghi → רכבל ל-Plateau Rosa (Testa Grigia) → Matterhorn Alpine Crossing → Matterhorn Glacier Paradise (3,883מ) → גונדולות דרך Trockener Steg עד זרמט. כשעה וחצי לכל כיוון.</span>
-          </div>
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #4a6278;border-radius:10px;padding:12px;">
-            <b>🧊 מערת הקרח</b><br>
-            <span style="font-size:0.82rem;color:#555;">בתחנה העליונה, Matterhorn Glacier Paradise: מערת הקרח (Glacier Palace) הגבוהה בעולם, 15 מטר מתחת לפני הקרחון. יורדים אליה במעלית, ויש בה פסלי קרח שמתחלפים מדי פעם, מגלשת קרח וסדק בקרחון שהולכים לאורכו. פתוחה כל השנה.<br><a href="https://matterhornparadise.ch/en/experience/peaks/matterhorn-glacier-paradise/glacier-palace" target="_blank" rel="noopener" style="color:#2c5f8a;">על מערת הקרח</a></span>
-          </div>
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #4a6278;border-radius:10px;padding:12px;">
-            <b>🔭 התצפית הגבוהה באלפים</b><br>
-            <span style="font-size:0.82rem;color:#555;">באותה תחנה, מעלית שחצובה בצוק עולה לרחבת התצפית בגובה 3,883 מ': נוף של 360 מעלות על 38 פסגות שגובהן מעל 4,000 מ' ועל 14 קרחונים, כולל מון בלאן.</span>
-          </div>
-          <div style="border:1.5px solid #eee;border-inline-start:4px solid #4a6278;border-radius:10px;padding:12px;">
-            <b>⚠️ חשוב לדעת</b><br>
-            <span style="font-size:0.82rem;color:#555;">יש כרטיס לכיוון אחד ויש הלוך-חזור. מי שחוזר באותו יום חוזר באותה דרך במעליות, וכדאי לבדוק מתי יוצאת הגונדולה האחרונה חזרה · לבשו שכבות, קר מאוד</span>
-          </div>
-          <div style="border:1.5px solid #fff3cd;border-inline-start:4px solid #f39c12;border-radius:10px;padding:12px;background:#fffbf0;">
-            <b>💡 טיפ</b><br>
-            <span style="font-size:0.82rem;color:#555;">הזמינו כרטיסים מראש באתר הרשמי. הגונדולה פועלת רק כשמזג האוויר מאפשר, אז כדאי לבדוק את מצב המעבר בבוקר.</span>
-          </div>
-        </div>
-        <a href="https://www.matterhornparadise.ch/en/experience/matterhorn-alpine-crossing" target="_blank" style="display:block;text-align:center;margin-top:14px;padding:10px;background:#4a6278;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;">🌐 הזמן כרטיסים — Alpine Crossing</a>
-      </div>
-    </div>
-  </div>
-  `;
+  return ski + hike + bike + cross;
 }
 
 // ── Auth ──
