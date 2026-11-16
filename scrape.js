@@ -1,7 +1,6 @@
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { createClient } from '@supabase/supabase-js';
-import { writeFileSync, mkdirSync } from 'fs';
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -539,18 +538,10 @@ async function saveToSupabase(data) {
   }
 }
 
-// ============================================================
-// SAVE TO data/data.json (for GitHub Pages)
-// ============================================================
-function saveToJson(data) {
-  try {
-    mkdirSync('data', { recursive: true });
-    writeFileSync('data/data.json', JSON.stringify(data, null, 2), 'utf-8');
-    console.log('data/data.json written successfully.');
-  } catch (e) {
-    console.error('Failed to write data.json:', e.message);
-  }
-}
+// data/data.json used to be written here and committed on every run. The
+// page stopped reading it when the live bar moved to Supabase, and nothing
+// else ever did - it was 48 commits and 48 site rebuilds a day for a file
+// with no reader. The reading goes to Supabase only.
 
 // The alert rules live in alerts.mjs, so that they can be exercised without
 // starting a scraper. See the header there.
@@ -760,7 +751,6 @@ const previous = await readPreviousReading();
 const data = await scrape();
 console.log('SCRAPED DATA:', JSON.stringify(data, null, 2));
 
-saveToJson(data);
 await saveToSupabase(data);
 await raiseAutoAlerts(previous, data);
 // ── has the Anthropic balance run out? ────────────────────────────────────

@@ -14,7 +14,7 @@
  * change under the same name, and the piste map is the single thing somebody
  * most needs when the signal goes - so they are precached at install and
  * answered from the cache, with a fresh copy fetched quietly for next time.
- * Live data (Supabase, the scraper's data.json) is still never cached.
+ * Live data (Supabase) is still never cached.
  */
 
 const CACHE = 'cervinia-v3';
@@ -81,7 +81,7 @@ self.addEventListener('fetch', function (e) {
   }
 
   // Only page navigations get the parachute. Everything else is left alone, so
-  // live data (Supabase, the scraper's data.json) is never served from a cache.
+  // live data (Supabase) is never served from a cache.
   if (req.mode !== 'navigate') return;
   // Only the site itself may become the parachute. Every navigation used to
   // be stored under index.html - the privacy page, the /en/ hand-over page,

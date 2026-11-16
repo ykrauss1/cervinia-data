@@ -8,6 +8,15 @@ on:
     - cron: "7,37 * * * *"
   workflow_dispatch:
 
+# The scraper only reads the repository: its reading goes to Supabase. It
+# used to commit data/data.json as well, a file nothing read.
+permissions:
+  contents: read
+
+concurrency:
+  group: cervinia-scraper
+  cancel-in-progress: false
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -18,9 +27,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -104,42 +110,3 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
-      # ------------------------------------------------------------------
-      #  Committing the reading
-      #
-      #  The old version ran "git stash --include-untracked" and then
-      #  "git stash pop". Those two are not a pair: when there is nothing to
-      #  stash, stash exits 0 having saved nothing, and pop then exits 1 with
-      #  "No stash entries found" - a red run caused purely by the data not
-      #  having changed. Verified, not assumed: stash exit=0, pop exit=1.
-      #
-      #  Rather than pair them correctly, the whole dance goes. "pull --rebase
-      #  --autostash" sets the working tree aside, rebases onto the remote and
-      #  puts it back, in one flag that cannot leave a half-applied stash
-      #  behind. The checkout is fresh, so there were never local commits to
-      #  replay in the first place.
-      # ------------------------------------------------------------------
-      - name: Commit data.json to repo
-        run: |
-          set -euo pipefail
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          if [ -z "$(git status --porcelain data/data.json)" ]; then
-            echo "data.json unchanged - nothing to commit."
-            exit 0
-          fi
-
-          git pull --rebase --autostash origin main
-
-          git add data/data.json
-          if git diff --cached --quiet; then
-            echo "No changes after rebase - skipping."
-            exit 0
-          fi
-
-          git commit -m "Update data.json [$(date -u '+%Y-%m-%d %H:%M UTC')]"
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
