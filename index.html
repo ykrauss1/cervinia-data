@@ -1437,7 +1437,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.96';
+  var v='v17.97';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -3384,6 +3384,7 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
   <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;padding:24px 22px;">
     <span class="close-btn" onclick="closeM('costModal')">×</span>
     <h3 style="margin:0 0 4px;font-size:1.15rem;" data-en="💶 So, what will it cost me?">💶 כמה תכל'ס יעלה לי?</h3>
+    <div id="cost-total" style="margin:10px 0 12px;padding:12px 16px 13px;border-radius:13px;text-align:center;transition:background .25s,color .25s;"></div>
     <p style="color:#8a6d1b;background:#fff8e6;border-radius:8px;padding:7px 10px;font-size:0.78rem;margin:0 0 14px;line-height:1.6;" data-en="&lt;b&gt;An estimate, not a final price.&lt;/b&gt; The ski pass is worked out from the official price list; the rest is a range — partly estimated from averages — and every line can be edited.">
       <b>הערכה, לא מחיר סופי.</b> הסקי פס מחושב מהמחירון הרשמי; השאר טווח — חלקו הערכה לפי ממוצעים — וכל שורה ניתנת לעריכה.</p>
 
@@ -3398,7 +3399,10 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
     <div id="cost-coverage" style="display:none;font-size:0.78rem;line-height:1.6;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:#f8fbf9;border:1px solid #dcebe2;"></div>
     <!-- Sticky to the bottom of the panel: the answer is on screen from the
          moment it opens, not after a scroll past seven rows. -->
-    <div id="cost-total" style="position:sticky;bottom:-24px;margin:14px -6px 0;padding:12px 16px 14px;border-radius:13px;background:#0a192f;color:white;text-align:center;box-shadow:0 -6px 18px rgba(10,25,47,0.18);"></div>
+    <!-- The total sits at the top (Yossi, 16.11): sticky at the bottom it
+         hid four rows of fields. When it scrolls away, a one-line bar
+         keeps the sum in view and brings the reader back up to it. -->
+    <div id="cost-bar" onclick="_costToTop()" role="button" tabindex="0" style="display:none;position:sticky;bottom:-24px;margin:12px -22px -24px;padding:9px 16px;cursor:pointer;text-align:center;font-size:0.86rem;"></div>
   </div>
 </div>
 
@@ -9417,7 +9421,7 @@ function _stayLetter() {
 // number nobody collected.
 var COST = {
   mode: 'free', nights: 7, skiDays: null, pass: 'cervinia', transport: 'car', cur: 'EUR',
-  bands: null, bandsTouched: false,
+  bands: null, bandsTouched: false, touched: false,
   rows: {}, fx: null, fxTried: false
 };
 var COST_ROWS = [
@@ -9972,6 +9976,7 @@ function _costCar() {
 }
 function _costTransport(w) {
   COST.transport = COST_TRANSPORT[w] ? w : 'car';
+  COST.touched = true;
   _costReset('car');
 }
 
@@ -10023,7 +10028,7 @@ function openCost(mode) {
   var next = mode === 'trip' ? 'trip' : 'free';
   // People set by hand through one door belong to that door: the trip's
   // travellers must not be replaced by a family typed into the side menu.
-  if (next !== COST.mode) { COST.bands = null; COST.bandsTouched = false; COST.showBand = {}; }
+  if (next !== COST.mode) { COST.bands = null; COST.bandsTouched = false; COST.showBand = {}; COST.touched = false; }
   COST.mode = next;
   if (COST.mode === 'trip') COST.skiDays = null;
   _costDefaults();
@@ -10049,9 +10054,10 @@ function _costSet(what, v) {
   } else if (what === 'pass') {
     COST.pass = v === 1 || String(v) === 'zermatt' ? 'zermatt' : 'cervinia';
   }
+  COST.touched = true;
   _costRecalc(); _costRender();
 }
-function _costPass(p) { COST.pass = p === 'zermatt' ? 'zermatt' : 'cervinia'; _costRecalc(); _costRender(); }
+function _costPass(p) { COST.pass = p === 'zermatt' ? 'zermatt' : 'cervinia'; COST.touched = true; _costRecalc(); _costRender(); }
 function _costShowBand(k, on) {
   COST.showBand = COST.showBand || {};
   COST.showBand[k] = !!on;
@@ -10061,7 +10067,7 @@ function _costShowBand(k, on) {
 }
 function _costBand(k, d) {
   COST.bands[k] = Math.max(0, (COST.bands[k] || 0) + d);
-  COST.bandsTouched = true;
+  COST.bandsTouched = true; COST.touched = true;
   _costRecalc(); _costRender();
 }
 // a row typed into belongs to the reader
@@ -10070,6 +10076,7 @@ function _costEdit(key, which, v) {
   var n = parseFloat(v), rate = _costRate() || 1;
   r[which] = isFinite(n) && n >= 0 ? n / rate : null;
   r.touched = true; r.exact = false;
+  COST.touched = true;
   _costTotal();
   var b = document.getElementById('cost-reset-' + key);
   if (b) b.style.visibility = 'visible';
@@ -10214,6 +10221,12 @@ function _costTotal() {
   });
   var box = document.getElementById('cost-total');
   if (!box) return;
+  // An example until the reader changes something: then it is quiet, and
+  // says plainly which trip it priced. His own numbers get the dark card.
+  var mine = COST.touched || (COST.mode === 'trip' && TRIP.from);
+  box.style.background = mine ? '#0a192f' : '#f3f6fa';
+  box.style.color = mine ? '#fff' : '#3d4b5c';
+  box.style.border = mine ? '1px solid #0a192f' : '1px dashed #c9d5e3';
   if (!any) { box.innerHTML = L('<span style="opacity:0.8;">אין עדיין סכום — מלאו שורה אחת לפחות</span>', '<span style="opacity:0.8;">No total yet — fill in at least one line</span>'); return; }
   var rate = _costRate() || 1, sym = COST_CUR[COST.cur];
   var mid = (lo + hi) / 2;
@@ -10227,18 +10240,79 @@ function _costTotal() {
   var second = oRate
     ? '≈ ' + money(lo, COST_CUR[other], oRate) + (hi > lo ? '–' + money(hi, COST_CUR[other], oRate) : '')
     : L('שער השקל לא זמין כרגע', 'Exchange rate not available right now');
-  box.innerHTML = '<div style="font-size:0.76rem;opacity:0.75;">' + L('סה"כ משוער', 'Estimated total') + '</div>'
-    + '<div id="cost-total-mid" style="font-size:1.75rem;font-weight:800;line-height:1.25;margin:2px 0;">'
+  box.innerHTML = '<div style="font-size:0.76rem;opacity:0.75;">' + (mine ? L('סה"כ משוער', 'Estimated total') : L('סה"כ משוער לדוגמה', 'Estimated total, as an example')) + '</div>'
+    + '<div id="cost-total-mid" style="font-size:' + (mine ? '1.75rem' : '1.3rem') + ';font-weight:' + (mine ? 800 : 700) + ';line-height:1.25;margin:2px 0;transition:transform .2s;">'
     + (hi > lo ? L('כ-', 'about ') : '') + '<bdi dir="ltr">' + sym + _costFmt(round(mid)) + '</bdi></div>'
     + (hi > lo ? '<div id="cost-total-eur" style="font-size:0.88rem;opacity:0.9;">' + L('בין ', 'between ') + '<bdi dir="ltr">' + money(lo, sym, rate)
         + '</bdi>' + L(' ל-', ' and ') + '<bdi dir="ltr">' + money(hi, sym, rate) + '</bdi></div>'
       : '<div id="cost-total-eur"></div>')
     + '<div id="cost-total-ils"' + (oRate ? ' dir="ltr"' : '') + ' style="font-size:0.8rem;opacity:0.7;margin-top:2px;">' + second + '</div>'
     + (left.length ? '<div id="cost-left" style="font-size:0.72rem;opacity:0.65;margin-top:6px;">' + L('לא נכלל: ', 'Not included: ') + left.join(' · ') + '</div>' : '')
-    + '<button type="button" onclick="_costIdeasOpen()" style="margin-top:8px;background:rgba(255,255,255,0.12);color:#fff;'
-    + 'border:1px solid rgba(255,255,255,0.3);border-radius:18px;padding:5px 14px;font-size:0.8rem;font-family:inherit;cursor:pointer;">'
+    + _costBasisHtml(mine)
+    + '<button type="button" onclick="_costIdeasOpen()" style="margin-top:8px;background:' + (mine ? 'rgba(255,255,255,0.12);color:#fff;' : '#fff;color:#16314f;')
+    + 'border:1px solid ' + (mine ? 'rgba(255,255,255,0.3)' : '#c9d5e3') + ';border-radius:18px;padding:5px 14px;font-size:0.8rem;font-family:inherit;cursor:pointer;">'
     + L('💡 רוצה לחסוך? או להתפנק?', '💡 Want to save? Or to treat yourselves?') + '</button>';
+  _costBar(sym + _costFmt(round(mid)), hi > lo, mine);
+  // the sum moved: a short pulse, so it is clear what changed
+  var key = Math.round(lo) + '|' + Math.round(hi);
+  if (COST.lastKey && COST.lastKey !== key) {
+    var m = document.getElementById('cost-total-mid');
+    if (m) { m.style.transform = 'scale(1.08)'; setTimeout(function () { m.style.transform = ''; }, 220); }
+  }
+  COST.lastKey = key;
   _costIdeas();
+}
+
+// What the sum is the sum OF: people, nights, ski days, pass, transport.
+function _costBasisHtml(mine) {
+  var b = COST.bands || {};
+  var who = COST_BANDS.filter(function (k) { return b[k] > 0; }).map(function (k) {
+    return b[k] + ' ' + _costBandHe(k, false);
+  });
+  var parts = who.concat([
+    COST.nights + L(' לילות', ' nights'),
+    COST.skiDays + L(' ימי סקי', ' ski days'),
+    COST.pass === 'zermatt' ? L('פס בינלאומי עם צרמט', 'international pass with Zermatt') : L('פס צ\'רוויניה', 'Cervinia pass'),
+    COST_TRANSPORT[COST.transport] || ''
+  ]).filter(Boolean);
+  var trip = COST.mode === 'trip' && TRIP.from;
+  var head = trip ? L('לפי הטיול שתכננתם', 'By the trip you planned') + (typeof _tripRangeLabel === 'function' ? ' (' + _tripRangeLabel(TRIP.from, TRIP.to) + ')' : '')
+    : mine ? L('לפי מה שבחרתם', 'By what you chose') : L('דוגמה לחישוב', 'An example');
+  return '<div id="cost-basis" style="font-size:0.76rem;line-height:1.6;margin-top:8px;padding:6px 10px;border-radius:9px;'
+    + (mine ? 'background:rgba(255,255,255,0.08);' : 'background:#fff8e6;color:#6b5512;') + '">'
+    + '📋 <b>' + head + ':</b> ' + parts.join(' · ')
+    + ' · <a href="#" onclick="_costToFields();return false;" style="color:' + (mine ? '#9fd3ff' : '#1a5fb4') + ';white-space:nowrap;">' + L('שינוי ↓', 'change ↓') + '</a>'
+    + (mine ? '' : L('<div style="margin-top:2px;opacity:0.85;">שנו את הפרטים למטה, והחישוב יהיה שלכם.</div>', '<div style="margin-top:2px;opacity:0.85;">Change the details below, and the sum becomes yours.</div>'))
+    + '</div>';
+}
+function _costScroller() { var m = document.getElementById('costModal'); return m && m.querySelector('.modal-content'); }
+function _costToTop() { var c = _costScroller(); if (c) c.scrollTo({ top: 0, behavior: 'smooth' }); }
+function _costToFields() {
+  var f = document.getElementById('cost-inputs'), c = _costScroller();
+  if (f && c) c.scrollTo({ top: f.offsetTop - 12, behavior: 'smooth' });
+}
+// The one-line bar at the bottom: shown only while the card is out of view.
+function _costBar(amount, about, mine) {
+  var bar = document.getElementById('cost-bar');
+  if (!bar) return;
+  bar.style.background = mine ? '#0a192f' : '#eef3f8';
+  bar.style.color = mine ? '#fff' : '#3d4b5c';
+  bar.style.borderTop = mine ? 'none' : '1px solid #d5dfea';
+  bar.innerHTML = (mine ? L('סה"כ ', 'Total ') : L('לדוגמה: ', 'Example: ')) + (about ? L('כ-', 'about ') : '')
+    + '<b><bdi dir="ltr">' + amount + '</bdi></b> ▲';
+  var c = _costScroller(), card = document.getElementById('cost-total');
+  if (!c || !card) return;
+  if (!c._costBarOn) {
+    c._costBarOn = true;
+    c.addEventListener('scroll', function () { _costBarVis(); }, { passive: true });
+  }
+  _costBarVis();
+}
+function _costBarVis() {
+  var c = _costScroller(), card = document.getElementById('cost-total'), bar = document.getElementById('cost-bar');
+  if (!c || !card || !bar) return;
+  var r = card.getBoundingClientRect(), cr = c.getBoundingClientRect();
+  bar.style.display = r.bottom < cr.top + 8 ? 'block' : 'none';
 }
 
 // ── save or splurge ──────────────────────────────────────────────────────
