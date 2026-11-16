@@ -31,3 +31,7 @@ Thumbs.db
 desktop.ini
 *.swp
 *~
+
+# Python bytecode, written whenever validate.py or freshness.py runs
+__pycache__/
+*.pyc

@@ -4230,9 +4230,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!/\/img\//.test(sw.split('addEventListener(\'fetch\'')[1] || '')) fail(T,
       'the fetch handler has no rule for img/, so the pictures are never ' +
       'served from the cache'); else ok();
-    if (!/cervinia-v2/.test(sw)) fail(T,
-      'the cache name was not bumped, so browsers keep the old cache and never ' +
-      'precache the pictures'); else ok();
+    if (!/cervinia-v3/.test(sw)) fail(T,
+      'the cache name was not bumped, so browsers keep the old cache - and with ' +
+      'it an offline copy that may be the privacy page'); else ok();
+    // only the site itself, and only a good answer, may become the offline copy
+    if (!/isHome && res && res\.ok/.test(sw)) fail(T,
+      'the worker stores any navigation as the offline copy again - the privacy ' +
+      'page or a 404 would be shown in place of the site with no signal'); else ok();
     // and the rule that was there before must still hold
     if (!/req\.mode !== 'navigate'/.test(sw)) fail(T,
       'the worker no longer leaves non-navigation requests alone - live data ' +

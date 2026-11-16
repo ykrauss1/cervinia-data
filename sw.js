@@ -17,12 +17,15 @@
  * Live data (Supabase, the scraper's data.json) is still never cached.
  */
 
-const CACHE = 'cervinia-v2';
+const CACHE = 'cervinia-v3';
 const FALLBACK = './index.html';
 
 // Precached at install so the map is there even for somebody who never opened
 // the maps panel while they still had a signal - which is most people.
-const STATIC = ['./manifest.json', './icon-192.png',
+// index.html is in the list as the parachute itself: with it here, the copy
+// for a day without signal exists from the moment the worker is installed
+// and is known to be the site. It is still answered network first.
+const STATIC = ['./index.html', './manifest.json', './icon-192.png',
                 './img/piste-map.jpg', './img/logo.png',
                 './files/packing-list.pdf'];
 
@@ -80,11 +83,21 @@ self.addEventListener('fetch', function (e) {
   // Only page navigations get the parachute. Everything else is left alone, so
   // live data (Supabase, the scraper's data.json) is never served from a cache.
   if (req.mode !== 'navigate') return;
+  // Only the site itself may become the parachute. Every navigation used to
+  // be stored under index.html - the privacy page, the /en/ hand-over page,
+  // a 404 - so whoever opened one of those last and then lost the signal was
+  // handed that page in place of the site. (v2 caches may hold such a copy;
+  // the cache name was bumped to v3 to drop them.)
+  const scopePath = new URL(self.registration.scope).pathname;
+  const isHome = !!url && url.origin === self.location.origin &&
+      (url.pathname === scopePath || url.pathname === scopePath + 'index.html');
   e.respondWith(
     fetch(req)
       .then(function (res) {
-        const copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(FALLBACK, copy); }).catch(function () {});
+        if (isHome && res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(function (c) { c.put(FALLBACK, copy); }).catch(function () {});
+        }
         return res;
       })
       .catch(function () {

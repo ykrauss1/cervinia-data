@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.90';
+  var v='v17.91';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -20139,7 +20139,16 @@ function esc(v) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
-function escJs(v) { return esc(v).replace(/'/g, "\\'"); }
+// For a value placed inside a quoted JS string inside an HTML attribute:
+// onclick="f('...')". The backslash has to be doubled BEFORE the quote is
+// escaped - without that, a name ending in \ turned the escaped quote back
+// into a closing one, and whatever followed it ran as code in the reader's
+// browser. Line breaks would end the string too.
+function escJs(v) {
+  return esc(String(v == null ? '' : v)
+    .replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+    .replace(/[\r\n\u2028\u2029]+/g, ' '));
+}
 function safeUrl(u) { return (typeof u === 'string' && /^https?:\/\//i.test(u)) ? u : ''; }
 
 function highlight(text, q) {
