@@ -2455,6 +2455,22 @@
       "t": "The Ru de la Plaine on the regional tourist site"
      }
     ]
+   },
+   {
+    "he": "Torgnon — a small, quiet family resort",
+    "what": "**About 20 km of runs**, mostly wide blues and reds, between 1,515 m and 2,246 m, all with snowmaking, on a sunny slope facing the Matterhorn. **No lift connection to Cervinia** — a separate resort, good for a family day or for beginners.",
+    "drive": "Torgnon · about 25 km, about 40 minutes — down to Antey-Saint-André and up to Torgnon",
+    "start": "The gondola from the village (Mongnod) to Chantorné, then the chairlifts",
+    "open": "Weekends 28–29/11, 5–8/12 and 12–13/12/2026, then every day from <bdi dir=\"ltr\">19/12/2026</bdi> to <bdi dir=\"ltr\">29/03/2027</bdi>",
+    "price": "Adult day ticket €30.50 on weekdays, €39.50 on Saturday–Sunday and holidays. **With a Cervinia pass of 3 days or more you can ski here one day** (two days on a 6–8 day pass), counted from the days you bought, not extra. Not on a one- or two-day pass. <a href=\"#\" onclick=\"openFrom('skiAreasModal','skipassModal');return false;\">Details in the ski pass card</a>."
+   },
+   {
+    "he": "Chamois — the village with no road",
+    "what": "**About 14 km of runs** between 1,812 m and about 2,500 m. **No road leads to the village** — you ride the cable car up from Buisson. A small, quiet resort with a beginners' slope by Lake Lod. **No lift connection to Cervinia.**",
+    "drive": "Buisson (near Antey-Saint-André) · about 18 km, about 25 minutes, then a short cable car",
+    "start": "Buisson–Chamois cable car: every half hour from 07:00 (every quarter hour when busy), last ride 22:30. Its own fares — €3.50 a ride, €5.50 return",
+    "open": "Weekends 28–29/11, 5–8/12 and 12–13/12/2026, then every day from <bdi dir=\"ltr\">19/12/2026</bdi> to <bdi dir=\"ltr\">29/03/2027</bdi>",
+    "price": "Adult day ticket about €25 on weekdays, about €30 at weekends (2025/26 prices — new ones not yet published). **With a Cervinia pass of 3 days or more you can ski here one day** (two days on a 6–8 day pass), counted from the days you bought, not extra. Not on a one- or two-day pass. <a href=\"#\" onclick=\"openFrom('skiAreasModal','skipassModal');return false;\">Details in the ski pass card</a>."
    }
   ],
   "footer": "All times are estimates: every trip from Cervinia starts with the same 27 km of hairpins dropping about 1,470 m to Châtillon, and the times published online are optimistic for winter. Add a quarter of an hour to the first leg, and check road and lift conditions before you set out."
@@ -3975,7 +3991,14 @@
      "25&nbsp;km<br>about 40&nbsp;min",
      "170&nbsp;km<br>about 2 h",
      "2,246&nbsp;m",
-     "small"
+     "about 20&nbsp;km"
+    ],
+    [
+     "Chamois",
+     "about 18&nbsp;km<br>about 25&nbsp;min + cable car",
+     "about 165&nbsp;km<br>about 2 h + cable car",
+     "about 2,500&nbsp;m",
+     "about 14&nbsp;km"
     ],
     [
      "Pila",
@@ -4024,6 +4047,106 @@
    "⚠️ <b>Before you drive</b> — check the area's link for which lifts are open there that morning. In strong wind the upper lifts close at the lower areas too."
   ],
   "cards_title": "The areas",
-  "footer": "Drive times from Google Maps, in normal traffic and without snow. The figures are from each area's official site, checked on 15/11/2026."
+  "footer": "Drive times from Google Maps, in normal traffic and without snow. The figures are from each area's official site, checked on 15/11/2026.",
+  "table_hint": "Tap a resort name in the table to jump to its details below.",
+  "details_btn": "⬇️ Details of the resorts in the table",
+  "italy_btn": "🗺️ The wider view: ski areas of northern Italy — from Milan to the Dolomites",
+  "ski_italy": {
+   "title": "🗺️ Ski areas of northern Italy",
+   "sub": "A general overview for orientation: what lies beyond our valley, how far it is and what is famous",
+   "intro": "All of northern Italy is one band of the Alps, running west to east. The **Aosta Valley**, home to Cervinia, is the western end: the highest part and the closest to Malpensa. East of it lie **Valtellina** in Lombardy, **Trentino** and finally the **Dolomites**, pale rock towers that turn pink at sunset and are a UNESCO World Heritage site. For the Dolomites, flying to **Venice** or **Verona** is easier than flying to Milan. Seen from here, the Aosta Valley is no accident: Italy's highest lifts and the crossing to Zermatt are two hours from Malpensa.",
+   "sections": [
+    {
+     "title": "🛫 By airport",
+     "table": {
+      "fancy": true,
+      "cols": [
+       "Region",
+       "Well-known areas",
+       "Best airport",
+       "Drive, roughly"
+      ],
+      "rows": [
+       [
+        "Aosta Valley",
+        "Cervinia, Pila, Courmayeur, Monterosa, La Thuile",
+        "Malpensa",
+        "2 to 2.5 hours"
+       ],
+       [
+        "Piedmont",
+        "Sestriere and the Via Lattea",
+        "Turin",
+        "about 1 h 45"
+       ],
+       [
+        "Near Milan",
+        "Piani di Bobbio, Madesimo",
+        "Milan",
+        "1 to 2.5 hours"
+       ],
+       [
+        "Valtellina",
+        "Bormio, Livigno",
+        "Bergamo, Malpensa",
+        "about 3 hours or more"
+       ],
+       [
+        "Western Trentino",
+        "Madonna di Campiglio, Tonale",
+        "Verona, Bergamo",
+        "about 2.5 to 3 hours"
+       ],
+       [
+        "The Dolomites",
+        "Cortina, Alta Badia, Val Gardena, Val di Fassa",
+        "Venice, Treviso, Verona",
+        "Cortina about 2 h; the rest 2.5 to 3 h"
+       ],
+       [
+        "Near Venice",
+        "Nevegal, Asiago",
+        "Venice",
+        "1 h 20 to 1.5 hours"
+       ]
+      ]
+     },
+     "text": "Times are for clear roads without snow. On a season weekend, and above all on a Saturday changeover day, the valley roads can add an hour or more."
+    },
+    {
+     "title": "🏔️ The big names",
+     "items": [
+      "<b>Dolomiti Superski.</b> One pass for 12 ski areas in the Dolomites: about 1,200 km of runs and some 450 lifts, the largest ski-pass network in the world. Not all of it is linked by lifts. Roughly half the runs connect around the Sella group, and the other areas are separate, reached by bus or car.",
+      "<b>The Sellaronda.</b> A full ski loop around the Sella massif, about 40 km, roughly half of it on lifts. It crosses four passes (Gardena, Sella, Pordoi and Campolongo) and four valleys: Val Gardena, Alta Badia, Arabba and Val di Fassa. There are two directions, orange clockwise and green anticlockwise. It takes a full day, and the advice is to set off by 10 am.",
+      "<b>The Great War tour (Giro della Grande Guerra).</b> About 80 km along the First World War front line between Italy and Austria, past old posts and tunnels.",
+      "<b>Cortina d'Ampezzo.</b> The \"Queen of the Dolomites\", an elegant town that hosted the 1956 Winter Olympics and again in 2026, together with Milan. About 120 km of runs, roughly two hours from Venice airport.",
+      "<b>Marmolada.</b> The highest mountain in the Dolomites, with a glacier. The lifts reach about 3,250 m, and one of the longest descents in the area starts there.",
+      "<b>Madonna di Campiglio.</b> An elegant resort below the Brenta Dolomites and the largest area in Trentino: about 156 km linked with Pinzolo and Folgarida-Marilleva. It is home to the World Cup night slalom (3Tre). About 2.5 hours from Verona, and over three hours from Malpensa.",
+      "<b>Ponte di Legno–Tonale (Adamello Ski).</b> About 100 km of runs on the border of Lombardy and Trentino. The area climbs to the Presena glacier at 3,000 m, so the season is long. From there an 11 km run descends to the village, one of the longest in Europe.",
+      "<b>Livigno and Bormio.</b> Two resorts at the far end of Valtellina, three hours or more from Milan. Livigno is a duty-free zone (cheap shopping) with about 115 km of runs, and it hosted the 2026 Olympic snowboard and freestyle events. Bormio has the Stelvio, the famous World Cup downhill, where the men's alpine events of the Olympics were held. Bormio also has hot springs.",
+      "<b>The Via Lattea (\"Milky Way\").</b> About 400 km of linked runs, from Sestriere to Montgenèvre in France, where the 2006 Turin Olympics were held. About 1 h 45 from Turin."
+     ]
+    },
+    {
+     "title": "🚡 Special lifts and places",
+     "items": [
+      "<b>From Cervinia to Zermatt without taking your skis off.</b> Ours: in winter you ski between Italy and Switzerland, and in recent years you can also cross by lift alone (the Matterhorn Alpine Crossing).",
+      "<b>Skyway Monte Bianco in Courmayeur.</b> A cable car whose cabins rotate 360 degrees, up to Punta Helbronner at about 3,466 m, facing Mont Blanc.",
+      "<b>Freccia nel Cielo (\"Arrow in the Sky\") in Cortina.</b> Three cable car sections from the town centre (1,216 m) to the summit of Tofana di Mezzo at 3,244 m.",
+      "<b>Lagazuoi and the Hidden Valley.</b> A cable car from the Falzarego pass to about 2,750 m, then a red run of about 8 km through a canyon of frozen waterfalls. At the bottom, <b>horses tow the skiers</b> on a rope to the next lift, for a few euros.",
+      "<b>From the train to the gondola.</b> At Kronplatz (Plan de Corones) you step off the train at Percha station and walk straight to the gondola.",
+      "<b>Night skiing.</b> Sestriere has a floodlit run open until 22:00, and Tonale has floodlit runs too."
+     ]
+    },
+    {
+     "title": "💬 A few useful words",
+     "items": [
+      "<b>Funivia</b>: cable car with a large cabin · <b>Cabinovia / Telecabina</b>: gondola, small cabins · <b>Seggiovia</b>: chairlift · <b>Sciovia / Skilift</b>: drag lift · <b>Tapis roulant</b>: beginners' conveyor.",
+      "<b>Carosello</b>: several resorts linked by lifts and runs into one network · <b>Passo</b>: mountain pass · <b>Rifugio</b>: mountain hut with food, sometimes beds · <b>Ghiacciaio</b>: glacier."
+     ]
+    }
+   ],
+   "footer": "A general overview for orientation only. Drive times are approximate, in good conditions. Figures from the ski areas' official sites and ski information sites, checked on 16/11/2026."
+  }
  }
 }
