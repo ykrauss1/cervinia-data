@@ -4116,26 +4116,169 @@
     {
      "title": "🏔️ The big names",
      "items": [
-      "<b>Dolomiti Superski.</b> One pass for 12 ski areas in the Dolomites: about 1,200 km of runs and some 450 lifts, the largest ski-pass network in the world. Not all of it is linked by lifts. Roughly half the runs connect around the Sella group, and the other areas are separate, reached by bus or car.",
-      "<b>The Sellaronda.</b> A full ski loop around the Sella massif, about 40 km, roughly half of it on lifts. It crosses four passes (Gardena, Sella, Pordoi and Campolongo) and four valleys: Val Gardena, Alta Badia, Arabba and Val di Fassa. There are two directions, orange clockwise and green anticlockwise. It takes a full day, and the advice is to set off by 10 am.",
-      "<b>The Great War tour (Giro della Grande Guerra).</b> About 80 km along the First World War front line between Italy and Austria, past old posts and tunnels.",
-      "<b>Cortina d'Ampezzo.</b> The \"Queen of the Dolomites\", an elegant town that hosted the 1956 Winter Olympics and again in 2026, together with Milan. About 120 km of runs, roughly two hours from Venice airport.",
-      "<b>Marmolada.</b> The highest mountain in the Dolomites, with a glacier. The lifts reach about 3,250 m, and one of the longest descents in the area starts there.",
-      "<b>Madonna di Campiglio.</b> An elegant resort below the Brenta Dolomites and the largest area in Trentino: about 156 km linked with Pinzolo and Folgarida-Marilleva. It is home to the World Cup night slalom (3Tre). About 2.5 hours from Verona, and over three hours from Malpensa.",
-      "<b>Ponte di Legno–Tonale (Adamello Ski).</b> About 100 km of runs on the border of Lombardy and Trentino. The area climbs to the Presena glacier at 3,000 m, so the season is long. From there an 11 km run descends to the village, one of the longest in Europe.",
-      "<b>Livigno and Bormio.</b> Two resorts at the far end of Valtellina, three hours or more from Milan. Livigno is a duty-free zone (cheap shopping) with about 115 km of runs, and it hosted the 2026 Olympic snowboard and freestyle events. Bormio has the Stelvio, the famous World Cup downhill, where the men's alpine events of the Olympics were held. Bormio also has hot springs.",
-      "<b>The Via Lattea (\"Milky Way\").</b> About 400 km of linked runs, from Sestriere to Montgenèvre in France, where the 2006 Turin Olympics were held. About 1 h 45 from Turin."
+      {
+       "h": "Dolomiti Superski",
+       "text": "One pass for 12 ski areas in the Dolomites: about 1,200 km of runs and some 450 lifts, the largest ski-pass network in the world. Not all of it is linked by lifts. Roughly half the runs connect around the Sella group, and the other areas are separate, reached by bus or car.",
+       "map": "Corvara in Badia",
+       "links": [
+        {
+         "t": "Official site",
+         "u": "https://www.dolomitisuperski.com/"
+        },
+        {
+         "t": "Runs open now",
+         "u": "https://www.dolomitisuperski.com/it/live-info/piste"
+        }
+       ]
+      },
+      {
+       "h": "The Sellaronda",
+       "text": "A full ski loop around the Sella massif, about 40 km, roughly half of it on lifts. It crosses four passes (Gardena, Sella, Pordoi and Campolongo) and four valleys: Val Gardena, Alta Badia, Arabba and Val di Fassa. There are two directions, orange clockwise and green anticlockwise. It takes a full day, and the advice is to set off by 10 am.",
+       "map": "Passo Pordoi",
+       "lat": "Sellaronda",
+       "links": [
+        {
+         "t": "About the loop and the map",
+         "u": "https://www.val-gardena.com/it/inverno/sellaronda/"
+        }
+       ]
+      },
+      {
+       "h": "The Great War tour",
+       "text": "About 80 km along the First World War front line between Italy and Austria, past old posts and tunnels.",
+       "map": "Passo Falzarego",
+       "lat": "Giro della Grande Guerra",
+       "links": [
+        {
+         "t": "Map of the tour (PDF)",
+         "u": "https://www.dolomitisuperski.com/dam/jcr:8403015d-28b8-404e-a5c3-121fdbb06983/DSS_GrandeGuerra_2026-2027_web.pdf"
+        }
+       ]
+      },
+      {
+       "h": "Cortina d'Ampezzo",
+       "text": "The \"Queen of the Dolomites\", an elegant town that hosted the 1956 Winter Olympics and again in 2026, together with Milan. About 120 km of runs, roughly two hours from Venice airport.",
+       "map": "Cortina d'Ampezzo"
+      },
+      {
+       "h": "Marmolada",
+       "text": "The highest mountain in the Dolomites, with a glacier. The lifts reach about 3,250 m, and one of the longest descents in the area starts there.",
+       "map": "Funivia Marmolada Malga Ciapela"
+      },
+      {
+       "h": "Madonna di Campiglio",
+       "text": "An elegant resort below the Brenta Dolomites and the largest area in Trentino: about 156 km linked with Pinzolo and Folgarida-Marilleva. It is home to the World Cup night slalom (3Tre). About 2.5 hours from Verona, and over three hours from Malpensa.",
+       "map": "Madonna di Campiglio",
+       "links": [
+        {
+         "t": "About the area",
+         "u": "https://www.visittrentino.info/en/trentino/ski-areas/skiarea-madonna-di-campiglio-dolomiti-di-brenta_md_2234"
+        }
+       ]
+      },
+      {
+       "h": "Ponte di Legno–Tonale",
+       "text": "About 100 km of runs on the border of Lombardy and Trentino. The area climbs to the Presena glacier at 3,000 m, so the season is long. From there an 11 km run descends to the village, one of the longest in Europe.",
+       "map": "Passo del Tonale",
+       "lat": "Ponte di Legno – Tonale",
+       "links": [
+        {
+         "t": "Official site",
+         "u": "https://www.pontedilegnotonale.com/"
+        }
+       ]
+      },
+      {
+       "h": "Livigno and Bormio",
+       "text": "Two resorts at the far end of Valtellina, three hours or more from Milan. Livigno is a duty-free zone (cheap shopping) with about 115 km of runs, and it hosted the 2026 Olympic snowboard and freestyle events. Bormio has the Stelvio, the famous World Cup downhill, where the men's alpine events of the Olympics were held. Bormio also has hot springs.",
+       "map": "Livigno",
+       "lat": "Livigno · Bormio",
+       "links": [
+        {
+         "t": "Livigno",
+         "u": "https://www.in-lombardia.it/en/tourism-in-lombardy/tourism-sondrio/livigno-ski-area"
+        },
+        {
+         "t": "Bormio",
+         "u": "https://www.in-lombardia.it/en/tourism-in-lombardy/tourism-sondrio/bormio-ski"
+        },
+        {
+         "t": "📍 Bormio on the map",
+         "map": "Bormio"
+        }
+       ]
+      },
+      {
+       "h": "The Milky Way",
+       "text": "About 400 km of linked runs, from Sestriere to Montgenèvre in France, where the 2006 Turin Olympics were held. About 1 h 45 from Turin.",
+       "map": "Sestriere",
+       "lat": "Via Lattea · Sestriere",
+       "links": [
+        {
+         "t": "About the area",
+         "u": "https://turismotorino.org/en/visit/things-to-do-and-things-to-see/mountain-in-winter/vialattea"
+        }
+       ]
+      }
      ]
     },
     {
      "title": "🚡 Special lifts and places",
      "items": [
-      "<b>From Cervinia to Zermatt without taking your skis off.</b> Ours: in winter you ski between Italy and Switzerland, and in recent years you can also cross by lift alone (the Matterhorn Alpine Crossing).",
-      "<b>Skyway Monte Bianco in Courmayeur.</b> A cable car whose cabins rotate 360 degrees, up to Punta Helbronner at about 3,466 m, facing Mont Blanc.",
-      "<b>Freccia nel Cielo (\"Arrow in the Sky\") in Cortina.</b> Three cable car sections from the town centre (1,216 m) to the summit of Tofana di Mezzo at 3,244 m.",
-      "<b>Lagazuoi and the Hidden Valley.</b> A cable car from the Falzarego pass to about 2,750 m, then a red run of about 8 km through a canyon of frozen waterfalls. At the bottom, <b>horses tow the skiers</b> on a rope to the next lift, for a few euros.",
-      "<b>From the train to the gondola.</b> At Kronplatz (Plan de Corones) you step off the train at Percha station and walk straight to the gondola.",
-      "<b>Night skiing.</b> Sestriere has a floodlit run open until 22:00, and Tonale has floodlit runs too."
+      {
+       "h": "From Cervinia to Zermatt without taking your skis off",
+       "text": "Ours: in winter you ski between Italy and Switzerland, and in recent years you can also cross by lift alone.",
+       "map": "Testa Grigia Plateau Rosa",
+       "lat": "Matterhorn Alpine Crossing"
+      },
+      {
+       "h": "The rotating cable car in Courmayeur",
+       "text": "A cable car whose cabins rotate 360 degrees, up to Punta Helbronner at about 3,466 m, facing Mont Blanc.",
+       "map": "Skyway Monte Bianco",
+       "lat": "Skyway Monte Bianco",
+       "links": [
+        {
+         "t": "About the cable car",
+         "u": "https://balteus.lovevda.it/en/database/5/ski-lifts/courmayeur/skyway-monte-bianco/4137"
+        }
+       ]
+      },
+      {
+       "h": "\"Arrow in the Sky\" in Cortina",
+       "text": "Three cable car sections from the town centre (1,216 m) to the summit of Tofana di Mezzo at 3,244 m.",
+       "map": "Funivia Freccia nel Cielo Cortina",
+       "lat": "Freccia nel Cielo",
+       "links": [
+        {
+         "t": "Official site",
+         "u": "https://www.freccianelcielo.com/en/?p=4638"
+        }
+       ]
+      },
+      {
+       "h": "Lagazuoi and the Hidden Valley",
+       "text": "A cable car from the Falzarego pass to about 2,750 m, then a red run of about 8 km through a canyon of frozen waterfalls. At the bottom, <b>horses tow the skiers</b> on a rope to the next lift, for a few euros.",
+       "map": "Funivia Lagazuoi Passo Falzarego",
+       "lat": "Lagazuoi · Hidden Valley",
+       "links": [
+        {
+         "t": "How to do the tour",
+         "u": "https://www.altabadia.org/en/poi/cosa-fare-in-alta-badia/dettaglio/poi/lagazuoi-skitour"
+        }
+       ]
+      },
+      {
+       "h": "From the train to the gondola",
+       "text": "At Kronplatz you step off the train at Percha station and walk straight to the gondola.",
+       "map": "Bahnhof Percha",
+       "lat": "Kronplatz · Plan de Corones"
+      },
+      {
+       "h": "Night skiing",
+       "text": "Sestriere has a floodlit run open until 22:00, and Tonale has floodlit runs too.",
+       "map": "Sestriere",
+       "lat": "Sestriere"
+      }
      ]
     },
     {
@@ -4144,9 +4287,45 @@
       "<b>Funivia</b>: cable car with a large cabin · <b>Cabinovia / Telecabina</b>: gondola, small cabins · <b>Seggiovia</b>: chairlift · <b>Sciovia / Skilift</b>: drag lift · <b>Tapis roulant</b>: beginners' conveyor.",
       "<b>Carosello</b>: several resorts linked by lifts and runs into one network · <b>Passo</b>: mountain pass · <b>Rifugio</b>: mountain hut with food, sometimes beds · <b>Ghiacciaio</b>: glacier."
      ]
+    },
+    {
+     "title": "🔗 Useful links",
+     "items": [
+      {
+       "h": "Dolomiti Superski",
+       "text": "Maps, pass prices and the state of the runs in all 12 areas.",
+       "links": [
+        {
+         "t": "dolomitisuperski.com",
+         "u": "https://www.dolomitisuperski.com/"
+        }
+       ]
+      },
+      {
+       "h": "Skiing near Milan",
+       "text": "The Milanese favourites, from Italy's official tourism site.",
+       "links": [
+        {
+         "t": "italia.it",
+         "u": "https://Italia.it/en/lombardy/milan/things-to-do/5-ski-resorts-near-milan"
+        }
+       ]
+      },
+      {
+       "h": "Skiing near Venice",
+       "text": "The areas closest to Venice, nearest first.",
+       "links": [
+        {
+         "t": "italia.it",
+         "u": "https://www.italia.it/en/veneto/things-to-do/skiing-in-veneto"
+        }
+       ]
+      }
+     ]
     }
    ],
    "footer": "A general overview for orientation only. Drive times are approximate, in good conditions. Figures from the ski areas' official sites and ski information sites, checked on 16/11/2026."
-  }
+  },
+  "italy_top": "🗺️ The wider view: every ski area in northern Italy, as far as the Dolomites →"
  }
 }

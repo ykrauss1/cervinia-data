@@ -1436,7 +1436,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.84';
+  var v='v17.85';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4494,7 +4494,10 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
     <span class="close-btn" onclick="closeM('skiAreasModal')">×</span>
     <h3 id="ska-title" style="margin:0 0 4px;font-size:1.1rem;"></h3>
     <div id="ska-sub" style="font-size:0.8rem;color:#888;margin-bottom:12px;"></div>
-    <div id="ska-intro" style="font-size:0.84rem;color:#555;line-height:1.85;margin-bottom:12px;"></div>
+    <div id="ska-intro" style="font-size:0.84rem;color:#555;line-height:1.85;margin-bottom:10px;"></div>
+    <!-- the wider overview was only at the very end, where nobody found it
+         (Yossi, 16.11) - so a door to it here as well -->
+    <a id="ska-italy-top" href="#" onclick="openFrom('skiAreasModal','skiItalyModal');return false;" style="display:block;margin:0 0 12px;padding:9px 12px;border-radius:10px;background:#eef4fb;border:1.5px solid #c5d8ee;color:#1a3a6c;font-weight:bold;font-size:0.8rem;text-decoration:none;line-height:1.5;"></a>
     <div id="ska-table" style="overflow-x:auto;"></div>
     <!-- the names in the table lead to their cards, and one button leads to
          all of them (Yossi, 16.11) -->
@@ -16575,7 +16578,7 @@ function renderSkiAreas(k) {
   if (k.verdict) put('ska-verdict', k.verdict.map(function (v) {
     return '<div style="margin-bottom:9px;">' + _fixNums(_aEsc(v)) + '</div>';
   }).join(''));
-  put('ska-table-hint', k.table_hint); put('ska-details-btn', k.details_btn); put('ska-italy-btn', k.italy_btn);
+  put('ska-table-hint', k.table_hint); put('ska-details-btn', k.details_btn); put('ska-italy-btn', k.italy_btn); put('ska-italy-top', k.italy_top);
   var keys = (k.table && k.table.keys) || [];
   var places = ((_aroundData && _aroundData.places) || []).filter(function (p) { return p.cat === 'ski'; });
   // the cards come in the order of the table, so "details below" reads down
@@ -16617,7 +16620,27 @@ function renderSkiItaly(k) {
     if (sec.table) h += '<div style="overflow-x:auto;">' + _trTableHtml(sec.table) + '</div>';
     if (sec.text) h += '<div style="font-size:0.78rem;color:#777;line-height:1.75;margin:-4px 0 9px;">' + _fixNums(_aEsc(sec.text)) + '</div>';
     (sec.items || []).forEach(function (it) {
-      h += '<div style="font-size:0.82rem;color:#444;line-height:1.85;margin-bottom:9px;">' + _fixNums(_aEsc(it)) + '</div>';
+      if (typeof it === 'string') {
+        h += '<div style="font-size:0.82rem;color:#444;line-height:1.85;margin-bottom:9px;">' + _fixNums(_aEsc(it)) + '</div>';
+        return;
+      }
+      // A name, its Latin name in its own isolate, then a dash: a full stop
+      // after a Latin name at the head of a Hebrew line lands on the wrong
+      // side (Yossi, 16.11), a dash between two isolated runs does not.
+      var aSty = 'style="font-size:0.76rem;color:#1a4b8c;text-decoration:underline;"';
+      var links = [];
+      if (it.map) links.push('<a href="' + _gUrl(it.map) + '" target="_blank" rel="noopener" ' + aSty + '>'
+        + L('📍 במפה', '📍 On the map') + '</a>');
+      (it.links || []).forEach(function (k) {
+        var href = k.u || (k.map ? _gUrl(k.map) : '');
+        if (href) links.push('<a href="' + href + '" target="_blank" rel="noopener" ' + aSty + '>' + _aEsc(k.t) + '</a>');
+      });
+      h += '<div style="font-size:0.82rem;color:#444;line-height:1.85;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid #f0f3f7;">'
+        + '<b>' + _aEsc(it.h) + '</b>'
+        + (it.lat ? ' <bdi dir="ltr" style="color:#7b8798;font-size:0.76rem;">' + _aEsc(it.lat) + '</bdi>' : '')
+        + ' — ' + _fixNums(_aEsc(it.text))
+        + (links.length ? '<div style="margin-top:4px;display:flex;gap:4px 14px;flex-wrap:wrap;">' + links.join('') + '</div>' : '')
+        + '</div>';
     });
     return h;
   }).join(''));
