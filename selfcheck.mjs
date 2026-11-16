@@ -8307,7 +8307,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     out.valtIdea = !!firstSave && /החיסכון הגדול ביותר — הלינה/.test(firstSave.textContent)
       && /Cielo Alto/.test(firstSave.textContent) && /ולטורננש/.test(firstSave.textContent)
       && !!firstSave.querySelector('a[onclick*="lodgingModal"]');
-    out.noOwnGear = !/מביאים ציוד מהארץ/.test(ideaText()) && !/Genzianella/.test(ideaText()) && /חפשו חנות השכרה זולה/.test(ideaText());
+    out.noOwnGear = !/מביאים ציוד מהארץ/.test(ideaText()) && !/Genzianella/.test(ideaText()) && /חפש חנות השכרה זולה/.test(ideaText());
     // half a day is always said: for 6 days the extra day costs less than a half-day ticket
     const SP = window._texts.skipass.prices;
     const half2 = 2 * parseFloat(SP.cervinia.rows.find(r => /חצי יום/.test(r[0]))[1 + SP.columns.indexOf('Adult')]);
