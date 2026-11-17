@@ -1372,6 +1372,11 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
   <!-- Cropper.js for avatar cropping -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" rel="stylesheet">
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+  <!-- Visit counting (Yossi, 17.11): GoatCounter - no cookies, no personal
+     data. The numbers are at cervinialive.goatcounter.com. To leave your own
+     browser out of the count, open the site once with #toggle-goatcounter
+     at the end of the address. privacy.html describes this; keep them in step. -->
+  <script data-goatcounter="https://cervinialive.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <!-- ══ Service icons ══════════════════════════════════════════════════
@@ -1437,7 +1442,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.08';
+  var v='v18.09';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
