@@ -1437,7 +1437,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.07';
+  var v='v18.08';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7046,7 +7046,7 @@ function loadMap(type) {
 // the position is placed on it exactly. The position never leaves the
 // device. Tiles seen once are kept by the service worker, so the part of the
 // mountain already looked at still shows with no signal.
-var GEO = { map: null, watch: null, me: null, acc: null, first: true, lib: null };
+var GEO = { map: null, watch: null, me: null, acc: null, first: true, lib: null, hi: true };
 var GEO_HOME = [45.9364, 7.6269];          // Breuil-Cervinia
 var GEO_LEAFLET = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/';
 
@@ -7061,6 +7061,12 @@ function _geoLib() {
     var css = document.createElement('link');
     css.rel = 'stylesheet'; css.href = GEO_LEAFLET + 'leaflet.css';
     document.head.appendChild(css);
+    // On screens scaled by a fraction (Windows at 125%, many phones) the
+    // tiles land on half pixels and thin white seams show between them.
+    // Half a pixel of overlap closes them.
+    var fix = document.createElement('style');
+    fix.textContent = '#map-geo .leaflet-tile{width:256.5px!important;height:256.5px!important}';
+    document.head.appendChild(fix);
     var keep = window.L;
     var sc = document.createElement('script');
     sc.src = GEO_LEAFLET + 'leaflet.js';
@@ -7122,8 +7128,19 @@ function geoLocate() {
   geoStop();
   GEO.first = true;
   _geoMsg(L('⏳ מחפש את המיקום שלך…', '⏳ Finding your position…'));
+  // A rough position first, from Wi-Fi or the network, in a few seconds -
+  // then the GPS sharpens it. A computer has no GPS at all: asked only for
+  // high accuracy it times out, which is what happened on the first try.
+  navigator.geolocation.getCurrentPosition(_geoFix, function () {},
+    { enableHighAccuracy: false, maximumAge: 60000, timeout: 15000 });
+  _geoWatch(true);
+}
+
+function _geoWatch(hi) {
+  if (GEO.watch !== null) { try { navigator.geolocation.clearWatch(GEO.watch); } catch (e) {} }
+  GEO.hi = hi;
   GEO.watch = navigator.geolocation.watchPosition(_geoFix, _geoErr,
-    { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
+    { enableHighAccuracy: hi, maximumAge: 5000, timeout: hi ? 30000 : 20000 });
 }
 
 function _geoFix(pos) {
@@ -7137,7 +7154,7 @@ function _geoFix(pos) {
   } else {
     GEO.me.setLatLng(ll); GEO.acc.setLatLng(ll); GEO.acc.setRadius(acc);
   }
-  var far = GEO.map.distance(ll, GEO_HOME) > 25000;
+  var far = GEO.far = GEO.map.distance(ll, GEO_HOME) > 25000;
   if (GEO.first) {
     GEO.first = false;
     if (far) GEO.map.setView(GEO_HOME, 13);
@@ -7157,9 +7174,13 @@ function _geoFix(pos) {
 }
 
 function _geoErr(err) {
+  // No GPS answer in time (a computer, or indoors): carry on with the
+  // network's position rather than give up.
+  if (err && err.code === 3 && GEO.hi) { _geoWatch(false); return; }
   // Once there is a position, a lost fix under a lift or in a gully is
   // normal and passes; the dot stays where it was and the watch goes on.
   if (GEO.me && !(err && err.code === 1)) {
+    if (GEO.far) return;       // the away-from-Cervinia note stays
     _geoMsg('🔵 ' + L('המיקום האחרון שנמצא. מחכה לעדכון…', 'Last position found. Waiting for an update…'));
     return;
   }
