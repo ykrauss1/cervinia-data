@@ -24,7 +24,12 @@
  *    alone, never cached.
  */
 
-const CACHE = 'cervinia-v4';
+const CACHE = 'cervinia-v5';
+// Map tiles seen on the "where am I" map. A separate cache, kept across
+// versions, trimmed to TILE_MAX - the tile servers forbid bulk downloading,
+// so only tiles the reader actually looked at are ever kept.
+const TILES = 'cervinia-tiles';
+const TILE_MAX = 800;
 const FALLBACK = './index.html';
 const SLOW_MS = 4000;
 
@@ -42,12 +47,15 @@ const STATIC = ['./index.html', './manifest.json', './icon-192.png',
                 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css',
                 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
                 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'];
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+                'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+                'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css'];
 
 // Libraries are pinned to a version in their address, so a cached copy is
 // the same file the network would send.
-const CDN = /^https:\/\/(cdn\.jsdelivr\.net\/npm\/(flatpickr|@supabase\/supabase-js|@emailjs\/browser)|cdnjs\.cloudflare\.com\/ajax\/libs\/(pdf\.js|cropperjs))\//;
+const CDN = /^https:\/\/(cdn\.jsdelivr\.net\/npm\/(flatpickr|@supabase\/supabase-js|@emailjs\/browser|leaflet)|cdnjs\.cloudflare\.com\/ajax\/libs\/(pdf\.js|cropperjs))\//;
 // The two live answers worth keeping for a day without signal.
+const TILE = /^https:\/\/(tile\.openstreetmap\.org|tiles\.opensnowmap\.org\/pistes)\/\d+\/\d+\/\d+\.png$/;
 const LIVE = /^https:\/\/(api\.open-meteo\.com\/v1\/forecast|[a-z0-9]+\.supabase\.co\/rest\/v1\/ski_status_history\?)/;
 
 self.addEventListener('install', function (e) {
@@ -69,7 +77,7 @@ self.addEventListener('install', function (e) {
 self.addEventListener('activate', function (e) {
   e.waitUntil(
     caches.keys()
-      .then(function (ks) { return Promise.all(ks.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); })); })
+      .then(function (ks) { return Promise.all(ks.filter(function (k) { return k !== CACHE && k !== TILES; }).map(function (k) { return caches.delete(k); })); })
       .then(function () { return self.clients.claim(); })
   );
 });
@@ -138,6 +146,25 @@ self.addEventListener('fetch', function (e) {
   // ── libraries from the CDNs: cache first ──────────────────────────────
   if (CDN.test(req.url)) {
     e.respondWith(cacheFirst(req));
+    return;
+  }
+
+  // ── map tiles: from the cache if seen before, else the network ───────
+  if (TILE.test(req.url)) {
+    e.respondWith(caches.open(TILES).then(function (c) {
+      return c.match(req.url).then(function (hit) {
+        if (hit) return hit;
+        return fetch(req).then(function (res) {
+          if (res && (res.ok || res.type === 'opaque')) {
+            c.put(req.url, res.clone()).then(function () { return c.keys(); }).then(function (ks) {
+              // oldest first; drop the surplus
+              if (ks.length > TILE_MAX) return Promise.all(ks.slice(0, ks.length - TILE_MAX).map(function (k) { return c.delete(k); }));
+            }).catch(function () {});
+          }
+          return res;
+        });
+      });
+    }));
     return;
   }
 

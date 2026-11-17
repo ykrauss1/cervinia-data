@@ -1437,7 +1437,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.06';
+  var v='v18.07';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4896,6 +4896,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
     <!-- כפתורי בחירה -->
     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;flex-shrink:0;">
       <div style="display:flex;gap:6px;">
+        <button class="service-btn map-pick" data-map="gps" style="flex:1;padding:9px 6px;font-size:0.78rem;font-weight:bold;" onclick="loadMap('gps')" data-en="📡 Where am I">📡 איפה אני</button>
         <button class="service-btn map-pick" data-map="mymap" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('mymap')" data-en="📍 Points of interest">📍 נקודות ציון</button>
         <button class="service-btn map-pick" data-map="town" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('town')" data-en="🏘️ Village map">🏘️ מפת הכפר</button>
       </div>
@@ -4976,6 +4977,17 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
            screen never actually grew. The size is set after each render. -->
         <canvas id="map-pdf-canvas" style="display:block;margin:0 auto;cursor:grab;"></canvas>
         <div id="map-pdf-pages" style="font-size:0.78rem;color:#888;padding:6px;display:none;"></div>
+      </div>
+      <!-- where am I: a real map (OpenStreetMap + the OpenSnowMap piste layer)
+           with the reader's own position. Built only when asked for. -->
+      <div id="map-geo-wrap" style="display:none;position:absolute;inset:0;flex-direction:column;background:#fff;">
+        <div id="map-geo" dir="ltr" style="flex:1;min-height:0;"></div>
+        <div id="map-geo-bar" style="flex-shrink:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 9px;border-top:1px solid #e3eaf2;font-size:0.76rem;color:#33475b;background:#f8fbfe;">
+          <button type="button" id="map-geo-btn" onclick="geoLocate()"
+            style="padding:6px 12px;border-radius:8px;border:none;background:#1a73e8;color:#fff;font-weight:bold;font-family:inherit;font-size:0.78rem;cursor:pointer;"
+            data-en="📍 Show my location">📍 הצג את המיקום שלי</button>
+          <span id="map-geo-msg" style="flex:1;min-width:160px;line-height:1.5;"></span>
+        </div>
       </div>
       <!-- iframe (מפת הכפר) -->
       <iframe id="map-frame" src="" width="100%" height="100%" style="border:none;display:none;position:absolute;inset:0;"></iframe>
@@ -6928,6 +6940,9 @@ function _mapReset() {
   // the last sheet's marks would otherwise sit on them.
   var _rl = document.getElementById('map-route-layer');
   if (_rl) _rl.style.display = 'none';
+  var geoWrap = document.getElementById('map-geo-wrap');
+  if (geoWrap) geoWrap.style.display = 'none';
+  if (typeof geoStop === 'function') geoStop();
   if (frame)  { frame.style.display = 'none'; frame.src = ''; }
   if (ph)     { ph.style.display = 'flex'; ph.innerHTML = '<span style="font-size:2rem;">⏳</span><span>' + L('טוען...', 'Loading...') + '</span>'; }
   if (toolbar) toolbar.style.display = 'none';
@@ -6946,6 +6961,7 @@ function loadMap(type) {
   _mapCancel();
   _mapReset();
   _mapMarkPick(type);
+  if (type === 'gps') { geoOpen(); return; }
   var pdfFiles = { 'piste-all':'slopesmap.pdf', 'piste':'slopesmap.pdf', 'piste-cervinia':'cerviniaslopesmap.pdf', 'piste-valtournenche':'valtournencheslopesmap.pdf', 'piste-swiss':'swissslopesmap.pdf' };
   // Relative, not the full github.io address it used to be. Once a custom
   // domain is attached, GitHub REDIRECTS the old URL to the new one, so a
@@ -7020,6 +7036,141 @@ function loadMap(type) {
         + '<a href="https://maps.apple.com/?ll=45.9364,7.6269&q=Breuil-Cervinia" target="_blank" style="padding:7px 14px;background:#555;color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:0.82rem;">🍎 Apple Maps</a>';
     }
   }
+}
+
+// ── where am I ────────────────────────────────────────────────────────────
+//
+// The piste maps are drawn panoramas: a GPS position cannot be put on them by
+// any formula. So "where am I" is a real map - OpenStreetMap, with the
+// OpenSnowMap layer of pistes and lifts over it, run numbers included - and
+// the position is placed on it exactly. The position never leaves the
+// device. Tiles seen once are kept by the service worker, so the part of the
+// mountain already looked at still shows with no signal.
+var GEO = { map: null, watch: null, me: null, acc: null, first: true, lib: null };
+var GEO_HOME = [45.9364, 7.6269];          // Breuil-Cervinia
+var GEO_LEAFLET = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/';
+
+function _geoMsg(html) { var m = document.getElementById('map-geo-msg'); if (m) m.innerHTML = html; }
+
+function _geoLib() {
+  if (window.Leaflet) return Promise.resolve(window.Leaflet);
+  if (GEO.lib) return GEO.lib;
+  // The site's own L() is the translation helper; Leaflet also wants the
+  // global L. Leaflet is loaded with noConflict, so the helper is kept.
+  GEO.lib = new Promise(function (resolve, reject) {
+    var css = document.createElement('link');
+    css.rel = 'stylesheet'; css.href = GEO_LEAFLET + 'leaflet.css';
+    document.head.appendChild(css);
+    var keep = window.L;
+    var sc = document.createElement('script');
+    sc.src = GEO_LEAFLET + 'leaflet.js';
+    sc.onload = function () {
+      var lf = window.L;
+      if (lf && lf.noConflict) { lf.noConflict(); }
+      window.L = keep;
+      window.Leaflet = lf;
+      resolve(lf);
+    };
+    sc.onerror = function () { GEO.lib = null; reject(new Error('leaflet')); };
+    document.head.appendChild(sc);
+  });
+  return GEO.lib;
+}
+
+function geoOpen() {
+  var ph = document.getElementById('map-placeholder');
+  var wrap = document.getElementById('map-geo-wrap');
+  _geoLib().then(function (lf) {
+    if (_mapCurrentType !== 'gps') return;
+    if (ph) ph.style.display = 'none';
+    if (wrap) wrap.style.display = 'flex';
+    if (!GEO.map) {
+      GEO.map = lf.map('map-geo', { zoomControl: true, attributionControl: true }).setView(GEO_HOME, 14);
+      lf.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18, referrerPolicy: 'strict-origin-when-cross-origin',
+        attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+      }).addTo(GEO.map);
+      lf.tileLayer('https://tiles.opensnowmap.org/pistes/{z}/{x}/{y}.png', {
+        maxZoom: 18, referrerPolicy: 'strict-origin-when-cross-origin',
+        attribution: '<a href="https://www.opensnowmap.org" target="_blank">OpenSnowMap</a> CC-BY-SA'
+      }).addTo(GEO.map);
+      GEO.map.attributionControl.setPrefix(false);
+    }
+    setTimeout(function () { if (GEO.map) GEO.map.invalidateSize(); }, 60);
+    _geoMsg(L('המסלולים והמעליות מסומנים עם המספרים של המפה הרשמית. <b>המיקום שלך נשאר במכשיר</b> ולא נשלח לשום מקום.',
+              'Runs and lifts carry the numbers of the official map. <b>Your position stays on your device</b> and is sent nowhere.'));
+  }).catch(function () {
+    if (ph) {
+      ph.style.display = 'flex';
+      ph.innerHTML = '<span style="font-size:2rem;">📵</span><span style="text-align:center;padding:0 16px;">'
+        + L('המפה צריכה קליטה בפעם הראשונה. בינתיים אפשר להשתמש במפות המסלולים שלמטה.',
+            'The map needs a signal the first time. Meanwhile, the piste maps below work.') + '</span>';
+    }
+  });
+}
+
+function geoStop() {
+  if (GEO.watch !== null && navigator.geolocation) { try { navigator.geolocation.clearWatch(GEO.watch); } catch (e) {} }
+  GEO.watch = null;
+  var b = document.getElementById('map-geo-btn');
+  if (b) { b.style.display = ''; }
+}
+
+function geoLocate() {
+  if (!navigator.geolocation) { _geoMsg(L('הדפדפן הזה לא תומך במיקום.', 'This browser cannot give a location.')); return; }
+  if (!GEO.map) return;
+  geoStop();
+  GEO.first = true;
+  _geoMsg(L('⏳ מחפש את המיקום שלך…', '⏳ Finding your position…'));
+  GEO.watch = navigator.geolocation.watchPosition(_geoFix, _geoErr,
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
+}
+
+function _geoFix(pos) {
+  var lf = window.Leaflet;
+  if (!lf || !GEO.map) return;
+  var c = pos.coords, ll = [c.latitude, c.longitude];
+  var acc = Math.round(c.accuracy || 0);
+  if (!GEO.me) {
+    GEO.acc = lf.circle(ll, { radius: acc, color: '#1a73e8', weight: 1, fillColor: '#1a73e8', fillOpacity: 0.12, interactive: false }).addTo(GEO.map);
+    GEO.me = lf.circleMarker(ll, { radius: 8, color: '#fff', weight: 3, fillColor: '#1a73e8', fillOpacity: 1 }).addTo(GEO.map);
+  } else {
+    GEO.me.setLatLng(ll); GEO.acc.setLatLng(ll); GEO.acc.setRadius(acc);
+  }
+  var far = GEO.map.distance(ll, GEO_HOME) > 25000;
+  if (GEO.first) {
+    GEO.first = false;
+    if (far) GEO.map.setView(GEO_HOME, 13);
+    else GEO.map.setView(ll, Math.max(GEO.map.getZoom(), 15));
+  }
+  var b = document.getElementById('map-geo-btn');
+  if (b) b.style.display = 'none';
+  if (far) {
+    _geoMsg(L('נראה שאתה לא באזור צ\'רוויניה, אז המפה נשארת על אתר הסקי. כשתהיה שם, הנקודה הכחולה תראה איפה אתה.',
+              'You seem to be away from Cervinia, so the map stays on the ski area. Once you are there, the blue dot shows where you are.'));
+    return;
+  }
+  var alt = (c.altitude !== null && c.altitude !== undefined && !isNaN(c.altitude))
+    ? ' · ' + L('גובה כ-', 'altitude about ') + (Math.round(c.altitude / 10) * 10).toLocaleString('en-US') + L(' מ\'', ' m') : '';
+  _geoMsg('🔵 <b>' + L('אתה כאן', 'You are here') + '</b> · ' + L('דיוק של כ-', 'accurate to about ') + acc + L(' מ\'', ' m') + alt
+    + ' · <a href="#" onclick="GEO.map.setView(GEO.me.getLatLng(), Math.max(GEO.map.getZoom(),15));return false;">' + L('למרכז', 'Centre') + '</a>');
+}
+
+function _geoErr(err) {
+  // Once there is a position, a lost fix under a lift or in a gully is
+  // normal and passes; the dot stays where it was and the watch goes on.
+  if (GEO.me && !(err && err.code === 1)) {
+    _geoMsg('🔵 ' + L('המיקום האחרון שנמצא. מחכה לעדכון…', 'Last position found. Waiting for an update…'));
+    return;
+  }
+  geoStop();
+  var t;
+  if (err && err.code === 1) t = L('לא ניתנה הרשאה למיקום. אפשר לאשר אותה בהגדרות הדפדפן (סמל המנעול ליד הכתובת), ולנסות שוב.',
+                                   'Location permission was not given. Allow it in the browser settings (the lock icon by the address) and try again.');
+  else if (err && err.code === 3) t = L('לא נמצא מיקום בזמן. בחוץ, עם שמיים פתוחים, זה עובד טוב יותר. נסה שוב.',
+                                        'No position in time. Outdoors, under open sky, it works better. Try again.');
+  else t = L('לא הצלחתי לקבל מיקום. נסה שוב.', 'Could not get a position. Try again.');
+  _geoMsg('⚠️ ' + t);
 }
 
 var _mapRender = null;      // the render in flight, if any
@@ -19701,10 +19852,11 @@ const SEARCH_INDEX = [
   { text: 'אל על ארקיע ישראייר כרטיס lite classic flex טרולי מזוודה ציוד סקי כבודה', action: "openWizzGuide('il_air')", icon: '🧳', label: 'אל על, ארקיע, ישראייר — מה כלול' },
   { text: 'פילה pila קורמאיור courmayeur לה טואיל la thuile מונטרוזה monterosa שמפולוק champoluc גרסוני gressoney טורגנון torgnon שמואה chamois אתר סקי אחר רוח סגור', action: "openSkiAreas()", icon: '🎿', label: 'אתרי סקי נוספים באזור' },
   { text: 'דולומיטים dolomites מדונה די קמפיליו madonna di campiglio סלה רונדה sella ronda קורטינה cortina ליביניו livigno בורמיו bormio ונציה venice צפון איטליה אתרי סקי', action: "openM('skiItalyModal')", icon: '🗺️', label: 'אתרי הסקי של צפון איטליה' },
+  { text: 'איפה אני מיקום gps where am i location נקודה כחולה', action: "openM('mapModal');loadMap('gps')", icon: '📡', label: 'איפה אני' },
 ];
 // English: the same entries, searchable by English words and labelled in English.
 if (window.LANG === 'en') {
-  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving cretaz", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"], ["pila courmayeur la thuile monterosa champoluc gressoney torgnon chamois other ski area resort wind closed", "Other ski areas nearby"], ["dolomites madonna di campiglio sella ronda cortina livigno bormio venice northern italy ski areas", "Ski areas of northern Italy"]].forEach(function (e, k) {
+  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving cretaz", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"], ["pila courmayeur la thuile monterosa champoluc gressoney torgnon chamois other ski area resort wind closed", "Other ski areas nearby"], ["dolomites madonna di campiglio sella ronda cortina livigno bormio venice northern italy ski areas", "Ski areas of northern Italy"], ["where am I my location gps blue dot", "Where am I"]].forEach(function (e, k) {
     if (SEARCH_INDEX[k]) { SEARCH_INDEX[k].text += ' ' + e[0]; SEARCH_INDEX[k].label = e[1]; }
   });
 }

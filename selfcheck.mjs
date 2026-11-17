@@ -4247,6 +4247,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       'the texts are not precached, so with no signal the site opens empty'); else ok();
     // the only live answers kept are the lift reading and the forecast;
     // anything that signs in or writes must never come from a cache
+    // the tiles of the "where am I" map are kept across versions
+    if (/const TILES/.test(sw) && !/k !== TILES/.test(sw)) fail(T,
+      'activating a new worker deletes the saved map tiles'); else ok();
     const live = (sw.match(/const LIVE = (.*);/) || [])[1] || '';
     if (/auth|profiles|posts|replies|reactions|settings/.test(live)) fail(T,
       'the worker caches personal or community data: ' + live); else ok();
