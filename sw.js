@@ -8,7 +8,8 @@
  *  - The page itself (navigations): network first, the cached copy only as a
  *    parachute. index.html changes on most deploys; cache-first would keep
  *    serving yesterday's app.
- *  - The texts (texts.json, texts.en.json, manifest.json): network first too,
+ *  - The texts (texts.json, texts.en.json, manifest.json) and the ski
+ *    router's graph (data/ski-graph-*.json): network first too,
  *    for the same reason - but without them the page is an empty shell, so
  *    they are precached and answered from the cache when the network fails
  *    or is too slow. A weak signal that never answers is the usual case on a
@@ -24,7 +25,7 @@
  *    alone, never cached.
  */
 
-const CACHE = 'cervinia-v5';
+const CACHE = 'cervinia-v6';
 // Map tiles seen on the "where am I" map. A separate cache, kept across
 // versions, trimmed to TILE_MAX - the tile servers forbid bulk downloading,
 // so only tiles the reader actually looked at are ever kept.
@@ -39,6 +40,9 @@ const SLOW_MS = 4000;
 // the maps panel saves them on request, and opening one saves it too.
 const STATIC = ['./index.html', './manifest.json', './icon-192.png',
                 './texts.json', './texts.en.json',
+                // the ski router's map of runs and lifts: routing is wanted
+                // most exactly where there is no signal
+                './data/ski-graph-cervinia.json',
                 './img/piste-map.jpg', './img/logo.png', './img/montblanc.webp',
                 './hero-cervino.jpg', './mymap.jpg', './town-map.jpg',
                 './maps/route-grand_tour.jpg', './maps/route-ventina.jpg', './maps/route-warmup.jpg',
@@ -130,7 +134,7 @@ self.addEventListener('fetch', function (e) {
   const rel = same ? url.pathname.slice(scopePath.length) : '';
 
   // ── the texts: network first, the saved copy when slow or offline ─────
-  if (same && /^(texts\.json|texts\.en\.json|manifest\.json)$/.test(rel)) {
+  if (same && /^(texts\.json|texts\.en\.json|manifest\.json|data\/ski-graph-[a-z0-9-]+\.json)$/.test(rel)) {
     // one key per file, whatever ?query the page added
     e.respondWith(networkFirst(req, './' + rel, SLOW_MS));
     return;

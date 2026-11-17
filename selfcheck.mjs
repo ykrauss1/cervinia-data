@@ -2305,6 +2305,51 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (Math.abs(r.east - 90) > 1 || r.north % 360 > 1) fail(T, `the compass is wrong: east ${r.east}, north ${r.north}`); else ok();
 }
 
+// ── the ski router keeps to the level that was asked for ─────────────────
+// A route is the one thing on the site a reader may follow down a mountain
+// without checking. So: blue means no red or black run anywhere in it; no
+// run is ever taken uphill; and the routes the site itself recommends come
+// out the way the site describes them.
+{
+  // over file:// the page cannot fetch the graph itself, so it is handed in
+  const r = await page.evaluate(async (graph) => {
+    try { _skiUse(graph); } catch (e) { return { err: String(e) }; }
+    const g = SKI.graph;
+    const runs = (rt) => rt.edges.map(i => g.edges[i]).filter(e => e[4] === 's' || e[4] === 'f');
+    const maxD = (rt) => Math.max(0, ...runs(rt).map(e => g.ways[e[2]].d || 2));
+    const refs = (rt) => runs(rt).map(e => String(g.ways[e[2]].ref || '').replace(/\.0+$/, ''));
+    const plateau = [45.93447, 7.70765], village = [45.9343, 7.6337], planMaison = [45.9418, 7.6564];
+    const blueDown = skiRoute(plateau, village, 1);
+    const redDown = skiRoute(plateau, village, 2);
+    const blueUp = skiRoute(planMaison, [45.947931, 7.694082], 1);   // Bontadini hut
+    // every run stretch must go down, give or take the height data's noise
+    const uphill = g.edges.filter(e => e[4] === 's' && g.nodes[e[0]][2] != null && g.nodes[e[1]][2] != null
+                                      && g.nodes[e[1]][2] - g.nodes[e[0]][2] > 40).length;
+    return {
+      nodes: g.nodes.length, edges: g.edges.length, uphill,
+      blueDown: blueDown && { d: maxD(blueDown), rideDown: blueDown.edges.some(i => g.edges[i][4] === 'r') },
+      redDown: redDown && { d: maxD(redDown), refs: refs(redDown) },
+      blueUp: blueUp && { d: maxD(blueUp), lifts: blueUp.edges.filter(i => g.edges[i][4] === 'u').length },
+      steps: blueDown ? skiSteps(blueDown).length : 0
+    };
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'the ski router keeps to the level that was asked for';
+  if (r.err) fail(T, 'the graph did not load: ' + r.err);
+  else {
+    if (r.nodes < 500 || r.edges < 2000) fail(T, `the graph is too small: ${r.nodes} nodes, ${r.edges} edges`); else ok();
+    if (r.uphill) fail(T, `${r.uphill} run stretches go uphill`); else ok();
+    if (!r.blueDown) fail(T, 'no blue way down from Plateau Rosa - the cable cars go down'); else {
+      if (r.blueDown.d > 1) fail(T, `the blue route down from Plateau Rosa has a run of level ${r.blueDown.d}`); else ok();
+      if (!r.blueDown.rideDown) fail(T, 'the blue route from Plateau Rosa does not ride a cable car down'); else ok();
+    }
+    if (!r.redDown || !r.redDown.refs.includes('7')) fail(T,
+      `up to red, Plateau Rosa to the village is not the Ventina: ${r.redDown && r.redDown.refs.join(',')}`); else ok();
+    if (!r.blueUp || r.blueUp.d > 1 || r.blueUp.lifts < 1) fail(T,
+      `Plan Maison to Bontadini on blue: ${JSON.stringify(r.blueUp)}`); else ok();
+    if (r.steps < 2) fail(T, 'the route has no readable steps'); else ok();
+  }
+}
+
 // ── the community links have a standing door ─────────────────────────────
 // The Israeli Facebook group, the video and the Hebrew write-ups lived in a
 // panel reachable from a banner that shows once and never again. A reader

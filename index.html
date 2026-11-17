@@ -1445,7 +1445,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.16';
+  var v='v18.17';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4999,7 +4999,16 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
             <button type="button" id="map-geo-dest-x" onclick="geoDest('')" aria-label="ביטול היעד" data-en-aria-label="Clear the destination"
               style="display:none;padding:5px 10px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-size:0.8rem;">✕</button>
           </div>
-          <div id="map-geo-dest-info" style="display:none;margin-top:5px;line-height:1.5;"></div>
+          <div id="map-geo-level-row" style="display:none;margin-top:5px;align-items:center;gap:6px;">
+            <span data-en="Level:">רמה:</span>
+            <select id="map-geo-level" onchange="geoLevel(this.value)"
+              style="padding:4px 6px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;font-family:inherit;font-size:0.78rem;color:#16314f;">
+              <option value="1" data-en="🔵 Blue runs only">🔵 רק כחולים</option>
+              <option value="2" data-en="🔴 Up to red">🔴 עד אדומים</option>
+              <option value="3" data-en="⚫ Black too">⚫ גם שחורים</option>
+            </select>
+          </div>
+          <div id="map-geo-dest-info" style="display:none;margin-top:5px;line-height:1.5;max-height:34vh;overflow:auto;"></div>
         </div>
         <div id="map-geo" dir="ltr" style="flex:1;min-height:0;"></div>
         <div id="map-geo-bar" style="flex-shrink:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 9px;border-top:1px solid #e3eaf2;font-size:0.76rem;color:#33475b;background:#f8fbfe;">
@@ -7328,6 +7337,7 @@ function geoDest(id) {
   var lf = window.Leaflet;
   var d = id && GEO.dests ? GEO.dests[id] : null;
   GEO.dest = d || null;
+  skiClear();
   var sel = document.getElementById('map-geo-dest');
   if (sel && sel.value !== (d ? d.id : '')) sel.value = d ? d.id : '';
   if (!d) {
@@ -7356,26 +7366,39 @@ function _geoBearing(a, b) {
 function _geoDestPaint() {
   var info = document.getElementById('map-geo-dest-info');
   var x = document.getElementById('map-geo-dest-x');
+  var lvRow = document.getElementById('map-geo-level-row');
+  var lv = document.getElementById('map-geo-level');
   var d = GEO.dest, lf = window.Leaflet;
+  if (!GEO.level) {
+    var keep = 2;
+    try { keep = +localStorage.getItem('geoLevel') || 2; } catch (e) {}
+    GEO.level = (keep >= 1 && keep <= 3) ? keep : 2;
+  }
+  if (lv && lv.value !== String(GEO.level)) lv.value = String(GEO.level);
   if (x) x.style.display = d ? '' : 'none';
+  if (lvRow) lvRow.style.display = d ? 'flex' : 'none';
   if (!info) return;
   if (!d) { info.style.display = 'none'; info.innerHTML = ''; return; }
   info.style.display = 'block';
   var name = '<b>' + escHtml(d.name) + '</b>';
-  var note = '<br><span style="color:#6b7c8f;">' + L('קו ישר, לא מסלול: את המסלולים בוחרים לפי המפה ולפי היכולת שלך.',
+  var lineNote = '<br><span style="color:#6b7c8f;">' + L('קו ישר, לא מסלול: את המסלולים בוחרים לפי המפה ולפי היכולת שלך.',
                                                     'A straight line, not a route: choose the runs by the map and by what you can ski.') + '</span>';
+  function straight(here) {
+    if (!GEO.destLn) GEO.destLn = lf.polyline([here, d.ll], { color: '#d93025', weight: 3, dashArray: '6 8', interactive: false }).addTo(GEO.map);
+    else GEO.destLn.setLatLngs([here, d.ll]);
+  }
+  function noStraight() { if (GEO.destLn) { GEO.map.removeLayer(GEO.destLn); GEO.destLn = null; } }
   if (!GEO.me || GEO.far || !lf || !GEO.map) {
-    if (GEO.destLn) { GEO.map.removeLayer(GEO.destLn); GEO.destLn = null; }
+    noStraight(); skiClear();
     info.innerHTML = '🎯 ' + name + ' · ' + (GEO.far
-      ? L('המרחק והכיוון יופיעו כשתהיה באזור.', 'Distance and direction show once you are in the area.')
-      : L('לחץ על "📍 הצג את המיקום שלי" כדי לראות מרחק וכיוון.', 'Tap "📍 Show my location" to see distance and direction.'));
+      ? L('המסלול יופיע כשתהיה באזור.', 'The route shows once you are in the area.')
+      : L('לחץ על "📍 הצג את המיקום שלי" כדי לקבל מסלול.', 'Tap "📍 Show my location" to get a route.'));
     return;
   }
   var me = GEO.me.getLatLng(), here = [me.lat, me.lng];
   var m = GEO.map.distance(here, d.ll);
-  if (!GEO.destLn) GEO.destLn = lf.polyline([here, d.ll], { color: '#d93025', weight: 3, dashArray: '6 8', interactive: false }).addTo(GEO.map);
-  else GEO.destLn.setLatLngs([here, d.ll]);
   if (m < 60) {
+    noStraight(); skiClear();
     info.innerHTML = '✅ ' + L('הגעת אל ', 'You have reached ') + name;
     return;
   }
@@ -7383,8 +7406,279 @@ function _geoDestPaint() {
   var dist = m < 1000 ? (Math.round(m / 10) * 10) + L(' מ\'', ' m')
                       : (m / 1000).toFixed(1) + L(' ק״מ', ' km');
   var arrow = '<span aria-hidden="true" style="display:inline-block;transform:rotate(' + Math.round(deg) + 'deg);font-weight:bold;color:#d93025;">↑</span>';
-  info.innerHTML = '🎯 ' + name + ' · ' + dist + L(' בקו אוויר · ', ' as the crow flies · ')
-    + arrow + ' ' + L(_GEO_DIRS_HE[i], _GEO_DIRS_EN[i]) + note;
+  var crow = dist + L(' בקו אוויר · ', ' as the crow flies · ') + arrow + ' ' + L(_GEO_DIRS_HE[i], _GEO_DIRS_EN[i]);
+
+  // the route: computed again when the destination or the level changes,
+  // or when the reader has moved on (at most every eight seconds)
+  if (!SKI.graph) {
+    straight(here);
+    info.innerHTML = '🎯 ' + name + ' · ' + crow
+      + '<br><span style="color:#6b7c8f;">' + (SKI.failed
+        ? L('את מפת הניווט לא הצלחתי לטעון, אז בינתיים קו ישר.', 'The route map could not be loaded, so a straight line for now.')
+        : L('⏳ טוען את מפת הניווט…', '⏳ Loading the route map…')) + '</span>';
+    if (!SKI.failed) _skiLoad().then(_geoDestPaint, function () { SKI.failed = true; _geoDestPaint(); });
+    return;
+  }
+  var key = d.id + '|' + GEO.level, now = Date.now();
+  var moved = !SKI.at || GEO.map.distance(here, SKI.at) > 40;
+  var fresh = key !== SKI.key;
+  if (fresh || (moved && now - SKI.t > 8000)) {
+    SKI.route = skiRoute(here, d.ll, GEO.level);
+    SKI.key = key; SKI.at = here; SKI.t = now;
+    _skiDraw(SKI.route);
+    if (fresh && SKI.layer) {
+      try { GEO.map.fitBounds(SKI.layer.getLayers().reduce(function (b, l) { return b.extend(l.getBounds()); },
+              lf.latLngBounds([here, here])).extend(d.ll), { padding: [30, 30], maxZoom: 16 }); } catch (e) {}
+    }
+  }
+  if (!SKI.route) {
+    straight(here);
+    info.innerHTML = '🎯 ' + name + ' · ' + crow + '<br>⚠️ '
+      + (GEO.level < 3 ? L('לא מצאתי מסלול ברמה הזאת. אפשר לנסות רמה גבוהה יותר, או לחפש רכבל שיורד.',
+                           'No route at this level. Try a higher level, or look for a cable car that goes down.')
+                       : L('לא מצאתי מסלול לשם.', 'No route found.')) + lineNote;
+    return;
+  }
+  noStraight();
+  var mins = Math.max(5, Math.round(SKI.route.secs / 300) * 5);
+  var time = mins < 60 ? L('כ-' + mins + ' דק\'', 'about ' + mins + ' min')
+                       : L('כ-' + Math.floor(mins / 60) + ':' + ('0' + mins % 60).slice(-2) + ' שע\'',
+                           'about ' + Math.floor(mins / 60) + 'h ' + ('0' + mins % 60).slice(-2));
+  var steps = skiSteps(SKI.route);
+  info.innerHTML = '🎯 ' + name + ' · ' + time
+    + '<ol style="margin:4px 0 2px;padding-inline-start:20px;">'
+    + steps.map(function (st) { return '<li style="margin:2px 0;">' + _skiStepHtml(st) + '</li>'; }).join('')
+    + '</ol><span style="color:#6b7c8f;font-size:0.72rem;">'
+    + L('מחושב לפי מפת OpenStreetMap, לא לפי מצב המעליות היום. ודא בשילוט ובמפה הרשמית.',
+        'Worked out from the OpenStreetMap map, not from today\'s lift status. Check the signs and the official map.')
+    + '</span>';
+}
+
+// ── the ski router ────────────────────────────────────────────────────────
+//
+// A real route over the runs and the lifts, at the level the reader chose:
+// blue only, up to red, or black too. The graph is built from OpenStreetMap
+// by tools/build_ski_graph.py: runs that may be skied only downhill (their
+// direction checked against the height of their two ends), lifts that go up,
+// cable cars and gondolas that may also be ridden down, and the short walks
+// between a station and the run beside it.
+//
+// The route starts and ends on foot: from the reader to a junction near
+// them, and from a junction near the destination to the destination.
+// When there is no route at the level chosen it says so and offers the
+// straight line - it never quietly hands over a black run to somebody who
+// asked for blue.
+var SKI = { graph: null, loading: null, route: null, layer: null, at: null, t: 0, key: '' };
+var SKI_URL = 'data/ski-graph-cervinia.json';
+
+function _skiLoad() {
+  if (SKI.graph) return Promise.resolve(SKI.graph);
+  if (SKI.loading) return SKI.loading;
+  SKI.loading = fetch(SKI_URL).then(function (r) {
+    if (!r.ok) throw new Error('graph ' + r.status);
+    return r.json();
+  }).then(_skiUse).catch(function (e) { SKI.loading = null; throw e; });
+  return SKI.loading;
+}
+function _skiUse(g) {
+  var out = [];
+  for (var i = 0; i < g.nodes.length; i++) out.push([]);
+  g.edges.forEach(function (e, i) { out[e[0]].push(i); });
+  g.out = out;
+  SKI.graph = g;
+  return g;
+}
+
+function _skiDist(a, b) {
+  var r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r;
+  var h = Math.sin(dLa / 2) * Math.sin(dLa / 2)
+        + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
+  return 2 * 6371000 * Math.asin(Math.sqrt(h));
+}
+
+// seconds for one edge, or -1 when the level forbids it
+function _skiCost(g, e, prevLine, level) {
+  var k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null, sp = g.speed;
+  if (k === 's' || k === 'f') {
+    var d = (w && w.d) || 2;
+    if (d >= 4 || d > level) return -1;
+    return e[3] / (k === 's' ? sp.ski : sp.flat);
+  }
+  if (k === 'u' || k === 'r') {
+    var t = e[3] / (sp.lift[w.lt] || 3);
+    if (prevLine !== e[2]) t += (sp.wait[w.lt] || 60);
+    if (k === 'r') t += 240;        // skiing down is better when one may
+    return t;
+  }
+  if (k === 'w') return e[3] / sp.walk * 1.5;
+  if (k === 'v') return e[3] / sp.walk * 1.2 + 120;
+  return -1;
+}
+
+// a small binary heap of [cost, state]
+function _SkiHeap() { this.a = []; }
+_SkiHeap.prototype.push = function (x) {
+  var a = this.a; a.push(x);
+  for (var i = a.length - 1; i > 0;) { var p = (i - 1) >> 1; if (a[p][0] <= a[i][0]) break; var t = a[p]; a[p] = a[i]; a[i] = t; i = p; }
+};
+_SkiHeap.prototype.pop = function () {
+  var a = this.a, top = a[0], last = a.pop();
+  if (a.length) {
+    a[0] = last;
+    for (var i = 0;;) {
+      var l = 2 * i + 1, r = l + 1, m = i;
+      if (l < a.length && a[l][0] < a[m][0]) m = l;
+      if (r < a.length && a[r][0] < a[m][0]) m = r;
+      if (m === i) break;
+      var t = a[m]; a[m] = a[i]; a[i] = t; i = m;
+    }
+  }
+  return top;
+};
+
+// the junctions within reach on foot of a point, nearest first
+function _skiNear(g, ll, max, needOut) {
+  var hits = [];
+  for (var i = 0; i < g.nodes.length; i++) {
+    if (needOut && !g.out[i].length) continue;
+    var m = _skiDist(ll, g.nodes[i]);
+    if (m <= max) hits.push([m, i]);
+  }
+  hits.sort(function (a, b) { return a[0] - b[0]; });
+  return hits;
+}
+
+function skiRoute(fromLL, toLL, level) {
+  var g = SKI.graph;
+  if (!g) return null;
+  var WALK_IN = 400, WALK_OUT = 400;
+  var starts = _skiNear(g, fromLL, WALK_IN, true).slice(0, 12);
+  if (!starts.length) starts = _skiNear(g, fromLL, 1500, true).slice(0, 3);
+  var ends = {};
+  _skiNear(g, toLL, WALK_OUT, false).slice(0, 12).forEach(function (h) { ends[h[1]] = h[0]; });
+  if (!starts.length || !Object.keys(ends).length) return null;
+  var NW = g.ways.length + 1;
+  var best = {}, prev = {}, heap = new _SkiHeap();
+  starts.forEach(function (h) {
+    var st = h[1] * NW;               // no lift being ridden
+    var c = h[0] / g.speed.walk * 1.5;
+    if (best[st] === undefined || c < best[st]) { best[st] = c; heap.push([c, st]); }
+  });
+  var goal = -1, goalCost = Infinity;
+  while (heap.a.length) {
+    var top = heap.pop(), c = top[0], st = top[1];
+    if (c > best[st] || c >= goalCost) continue;
+    var n = Math.floor(st / NW), line = st % NW - 1;
+    if (ends[n] !== undefined) {
+      var cg = c + ends[n] / g.speed.walk * 1.5;
+      if (cg < goalCost) { goalCost = cg; goal = st; }
+    }
+    var outs = g.out[n];
+    for (var j = 0; j < outs.length; j++) {
+      var e = g.edges[outs[j]];
+      var ce = _skiCost(g, e, line, level);
+      if (ce < 0) continue;
+      var nl = (e[4] === 'u' || e[4] === 'r') ? e[2] : -1;
+      var ns = e[1] * NW + nl + 1, nc = c + ce;
+      if (best[ns] === undefined || nc < best[ns]) { best[ns] = nc; prev[ns] = [st, outs[j]]; heap.push([nc, ns]); }
+    }
+  }
+  if (goal < 0) return null;
+  var path = [];
+  for (var s = goal; prev[s]; s = prev[s][0]) path.push(prev[s][1]);
+  path.reverse();
+  var first = path.length ? g.edges[path[0]][0] : Math.floor(goal / NW);
+  var last = Math.floor(goal / NW);
+  return { edges: path, secs: goalCost, from: first, to: last };
+}
+
+function _skiGeom(e) {
+  var o = [], la = 0, lo = 0, d = e[5];
+  for (var i = 0; i < d.length; i += 2) { la += d[i]; lo += d[i + 1]; o.push([la / 1e5, lo / 1e5]); }
+  return o;
+}
+
+var SKI_LIFT_HE = { cable_car: 'רכבל', gondola: 'גונדולה', mixed_lift: 'גונדולה', chair_lift: 'רכבל כיסאות',
+  't-bar': 'מעלית גרירה', 'j-bar': 'מעלית גרירה', platter: 'מעלית גרירה', drag_lift: 'מעלית גרירה',
+  rope_tow: 'מעלית גרירה', magic_carpet: 'מסוע', funicular: 'פוניקולר' };
+var SKI_LIFT_EN = { cable_car: 'cable car', gondola: 'gondola', mixed_lift: 'gondola', chair_lift: 'chairlift',
+  't-bar': 'drag lift', 'j-bar': 'drag lift', platter: 'drag lift', drag_lift: 'drag lift',
+  rope_tow: 'drag lift', magic_carpet: 'carpet', funicular: 'funicular' };
+var SKI_DOT = ['', '🔵', '🔴', '⚫', '⚫'];
+var SKI_COL = ['#888', '#1a73e8', '#d93025', '#111', '#111'];
+
+function _skiRef(r) { return String(r || '').replace(/\.0+$/, ''); }
+
+// one line per run or lift, the way a skier would say it
+function skiSteps(route) {
+  var g = SKI.graph, steps = [];
+  route.edges.forEach(function (ei) {
+    var e = g.edges[ei], k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null;
+    var kind = (k === 'u' || k === 'r') ? 'lift' : (k === 'w' || k === 'v') ? 'walk' : 'run';
+    var last = steps[steps.length - 1];
+    if (kind === 'run') {
+      var d = (w && w.d) || 2, ref = w && w.ref ? _skiRef(w.ref) : '', name = w && w.name ? w.name : '';
+      // a stretch with no name of its own, or an open slope, belongs to the
+      // run before it when that run is no harder
+      if (last && last.kind === 'run' && ((!ref && !name) || w.k === 'a') && d <= last.d) { last.m += e[3]; return; }
+      if (last && last.kind === 'run' && ref && last.ref === ref) { last.m += e[3]; last.d = Math.max(last.d, d); return; }
+      if (last && last.kind === 'run' && !last.ref && !last.name && (ref || name)) {
+        last.ref = ref; last.name = name; last.d = Math.max(last.d, d); last.m += e[3]; return;
+      }
+      steps.push({ kind: 'run', ref: ref, name: w && w.k !== 'a' ? name : '', d: d, m: e[3] });
+    } else if (kind === 'lift') {
+      if (last && last.kind === 'lift' && last.way === e[2]) { last.m += e[3]; return; }
+      steps.push({ kind: 'lift', way: e[2], name: w.name || '', ref: w.ref || '', lt: w.lt, down: k === 'r', m: e[3] });
+    } else {
+      if (last && last.kind === 'walk') { last.m += e[3]; last.village = last.village || k === 'v'; return; }
+      steps.push({ kind: 'walk', village: k === 'v', m: e[3] });
+    }
+  });
+  // walks of a few metres between a station and a run are not worth a line
+  return steps.filter(function (s) { return !(s.kind === 'walk' && s.m < 80); });
+}
+
+function _skiStepHtml(s) {
+  var dist = s.m < 1000 ? Math.round(s.m / 10) * 10 + L(' מ\'', ' m') : (s.m / 1000).toFixed(1) + L(' ק״מ', ' km');
+  if (s.kind === 'lift') {
+    var t = L(SKI_LIFT_HE[s.lt] || 'מעלית', SKI_LIFT_EN[s.lt] || 'lift');
+    return '🚡 ' + (s.down ? L('רד ב', 'Ride down the ') : L('עלה ב', 'Take the ')) + t
+      + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '') + (s.down ? ' ' + L('(למטה)', '(downwards)') : '');
+  }
+  if (s.kind === 'walk') return '🚶 ' + (s.village ? L('הליכה בכפר', 'Walk through the village') : L('הליכה', 'Walk')) + ' · ' + dist;
+  var label = s.ref ? L('מסלול ', 'Run ') + escHtml(s.ref) : L('מסלול', 'Run');
+  return '⛷️ ' + label + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '') + ' ' + SKI_DOT[s.d] + ' · ' + dist;
+}
+
+function _skiDraw(route) {
+  var lf = window.Leaflet, g = SKI.graph;
+  if (SKI.layer) { GEO.map.removeLayer(SKI.layer); SKI.layer = null; }
+  if (!route || !lf) return;
+  var grp = lf.layerGroup();
+  route.edges.forEach(function (ei) {
+    var e = g.edges[ei], k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null, pts = _skiGeom(e);
+    var st;
+    if (k === 'u' || k === 'r') st = { color: '#5b3cc4', weight: 4, dashArray: '2 7', lineCap: 'round' };
+    else if (k === 'w' || k === 'v') st = { color: '#555', weight: 3, dashArray: '1 6', lineCap: 'round' };
+    else st = { color: SKI_COL[(w && w.d) || 2], weight: 6, opacity: 0.85 };
+    st.interactive = false;
+    // a white edge under each run keeps it readable over the piste layer
+    if (k === 's' || k === 'f') lf.polyline(pts, { color: '#fff', weight: 9, opacity: 0.8, interactive: false }).addTo(grp);
+    lf.polyline(pts, st).addTo(grp);
+  });
+  SKI.layer = grp.addTo(GEO.map);
+}
+
+function skiClear() {
+  if (SKI.layer && GEO.map) GEO.map.removeLayer(SKI.layer);
+  SKI.layer = null; SKI.route = null; SKI.at = null; SKI.key = '';
+}
+
+function geoLevel(v) {
+  GEO.level = +v || 2;
+  try { localStorage.setItem('geoLevel', String(GEO.level)); } catch (e) {}
+  SKI.key = '';                       // compute again at the new level
+  _geoDestPaint();
 }
 
 function _geoErr(err) {
