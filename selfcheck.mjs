@@ -4225,12 +4225,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!/files\/packing-list\.pdf/.test(sw)) fail(T,
       'the printable list is not precached, so it cannot be downloaded without ' +
       'a signal'); else ok();
-    if (!/\/files\//.test(sw.split('addEventListener(\'fetch\'')[1] || '')) fail(T,
+    if (!/\/files\/|\(img\|files\|maps\)/.test(sw.split('addEventListener(\'fetch\'')[1] || '')) fail(T,
       'the fetch handler has no rule for files/'); else ok();
-    if (!/\/img\//.test(sw.split('addEventListener(\'fetch\'')[1] || '')) fail(T,
+    if (!/\/img\/|\(img\|files\|maps\)/.test(sw.split('addEventListener(\'fetch\'')[1] || '')) fail(T,
       'the fetch handler has no rule for img/, so the pictures are never ' +
       'served from the cache'); else ok();
-    if (!/cervinia-v3/.test(sw)) fail(T,
+    if (!/cervinia-v([4-9]|\d\d)/.test(sw)) fail(T,
       'the cache name was not bumped, so browsers keep the old cache - and with ' +
       'it an offline copy that may be the privacy page'); else ok();
     // only the site itself, and only a good answer, may become the offline copy
@@ -4241,6 +4241,15 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!/req\.mode !== 'navigate'/.test(sw)) fail(T,
       'the worker no longer leaves non-navigation requests alone - live data ' +
       'could now be served stale'); else ok();
+    // the texts are the content of the page: without a saved copy the page
+    // opens empty with no signal
+    if (!/'\.\/texts\.json'/.test(sw) || !/'\.\/texts\.en\.json'/.test(sw)) fail(T,
+      'the texts are not precached, so with no signal the site opens empty'); else ok();
+    // the only live answers kept are the lift reading and the forecast;
+    // anything that signs in or writes must never come from a cache
+    const live = (sw.match(/const LIVE = (.*);/) || [])[1] || '';
+    if (/auth|profiles|posts|replies|reactions|settings/.test(live)) fail(T,
+      'the worker caches personal or community data: ' + live); else ok();
   }
 
   // the upload script has to know about them or they never reach the site

@@ -1,33 +1,54 @@
 /* CerviniaLive service worker
  *
- * Two jobs, and deliberately not a third.
- *
  *  1. Receive push messages and show them, even when the site is closed.
- *  2. Give the app something to open when there is no signal on the mountain.
+ *  2. Keep the site working with no signal on the mountain.
  *
- * What it does NOT do is cache index.html aggressively. That file changes on
- * most deploys; a cache-first worker would keep serving yesterday's app and no
- * amount of Ctrl+F5 would obviously fix it. So: network first, always, and the
- * cached copy is only a parachute.
+ * Five kinds of request, five rules:
  *
- * The one addition to that rule is img/. Those files are big, they never
- * change under the same name, and the piste map is the single thing somebody
- * most needs when the signal goes - so they are precached at install and
- * answered from the cache, with a fresh copy fetched quietly for next time.
- * Live data (Supabase) is still never cached.
+ *  - The page itself (navigations): network first, the cached copy only as a
+ *    parachute. index.html changes on most deploys; cache-first would keep
+ *    serving yesterday's app.
+ *  - The texts (texts.json, texts.en.json, manifest.json): network first too,
+ *    for the same reason - but without them the page is an empty shell, so
+ *    they are precached and answered from the cache when the network fails
+ *    or is too slow. A weak signal that never answers is the usual case on a
+ *    lift, so the network gets SLOW_MS before the cached copy is used.
+ *  - Pictures, maps and PDFs of the site, and the libraries from the CDNs
+ *    (flatpickr, supabase-js, pdf.js): cache first, with a fresh copy fetched
+ *    quietly for next time. Their names change when their content does.
+ *  - The latest lift reading and the weather forecast: network first, and
+ *    the last good answer only when there is no network at all. The page
+ *    already prints the time of the reading, and shows a bar saying there is
+ *    no connection, so an old answer is never mistaken for a new one.
+ *  - Everything else - sign-in, the forum, anything that writes - is left
+ *    alone, never cached.
  */
 
-const CACHE = 'cervinia-v3';
+const CACHE = 'cervinia-v4';
 const FALLBACK = './index.html';
+const SLOW_MS = 4000;
 
-// Precached at install so the map is there even for somebody who never opened
-// the maps panel while they still had a signal - which is most people.
-// index.html is in the list as the parachute itself: with it here, the copy
-// for a day without signal exists from the moment the worker is installed
-// and is known to be the site. It is still answered network first.
+// Precached at install, so all of it is there even for somebody who never
+// opened the panel in question while they still had a signal - which is most
+// people. The big PDFs of the piste maps are NOT here (11 MB): a button in
+// the maps panel saves them on request, and opening one saves it too.
 const STATIC = ['./index.html', './manifest.json', './icon-192.png',
-                './img/piste-map.jpg', './img/logo.png',
-                './files/packing-list.pdf'];
+                './texts.json', './texts.en.json',
+                './img/piste-map.jpg', './img/logo.png', './img/montblanc.webp',
+                './hero-cervino.jpg', './mymap.jpg', './town-map.jpg',
+                './maps/route-grand_tour.jpg', './maps/route-ventina.jpg', './maps/route-warmup.jpg',
+                './files/packing-list.pdf',
+                'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js',
+                'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css',
+                'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'];
+
+// Libraries are pinned to a version in their address, so a cached copy is
+// the same file the network would send.
+const CDN = /^https:\/\/(cdn\.jsdelivr\.net\/npm\/(flatpickr|@supabase\/supabase-js|@emailjs\/browser)|cdnjs\.cloudflare\.com\/ajax\/libs\/(pdf\.js|cropperjs))\//;
+// The two live answers worth keeping for a day without signal.
+const LIVE = /^https:\/\/(api\.open-meteo\.com\/v1\/forecast|[a-z0-9]+\.supabase\.co\/rest\/v1\/ski_status_history\?)/;
 
 self.addEventListener('install', function (e) {
   // take over as soon as possible - an old worker serving a stale fallback is
@@ -53,44 +74,87 @@ self.addEventListener('activate', function (e) {
   );
 });
 
+// Cache first, refreshed in the background.
+function cacheFirst(req, key) {
+  return caches.open(CACHE).then(function (c) {
+    return c.match(key || req, { ignoreVary: true }).then(function (hit) {
+      const net = fetch(req).then(function (res) {
+        if (res && (res.ok || res.type === 'opaque')) { c.put(key || req, res.clone()).catch(function () {}); }
+        return res;
+      }).catch(function () { return hit || Response.error(); });
+      return hit || net;
+    });
+  });
+}
+
+// Network first; the cached copy when the network fails, or - if wait is
+// given - when it has not answered within wait ms.
+function networkFirst(req, key, wait) {
+  return caches.open(CACHE).then(function (c) {
+    const net = fetch(req).then(function (res) {
+      if (res && res.ok) { c.put(key, res.clone()).catch(function () {}); }
+      return res;
+    });
+    const fromCache = function () {
+      return c.match(key, { ignoreVary: true }).then(function (hit) { return hit || net; });
+    };
+    if (!wait) return net.catch(fromCache);
+    return new Promise(function (resolve) {
+      let done = false;
+      const t = setTimeout(function () {
+        c.match(key, { ignoreVary: true }).then(function (hit) {
+          if (hit && !done) { done = true; resolve(hit); }
+        });
+      }, wait);
+      net.then(function (res) { if (!done) { done = true; clearTimeout(t); resolve(res); } })
+         .catch(function () { if (!done) { done = true; clearTimeout(t); resolve(fromCache()); } });
+    });
+  });
+}
+
 self.addEventListener('fetch', function (e) {
   const req = e.request;
   if (req.method !== 'GET') return;
-
-  // ── static files: pictures and the printable list ──────────────────────
-  // Stale-while-revalidate: answer from the cache at once so the map opens
-  // instantly and works with no signal, and fetch a fresh copy in the
-  // background so replacing a picture still reaches people - on their next
-  // visit rather than never.
   let url = null;
-  try { url = new URL(req.url); } catch (err) { url = null; }
-  if (url && url.origin === self.location.origin &&
-      (url.pathname.indexOf('/img/') !== -1 || url.pathname.indexOf('/files/') !== -1)) {
-    e.respondWith(
-      caches.open(CACHE).then(function (c) {
-        return c.match(req).then(function (hit) {
-          const net = fetch(req).then(function (res) {
-            if (res && res.ok) { c.put(req, res.clone()).catch(function () {}); }
-            return res;
-          }).catch(function () { return hit; });
-          return hit || net;
-        });
-      })
-    );
+  try { url = new URL(req.url); } catch (err) { return; }
+  const same = url.origin === self.location.origin;
+  const scopePath = new URL(self.registration.scope).pathname;
+  const rel = same ? url.pathname.slice(scopePath.length) : '';
+
+  // ── the texts: network first, the saved copy when slow or offline ─────
+  if (same && /^(texts\.json|texts\.en\.json|manifest\.json)$/.test(rel)) {
+    // one key per file, whatever ?query the page added
+    e.respondWith(networkFirst(req, './' + rel, SLOW_MS));
+    return;
+  }
+
+  // ── pictures, maps, PDFs: cache first ─────────────────────────────────
+  // (img/ and files/ and maps/, and the pictures and PDFs at the top level)
+  if (same && (/^(img|files|maps)\//.test(rel) || /^[^/]+\.(jpg|jpeg|png|webp|pdf|ico)$/.test(rel))) {
+    e.respondWith(cacheFirst(req, './' + rel));
+    return;
+  }
+
+  // ── libraries from the CDNs: cache first ──────────────────────────────
+  if (CDN.test(req.url)) {
+    e.respondWith(cacheFirst(req));
+    return;
+  }
+
+  // ── the latest reading and the forecast: last good answer if offline ──
+  if (LIVE.test(req.url)) {
+    e.respondWith(networkFirst(req, req.url, 0));
     return;
   }
 
   // Only page navigations get the parachute. Everything else is left alone, so
-  // live data (Supabase) is never served from a cache.
+  // other live data is never served from a cache.
   if (req.mode !== 'navigate') return;
   // Only the site itself may become the parachute. Every navigation used to
   // be stored under index.html - the privacy page, the /en/ hand-over page,
   // a 404 - so whoever opened one of those last and then lost the signal was
-  // handed that page in place of the site. (v2 caches may hold such a copy;
-  // the cache name was bumped to v3 to drop them.)
-  const scopePath = new URL(self.registration.scope).pathname;
-  const isHome = !!url && url.origin === self.location.origin &&
-      (url.pathname === scopePath || url.pathname === scopePath + 'index.html');
+  // handed that page in place of the site.
+  const isHome = same && (url.pathname === scopePath || url.pathname === scopePath + 'index.html');
   e.respondWith(
     fetch(req)
       .then(function (res) {
@@ -106,6 +170,25 @@ self.addEventListener('fetch', function (e) {
         });
       })
   );
+});
+
+// The page asks for the big piste-map PDFs to be saved for a day without
+// signal; the answer says how many made it.
+self.addEventListener('message', function (e) {
+  const d = e.data || {};
+  if (d.type !== 'save-offline' || !Array.isArray(d.urls)) return;
+  const port = e.ports && e.ports[0];
+  e.waitUntil(caches.open(CACHE).then(function (c) {
+    let ok = 0;
+    return Promise.all(d.urls.map(function (u) {
+      return c.match(u).then(function (hit) {
+        if (hit) { ok++; if (port) port.postMessage({ type: 'progress', ok: ok, total: d.urls.length }); return; }
+        return c.add(u).then(function () {
+          ok++; if (port) port.postMessage({ type: 'progress', ok: ok, total: d.urls.length });
+        }).catch(function () {});
+      });
+    })).then(function () { if (port) port.postMessage({ type: 'done', ok: ok, total: d.urls.length }); });
+  }));
 });
 
 /* ---------------------------------------------------------------- push ---- */

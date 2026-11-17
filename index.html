@@ -1437,7 +1437,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.05';
+  var v='v18.06';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4907,6 +4907,14 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
         <button class="service-btn map-pick" data-map="piste-swiss" style="flex:1;padding:9px 6px;font-size:0.78rem;min-width:90px;" onclick="loadMap('piste-swiss')" data-en="&lt;svg class=fl-ch aria-hidden=true&gt;&lt;use href=#flag-ch&gt;&lt;/use&gt;&lt;/svg&gt; Switzerland"><svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> שוויץ</button>
       </div>
 
+      <!-- The PDFs of the piste maps are 14 MB together, too much to push on
+           everyone at install. One tap keeps them for the mountain. -->
+      <div id="map-offline-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.74rem;">
+        <button type="button" id="map-offline-btn" onclick="saveMapsOffline()"
+          style="padding:5px 12px;border-radius:7px;border:1px solid #c9d8e8;background:#f4f8fc;color:#17324c;font-family:inherit;font-size:0.74rem;font-weight:bold;cursor:pointer;"
+          data-en="📥 Keep the piste maps for no signal (14 MB)">📥 שמירת מפות המסלולים לשימוש בלי קליטה (14MB)</button>
+        <span id="map-offline-msg" style="color:#5b6b7a;"></span>
+      </div>
       <!-- ══ the recommended routes, on the sheet ══
            The site has described these two in words for months and drew
            them nowhere. The marks ring the printed run badges in order,
@@ -6518,6 +6526,7 @@ function openM(id) {
   // lands on the menu; callers that want a particular screen call planGo
   // straight after, which overrides this.
   if (id === 'hotelModal' && typeof planGo === 'function') planGo('hub');
+  if (id === 'mapModal' && typeof mapOfflineStatus === 'function') mapOfflineStatus();
   if (typeof _addPanelShare === 'function') _addPanelShare(id);
   // The letter is written the moment the panel opens, and the dates the
   // reader already typed into the planner are carried over - asking a
@@ -22939,6 +22948,77 @@ if ('serviceWorker' in navigator) {
     }).catch(function(err) {
       // Expected in file:// mode — works on HTTPS (GitHub Pages)
     });
+  });
+}
+
+// ── no signal ──
+// A thin bar while the device is offline, so the weather and the lift
+// reading on screen - the last ones saved - are not mistaken for live ones.
+function _paintOfflineBar() {
+  var off = (navigator.onLine === false);
+  var b = document.getElementById('offline-bar');
+  if (!off) { if (b) b.remove(); return; }
+  if (b) return;
+  b = document.createElement('div');
+  b.id = 'offline-bar';
+  b.setAttribute('role', 'status');
+  b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:10050;background:rgba(55,65,81,.94);color:#fff;'
+    + 'font-size:0.74rem;text-align:center;padding:4px 10px;line-height:1.5;pointer-events:none;';
+  b.textContent = L('📵 אין קליטה · מזג האוויר והמעליות מהעדכון האחרון', '📵 No signal · weather and lifts from the last update');
+  document.body.appendChild(b);
+}
+window.addEventListener('online', _paintOfflineBar);
+window.addEventListener('offline', _paintOfflineBar);
+window.addEventListener('load', _paintOfflineBar);
+
+var MAP_PDFS = ['slopesmap.pdf', 'cerviniaslopesmap.pdf', 'valtournencheslopesmap.pdf', 'swissslopesmap.pdf'];
+
+function _mapOfflineMsg(t) {
+  var m = document.getElementById('map-offline-msg');
+  if (m) m.textContent = t;
+}
+
+// Says, when the maps panel opens, whether the maps are already kept.
+function mapOfflineStatus() {
+  var row = document.getElementById('map-offline-row');
+  if (!row) return;
+  if (!('caches' in window) || !('serviceWorker' in navigator)) { row.style.display = 'none'; return; }
+  Promise.all(MAP_PDFS.map(function (f) { return caches.match(f).then(function (h) { return !!h; }); }))
+    .then(function (have) {
+      var n = have.filter(Boolean).length;
+      var btn = document.getElementById('map-offline-btn');
+      if (n === MAP_PDFS.length) {
+        if (btn) btn.style.display = 'none';
+        _mapOfflineMsg(L('✅ מפות המסלולים שמורות במכשיר ויעבדו גם בלי קליטה', '✅ The piste maps are saved and work with no signal'));
+      } else {
+        if (btn) btn.style.display = '';
+        _mapOfflineMsg(n ? L('נשמרו ' + n + ' מתוך ' + MAP_PDFS.length, n + ' of ' + MAP_PDFS.length + ' saved') : '');
+      }
+    }).catch(function () {});
+}
+
+function saveMapsOffline() {
+  if (!('serviceWorker' in navigator)) return;
+  if (navigator.onLine === false) { _mapOfflineMsg(L('צריך קליטה כדי לשמור', 'A signal is needed to save them')); return; }
+  var btn = document.getElementById('map-offline-btn');
+  if (btn) btn.disabled = true;
+  _mapOfflineMsg(L('⏳ שומר…', '⏳ Saving…'));
+  navigator.serviceWorker.ready.then(function (reg) {
+    if (!reg.active) throw new Error('no worker');
+    var ch = new MessageChannel();
+    ch.port1.onmessage = function (e) {
+      var d = e.data || {};
+      if (d.type === 'progress') _mapOfflineMsg(L('⏳ שומר… ' + d.ok + ' מתוך ' + d.total, '⏳ Saving… ' + d.ok + ' of ' + d.total));
+      if (d.type === 'done') {
+        if (btn) btn.disabled = false;
+        if (d.ok < d.total) _mapOfflineMsg(L('נשמרו ' + d.ok + ' מתוך ' + d.total + '. נסה שוב כשהקליטה טובה יותר.', d.ok + ' of ' + d.total + ' saved. Try again with a better signal.'));
+        else mapOfflineStatus();
+      }
+    };
+    reg.active.postMessage({ type: 'save-offline', urls: MAP_PDFS.map(function (f) { return new URL(f, location.href).href; }) }, [ch.port2]);
+  }).catch(function () {
+    if (btn) btn.disabled = false;
+    _mapOfflineMsg(L('לא הצלחתי לשמור. רענן את הדף ונסה שוב.', 'Could not save. Reload the page and try again.'));
   });
 }
 
