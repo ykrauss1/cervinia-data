@@ -1442,7 +1442,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.10';
+  var v='v18.11';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5107,6 +5107,15 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                         </div>
                     </div>
                     <div id="admin-visits-note" style="font-size:0.7rem;color:#9aa5b1;margin-top:8px;line-height:1.6;"></div>
+                    <!-- The detail - where they came from, pages, countries, devices -
+                         comes through the visit-stats function, for an admin only. -->
+                    <div style="display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0;">
+                        <button type="button" id="adv-span-today" onclick="_admVisitDetail('today')" style="flex:1;padding:6px 2px;border:1px solid #d6dde6;background:#fff;color:#456;border-radius:8px;font-size:0.74rem;cursor:pointer;">היום</button>
+                        <button type="button" id="adv-span-week" onclick="_admVisitDetail('week')" style="flex:1;padding:6px 2px;border:1px solid #d6dde6;background:#fff;color:#456;border-radius:8px;font-size:0.74rem;cursor:pointer;">7 ימים</button>
+                        <button type="button" id="adv-span-month" onclick="_admVisitDetail('month')" style="flex:1;padding:6px 2px;border:1px solid #d6dde6;background:#fff;color:#456;border-radius:8px;font-size:0.74rem;cursor:pointer;">30 יום</button>
+                        <button type="button" id="adv-span-all" onclick="_admVisitDetail('all')" style="flex:1;padding:6px 2px;border:1px solid #d6dde6;background:#fff;color:#456;border-radius:8px;font-size:0.74rem;cursor:pointer;">הכול</button>
+                    </div>
+                    <div id="admin-visits-detail" style="font-size:0.8rem;color:#555;margin-top:10px;"></div>
                 </div>
 
                 <!-- פעילות אחרונה -->
@@ -21505,6 +21514,95 @@ async function _admRenderUsers() {
             : L('המספרים מתעדכנים באיחור של עד ארבע שעות.', 'The numbers can be up to four hours behind.');
     }
 
+    // The detail under the totals: where the readers came from, which pages,
+    // which countries, what they hold. GoatCounter gives these only against a
+    // token, and a token in this page would be everybody's - so the question
+    // goes to the visit-stats function, which keeps the token and answers a
+    // signed-in admin alone.
+    var CV_VISITS_URL = 'https://cdgqodtbdhsqkvcgcdlm.functions.supabase.co/visit-stats';
+    var _admVisitSeq = 0;
+    async function _admVisitDetail(span) {
+        var host = document.getElementById('admin-visits-detail');
+        if (!host) return;
+        span = span || 'week';
+        ['today', 'week', 'month', 'all'].forEach(function (k) {
+            var b = document.getElementById('adv-span-' + k);
+            if (!b) return;
+            var on = k === span;
+            b.style.background = on ? '#1a73e8' : '#fff';
+            b.style.color = on ? '#fff' : '#456';
+            b.style.borderColor = on ? '#1a73e8' : '#d6dde6';
+            b.style.fontWeight = on ? 'bold' : 'normal';
+        });
+        var say = function (t, warn) {
+            host.innerHTML = '<div style="padding:10px 12px;border-radius:8px;font-size:0.78rem;line-height:1.7;' +
+                (warn ? 'color:#b26a00;background:#fff8e1;">' : 'color:#aaa;text-align:center;">') + esc(t) + '</div>';
+        };
+        var seq = ++_admVisitSeq;
+        say(L('טוען…', 'Loading…'));
+        var d = new Date(), start;
+        if (span === 'today') start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        else if (span === 'month') start = new Date(d.getTime() - 30 * 86400000);
+        else if (span === 'all') start = new Date(2026, 10, 1);
+        else start = new Date(d.getTime() - 7 * 86400000);
+        var res = null, data = null;
+        try {
+            var tok = await getAuthToken();
+            if (!tok) { say(L('צריך להיות מחובר כמנהל כדי לראות את הפירוט.', 'Sign in as an admin to see the detail.'), true); return; }
+            res = await fetch(CV_VISITS_URL, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok },
+                body: JSON.stringify({ start: start.toISOString() })
+            });
+            data = await res.json().catch(function () { return null; });
+        } catch (e) { res = null; }
+        if (seq !== _admVisitSeq) return;   // a later press has taken over
+        if (!res || res.status === 404) {
+            say(L('הפירוט עוד לא פעיל: צריך להעלות את הפונקציה visit-stats ל-Supabase. בינתיים הפירוט המלא נמצא ב-GoatCounter, בקישור למעלה.',
+                  'The detail is not live yet: the visit-stats function has to be deployed to Supabase. Until then the full detail is on GoatCounter, at the link above.'), true);
+            return;
+        }
+        if (!res.ok || !data || data.ok !== true) {
+            say(L('הפירוט לא התקבל', 'The detail did not arrive') + ' (' + ((data && data.error) || res.status) + ').', true);
+            return;
+        }
+        var SIZE = { 'Phones': L('טלפונים', 'Phones'), 'Tablets and small laptops': L('טאבלטים ומחשבים ניידים קטנים', 'Tablets and small laptops'),
+                     'Large phones, small tablets': L('טלפונים גדולים וטאבלטים קטנים', 'Large phones, small tablets'),
+                     'Computer monitors': L('מסכי מחשב', 'Computer monitors'), 'Computer monitors larger than HD': L('מסכי מחשב גדולים', 'Large computer monitors'),
+                     '(unknown)': L('לא ידוע', 'Unknown') };
+        var list = function (title, rows, name) {
+            var head = '<div style="font-weight:bold;color:#333;font-size:0.78rem;margin:14px 0 6px;">' + esc(title) + '</div>';
+            if (!Array.isArray(rows)) return head + '<div style="color:#b26a00;font-size:0.74rem;">' + L('לא התקבל', 'Did not arrive') + '</div>';
+            if (!rows.length) return head + '<div style="color:#aaa;font-size:0.74rem;">' + L('אין עדיין נתונים', 'Nothing yet') + '</div>';
+            var top = Math.max.apply(null, rows.map(function (r) { return r.n || 0; })) || 1;
+            return head + rows.map(function (r) {
+                var w = Math.max(2, Math.round((r.n || 0) / top * 100));
+                return '<div style="position:relative;display:flex;justify-content:space-between;gap:10px;padding:3px 6px;margin-bottom:2px;border-radius:5px;overflow:hidden;">' +
+                    '<span style="position:absolute;inset-block:0;inset-inline-start:0;width:' + w + '%;background:#e8f1fd;"></span>' +
+                    '<span dir="auto" style="position:relative;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(name(r)) + '</span>' +
+                    '<b style="position:relative;flex:none;color:#16314f;">' + (r.n || 0) + '</b></div>';
+            }).join('');
+        };
+        var plain = function (r) { return r.name || L('לא ידוע', 'Unknown'); };
+        var html = '<div style="text-align:center;margin-bottom:4px;"><span style="font-size:1.5rem;font-weight:800;color:#1a73e8;">' +
+            (data.total == null ? '—' : data.total) + '</span> <span style="color:#888;font-size:0.76rem;">' +
+            L('כניסות בתקופה שנבחרה', 'visits in the chosen span') + '</span></div>';
+        if (Array.isArray(data.days) && data.days.length > 1) {
+            var mx = Math.max.apply(null, data.days.map(function (x) { return x.n || 0; })) || 1;
+            html += '<div style="display:flex;align-items:flex-end;gap:2px;height:46px;margin:8px 0 2px;direction:ltr;">' +
+                data.days.map(function (x) {
+                    var day = String(x.day || '').split('-').reverse().slice(0, 2).join('.');
+                    return '<span title="' + esc(day + ' · ' + (x.n || 0)) + '" style="flex:1;min-width:2px;background:#8ab4f8;border-radius:2px 2px 0 0;height:' +
+                        Math.max(2, Math.round((x.n || 0) / mx * 100)) + '%;"></span>';
+                }).join('') + '</div>';
+        }
+        html += list(L('מקורות הגעה', 'Where they came from'), data.refs, function (r) { return r.name || L('ישיר או לא ידוע', 'Direct or unknown'); });
+        html += list(L('דפים', 'Pages'), data.pages, function (r) { return (r.path || '') + (r.title ? ' · ' + r.title : ''); });
+        html += list(L('מדינות', 'Countries'), data.places, plain);
+        html += list(L('מערכות הפעלה', 'Operating systems'), data.systems, plain);
+        html += list(L('גודל מסך', 'Screen size'), data.sizes, function (r) { return SIZE[r.name] || plain(r); });
+        host.innerHTML = html;
+    }
+
     async function populateAdminStats() {
         // `allPosts` is declared with `let` at the top level of a classic
         // script, and a top-level `let` is a LEXICAL binding - it never
@@ -21512,6 +21610,7 @@ async function _admRenderUsers() {
         // on every call and the dashboard read an empty array, however many
         // posts the forum actually held.
         _admVisits();
+        _admVisitDetail('week');
         const postsData = (typeof allPosts !== 'undefined' && allPosts) ? allPosts : [];
         const today = new Date().toDateString();
         const todayPosts = postsData.filter(p => p.timestamp && new Date(p.timestamp).toDateString() === today);
