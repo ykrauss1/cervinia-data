@@ -1445,7 +1445,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.13';
+  var v='v18.14';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1938,6 +1938,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
           <option value="שאלה כללית" data-en="❓ General question">❓ שאלה כללית</option>
           <option value="הצעה לשיפור" data-en="💡 Idea for improvement">💡 הצעה לשיפור</option>
           <option value="דיווח על בעיה" data-en="🐛 Report a problem">🐛 דיווח על בעיה</option>
+          <option value="דיווח על תוכן" data-en="🚩 Report content">🚩 דיווח על תוכן</option>
           <option value="נתונים שגויים" data-en="📊 Wrong data">📊 נתונים שגויים</option>
           <option value="בקשת פרטי מדריך" data-en="🎿 Ask for an instructor&#x27;s details">🎿 בקשת פרטי מדריך</option>
           <option value="הוספת מדריך מומלץ" data-en="➕ Recommend an instructor">➕ הוספת מדריך מומלץ</option>
@@ -11942,8 +11943,8 @@ function onContactSubjectChange() {
   if (sel) _applyContactTemplate(sel.value, false);
 }
 
-function _openContactWith(subject, body) {
-  openFrom('lessonsModal', 'contactModal');
+function _openContactWith(subject, body, parent) {
+  openFrom(parent === undefined ? 'lessonsModal' : parent, 'contactModal');
   setTimeout(function () {
     var sel = document.getElementById('cf-subject');
     if (sel) {
@@ -11953,8 +11954,29 @@ function _openContactWith(subject, body) {
     }
     _applyContactTemplate(subject, false);
     var msg = document.getElementById('cf-message');
-    if (msg) msg.focus();
+    if (msg && body) { msg.value = body; msg.dataset.template = body; }
+    if (msg) { msg.focus(); try { msg.setSelectionRange(msg.value.length, msg.value.length); } catch (e) {} }
   }, 60);
+}
+
+// 🚩 on a post, a reply or a review someone else wrote. Google Play requires
+// a way to report what other people publish; the report arrives through the
+// contact form, already saying which item and what it said, so the reader
+// only adds why.
+function reportContent(el, kind) {
+  var card = el.closest('.reply-item, .post, .rev-card');
+  var ugc = card ? card.querySelector('.ugc') : null;
+  var who = card ? card.querySelector('b, .rev-author') : null;
+  var text = ugc ? ugc.innerText.replace(/\s+/g, ' ').trim() : '';
+  if (text.length > 160) text = text.slice(0, 157) + '…';
+  var id = card ? (card.id || card.getAttribute('data-id') || '') : '';
+  var kinds = { post: L('פוסט בפורום', 'forum post'), reply: L('תגובה בפורום', 'forum reply'), review: L('חוות דעת', 'review') };
+  var body = L('אני מדווח על ' + (kinds[kind] || kind), 'I am reporting a ' + (kinds[kind] || kind))
+    + (who ? L(' של ', ' by ') + who.innerText.trim() : '') + (id ? ' (' + id + ')' : '') + ':\n'
+    + '«' + text + '»\n\n'
+    + L('הסיבה: ', 'The reason: ');
+  var modal = el.closest('.modal');
+  _openContactWith('דיווח על תוכן', body, modal ? modal.id : null);
 }
 
 function askForInstructor()  { _openContactWith('בקשת פרטי מדריך'); }
@@ -14142,9 +14164,9 @@ function renderReviews() {
     const mine   = !!(user && user.sbId && user.sbId === r.authorId);
     const canDel = !!(user && (user.isAdmin || mine));
     if (_revEditing === String(r.id)) return reviewEditHtml(r);
-    return '<div style="padding:12px 14px;border:1px solid #eee;border-radius:10px;background:white;">'
+    return '<div class="rev-card" id="review-' + escHtml(String(r.id)) + '" style="padding:12px 14px;border:1px solid #eee;border-radius:10px;background:white;">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
-      + '<span style="font-weight:bold;font-size:0.88rem;">' + escHtml(r.user) + '</span>'
+      + '<span class="rev-author" style="font-weight:bold;font-size:0.88rem;">' + escHtml(r.user) + '</span>'
       + '<span style="font-size:0.7rem;background:#f0f4ff;padding:2px 8px;border-radius:10px;">' + escHtml(revCatLabel(r.cat)) + '</span>'
       + '</div>'
       + '<div style="margin-bottom:5px;">' + starsHtml(r.rating, false, '') + '</div>'
@@ -14156,6 +14178,7 @@ function renderReviews() {
       + '<span style="font-size:0.72rem;color:#bbb;">' + timeAgo(r.timestamp) + '</span>'
       + (mine ? '<span style="font-size:0.78rem;color:#1a73e8;cursor:pointer;" onclick="editReview(\'' + escHtml(r.id) + L('\')">✏️ עריכה</span>', '\')">✏️ Edit</span>') : '')
       + (canDel ? '<span style="font-size:0.78rem;color:#e74c3c;cursor:pointer;" onclick="deleteReview(\'' + escHtml(r.id) + L('\')">🗑 מחק</span>', '\')">🗑 Delete</span>') : '')
+      + (!mine ? '<span style="font-size:0.74rem;color:#aaa;cursor:pointer;" onclick="reportContent(this,\'review\')" title="' + L('דיווח על תוכן פוגעני', 'Report offensive content') + '">' + L('🚩 דיווח', '🚩 Report') + '</span>' : '')
       + '</span>'
       + '</div>'
       // asked right under the review, the way the forum asks (Yossi, 11.11)
@@ -21051,6 +21074,7 @@ function renderReplies(replies, postId, depth, query) {
       + '<span style="color:var(--accent);cursor:pointer;" onclick="openReplyBox(\'' + r.id + '\',\'' + postId + L('\')">↩ השב</span>', '\')">↩ Reply</span>')
       + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;" onclick="editReply(\'' + postId + '\',\'' + r.id + L('\')">✎ ערוך</span>', '\')">✎ Edit</span>') : '')
       + (canDel ? '<span style="cursor:pointer;color:#e74c3c;" onclick="delReply(\'' + postId + '\',\'' + r.id + L('\')">✕ מחק</span>', '\')">✕ Delete</span>') : '')
+      + (!isOwner ? '<span style="cursor:pointer;color:#aaa;font-size:0.76rem;" onclick="reportContent(this,\'reply\')" title="' + L('דיווח על תוכן פוגעני', 'Report offensive content') + '">' + L('🚩 דיווח', '🚩 Report') + '</span>' : '')
       + '</div>';
     return '<div class="reply-item" id="reply-' + safeId(r.id) + '" style="margin-inline-start:' + indent + 'px;">'
       + '<b style="cursor:pointer;color:var(--accent);" onclick="showUserInfo(\'' + escJs(r.user) + '\')">' + esc(r.user) + '</b> <span style="color:#bbb;font-size:0.72rem;">' + timeAgo(r.timestamp) + '</span>'
@@ -21147,6 +21171,7 @@ function renderPosts(query, sort, chips) {
       + (isOwner ? '<span style="cursor:pointer;color:#4cc9f0;font-size:0.82rem;" onclick="editPost(\'' + p.id + L('\')">✎ ערוך</span>', '\')">✎ Edit</span>') : '')
       + '<span style="cursor:pointer;color:#888;font-size:0.82rem;" onclick="sharePost(\'' + p.id + L('\')" title="שתף">📤 שתף</span>', '\')" title="Share">📤 Share</span>')
       + (canDel ? '<span style="cursor:pointer;color:#e74c3c;font-size:0.82rem;" onclick="delPost(\'' + p.id + L('\')">✕ מחק</span>', '\')">✕ Delete</span>') : '')
+      + (!isOwner ? '<span style="cursor:pointer;color:#aaa;font-size:0.78rem;" onclick="reportContent(this,\'post\')" title="' + L('דיווח על תוכן פוגעני', 'Report offensive content') + '">' + L('🚩 דיווח', '🚩 Report') + '</span>' : '')
       + '</div>'
       + makeReplyBox(p.id, p.id)
       + renderReplies(p.replies, p.id, 1, query)
