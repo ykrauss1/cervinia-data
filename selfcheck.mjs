@@ -2221,6 +2221,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       };
     };
     const out = { asShipped: read() };
+    out.footerShipped = document.getElementById('footer-updates').style.display;
+    out.footerHref = document.getElementById('footer-updates').getAttribute('href');
 
     // fill the whatsapp url in: both panels must pick it up, with no code change
     window._texts.community.whatsapp.url = 'https://chat.whatsapp.com/TESTINVITE';
@@ -2229,7 +2231,14 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // empty every url: both panels must go quiet rather than draw husks
     window._texts.community.whatsapp.url = '';
     window._texts.community.facebook.url = '   ';
+    window._texts.community.updates.url = '';
     out.withNone = read();
+    out.footerNone = document.getElementById('footer-updates').style.display;
+    // a url that is not a WhatsApp channel never becomes the footer button
+    window._texts.community.updates.url = 'https://evil.example/channel/x';
+    renderCommunity();
+    out.footerForeign = document.getElementById('footer-updates').style.display;
+    window._texts.community.updates.url = '';
 
     // and an injected url must not become markup
     window._texts.community.facebook.url = '" onmouseover="alert(1)';
@@ -2251,11 +2260,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }, JSON.parse(fs.readFileSync(TEXTS, 'utf8')));
 
   const T = 'a group appears the day it is ready, and not before';
-  if (r.asShipped.kosherLinks !== 1) fail(T,
-    `as shipped the kosher panel drew ${r.asShipped.kosherLinks} links - only Facebook has a url`); else ok();
-  if (r.asShipped.whyLinks !== 1) fail(T,
+  if (r.asShipped.kosherLinks !== 2) fail(T,
+    `as shipped the kosher panel drew ${r.asShipped.kosherLinks} links - the updates channel and the Facebook group have urls`); else ok();
+  if (r.asShipped.whyLinks !== 2) fail(T,
     `as shipped the why panel drew ${r.asShipped.whyLinks} links`); else ok();
-  if (r.withGroup.kosherLinks !== 2 || r.withGroup.whyLinks !== 2) fail(T,
+  if (r.withGroup.kosherLinks !== 3 || r.withGroup.whyLinks !== 3) fail(T,
     `filling in one url gave ${r.withGroup.kosherLinks} and ${r.withGroup.whyLinks} links`); else ok();
   if (!r.withGroup.hrefs.some(h => /chat\.whatsapp\.com/.test(h || ''))) fail(T,
     'the new group did not reach the panel'); else ok();
@@ -2263,6 +2272,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'an empty url still drew a link'); else ok();
   if (r.withNone.kosherShown !== 'none') fail(T,
     'with nothing to show the block still takes up space'); else ok();
+  if (r.footerShipped !== 'block' || !/whatsapp\.com\/channel\//.test(r.footerHref || '')) fail(T,
+    `the footer has no updates button as shipped: ${r.footerShipped} ${r.footerHref}`); else ok();
+  if (r.footerNone !== 'none') fail(T,
+    'with no channel url the footer still offers one'); else ok();
+  if (r.footerForeign !== 'none') fail(T,
+    'a url that is not a WhatsApp channel became the footer button'); else ok();
   if (r.injected || r.rawAttr) fail(T,
     'a url or title from the content file reached the DOM unescaped'); else ok();
 }

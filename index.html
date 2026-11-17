@@ -1445,7 +1445,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.14';
+  var v='v18.15';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1888,6 +1888,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 
 <!-- Footer -->
 <footer style="background:#0a192f;color:rgba(255,255,255,0.6);text-align:center;padding:24px 20px;margin-top:20px;font-size:0.82rem;">
+  <a id="footer-updates" href="#" target="_blank" rel="noopener" style="display:none;margin:0 auto 16px;width:max-content;max-width:100%;box-sizing:border-box;background:#25d366;color:#fff;font-weight:bold;font-size:0.9rem;padding:9px 18px;border-radius:22px;text-decoration:none;" data-en="📲 Get updates on WhatsApp">📲 הצטרף לעדכונים בווטסאפ</a>
   <div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:12px;">
     <span onclick="openM('aboutModal')" style="cursor:pointer;color:rgba(255,255,255,0.8);transition:color 0.15s;" onmouseover="this.style.color='#4cc9f0'" onmouseout="this.style.color='rgba(255,255,255,0.8)'" data-en="About us">עלינו</span>
     <span style="color:rgba(255,255,255,0.2);">|</span>
@@ -17928,12 +17929,12 @@ function renderSources() {
 // ready, by filling in one field, with no deploy and no code.
 function _communityHtml() {
   var c = (window._texts && window._texts.community) || {};
-  var order = ['whatsapp', 'facebook'];
+  var order = ['updates', 'whatsapp', 'facebook'];
   var out = [];
   order.forEach(function (k) {
     var e = c[k];
     if (!e || !e.url || !String(e.url).trim()) return;   // not ready yet
-    var tint = (k === 'whatsapp')
+    var tint = (k === 'whatsapp' || k === 'updates')
       ? 'background:#eaf7ee;border-color:#bfe3c9;'
       : 'background:#eef3ff;border-color:#c3d4f5;';
     out.push(
@@ -17999,7 +18000,18 @@ function applyModalIcons() {
   Object.keys(MODAL_ICONS).forEach(_applyModalIcon);
 }
 
+// The updates channel has one more door than the groups: a button at the
+// foot of the page. It follows the same rule as the panels - no url, no
+// door - and only a WhatsApp channel address can become that button.
+function _updatesUrl() {
+  var c = (window._texts && window._texts.community) || {};
+  var u = c.updates && c.updates.url ? String(c.updates.url).trim() : '';
+  return /^https:\/\/(www\.)?whatsapp\.com\/channel\//.test(u) ? u : '';
+}
 function renderCommunity() {
+  var u = _updatesUrl();
+  var fb = document.getElementById('footer-updates');
+  if (fb) { fb.style.display = u ? 'block' : 'none'; fb.setAttribute('href', u || '#'); }
   var html = _communityHtml();
   ['kosher-community', 'why-community'].forEach(function (id) {
     var el = document.getElementById(id);
