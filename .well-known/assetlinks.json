@@ -1,8 +1,15 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "il.co.cervinialive",
-        "sha256_cert_fingerprints": ["DC:83:70:8B:B8:E3:72:D2:6C:C2:A6:53:55:C6:BA:EA:31:D3:87:5F:5C:86:B6:87:94:71:31:13:F6:A1:9B:B9"]
-      }
-    }]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "il.co.cervinialive",
+      "sha256_cert_fingerprints": [
+        "DC:83:70:8B:B8:E3:72:D2:6C:C2:A6:53:55:C6:BA:EA:31:D3:87:5F:5C:86:B6:87:94:71:31:13:F6:A1:9B:B9",
+        "84:4A:4B:C5:4B:29:16:66:7B:05:FE:55:90:EB:83:08:EC:D9:9E:57:53:E0:BA:17:3C:6F:0A:B8:7B:A1:4A:FC"
+      ]
+    }
+  }
+]
