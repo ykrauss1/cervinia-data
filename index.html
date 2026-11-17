@@ -1437,7 +1437,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v17.99';
+  var v='v18.00';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -3532,6 +3532,9 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
         <a id="ls-send-monte"   href="#" class="ls-chip" style="padding:8px 13px;" data-en="Send to Monte Cervino">שליחה ל־Monte Cervino</a>
         <a id="ls-send-blue"    href="#" class="ls-chip" style="padding:8px 13px;" data-en="Send to BlueMoon">שליחה ל־BlueMoon</a>
         <a id="ls-send-cons"    href="#" class="ls-chip" style="padding:8px 13px;" data-en="Send to the consortium">שליחה לקונסורציום</a>
+        <!-- One letter to all four (Yossi, 17.11). The addresses go in Bcc,
+             so no agency sees who else was asked. -->
+        <a id="ls-send-all" href="#" class="ls-chip" style="padding:8px 13px;font-weight:bold;border-color:var(--accent);color:var(--accent);" data-en="Send to all four">📨 שליחה לכולם</a>
       </div>
 
       <div id="ls-he-wrap">
@@ -6353,6 +6356,14 @@ function buildLocalStayMail() {
     a.href = 'mailto:' + LS_AGENCIES[id] +
              '?subject=' + encodeURIComponent(subject) +
              '&body=' + encodeURIComponent(body);
+  }
+  var all = document.getElementById('ls-send-all');
+  if (all) {
+    var list = Object.keys(LS_AGENCIES).map(function (k) { return LS_AGENCIES[k]; }).join(',');
+    all.href = 'mailto:?bcc=' + list +
+               '&subject=' + encodeURIComponent(subject) +
+               '&body=' + encodeURIComponent(body);
+    all.title = L('נשלח בהעתק מוסתר לכל הארבעה', 'Goes to all four in Bcc');
   }
 }
 
