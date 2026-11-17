@@ -1437,7 +1437,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.00';
+  var v='v18.03';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -3470,7 +3470,7 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       </div>
 
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:11px;font-size:0.82rem;">
-        <span style="color:#888;font-size:0.78rem;" data-en="Letter language">שפת המכתב</span>
+        <span style="color:#888;font-size:0.78rem;" data-en="Enquiry language">שפת הפנייה</span>
         <label class="ls-opt" data-en="&lt;input type=&quot;radio&quot; name=&quot;ls-lang&quot; value=&quot;it&quot; checked onchange=&quot;buildLocalStayMail()&quot;&gt; Italian"><input type="radio" name="ls-lang" value="it" checked onchange="buildLocalStayMail()"> איטלקית</label>
         <label class="ls-opt" data-en="&lt;input type=&quot;radio&quot; name=&quot;ls-lang&quot; value=&quot;en&quot; onchange=&quot;buildLocalStayMail()&quot;&gt; English"><input type="radio" name="ls-lang" value="en" onchange="buildLocalStayMail()"> אנגלית</label>
       </div>
@@ -3480,6 +3480,7 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
            is the thing this panel can actually guarantee, so the more of the
            question fits in here, the less of it rests on a translation
            nobody in the room can read. -->
+      <div id="ls-asks">
       <div style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="What else to ask">מה עוד לשאול</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px;font-size:0.82rem;">
         <label class="ls-opt"><input type="checkbox" id="ls-opt-lift"    onchange="buildLocalStayMail()"> <span data-en="Close to the lifts">קרוב למעליות</span></label>
@@ -3492,13 +3493,21 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
         <label class="ls-opt"><input type="checkbox" id="ls-opt-mid"     onchange="buildLocalStayMail()"> <span data-en="Arrive mid-week">כניסה באמצע השבוע</span></label>
         <label class="ls-opt"><input type="checkbox" id="ls-opt-card"    onchange="buildLocalStayMail()"> <span data-en="Pay by credit card">תשלום בכרטיס אשראי</span></label>
       </div>
+      </div>
 
       <!-- Yossi, 8 November: "צריך להשאיר מקום לתוספת כיתוב חופשי".
            It is deliberately a small box under the boxes rather than a mode
            of its own: what goes in here is the only sentence in the letter
            that a machine wrote, and it is shown as such. -->
-      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="Anything else to ask (optional) — write in English">
-        משהו נוסף לשאול (לא חובה) — כתבו בעברית
+      <!-- Yossi, 17.11: besides a line added to the ready enquiry, a whole
+           enquiry in his own words, translated, with the ready one set aside. -->
+      <div style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="Your own words (optional)">במילים שלך (לא חובה)</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:0.82rem;">
+        <label class="ls-opt"><input type="radio" name="ls-mode" value="add" checked onchange="_lsModeChanged()"> <span data-en="An addition to the ready enquiry">תוספת לפנייה המוכנה</span></label>
+        <label class="ls-opt"><input type="radio" name="ls-mode" value="new" onchange="_lsModeChanged()"> <span data-en="A new enquiry of my own">פנייה חדשה משלי</span></label>
+      </div>
+      <div id="ls-extra-hint" style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="Anything else to ask — write in English">
+        משהו נוסף לשאול? כתוב בעברית
       </div>
       <textarea id="ls-extra" rows="2" placeholder="למשל: האם אפשר להגיע עם תינוק, ויש מיטת תינוק?"
         oninput="_lsExtraChanged()"
@@ -3509,14 +3518,14 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
         <button type="button" onclick="lsTranslateExtra(this)"
           style="padding:7px 14px;background:#fff;border:1.5px solid var(--accent);
                  color:var(--accent);border-radius:8px;font-size:0.8rem;font-weight:bold;
-                 cursor:pointer;font-family:inherit;" data-en="Translate the addition">תרגמו את התוספת</button>
+                 cursor:pointer;font-family:inherit;" id="ls-extra-btn" data-en="Translate the addition">תרגם את התוספת</button>
         <span id="ls-extra-state" style="font-size:0.76rem;color:#888;"></span>
       </div>
       <div id="ls-extra-back" style="display:none;font-size:0.78rem;color:#6b5a2a;
            background:#fffdf4;border:1px solid #eadfbe;border-radius:8px;padding:9px 11px;
            margin-bottom:11px;line-height:1.7;"></div>
 
-      <div id="ls-out-label" style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="The letter in Italian">הנוסח באיטלקית</div>
+      <div id="ls-out-label" style="font-size:0.74rem;color:#888;margin-bottom:5px;" data-en="The enquiry in Italian">הפנייה באיטלקית</div>
       <textarea id="ls-it" readonly dir="ltr" rows="11"
         style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #dde6f0;
                border-radius:8px;background:white;font-size:0.84rem;line-height:1.65;
@@ -3525,8 +3534,8 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:9px 0 12px;">
         <button onclick="copyLocalStay(this)"
           style="padding:8px 16px;background:var(--accent);color:white;border:none;
-                 border-radius:8px;font-size:0.84rem;font-weight:bold;cursor:pointer;" data-en="Copy the letter">
-          העתקת הנוסח
+                 border-radius:8px;font-size:0.84rem;font-weight:bold;cursor:pointer;" data-en="Copy the enquiry">
+          העתקת הפנייה
         </button>
         <a id="ls-send-cervino" href="#" class="ls-chip" style="padding:8px 13px;" data-en="Send to Il Cervino">שליחה ל־Il Cervino</a>
         <a id="ls-send-monte"   href="#" class="ls-chip" style="padding:8px 13px;" data-en="Send to Monte Cervino">שליחה ל־Monte Cervino</a>
@@ -6127,6 +6136,53 @@ function _lsExtraClear() {
   if (st) st.textContent = '';
 }
 
+function _lsMode() {
+  var p = document.querySelector('input[name="ls-mode"]:checked');
+  return (p && p.value === 'new') ? 'new' : 'add';
+}
+// Addition or a whole enquiry of his own. The box, its hint and its button
+// change with it; a translation made for the other mode no longer applies.
+function _lsModeChanged() {
+  var nw = _lsMode() === 'new';
+  var ta = document.getElementById('ls-extra'), hint = document.getElementById('ls-extra-hint');
+  var btn = document.getElementById('ls-extra-btn'), asks = document.getElementById('ls-asks');
+  if (ta) {
+    ta.rows = nw ? 7 : 2;
+    ta.placeholder = nw
+      ? L('כתוב כאן את כל הפנייה בעברית, במילים שלך: מי אתם, מתי, מה אתם מחפשים ומה חשוב לך לשאול.', 'Write the whole enquiry here in your own words: who you are, when, what you are looking for and what you want to ask.')
+      : L('למשל: האם אפשר להגיע עם תינוק, ויש מיטת תינוק?', 'e.g. can we come with a baby, and is there a cot?');
+  }
+  if (hint) hint.textContent = nw
+    ? L('הפנייה שלך — כתוב בעברית, והיא תתורגם במלואה', 'Your enquiry — it will be translated in full')
+    : L('משהו נוסף לשאול? כתוב בעברית', 'Anything else to ask — write in English');
+  if (btn) btn.textContent = nw ? L('תרגם את הפנייה', 'Translate the enquiry') : L('תרגם את התוספת', 'Translate the addition');
+  if (asks) asks.style.display = nw ? 'none' : '';
+  _lsExtraClear();
+  _lsExtraChanged();
+}
+
+// A whole enquiry is longer than one call takes: it goes paragraph by
+// paragraph (and long paragraphs sentence by sentence), each under the cap.
+async function _lsAskLong(text, to) {
+  var parts = [], cur = '';
+  String(text).split(/\n\s*\n/).forEach(function (para) {
+    var bits = para.length > 550 ? para.match(/[^.!?\n]+[.!?]*\s*/g) || [para] : [para];
+    bits.forEach(function (b) {
+      if ((cur + b).length > 550 && cur) { parts.push(cur); cur = ''; }
+      cur += b;
+    });
+    if (cur) { parts.push(cur); cur = ''; }
+    parts.push('\n\n');
+  });
+  var out = '';
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i] === '\n\n') { out = out.replace(/\s+$/, '') + '\n\n'; continue; }
+    if (!parts[i].trim()) continue;
+    out += (out && !/\n$/.test(out) ? ' ' : '') + await _lsAsk(parts[i].trim(), to);
+  }
+  return out.trim();
+}
+
 function _lsLang() {
   var picked = document.querySelector('input[name="ls-lang"]:checked');
   return (picked && picked.value === 'en') ? 'en' : 'it';
@@ -6173,16 +6229,16 @@ async function lsTranslateExtra(btn) {
   if (btn) { btn.disabled = true; btn.textContent = L('מתרגם…', 'Translating…'); }
   if (st) st.textContent = '';
   try {
-    var out   = await _lsAsk(txt, lang);
+    var out   = await _lsAskLong(txt, lang);
     // back into the reader's own language, so they can see what was said
-    var back2 = await _lsAsk(out, window.LANG === 'en' ? 'en' : 'he');
+    var back2 = await _lsAskLong(out, window.LANG === 'en' ? 'en' : 'he');
     _lsExtra = { src: txt, lang: lang, out: out, back: back2 };
     if (back) {
       back.style.display = 'block';
-      back.innerHTML = '<b>' + L('מה שהמשפט הזה אומר, בתרגום חזרה לעברית:', 'What this sentence says, translated back into English:') + '</b><br>' +
-        '<span style="color:#444;">' + esc(back2) + '</span><br>' +
-        '<span style="font-size:0.74rem;color:#9a8b63;">' + L('אם זה לא מה שהתכוונתם — ' +
-        'נסחו מחדש בעברית ותרגמו שוב.', 'If that is not what you meant — rephrase it and translate again.') + '</span>';
+      back.innerHTML = '<b>' + L('מה שזה אומר, בתרגום חזרה לעברית:', 'What it says, translated back into English:') + '</b><br>' +
+        '<span style="color:#444;white-space:pre-wrap;">' + esc(back2) + '</span><br>' +
+        '<span style="font-size:0.74rem;color:#9a8b63;">' + L('אם זה לא מה שהתכוונת, ' +
+        'נסח מחדש בעברית ותרגם שוב.', 'If that is not what you meant — rephrase it and translate again.') + '</span>';
     }
     if (st) st.textContent = L('תורגם ל' + _LS_NAME[lang] + '.', 'Translated into ' + _LS_NAME[lang] + '.');
   } catch (e) {
@@ -6239,9 +6295,11 @@ function buildLocalStayMail() {
     extraOut = '\n\n' + _lsExtra.out;
     extraHe  = '\n\n' + _raw;
   } else if (_raw && _st && !_st.textContent) {
-    _st.textContent = L('התוספת עדיין לא בתוך המכתב — לחצו "תרגמו את התוספת".', 'The addition is not in the letter yet — tap "Translate the addition".');
+    _st.textContent = _lsMode() === 'new'
+      ? L('הפנייה שלך עוד לא תורגמה — לחץ "תרגם את הפנייה".', 'Your enquiry is not translated yet — tap "Translate the enquiry".')
+      : L('התוספת עדיין לא בתוך הפנייה — לחץ "תרגם את התוספת".', 'The addition is not in the enquiry yet — tap "Translate the addition".');
   } else if (_raw && _lsExtra.out && _lsExtra.lang !== lang && _st) {
-    _st.textContent = L('שיניתם שפה — תרגמו את התוספת מחדש.', 'You changed the language — translate the addition again.');
+    _st.textContent = L('שינית שפה — תרגם שוב.', 'You changed the language — translate again.');
   }
 
   // The English dates are written out in words. dd/mm is unambiguous to an
@@ -6335,8 +6393,19 @@ function buildLocalStayMail() {
            'Do you have availability for those dates? I would be grateful if you could let me know ' +
            asksEn.join(', ') + '.' + extraHe + '\n\n' + 'Thank you very much,\n';
   }
+  // A new enquiry of his own: the ready text steps aside. The subject line
+  // still carries the people and the date, so the agency can file it.
+  if (_lsMode() === 'new') {
+    var subjLine = (lang === 'en')
+      ? 'Subject: Apartment request for ' + ppl + ' people, ' + (from ? _long(from) : '[date]')
+      : 'Oggetto: Richiesta appartamento ' + ppl + ' persone, ' + (dFrom ? dFrom : '[data]');
+    var own = (_asIs && _raw) ? _raw
+            : (_raw && _lsExtra.out && _lsExtra.src === _raw && _lsExtra.lang === lang) ? _lsExtra.out : '';
+    it = subjLine + '\n\n' + (own || L('[כאן תופיע הפנייה שלך, אחרי התרגום]', '[your enquiry will appear here once translated]'));
+    mine = (window.LANG === 'en' ? 'Subject: ' : 'נושא: ') + subjLine.replace(/^(Oggetto|Subject):\s*/, '') + '\n\n' + (_raw || '');
+  }
   var lbl = document.getElementById('ls-out-label');
-  if (lbl) lbl.textContent = (lang === 'en') ? L('הנוסח באנגלית', 'The letter in English') : L('הנוסח באיטלקית', 'The letter in Italian');
+  if (lbl) lbl.textContent = (lang === 'en') ? L('הפנייה באנגלית', 'The enquiry in English') : L('הפנייה באיטלקית', 'The enquiry in Italian');
   var ta = document.getElementById('ls-it');
   if (ta) ta.value = it;
   var heBox = document.getElementById('ls-he');
@@ -8368,6 +8437,95 @@ function makeResultLinks(links) {
   ).join('') + '</div>';
 }
 
+// ── one window for all the results (Yossi, 17.11) ───────────────────────
+// Booking, Airbnb, the flight and car sites all refuse to be shown inside
+// another site, so their pages cannot sit in tabs of ours. What can be done:
+// every result opens in ONE browser tab of its own, reused, and a bar above
+// the results flips that tab back and forth through them - no pile of tabs.
+// And the dates sit in the same bar: change them and every link is rebuilt
+// at once, for the same search.
+var RES = { links: [], i: -1, name: '', src: '', box: '' };
+function _resOpen(i) {
+  if (!RES.links.length) return;
+  i = (i + RES.links.length) % RES.links.length;
+  RES.i = i;
+  var w = window.open(RES.links[i].url, 'cl_results');
+  if (w) try { w.focus(); } catch (e) {}
+  _resLabel();
+}
+function _resLabel() {
+  var el = document.getElementById('res-now-' + RES.box);
+  if (!el) return;
+  el.innerHTML = RES.i < 0
+    ? L('בחר אתר, או התחל מהראשון ▸', 'Pick a site, or start with the first ▸')
+    : '<b>' + (RES.i + 1) + '/' + RES.links.length + '</b> · ' + RES.links[RES.i].title;
+}
+function _resDecorate(name, srcId, boxId) {
+  var box = document.getElementById(boxId);
+  if (!box || box.style.display === 'none') return;
+  var as = [].slice.call(box.querySelectorAll('a.result-link'));
+  if (!as.length) return;
+  var src = document.getElementById(srcId);
+  if (!(src && src.getAttribute('data-ci')) && srcId !== 'trip-dates') src = document.getElementById('trip-dates');
+  var dr = srcId === 'trip-dates' ? getDateRange()
+         : (src && src.getAttribute('data-ci') ? { ci: src.getAttribute('data-ci'), co: src.getAttribute('data-co') } : getDateRange());
+  RES = { links: as.map(function (a) {
+            var t = a.querySelector('.rl-title');
+            return { url: a.href, title: (t ? t.textContent : a.textContent).replace(/\s+/g, ' ').trim().slice(0, 40) };
+          }), i: -1, name: name, src: src ? src.id : 'trip-dates', box: boxId };
+  as.forEach(function (a, i) {
+    a.onclick = function (e) { e.preventDefault(); _resOpen(i); };
+  });
+  var old = document.getElementById('res-head-' + boxId);
+  if (old) old.remove();
+  var btn = 'style="border:1px solid #c9d8ee;background:#fff;border-radius:8px;padding:5px 11px;font-size:0.82rem;cursor:pointer;font-family:inherit;"';
+  var head = document.createElement('div');
+  head.id = 'res-head-' + boxId;
+  head.style.cssText = 'position:sticky;top:0;z-index:5;background:#f7faff;border:1.5px solid #c9d8ee;border-radius:11px;padding:9px 12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(10,25,47,0.06);';
+  head.innerHTML =
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.84rem;">'
+    + '<span>📅</span>'
+    + '<input id="res-dates-' + boxId + '" readonly placeholder="' + L('שינוי תאריכים', 'Change dates') + '" value="" '
+    + 'title="' + (dr && typeof _tripRangeLabel === 'function' ? _tripRangeLabel(new Date(dr.ci + 'T00:00:00'), new Date(dr.co + 'T00:00:00')) : '') + '" '
+    + 'style="flex:1;min-width:150px;max-width:230px;padding:6px 10px;border:1.5px solid #9fbfe4;border-radius:8px;font-size:0.84rem;font-weight:bold;font-family:inherit;cursor:pointer;background:#fff;">'
+    + '<span style="font-size:0.72rem;color:#7b8798;">' + L('✏️ לחץ לשינוי — התוצאות מתעדכנות מיד', '✏️ tap to change — the results update at once') + '</span>'
+    + '</div>'
+    + '<div style="font-size:0.72rem;color:#45607d;margin-top:8px;">' + L('🔁 כל האתרים נפתחים בכרטיסייה אחת — מדפדפים ביניהם מכאן:', '🔁 Every site opens in one tab — flip through them from here:') + '</div>'
+    + '<div style="display:flex;align-items:center;gap:7px;margin-top:4px;font-size:0.8rem;">'
+    + '<button type="button" onclick="_resOpen(RES.i - 1)" ' + btn + '>' + L('▸ הקודם', '◂ Back') + '</button>'
+    + '<span id="res-now-' + boxId + '" style="flex:1;min-width:0;color:#333;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'
+    + '<button type="button" onclick="_resOpen(RES.i + 1)" ' + btn + '>' + L('הבא ◂', 'Next ▸') + '</button>'
+    + '</div>';
+  box.insertBefore(head, box.firstChild);
+  // under the planner's own sticky bar, not behind it
+  var pb = document.getElementById('plan-bar');
+  if (pb && pb.offsetParent && /sticky|fixed/.test(getComputedStyle(pb).position)) head.style.top = pb.offsetHeight + 'px';
+  _resLabel();
+  var inp = document.getElementById('res-dates-' + boxId);
+  if (inp && typeof flatpickr !== 'undefined') {
+    flatpickr(inp, {
+      mode: 'range', minDate: 'today', dateFormat: FP_FMT, locale: HE_FP,
+      defaultDate: dr ? [new Date(dr.ci + 'T00:00:00'), new Date(dr.co + 'T00:00:00')] : null,
+      onChange: function (sel) {
+        if (sel.length !== 2) return;
+        var s = document.getElementById(RES.src) || document.getElementById('trip-dates');
+        var iso = function (d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+        s.setAttribute('data-ci', iso(sel[0])); s.setAttribute('data-co', iso(sel[1]));
+        if (s._flatpickr) s._flatpickr.setDate(sel, true);
+        _skipResultScroll = true;
+        window[name]();
+      }
+    });
+  }
+}
+function _resWrap(name, srcId, boxId) {
+  var orig = window[name];
+  if (typeof orig !== 'function' || orig._res) return;
+  var w = function () { var r = orig.apply(this, arguments); try { _resDecorate(name, srcId, boxId); } catch (e) { console.warn('results bar', e); } return r; };
+  w._res = true;
+  window[name] = w;
+}
+
 // ── where to buy the personal gear, in Israel ─────────────────────────
 // Checked by hand in November 2026. The ski stock in Israel is seasonal and
 // reaches the shops around November, which is why each card says what the
@@ -8946,6 +9104,12 @@ function searchAll() {
 }
 
 // One Hebrew locale for every picker on the page.
+window.addEventListener('load', function () {
+  _resWrap('searchAll', 'trip-dates', 'all-results');
+  _resWrap('searchFlight', 'trip-dates', 'flight-results');
+  _resWrap('searchCar', 'car-dates', 'car-results');
+  _resWrap('searchHotel', 'hotel-dates', 'hotel-results');
+});
 var HE_FP = {
   firstDayOfWeek: 0,
   rangeSeparator: ' — ',
@@ -12094,6 +12258,102 @@ CE.open = function () {
   }
   CE.cat = null; CE.item = null;
   CE.render();
+  CE.enLoad();
+};
+
+// ── the English side (Yossi, 17.11) ─────────────────────────────────────
+// A Hebrew text edited here used to leave texts.en.json as it was, so the
+// English site kept the old sentence. Now every edited Hebrew field is
+// translated as soon as the admin leaves it, the English shows under it and
+// can be corrected, and the export hands over both files.
+CE.enLoad = async function () {
+  if (CE.en) return;
+  try {
+    var r = await fetch('texts.en.json', { cache: 'no-cache' });
+    var en = await r.json();
+    CE.enOrig = JSON.parse(JSON.stringify(en));
+    var d = null;
+    try { d = JSON.parse(localStorage.getItem('ce_draft_en') || 'null'); } catch (e) {}
+    CE.en = d && d.__base === JSON.stringify(CE.enOrig).length ? d.data : en;
+    try { CE.enDirty = JSON.parse(localStorage.getItem('ce_draft_en_keys') || '{}'); } catch (e) { CE.enDirty = {}; }
+  } catch (e) { CE.en = null; }
+};
+CE.enDirty = {};
+// The same path in the English file, walked the way the site lays English
+// over Hebrew: objects by key, arrays by "id" when every English item has
+// one, otherwise by position. Returns null where English has no copy.
+CE.enRef = function (path, make) {
+  if (!CE.en) return null;
+  var he = CE.data, en = CE.en;
+  for (var i = 0; i < path.length - 1; i++) {
+    var k = path[i];
+    if (Array.isArray(en)) {
+      var ids = en.length && en.every(function (x) { return x && typeof x === 'object' && x.id != null; });
+      var hv = he && he[k];
+      var j = ids ? en.findIndex(function (x) { return hv && x.id === hv.id; }) : k;
+      if (j < 0 || j >= en.length) return null;
+      en = en[j]; he = hv;
+    } else if (en && typeof en === 'object') {
+      if (!(k in en)) { if (!make) return null; en[k] = typeof path[i + 1] === 'number' ? [] : {}; }
+      en = en[k]; he = he && he[k];
+    } else return null;
+  }
+  var last = path[path.length - 1];
+  if (Array.isArray(en) && (typeof last !== 'number' || last >= en.length)) return null;
+  if (!en || typeof en !== 'object') return null;
+  // null in the English file means "show the Hebrew one" - a Latin name, say
+  if (en[last] === null) return null;
+  return { o: en, k: last };
+};
+CE.enGet = function (path) { var r = CE.enRef(path, false); return r ? r.o[r.k] : undefined; };
+CE.enSave = function () {
+  try {
+    localStorage.setItem('ce_draft_en', JSON.stringify({ __base: JSON.stringify(CE.enOrig).length, data: CE.en }));
+    localStorage.setItem('ce_draft_en_keys', JSON.stringify(CE.enDirty));
+  } catch (e) {}
+};
+CE.enBoxHtml = function (id, key, en, state) {
+  return '<div id="' + id + '_en" style="margin-top:5px;padding:7px 9px;background:#f3f8ff;border:1px solid #d6e4f5;border-radius:8px;">'
+    + '<div style="font-size:0.7rem;color:#45607d;margin-bottom:3px;">🇬🇧 English · <span id="' + id + '_ens">' + (state || '') + '</span></div>'
+    + '<textarea dir="ltr" rows="' + Math.min(8, Math.ceil(String(en || '').length / 70) + 1) + '" oninput="CE.enEdit(this,\'' + CE.esc(key) + '\')"'
+    + ' style="width:100%;box-sizing:border-box;padding:7px 9px;border:1px solid #c9d8ee;border-radius:7px;font-size:0.82rem;font-family:inherit;line-height:1.55;resize:vertical;">'
+    + CE.esc(en || '') + '</textarea></div>';
+};
+CE.enEdit = function (el, key) {
+  var path = key.split('/').map(function (p) { return /^\d+$/.test(p) ? parseInt(p, 10) : p; });
+  var r = CE.enRef(path, true);
+  if (!r) return;
+  r.o[r.k] = el.value; CE.enDirty[key] = true; CE.enSave(); CE.refreshBar();
+};
+// Leaving a changed Hebrew field: translate it.
+CE.enTranslate = async function (el, key) {
+  var path = key.split('/').map(function (p) { return /^\d+$/.test(p) ? parseInt(p, 10) : p; });
+  var v = el.value;
+  if (!CE.dirty[key] || !/[\u0590-\u05FF]/.test(v)) return;
+  if (CE.enLast && CE.enLast[key] === v) return;
+  await CE.enLoad();
+  var r = CE.enRef(path, true);
+  var id = el.id;
+  var holder = document.getElementById(id + '_enw');
+  if (!r) { if (holder) holder.innerHTML = '<div style="font-size:0.7rem;color:#999;margin-top:4px;">לשדה הזה אין עותק בגרסה האנגלית — שם מוצג הטקסט העברי או שם לועזי.</div>'; return; }
+  if (holder) holder.innerHTML = CE.enBoxHtml(id, key, r.o[r.k], 'מתרגם…');
+  var st = function (t) { var e = document.getElementById(id + '_ens'); if (e) e.textContent = t; };
+  try {
+    var sb = getSB(), g = sb && await sb.auth.getSession();
+    var tok = g && g.data && g.data.session && g.data.session.access_token;
+    if (!tok) { st('צריך להיות מחובר כמנהל כדי לתרגם'); return; }
+    var res = await fetch(CV_TRANSLATE_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok },
+      body: JSON.stringify({ kind: 'site', text: v })
+    });
+    var d = await res.json().catch(function () { return null; });
+    if (d && d.error === 'unknown kind') { st('התרגום עוד לא פעיל: צריך לעדכן את הפונקציה tf-translate ב-Supabase. אפשר לכתוב את האנגלית ביד.'); return; }
+    if (!res.ok || !d || !d.intent || typeof d.intent.t !== 'string') { st('התרגום לא הצליח (' + ((d && d.error) || res.status) + '). אפשר לכתוב ביד.'); return; }
+    r.o[r.k] = d.intent.t;
+    CE.enDirty[key] = true; CE.enLast = CE.enLast || {}; CE.enLast[key] = v;
+    CE.enSave(); CE.refreshBar();
+    if (holder) holder.innerHTML = CE.enBoxHtml(id, key, d.intent.t, 'תורגם · אפשר לתקן');
+  } catch (e) { st('התרגום לא הצליח. אפשר לכתוב ביד.'); }
 };
 
 CE.markAllDirty = function () {
@@ -12289,19 +12549,21 @@ CE.fieldHtml = function (full, k, v, ro) {
     + '</div>'
     + (long
         ? '<textarea id="' + id + '" ' + (ro ? 'readonly ' : '') + 'dir="rtl" rows="' + Math.min(10, Math.ceil(String(v).length / 60) + 1) + '"'
-          + ' oninput="CE.edit(this,\'' + CE.esc(key) + '\')"'
+          + ' oninput="CE.edit(this,\'' + CE.esc(key) + '\')" onchange="CE.enTranslate(this,\'' + CE.esc(key) + '\')"'
           + ' style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid '
           + (changed ? '#f0c060' : '#ddd') + ';border-radius:8px;font-size:0.84rem;font-family:inherit;'
           + 'line-height:1.6;resize:vertical;' + (ro ? 'background:#fafafa;color:#777;' : '') + '">'
           + CE.esc(v) + '</textarea>'
         : '<input id="' + id + '" ' + (ro ? 'readonly ' : '') + 'dir="rtl" value="' + CE.esc(v) + '"'
-          + ' oninput="CE.edit(this,\'' + CE.esc(key) + '\')"'
+          + ' oninput="CE.edit(this,\'' + CE.esc(key) + '\')" onchange="CE.enTranslate(this,\'' + CE.esc(key) + '\')"'
           + ' style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid '
           + (changed ? '#f0c060' : '#ddd') + ';border-radius:8px;font-size:0.84rem;font-family:inherit;'
           + (ro ? 'background:#fafafa;color:#777;' : '') + '">')
     + '<div id="' + id + '_pv" style="display:none;margin-top:5px;padding:8px 10px;background:#f7f9fc;'
     + 'border-right:3px solid #c9d8ee;border-radius:6px;font-size:0.84rem;line-height:1.7;"></div>'
-    + '</div>';
+    + '<div id="' + id + '_enw">' + (!ro && (changed || CE.enDirty[key]) && CE.enGet(full) !== undefined
+        ? CE.enBoxHtml(id, key, CE.enGet(full), CE.enDirty[key] ? 'אפשר לתקן' : 'עדיין לא תורגם — צא מהשדה כדי לתרגם') : '')
+    + '</div></div>';
 };
 
 // The one thing a plain textarea cannot show: what the line will actually
@@ -12441,7 +12703,8 @@ CE.validate = function () {
 CE.refreshBar = function () {
   var n = Object.keys(CE.dirty).length;
   var el = document.getElementById('ce-count');
-  if (el) el.innerHTML = n ? '<b style="color:#e67e00;">' + n + ' שינויים לא מיוצאים</b>' : 'אין שינויים';
+  var ne = Object.keys(CE.enDirty || {}).length;
+  if (el) el.innerHTML = n ? '<b style="color:#e67e00;">' + n + ' שינויים לא מיוצאים</b>' + (ne ? ' · 🇬🇧 ' + ne + ' באנגלית' : '') : 'אין שינויים';
   var b = document.getElementById('ce-export');
   if (b) b.disabled = false;
 };
@@ -12456,22 +12719,33 @@ CE.export = function () {
       + (errs.length > 8 ? '<br>…' : '');
     return;
   }
-  var blob = new Blob([JSON.stringify(CE.data, null, 2)], { type: 'application/json' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'texts.json';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  // Both files, written the way the repository keeps them: Hebrew indented
+  // by two spaces, English by one, neither with a newline at the end - so a
+  // diff shows only what was changed.
+  var down = function (name, text) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
+  };
+  down('texts.json', JSON.stringify(CE.data, null, 2));
+  var withEn = CE.en && Object.keys(CE.enDirty || {}).length;
+  if (withEn) setTimeout(function () { down('texts.en.json', JSON.stringify(CE.en, null, 1)); }, 600);
   msg.style.display = 'block';
   msg.style.background = '#e8f8ec'; msg.style.color = '#157a37';
-  msg.innerHTML = '✅ הקובץ ירד. העלו אותו לגיטהאב והעלו את APP_VER.';
+  msg.innerHTML = withEn
+    ? '✅ ירדו שני קבצים: texts.json (עברית) ו-texts.en.json (אנגלית). אם הדפדפן שואל אם להתיר הורדה של כמה קבצים — אשר. העלה את שניהם לגיטהאב.'
+    : '✅ הקובץ ירד. העלה אותו לגיטהאב.';
 };
 
 CE.revert = async function () {
   if (!(await uiConfirm('לבטל את כל השינויים ולחזור לקובץ שנטען?', 'ביטול השינויים', true))) return;
   CE.data = JSON.parse(JSON.stringify(CE.orig));
   CE.dirty = {};
-  try { localStorage.removeItem('ce_draft'); } catch (e) {}
+  if (CE.enOrig) CE.en = JSON.parse(JSON.stringify(CE.enOrig));
+  CE.enDirty = {}; CE.enLast = {};
+  try { localStorage.removeItem('ce_draft'); localStorage.removeItem('ce_draft_en'); localStorage.removeItem('ce_draft_en_keys'); } catch (e) {}
   CE.cat = null; CE.item = null;
   CE.render();
   var msg = document.getElementById('ce-msg'); if (msg) msg.style.display = 'none';
@@ -19394,7 +19668,7 @@ const SEARCH_INDEX = [
   { text: 'כשר מסעדה אוכל', action: "openM('kosherModal')", icon: '🍽️', label: 'אוכל כשר' },
   { text: 'מצלמות webcam שידור חי', action: "openM('webcamModal')", icon: '📷', label: 'מצלמות חי' },
   { text: 'איפה לישון להתארח אירוח לינה מלון דירה אזור שכונה cielo alto giomein ולטורננש', action: "openM('lodgingModal')", icon: '🏘️', label: 'איפה להתארח בכפר' },
-  { text: 'חניה כביש נסיעה', action: "openM('parkingModal');switchParkTab('parking')", icon: '🅿️', label: 'חניה וכביש' },
+  { text: 'חניה כביש נסיעה קרטז cretaz', action: "openM('parkingModal');switchParkTab('parking')", icon: '🅿️', label: 'חניה וכביש' },
   { text: 'תחבורה אוטובוס הסעה שאטל linea blu רכבת תחנה', action: "openParkTransport()", icon: '🚌', label: 'תחבורה והסעות' },
   { text: 'נחתתי נחיתה טיסה הגעה משדה התעופה מלפנסה מתכנן', action: "openArrivalPlanner()", icon: '🛬', label: 'נחתתי — איך אני מגיע?' },
   { text: 'השכרת רכב שרשראות צמיגי חורף גבול שוויץ צרפת', action: "openParkTransport()", icon: '🚗', label: 'רכב שכור וחוקי החורף' },
@@ -19421,7 +19695,7 @@ const SEARCH_INDEX = [
 ];
 // English: the same entries, searchable by English words and labelled in English.
 if (window.LANG === 'en') {
-  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"], ["pila courmayeur la thuile monterosa champoluc gressoney torgnon chamois other ski area resort wind closed", "Other ski areas nearby"], ["dolomites madonna di campiglio sella ronda cortina livigno bormio venice northern italy ski areas", "Ski areas of northern Italy"]].forEach(function (e, k) {
+  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving cretaz", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"], ["pila courmayeur la thuile monterosa champoluc gressoney torgnon chamois other ski area resort wind closed", "Other ski areas nearby"], ["dolomites madonna di campiglio sella ronda cortina livigno bormio venice northern italy ski areas", "Ski areas of northern Italy"]].forEach(function (e, k) {
     if (SEARCH_INDEX[k]) { SEARCH_INDEX[k].text += ' ' + e[0]; SEARCH_INDEX[k].label = e[1]; }
   });
 }

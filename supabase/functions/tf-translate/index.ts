@@ -19,6 +19,9 @@
 //   { kind: "trip",      text, today: "YYYY-MM-DD", chagim: "<name> <iso> · ..." }
 //   { kind: "translate", text, to: "it" | "en" | "he" }
 //   { kind: "kosherfly", text, today: "YYYY-MM-DD" }      (Kosher Fly, 10 Nov)
+//   { kind: "site", text }  + Authorization: Bearer <admin's session token>
+//        (17 Nov) the admin's text editor: a Hebrew site text into English,
+//        markup kept. Only for a signed-in user whose profile is_admin.
 // Request (legacy, during the deploy window only - see ALLOW_LEGACY):
 //   { prompt: "..." }
 // Response (unchanged, so the client needs no flag day):
@@ -47,8 +50,8 @@ const ALLOW_ORIGINS = [
 // Short on purpose. The real sentences are one line; the trip parser caps
 // its own input at 400 characters. A cap is what makes the endpoint useless
 // as a general-purpose model.
-const MAX_TEXT = { trip: 400, translate: 600, kosherfly: 600, legacy: 1200 };
-const MAX_TOKENS = { trip: 900, translate: 400, kosherfly: 900, legacy: 500 };
+const MAX_TEXT = { trip: 400, translate: 600, kosherfly: 600, legacy: 1200, site: 4000 };
+const MAX_TOKENS = { trip: 900, translate: 400, kosherfly: 900, legacy: 500, site: 3000 };
 
 // Per IP per hour, and for everybody together per day. The daily one is the
 // number that matters: it is the most this function can cost in 24 hours
@@ -91,6 +94,45 @@ function translatePrompt(text: string, to: keyof typeof LANG) {
     `do not improve it, do not answer it, and do not add anything. Return ONLY ` +
     `valid JSON, no markdown: {"t":"<the ${full} text>"}\n\n` + text
   );
+}
+
+// The site's own texts, for the admin editor. They carry HTML, **bold**,
+// emoji and Latin place names, and all of it has to come back where it was.
+function sitePrompt(text: string) {
+  return (
+    `Translate this Hebrew text from CerviniaLive, a ski guide website for ` +
+    `Breuil-Cervinia, Italy, into natural English for skiers from anywhere. ` +
+    `Rules: keep every HTML tag and attribute exactly as it is (translate only ` +
+    `the visible words between tags, never inside href, onclick or other ` +
+    `attributes); keep **double asterisks**, emoji, line breaks, numbers, ` +
+    `prices, times, phone numbers and dates exactly as they are; keep names ` +
+    `written in Latin letters unchanged; write "ski pass" (not ski ticket), ` +
+    `"Zermatt", "Torgnon", "Chamois", "piste" or "run". Address the reader as ` +
+    `"you". Do not add, explain or leave anything out. Return ONLY valid JSON, ` +
+    `no markdown: {"t":"<the English text>"}\n\n` + text
+  );
+}
+
+// Is the caller a signed-in admin? The token is the one the browser already
+// holds for its Supabase session; Supabase says who it belongs to, and the
+// profile says whether that person is an admin.
+async function callerIsAdmin(req: Request): Promise<boolean> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const anon = Deno.env.get("SUPABASE_ANON_KEY");
+  const svc = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const auth = req.headers.get("authorization") || "";
+  if (!url || !anon || !svc || !/^Bearer\s+\S+/.test(auth)) return false;
+  try {
+    const u = await fetch(url + "/auth/v1/user", { headers: { apikey: anon, Authorization: auth } });
+    if (!u.ok) return false;
+    const id = (await u.json())?.id;
+    if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return false;
+    const p = await fetch(url + "/rest/v1/profiles?id=eq." + id + "&select=is_admin",
+      { headers: { apikey: svc, Authorization: "Bearer " + svc } });
+    if (!p.ok) return false;
+    const rows = await p.json();
+    return Array.isArray(rows) && rows.length === 1 && rows[0]?.is_admin === true;
+  } catch (_e) { return false; }
 }
 
 function tripPrompt(text: string, today: string, chagim: string) {
@@ -227,6 +269,16 @@ Deno.serve(async (req) => {
       prompt = kosherFlyPrompt(text, today);
       maxTokens = MAX_TOKENS.kosherfly;
 
+    } else if (kind === "site") {
+      if (!(await callerIsAdmin(req)))
+        return J({ ok: false, error: "admins only" }, 403, origin);
+      const text = String(body.text || "").trim();
+      if (!text) return J({ ok: false, error: "text required" }, 400, origin);
+      if (text.length > MAX_TEXT.site)
+        return J({ ok: false, error: "text too long" }, 400, origin);
+      prompt = sitePrompt(text);
+      maxTokens = MAX_TOKENS.site;
+
     } else if (kind === "legacy" && ALLOW_LEGACY) {
       prompt = String(body.prompt || "").trim();
       if (!prompt) return J({ ok: false, error: "prompt required" }, 400, origin);
@@ -242,7 +294,9 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
     if (await overLimit("day:" + now.slice(0, 10), LIMIT_ALL_DAY))
       return J({ ok: false, error: "daily limit reached" }, 429, origin);
-    if (await overLimit("ip:" + ip + ":" + now.slice(0, 13), LIMIT_IP_HOUR))
+    // the admin editor translates field after field; the per-address cap is
+    // for strangers, the daily one still holds for everybody
+    if (kind !== "site" && await overLimit("ip:" + ip + ":" + now.slice(0, 13), LIMIT_IP_HOUR))
       return J({ ok: false, error: "too many requests" }, 429, origin);
 
     const ctrl = new AbortController();
