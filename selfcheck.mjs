@@ -2282,6 +2282,29 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     'a url or title from the content file reached the DOM unescaped'); else ok();
 }
 
+// ── "take me to" points only at verified places on the mountain ─────────
+// The destinations are read from texts.json - huts' latlon, runs'
+// start_latlon, the route stations - never typed in. Every one must land in
+// the ski area, the compass must point the right way, and the flag emoji
+// that Windows draws as two letters must not reach an <option>.
+{
+  const r = await page.evaluate(() => {
+    const d = _geoDestList();
+    const all = Object.values(d.all);
+    const out = all.filter(x => !(x.ll[0] > 45.75 && x.ll[0] < 46.1 && x.ll[1] > 7.45 && x.ll[1] < 7.9)).map(x => x.name);
+    const flags = all.filter(x => /\ud83c[\udde6-\uddff]/.test(x.name)).map(x => x.name);
+    const huts = all.filter(x => /^h:/.test(x.id)).length;
+    const east = Math.round(_geoBearing([45.94, 7.65], [45.94, 7.70]));
+    const north = Math.round(_geoBearing([45.94, 7.65], [45.99, 7.65]));
+    return { n: all.length, huts, out, flags, east, north };
+  });
+  const T = '"take me to" points only at verified places';
+  if (r.n < 60 || r.huts < 20) fail(T, `only ${r.n} destinations, ${r.huts} huts`); else ok();
+  if (r.out.length) fail(T, 'destinations outside the ski area: ' + r.out.join(', ')); else ok();
+  if (r.flags.length) fail(T, 'a flag emoji reached the list: ' + r.flags.join(', ')); else ok();
+  if (Math.abs(r.east - 90) > 1 || r.north % 360 > 1) fail(T, `the compass is wrong: east ${r.east}, north ${r.north}`); else ok();
+}
+
 // ── the community links have a standing door ─────────────────────────────
 // The Israeli Facebook group, the video and the Hebrew write-ups lived in a
 // panel reachable from a banner that shows once and never again. A reader
