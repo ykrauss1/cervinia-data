@@ -1442,7 +1442,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.11';
+  var v='v18.12';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -21563,6 +21563,13 @@ async function _admRenderUsers() {
         }
         if (!res.ok || !data || data.ok !== true) {
             say(L('הפירוט לא התקבל', 'The detail did not arrive') + ' (' + ((data && data.error) || res.status) + ').', true);
+            // What GoatCounter said to each question, word for word: the line
+            // above names the suspect, this is the evidence.
+            if (data && Array.isArray(data.detail) && data.detail.length) {
+                host.innerHTML += '<div dir="ltr" style="margin-top:6px;padding:8px 10px;background:#f6f8fa;border-radius:8px;font-family:monospace;font-size:0.68rem;color:#556;line-height:1.6;word-break:break-word;text-align:left;">' +
+                    data.detail.map(function (x) { return esc(x.path + ' → ' + x.status + ' ' + (x.said || '')); }).join('<br>') +
+                    (data.tokenLength != null ? '<br>token length: ' + esc(data.tokenLength) : '') + '</div>';
+            }
             return;
         }
         var SIZE = { 'Phones': L('טלפונים', 'Phones'), 'Tablets and small laptops': L('טאבלטים ומחשבים ניידים קטנים', 'Tablets and small laptops'),

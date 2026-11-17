@@ -22,7 +22,8 @@
 //              places: [{name, n}], systems: [{name, n}], sizes: [{name, n}] }
 //            a list GoatCounter would not give is null, not [] - "could not
 //            ask" is not "nobody came".
-//          | { ok: false, error }
+//          | { ok: false, error, detail: [{path, status, said}] }
+//            detail is what GoatCounter said to each question it turned down.
 //
 // Secrets:   GOATCOUNTER_TOKEN - made in GoatCounter under the user menu,
 //            API, with the permission to read statistics and no other.
@@ -78,18 +79,32 @@ async function callerIsAdmin(req: Request): Promise<boolean> {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// One question to GoatCounter. null when it would not answer; the status of
-// the first refusal is kept, so a wrong token reads as a wrong token.
-let firstRefusal = 0;
-async function ask(token: string, path: string, q: Record<string, string>): Promise<any> {
+// One question to GoatCounter. null when it would not answer. What it said
+// instead is kept in `refused` - status and the first words of the answer -
+// because "404" alone, the first evening, told nobody which of a wrong
+// address, a wrong token and a wrong question it was.
+type Refusal = { path: string; status: number; said: string };
+async function ask(token: string, path: string, q: Record<string, string>, refused: Refusal[]): Promise<any> {
   try {
-    const r = await fetch(GC + path + "?" + new URLSearchParams(q).toString(), {
+    const qs = new URLSearchParams(q).toString();
+    const r = await fetch(GC + path + (qs ? "?" + qs : ""), {
       headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
     });
-    if (!r.ok) { if (!firstRefusal) firstRefusal = r.status; return null; }
+    if (!r.ok) {
+      const said = (await r.text().catch(() => "")).replace(/\s+/g, " ").trim().slice(0, 160);
+      refused.push({ path, status: r.status, said });
+      return null;
+    }
     return await r.json();
-  } catch (_e) { return null; }
+  } catch (e) {
+    refused.push({ path, status: 0, said: String((e as Error)?.message || e).slice(0, 160) });
+    return null;
+  }
 }
+
+// GoatCounter reads times to the second; the milliseconds toISOString adds
+// are dropped rather than left to its mercy.
+const stamp = (ms: number) => new Date(ms).toISOString().slice(0, 19) + "Z";
 
 const names = (d: any, n: number) =>
   Array.isArray(d?.stats)
@@ -113,26 +128,31 @@ Deno.serve(async (req) => {
     let from = Date.parse(String(body?.start ?? ""));
     if (!Number.isFinite(from)) from = now - 7 * 86400000;
     from = Math.min(Math.max(from, EARLIEST), now);
-    const span = { start: new Date(from).toISOString(), end: new Date(now).toISOString() };
+    const span = { start: stamp(from), end: stamp(now) };
 
     // GoatCounter allows four questions a second. Three, a pause, three.
-    firstRefusal = 0;
+    const refused: Refusal[] = [];
     const [total, refs, hits] = await Promise.all([
-      ask(token, "/stats/total", span),
-      ask(token, "/stats/toprefs", { ...span, limit: "15" }),
-      ask(token, "/stats/hits", { ...span, limit: "10", group: "day" }),
+      ask(token, "/stats/total", span, refused),
+      ask(token, "/stats/toprefs", { ...span, limit: "15" }, refused),
+      ask(token, "/stats/hits", { ...span, limit: "10" }, refused),
     ]);
     if (total === null && refs === null && hits === null) {
-      const why = firstRefusal === 401 ? "GoatCounter refused the token"
-        : firstRefusal === 403 ? "the GoatCounter token may not read statistics"
-        : "GoatCounter did not answer" + (firstRefusal ? " (" + firstRefusal + ")" : "");
-      return J({ ok: false, error: why }, 502, origin);
+      // Nothing came back. Ask the one question that needs no dates and no
+      // permission beyond a valid token, so the answer says which it is.
+      await sleep(1100);
+      const me = await ask(token, "/me", {}, refused);
+      const st = refused[0]?.status || 0;
+      const why = me === null ? "GoatCounter does not know this token"
+        : st === 403 ? "the GoatCounter token may not read statistics"
+        : "GoatCounter knows the token and refused the statistics";
+      return J({ ok: false, error: why + " (" + st + ")", detail: refused, tokenLength: token.length }, 502, origin);
     }
     await sleep(1100);
     const [places, systems, sizes] = await Promise.all([
-      ask(token, "/stats/locations", { ...span, limit: "8" }),
-      ask(token, "/stats/systems", { ...span, limit: "6" }),
-      ask(token, "/stats/sizes", { ...span, limit: "6" }),
+      ask(token, "/stats/locations", { ...span, limit: "8" }, refused),
+      ask(token, "/stats/systems", { ...span, limit: "6" }, refused),
+      ask(token, "/stats/sizes", { ...span, limit: "6" }, refused),
     ]);
 
     return J({
@@ -152,6 +172,7 @@ Deno.serve(async (req) => {
       places: names(places, 8),
       systems: names(systems, 6),
       sizes: names(sizes, 6),
+      detail: refused.length ? refused : undefined,
     }, 200, origin);
   } catch (e) {
     return J({ ok: false, error: String((e as Error)?.message || e) }, 500, origin);
