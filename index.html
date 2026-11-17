@@ -1442,7 +1442,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.09';
+  var v='v18.10';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5078,6 +5078,35 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                         <div style="font-size:2rem;font-weight:800;color:#e74c3c;" id="stat-reactions">—</div>
                         <div style="font-size:0.75rem;color:#888;margin-top:2px;">סה"כ תגובות</div>
                     </div>
+                </div>
+
+                <!-- כניסות לאתר: GoatCounter's public counter (17.11). Totals only -
+                     where the readers came from is on GoatCounter itself, behind
+                     Yossi's password, and the link below opens it. -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                        <span style="font-size:0.82rem;font-weight:bold;color:#333;">👁️ כניסות לאתר</span>
+                        <a href="https://cervinialive.goatcounter.com" target="_blank" rel="noopener" style="font-size:0.74rem;color:#1a73e8;text-decoration:none;">פירוט מלא ומקורות ›</a>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+                        <div style="text-align:center;">
+                            <div style="font-size:1.35rem;font-weight:800;color:#1a73e8;" id="stat-visits-today">—</div>
+                            <div style="font-size:0.7rem;color:#888;margin-top:2px;">היום</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.35rem;font-weight:800;color:#1a73e8;" id="stat-visits-week">—</div>
+                            <div style="font-size:0.7rem;color:#888;margin-top:2px;">7 ימים</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.35rem;font-weight:800;color:#1a73e8;" id="stat-visits-month">—</div>
+                            <div style="font-size:0.7rem;color:#888;margin-top:2px;">30 יום</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.35rem;font-weight:800;color:#1a73e8;" id="stat-visits-total">—</div>
+                            <div style="font-size:0.7rem;color:#888;margin-top:2px;">סה"כ</div>
+                        </div>
+                    </div>
+                    <div id="admin-visits-note" style="font-size:0.7rem;color:#9aa5b1;margin-top:8px;line-height:1.6;"></div>
                 </div>
 
                 <!-- פעילות אחרונה -->
@@ -21446,12 +21475,43 @@ async function _admRenderUsers() {
         }
     }
 
+    // Visits, from GoatCounter's public counter. It answers with a number and
+    // nothing else, it is switched on in GoatCounter's settings ("Allow adding
+    // visitor counts on your website"), and its answers are up to four hours
+    // old. A 404 is its way of saying "nothing counted in that span".
+    async function _admVisits() {
+        var base = 'https://cervinialive.goatcounter.com/counter/TOTAL.json';
+        var d = new Date();
+        var p2 = function (n) { return String(n).padStart(2, '0'); };
+        var today = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+        var spans = { today: '?start=' + today, week: '?start=week', month: '?start=month', total: '' };
+        var failed = false;
+        await Promise.all(Object.keys(spans).map(function (k) {
+            var el = document.getElementById('stat-visits-' + k);
+            if (!el) return null;
+            return fetch(base + spans[k])
+                .then(function (r) {
+                    if (r.status === 404) return { count: '0' };
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(function (j) { el.textContent = (j && j.count != null) ? j.count : '—'; })
+                .catch(function (e) { failed = true; el.textContent = '—'; console.warn('visit count failed:', e); });
+        }));
+        var note = document.getElementById('admin-visits-note');
+        if (note) note.textContent = failed
+            ? L('לא התקבלו מספרים. ב-GoatCounter, תחת Settings, צריך לסמן "Allow adding visitor counts on your website".',
+                'No numbers came back. In GoatCounter, under Settings, tick "Allow adding visitor counts on your website".')
+            : L('המספרים מתעדכנים באיחור של עד ארבע שעות.', 'The numbers can be up to four hours behind.');
+    }
+
     async function populateAdminStats() {
         // `allPosts` is declared with `let` at the top level of a classic
         // script, and a top-level `let` is a LEXICAL binding - it never
         // becomes a property of window. So `window.allPosts` was undefined
         // on every call and the dashboard read an empty array, however many
         // posts the forum actually held.
+        _admVisits();
         const postsData = (typeof allPosts !== 'undefined' && allPosts) ? allPosts : [];
         const today = new Date().toDateString();
         const todayPosts = postsData.filter(p => p.timestamp && new Date(p.timestamp).toDateString() === today);
