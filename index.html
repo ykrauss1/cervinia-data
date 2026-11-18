@@ -5002,7 +5002,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
             <button type="button" id="map-geo-dest-x" onclick="geoDest('')" aria-label="ביטול היעד" data-en-aria-label="Clear the destination"
               style="display:none;padding:5px 10px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-size:0.8rem;">✕</button>
           </div>
-          <div id="map-geo-level-row" style="display:none;margin-top:5px;align-items:center;gap:6px;">
+          <div id="map-geo-level-row" style="display:none;margin-top:5px;align-items:center;gap:6px 10px;flex-wrap:wrap;">
             <span data-en="Level:">רמה:</span>
             <select id="map-geo-level" onchange="geoLevel(this.value)"
               style="padding:4px 6px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;font-family:inherit;font-size:0.78rem;color:#16314f;">
@@ -5010,6 +5010,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <option value="2" data-en="🔴 Up to red">🔴 עד אדומים</option>
               <option value="3" data-en="⚫ Black too">⚫ גם שחורים</option>
             </select>
+            <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;">
+              <input type="checkbox" id="map-geo-ridedown" onchange="geoRideDown(this.checked)">
+              <span data-en="Ride down in cabins too (gondola, cable car)">לרדת גם בקבינות (גונדולה, רכבל)</span>
+            </label>
           </div>
           <div id="map-geo-dest-info" style="display:none;margin-top:5px;line-height:1.5;max-height:34vh;overflow:auto;"></div>
         </div>
@@ -7378,6 +7382,11 @@ function _geoDestPaint() {
     GEO.level = (keep >= 1 && keep <= 3) ? keep : 2;
   }
   if (lv && lv.value !== String(GEO.level)) lv.value = String(GEO.level);
+  if (GEO.rideDown === undefined) {
+    try { GEO.rideDown = localStorage.getItem('geoRideDown') === '1'; } catch (e) { GEO.rideDown = false; }
+  }
+  var rd = document.getElementById('map-geo-ridedown');
+  if (rd) rd.checked = !!GEO.rideDown;
   if (x) x.style.display = d ? '' : 'none';
   if (lvRow) lvRow.style.display = d ? 'flex' : 'none';
   if (!info) return;
@@ -7422,7 +7431,7 @@ function _geoDestPaint() {
     if (!SKI.failed) _skiLoad().then(_geoDestPaint, function () { SKI.failed = true; _geoDestPaint(); });
     return;
   }
-  var key = d.id + '|' + GEO.level, now = Date.now();
+  var key = d.id + '|' + GEO.level + '|' + (GEO.rideDown ? 1 : 0), now = Date.now();
   var moved = !SKI.at || GEO.map.distance(here, SKI.at) > 40;
   var fresh = key !== SKI.key;
   if (fresh || (moved && now - SKI.t > 8000)) {
@@ -7437,8 +7446,10 @@ function _geoDestPaint() {
   if (!SKI.route) {
     straight(here);
     info.innerHTML = '🎯 ' + name + ' · ' + crow + '<br>⚠️ '
-      + (GEO.level < 3 ? L('לא מצאתי מסלול ברמה הזאת. אפשר לנסות רמה גבוהה יותר, או לחפש רכבל שיורד.',
-                           'No route at this level. Try a higher level, or look for a cable car that goes down.')
+      + (GEO.level < 3 ? L('לא מצאתי מסלול בגלישה ברמה הזאת. אפשר לבחור רמה גבוהה יותר'
+                             + (GEO.rideDown ? '.' : ', או לסמן "לרדת גם בקבינות".'),
+                           'No route on skis at this level. Choose a higher level'
+                             + (GEO.rideDown ? '.' : ', or tick "Ride down in cabins too".'))
                        : L('לא מצאתי מסלול לשם.', 'No route found.')) + lineNote;
     return;
   }
@@ -7510,7 +7521,13 @@ function _skiCost(g, e, prevLine, level) {
   if (k === 'u' || k === 'r') {
     var t = e[3] / (sp.lift[w.lt] || 3);
     if (prevLine !== e[2]) t += (sp.wait[w.lt] || 60);
-    if (k === 'r') t += 240;        // skiing down is better when one may
+    if (k === 'r') {
+      // Riding a cabin down (a gondola, a cable car - never a chairlift)
+      // is the skier's choice, not the router's: by default the way down
+      // is on skis, and a cabin is ridden down only when the box is ticked.
+      if (!GEO.rideDown) return -1;
+      t += 240;                     // even then, skiing down is preferred
+    }
     return t;
   }
   if (k === 'w') return e[3] / sp.walk * 1.5;
@@ -7645,8 +7662,8 @@ function _skiStepHtml(s) {
   var dist = s.m < 1000 ? Math.round(s.m / 10) * 10 + L(' מ\'', ' m') : (s.m / 1000).toFixed(1) + L(' ק״מ', ' km');
   if (s.kind === 'lift') {
     var t = L(SKI_LIFT_HE[s.lt] || 'מעלית', SKI_LIFT_EN[s.lt] || 'lift');
-    return '🚡 ' + (s.down ? L('רד ב', 'Ride down the ') : L('עלה ב', 'Take the ')) + t
-      + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '') + (s.down ? ' ' + L('(למטה)', '(downwards)') : '');
+    return '🚡 ' + (s.down ? L('ירידה ב', 'Ride down in the ') : L('עלה ב', 'Take the ')) + t
+      + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '');
   }
   if (s.kind === 'walk') return '🚶 ' + (s.village ? L('הליכה בכפר', 'Walk through the village') : L('הליכה', 'Walk')) + ' · ' + dist;
   var label = s.ref ? L('מסלול ', 'Run ') + escHtml(s.ref) : L('מסלול', 'Run');
@@ -7675,6 +7692,13 @@ function _skiDraw(route) {
 function skiClear() {
   if (SKI.layer && GEO.map) GEO.map.removeLayer(SKI.layer);
   SKI.layer = null; SKI.route = null; SKI.at = null; SKI.key = '';
+}
+
+function geoRideDown(on) {
+  GEO.rideDown = !!on;
+  try { localStorage.setItem('geoRideDown', on ? '1' : ''); } catch (e) {}
+  SKI.key = '';
+  _geoDestPaint();
 }
 
 function geoLevel(v) {

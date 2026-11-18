@@ -34,8 +34,10 @@ LIFT_SPEED = {'cable_car': 9, 'gondola': 5, 'mixed_lift': 5, 'chair_lift': 2.5,
               'magic_carpet': 0.8, 'funicular': 6, 'rack': 5}
 LIFT_WAIT = {'cable_car': 300, 'gondola': 120, 'mixed_lift': 120, 'chair_lift': 90,
              'funicular': 240, 'rack': 600, 'magic_carpet': 15, 'rope_tow': 30}
-# a cable car, a gondola or a railway can also take you down
-RIDE_DOWN = {'cable_car', 'gondola', 'funicular', 'rack', 'mixed_lift'}
+# Lifts a skier may ride down, when they ask to: the closed cabins - a
+# gondola, a cable car, the funicular - where the skis are carried, not worn.
+# Never a chairlift or a drag lift.
+RIDE_DOWN = {'cable_car', 'gondola', 'funicular', 'mixed_lift'}
 
 
 def dist(a, b):

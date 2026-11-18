@@ -2319,14 +2319,25 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const maxD = (rt) => Math.max(0, ...runs(rt).map(e => g.ways[e[2]].d || 2));
     const refs = (rt) => runs(rt).map(e => String(g.ways[e[2]].ref || '').replace(/\.0+$/, ''));
     const plateau = [45.93447, 7.70765], village = [45.9343, 7.6337], planMaison = [45.9418, 7.6564];
-    const blueDown = skiRoute(plateau, village, 1);
+    // by default the way down is on skis: no lift ridden down, and from
+    // Plateau Rosa there is no all-blue way down on skis
+    GEO.rideDown = false;
+    const blueSkiOnly = skiRoute(plateau, village, 1);
+    const redSkiOnly = skiRoute(plateau, village, 2);
+    const anyRide = redSkiOnly && redSkiOnly.edges.some(i => g.edges[i][4] === 'r');
+    // with the box ticked, from the top of the CBL gondola the blue way to
+    // the village rides it down; a chairlift or a drag lift never goes down
+    GEO.rideDown = true;
+    const blueDown = skiRoute([45.9301, 7.6803], village, 1);
+    GEO.rideDown = false;
+    const cableDown = g.edges.filter(e => e[4] === 'r' && !/^(gondola|cable_car|funicular|mixed_lift)$/.test(g.ways[e[2]].lt)).length;
     const redDown = skiRoute(plateau, village, 2);
     const blueUp = skiRoute(planMaison, [45.947931, 7.694082], 1);   // Bontadini hut
     // every run stretch must go down, give or take the height data's noise
     const uphill = g.edges.filter(e => e[4] === 's' && g.nodes[e[0]][2] != null && g.nodes[e[1]][2] != null
                                       && g.nodes[e[1]][2] - g.nodes[e[0]][2] > 40).length;
     return {
-      nodes: g.nodes.length, edges: g.edges.length, uphill,
+      nodes: g.nodes.length, edges: g.edges.length, uphill, blueSkiOnly: !!blueSkiOnly, anyRide, cableDown,
       blueDown: blueDown && { d: maxD(blueDown), rideDown: blueDown.edges.some(i => g.edges[i][4] === 'r') },
       redDown: redDown && { d: maxD(redDown), refs: refs(redDown) },
       blueUp: blueUp && { d: maxD(blueUp), lifts: blueUp.edges.filter(i => g.edges[i][4] === 'u').length },
@@ -2338,9 +2349,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   else {
     if (r.nodes < 500 || r.edges < 2000) fail(T, `the graph is too small: ${r.nodes} nodes, ${r.edges} edges`); else ok();
     if (r.uphill) fail(T, `${r.uphill} run stretches go uphill`); else ok();
-    if (!r.blueDown) fail(T, 'no blue way down from Plateau Rosa - the cable cars go down'); else {
-      if (r.blueDown.d > 1) fail(T, `the blue route down from Plateau Rosa has a run of level ${r.blueDown.d}`); else ok();
-      if (!r.blueDown.rideDown) fail(T, 'the blue route from Plateau Rosa does not ride a cable car down'); else ok();
+    if (r.anyRide) fail(T, 'a lift was ridden down although the reader did not ask for it'); else ok();
+    if (r.cableDown) fail(T, `${r.cableDown} chairlift or drag-lift stretches may be ridden down`); else ok();
+    if (r.blueSkiOnly) fail(T, 'an all-blue way down from Plateau Rosa on skis - there is none'); else ok();
+    if (!r.blueDown) fail(T, 'no blue way from Cime Bianche Laghi to the village with gondolas down allowed'); else {
+      if (r.blueDown.d > 1) fail(T, `the blue route from Cime Bianche Laghi has a run of level ${r.blueDown.d}`); else ok();
+      if (!r.blueDown.rideDown) fail(T, 'the blue route from Cime Bianche Laghi, gondolas down allowed, does not ride one down'); else ok();
     }
     if (!r.redDown || !r.redDown.refs.includes('7')) fail(T,
       `up to red, Plateau Rosa to the village is not the Ventina: ${r.redDown && r.redDown.refs.join(',')}`); else ok();
