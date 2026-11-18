@@ -2318,6 +2318,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   // over file:// the page cannot fetch the graph itself, so it is handed in
   const r = await page.evaluate(async (graph) => {
     try { _skiUse(graph); } catch (e) { return { err: String(e) }; }
+    // the map alone: on a machine with a connection the page has loaded
+    // today's real lift states, and in November most of Zermatt is shut
+    window._liveRow = null;
     const g = SKI.graph;
     const runs = (rt) => rt.edges.map(i => g.edges[i]).filter(e => e[4] === 's' || e[4] === 'f');
     const maxD = (rt) => Math.max(0, ...runs(rt).map(e => g.ways[e[2]].d || 2));
