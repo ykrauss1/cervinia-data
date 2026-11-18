@@ -1445,7 +1445,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.21';
+  var v='v18.22';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5012,7 +5012,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
             </select>
             <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;">
               <input type="checkbox" id="map-geo-ridedown" onchange="geoRideDown(this.checked)">
-              <span data-en="Ride down in cabins too (gondola, cable car)">לרדת גם בקבינות (גונדולה, רכבל)</span>
+              <span data-en="Ride down in cabins too (gondola, cable car, train)">לרדת גם בקבינות (גונדולה, רכבל, רכבת)</span>
             </label>
             <button type="button" id="map-geo-voice" onclick="geoVoice(!VOICE.on)" style="display:none;padding:4px 9px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;">🔈 הדרכה קולית</button>
           </div>
@@ -7568,10 +7568,17 @@ function _skiLoad() {
   return SKI.loading;
 }
 function _skiUse(g) {
-  var out = [];
-  for (var i = 0; i < g.nodes.length; i++) out.push([]);
-  g.edges.forEach(function (e, i) { out[e[0]].push(i); });
+  var out = [], open = [];
+  for (var i = 0; i < g.nodes.length; i++) { out.push([]); open.push(false); }
+  g.edges.forEach(function (e, i) {
+    out[e[0]].push(i);
+    // a point on the railway is somewhere to start or end only at a station
+    // (where a walking link joins it), never in the middle of the track
+    var w = e[2] >= 0 ? g.ways[e[2]] : null;
+    if (!w || w.lt !== 'rack') { open[e[0]] = true; open[e[1]] = true; }
+  });
   g.out = out;
+  g.open = open;
   SKI.graph = g;
   return g;
 }
@@ -7604,14 +7611,29 @@ function _skiLive() {
   d._age = age;
   return d;
 }
+function _skiCode(st) { return st === 'O' ? 'open' : st === 'P' ? 'later' : st === 'F' ? 'closed' : 'unknown'; }
 function skiLiftState(w) {
   if (!w || w.k !== 'l') return 'unknown';
   var d = _skiLive();
   if (!d) return 'unknown';
-  if (w.feed) {
-    var st = d._by[w.feed.toLowerCase()];
-    return st === 'O' ? 'open' : st === 'P' ? 'later' : 'closed';
+  if (w.feed && d._by[w.feed.toLowerCase()]) return _skiCode(d._by[w.feed.toLowerCase()]);
+  // Zermatt's own page (lifts_detail.zermatt): a lift named there is read
+  // from there; one missing from it is unknown, not closed
+  var z = Array.isArray(d.zermatt) ? d.zermatt : null;
+  if (w.zf && z) {
+    if (w.zf === '@GGB') {
+      // the Gornergrat railway, reported section by section: running if
+      // any section runs, closed only when every section reported is
+      var ggb = z.filter(function (r) { return r[0] === 'GORNERGRAT'; });
+      if (!ggb.length) return 'unknown';
+      if (ggb.some(function (r) { return r[2] === 'O'; })) return 'open';
+      if (ggb.some(function (r) { return r[2] === 'P'; })) return 'later';
+      return 'closed';
+    }
+    var hit = z.find(function (r) { return r[1].toLowerCase() === w.zf.toLowerCase(); });
+    if (hit) return _skiCode(hit[2]);
   }
+  if (w.feed) return 'closed';     // in the Italian feed's area, and not in it today
   return w.cov ? 'closed' : 'unknown';
 }
 
@@ -7629,13 +7651,14 @@ function _skiCost(g, e, prevLine, level) {
       if (ls === 'closed' || ls === 'later') return -1;
     }
     var t = e[3] / (sp.lift[w.lt] || 3);
-    if (prevLine !== e[2]) t += (sp.wait[w.lt] || 60);
+    var boarding = prevLine !== (w.ln !== undefined ? w.ln : e[2]);
+    if (boarding) t += (sp.wait[w.lt] || 60);
     if (k === 'r') {
       // Riding a cabin down (a gondola, a cable car - never a chairlift)
       // is the skier's choice, not the router's: by default the way down
       // is on skis, and a cabin is ridden down only when the box is ticked.
       if (!GEO.rideDown) return -1;
-      t += 240;                     // even then, skiing down is preferred
+      if (boarding) t += 240;       // even then, skiing down is preferred
     }
     return t;
   }
@@ -7669,6 +7692,7 @@ _SkiHeap.prototype.pop = function () {
 function _skiNear(g, ll, max, needOut) {
   var hits = [];
   for (var i = 0; i < g.nodes.length; i++) {
+    if (g.open && !g.open[i]) continue;
     if (needOut && !g.out[i].length) continue;
     var m = _skiDist(ll, g.nodes[i]);
     if (m <= max) hits.push([m, i]);
@@ -7707,7 +7731,8 @@ function skiRoute(fromLL, toLL, level) {
       var e = g.edges[outs[j]];
       var ce = _skiCost(g, e, line, level);
       if (ce < 0) continue;
-      var nl = (e[4] === 'u' || e[4] === 'r') ? e[2] : -1;
+      var nw = e[2] >= 0 ? g.ways[e[2]] : null;
+      var nl = (e[4] === 'u' || e[4] === 'r') ? (nw.ln !== undefined ? nw.ln : e[2]) : -1;
       var ns = e[1] * NW + nl + 1, nc = c + ce;
       if (best[ns] === undefined || nc < best[ns]) { best[ns] = nc; prev[ns] = [st, outs[j]]; heap.push([nc, ns]); }
     }
@@ -7729,10 +7754,10 @@ function _skiGeom(e) {
 
 var SKI_LIFT_HE = { cable_car: 'רכבל', gondola: 'גונדולה', mixed_lift: 'גונדולה', chair_lift: 'רכבל כיסאות',
   't-bar': 'מעלית גרירה', 'j-bar': 'מעלית גרירה', platter: 'מעלית גרירה', drag_lift: 'מעלית גרירה',
-  rope_tow: 'מעלית גרירה', magic_carpet: 'מסוע', funicular: 'פוניקולר' };
+  rope_tow: 'מעלית גרירה', magic_carpet: 'מסוע', funicular: 'פוניקולר', rack: 'רכבת' };
 var SKI_LIFT_EN = { cable_car: 'cable car', gondola: 'gondola', mixed_lift: 'gondola', chair_lift: 'chairlift',
   't-bar': 'drag lift', 'j-bar': 'drag lift', platter: 'drag lift', drag_lift: 'drag lift',
-  rope_tow: 'drag lift', magic_carpet: 'carpet', funicular: 'funicular' };
+  rope_tow: 'drag lift', magic_carpet: 'carpet', funicular: 'funicular', rack: 'train' };
 var SKI_DOT = ['', '🔵', '🔴', '⚫', '⚫'];
 var SKI_COL = ['#888', '#1a73e8', '#d93025', '#111', '#111'];
 
@@ -7758,8 +7783,8 @@ function skiSteps(route) {
       }
       steps.push({ kind: 'run', i: idx, ref: ref, name: w && w.k !== 'a' ? name : '', d: d, m: e[3] });
     } else if (kind === 'lift') {
-      if (last && last.kind === 'lift' && last.way === e[2]) { last.m += e[3]; return; }
-      steps.push({ kind: 'lift', i: idx, way: e[2], name: w.name || '', ref: w.ref || '', lt: w.lt, down: k === 'r', m: e[3] });
+      if (last && last.kind === 'lift' && (last.way === e[2] || (w.ln !== undefined && last.ln === w.ln))) { last.m += e[3]; return; }
+      steps.push({ kind: 'lift', i: idx, way: e[2], ln: w.ln, name: w.lt === 'rack' ? 'Gornergratbahn' : (w.name || ''), ref: w.ref || '', lt: w.lt, down: k === 'r', m: e[3] });
     } else {
       if (last && last.kind === 'walk') { last.m += e[3]; last.village = last.village || k === 'v'; return; }
       steps.push({ kind: 'walk', i: idx, village: k === 'v', m: e[3] });

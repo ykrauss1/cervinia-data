@@ -2330,7 +2330,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     GEO.rideDown = true;
     const blueDown = skiRoute([45.9301, 7.6803], village, 1);
     GEO.rideDown = false;
-    const cableDown = g.edges.filter(e => e[4] === 'r' && !/^(gondola|cable_car|funicular|mixed_lift)$/.test(g.ways[e[2]].lt)).length;
+    const cableDown = g.edges.filter(e => e[4] === 'r' && !/^(gondola|cable_car|funicular|mixed_lift|rack)$/.test(g.ways[e[2]].lt)).length;
     const redDown = skiRoute(plateau, village, 2);
     const blueUp = skiRoute(planMaison, [45.947931, 7.694082], 1);   // Bontadini hut
     // every run stretch must go down, give or take the height data's noise
@@ -2411,6 +2411,36 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.cretaz !== 'closed') fail(T, `a covered lift missing from the feed reads as ${r.cretaz}, not closed`); else ok();
   if (r.zermatt !== 'unknown') fail(T, `a Zermatt lift the feed does not report on reads as ${r.zermatt}`); else ok();
   if (r.staleState !== 'unknown') fail(T, `a ten-hour-old reading was still used: ${r.staleState}`); else ok();
+}
+
+// ── Zermatt: the Gornergrat railway, and the lifts read from Zermatt's page ─
+{
+  const r = await page.evaluate(async (graph) => {
+    _skiUse(graph);
+    const g = SKI.graph;
+    window._liveRow = null; GEO.rideDown = false;
+    const lifts = (rt) => rt ? rt.edges.map(i => g.edges[i]).filter(e => e[4] === 'u' || e[4] === 'r').map(e => g.ways[e[2]].lt) : null;
+    const train = lifts(skiRoute([46.02394, 7.74862], [45.98332, 7.78231], 2));     // Zermatt GGB to Gornergrat
+    const now = new Date().toISOString();
+    const z = (ggb, ex1) => ({ updated_at: now, lifts_detail: { at: now, lifts: [['X', 'Fornet', 'O', 'T'], ['X', 'Plan Maison', 'O', 'T'], ['X', 'Goillet', 'O', 'T']],
+      zermatt: [['GORNERGRAT', 'Zermatt - Riffelalp', ggb], ['GORNERGRAT', 'Rotenboden - Gornergrat', ggb],
+                ['MATTERHORN GLACIER PARADISE', 'Zermatt - Furi (Matterhorn-Express)', ex1]] } });
+    const rack = g.ways.find(w => w.lt === 'rack');
+    const ex1 = g.ways.find(w => w.zf === 'Zermatt - Furi (Matterhorn-Express)');
+    const sunnegga = g.ways.find(w => w.k === 'l' && /Sunnegga funicular/.test(w.name || ''));
+    window._liveRow = z('O', 'F');
+    const a = [skiLiftState(rack), skiLiftState(ex1), skiLiftState(sunnegga)];
+    window._liveRow = z('F', 'O');
+    const b = [skiLiftState(rack), skiLiftState(ex1)];
+    window._liveRow = null;
+    const lines = new Set(g.ways.filter(w => w.lt === 'rack').map(w => w.ln));
+    return { train, a, b, lines: lines.size };
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'Zermatt: the Gornergrat railway, and the lifts read from Zermatt\'s page';
+  if (!r.train || r.train.length === 0 || r.train.some(x => x !== 'rack')) fail(T, 'Zermatt to Gornergrat is not the train: ' + JSON.stringify(r.train)); else ok();
+  if (r.lines !== 1) fail(T, `the railway is ${r.lines} lines, not one`); else ok();
+  if (r.a.join() !== 'open,closed,unknown') fail(T, 'states read as ' + r.a.join()); else ok();
+  if (r.b.join() !== 'closed,open') fail(T, 'states read as ' + r.b.join()); else ok();
 }
 
 // ── voice guidance says the route, each step ahead of it, and the end ───

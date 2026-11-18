@@ -1,26 +1,143 @@
 {
   "_about": "Which lift on the map is which lift in the resort's live feed (cervinia.it/en/impianti). Keys are the feed's names, values the OpenStreetMap way ids of that lift. 'covered' is the box of the lifts the feed reports on (Breuil-Cervinia and Valtournenche): a lift there that is missing from today's feed is not running today. Lifts outside the box and not named here - most of Zermatt - have no live state, and the router says so.",
-  "covered": [45.875, 7.60, 45.95, 7.725],
+  "covered": [
+    45.875,
+    7.6,
+    45.95,
+    7.725
+  ],
   "lifts": {
-    "FU Breuil-Plan Maison": [22341548],
-    "TC Breuil-Plan Maison": [114942017],
-    "Plateau Rosa": [22341544],
-    "Cime Bianche Laghi": [322784212],
-    "Bontadini": [22341547],
-    "Fornet": [22341546],
-    "Pancheron": [49885289],
-    "Plan Maison": [22341545],
-    "Goillet": [102661014],
-    "Tappeto Plan Maison": [322784409],
-    "Gran Sometta": [30833742],
-    "Furi-Trockener steg": [22337638],
-    "Trockener steg - Klein Matterhorn": [22341540],
-    "Zermatt-Furi": [22338264],
-    "3S Matterhorn Glacier Ride": [519981791],
-    "3S Matterhorn Glacier Ride II": [618950310],
-    "Furggsattel": [22341538],
-    "Plateau Rosa 1": [44334075],
-    "Plateau Rosa 2": [30833440],
-    "Plateau Rosa 3": [44334074]
+    "FU Breuil-Plan Maison": [
+      22341548
+    ],
+    "TC Breuil-Plan Maison": [
+      114942017
+    ],
+    "Plateau Rosa": [
+      22341544
+    ],
+    "Cime Bianche Laghi": [
+      322784212
+    ],
+    "Bontadini": [
+      22341547
+    ],
+    "Fornet": [
+      22341546
+    ],
+    "Pancheron": [
+      49885289
+    ],
+    "Plan Maison": [
+      22341545
+    ],
+    "Goillet": [
+      102661014
+    ],
+    "Tappeto Plan Maison": [
+      322784409
+    ],
+    "Gran Sometta": [
+      30833742
+    ],
+    "Furi-Trockener steg": [
+      22337638
+    ],
+    "Trockener steg - Klein Matterhorn": [
+      22341540
+    ],
+    "Zermatt-Furi": [
+      22338264
+    ],
+    "3S Matterhorn Glacier Ride": [
+      519981791
+    ],
+    "3S Matterhorn Glacier Ride II": [
+      618950310
+    ],
+    "Furggsattel": [
+      22341538
+    ],
+    "Plateau Rosa 1": [
+      44334075
+    ],
+    "Plateau Rosa 2": [
+      30833440
+    ],
+    "Plateau Rosa 3": [
+      44334074
+    ]
+  },
+  "_about_zermatt": "Names on the Zermatt Bergbahnen page (matterhornparadise.ch, lifts and pistes), saved by the scraper as lifts_detail.zermatt. A Zermatt lift named here but missing from that page reads as unknown, not closed: the names there are not yet checked against a full winter's list. '@GGB' is the Gornergrat railway, reported there section by section.",
+  "zermatt": {
+    "Zermatt - Furi (Pendelbahn)": [
+      22338264
+    ],
+    "Zermatt - Furi (Matterhorn-Express)": [
+      903540909
+    ],
+    "Furi - Schwarzsee": [
+      46715051
+    ],
+    "Schwarzsee - Furgg": [
+      333301451
+    ],
+    "Furgg - Trockener Steg": [
+      333301450
+    ],
+    "Matterhorn Glacier Ride I": [
+      519981791
+    ],
+    "Matterhorn Glacier Ride II": [
+      618950310
+    ],
+    "Furggsattel": [
+      22341538
+    ],
+    "Plateau Rosa 1": [
+      44334075
+    ],
+    "Plateau Rosa 2": [
+      30833440
+    ],
+    "Plateau Rosa 3": [
+      44334074
+    ],
+    "Furi - Trockener Steg (Pendelbahn)": [
+      22337638
+    ]
+  },
+  "_about_railway": "The stations of the Gornergrat railway (GGB) where a skier gets on or off, by OpenStreetMap node. The first four come with the raw download; Riffelalp and Gornergrat are mapped there only as stop positions on the track (nodes 313517237 and 313518319), copied here from OSM until the download fetches stop positions itself.",
+  "railway_stations": {
+    "Zermatt GGB": [
+      13306669016,
+      46.02394,
+      7.74862
+    ],
+    "Findelbach": [
+      3110648194,
+      46.00962,
+      7.74885
+    ],
+    "Riffelalp": [
+      313517237,
+      46.00487,
+      7.75415
+    ],
+    "Riffelberg": [
+      3110648198,
+      45.99294,
+      7.75508
+    ],
+    "Rotenboden": [
+      3110648199,
+      45.98451,
+      7.76524
+    ],
+    "Gornergrat": [
+      313518319,
+      45.98332,
+      7.78231
+    ]
   }
 }

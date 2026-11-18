@@ -50,6 +50,8 @@ def main():
   node["railway"~"^(station|halt|stop)$"]({bb});
   node["public_transport"="station"]({bb});
   node["aerialway"="station"]({bb});
+  node["public_transport"="stop_position"]["railway"]({bb});
+  node["public_transport"="stop_position"]["train"="yes"]({bb});
 );
 out tags geom;'''
     osm, last = None, ''

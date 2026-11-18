@@ -37,7 +37,7 @@ LIFT_WAIT = {'cable_car': 300, 'gondola': 120, 'mixed_lift': 120, 'chair_lift': 
 # Lifts a skier may ride down, when they ask to: the closed cabins - a
 # gondola, a cable car, the funicular - where the skis are carried, not worn.
 # Never a chairlift or a drag lift.
-RIDE_DOWN = {'cable_car', 'gondola', 'funicular', 'mixed_lift'}
+RIDE_DOWN = {'cable_car', 'gondola', 'funicular', 'mixed_lift', 'rack'}
 
 
 def dist(a, b):
@@ -74,6 +74,7 @@ def main():
     elev = raw['elevation']
 
     ways = []          # {kind, geom, tags, lt}
+    racks = []         # rack railway pieces, sorted out below
     areas = []         # piste areas: polygons
     for el in raw['elements']:
         if el['type'] != 'way' or not el.get('geometry'):
@@ -96,10 +97,82 @@ def main():
         elif t.get('railway') == 'funicular' and t.get('name'):
             # unnamed funiculars here are service lines (a dam's, a hotel's)
             ways.append({'kind': 'l', 'geom': g, 'tags': t, 'lt': 'funicular', 'id': el['id']})
-        # The Gornergrat rack railway is mapped as dozens of track pieces and
-        # sidings with no stations among them; joining it to the pistes needs
-        # its station nodes, which the raw file does not have yet. Left out
-        # until it does, rather than joined at guessed places.
+        elif t.get('railway') and t.get('rack'):
+            # The Gornergrat railway: dozens of track pieces and sidings. It
+            # is kept only where it runs between its stations (below), and is
+            # joined to the pistes at the stations only - never at a loose
+            # end of a siding, never where a run merely passes the track.
+            racks.append({'kind': 'l', 'geom': g, 'tags': t, 'lt': 'rack', 'id': el['id']})
+
+    # ── the railway: the pieces of track joined to the line through its
+    #    stations, as one line ──
+    try:
+        feedcfg = json.load(open(f'data/ski-lifts-{area}.json', encoding='utf-8'))
+    except FileNotFoundError:
+        feedcfg = {}
+    stations = feedcfg.get('railway_stations') or {}
+    rail_stops = []    # (name, track vertex)
+    if racks and stations:
+        touch = defaultdict(set)
+        for ri, r in enumerate(racks):
+            for p in r['geom']:
+                touch[key(p)].add(ri)
+        # pieces connected to one another through shared points
+        adj_r = defaultdict(set)
+        for k, rs in touch.items():
+            for a in rs:
+                adj_r[a] |= rs
+        def nearest_vertex(ll):
+            best = None
+            for ri, r in enumerate(racks):
+                for p in r['geom']:
+                    d = dist(ll, p)
+                    if best is None or d < best[0]:
+                        best = (d, key(p), ri)
+            return best
+        seeds = []
+        for nm, (oid, la, lo) in stations.items():
+            hit = nearest_vertex((la, lo))
+            if hit and hit[0] <= 60:
+                rail_stops.append((nm, hit[1])); seeds.append(hit[2])
+            else:
+                print('  weak: station off the track:', nm)
+        keep, st = set(seeds), list(seeds)
+        while st:
+            x = st.pop()
+            for y in adj_r[x]:
+                if y not in keep:
+                    keep.add(y); st.append(y)
+        # only the stretch between the outermost stations: drop the pieces
+        # beyond them (the depot, the line down the valley)
+        for ri in sorted(keep):
+            ways.append(racks[ri])
+        print(f'  railway: {len(keep)} pieces of track, {len(rail_stops)} stations')
+
+    # how far along the track each point is from the bottom station: the
+    # direction "up" along the railway
+    rail_along = {}
+    if rail_stops:
+        import heapq
+        tadj = defaultdict(list)
+        for w in ways:
+            if w.get('lt') != 'rack':
+                continue
+            gg = w['geom']
+            for i in range(len(gg) - 1):
+                a_, b_ = key(gg[i]), key(gg[i + 1]); m_ = dist(gg[i], gg[i + 1])
+                tadj[a_].append((b_, m_)); tadj[b_].append((a_, m_))
+        bottom = rail_stops[0][1]       # the first station listed is the bottom
+        rail_along = {bottom: 0.0}
+        pq = [(0.0, bottom)]
+        while pq:
+            d_, x = heapq.heappop(pq)
+            if d_ > rail_along.get(x, 1e18):
+                continue
+            for y, m_ in tadj[x]:
+                if d_ + m_ < rail_along.get(y, 1e18):
+                    rail_along[y] = d_ + m_
+                    heapq.heappush(pq, (d_ + m_, y))
 
     # ── junctions: a point used by two ways, and every way's two ends ──
     uses = defaultdict(int)
@@ -137,8 +210,21 @@ def main():
 
     links = []         # (a, b, metres, kind) two-way links on foot or on skis
     weak = []          # what the map has to be checked for
+    for name, v in rail_stops:
+        junction.add(v)
+        hits = near_ways(v, SNAP_FAR, -1)[:1]
+        kind = 'w'
+        if not hits:
+            hits = near_ways(v, SNAP_VILLAGE, -1)[:1]
+            kind = 'v'
+        for d, q in hits:
+            junction.add(q); links.append((v, q, d, kind))
+        if not hits:
+            weak.append(f'railway station {name}: no piste near')
     for wi, w in enumerate(ways):
         g = w['geom']
+        if w.get('lt') == 'rack':
+            continue                     # joined at its stations only
         for end, p in (('start', g[0]), ('end', g[-1])):
             k = key(p)
             if w['kind'] == 'p':
@@ -189,6 +275,7 @@ def main():
         return nodes[k]
 
     edges = []         # (a, b, wayidx, metres, geom, mode) mode: 'down','up','both','ridedown'
+    first_rack = {}
     wayinfo = []
     stats = defaultdict(int)
     for wi, w in enumerate(ways):
@@ -206,6 +293,8 @@ def main():
             if t.get('piste:grooming') == 'backcountry': info['d'] = 4
         else:
             info['lt'] = w['lt']
+            if w['lt'] == 'rack':
+                info['ln'] = first_rack.setdefault('i', wi)   # one line: board once
         wayinfo.append(info)
 
         # direction of the whole way
@@ -219,6 +308,14 @@ def main():
             else:
                 mode, why = 'both', 'flat'
             stats['piste_' + why] += 1
+        elif w.get('lt') == 'rack' and rail_along:
+            # a train runs both ways along every piece of track; "up" is
+            # away from the bottom station, measured along the track itself.
+            # Heights from a 90 m grid cannot tell the direction of a short,
+            # almost level piece in a station, and the line wanders too much
+            # for the straight distance to the top to tell it either.
+            a0, a1 = rail_along.get(key(g[0]), 0), rail_along.get(key(g[-1]), 0)
+            mode = 'liftrev' if a0 > a1 else 'lift'
         else:
             rev = h0 is not None and h1 is not None and h0 - h1 > 20
             if rev: stats['lift_reversed'] += 1
@@ -272,6 +369,7 @@ def main():
                 by_id[i] = fname
         S, Wb, Nb, Eb = feed['covered']
         found = set()
+        missing = []
         for wi, info in enumerate(wayinfo):
             if info['k'] != 'l':
                 continue
@@ -282,7 +380,18 @@ def main():
             elif S <= g0[0] <= Nb and Wb <= g0[1] <= Eb and info.get('lt') != 'yes':
                 # (aerialway=yes is a passage between two stations, not a lift)
                 info['cov'] = 1          # the feed reports on it: absent = not running
-        missing = [n for n, ids in feed['lifts'].items() if not any(i in found for i in ids)]
+        zby = {}
+        for zname, ids in (feed.get('zermatt') or {}).items():
+            for i in ids:
+                zby[i] = zname
+        for info in wayinfo:
+            if info['k'] == 'l' and info['id'] in zby:
+                info['zf'] = zby[info['id']]
+                found.add(info['id'])
+            elif info['k'] == 'l' and info.get('lt') == 'rack':
+                info['zf'] = '@GGB'
+        missing += [n for n, ids in (feed.get('zermatt') or {}).items() if not any(i in found for i in ids)]
+        missing = [n for n, ids in feed['lifts'].items() if not any(i in found for i in ids)] + missing
         if missing:
             sys.exit('lifts named in the feed map but not on the map: ' + ', '.join(missing))
 
@@ -360,6 +469,48 @@ def main():
     for d in dead_left:
         weak.append(f'dead end at {node_list[d]}')
 
+    # ── a run that ends on a harder one: two runs often share their last
+    #    stretch, and the map gives it the harder run's colour only - the
+    #    red Stafelalp, for one, reaches Furi on the black run's last 250 m.
+    #    From such an end a skier may reach a lift or an easier run close by,
+    #    on foot or on skis, rather than be sent down the harder one. ──
+    def wd(e):
+        return wayinfo[e[2]].get('d', 2) if e[2] >= 0 else 0
+    ins = defaultdict(list); outs = defaultdict(list)
+    for e in out_edges:
+        if e[4] in ('s', 'f'):
+            ins[e[1]].append(wd(e)); outs[e[0]].append(wd(e))
+    other = defaultdict(int)             # a lift starts right here
+    for e in out_edges:
+        if e[4] == 'u':
+            other[e[0]] += 1
+    for n_, dins in list(ins.items()):
+        lvl = min(dins)
+        if not outs[n_] or min(outs[n_]) <= lvl or other[n_]:
+            continue
+        pn = node_list[n_]
+        hn = pn[2] if pn[2] is not None else 9999
+        # every lift close by (the skier picks the one the route needs);
+        # failing any, the nearest easier run below
+        picks, run_best = [], None
+        for c in range(len(node_list)):
+            if c == n_:
+                continue
+            pc = node_list[c]
+            m_ = dist(pn, pc)
+            if m_ > 300 or (pc[2] is not None and pc[2] > hn + 15):
+                continue
+            if c in lift_bottoms:
+                picks.append((m_, c))
+            elif outs[c] and min(outs[c]) <= lvl and pc[2] is not None and pc[2] < hn - 5:
+                if run_best is None or m_ < run_best[0]:
+                    run_best = (m_, c)
+        if not picks and run_best:
+            picks = [run_best]
+        for m_, c in picks:
+            out_edges.append([n_, c, -1, round(m_), 'w', enc([pn[:2], node_list[c][:2]])])
+            stats['harder_end_w'] += 1
+
     # ── pockets: a group of pistes that leads only into itself - the runs
     #    that end in the village, at the foot of lifts that are not mapped
     #    as touching them. From the lowest point of each pocket the skier
@@ -376,9 +527,21 @@ def main():
                 if y not in seen:
                     seen.add(y); st.append(y)
         return seen
+    # the railway's stations: a walk of a few hundred metres to a train is
+    # what a skier does at Riffelalp
+    stop_nodes = set(nodes[v] for _, v in rail_stops if v in nodes)
+    core_hub = None
     for _ in range(60):
-        hub = max(lift_bottoms, key=lambda n: len(reach([n], True)))
-        core = reach([hub], True) & reach([hub], False)
+        # the core is the biggest set of junctions that can all reach one
+        # another; it is measured, not guessed from one well-connected lift
+        if _ == 0 or core_hub not in lift_bottoms:
+            best = None
+            for n in lift_bottoms:
+                c = reach([n], True) & reach([n], False)
+                if best is None or len(c) > len(best[1]):
+                    best = (n, c)
+            core_hub = best[0]
+        core = reach([core_hub], True) & reach([core_hub], False)
         back = reach(list(core), False)          # can get back to the core
         pocket = [n for n in reach(list(core), True) if n not in back]
         if not pocket:
@@ -390,6 +553,7 @@ def main():
             pc = node_list[c]
             m = dist(pl, pc)
             ok = (c in lift_bottoms and (m <= 300 or (m <= SNAP_VILLAGE and (pl[2] or 9999) < 2100))) \
+                 or (c in stop_nodes and m <= 600) \
                  or (m <= 300 and pc[2] is not None and pl[2] is not None and pc[2] <= pl[2] + 15)
             if ok and (best is None or m < best[0]):
                 best = (m, c)
