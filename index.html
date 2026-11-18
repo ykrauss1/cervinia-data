@@ -1445,7 +1445,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.19';
+  var v='v18.20';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6580,8 +6580,35 @@ function _copyFallback(text) {
 
 // Opening the site AT a panel, and following a link to another one without
 // a reload. An unknown hash is left alone: the page has anchors of its own.
+// Two places a link should be able to land that are not a modal with an id:
+// the forum, which is a card on the page itself, and "where am I", which is
+// one of the map panel's views. They get a name here and an action instead
+// of an id. (18.11 - the Facebook page's posts link straight to each.)
+var PANEL_ACTIONS = {
+  forum: function () {
+    if (_openModalId) closeM(_openModalId);
+    forumOpen(true);
+    // The page above the forum is still filling in when a link arrives, and
+    // what was "the top of the forum" a moment ago is not once it has.
+    setTimeout(function () {
+      var card = document.getElementById('forum-card');
+      if (card && card.scrollIntoView && _forumIsOpen()) card.scrollIntoView({ block: 'start' });
+    }, 900);
+  },
+  navigate: function () {
+    if (_openModalId && _openModalId !== 'mapModal') closeM(_openModalId);
+    openM('mapModal');
+    loadMap('gps');
+  }
+};
+PANEL_ACTIONS.gps = PANEL_ACTIONS.navigate;
+
 function openPanelFromHash() {
   var h = (location.hash || '').replace(/^#/, '').toLowerCase();
+  if (Object.prototype.hasOwnProperty.call(PANEL_ACTIONS, h)) {
+    try { PANEL_ACTIONS[h](); } catch (e) { console.warn('link to #' + h + ' failed:', e); return false; }
+    return true;
+  }
   var id = PANEL_LINKS[h];
   if (!id) return false;
   // The summer panels are built the first time summer mode runs, so in
