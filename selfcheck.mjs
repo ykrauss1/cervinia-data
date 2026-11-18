@@ -2426,6 +2426,42 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.staleState !== 'unknown') fail(T, `a ten-hour-old reading was still used: ${r.staleState}`); else ok();
 }
 
+// ── three ways to the same place, and a steep walk in ski boots counted ──
+// (Yossi, 18.11) The easiest never has more red than the quickest, the most
+// challenging never less; a walk uphill costs its climb; when the quickest
+// is a long walk, the way on skis is offered beside it; and the gondola from
+// Breuil arrives at a station that leads on to the next lift.
+{
+  const r = await page.evaluate(async (graph) => {
+    _skiUse(graph);
+    window._liveRow = null; GEO.rideDown = false;
+    const g = SKI.graph, out = {};
+    const km = (rt, d) => rt.edges.map(i => g.edges[i]).filter(e => (e[4] === 's' || e[4] === 'f') && (g.ways[e[2]].d || 2) === d).reduce((t, e) => t + e[3], 0);
+    GEO.level = 2;
+    const alts = _skiPlan([45.93447, 7.70765], [45.9343, 7.6337]);
+    const by = id => (alts.find(a => a.ids.includes(id)) || {}).route;
+    out.n = alts.length;
+    out.easyRed = Math.round(km(by('easy'), 2)); out.fastRed = Math.round(km(by('fast'), 2)); out.hardRed = Math.round(km(by('hard'), 2));
+    // Breuil valley station to Cielo Alto: 550 m apart, 90 m up
+    const A = [g.places[0][4], g.places[0][5]], B = [g.places[2][4], g.places[2][5]];
+    const ca = _skiPlan(A, B);
+    const fast = ca.find(a => a.ids.includes('fast'));
+    out.caFastMin = fast && Math.round(fast.route.secs / 60);
+    out.caSki = (ca.find(a => a.ids.includes('ski')) || {}).route ? _skiWalked(ca.find(a => a.ids.includes('ski')).route).m : null;
+    // up from Breuil to Laghi: the gondola, then the next lift - not two chairs round by Cretaz
+    const up = skiRoute(A, [45.9311, 7.6838], 2);
+    out.upLifts = up ? up.edges.map(i => g.edges[i]).filter(e => e[4] === 'u').map(e => g.ways[e[2]].lt + ':' + g.ways[e[2]].name).filter((x, i, a) => x !== a[i - 1]) : null;
+    return out;
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'the router offers the quickest, the easiest and the most challenging';
+  if (r.n < 2) fail(T, `only ${r.n} choice from Plateau Rosa to the village`); else ok();
+  if (r.easyRed > r.fastRed) fail(T, `the easiest has more red (${r.easyRed} m) than the quickest (${r.fastRed} m)`); else ok();
+  if (r.hardRed < r.fastRed) fail(T, `the most challenging has less red (${r.hardRed} m) than the quickest (${r.fastRed} m)`); else ok();
+  if (!(r.caFastMin >= 20)) fail(T, `550 m up to Cielo Alto on foot takes ${r.caFastMin} min - the climb is not counted`); else ok();
+  if (r.caSki === null || r.caSki > 200) fail(T, `no way on skis offered to Cielo Alto (walk ${r.caSki} m)`); else ok();
+  if (!r.upLifts || r.upLifts[0] !== 'gondola:Plan Maison') fail(T, 'Breuil to Laghi does not start with the Plan Maison gondola: ' + (r.upLifts || []).join(' > ')); else ok();
+}
+
 // ── the simulation glides along the route, in one piece and the right way ─
 // The pretend skier of ?sim=1 follows the route as one line: if a piece came
 // out back to front he would jump across the mountain and the voice would
@@ -9307,7 +9343,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       while ((n = w.nextNode())) {
         const el = n.parentElement, s = n.textContent.trim();
         if (!s || !heb.test(s) || !el) continue;
-        if (el.closest('.modal, [id$="Modal"], #side-menu, .ugc, #forum-section, #lang-btn')) continue;
+        if (el.closest('.modal, [id$="Modal"], #side-menu, .ugc, .peek-card, #forum-section, #lang-btn')) continue;   // .peek-card: the forum's newest posts, as their writers wrote them
         const b = el.getBoundingClientRect(), cs = getComputedStyle(el);
         if (!b.width || !b.height || cs.visibility === 'hidden') continue;
         left.push((el.id || el.tagName) + ': ' + s.slice(0, 40));

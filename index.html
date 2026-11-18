@@ -1479,7 +1479,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.31';
+  var v='v18.33';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7588,7 +7588,7 @@ function _geoDestPaint() {
     if (!SKI.failed) _skiLoad().then(_geoDestPaint, function () { SKI.failed = true; _geoDestPaint(); });
     return;
   }
-  var key = d.id + '|' + GEO.level + '|' + (GEO.rideDown ? 1 : 0), now = Date.now();
+  var key = d.id + '|' + GEO.level + '|' + (GEO.rideDown ? 1 : 0) + '|' + _geoProf(), now = Date.now();
   var fresh = key !== SKI.key;
   // computed again when the skier has left the route - not merely moved
   // along it, which would keep changing the steps under their feet
@@ -7600,17 +7600,10 @@ function _geoDestPaint() {
   }
   var why = (!fresh && off) ? 'off' : 'new';
   if (fresh || ((off || !SKI.route) && now - SKI.t > 8000)) {
-    SKI.ignoreLive = false;
-    SKI.route = skiRoute(here, d.ll, GEO.level);
-    SKI.closedRoute = false;
-    if (!SKI.route && _skiLive()) {
-      // nothing with today's lifts: show the way as if they ran, and say
-      // which of them do not
-      SKI.ignoreLive = true;
-      SKI.route = skiRoute(here, d.ll, GEO.level);
-      SKI.ignoreLive = false;
-      SKI.closedRoute = !!SKI.route;
-    }
+    SKI.alts = _skiPlan(here, d.ll);
+    var pick = SKI.alts.filter(function (a) { return a.ids.indexOf(_geoProf()) >= 0; })[0] || SKI.alts[0] || null;
+    SKI.route = pick ? pick.route : null;
+    SKI.closedRoute = !!(pick && pick.closed);
     SKI.key = key; SKI.at = here; SKI.t = now;
     SKI.off0 = SKI.route ? _skiTrack(SKI.route, here).d : 0;
     _skiDraw(SKI.route);
@@ -7635,13 +7628,19 @@ function _geoDestPaint() {
                        : L('כ-' + Math.floor(mins / 60) + ':' + ('0' + mins % 60).slice(-2) + ' שע\'',
                            'about ' + Math.floor(mins / 60) + 'h ' + ('0' + mins % 60).slice(-2));
   var steps = skiSteps(SKI.route);
+  // start and destination at the same spot of the map: the way is a walk,
+  // and it is said, rather than an empty list (Yossi, 18.11: Plan Maison
+  // valley station to Cielo Alto showed a time and nothing else)
+  if (!steps.length) steps = [{ kind: 'walk', i: 0, village: true, m: Math.round(m) }];
   if (VOICE.on) { _wakeOn(); _voiceStep(SKI.route, steps, _skiTrack(SKI.route, here), here, why); }
   var live = _skiLive();
   var shut = steps.filter(function (st) { return st.kind === 'lift' && /^(closed|later)$/.test(skiLiftState(SKI.graph.ways[st.way])); });
   var warn = SKI.closedRoute && shut.length
     ? '<div style="margin:4px 0;padding:5px 8px;border-radius:7px;background:#fdecea;color:#a3271b;">⛔ '
-      + L('אין כרגע דרך עם המעליות שפועלות. זו הדרך כשהן פועלות, והמעליות האלה סגורות עכשיו: ',
-          'No way right now with the lifts that are running. This is the way when they run, and these are closed now: ')
+      + ((SKI.alts || []).some(function (a) { return !a.closed; })
+          ? L('בדרך הזאת יש מעליות שסגורות עכשיו: ', 'This way takes lifts that are closed now: ')
+          : L('אין כרגע דרך עם המעליות שפועלות. זו הדרך כשהן פועלות, והמעליות האלה סגורות עכשיו: ',
+              'No way right now with the lifts that are running. This is the way when they run, and these are closed now: '))
       + shut.map(function (st) { return escHtml(st.name || ''); }).join(', ') + '</div>'
     : '';
   var liveNote = live
@@ -7652,7 +7651,7 @@ function _geoDestPaint() {
     ? '<div style="margin:3px 0;color:#1a5fb4;">🔊 ' + L('המסך יישאר דלוק בזמן הניווט, כי בלי מסך אין קול.', 'The screen stays on while navigating: with it off, there is no voice.')
       + _voiceLangNote() + '</div>'
     : '';
-  info.innerHTML = '🎯 ' + name + ' · ' + time + warn + vnote
+  info.innerHTML = '🎯 ' + name + ' · ' + time + _skiAltsHtml() + warn + vnote
     + '<ol style="margin:4px 0 2px;padding-inline-start:20px;">'
     + steps.map(function (st) { return '<li style="margin:2px 0;">' + _skiStepHtml(st) + '</li>'; }).join('')
     + '</ol><span style="color:#6b7c8f;font-size:0.72rem;">'
@@ -7676,7 +7675,7 @@ function _geoDestPaint() {
 // When there is no route at the level chosen it says so and offers the
 // straight line - it never quietly hands over a black run to somebody who
 // asked for blue.
-var SKI = { graph: null, loading: null, route: null, layer: null, at: null, t: 0, key: '' };
+var SKI = { graph: null, loading: null, route: null, layer: null, at: null, t: 0, key: '', prof: 'fast', alts: [] };
 var SKI_URL = 'data/ski-graph-cervinia.json';
 
 function _skiLoad() {
@@ -7759,12 +7758,32 @@ function skiLiftState(w) {
 }
 
 // seconds for one edge, or -1 when the level forbids it
+// Three ways to the same place (Yossi, 18.11): the quickest; the easiest,
+// which takes a long blue over a short red; and the most challenging, which
+// takes the hardest runs the chosen level allows. A factor on a run's time,
+// by its difficulty - the level stays the hard limit in all three.
+var SKI_PROF = { fast: [1, 1, 1, 1], easy: [1, 1, 3, 6], hard: [1, 2.2, 1, 0.6], ski: [1, 1, 1, 1] };
+// and a fourth, on skis rather than on foot: a walk weighs six times as much
+function _skiWalkF() { return SKI.prof === 'ski' ? 6 : 1; }
+// Climbing on foot in ski boots, skis on the shoulder: some 300 m up an
+// hour at best - twelve seconds a metre on top of the walk (Yossi, 18.11:
+// "550 m" to Cielo Alto is twenty minutes of steep climb)
+var SKI_CLIMB_S = 10;
+function _skiClimb(a, b) { return (a == null || b == null) ? 0 : Math.max(0, b - a) * SKI_CLIMB_S; }
+function _skiAltAt(g, ll) {
+  var best = Infinity, alt = null;
+  for (var i = 0; i < g.nodes.length; i++) {
+    var m = _skiDist(ll, g.nodes[i]);
+    if (m < best) { best = m; alt = g.nodes[i][2]; }
+  }
+  return best <= 500 ? alt : null;
+}
 function _skiCost(g, e, prevLine, level) {
   var k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null, sp = g.speed;
   if (k === 's' || k === 'f') {
     var d = (w && w.d) || 2;
     if (d >= 4 || d > level) return -1;
-    return e[3] / (k === 's' ? sp.ski : sp.flat);
+    return e[3] / (k === 's' ? sp.ski : sp.flat) * (SKI_PROF[SKI.prof] || SKI_PROF.fast)[d];
   }
   if (k === 'u' || k === 'r') {
     if (!SKI.ignoreLive) {
@@ -7783,9 +7802,113 @@ function _skiCost(g, e, prevLine, level) {
     }
     return t;
   }
-  if (k === 'w') return e[3] / sp.walk * 1.5;
-  if (k === 'v') return e[3] / sp.walk * 1.2 + 120;
+  // a climb counts on a real walk only: the heights of the map's points come
+  // from a terrain model, and across a lift station's few metres they jump
+  var up = e[3] >= 100 ? Math.min(_skiClimb(g.nodes[e[0]][2], g.nodes[e[1]][2]), e[3] * 0.4 * SKI_CLIMB_S) : 0;
+  if (k === 'w') return (e[3] / sp.walk * 1.5 + up) * _skiWalkF();
+  if (k === 'v') return (e[3] / sp.walk * 1.2 + 120 + up) * _skiWalkF();
   return -1;
+}
+// the time a route really takes, whatever profile chose it
+function _skiRealSecs(g, rt) {
+  var keepP = SKI.prof, keepL = SKI.ignoreLive;
+  SKI.prof = 'fast'; SKI.ignoreLive = true;
+  var t = rt.walkIn / g.speed.walk * 1.5 + rt.climbIn + rt.walkOut / g.speed.walk * 1.5 + rt.climbOut, line = -1;
+  rt.edges.forEach(function (ei) {
+    var e = g.edges[ei], w = e[2] >= 0 ? g.ways[e[2]] : null;
+    var c = _skiCost(g, e, line, 9);
+    if (c > 0) t += c;
+    line = (e[4] === 'u' || e[4] === 'r') ? (w.ln !== undefined ? w.ln : e[2]) : -1;
+  });
+  SKI.prof = keepP; SKI.ignoreLive = keepL;
+  return t;
+}
+
+// The choices for one trip: the quickest, the easiest and the most
+// challenging, each once (two that come out the same are one button) - and,
+// when today's lifts leave only a much slower way (a steep climb on foot,
+// say), the way with the lifts as well, marked as shut (Yossi, 18.11).
+function _skiPlan(here, to) {
+  var alts = [], seen = {};
+  function add(id, rt, closed) {
+    if (!rt) return;
+    var sig = rt.edges.join(',') + '|' + (closed ? 1 : 0);
+    if (seen[sig]) { seen[sig].ids.push(id); return; }
+    seen[sig] = { ids: [id], route: rt, closed: !!closed };
+    alts.push(seen[sig]);
+  }
+  SKI.ignoreLive = false;
+  ['fast', 'easy', 'hard'].forEach(function (p) { SKI.prof = p; add(p, skiRoute(here, to, GEO.level), false); });
+  SKI.prof = 'fast';
+  // the quickest is mostly a walk - a steep one, say, in ski boots: the way
+  // on skis too, with today's lifts or, failing them, as when they run
+  var q = alts.filter(function (a) { return a.ids.indexOf('fast') >= 0; })[0];
+  if (q && (_skiWalked(q.route).m >= 250 || _skiWalked(q.route).up >= 25)) {
+    SKI.prof = 'ski';
+    var sk = skiRoute(here, to, GEO.level), skClosed = false;
+    if ((!sk || _skiWalked(sk).m >= 250) && _skiLive()) {
+      SKI.ignoreLive = true; sk = skiRoute(here, to, GEO.level); SKI.ignoreLive = false; skClosed = true;
+    }
+    SKI.prof = 'fast';
+    if (sk && _skiWalked(sk).m < _skiWalked(q.route).m * 0.6) add('ski', sk, skClosed);
+  }
+  if (_skiLive()) {
+    SKI.ignoreLive = true;
+    var open = skiRoute(here, to, GEO.level);
+    SKI.ignoreLive = false;
+    var quickest = alts.length ? Math.min.apply(null, alts.map(function (a) { return a.route.secs; })) : Infinity;
+    if (open && open.secs < quickest * 0.8) add('open', open, true);
+  }
+  return alts;
+}
+// how far a route goes on foot, and how much of it uphill (in metres)
+function _skiWalked(rt) {
+  var g = SKI.graph, m = rt.walkIn + rt.walkOut, up = (rt.climbIn + rt.climbOut) / SKI_CLIMB_S;
+  rt.edges.forEach(function (ei) {
+    var e = g.edges[ei];
+    if (e[4] === 'w' || e[4] === 'v') { m += e[3]; if (e[3] >= 100) up += Math.max(0, g.nodes[e[1]][2] - g.nodes[e[0]][2]); }
+  });
+  return { m: m, up: up };
+}
+function _geoProf() {
+  if (!GEO.prof) { try { GEO.prof = localStorage.getItem('geoProf') || 'fast'; } catch (e) { GEO.prof = 'fast'; } }
+  return GEO.prof;
+}
+function geoProf(id) {
+  GEO.prof = id;
+  try { if (id !== 'open' && id !== 'ski') localStorage.setItem('geoProf', id); } catch (e) {}
+  SKI.key = '';
+  _geoDestPaint();
+}
+// what one choice holds, in a line: time, kilometres of each colour, the walk
+function _skiAltLine(a) {
+  var g = SKI.graph, rt = a.route, km = [0, 0, 0, 0], walk = rt.walkIn + rt.walkOut, climb = rt.climbIn + rt.climbOut, lifts = 0, line = -2;
+  rt.edges.forEach(function (ei) {
+    var e = g.edges[ei], w = e[2] >= 0 ? g.ways[e[2]] : null;
+    if (e[4] === 's' || e[4] === 'f') km[Math.min(3, (w && w.d) || 2)] += e[3];
+    else if (e[4] === 'w' || e[4] === 'v') { walk += e[3]; if (e[3] >= 100) climb += _skiClimb(g.nodes[e[0]][2], g.nodes[e[1]][2]); }
+    if (e[4] === 'u' || e[4] === 'r') { var ln = w.ln !== undefined ? w.ln : e[2]; if (ln !== line) lifts++; line = ln; } else line = -2;
+  });
+  var mins = Math.max(5, Math.round(rt.secs / 300) * 5);
+  var out = [mins < 60 ? L(mins + ' דק\'', mins + ' min') : Math.floor(mins / 60) + ':' + ('0' + mins % 60).slice(-2) + L(' שע\'', ' h')];
+  [1, 2, 3].forEach(function (d) { if (km[d] >= 50) out.push(SKI_DOT[d] + (km[d] / 1000).toFixed(1)); });
+  if (lifts) out.push('🚡' + lifts);
+  if (walk >= 60) out.push('🚶' + (Math.round(walk / 10) * 10) + L(' מ\'', ' m') + (climb >= 25 * SKI_CLIMB_S ? L(' ⬆️ בעלייה', ' ⬆️ uphill') : ''));
+  return out.join(' · ');
+}
+var SKI_ALT_NAME = { fast: ['⚡ הקצרה', '⚡ Quickest'], easy: ['😌 הקלה', '😌 Easiest'], hard: ['🔥 המאתגרת', '🔥 Most challenging'],
+                     ski: ['⛷️ בגלישה, בלי הליכה', '⛷️ On skis, no walk'],
+                     open: ['🚡 עם המעליות (סגורות עכשיו)', '🚡 With the lifts (shut now)'] };
+function _skiAltsHtml() {
+  if (!SKI.alts || SKI.alts.length < 2) return '';
+  return '<div style="display:flex;flex-direction:column;gap:3px;margin:4px 0;">' + SKI.alts.map(function (a) {
+    var on = a.route === SKI.route;
+    var nm = a.ids.map(function (id) { return L(SKI_ALT_NAME[id][0], SKI_ALT_NAME[id][1]); }).join(' · ')
+      + (a.closed && a.ids[0] !== 'open' ? L(' (המעליות סגורות עכשיו)', ' (lifts shut now)') : '');
+    return '<button type="button" onclick="geoProf(\'' + a.ids[0] + '\')" style="text-align:start;padding:4px 8px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:0.74rem;line-height:1.4;'
+      + (on ? 'border:2px solid #1a73e8;background:#e8f0fe;' : 'border:1px solid #c9d6e3;background:#fff;') + 'color:#16314f;">'
+      + '<b>' + nm + '</b> <span style="color:#4b5d70;">' + _skiAltLine(a) + '</span></button>';
+  }).join('') + '</div>';
 }
 
 // a small binary heap of [cost, state]
@@ -7833,9 +7956,10 @@ function skiRoute(fromLL, toLL, level) {
   if (!starts.length || !Object.keys(ends).length) return null;
   var NW = g.ways.length + 1;
   var best = {}, prev = {}, heap = new _SkiHeap();
+  var altFrom = _skiAltAt(g, fromLL), altTo = _skiAltAt(g, toLL);
   starts.forEach(function (h) {
     var st = h[1] * NW;               // no lift being ridden
-    var c = h[0] / g.speed.walk * 1.5;
+    var c = (h[0] / g.speed.walk * 1.5 + _skiClimb(altFrom, g.nodes[h[1]][2])) * _skiWalkF();
     if (best[st] === undefined || c < best[st]) { best[st] = c; heap.push([c, st]); }
   });
   var goal = -1, goalCost = Infinity;
@@ -7844,7 +7968,7 @@ function skiRoute(fromLL, toLL, level) {
     if (c > best[st] || c >= goalCost) continue;
     var n = Math.floor(st / NW), line = st % NW - 1;
     if (ends[n] !== undefined) {
-      var cg = c + ends[n] / g.speed.walk * 1.5;
+      var cg = c + (ends[n] / g.speed.walk * 1.5 + _skiClimb(g.nodes[n][2], altTo)) * _skiWalkF();
       if (cg < goalCost) { goalCost = cg; goal = st; }
     }
     var outs = g.out[n];
@@ -7864,7 +7988,11 @@ function skiRoute(fromLL, toLL, level) {
   path.reverse();
   var first = path.length ? g.edges[path[0]][0] : Math.floor(goal / NW);
   var last = Math.floor(goal / NW);
-  return { edges: path, secs: goalCost, from: first, to: last };
+  var rt = { edges: path, cost: goalCost, from: first, to: last,
+             walkIn: _skiDist(fromLL, g.nodes[first]), climbIn: _skiClimb(altFrom, g.nodes[first][2]),
+             walkOut: ends[last] || 0, climbOut: _skiClimb(g.nodes[last][2], altTo) };
+  rt.secs = _skiRealSecs(g, rt);
+  return rt;
 }
 
 function _skiGeom(e) {
@@ -24810,7 +24938,7 @@ window.addEventListener('load', _maybeOpenFriends);
 // the mountain. "Leave the route" pushes him aside to see the reroute. The
 // pretend position goes through the same door as the GPS (_geoFix), so what
 // is tried is the real thing; it is never shared with friends.
-var SIM = { on: false, run: false, ll: null, f: 5, t: null, sig: '', path: null, s: 0, drift: 0, dir: null, ready: false };
+var SIM = { on: false, run: false, ll: null, f: 5, t: null, sig: null, path: null, s: 0, drift: 0, dir: null, ready: false };
 var SIM_SPEED = { s: 9, f: 4, w: 1.4, v: 1.4, u: 5, r: 5 };   // metres a second, by kind of edge
 
 function _simFix(ll) {
@@ -24871,7 +24999,7 @@ function _simTick() {
   }
   if (!SKI.route) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 6 * dt)); return; }
   var sig = SKI.route.edges.join(',');
-  if (sig !== SIM.sig) { SIM.sig = sig; SIM.path = _simPath(SKI.route); SIM.s = -1; }
+  if (sig !== SIM.sig || !SIM.path) { SIM.sig = sig; SIM.path = _simPath(SKI.route); SIM.s = -1; }
   var P = SIM.path;
   if (!P.pts.length) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 6 * dt)); return; }
   if (SIM.s < 0) {           // straight onto the line: a walk to the first run is no sight to watch
@@ -24902,7 +25030,7 @@ function simOff() {          // the route left on purpose: about 150 m to one si
 }
 function simSpeed(v) { SIM.f = +v || 5; _simPaint(); }
 function simExit() {
-  SIM.on = false; SIM.run = false; SIM.ll = null; SIM.sig = ''; SIM.path = null;
+  SIM.on = false; SIM.run = false; SIM.ll = null; SIM.sig = null; SIM.path = null;
   if (SIM.t) { clearInterval(SIM.t); SIM.t = null; }
   try { sessionStorage.removeItem('geoSim'); } catch (e) {}
   var box = document.getElementById('map-geo-sim');
@@ -24938,7 +25066,7 @@ function _simStart() {
       SIM.ready = true;
       GEO.map.on('click', function (ev) {
         if (!SIM.on) return;
-        geoStop(); GEO.first = false; SIM.sig = ''; SIM.drift = 0;
+        geoStop(); GEO.first = false; SIM.sig = null; SIM.path = null; SIM.drift = 0;
         _simFix([ev.latlng.lat, ev.latlng.lng]);
         _simPaint();
       });

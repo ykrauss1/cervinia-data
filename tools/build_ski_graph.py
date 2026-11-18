@@ -258,6 +258,23 @@ def main():
             for d, q in hits:
                 junction.add(q); links.append((k, q, d, kind))
 
+    # ── one station, two lifts: the top of one and the foot of the next
+    #    stand a few dozen metres apart in the same building, with no piste
+    #    between them to join them (Plan Maison: the gondola from Breuil
+    #    arrives 72 m from the next lift up). A walk between them. ──
+    SNAP_STATION = 120
+    lifts = [w for w in ways if w['kind'] == 'l' and w.get('lt') != 'rack']
+    for a in lifts:
+        top = a['geom'][-1]
+        for b in lifts:
+            if b is a:
+                continue
+            foot = b['geom'][0]
+            d = dist(top, foot)
+            if 1 <= d <= SNAP_STATION:
+                junction.add(key(top)); junction.add(key(foot))
+                links.append((key(top), key(foot), d, 'w'))
+
     # ── heights: the ends are measured; a junction inside a way is
     #    interpolated along it ──
     height = {}
