@@ -2349,6 +2349,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       places: (g.places || []).length,
       placesOut: (g.places || []).filter(x => !(x[4] > 45.85 && x[4] < 46.05 && x[5] > 7.55 && x[5] < 7.85)).map(x => x[3]),
       zermattEnd: !!skiRoute(plateau, ((g.places || []).find(x => /Matterhorn Express station/.test(x[3])) || [0,0,0,0,0,0]).slice(4), 2)
+    };
   }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
   const T = 'the ski router keeps to the level that was asked for';
   if (r.err) fail(T, 'the graph did not load: ' + r.err);
