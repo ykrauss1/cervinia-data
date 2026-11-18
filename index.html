@@ -1471,7 +1471,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.27';
+  var v='v18.29';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7381,7 +7381,7 @@ function _geoDestList() {
       var it = [];
       pl.forEach(function (x, i) {
         if (x[0] !== gc[0] || x[1] !== gc[1]) return;
-        it.push({ id: 'l:' + i, name: L(x[2], x[3]), ll: [x[4], x[5]] });
+        it.push({ id: 'l:' + i, name: L(x[2], x[3]), en: x[3], ll: [x[4], x[5]] });
       });
       add(gc[0], gc[1] === 'it' ? L('איטליה — צ׳רוויניה וולטורננש', 'Italy — Cervinia and Valtournenche')
                                 : L('שוויץ — צרמט', 'Switzerland — Zermatt'), it);
@@ -7393,7 +7393,7 @@ function _geoDestList() {
     Object.keys(rp).forEach(function (k) {
       var ll = _geoLL(rp[k]); if (!ll) return;
       var name = (k === 'cervinia') ? L('צ׳רוויניה — הכפר (Cervinia)', 'Cervinia — the village') : String(rp[k][2] || k);
-      st.push({ id: 's:' + k, name: name, ll: ll });
+      st.push({ id: 's:' + k, name: name, en: k === 'cervinia' ? 'Cervinia village' : String(rp[k][2] || k), ll: ll });
     });
     add('s', L('🚡 תחנות', '🚡 Stations'), st);
   }
@@ -7541,7 +7541,7 @@ function _geoDestPaint() {
     info.innerHTML = '✅ ' + L('הגעת אל ', 'You have reached ') + name;
     if (VOICE.on && !VOICE.arrived) {
       VOICE.arrived = true;
-      voiceSay(L('הגעת אל ', 'You have reached ') + d.name, true);
+      voiceSay(VL('הגעת אל ', 'You have reached ') + _voiceDest(d), true);
       _wakeOff();
     }
     return;
@@ -7625,8 +7625,7 @@ function _geoDestPaint() {
     : L('מצב המעליות לא ידוע כרגע. ', 'Lift status unknown right now. ');
   var vnote = VOICE.on
     ? '<div style="margin:3px 0;color:#1a5fb4;">🔊 ' + L('המסך יישאר דלוק בזמן הניווט, כי בלי מסך אין קול.', 'The screen stays on while navigating: with it off, there is no voice.')
-      + (VOICE.noHe ? ' ' + L('בטלפון לא נמצא קול בעברית. אפשר להוריד אותו בהגדרות הטלפון, תחת "המרת טקסט לדיבור".',
-                              'No Hebrew voice on this phone.') : '') + '</div>'
+      + _voiceLangNote() + '</div>'
     : '';
   info.innerHTML = '🎯 ' + name + ' · ' + time + warn + vnote
     + '<ol style="margin:4px 0 2px;padding-inline-start:20px;">'
@@ -7957,21 +7956,45 @@ function geoLevel(v) {
 //
 // A web page cannot speak with the screen off, so while the voice is on the
 // screen is kept awake (the Wake Lock API) - and the button says so.
-var VOICE = { on: false, lock: null, sig: '', step: -1, pre: {}, arrived: false, noHe: false };
+var VOICE = { on: false, lock: null, sig: '', step: -1, pre: {}, arrived: false, noHe: false, en: false, enSaid: false };
+try { VOICE.en = localStorage.getItem('voiceEn') === '1'; VOICE.enSaid = localStorage.getItem('voiceEn') !== null; } catch (e) {}
+
+// The voice speaks the site's language - or English, on a Hebrew page, for
+// a phone with no Hebrew voice once the reader has said yes to that (Yossi, 18.11)
+function _voiceEn() { return L(!!VOICE.en, true); }
+function VL(he, en) { return _voiceEn() ? en : he; }
+function _voiceDest(d) {
+  if (!d) return '';
+  if (!_voiceEn()) return d.name;
+  return d.en || (/[\u0590-\u05FF]/.test(d.name) ? 'your destination' : d.name);
+}
+// is there a Hebrew voice? null while the phone has not listed its voices yet
+function _voiceHasHe() {
+  if (!window.speechSynthesis) return false;
+  var vs = speechSynthesis.getVoices() || [];
+  if (!vs.length) return null;
+  return vs.some(function (v) { return /^(he|iw)\b/i.test(v.lang); });
+}
 
 function _voicePick() {
   if (!window.speechSynthesis) return null;
-  var want = L('he', 'en'), vs = speechSynthesis.getVoices() || [];
+  var want = _voiceEn() ? 'en' : 'he', vs = speechSynthesis.getVoices() || [];
   var re = want === 'he' ? /^(he|iw)\b/i : /^en\b/i;
   var hit = vs.filter(function (v) { return re.test(v.lang); });
+  // in English an American voice first (Yossi, 18.11), then any other English
+  if (want === 'en') {
+    var us = hit.filter(function (v) { return /^en[-_]US\b/i.test(v.lang); });
+    if (us.length) hit = us;
+  }
   return hit.find(function (v) { return v.localService; }) || hit[0] || null;
 }
 function voiceSay(text, urgent) {
   if (!VOICE.on || !window.speechSynthesis || !text) return;
+  if (L(true, false) && VOICE.noHe && !VOICE.en && !VOICE.enSaid) return;   // waiting for "in English instead?"
   try {
     if (urgent) speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text);
-    u.lang = L('he-IL', 'en-GB');
+    u.lang = _voiceEn() ? 'en-US' : 'he-IL';
     var v = _voicePick();
     if (v) u.voice = v;
     speechSynthesis.speak(u);
@@ -8002,8 +8025,9 @@ function geoVoice(on) {
   if (VOICE.on) {
     // spoken inside the tap itself: a phone lets a page speak only after
     // the reader has touched it
-    VOICE.noHe = L(true, false) && !_voicePick();
-    voiceSay(L('הדרכה קולית פועלת', 'Voice guidance on'), true);
+    VOICE.noHe = L(true, false) && _voiceHasHe() === false;
+    // no Hebrew voice and no answer yet: ask before saying anything
+    if (!(VOICE.noHe && !VOICE.en && !VOICE.enSaid)) voiceSay(VL('הדרכה קולית פועלת', 'Voice guidance on'), true);
     if (GEO.dest) _wakeOn();
   } else {
     try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
@@ -8012,6 +8036,36 @@ function geoVoice(on) {
   _voiceButton();
   SKI.t = 0;
   _geoDestPaint();
+}
+// the answer to "read in English instead?" - kept on this device
+function geoVoiceEn(on) {
+  VOICE.en = !!on; VOICE.enSaid = true;
+  try { localStorage.setItem('voiceEn', on ? '1' : '0'); } catch (e) {}
+  VOICE.sig = ''; VOICE.step = -1; VOICE.pre = {}; VOICE.arrived = false;
+  if (VOICE.on) voiceSay(VL('הדרכה קולית פועלת', 'Voice guidance on'), true);
+  SKI.t = 0;
+  _geoDestPaint();
+}
+// a phone lists its voices a moment after the page opens
+try {
+  if (window.speechSynthesis && speechSynthesis.addEventListener) speechSynthesis.addEventListener('voiceschanged', function () {
+    if (!VOICE.on) return;
+    var no = L(true, false) && _voiceHasHe() === false;
+    if (no !== VOICE.noHe) { VOICE.noHe = no; _geoDestPaint(); }
+  });
+} catch (e) {}
+function _voiceLangNote() {
+  if (!L(true, false)) return '';
+  var b = 'padding:2px 9px;margin:2px 3px 0 0;border-radius:7px;border:1px solid #1a73e8;background:#fff;color:#1a5fb4;cursor:pointer;font-family:inherit;font-size:0.74rem;';
+  if (VOICE.en) return ' ההקראה באנגלית.'
+    + (_voiceHasHe() ? ' <button type="button" style="' + b + '" onclick="geoVoiceEn(false)">חזרה להקראה בעברית</button>' : '');
+  if (!VOICE.noHe) return '';
+  if (VOICE.enSaid) return ' בטלפון לא נמצא קול בעברית. אפשר להוריד אותו בהגדרות הטלפון, תחת "המרת טקסט לדיבור". '
+    + '<button type="button" style="' + b + '" onclick="geoVoiceEn(true)">להקריא באנגלית</button>';
+  return '<div style="margin-top:4px;color:#7a4b00;">⚠️ בטלפון הזה לא נמצא קול בעברית. להקריא את ההוראות באנגלית במקום?<br>'
+    + '<button type="button" style="' + b + '" onclick="geoVoiceEn(true)">🇺🇸 כן, באנגלית</button>'
+    + '<button type="button" style="' + b + '" onclick="geoVoiceEn(false)">לא, תודה</button>'
+    + '<br><span style="color:#6b7c8f;">אפשר גם להוריד קול עברי בהגדרות הטלפון, תחת "המרת טקסט לדיבור".</span></div>';
 }
 function _voiceButton() {
   var b = document.getElementById('map-geo-voice');
@@ -8026,12 +8080,12 @@ var _VOICE_COL_HE = ['', 'כחול', 'אדום', 'שחור', 'שחור'];
 var _VOICE_COL_EN = ['', 'blue', 'red', 'black', 'black'];
 function _stepSpeech(s) {
   if (s.kind === 'lift') {
-    var t = L(SKI_LIFT_HE[s.lt] || 'מעלית', SKI_LIFT_EN[s.lt] || 'lift');
-    return (s.down ? L('ירידה ב', 'ride down the ') : L('עלה ב', 'take the ')) + t + (s.name ? ' ' + s.name : '');
+    var t = VL(SKI_LIFT_HE[s.lt] || 'מעלית', SKI_LIFT_EN[s.lt] || 'lift');
+    return (s.down ? VL('ירידה ב', 'ride down the ') : VL('עלה ב', 'take the ')) + t + (s.name ? ' ' + s.name : '');
   }
-  if (s.kind === 'walk') return L('הליכה ', 'walk ') + Math.round(s.m / 10) * 10 + L(' מטר', ' metres');
-  return L('מסלול ', 'run ') + (s.ref ? s.ref + ' ' : '') + (s.name ? s.name + ', ' : ', ')
-    + L(_VOICE_COL_HE[s.d], _VOICE_COL_EN[s.d]);
+  if (s.kind === 'walk') return VL('הליכה ', 'walk ') + Math.round(s.m / 10) * 10 + VL(' מטר', ' metres');
+  return VL('מסלול ', 'run ') + (s.ref ? s.ref + ' ' : '') + (s.name ? s.name + ', ' : ', ')
+    + VL(_VOICE_COL_HE[s.d], _VOICE_COL_EN[s.d]);
 }
 
 // where on the route the skier is: how far from it, and on which edge
@@ -8062,15 +8116,15 @@ function _voiceStep(route, steps, track, here, why) {
     VOICE.sig = sig; VOICE.step = cur; VOICE.pre = {}; VOICE.arrived = false;
     var mins = Math.max(5, Math.round(route.secs / 300) * 5);
     var head = why === 'off'
-      ? L('יצאת מהמסלול. מסלול חדש. ', 'Off the route. New route. ')
-      : L('מסלול אל ' + GEO.dest.name + ', כ־' + mins + ' דקות. ', 'Route to ' + GEO.dest.name + ', about ' + mins + ' minutes. ');
-    voiceSay(head + (steps[cur] ? L('ראשית: ', 'First: ') + _stepSpeech(steps[cur]) : ''), true);
+      ? VL('יצאת מהמסלול. מסלול חדש. ', 'Off the route. New route. ')
+      : VL('מסלול אל ' + _voiceDest(GEO.dest) + ', כ־' + mins + ' דקות. ', 'Route to ' + _voiceDest(GEO.dest) + ', about ' + mins + ' minutes. ');
+    voiceSay(head + (steps[cur] ? VL('ראשית: ', 'First: ') + _stepSpeech(steps[cur]) : ''), true);
     return;
   }
   if (cur > VOICE.step) {
     VOICE.step = cur;
     if (!VOICE.pre[cur]) voiceSay(_stepSpeech(steps[cur]), true);
-    else voiceSay(L('עכשיו: ', 'Now: ') + _stepSpeech(steps[cur]), false);
+    else voiceSay(VL('עכשיו: ', 'Now: ') + _stepSpeech(steps[cur]), false);
   }
   var nx = steps[cur + 1];
   if (nx && !VOICE.pre[cur + 1]) {
@@ -8078,7 +8132,7 @@ function _voiceStep(route, steps, track, here, why) {
     var dn = _skiDist(here, at);
     if (dn < 150) {
       VOICE.pre[cur + 1] = true;
-      voiceSay(L('בעוד ', 'In ') + Math.max(50, Math.round(dn / 50) * 50) + L(' מטר: ', ' metres: ') + _stepSpeech(nx), true);
+      voiceSay(VL('בעוד ', 'In ') + Math.max(50, Math.round(dn / 50) * 50) + VL(' מטר: ', ' metres: ') + _stepSpeech(nx), true);
     }
   }
 }
