@@ -680,6 +680,14 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         .result-link .rl-desc { font-size:0.75rem; color:#888; margin-top:2px; }
         .result-link .rl-arrow { color:#ccc; font-size:1rem; }
         .modal { display: none; position: fixed; z-index: 9999; top: 0; inset-inline-end: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+        /* "where am I" on (almost) the whole screen: while navigating the map is
+           the thing, not the buttons above it (Yossi, 18.11) */
+        #mapModal.geo-full .modal-content { position: fixed !important; inset: 0 !important; max-width: none !important;
+          width: auto !important; height: auto !important; max-height: none !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; }
+        #mapModal.geo-full #map-head, #mapModal.geo-full #map-picks { display: none !important; }
+        #mapModal.geo-full #map-geo-dest-info { max-height: 16vh !important; }
+        #mapModal.geo-full.geo-nav #map-geo-cats-row { display: none !important; }
+        #mapModal.geo-full #map-geo-dest-row { padding: 4px 7px !important; }
 .modal-content { --mc-pad: 30px; background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; position: relative; max-height: 95vh; overflow-y: auto; }
 .modal-content::-webkit-scrollbar { width: 8px; }
 .modal-content::-webkit-scrollbar-track { background: transparent; }
@@ -1471,7 +1479,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.29';
+  var v='v18.30';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4943,12 +4951,12 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
 <div id="mapModal" class="modal" onclick="if(event.target===this)closeMapModal()">
   <div class="modal-content" style="max-width:960px;height:92vh;display:flex;flex-direction:column;padding:14px;gap:0;">
     <!-- כותרת -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;">
+    <div id="map-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;">
       <h3 style="margin:0;font-size:1rem;" data-en="🗺️ Maps">🗺️ מפות</h3>
       <span class="close-btn" style="position:static;font-size:1.4rem;cursor:pointer;" onclick="closeMapModal()">×</span>
     </div>
     <!-- כפתורי בחירה -->
-    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;flex-shrink:0;">
+    <div id="map-picks" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;flex-shrink:0;">
       <div style="display:flex;gap:6px;">
         <button class="service-btn map-pick" data-map="gps" style="flex:1;padding:9px 6px;font-size:0.78rem;font-weight:bold;" onclick="loadMap('gps')" data-en="📡 Where am I">📡 איפה אני</button>
         <button class="service-btn map-pick" data-map="mymap" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('mymap')" data-en="📍 Points of interest">📍 נקודות ציון</button>
@@ -5038,7 +5046,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
         <!-- take me to: a destination from the site's own verified points -->
         <div id="map-geo-dest-row" style="flex-shrink:0;padding:6px 9px;border-bottom:1px solid #e3eaf2;background:#f8fbfe;font-size:0.76rem;color:#33475b;">
           <!-- the kinds of destination, one button each (Yossi, 18.11), and friends -->
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;align-items:center;">
+          <div id="map-geo-cats-row" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;align-items:center;">
             <div id="map-geo-cats" role="tablist" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
             <button type="button" id="map-geo-friends-btn" onclick="geoFriends()" style="margin-inline-start:auto;padding:4px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;font-weight:600;border:1px solid #c9d6e3;background:#fff;color:#16314f;" data-en="👥 Friends">👥 חברים</button>
           </div>
@@ -5072,6 +5080,8 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
           <button type="button" id="map-geo-btn" onclick="geoLocate()"
             style="padding:6px 12px;border-radius:8px;border:none;background:#1a73e8;color:#fff;font-weight:bold;font-family:inherit;font-size:0.78rem;cursor:pointer;"
             data-en="📍 Show my location">📍 הצג את המיקום שלי</button>
+          <button type="button" id="map-geo-full" onclick="geoFull(!GEO.full)"
+            style="padding:6px 10px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;color:#16314f;font-family:inherit;font-size:0.78rem;cursor:pointer;" data-en="⛶ Full screen">⛶ מסך מלא</button>
           <span id="map-geo-msg" style="flex:1;min-width:160px;line-height:1.5;"></span>
         </div>
       </div>
@@ -7069,6 +7079,7 @@ function _mapCancel() {
   if (_mapTask) { try { _mapTask.destroy(); } catch (e) {} _mapTask = null; }
 }
 function closeMapModal() {
+  geoFull(false);
   _mapCancel();
   _mapReset();
   _mapIdle();
@@ -7109,6 +7120,7 @@ function _mapShowToolbar(downloadUrl, downloadName) {
 }
 
 function loadMap(type) {
+  if (type !== 'gps') geoFull(false);
   _mapCancel();
   _mapReset();
   _mapMarkPick(type);
@@ -7269,6 +7281,16 @@ function geoOpen() {
             'The map needs a signal the first time. Meanwhile, the piste maps below work.') + '</span>';
     }
   });
+}
+
+// the map on the whole screen, the site's buttons out of the way
+function geoFull(on) {
+  var m = document.getElementById('mapModal');
+  GEO.full = !!on;
+  if (m) { if (GEO.full) m.classList.add('geo-full'); else m.classList.remove('geo-full'); }
+  var b = document.getElementById('map-geo-full');
+  if (b) b.textContent = GEO.full ? L('↙ יציאה ממסך מלא', '↙ Exit full screen') : L('⛶ מסך מלא', '⛶ Full screen');
+  setTimeout(function () { if (GEO.map) GEO.map.invalidateSize(); }, 80);
 }
 
 function geoStop() {
@@ -7468,6 +7490,7 @@ function _geoDestFill() {
 function geoDest(id) {
   var lf = window.Leaflet;
   var d = id && GEO.dests ? GEO.dests[id] : null;
+  if (d && !GEO.dest) geoFull(true);
   GEO.dest = d || null;
   skiClear();
   var sel = document.getElementById('map-geo-dest');
@@ -7514,6 +7537,8 @@ function _geoDestPaint() {
   if (rd) rd.checked = !!GEO.rideDown;
   if (x) x.style.display = d ? '' : 'none';
   if (lvRow) lvRow.style.display = d ? 'flex' : 'none';
+  var mm = document.getElementById('mapModal');   // while navigating, full screen keeps only what the way needs
+  if (mm) { if (d) mm.classList.add('geo-nav'); else mm.classList.remove('geo-nav'); }
   _voiceButton();
   if (!d && VOICE.on) { _wakeOff(); try { speechSynthesis.cancel(); } catch (e) {} }
   if (!info) return;
@@ -24831,18 +24856,16 @@ function _simTick() {
     if (SKI.route && SKI.route.edges.join(',') !== SIM.sig) SIM.drift = 0;
     return;
   }
-  if (!SKI.route) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 1.4 * dt)); return; }
+  if (!SKI.route) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 6 * dt)); return; }
   var sig = SKI.route.edges.join(',');
   if (sig !== SIM.sig) { SIM.sig = sig; SIM.path = _simPath(SKI.route); SIM.s = -1; }
   var P = SIM.path;
-  if (!P.pts.length) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 1.4 * dt)); return; }
-  if (SIM.s < 0) {           // first walk onto the line, then along it
-    var pr = _simProject(P, SIM.ll);
-    if (pr.d > 15) { _simFix(_simStep(SIM.ll, _simAt(P, pr.s).ll, 1.4 * dt * 3)); return; }
-    SIM.s = pr.s;
+  if (!P.pts.length) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 6 * dt)); return; }
+  if (SIM.s < 0) {           // straight onto the line: a walk to the first run is no sight to watch
+    SIM.s = _simProject(P, SIM.ll).s;
   }
   var here = _simAt(P, SIM.s);
-  if (here.end) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 1.4 * dt * 3)); return; }
+  if (here.end || SIM.s >= P.cum[P.cum.length - 1] - 0.5) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 6 * dt)); return; }
   SIM.s = Math.min(P.cum[P.cum.length - 1], SIM.s + here.v * dt);
   _simFix(_simAt(P, SIM.s).ll);
 }
@@ -24897,6 +24920,7 @@ function _simStart() {
     if (!GEO.map) return;
     clearInterval(w);
     geoStop();
+    geoFull(true);
     if (!SIM.ready) {
       SIM.ready = true;
       GEO.map.on('click', function (ev) {
