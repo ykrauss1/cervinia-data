@@ -255,7 +255,7 @@ self.addEventListener('notificationclick', function (e) {
       // already open somewhere? focus that tab rather than opening a second one
       for (const c of list) {
         if (c.url.indexOf(self.registration.scope) === 0 && 'focus' in c) {
-          c.postMessage({ type: 'open-alerts' });
+          c.postMessage({ type: /[?&]open=friends\b/.test(target) ? 'open-friends' : 'open-alerts' });
           return c.focus();
         }
       }

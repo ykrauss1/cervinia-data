@@ -180,6 +180,66 @@ function buildPayload(a: Record<string, unknown>, lang = "he") {
   });
 }
 
+/* ------------------------------------------------- a friend invitation -- */
+
+// One invited user, on each device where he switched notifications on while
+// signed in. The rows come from cl_invite_targets, which answers only for an
+// invitation a few minutes old - a retried call cannot ring him twice later.
+async function sendInvite(
+  rest: (path: string, init?: RequestInit) => Promise<Response>,
+  group: string, user: string, subject: string, pub: string, priv: string,
+) {
+  if (!group || !user) return new Response("no invitation", { status: 400 });
+  const tRes = await rest("rpc/cl_invite_targets", {
+    method: "POST", body: JSON.stringify({ p_group: group, p_user: user }),
+  });
+  if (!tRes.ok) return new Response("invite targets failed: " + (await tRes.text()), { status: 500 });
+  const targets: { endpoint: string; p256dh: string; auth: string; lang: string; group_name: string; inviter: string }[] =
+    await tRes.json();
+  let sent = 0, gone = 0, failed = 0;
+  for (const t of targets) {
+    const en = t.lang === "en";
+    const who = (t.inviter || "").slice(0, 30) || (en ? "A friend" : "חבר");
+    const grp = (t.group_name || "").slice(0, 60);
+    const payload = JSON.stringify({
+      title: en ? "📩 Group invitation - CerviniaLive" : "📩 הזמנה לקבוצה - צ'רוויניה לייב",
+      body: en ? `${who} invited you to "${grp}". Tap to join and see each other on the mountain map.`
+               : `${who} הזמין אותך לקבוצה "${grp}". לחץ כדי להצטרף ולראות זה את זה על המפה בהר.`,
+      severity: "info",
+      tag: "cervinia-invite",
+      url: en ? "./index.html?open=friends&lang=en" : "./index.html?open=friends",
+    });
+    try {
+      const res = await fetch(t.endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: await vapidHeader(t.endpoint, subject, pub, priv),
+          "Content-Encoding": "aes128gcm",
+          "Content-Type": "application/octet-stream",
+          TTL: "86400",
+          Urgency: "high",       // a friend is waiting for an answer now
+        },
+        body: await encryptPayload(payload, t.p256dh, t.auth),
+      });
+      if (res.status === 404 || res.status === 410) {
+        gone++;
+        await rest("push_subs?endpoint=eq." + encodeURIComponent(t.endpoint), { method: "DELETE" });
+      } else if (res.ok) {
+        sent++;
+      } else {
+        failed++;
+        console.error("invite push " + res.status + " " + (await res.text()).slice(0, 200));
+      }
+    } catch (e) {
+      failed++;
+      console.error("invite push threw: " + (e instanceof Error ? e.message : String(e)));
+    }
+  }
+  return new Response(JSON.stringify({ invite: group, sent, gone, failed }), {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 /* --------------------------------------------------------------- main -- */
 
 Deno.serve(async (req) => {
@@ -231,12 +291,19 @@ Deno.serve(async (req) => {
   }
 
   let alertId = "";
+  let invite: { group?: string; user?: string } | null = null;
   try {
     const body = await req.json();
     // Supabase's database webhook shape, with a plain {id} accepted too so the
     // function can be re-fired by hand from curl when testing.
     alertId = String(body?.record?.id ?? body?.id ?? "");
+    // An invitation to a friend group (cl_invite_push): {invite:{group,user}}
+    if (body?.invite) invite = body.invite;
   } catch { /* falls through to the check below */ }
+
+  if (invite) {
+    return await sendInvite(rest, String(invite.group || ""), String(invite.user || ""), SUBJECT, VAPID_PUB, VAPID_PRIV);
+  }
   if (!alertId) return new Response("no alert id", { status: 400 });
 
   // Who should get it. All the rules - live, not sent yet, severe enough,

@@ -1471,7 +1471,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.25';
+  var v='v18.26';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -8330,10 +8330,24 @@ async function frInviteUser(username) {
     var r = await _frRpc('cl_group_invite', { p_group: FR.gid, p_username: username });
     FR.inviteMsg = r === 'already a member'
       ? escHtml(username) + L(' כבר בקבוצה.', ' is already in the group.')
-      : L('✓ ההזמנה נשלחה ל־', '✓ Invitation sent to ') + escHtml(username) + L('. היא תופיע אצלו כשיפתח את "👥 חברים".', '. It shows when he opens "👥 Friends".');
+      : L('✓ ההזמנה נשלחה ל־', '✓ Invitation sent to ') + escHtml(username)
+        + L('. אם הפעיל התראות, הטלפון שלו כבר צלצל. אם לא, הוא יראה אותה כשייכנס לאתר.', '. If he switched notifications on, his phone has rung; if not, he sees it when he opens the site.')
+        + ' <button type="button" onclick="frNudge()" style="' + _frBtn() + '">📲 ' + L('תודיע לו גם בהודעה', 'Tell him in a message too') + '</button>';
   } catch (e) { FR.inviteMsg = '<span style="color:#c5221f;">' + escHtml(e.message) + '</span>'; }
   FR.found = [];
   _frPaint();
+}
+// The inviter tells the invited one himself, in WhatsApp, SMS or anything
+// else: the site has no phone numbers, and should not. The link in it joins
+// the group straight away.
+function frNudge() {
+  var g = (FR.groups || []).find(function (x) { return x.id === FR.gid; });
+  if (!g) return;
+  var url = 'https://cervinialive.co.il/?join=' + encodeURIComponent(g.invite_code);
+  var text = L('הזמנתי אותך לקבוצה "' + g.name + '" בצ׳רוויניה לייב, כדי שנראה זה את זה על המפה בהר. להצטרפות: ',
+               'I invited you to "' + g.name + '" on CerviniaLive, so we see each other on the mountain map. To join: ') + url;
+  if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
+  frInvite();                          // no share sheet: copy it and show it
 }
 async function frAnswer(gid, yes) {
   var me = ((document.getElementById('fr-inv-' + gid) || {}).value || '').trim() || ((user && user.name) || '');
@@ -16412,6 +16426,7 @@ try {
         // the friends panel waits for a sign-in (an invite link opened
         // signed out); once in, it loads the groups and offers to join
         if (typeof FR !== 'undefined' && FR.open) setTimeout(function () { FR.groups = null; _frLoadGroups(); }, 900);
+        if (event === 'SIGNED_IN' && typeof _frInviteBanner === 'function') setTimeout(_frInviteBanner, 1500);
         if (event === 'PASSWORD_RECOVERY') {
           _CAME_FROM_RECOVERY = true;
           if (typeof openPasswordReset === 'function') openPasswordReset();
@@ -24674,13 +24689,69 @@ function _maybeOpenAlerts() {
 }
 window.addEventListener('load', _maybeOpenAlerts);
 
+// A friend-group invitation opens the map at the friends panel, where it
+// is waiting with "join" and "no thanks".
+function openFriendsPanel() {
+  try {
+    openM('mapModal'); loadMap('gps');
+    FR.open = true; FR.groups = null;
+    setTimeout(function () { _frPaint(); if (_frSignedIn()) _frLoadGroups(); }, 300);
+  } catch (e) {}
+}
+function _maybeOpenFriends() {
+  try {
+    if (!/[?&]open=friends(\b|$)/.test(location.search)) return;
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.hash);
+    setTimeout(openFriendsPanel, 500);
+  } catch (e) {}
+}
+window.addEventListener('load', _maybeOpenFriends);
+
 if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
   navigator.serviceWorker.addEventListener('message', function (e) {
     if (e && e.data && e.data.type === 'open-alerts') {
       try { openAlertPanel(); } catch (err) {}
     }
+    if (e && e.data && e.data.type === 'open-friends') openFriendsPanel();
   });
 }
+
+// ── an invitation waiting, said on arrival ──
+// Whoever was invited sees it the moment he is on the site, on any page -
+// not only when he happens to open the map. Once per invitation per device.
+async function _frInviteBanner() {
+  try {
+    if (!_frSignedIn() || !_frSB()) return;
+    var inv = await _frRpc('cl_my_invites');
+    if (!inv || !inv.length) return;
+    var seen = {};
+    try { seen = JSON.parse(localStorage.getItem('frInvSeen') || '{}'); } catch (e) {}
+    var fresh = inv.filter(function (i) { return !seen[i.group_id + '|' + i.created_at]; });
+    if (!fresh.length) return;
+    FR.invites = inv; _frPaint();
+    var i = fresh[0];
+    var old = document.getElementById('fr-banner'); if (old) old.remove();
+    var b = document.createElement('div');
+    b.id = 'fr-banner';
+    b.setAttribute('role', 'status');
+    b.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:99999;max-width:92vw;'
+      + 'background:#fff8e1;border:1px solid #f6c453;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,0.22);'
+      + 'padding:10px 12px;font-size:0.86rem;color:#3d2e00;display:flex;gap:8px;align-items:center;direction:' + L('rtl', 'ltr') + ';';
+    b.innerHTML = '<span>📩 <b>' + escHtml(i.invited_by || L('חבר', 'A friend')) + '</b> ' + L('הזמין אותך לקבוצה', 'invited you to') + ' <b>"' + escHtml(i.group_name) + '"</b>'
+      + (fresh.length > 1 ? ' ' + L('(ועוד ' + (fresh.length - 1) + ')', '(and ' + (fresh.length - 1) + ' more)') : '') + '</span>'
+      + '<button type="button" id="fr-banner-open" style="padding:5px 10px;border-radius:8px;border:1px solid #1a73e8;background:#1a73e8;color:#fff;font-weight:bold;cursor:pointer;font-family:inherit;">' + L('פתח', 'Open') + '</button>'
+      + '<button type="button" id="fr-banner-x" aria-label="' + L('סגור', 'Close') + '" style="padding:4px 8px;border-radius:8px;border:1px solid #e0c060;background:#fff;cursor:pointer;">✕</button>';
+    document.body.appendChild(b);
+    var done = function () {
+      fresh.forEach(function (x) { seen[x.group_id + '|' + x.created_at] = 1; });
+      try { localStorage.setItem('frInvSeen', JSON.stringify(seen)); } catch (e) {}
+      b.remove();
+    };
+    document.getElementById('fr-banner-open').onclick = function () { done(); openFriendsPanel(); };
+    document.getElementById('fr-banner-x').onclick = done;
+  } catch (e) {}
+}
+window.addEventListener('load', function () { setTimeout(_frInviteBanner, 2500); });
 </script>
 
 
