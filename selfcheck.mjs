@@ -2456,6 +2456,35 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.b.join() !== 'closed,open') fail(T, 'states read as ' + r.b.join()); else ok();
 }
 
+// ── friends: signed out nothing is sent; an invite link waits for a sign-in ─
+{
+  const r = await page.evaluate(async () => {
+    const calls = [];
+    const realSB = window.getSB, realUser = user;
+    window.getSB = () => ({ rpc: async (fn) => { calls.push(fn); return { data: [] }; } });
+    try {
+      user = null;
+      FR.open = true; FR.pending = ''; FR.groups = null; FR.gid = '';
+      if (!document.getElementById('map-geo-friends')) return { err: 'no panel' };
+      _frPaint();
+      const signedOut = document.getElementById('map-geo-friends').innerText;
+      await frShare(60);                       // signed out, no position: nothing may be sent
+      FR.pending = 'abcd234567'; _frPaint();
+      const invited = document.getElementById('map-geo-friends').innerText;
+      FR.pending = ''; FR.open = false; _frPaint();
+      return { signedOut, invited, calls };
+    } finally { window.getSB = realSB; user = realUser; }
+  });
+  const T = 'friends: signed out nothing is sent; an invite link waits for a sign-in';
+  if (r.err) fail(T, r.err);
+  else {
+    if (!/להתחבר/.test(r.signedOut)) fail(T, 'signed out, the panel does not ask to sign in'); else ok();
+    if (r.calls.length) fail(T, 'signed out, the page still called ' + r.calls.join(', ')); else ok();
+    if (!/הוזמנת/.test(r.invited) || !/להתחבר/.test(r.invited)) fail(T, 'an invite opened signed out does not say to sign in'); else ok();
+    if (!/12 שעות/.test(fs.readFileSync(path.join(path.dirname(PAGE), 'privacy.html'), 'utf8'))) fail(T, 'the privacy page does not tell about shared locations'); else ok();
+  }
+}
+
 // ── voice guidance says the route, each step ahead of it, and the end ───
 {
   const r = await page.evaluate(async (graph) => {

@@ -1471,7 +1471,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.24';
+  var v='v18.25';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5037,8 +5037,12 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
       <div id="map-geo-wrap" style="display:none;position:absolute;inset:0;flex-direction:column;background:#fff;">
         <!-- take me to: a destination from the site's own verified points -->
         <div id="map-geo-dest-row" style="flex-shrink:0;padding:6px 9px;border-bottom:1px solid #e3eaf2;background:#f8fbfe;font-size:0.76rem;color:#33475b;">
-          <!-- the kinds of destination, one button each (Yossi, 18.11) -->
-          <div id="map-geo-cats" role="tablist" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;"></div>
+          <!-- the kinds of destination, one button each (Yossi, 18.11), and friends -->
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;align-items:center;">
+            <div id="map-geo-cats" role="tablist" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
+            <button type="button" id="map-geo-friends-btn" onclick="geoFriends()" style="margin-inline-start:auto;padding:4px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;font-weight:600;border:1px solid #c9d6e3;background:#fff;color:#16314f;" data-en="👥 Friends">👥 חברים</button>
+          </div>
+          <div id="map-geo-friends" style="display:none;margin-bottom:6px;padding:7px 8px;border:1px solid #d6e2ef;border-radius:9px;background:#fff;line-height:1.5;max-height:32vh;overflow:auto;"></div>
           <div style="display:flex;gap:6px;align-items:center;">
             <select id="map-geo-dest" onchange="geoDest(this.value)" aria-label="קח אותי ל…" data-en-aria-label="Take me to…"
               style="flex:1;min-width:0;padding:6px 8px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;font-family:inherit;font-size:0.8rem;color:#16314f;"></select>
@@ -7250,8 +7254,11 @@ function geoOpen() {
     }
     setTimeout(function () { if (GEO.map) GEO.map.invalidateSize(); }, 60);
     _geoDestFill();
-    _geoMsg(L('המסלולים והמעליות מסומנים עם המספרים של המפה הרשמית. <b>המיקום שלך נשאר במכשיר</b> ולא נשלח לשום מקום.',
-              'Runs and lifts carry the numbers of the official map. <b>Your position stays on your device</b> and is sent nowhere.'));
+    // friends: the panel as it was, and their positions while the map is open
+    _frPaint();
+    if (_frSignedIn() && FR.groups === null) _frLoadGroups(); else if (FR.gid) _frPollNow();
+    _geoMsg(L('המסלולים והמעליות מסומנים עם המספרים של המפה הרשמית. <b>המיקום שלך נשאר במכשיר</b>, אלא אם תבחר לשתף אותו עם קבוצת חברים ב"👥 חברים".',
+              'Runs and lifts carry the numbers of the official map. <b>Your position stays on your device</b> unless you choose to share it with a friend group under "👥 Friends".'));
   }).catch(function () {
     if (ph) {
       ph.style.display = 'flex';
@@ -7303,6 +7310,7 @@ function _geoFix(pos) {
   }
   var far = GEO.far = GEO.map.distance(ll, GEO_HOME) > 25000;
   _geoDestPaint();
+  frOnFix();
   if (GEO.first) {
     GEO.first = false;
     if (far) GEO.map.setView(GEO_HOME, 13);
@@ -8071,6 +8079,391 @@ function _voiceStep(route, steps, track, here, why) {
     }
   }
 }
+
+// ── friends on the mountain ───────────────────────────────────────────────
+//
+// A group is a family or a few friends (supabase/sql/cl_friends.sql). Its
+// members see one another on the "where am I" map - each only while he
+// chose to share, and only for as long as he chose - and any of them is a
+// destination for the ski router, one that moves.
+//
+// A web page sends its position only while it is open on the screen; the
+// map says how old each friend's position is rather than pretend.
+var FR = { open: false, groups: null, gid: '', members: [], markers: {}, poll: 0, lastPush: 0, pushedAt: null,
+           sharing: false, until: null, pending: '', invites: [], inviting: false, found: [] };
+var FR_POLL_MS = 20000, FR_PUSH_MS = 20000;
+
+function _frSB() { try { return getSB(); } catch (e) { return null; } }
+function _frSignedIn() { return !!(typeof user !== 'undefined' && user); }
+
+function _frAgo(ts) {
+  var m = Math.max(0, Math.round((Date.now() - new Date(ts).getTime()) / 60000));
+  return m < 1 ? L('עכשיו', 'just now') : m < 60 ? L('לפני ' + m + ' דק\'', m + ' min ago')
+       : L('לפני ' + Math.round(m / 60) + ' שע\'', Math.round(m / 60) + ' h ago');
+}
+function _frUntil(ts) {
+  var d = new Date(ts);
+  return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+}
+function _frColor(h) {
+  var c = ['#e8710a', '#188038', '#a142f4', '#d93025', '#1a73e8', '#c5221f', '#007b83', '#b06000'];
+  var n = 0; for (var i = 0; i < h.length; i++) n = (n * 31 + h.charCodeAt(i)) % 997;
+  return c[n % c.length];
+}
+
+async function _frRpc(fn, args) {
+  var sb = _frSB();
+  if (!sb) throw new Error('no connection');
+  var r = await sb.rpc(fn, args || {});
+  if (r.error) throw new Error(r.error.message || 'error');
+  return r.data;
+}
+
+// ── the panel ──
+function geoFriends() {
+  FR.open = !FR.open;
+  _frPaint();
+  if (FR.open) _frLoadGroups();
+}
+async function _frLoadGroups() {
+  if (!_frSignedIn()) { _frPaint(); return; }
+  try {
+    FR.groups = await _frRpc('cl_my_groups');
+    // invitations from other members of the site, waiting for a yes or a no
+    try { FR.invites = await _frRpc('cl_my_invites') || []; } catch (e) { FR.invites = []; }
+    if (!FR.gid) { try { FR.gid = localStorage.getItem('frGroup') || ''; } catch (e) {} }
+    if (!FR.groups.some(function (g) { return g.id === FR.gid; })) FR.gid = FR.groups.length ? FR.groups[0].id : '';
+    FR.err = '';
+  } catch (e) { FR.err = String(e.message || e); FR.groups = FR.groups || []; }
+  _frPaint();
+  _frPollNow();
+}
+function frPick(gid) {
+  FR.gid = gid;
+  try { localStorage.setItem('frGroup', gid); } catch (e) {}
+  FR.members = []; _frDraw();
+  _frPaint(); _frPollNow();
+}
+
+function _frPaint() {
+  var box = document.getElementById('map-geo-friends');
+  var btn = document.getElementById('map-geo-friends-btn');
+  if (btn) {
+    var n = FR.members.filter(function (m) { return !m.is_me && m.lat != null; }).length;
+    btn.textContent = L('👥 חברים', '👥 Friends') + (n ? ' · ' + n : '') + (FR.sharing ? ' · 📡' : '')
+      + (FR.invites && FR.invites.length ? ' · 📩' + FR.invites.length : '');
+    btn.style.background = FR.open ? '#e8f0fe' : '#fff';
+    btn.style.borderColor = FR.open ? '#1a73e8' : '#c9d6e3';
+  }
+  if (!box) return;
+  box.style.display = FR.open ? 'block' : 'none';
+  if (!FR.open) return;
+  var h = '';
+  var note = '<div style="color:#6b7c8f;font-size:0.7rem;margin-top:5px;">🔒 '
+    + L('המיקום שלך מוצג רק לחברי הקבוצה, רק כשאתה משתף ועד השעה שבחרת. אחר כך הוא נמחק.',
+        'Your location is shown only to the group, only while you share and until the time you chose. Then it is deleted.') + '</div>';
+  if (FR.pending) {
+    h += '<div style="font-weight:bold;margin-bottom:4px;">' + L('הוזמנת לקבוצה', 'You were invited to a group') + '</div>';
+    if (!_frSignedIn()) {
+      h += L('כדי להצטרף צריך להתחבר. ', 'Sign in to join. ')
+        + '<a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;font-weight:bold;">' + L('כניסה / הרשמה', 'Sign in') + '</a>';
+      box.innerHTML = h + note; return;
+    }
+    h += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' + L('השם שיופיע לחברים:', 'Your name for the group:')
+      + ' <input id="fr-join-name" maxlength="30" value="' + escHtml((user && user.name) || '') + '" style="flex:1;min-width:90px;padding:5px 7px;border:1px solid #c9d6e3;border-radius:7px;font-family:inherit;">'
+      + ' <button type="button" onclick="frJoin()" style="' + _frBtn(true) + '">' + L('הצטרף', 'Join') + '</button>'
+      + ' <button type="button" onclick="FR.pending=\'\';_frPaint()" style="' + _frBtn() + '">' + L('לא עכשיו', 'Not now') + '</button></div>';
+    box.innerHTML = h + (FR.err ? '<div style="color:#c5221f;margin-top:4px;">' + escHtml(FR.err) + '</div>' : '') + note;
+    return;
+  }
+  if (!_frSignedIn()) {
+    box.innerHTML = L('כדי לראות חברים ולשתף מיקום צריך להתחבר. ', 'Sign in to see friends and share your location. ')
+      + '<a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;font-weight:bold;">' + L('כניסה / הרשמה', 'Sign in') + '</a>' + note;
+    return;
+  }
+  if (FR.groups === null) { box.innerHTML = '⏳ ' + L('טוען…', 'Loading…'); return; }
+  (FR.invites || []).forEach(function (iv) {
+    h += '<div style="background:#fff8e1;border:1px solid #f6d47a;border-radius:8px;padding:6px 8px;margin-bottom:6px;">📩 '
+      + '<b>' + escHtml(iv.invited_by || L('חבר', 'A friend')) + '</b> ' + L('הזמין אותך לקבוצה', 'invited you to') + ' <b>"' + escHtml(iv.group_name) + '"</b>'
+      + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;">' + L('השם שלך בקבוצה:', 'Your name in it:')
+      + ' <input id="fr-inv-' + iv.group_id + '" maxlength="30" value="' + escHtml((user && user.name) || '') + '" style="flex:1;min-width:80px;padding:4px 7px;border:1px solid #c9d6e3;border-radius:7px;font-family:inherit;">'
+      + ' <button type="button" onclick="frAnswer(\'' + iv.group_id + '\', true)" style="' + _frBtn(true) + '">' + L('הצטרף', 'Join') + '</button>'
+      + ' <button type="button" onclick="frAnswer(\'' + iv.group_id + '\', false)" style="' + _frBtn() + '">' + L('לא תודה', 'No thanks') + '</button></div></div>';
+  });
+  var g = FR.groups.find(function (x) { return x.id === FR.gid; });
+  if (FR.creating || !FR.groups.length) {
+    h += '<div style="font-weight:bold;margin-bottom:4px;">' + L('קבוצה חדשה', 'A new group') + '</div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'
+      + '<input id="fr-new-name" maxlength="60" placeholder="' + L('למשל: המשפחה בצ׳רוויניה', 'e.g. the family in Cervinia') + '" style="flex:2;min-width:120px;padding:5px 7px;border:1px solid #c9d6e3;border-radius:7px;font-family:inherit;">'
+      + '<input id="fr-new-me" maxlength="30" value="' + escHtml((user && user.name) || '') + '" placeholder="' + L('השם שלך', 'Your name') + '" style="flex:1;min-width:80px;padding:5px 7px;border:1px solid #c9d6e3;border-radius:7px;font-family:inherit;">'
+      + '<select id="fr-new-days" style="padding:5px 6px;border:1px solid #c9d6e3;border-radius:7px;font-family:inherit;font-size:0.76rem;">'
+      + [[7, L('לטיול — שבוע', 'For a trip — a week')], [3, L('לטיול — 3 ימים', 'For a trip — 3 days')], [14, L('לטיול — שבועיים', 'For a trip — 2 weeks')],
+         [30, L('לטיול — חודש', 'For a trip — a month')], [0, L('קבועה', 'Standing')]].map(function (o) {
+          return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('') + '</select>'
+      + '<button type="button" onclick="frCreate()" style="' + _frBtn(true) + '">' + L('פתח', 'Create') + '</button>'
+      + (FR.groups.length ? '<button type="button" onclick="FR.creating=false;_frPaint()" style="' + _frBtn() + '">' + L('ביטול', 'Cancel') + '</button>' : '')
+      + '</div>';
+    if (!FR.groups.length) h += '<div style="color:#6b7c8f;margin-top:4px;">' + L('חבר רוצה לצרף אותך? הוא יכול להזמין אותך לפי השם שלך באתר, וההזמנה תופיע כאן. או ללחוץ על קישור הזמנה ששלח.', 'A friend wants you in his group? He can invite you by your name on the site and it shows here - or open an invite link he sent.') + '</div>';
+    box.innerHTML = h + (FR.err ? '<div style="color:#c5221f;margin-top:4px;">' + escHtml(FR.err) + '</div>' : '') + note;
+    return;
+  }
+  // the group, its invite, my sharing
+  h += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'
+    + '<select onchange="frPick(this.value)" style="flex:1;min-width:110px;padding:5px 7px;border:1px solid #c9d6e3;border-radius:7px;font-family:inherit;font-size:0.78rem;">'
+    + FR.groups.map(function (x) {
+        var end = x.expires_at ? ' · ' + L('עד ', 'until ') + new Date(x.expires_at).toLocaleDateString(L('he-IL', 'en-GB'), { day: 'numeric', month: 'numeric' }) : '';
+        return '<option value="' + x.id + '"' + (x.id === FR.gid ? ' selected' : '') + '>' + escHtml(x.name) + ' (' + x.members + ')' + end + '</option>'; }).join('')
+    + '</select>'
+    + '<button type="button" onclick="FR.inviting=!FR.inviting;FR.found=[];_frPaint()" style="' + _frBtn(FR.inviting) + '">➕👤 ' + L('הזמן', 'Invite') + '</button>'
+    + '<button type="button" onclick="FR.creating=true;_frPaint()" style="' + _frBtn() + '" title="' + L('קבוצה חדשה', 'New group') + '">➕</button>'
+    + '</div>';
+  if (FR.inviting) {
+    // inviting: a registered user by his name on the site, or a link to
+    // send any way at all - not everybody has WhatsApp (Yossi, 18.11)
+    h += '<div style="margin-top:6px;padding:6px 8px;border:1px dashed #b6c8dc;border-radius:8px;">'
+      + '<div>' + L('משתמש רשום באתר — הקלד את תחילת השם שלו:', 'A registered user — type the start of his name:') + '</div>'
+      + '<input id="fr-find" maxlength="30" oninput="frFind(this.value)" autocomplete="off" style="width:100%;box-sizing:border-box;margin-top:3px;padding:5px 7px;border:1px solid #c9d6e3;border-radius:7px;font-family:inherit;">'
+      + '<div id="fr-found" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;">' + _frFoundHtml() + '</div>'
+      + '<div style="margin-top:6px;">' + L('או קישור הזמנה, לשליחה בכל דרך:', 'Or an invite link, to send any way you like:')
+      + ' <button type="button" onclick="frInvite()" style="' + _frBtn() + '">🔗 ' + L('שלח / העתק קישור', 'Send / copy link') + '</button></div>'
+      + (FR.inviteMsg ? '<div style="color:#188038;margin-top:4px;">' + FR.inviteMsg + '</div>' : '')
+      + '</div>';
+  }
+  h += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">';
+  if (FR.sharing) {
+    h += '<span style="color:#188038;font-weight:bold;">📡 ' + L('משתף עד ', 'Sharing until ') + _frUntil(FR.until) + '</span>'
+      + '<button type="button" onclick="frStop()" style="' + _frBtn() + '">⏹ ' + L('הפסק', 'Stop') + '</button>';
+  } else {
+    h += '<span>' + L('לשתף את המיקום שלי:', 'Share my location:') + '</span>'
+      + [[60, L('שעה', '1 h')], [180, L('3 שעות', '3 h')], [720, L('עד הערב', 'all day')]].map(function (o) {
+          return '<button type="button" onclick="frShare(' + o[0] + ')" style="' + _frBtn() + '">' + o[1] + '</button>';
+        }).join('');
+  }
+  h += '</div>';
+  // the members
+  var others = FR.members.filter(function (m) { return !m.is_me; });
+  if (others.length) {
+    h += '<div style="margin-top:6px;display:flex;flex-direction:column;gap:3px;">' + others.map(function (m) {
+      var col = _frColor(m.handle);
+      var where = m.lat != null ? _frAgo(m.updated_at) + (GEO.me ? ' · ' + _frDist(m) : '') : L('לא משתף כרגע', 'not sharing now');
+      return '<div style="display:flex;align-items:center;gap:6px;">'
+        + '<span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:' + col + ';color:#fff;font-weight:bold;font-size:0.7rem;text-align:center;line-height:20px;">' + escHtml(m.name.charAt(0)) + '</span>'
+        + '<b>' + escHtml(m.name) + '</b><span style="color:#6b7c8f;">' + where + '</span>'
+        + (m.lat != null ? '<button type="button" onclick="frGoTo(\'' + m.handle + '\')" style="' + _frBtn() + 'margin-inline-start:auto;">🎯 ' + L('קח אותי', 'Take me') + '</button>' : '')
+        + (g && g.is_owner ? '<button type="button" onclick="frRemove(\'' + m.handle + '\')" title="' + L('הוצא מהקבוצה', 'Remove from the group') + '" style="' + _frBtn() + (m.lat != null ? '' : 'margin-inline-start:auto;') + '">✕</button>' : '')
+        + '</div>';
+    }).join('') + '</div>';
+  } else {
+    h += '<div style="color:#6b7c8f;margin-top:6px;">' + L('עוד אין בקבוצה אף אחד חוץ ממך. לחץ "➕👤 הזמן".', 'Nobody else in the group yet. Tap "➕👤 Invite".') + '</div>';
+  }
+  h += '<div style="margin-top:6px;"><a href="#" onclick="frLeave();return false;" style="color:#c5221f;font-size:0.7rem;">' + L('צא מהקבוצה', 'Leave the group') + '</a></div>';
+  box.innerHTML = h + (FR.err ? '<div style="color:#c5221f;margin-top:4px;">' + escHtml(FR.err) + '</div>' : '') + note;
+}
+function _frBtn(primary) {
+  return 'padding:4px 9px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:0.76rem;'
+    + (primary ? 'border:1px solid #1a73e8;background:#1a73e8;color:#fff;font-weight:bold;' : 'border:1px solid #c9d6e3;background:#fff;color:#16314f;');
+}
+function _frDist(m) {
+  var me = GEO.me.getLatLng(), d = _skiDist([me.lat, me.lng], [m.lat, m.lon]);
+  return d < 1000 ? Math.round(d / 10) * 10 + L(' מ\'', ' m') : (d / 1000).toFixed(1) + L(' ק״מ', ' km');
+}
+
+// ── actions ──
+async function frCreate() {
+  var n = (document.getElementById('fr-new-name') || {}).value || '', me = (document.getElementById('fr-new-me') || {}).value || '';
+  if (!n.trim() || !me.trim()) { FR.err = L('צריך שם לקבוצה ושם לך', 'A name for the group and one for you'); _frPaint(); return; }
+  try {
+    var days = parseInt((document.getElementById('fr-new-days') || {}).value, 10) || 0;
+    var r = await _frRpc('cl_group_create', { p_name: n.trim().slice(0, 60), p_member_name: me.trim().slice(0, 30), p_days: days });
+    FR.gid = r[0].id; FR.creating = false; FR.err = '';
+    try { localStorage.setItem('frGroup', FR.gid); } catch (e) {}
+    FR.inviting = true;                  // straight on to inviting people
+    await _frLoadGroups();
+  } catch (e) { FR.err = L('לא הצלחתי לפתוח קבוצה: ', 'Could not create the group: ') + e.message; _frPaint(); }
+}
+async function frJoin() {
+  var me = ((document.getElementById('fr-join-name') || {}).value || '').trim();
+  if (!me) { FR.err = L('צריך שם', 'A name, please'); _frPaint(); return; }
+  try {
+    var r = await _frRpc('cl_group_join', { p_code: FR.pending, p_member_name: me.slice(0, 30) });
+    FR.pending = ''; FR.err = ''; FR.gid = r[0].id;
+    try { localStorage.setItem('frGroup', FR.gid); sessionStorage.removeItem('frJoin'); } catch (e) {}
+    await _frLoadGroups();
+  } catch (e) {
+    FR.err = /no such group/.test(e.message) ? L('הקישור כבר לא בתוקף. בקש מהחבר קישור חדש.', 'That link is no longer valid. Ask for a new one.')
+           : /full/.test(e.message) ? L('הקבוצה מלאה.', 'The group is full.') : e.message;
+    _frPaint();
+  }
+}
+function frInvite() {
+  var g = (FR.groups || []).find(function (x) { return x.id === FR.gid; });
+  if (!g) return;
+  var url = 'https://cervinialive.co.il/?join=' + encodeURIComponent(g.invite_code);
+  var text = L('הצטרף לקבוצה "' + g.name + '" בצ׳רוויניה לייב, ונראה זה את זה על המפה בהר: ', 'Join "' + g.name + '" on CerviniaLive, and we will see each other on the mountain map: ') + url;
+  if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
+  // no share sheet (a computer): copy it, and show it to be copied by hand
+  var done = function (ok) {
+    FR.inviteMsg = (ok ? L('הקישור הועתק. ', 'Link copied. ') : '') + '<span dir="ltr" style="user-select:all;">' + escHtml(url) + '</span>';
+    FR.inviting = true; _frPaint();
+  };
+  try { navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+}
+var _frFindT = 0;
+function frFind(q) {
+  clearTimeout(_frFindT);
+  q = String(q || '').trim();
+  if (q.length < 2) { FR.found = []; _frFoundPaint(); return; }
+  _frFindT = setTimeout(async function () {
+    try { FR.found = (await _frRpc('cl_user_search', { p_q: q })).map(function (r) { return r.username; }); }
+    catch (e) { FR.found = []; }
+    _frFoundPaint();
+  }, 300);
+}
+function _frFoundHtml() {
+  return (FR.found || []).map(function (u) {
+    return '<button type="button" onclick="frInviteUser(this.dataset.u)" data-u="' + escHtml(u) + '" style="' + _frBtn() + '">👤 ' + escHtml(u) + '</button>';
+  }).join('');
+}
+function _frFoundPaint() { var el = document.getElementById('fr-found'); if (el) el.innerHTML = _frFoundHtml(); }
+async function frInviteUser(username) {
+  try {
+    var r = await _frRpc('cl_group_invite', { p_group: FR.gid, p_username: username });
+    FR.inviteMsg = r === 'already a member'
+      ? escHtml(username) + L(' כבר בקבוצה.', ' is already in the group.')
+      : L('✓ ההזמנה נשלחה ל־', '✓ Invitation sent to ') + escHtml(username) + L('. היא תופיע אצלו כשיפתח את "👥 חברים".', '. It shows when he opens "👥 Friends".');
+  } catch (e) { FR.inviteMsg = '<span style="color:#c5221f;">' + escHtml(e.message) + '</span>'; }
+  FR.found = [];
+  _frPaint();
+}
+async function frAnswer(gid, yes) {
+  var me = ((document.getElementById('fr-inv-' + gid) || {}).value || '').trim() || ((user && user.name) || '');
+  try {
+    await _frRpc('cl_invite_answer', { p_group: gid, p_accept: !!yes, p_member_name: me.slice(0, 30) });
+    if (yes) { FR.gid = gid; try { localStorage.setItem('frGroup', gid); } catch (e) {} }
+  } catch (e) { FR.err = e.message; }
+  await _frLoadGroups();
+}
+async function frLeave() {
+  var g = (FR.groups || []).find(function (x) { return x.id === FR.gid; });
+  if (!g) return;
+  if (!FR.leaveAsk) { FR.leaveAsk = true; FR.err = L('לחץ שוב על "צא מהקבוצה" כדי לאשר.', 'Tap "Leave the group" again to confirm.'); _frPaint(); setTimeout(function () { FR.leaveAsk = false; }, 6000); return; }
+  FR.leaveAsk = false; FR.err = '';
+  try { await _frRpc('cl_group_leave', { p_group: g.id }); } catch (e) {}
+  FR.sharing = false; FR.gid = ''; FR.members = []; _frDraw();
+  await _frLoadGroups();
+}
+async function frRemove(handle) {
+  try { await _frRpc('cl_group_remove', { p_group: FR.gid, p_handle: handle }); } catch (e) { FR.err = e.message; }
+  _frPollNow();
+}
+async function frShare(minutes) {
+  if (!GEO.me) { FR.err = L('קודם לחץ על "📍 הצג את המיקום שלי".', 'First tap "📍 Show my location".'); _frPaint(); return; }
+  FR.err = '';
+  FR.shareMinutes = minutes;
+  await _frPush(true);
+}
+async function frStop() {
+  FR.sharing = false; FR.until = null;
+  try { await _frRpc('cl_loc_stop', { p_group: FR.gid }); } catch (e) {}
+  _frPollNow();
+}
+// sends my position when sharing: on start, then as the phone moves
+async function _frPush(start) {
+  if (!FR.gid || !GEO.me || (!FR.sharing && !start)) return;
+  var ll = GEO.me.getLatLng(), now = Date.now();
+  if (!start && now - FR.lastPush < FR_PUSH_MS) return;
+  FR.lastPush = now;
+  try {
+    var until = await _frRpc('cl_loc_share', { p_group: FR.gid, p_lat: ll.lat, p_lon: ll.lng,
+      p_acc: GEO.acc ? Math.round(GEO.acc.getRadius()) : null, p_minutes: start ? FR.shareMinutes : 0 });
+    FR.until = until;
+    FR.sharing = new Date(until).getTime() > Date.now();
+  } catch (e) { FR.err = L('השיתוף לא עבר: ', 'Sharing failed: ') + e.message; FR.sharing = false; }
+  _frPaint();
+}
+function frOnFix() {
+  if (FR.sharing && FR.until && new Date(FR.until).getTime() < Date.now()) { FR.sharing = false; _frPaint(); }
+  if (FR.sharing) _frPush(false);
+}
+
+// ── the others, on the map ──
+async function _frPollNow() {
+  clearTimeout(FR.poll);
+  if (!FR.gid || !_frSignedIn() || !document.getElementById('map-geo')) return;
+  try {
+    FR.members = await _frRpc('cl_group_locations', { p_group: FR.gid });
+    var mine = FR.members.find(function (m) { return m.is_me; });
+    FR.sharing = !!(mine && mine.lat != null);
+    FR.until = mine && mine.share_until;
+    FR.err = '';
+  } catch (e) {
+    if (/not a member/.test(e.message)) { FR.gid = ''; FR.members = []; _frLoadGroups(); return; }
+  }
+  _frDraw(); _frPaint();
+  // a friend who is the destination has moved: the route follows him
+  if (GEO.dest && /^f:/.test(GEO.dest.id)) {
+    var f = FR.members.find(function (m) { return 'f:' + m.handle === GEO.dest.id; });
+    if (f && f.lat != null) {
+      var moved = _skiDist(GEO.dest.ll, [f.lat, f.lon]) > 40;
+      GEO.dest.ll = [f.lat, f.lon];
+      if (GEO.destMk) GEO.destMk.setLatLng(GEO.dest.ll);
+      if (moved) { SKI.key = ''; _geoDestPaint(); }
+    }
+  }
+  var wrap = document.getElementById('map-geo-wrap');
+  if (wrap && wrap.style.display !== 'none') FR.poll = setTimeout(_frPollNow, FR_POLL_MS);
+}
+function _frDraw() {
+  var lf = window.Leaflet;
+  if (!lf || !GEO.map) return;
+  var seen = {};
+  FR.members.forEach(function (m) {
+    if (m.is_me || m.lat == null) return;
+    seen[m.handle] = 1;
+    var col = _frColor(m.handle);
+    var icon = lf.divIcon({ className: 'fr-ico', iconSize: [26, 26], iconAnchor: [13, 13],
+      html: '<span style="display:block;width:26px;height:26px;border-radius:50%;background:' + col
+        + ';border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.45);color:#fff;font:bold 13px/22px sans-serif;text-align:center;">'
+        + escHtml(m.name.charAt(0)) + '</span>' });
+    var tip = escHtml(m.name) + ' · ' + _frAgo(m.updated_at);
+    if (!FR.markers[m.handle]) FR.markers[m.handle] = lf.marker([m.lat, m.lon], { icon: icon, keyboard: false }).addTo(GEO.map).bindTooltip(tip, { direction: 'top', offset: [0, -12] });
+    else FR.markers[m.handle].setLatLng([m.lat, m.lon]).setTooltipContent(tip);
+  });
+  Object.keys(FR.markers).forEach(function (h) {
+    if (!seen[h]) { GEO.map.removeLayer(FR.markers[h]); delete FR.markers[h]; }
+  });
+}
+function frGoTo(handle) {
+  var m = FR.members.find(function (x) { return x.handle === handle; });
+  if (!m || m.lat == null) return;
+  var id = 'f:' + handle;
+  GEO.dests = GEO.dests || {};
+  GEO.dests[id] = { id: id, name: m.name, ll: [m.lat, m.lon] };
+  var sel = document.getElementById('map-geo-dest');
+  if (sel && !sel.querySelector('option[value="' + id + '"]')) {
+    var o = document.createElement('option'); o.value = id; o.textContent = '👥 ' + m.name; sel.appendChild(o);
+  }
+  geoDest(id);
+}
+
+// ── an invite link: ?join=CODE ──
+(function () {
+  try {
+    var m = /[?&#]join=([a-z0-9]{6,16})/i.exec(location.search + location.hash);
+    if (m) {
+      sessionStorage.setItem('frJoin', m[1].toLowerCase());
+      history.replaceState(null, '', location.pathname);
+    }
+    var code = sessionStorage.getItem('frJoin');
+    if (!code) return;
+    FR.pending = code; FR.open = true;
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        try { openM('mapModal'); loadMap('gps'); _frPaint(); } catch (e) {}
+      }, 600);
+    });
+  } catch (e) {}
+})();
 
 function _geoErr(err) {
   // No GPS answer in time (a computer, or indoors): carry on with the
@@ -16016,6 +16409,9 @@ try {
     // does not know: Supabase itself says so when it reads the token.
     try {
       _sb.auth.onAuthStateChange(function (event) {
+        // the friends panel waits for a sign-in (an invite link opened
+        // signed out); once in, it loads the groups and offers to join
+        if (typeof FR !== 'undefined' && FR.open) setTimeout(function () { FR.groups = null; _frLoadGroups(); }, 900);
         if (event === 'PASSWORD_RECOVERY') {
           _CAME_FROM_RECOVERY = true;
           if (typeof openPasswordReset === 'function') openPasswordReset();

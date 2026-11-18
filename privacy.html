@@ -7,8 +7,10 @@
      app is listed (Yossi, 16.11). It describes what the site actually keeps,
      read from the code: Supabase auth and profiles, reviews, community
      alerts, contact messages, push subscriptions, and the hourly counter of
-     the translation function. No ads, no location. Visits are counted with
-     GoatCounter (17.11): no cookies, nothing that identifies a reader. -->
+     the translation function. No ads. Visits are counted with
+     GoatCounter (17.11): no cookies, nothing that identifies a reader.
+     Location only inside a friend group the reader chose to share with, for
+     at most 12 hours, then deleted (supabase/sql/cl_friends.sql, 18.11). -->
 <title>מדיניות פרטיות · CerviniaLive</title>
 <meta name="robots" content="index,follow">
 <link rel="icon" href="favicon.ico">
@@ -34,7 +36,7 @@
 <div class="wrap">
 
 <section>
-  <p class="muted">עודכן לאחרונה: 17/11/2026</p>
+  <p class="muted">עודכן לאחרונה: 18/11/2026</p>
   <p>CerviniaLive הוא מדריך סקי בעברית לצ'רוויניה, באתר ובאפליקציה לאנדרואיד. האפליקציה מציגה את אותו אתר, ולכן המדיניות הזו חלה על שניהם. אפשר להשתמש ברוב האתר בלי להירשם ובלי למסור שום פרט.</p>
 
   <h2>מה נשמר, ולמה</h2>
@@ -43,6 +45,7 @@
     <li><b>פרופיל</b> (רק מה שבחרתם למלא): שם, תמונה, רמת גלישה, סקי או סנובורד, מספר ביקורים ומשפט על עצמכם. השם והתמונה מוצגים ליד מה שאתם מפרסמים.</li>
     <li><b>תוכן שפרסמתם</b>: חוות דעת והתראות קהילה (למשל "המעבר לזרמט סגור"). התוכן הזה גלוי לכל מי שנכנס לאתר.</li>
     <li><b>פניות בטופס "צור קשר"</b>: שם, מייל ותוכן הפנייה. משמשים רק כדי לענות לכם.</li>
+    <li id="friends"><b>קבוצת חברים ומיקום משותף</b> (רק אם פתחתם קבוצה או הצטרפתם אליה): שם הקבוצה, השם שבחרתם להציג בה, ומי חבר בה. אם בחרתם "לשתף את המיקום שלי", נשמר המיקום האחרון של הטלפון (קו רוחב, קו אורך ודיוק) עד השעה שבחרתם, לכל היותר 12 שעות. אחרי זה הוא נמחק. המיקום מוצג רק לחברי אותה קבוצה, ולא נשמרת היסטוריה של המקומות שהייתם בהם. אפשר להפסיק לשתף או לצאת מהקבוצה בכל רגע. קבוצה לטיול נמחקת ביום שבחרתם, וקבוצה קבועה נמחקת אחרי שנה בלי שימוש. כדי להזמין אתכם, משתמש מחובר יכול לחפש אתכם לפי שם המשתמש שלכם באתר (רק השם, לא המייל). ההזמנה נשמרת עד שתענו עליה, לכל היותר 30 יום, ואף אחד לא נכנס לקבוצה בלי שאישר בעצמו.</li>
     <li><b>התראות</b> (רק אם הפעלתם): כתובת טכנית שהדפדפן נותן כדי שנוכל לשלוח התראה למכשיר. היא לא כוללת את שמכם או את המייל.</li>
     <li><b>תרגום</b>: כשמבקשים לתרגם משפט, נשמר לזמן קצר מונה שימוש לפי שעה ולפי כתובת IP, כדי למנוע ניצול לרעה. תוכן המשפט לא נשמר.</li>
     <li><b>ספירת כניסות</b>: כדי לדעת כמה אנשים נכנסים לאתר ומאיפה הגיעו, האתר משתמש ב-GoatCounter, שירות ספירה בלי עוגיות. נרשמים הדף שנפתח, האתר שממנו הגעתם, סוג הדפדפן והמכשיר, גודל המסך, השפה והמדינה. כתובת ה-IP לא נשמרת, ואין מזהה שעוקב אחריכם מביקור לביקור או מאתר לאתר.</li>
@@ -52,7 +55,7 @@
   <h2>מה לא נעשה</h2>
   <ul>
     <li>אין פרסומות, אין עוגיות מעקב, ולא נבנה פרופיל שימוש של אף גולש.</li>
-    <li>לא אוספים מיקום, אנשי קשר או כל מידע אחר מהטלפון. הכפתור "איפה אני" מציג את המיקום שלכם על המפה רק על המסך, במכשיר עצמו. המיקום לא נשלח לשום מקום ולא נשמר.</li>
+    <li>לא אוספים אנשי קשר או מידע אחר מהטלפון. הכפתור "איפה אני" מציג את המיקום שלכם על המפה במכשיר עצמו, והמיקום לא נשלח לשום מקום, אלא אם בחרתם לשתף אותו עם קבוצת חברים (ראו למעלה). גם אז הוא לא נשלח לאף אחד מחוץ לקבוצה, ולא כשהאתר סגור.</li>
     <li>לא מוכרים מידע ולא מעבירים אותו לאף אחד לצורכי שיווק.</li>
   </ul>
 
@@ -71,7 +74,7 @@
 
 <section class="en" id="en" dir="ltr">
   <h1 style="font-size:1.2rem;">Privacy policy</h1>
-  <p class="muted">Last updated: 17/11/2026</p>
+  <p class="muted">Last updated: 18/11/2026</p>
   <p>CerviniaLive is a ski guide to Cervinia, on the web and as an Android app. The app shows the same site, so this policy covers both. Most of the site works without signing up and without giving any details.</p>
 
   <h2>What is stored, and why</h2>
@@ -80,6 +83,7 @@
     <li><b>Profile</b> (only what you choose to fill in): name, picture, skiing level, ski or snowboard, number of visits and a line about yourself. Your name and picture appear next to what you post.</li>
     <li><b>What you post</b>: reviews and community alerts (for example "the crossing to Zermatt is closed"). These are visible to everyone who visits the site.</li>
     <li><b>Contact form</b>: name, email and your message, used only to reply to you.</li>
+    <li id="friends-en"><b>Friend groups and shared location</b> (only if you open or join a group): the group's name, the name you chose to show in it, and who belongs to it. If you choose "share my location", the phone's latest position (latitude, longitude and accuracy) is kept until the time you chose, at most 12 hours, and then deleted. It is shown only to the members of that group, and no history of where you have been is kept. You can stop sharing or leave the group at any moment. A trip group is deleted on the day you chose; a standing group after a year unused. To invite you, a signed-in user can look you up by your username on the site (the name only, never the email). The invitation is kept until you answer it, at most 30 days, and nobody joins a group without accepting himself.</li>
     <li><b>Notifications</b> (only if you switch them on): a technical address your browser provides so we can send a notification to the device. It does not include your name or email.</li>
     <li><b>Translation</b>: when you ask for a sentence to be translated, a short-lived usage counter by hour and IP address is kept to prevent abuse. The sentence itself is not stored.</li>
     <li><b>Visit counting</b>: to know how many people visit the site and where they came from, the site uses GoatCounter, a counting service that sets no cookies. It records the page opened, the site you came from, browser and device type, screen size, language and country. Your IP address is not stored, and nothing identifies you from one visit to the next or from one site to another.</li>
@@ -89,7 +93,7 @@
   <h2>What we do not do</h2>
   <ul>
     <li>No ads, no tracking cookies, and no usage profile is built of any visitor.</li>
-    <li>No location, contacts or other data is collected from your phone. The "Where am I" button shows your position on the map only on your own screen. It is not sent anywhere and not stored.</li>
+    <li>No contacts or other data is collected from your phone. The "Where am I" button shows your position on the map on your own device, and it is sent nowhere unless you choose to share it with a friend group (see above). Even then it goes to nobody outside the group, and never while the site is closed.</li>
     <li>No data is sold or shared with anyone for marketing.</li>
   </ul>
 
