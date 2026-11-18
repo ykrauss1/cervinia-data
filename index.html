@@ -1471,7 +1471,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.26';
+  var v='v18.27';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5064,6 +5064,8 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
             <button type="button" id="map-geo-voice" onclick="geoVoice(!VOICE.on)" style="display:none;padding:4px 9px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;">🔈 הדרכה קולית</button>
           </div>
           <div id="map-geo-dest-info" style="display:none;margin-top:5px;line-height:1.5;max-height:34vh;overflow:auto;"></div>
+          <!-- simulation: a pretend skier along the route, for trying the navigation from home (?sim=1) -->
+          <div id="map-geo-sim" style="display:none;margin-top:6px;padding:6px 8px;border:1px dashed #b06000;border-radius:9px;background:#fff8ef;line-height:1.6;"></div>
         </div>
         <div id="map-geo" dir="ltr" style="flex:1;min-height:0;"></div>
         <div id="map-geo-bar" style="flex-shrink:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 9px;border-top:1px solid #e3eaf2;font-size:0.76rem;color:#33475b;background:#f8fbfe;">
@@ -7277,6 +7279,7 @@ function geoStop() {
 }
 
 function geoLocate() {
+  if (SIM.on) simExit();
   if (!navigator.geolocation) { _geoMsg(L('הדפדפן הזה לא תומך במיקום.', 'This browser cannot give a location.')); return; }
   if (!GEO.map) return;
   geoStop();
@@ -8396,6 +8399,7 @@ async function _frPush(start) {
   _frPaint();
 }
 function frOnFix() {
+  if (SIM.on) return;   // a pretend position is never shared with friends
   if (FR.sharing && FR.until && new Date(FR.until).getTime() < Date.now()) { FR.sharing = false; _frPaint(); }
   if (FR.sharing) _frPush(false);
 }
@@ -24706,6 +24710,160 @@ function _maybeOpenFriends() {
   } catch (e) {}
 }
 window.addEventListener('load', _maybeOpenFriends);
+
+// ── simulation: trying the navigation from home ──
+// Opened by ?sim=1. A pretend skier is put anywhere on the map with a tap,
+// then glides along the route the navigation gives - on the runs, up the
+// lifts - at a chosen speed, with the voice and the rerouting exactly as on
+// the mountain. "Leave the route" pushes him aside to see the reroute. The
+// pretend position goes through the same door as the GPS (_geoFix), so what
+// is tried is the real thing; it is never shared with friends.
+var SIM = { on: false, run: false, ll: null, f: 5, t: null, sig: '', path: null, s: 0, drift: 0, dir: null, ready: false };
+var SIM_SPEED = { s: 9, f: 4, w: 1.4, v: 1.4, u: 5, r: 5 };   // metres a second, by kind of edge
+
+function _simFix(ll) {
+  SIM.ll = ll;
+  _geoFix({ coords: { latitude: ll[0], longitude: ll[1], accuracy: 5, altitude: null } });
+  // the map keeps the pretend skier in sight while he moves
+  try { if (SIM.run && GEO.map && !GEO.map.getBounds().pad(-0.15).contains(ll)) GEO.map.panTo(ll); } catch (e) {}
+}
+// the route as one line to glide along, each piece the right way round
+function _simPath(route) {
+  var g = SKI.graph, pts = [], sp = [], joint = 0;
+  route.edges.forEach(function (ei) {
+    var e = g.edges[ei], q = _skiGeom(e), a = g.nodes[e[0]];
+    if (q.length > 1 && _skiDist(a, q[q.length - 1]) < _skiDist(a, q[0])) q = q.slice().reverse();
+    if (pts.length && q.length) joint = Math.max(joint, _skiDist(pts[pts.length - 1], q[0]));
+    var v = SIM_SPEED[e[4]] || 5;
+    q.forEach(function (x, i) { if (i || !pts.length) { pts.push(x); sp.push(v); } });
+  });
+  var cum = [0];
+  for (var i = 1; i < pts.length; i++) cum.push(cum[i - 1] + _skiDist(pts[i - 1], pts[i]));
+  return { pts: pts, sp: sp, cum: cum, joint: joint };
+}
+function _simAt(P, s) {
+  for (var i = 1; i < P.pts.length; i++) if (P.cum[i] >= s) {
+    var k = (s - P.cum[i - 1]) / ((P.cum[i] - P.cum[i - 1]) || 1), a = P.pts[i - 1], b = P.pts[i];
+    return { ll: [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k], v: P.sp[i], a: a, b: b };
+  }
+  var z = P.pts[P.pts.length - 1];
+  return { ll: z, v: 1.4, a: z, b: z, end: true };
+}
+function _simProject(P, ll) {   // how far along the line the point nearest to ll is
+  var best = Infinity, at = 0, kx = Math.cos(ll[0] * Math.PI / 180) * 111320, ky = 110540;
+  for (var i = 0; i + 1 < P.pts.length; i++) {
+    var ax = (P.pts[i][1] - ll[1]) * kx, ay = (P.pts[i][0] - ll[0]) * ky;
+    var dx = (P.pts[i + 1][1] - P.pts[i][1]) * kx, dy = (P.pts[i + 1][0] - P.pts[i][0]) * ky, l2 = dx * dx + dy * dy;
+    var t = l2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / l2)) : 0;
+    var px = ax + t * dx, py = ay + t * dy, d = Math.sqrt(px * px + py * py);
+    if (d < best) { best = d; at = P.cum[i] + t * (P.cum[i + 1] - P.cum[i]); }
+  }
+  return { s: at, d: best };
+}
+function _simStep(ll, to, m) {   // m metres from ll straight towards to
+  var d = _skiDist(ll, to);
+  if (d <= m || !d) return to.slice();
+  var k = m / d;
+  return [ll[0] + (to[0] - ll[0]) * k, ll[1] + (to[1] - ll[1]) * k];
+}
+function _simTick() {
+  if (!SIM.on || !SIM.run || !SIM.ll) return;
+  var dt = SIM.f;   // one tick is a second; the speed multiplies the ground covered
+  if (!GEO.dest) { simPause(); return; }
+  if (_skiDist(SIM.ll, GEO.dest.ll) < 50) { simPause(); _simPaint(L('✅ הגיע ליעד.', '✅ Arrived.')); return; }
+  if (SIM.drift > 0) {       // pushed off the route, sideways, until the navigation notices
+    SIM.drift--;
+    _simFix(_simStep(SIM.ll, [SIM.ll[0] + SIM.dir[0], SIM.ll[1] + SIM.dir[1]], 6 * dt));
+    if (SKI.route && SKI.route.edges.join(',') !== SIM.sig) SIM.drift = 0;
+    return;
+  }
+  if (!SKI.route) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 1.4 * dt)); return; }
+  var sig = SKI.route.edges.join(',');
+  if (sig !== SIM.sig) { SIM.sig = sig; SIM.path = _simPath(SKI.route); SIM.s = -1; }
+  var P = SIM.path;
+  if (!P.pts.length) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 1.4 * dt)); return; }
+  if (SIM.s < 0) {           // first walk onto the line, then along it
+    var pr = _simProject(P, SIM.ll);
+    if (pr.d > 15) { _simFix(_simStep(SIM.ll, _simAt(P, pr.s).ll, 1.4 * dt * 3)); return; }
+    SIM.s = pr.s;
+  }
+  var here = _simAt(P, SIM.s);
+  if (here.end) { _simFix(_simStep(SIM.ll, GEO.dest.ll, 1.4 * dt * 3)); return; }
+  SIM.s = Math.min(P.cum[P.cum.length - 1], SIM.s + here.v * dt);
+  _simFix(_simAt(P, SIM.s).ll);
+}
+function simPlay() {
+  if (!SIM.ll) { _simPaint(L('קודם לחץ על המפה כדי לבחור נקודת התחלה.', 'Tap the map first to choose a starting point.')); return; }
+  if (!GEO.dest) { _simPaint(L('קודם בחר יעד ב"קח אותי ל…".', 'Choose a destination in "Take me to…" first.')); return; }
+  SIM.run = true;
+  if (!SIM.t) SIM.t = setInterval(_simTick, 1000);
+  _simPaint();
+}
+function simPause() { SIM.run = false; _simPaint(); }
+function simOff() {          // the route left on purpose: about 150 m to one side
+  if (!SIM.on || !SIM.ll) return;
+  var P = SIM.path, a = SIM.ll, b = SIM.ll;
+  if (P && SIM.s >= 0) { var h = _simAt(P, SIM.s); a = h.a; b = h.b; }
+  var dx = b[1] - a[1], dy = b[0] - a[0], l = Math.sqrt(dx * dx + dy * dy) || 1;
+  SIM.dir = [dx / l * 0.002, -dy / l * 0.002];   // at right angles to the way he was going
+  if (!P || SIM.s < 0) SIM.dir = [0.002, 0.002];
+  SIM.drift = Math.ceil(150 / (6 * SIM.f)) + 1;
+  if (!SIM.run) simPlay();
+}
+function simSpeed(v) { SIM.f = +v || 5; _simPaint(); }
+function simExit() {
+  SIM.on = false; SIM.run = false; SIM.ll = null; SIM.sig = ''; SIM.path = null;
+  if (SIM.t) { clearInterval(SIM.t); SIM.t = null; }
+  try { sessionStorage.removeItem('geoSim'); } catch (e) {}
+  var box = document.getElementById('map-geo-sim');
+  if (box) box.style.display = 'none';
+}
+function _simPaint(note) {
+  var box = document.getElementById('map-geo-sim');
+  if (!box || !SIM.on) return;
+  box.style.display = 'block';
+  var b = 'padding:3px 9px;border-radius:7px;border:1px solid #c9a46a;background:#fff;cursor:pointer;font-family:inherit;font-size:0.76rem;';
+  var sp = [1, 5, 20].map(function (v) { return '<option value="' + v + '"' + (SIM.f === v ? ' selected' : '') + '>×' + v + '</option>'; }).join('');
+  box.innerHTML = '<b>🧪 ' + L('הדמיה', 'Simulation') + '</b> · '
+    + (SIM.ll ? L('נקודת ההתחלה נבחרה. לחיצה על המפה מזיזה אותה.', 'Start chosen. A tap on the map moves it.')
+              : L('לחץ על המפה במקום שממנו "יוצאים".', 'Tap the map where the pretend skier starts.'))
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px;">'
+    + (SIM.run ? '<button type="button" style="' + b + '" onclick="simPause()">⏸ ' + L('עצור', 'Pause') + '</button>'
+               : '<button type="button" style="' + b + '" onclick="simPlay()">▶ ' + L('סע', 'Go') + '</button>')
+    + '<label>' + L('מהירות', 'Speed') + ' <select onchange="simSpeed(this.value)" style="font-family:inherit;font-size:0.76rem;">' + sp + '</select></label>'
+    + '<button type="button" style="' + b + '" onclick="simOff()">↪ ' + L('צא מהמסלול', 'Leave the route') + '</button>'
+    + '<button type="button" style="' + b + '" onclick="simExit()">✕ ' + L('סיום הדמיה', 'End simulation') + '</button>'
+    + '</div>' + (note ? '<div style="margin-top:3px;">' + note + '</div>' : '');
+}
+function _simStart() {
+  SIM.on = true;
+  try { openM('mapModal'); loadMap('gps'); } catch (e) {}
+  var tries = 0, w = setInterval(function () {
+    if (++tries > 60) { clearInterval(w); return; }
+    if (!GEO.map) return;
+    clearInterval(w);
+    geoStop();
+    if (!SIM.ready) {
+      SIM.ready = true;
+      GEO.map.on('click', function (ev) {
+        if (!SIM.on) return;
+        geoStop(); GEO.first = false; SIM.sig = ''; SIM.drift = 0;
+        _simFix([ev.latlng.lat, ev.latlng.lng]);
+        _simPaint();
+      });
+    }
+    _simPaint();
+  }, 250);
+}
+function _maybeSim() {
+  try {
+    var want = /[?&]sim=1(\b|$)/.test(location.search);
+    if (want) sessionStorage.setItem('geoSim', '1');
+    if (want && history.replaceState) history.replaceState(null, '', location.pathname + location.hash);
+    if (want || sessionStorage.getItem('geoSim') === '1') setTimeout(_simStart, 600);
+  } catch (e) {}
+}
+window.addEventListener('load', _maybeSim);
 
 if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
   navigator.serviceWorker.addEventListener('message', function (e) {

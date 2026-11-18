@@ -2426,6 +2426,38 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.staleState !== 'unknown') fail(T, `a ten-hour-old reading was still used: ${r.staleState}`); else ok();
 }
 
+// ── the simulation glides along the route, in one piece and the right way ─
+// The pretend skier of ?sim=1 follows the route as one line: if a piece came
+// out back to front he would jump across the mountain and the voice would
+// be tried on something no skier ever does.
+{
+  const r = await page.evaluate(async (graph) => {
+    _skiUse(graph);
+    window._liveRow = null; GEO.rideDown = false;
+    const plateau = [45.93447, 7.70765], village = [45.9343, 7.6337], planMaison = [45.9418, 7.6564];
+    const out = [];
+    for (const [a, b, lv] of [[plateau, village, 2], [planMaison, plateau, 2], [planMaison, [45.947931, 7.694082], 1]]) {
+      const rt = skiRoute(a, b, lv);
+      if (!rt) { out.push({ none: true }); continue; }
+      const P = _simPath(rt);
+      const gap = P.joint;   // where one run or lift meets the next (a lift itself is one straight line)
+      const end = _simAt(P, P.cum[P.cum.length - 1] + 10);
+      const mid = _simProject(P, _simAt(P, P.cum[P.cum.length - 1] / 2).ll);
+      out.push({ gap: Math.round(gap), len: Math.round(P.cum[P.cum.length - 1]), end: !!end.end,
+                 back: Math.round(Math.abs(mid.s - P.cum[P.cum.length - 1] / 2)), startOff: Math.round(_skiDist(P.pts[0], a)) });
+    }
+    return out;
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'the simulation follows the route in one piece';
+  r.forEach((x, i) => {
+    if (x.none) { fail(T, `route ${i} not found`); return; }
+    if (x.gap > 60) fail(T, `route ${i} jumps ${x.gap} m from one piece to the next`); else ok();
+    if (x.len < 300) fail(T, `route ${i} is only ${x.len} m long`); else ok();
+    if (!x.end || x.back > 5) fail(T, `route ${i}: the line cannot be walked to its end (${x.back} m)`); else ok();
+    if (x.startOff > 450) fail(T, `route ${i} starts ${x.startOff} m from where the skier stands`); else ok();
+  });
+}
+
 // ── Zermatt: the Gornergrat railway, and the lifts read from Zermatt's page ─
 {
   const r = await page.evaluate(async (graph) => {
