@@ -2413,6 +2413,40 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.staleState !== 'unknown') fail(T, `a ten-hour-old reading was still used: ${r.staleState}`); else ok();
 }
 
+// ── voice guidance says the route, each step ahead of it, and the end ───
+{
+  const r = await page.evaluate(async (graph) => {
+    _skiUse(graph);
+    const said = [];
+    const real = Object.getOwnPropertyDescriptor(window, 'speechSynthesis');
+    Object.defineProperty(window, 'speechSynthesis', { configurable: true,
+      value: { speak(u) { said.push(u.text); }, cancel() {}, getVoices() { return [{ lang: 'he-IL', localService: true }]; } } });
+    const RealU = window.SpeechSynthesisUtterance;
+    window.SpeechSynthesisUtterance = function (t) { this.text = t; };
+    try {
+      window._liveRow = null;
+      GEO.dest = { id: 'test', name: 'Cervinia', ll: [45.9343, 7.6337] };
+      VOICE.on = true; VOICE.sig = ''; VOICE.step = -1; VOICE.pre = {};
+      const from = [45.93447, 7.70765];
+      const route = skiRoute(from, GEO.dest.ll, 2);
+      const steps = skiSteps(route);
+      // walk the route a point at a time
+      const g = SKI.graph;
+      route.edges.forEach(ei => _skiGeom(g.edges[ei]).forEach(q => _voiceStep(route, steps, _skiTrack(route, q), q, 'new')));
+      return { said, steps: steps.length };
+    } finally {
+      VOICE.on = false; GEO.dest = null;
+      window.SpeechSynthesisUtterance = RealU;
+      if (real) Object.defineProperty(window, 'speechSynthesis', real); else delete window.speechSynthesis;
+    }
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'voice guidance says the route, each step ahead of it, and the end';
+  if (!r.said.length || !/^מסלול אל Cervinia/.test(r.said[0])) fail(T, 'the route is not announced first: ' + r.said[0]); else ok();
+  const ahead = r.said.filter(t => /^בעוד \d+ מטר: /.test(t)).length;
+  if (ahead < r.steps - 1) fail(T, `${ahead} steps announced ahead, of ${r.steps - 1}`); else ok();
+  if (r.said.some(t => /undefined|NaN|null/.test(t))) fail(T, 'a broken announcement: ' + r.said.find(t => /undefined|NaN|null/.test(t))); else ok();
+}
+
 // ── the community links have a standing door ─────────────────────────────
 // The Israeli Facebook group, the video and the Hebrew write-ups lived in a
 // panel reachable from a banner that shows once and never again. A reader

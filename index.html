@@ -1445,7 +1445,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.20';
+  var v='v18.21';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5014,6 +5014,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <input type="checkbox" id="map-geo-ridedown" onchange="geoRideDown(this.checked)">
               <span data-en="Ride down in cabins too (gondola, cable car)">לרדת גם בקבינות (גונדולה, רכבל)</span>
             </label>
+            <button type="button" id="map-geo-voice" onclick="geoVoice(!VOICE.on)" style="display:none;padding:4px 9px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;">🔈 הדרכה קולית</button>
           </div>
           <div id="map-geo-dest-info" style="display:none;margin-top:5px;line-height:1.5;max-height:34vh;overflow:auto;"></div>
         </div>
@@ -7416,6 +7417,8 @@ function _geoDestPaint() {
   if (rd) rd.checked = !!GEO.rideDown;
   if (x) x.style.display = d ? '' : 'none';
   if (lvRow) lvRow.style.display = d ? 'flex' : 'none';
+  _voiceButton();
+  if (!d && VOICE.on) { _wakeOff(); try { speechSynthesis.cancel(); } catch (e) {} }
   if (!info) return;
   if (!d) { info.style.display = 'none'; info.innerHTML = ''; return; }
   info.style.display = 'block';
@@ -7439,6 +7442,11 @@ function _geoDestPaint() {
   if (m < 60) {
     noStraight(); skiClear();
     info.innerHTML = '✅ ' + L('הגעת אל ', 'You have reached ') + name;
+    if (VOICE.on && !VOICE.arrived) {
+      VOICE.arrived = true;
+      voiceSay(L('הגעת אל ', 'You have reached ') + d.name, true);
+      _wakeOff();
+    }
     return;
   }
   var deg = _geoBearing(here, d.ll), i = Math.round(deg / 45) % 8;
@@ -7459,9 +7467,17 @@ function _geoDestPaint() {
     return;
   }
   var key = d.id + '|' + GEO.level + '|' + (GEO.rideDown ? 1 : 0), now = Date.now();
-  var moved = !SKI.at || GEO.map.distance(here, SKI.at) > 40;
   var fresh = key !== SKI.key;
-  if (fresh || (moved && now - SKI.t > 8000)) {
+  // computed again when the skier has left the route - not merely moved
+  // along it, which would keep changing the steps under their feet
+  var off = false;
+  if (!fresh && SKI.route) {
+    var tr0 = _skiTrack(SKI.route, here);
+    SKI.off0 = Math.min(SKI.off0, tr0.d);
+    off = tr0.d > Math.max(80, SKI.off0 + 40);
+  }
+  var why = (!fresh && off) ? 'off' : 'new';
+  if (fresh || ((off || !SKI.route) && now - SKI.t > 8000)) {
     SKI.ignoreLive = false;
     SKI.route = skiRoute(here, d.ll, GEO.level);
     SKI.closedRoute = false;
@@ -7474,6 +7490,7 @@ function _geoDestPaint() {
       SKI.closedRoute = !!SKI.route;
     }
     SKI.key = key; SKI.at = here; SKI.t = now;
+    SKI.off0 = SKI.route ? _skiTrack(SKI.route, here).d : 0;
     _skiDraw(SKI.route);
     if (fresh && SKI.layer) {
       try { GEO.map.fitBounds(SKI.layer.getLayers().reduce(function (b, l) { return b.extend(l.getBounds()); },
@@ -7496,6 +7513,7 @@ function _geoDestPaint() {
                        : L('כ-' + Math.floor(mins / 60) + ':' + ('0' + mins % 60).slice(-2) + ' שע\'',
                            'about ' + Math.floor(mins / 60) + 'h ' + ('0' + mins % 60).slice(-2));
   var steps = skiSteps(SKI.route);
+  if (VOICE.on) { _wakeOn(); _voiceStep(SKI.route, steps, _skiTrack(SKI.route, here), here, why); }
   var live = _skiLive();
   var shut = steps.filter(function (st) { return st.kind === 'lift' && /^(closed|later)$/.test(skiLiftState(SKI.graph.ways[st.way])); });
   var warn = SKI.closedRoute && shut.length
@@ -7508,7 +7526,12 @@ function _geoDestPaint() {
     ? L('מצב המעליות: מהאתר הרשמי, לפני ' + Math.max(1, Math.round(live._age)) + ' דק\'. ',
         'Lift status: from the official site, ' + Math.max(1, Math.round(live._age)) + ' min ago. ')
     : L('מצב המעליות לא ידוע כרגע. ', 'Lift status unknown right now. ');
-  info.innerHTML = '🎯 ' + name + ' · ' + time + warn
+  var vnote = VOICE.on
+    ? '<div style="margin:3px 0;color:#1a5fb4;">🔊 ' + L('המסך יישאר דלוק בזמן הניווט, כי בלי מסך אין קול.', 'The screen stays on while navigating: with it off, there is no voice.')
+      + (VOICE.noHe ? ' ' + L('בטלפון לא נמצא קול בעברית. אפשר להוריד אותו בהגדרות הטלפון, תחת "המרת טקסט לדיבור".',
+                              'No Hebrew voice on this phone.') : '') + '</div>'
+    : '';
+  info.innerHTML = '🎯 ' + name + ' · ' + time + warn + vnote
     + '<ol style="margin:4px 0 2px;padding-inline-start:20px;">'
     + steps.map(function (st) { return '<li style="margin:2px 0;">' + _skiStepHtml(st) + '</li>'; }).join('')
     + '</ol><span style="color:#6b7c8f;font-size:0.72rem;">'
@@ -7718,7 +7741,7 @@ function _skiRef(r) { return String(r || '').replace(/\.0+$/, ''); }
 // one line per run or lift, the way a skier would say it
 function skiSteps(route) {
   var g = SKI.graph, steps = [];
-  route.edges.forEach(function (ei) {
+  route.edges.forEach(function (ei, idx) {
     var e = g.edges[ei], k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null;
     var kind = (k === 'u' || k === 'r') ? 'lift' : (k === 'w' || k === 'v') ? 'walk' : 'run';
     // aerialway=yes is a passage between two stations, walked, not ridden
@@ -7733,13 +7756,13 @@ function skiSteps(route) {
       if (last && last.kind === 'run' && !last.ref && !last.name && (ref || name)) {
         last.ref = ref; last.name = name; last.d = Math.max(last.d, d); last.m += e[3]; return;
       }
-      steps.push({ kind: 'run', ref: ref, name: w && w.k !== 'a' ? name : '', d: d, m: e[3] });
+      steps.push({ kind: 'run', i: idx, ref: ref, name: w && w.k !== 'a' ? name : '', d: d, m: e[3] });
     } else if (kind === 'lift') {
       if (last && last.kind === 'lift' && last.way === e[2]) { last.m += e[3]; return; }
-      steps.push({ kind: 'lift', way: e[2], name: w.name || '', ref: w.ref || '', lt: w.lt, down: k === 'r', m: e[3] });
+      steps.push({ kind: 'lift', i: idx, way: e[2], name: w.name || '', ref: w.ref || '', lt: w.lt, down: k === 'r', m: e[3] });
     } else {
       if (last && last.kind === 'walk') { last.m += e[3]; last.village = last.village || k === 'v'; return; }
-      steps.push({ kind: 'walk', village: k === 'v', m: e[3] });
+      steps.push({ kind: 'walk', i: idx, village: k === 'v', m: e[3] });
     }
   });
   // walks of a few metres between a station and a run are not worth a line
@@ -7799,6 +7822,143 @@ function geoLevel(v) {
   try { localStorage.setItem('geoLevel', String(GEO.level)); } catch (e) {}
   SKI.key = '';                       // compute again at the new level
   _geoDestPaint();
+}
+
+// ── voice guidance ────────────────────────────────────────────────────────
+//
+// Nobody reads a phone on the way down a run. With the voice on, the phone
+// says the route when it is found, the next step 150 m before it ("in 150
+// metres: run 7, Ventina, red"), each step as it begins, a new route when
+// the skier leaves the old one, and the arrival. The speech is the
+// browser's own (speechSynthesis), which on Android speaks Hebrew without a
+// connection once the Hebrew voice is installed.
+//
+// A web page cannot speak with the screen off, so while the voice is on the
+// screen is kept awake (the Wake Lock API) - and the button says so.
+var VOICE = { on: false, lock: null, sig: '', step: -1, pre: {}, arrived: false, noHe: false };
+
+function _voicePick() {
+  if (!window.speechSynthesis) return null;
+  var want = L('he', 'en'), vs = speechSynthesis.getVoices() || [];
+  var re = want === 'he' ? /^(he|iw)\b/i : /^en\b/i;
+  var hit = vs.filter(function (v) { return re.test(v.lang); });
+  return hit.find(function (v) { return v.localService; }) || hit[0] || null;
+}
+function voiceSay(text, urgent) {
+  if (!VOICE.on || !window.speechSynthesis || !text) return;
+  try {
+    if (urgent) speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = L('he-IL', 'en-GB');
+    var v = _voicePick();
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
+    VOICE.last = text;
+  } catch (e) {}
+}
+function _wakeOn() {
+  try {
+    if (!('wakeLock' in navigator) || VOICE.lock) return;
+    navigator.wakeLock.request('screen').then(function (l) {
+      VOICE.lock = l;
+      l.addEventListener('release', function () { VOICE.lock = null; });
+    }, function () {});
+  } catch (e) {}
+}
+function _wakeOff() {
+  try { if (VOICE.lock) VOICE.lock.release(); } catch (e) {}
+  VOICE.lock = null;
+}
+document.addEventListener('visibilitychange', function () {
+  // the screen lock is dropped whenever the page is hidden; take it again
+  if (document.visibilityState === 'visible' && VOICE.on && GEO.dest) _wakeOn();
+});
+
+function geoVoice(on) {
+  VOICE.on = !!on && !!window.speechSynthesis;
+  VOICE.sig = ''; VOICE.step = -1; VOICE.pre = {}; VOICE.arrived = false;
+  if (VOICE.on) {
+    // spoken inside the tap itself: a phone lets a page speak only after
+    // the reader has touched it
+    VOICE.noHe = L(true, false) && !_voicePick();
+    voiceSay(L('הדרכה קולית פועלת', 'Voice guidance on'), true);
+    if (GEO.dest) _wakeOn();
+  } else {
+    try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
+    _wakeOff();
+  }
+  _voiceButton();
+  SKI.t = 0;
+  _geoDestPaint();
+}
+function _voiceButton() {
+  var b = document.getElementById('map-geo-voice');
+  if (!b) return;
+  b.style.display = (GEO.dest && window.speechSynthesis) ? '' : 'none';
+  b.textContent = VOICE.on ? L('🔊 הדרכה קולית פועלת', '🔊 Voice on') : L('🔈 הדרכה קולית', '🔈 Voice guidance');
+  b.style.background = VOICE.on ? '#e8f0fe' : '#fff';
+  b.style.borderColor = VOICE.on ? '#1a73e8' : '#c9d6e3';
+}
+
+var _VOICE_COL_HE = ['', 'כחול', 'אדום', 'שחור', 'שחור'];
+var _VOICE_COL_EN = ['', 'blue', 'red', 'black', 'black'];
+function _stepSpeech(s) {
+  if (s.kind === 'lift') {
+    var t = L(SKI_LIFT_HE[s.lt] || 'מעלית', SKI_LIFT_EN[s.lt] || 'lift');
+    return (s.down ? L('ירידה ב', 'ride down the ') : L('עלה ב', 'take the ')) + t + (s.name ? ' ' + s.name : '');
+  }
+  if (s.kind === 'walk') return L('הליכה ', 'walk ') + Math.round(s.m / 10) * 10 + L(' מטר', ' metres');
+  return L('מסלול ', 'run ') + (s.ref ? s.ref + ' ' : '') + (s.name ? s.name + ', ' : ', ')
+    + L(_VOICE_COL_HE[s.d], _VOICE_COL_EN[s.d]);
+}
+
+// where on the route the skier is: how far from it, and on which edge
+function _skiTrack(route, here) {
+  var g = SKI.graph, best = { d: Infinity, j: 0 };
+  var kx = Math.cos(here[0] * Math.PI / 180) * 111320, ky = 110540;
+  route.edges.forEach(function (ei, j) {
+    var pts = _skiGeom(g.edges[ei]);
+    for (var i = 0; i + 1 < pts.length; i++) {
+      var ax = (pts[i][1] - here[1]) * kx, ay = (pts[i][0] - here[0]) * ky;
+      var bx = (pts[i + 1][1] - here[1]) * kx, by = (pts[i + 1][0] - here[0]) * ky;
+      var dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+      var t = l2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / l2)) : 0;
+      var px = ax + t * dx, py = ay + t * dy, d = Math.sqrt(px * px + py * py);
+      if (d < best.d) best = { d: d, j: j };
+    }
+  });
+  return best;
+}
+
+// what to say now, given where the skier is on the route
+function _voiceStep(route, steps, track, here, why) {
+  if (!VOICE.on || !route) return;
+  var g = SKI.graph, sig = route.edges.join(',');
+  var cur = 0;
+  for (var i = 0; i < steps.length; i++) if (steps[i].i <= track.j) cur = i;
+  if (sig !== VOICE.sig) {
+    VOICE.sig = sig; VOICE.step = cur; VOICE.pre = {}; VOICE.arrived = false;
+    var mins = Math.max(5, Math.round(route.secs / 300) * 5);
+    var head = why === 'off'
+      ? L('יצאת מהמסלול. מסלול חדש. ', 'Off the route. New route. ')
+      : L('מסלול אל ' + GEO.dest.name + ', כ־' + mins + ' דקות. ', 'Route to ' + GEO.dest.name + ', about ' + mins + ' minutes. ');
+    voiceSay(head + (steps[cur] ? L('ראשית: ', 'First: ') + _stepSpeech(steps[cur]) : ''), true);
+    return;
+  }
+  if (cur > VOICE.step) {
+    VOICE.step = cur;
+    if (!VOICE.pre[cur]) voiceSay(_stepSpeech(steps[cur]), true);
+    else voiceSay(L('עכשיו: ', 'Now: ') + _stepSpeech(steps[cur]), false);
+  }
+  var nx = steps[cur + 1];
+  if (nx && !VOICE.pre[cur + 1]) {
+    var at = g.nodes[g.edges[route.edges[nx.i]][0]];
+    var dn = _skiDist(here, at);
+    if (dn < 150) {
+      VOICE.pre[cur + 1] = true;
+      voiceSay(L('בעוד ', 'In ') + Math.max(50, Math.round(dn / 50) * 50) + L(' מטר: ', ' metres: ') + _stepSpeech(nx), true);
+    }
+  }
 }
 
 function _geoErr(err) {
