@@ -1479,7 +1479,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.33';
+  var v='v18.35';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1894,6 +1894,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
           <option value="oldest" data-en="Oldest first">ישן לחדש</option>
           <option value="popular" data-en="Most active">הכי פעיל</option>
           <option value="liked" data-en="Most liked">הכי אהוב</option>
+          <option value="unanswered" data-en="Still unanswered">עדיין בלי תשובה</option>
         </select>
       </div>
     </div>
@@ -2343,6 +2344,13 @@ what counts.">
             ושניהם נחוצים — ראו מיד למטה.
           </div>
         </div>
+          <!-- the law, with its date and its source: a skier may stake a fine
+               or his pass on these lines (an outside review, 18.11) -->
+          <div style="font-size:0.72rem;color:#7b6a55;margin-top:8px;line-height:1.6;"
+               data-en="📅 Checked on 18/11/2026 · Source: Legislative Decree 40/2021 (art. 17, helmet; art. 30, insurance), as amended by Decree-Law 96/2025 (Law 119/2025) · &lt;a href=&quot;https://www.normattiva.it/eli/id/2021/03/19//21G00047/CONSOLIDATED&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;the text of the law ↗&lt;/a&gt;">
+            📅 נבדק ב־18/11/2026 · המקור: <bdi>D.Lgs. 40/2021</bdi> (סעיף 17 — קסדה, סעיף 30 — ביטוח), כפי שתוקן ב־<bdi>D.L. 96/2025</bdi> (<bdi>Legge 119/2025</bdi>) ·
+            <a href="https://www.normattiva.it/eli/id/2021/03/19//21G00047/CONSOLIDATED" target="_blank" rel="noopener">נוסח החוק ↗</a>
+          </div>
           </div>
         </details>
 
@@ -3118,6 +3126,9 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
         </div>
       </div>
 
+      <!-- what "search all" is about to search, in one look, so a wrong date or
+           a forgotten child is caught before the results (an outside review, 18.11) -->
+      <div id="trip-go-summary" style="display:none;margin:6px 0 8px;padding:9px 11px;border-radius:9px;background:#f4f8fc;border:1px solid #d6e2ef;font-size:0.8rem;color:#33475b;line-height:1.75;"></div>
       <button onclick="searchAll()" id="trip-go" style="width:100%;padding:13px;background:var(--accent);color:var(--dark);border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer;margin-top:4px;" data-en="🔍 Search all">
         🔍 חפש הכל
       </button>
@@ -3869,6 +3880,8 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
   <div class="modal-content" style="max-width:520px;max-height:85vh;overflow-y:auto;">
     <span class="close-btn" onclick="closeM('whyModal')">×</span>
     <h2 id="why-modal-title" style="margin-top:0;color:#0a192f;">⛷️ למה צ'רוויניה?</h2>
+    <button type="button" onclick="closeM('whyModal');openGuide()" style="width:100%;margin:0 0 12px;padding:10px 12px;border-radius:10px;border:1.5px solid #1a73e8;background:#e8f0fe;color:#16314f;font-family:inherit;font-size:0.88rem;font-weight:bold;cursor:pointer;text-align:start;"
+      data-en="🧭 First time here? Six short questions, and the site shows what is right for you →">🧭 פעם ראשונה כאן? שש שאלות קצרות, והאתר יראה לך מה מתאים לך ←</button>
     <div id="why-items-list" style="display:flex;flex-direction:column;gap:14px;">
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:2rem;">⛷️</span>
@@ -4496,6 +4509,7 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       <div id="les-priv-family-tip" style="padding:11px;background:#fffbf0;border-radius:9px;font-size:0.8rem;color:#555;border:1px solid #fde8a0;margin-bottom:14px;">
         💡 שיעור פרטי עם משפחה (עד 5 איש) חלוקה שווה של המחיר — מאוד כדאי!
       </div>
+      <div class="checked-on" style="font-size:0.71rem;margin:-8px 0 14px;"></div>
 
       <!-- Recommended instructors - names only, contact details on request -->
       <div style="margin-top:14px;border-top:1px solid #f0e8d0;padding-top:12px;">
@@ -6860,6 +6874,7 @@ var SIDE_MENU_ACTIONS = {
   // after a tap, and from the search box if you knew to look. Those links
   // are the only route to the community, so they get a standing door.
   why:     function () { openM('whyModal'); },
+  guide:   function () { openGuide(); },
   // The calculator's second door: no trip to read, so it asks.
   cost:    function () { openCost('free'); },
   about:   function () { openM('aboutModal'); },
@@ -9476,6 +9491,36 @@ function _tripTab() {
   return 'all';
 }
 
+// the summary above "search all": the flight, the room and the car as they
+// stand now, refreshed on every change inside the planner
+function _tripGoSummary() {
+  var box = document.getElementById('trip-go-summary');
+  if (!box) return;
+  var $ = function (id) { return document.getElementById(id); };
+  var val = function (id) { var e = $(id); return e ? String(e.value || e.textContent || '').trim() : ''; };
+  var dates = val('trip-dates'), from = val('fl-origin'), ap = $('airport-select');
+  var to = ap && ap.selectedIndex >= 0 ? String(ap.options[ap.selectedIndex].text).replace(/^⭐\s*/, '').split('·')[0].trim() : '';
+  var rows = ['✈️ ' + (from || L('מאיפה?', 'from where?')) + L(' ← ', ' → ') + (to || '?') + ' · ' + (dates || '<span style="color:#c5221f;">' + L('אין עדיין תאריכים', 'no dates yet') + '</span>')
+    + ' · ' + val('fl-adults') + L(' נוסעים', ' travellers')];
+  if ($('all-hotel-check') && $('all-hotel-check').checked) {
+    var kids = +val('all-h-children') || 0, typ = document.querySelector('input[name^="all"][type="radio"]:checked');
+    var tl = typ && typ.parentElement ? typ.parentElement.textContent.trim() : '';
+    rows.push('🏨 ' + val('all-h-adults') + L(' מבוגרים', ' adults') + (kids ? ' · ' + (kids === 1 ? L('ילד אחד', 'one child') : kids + L(' ילדים', ' children')) : '')
+      + ' · ' + val('all-h-rooms') + L(' חדר', ' room') + (+val('all-h-rooms') > 1 ? L('ים', 's') : '') + (tl ? ' · ' + tl : '')
+      + ($('hotel-diff-dates') && $('hotel-diff-dates').checked ? ' · ' + L('בתאריכים אחרים', 'on other dates') : ''));
+  } else rows.push('🏨 ' + L('בלי לינה', 'no lodging'));
+  rows.push('🚗 ' + ($('all-car-check') && $('all-car-check').checked ? L('עם השכרת רכב', 'with a hire car') : L('בלי רכב', 'no car')));
+  box.innerHTML = '<b>' + L('מה מחפשים:', 'What we search for:') + '</b><br>' + rows.join('<br>');
+  box.style.display = 'block';
+}
+(function () {
+  var t = null;
+  function soon() { clearTimeout(t); t = setTimeout(_tripGoSummary, 120); }
+  document.addEventListener('input', function (e) { if (e.target.closest && e.target.closest('#hotelModal')) soon(); }, true);
+  document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('#hotelModal')) soon(); }, true);
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#hotelModal')) soon(); }, true);
+})();
+
 function switchTripTab(tab) {
   ['all','flight','car','hotel'].forEach(t => {
     const btn = document.getElementById('ttab-' + t);
@@ -9491,6 +9536,7 @@ function switchTripTab(tab) {
   if (common) common.style.display = (tab === 'car' || tab === 'hotel') ? 'none' : 'block';
   _tripFreeExamples(tab);
   _tripNext();
+  _tripGoSummary();
   // "תאריכי טיסה" is the truth on the flight tab and a half-truth on "הכל",
   // where the same dates drive the car and the room as well.
   const lbl = document.getElementById('trip-dates-label');
@@ -11706,7 +11752,9 @@ function _costGear() {
   var grown = (b.Adult || 0) + (b.Young || 0) + (b.Senior || 0) + (b['Over 80'] || 0);
   var kids = (b.Junior || 0) + (b.Baby || 0);
   if (!grown && !kids) return { min: null, max: null, note: L('אין גולשים בחישוב', 'No skiers in the calculation') };
-  // a helmet is required by law for children in Italy, so it is in both ends
+  // a helmet is required by law at every age in Italy (since 2025/26): the
+  // children hire one at both ends, the grown-ups at the upper end - at the
+  // lower end they bring their own
   var kidOne = _costRentFor(kid, S) + _costRentFor(helm, S);
   var lo = grown * _costRentFor(sup, S) + kids * kidOne;
   var hi = grown * (_costRentFor(top, S) + _costRentFor(helm, S)) + kids * kidOne;
@@ -15225,9 +15273,19 @@ function renderSkipassPrices() {
       + (t.note ? '<div style="font-size:0.71rem;color:#888;margin-bottom:6px;line-height:1.6;">' + t.note + '</div>' : '')
       + (p.source_url
           ? '<div style="font-size:0.71rem;margin-bottom:6px;"><a href="' + p.source_url
-            + '" target="_blank" style="color:#1a73e8;">' + L('המחירון הרשמי המלא ←', 'The full official price list →') + '</a></div>'
+            + '" target="_blank" style="color:#1a73e8;">' + L('המחירון הרשמי המלא ←', 'The full official price list →') + '</a>'
+            + _checkedOn(p.checked) + '</div>'
           : '');
   });
+}
+// "checked on": the date a price or a rule was last read against its source -
+// its own date where it has one, else the date of the sources page
+function _checkedOn(d) {
+  var src = (window._texts && window._texts.sources) || {};
+  d = d || src.updated;
+  if (!d) return '';
+  return ' <span style="color:#888;">· ' + L('נבדק מול המקור ב־', 'checked against the source on ') + escHtml(String(d)) + ' · </span>'
+    + '<span onclick="openSources()" style="color:#1a73e8;cursor:pointer;">' + L('כל המקורות', 'all the sources') + '</span>';
 }
 
 function setPisteArea(a) { window.pisteArea = a; renderPisteGuide(); }
@@ -15819,7 +15877,7 @@ function _wcamPanoHtml() {
        + L('360° אינטראקטיבי ↗', 'Interactive 360° ↗') + '</a></div>'
        + '<div class="wcam-pano-strip" dir="ltr" style="overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;height:170px;">'
        + '<img data-i="' + i + '" alt="' + _aEsc(p.name) + ' 360°" style="height:170px;width:auto;max-width:none;display:block;" '
-       + 'onload="_wcamPanoAim(this)" onerror="this.closest(\'div\').parentElement.style.display=\'none\'">'
+       + 'onload="_wcamPanoAim(this)" onerror="_wcamFail(this)">'
        + '</div></div>';
   });
   h += '<div style="font-size:0.76rem;color:#667;line-height:1.8;">'
@@ -15827,6 +15885,32 @@ function _wcamPanoHtml() {
      + '<a href="https://zbag.roundshot.com/matterhornglacierparadise/#/" target="_blank" rel="noopener" style="color:#1a73e8;">'
      + 'Matterhorn Glacier Paradise · Roundshot ↗</a></div>';
   return h;
+}
+// A camera that does not answer says so, in its own place, with a way to try
+// again - rather than vanishing, which left the reader wondering whether there
+// was a camera there at all (an outside review, 18.11)
+function _wcamFail(img) {
+  if (!img || img.getAttribute('data-failed')) return;
+  img.setAttribute('data-failed', '1');
+  img.style.display = 'none';
+  var box = document.createElement('div');
+  box.className = 'wcam-off';
+  box.style.cssText = 'height:' + (img.offsetHeight || 150) + 'px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;'
+    + 'background:#eef2f7;color:#5b6b7a;font-size:0.8rem;text-align:center;padding:8px;';
+  box.innerHTML = '<span style="font-size:1.4rem;">📷</span>'
+    + '<span>' + L('המצלמה לא זמינה כרגע', 'This camera is not available right now') + '</span>'
+    + '<button type="button" style="padding:3px 12px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.76rem;">'
+    + L('נסה שוב', 'Try again') + '</button>';
+  box.querySelector('button').onclick = function (ev) {
+    ev.stopPropagation();
+    var src = img.getAttribute('src') || '';
+    if (!src) return;
+    img.removeAttribute('data-failed');
+    img.style.display = '';
+    box.parentNode && box.parentNode.removeChild(box);
+    img.src = src.replace(/([?&])_r=\d+/, '').replace(/[?&]$/, '') + (src.indexOf('?') >= 0 ? '&' : '?') + '_r=' + Date.now();
+  };
+  img.parentNode.insertBefore(box, img.nextSibling);
 }
 function _wcamPanoAim(img) {
   var p = WCAM_PANOS[+img.getAttribute('data-i')], strip = img.parentElement;
@@ -19090,6 +19174,7 @@ function _applyTexts(t) {
       }).join('');
     }
     renderSkipassAges();
+    document.querySelectorAll('.checked-on').forEach(function (el) { el.innerHTML = _checkedOn(el.getAttribute('data-d')).replace(/^ <span[^>]*>· /, '<span style="color:#888;">'); });
     renderSkipassPrices();
   }
 
@@ -21437,10 +21522,11 @@ const SEARCH_INDEX = [
   { text: 'פילה pila קורמאיור courmayeur לה טואיל la thuile מונטרוזה monterosa שמפולוק champoluc גרסוני gressoney טורגנון torgnon שמואה chamois אתר סקי אחר רוח סגור', action: "openSkiAreas()", icon: '🎿', label: 'אתרי סקי נוספים באזור' },
   { text: 'דולומיטים dolomites מדונה די קמפיליו madonna di campiglio סלה רונדה sella ronda קורטינה cortina ליביניו livigno בורמיו bormio ונציה venice צפון איטליה אתרי סקי', action: "openM('skiItalyModal')", icon: '🗺️', label: 'אתרי הסקי של צפון איטליה' },
   { text: 'איפה אני מיקום gps where am i location נקודה כחולה', action: "openM('mapModal');loadMap('gps')", icon: '📡', label: 'איפה אני' },
+  { text: 'פעם ראשונה מתחילים ילדים משפחה מה מתאים לי מדריך אישי אשף שאלות', action: "openGuide()", icon: '🧭', label: 'מה מתאים לי? · 6 שאלות' },
 ];
 // English: the same entries, searchable by English words and labelled in English.
 if (window.LANG === 'en') {
-  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving cretaz", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"], ["pila courmayeur la thuile monterosa champoluc gressoney torgnon chamois other ski area resort wind closed", "Other ski areas nearby"], ["dolomites madonna di campiglio sella ronda cortina livigno bormio venice northern italy ski areas", "Ski areas of northern Italy"], ["where am I my location gps blue dot", "Where am I"]].forEach(function (e, k) {
+  [["ski pass lift ticket prices", "Ski pass"], ["ski snowboard equipment rental hire", "Equipment rental"], ["ski lessons instructor school", "Ski lessons"], ["kosher food restaurant", "Kosher food"], ["webcams live cameras", "Live webcams"], ["where to stay lodging hotel apartment area district neighbourhood", "Where to stay"], ["parking road driving cretaz", "Parking and road"], ["transport bus shuttle transfer train station", "Transport and transfers"], ["landed arrival flight airport malpensa planner how do i get there", "Landed — how do I get there?"], ["car hire rental snow chains winter tyres border switzerland france", "Hire car and winter rules"], ["taxi taxis cab", "Taxis"], ["when to go season snow crowds holidays february march", "When to go"], ["emergency police rescue ambulance numbers", "Emergency numbers"], ["maps piste map trail map", "Maps"], ["runs pistes piste guide slopes", "Piste guide"], ["trip planner hotel flight", "Trip planner"], ["weather forecast", "4-day forecast"], ["about us", "About us"], ["contact us", "Contact us"], ["help questions answers faq", "Help"], ["install app home screen offline pwa", "Install the app"], ["why cervinia advantages", "Why Cervinia?"], ["gear goggles jacket trousers clothing thermal socks gloves layers what to buy packing before you travel", "Gear and packing"], ["insurance winter sports compulsory third party fine helmet law italy rescue", "Insurance and helmet — the law"], ["snowboard board wrist guards front foot regular goofy", "Snowboard"], ["ski boots skis flex size din poles rental", "The heavy gear"], ["wizz air fare bundle basic go smart plus trolley suitcase seat priority flex low cost", "Wizz Air — which fare bundle"], ["el al arkia israir lite classic flex trolley suitcase ski gear baggage", "El Al, Arkia, Israir — what is included"], ["pila courmayeur la thuile monterosa champoluc gressoney torgnon chamois other ski area resort wind closed", "Other ski areas nearby"], ["dolomites madonna di campiglio sella ronda cortina livigno bormio venice northern italy ski areas", "Ski areas of northern Italy"], ["where am I my location gps blue dot", "Where am I"], ["first time beginners kids family what is right for me guide questions", "What's right for me? · 6 questions"]].forEach(function (e, k) {
     if (SEARCH_INDEX[k]) { SEARCH_INDEX[k].text += ' ' + e[0]; SEARCH_INDEX[k].label = e[1]; }
   });
 }
@@ -22609,6 +22695,8 @@ function renderPosts(query, sort, chips) {
   if (sort === 'newest') filtered.sort(function(a,b){ return b.timestamp - a.timestamp; });
   else if (sort === 'oldest') filtered.sort(function(a,b){ return a.timestamp - b.timestamp; });
   else if (sort === 'popular') filtered.sort(function(a,b){ return countReplies(b) - countReplies(a); });
+  // the questions nobody has answered yet, newest first - the place to help
+  else if (sort === 'unanswered') filtered = filtered.filter(function (p) { return !countReplies(p); }).sort(function(a,b){ return b.timestamp - a.timestamp; });
   else if (sort === 'liked') filtered.sort(function(a,b){ 
     const likesA = Object.values(b._userReacts||{}).filter(r=>r==='👍').length;
     const likesB = Object.values(a._userReacts||{}).filter(r=>r==='👍').length;
@@ -22627,7 +22715,9 @@ function renderPosts(query, sort, chips) {
   if (!filtered.length) {
     list.innerHTML = banner
       + '<div style="color:#aaa;text-align:center;padding:20px;">'
-      + (filtering ? L('אין תוצאות לסינון הנוכחי', 'No results for the current filter') : L('אין פוסטים עדיין', 'No posts yet'))
+      + (filtering ? L('אין תוצאות לסינון הנוכחי', 'No results for the current filter')
+         : sort === 'unanswered' ? L('כל השאלות כבר קיבלו תשובה 👍', 'Every question has had an answer 👍')
+         : L('אין פוסטים עדיין', 'No posts yet'))
       + '</div>';
     return;
   }
@@ -23367,10 +23457,12 @@ async function _admRenderUsers() {
     <details class="fold" style="margin-bottom:14px;background:#fffbf0;border-color:#fde8a0;">
       <summary id="skipass-discounts-title" style="color:#7a5a00;" data-en="💡 Discounts and free passes worth knowing">💡 הנחות וחינמיות שכדאי לדעת</summary>
       <div class="fold-body" id="skipass-discounts-list" style="font-size:0.81rem;color:#555;line-height:2.1;">
+        <!-- what shows before texts.json arrives, and what a page reader without
+             scripts sees: kept in line with texts.json (18.11 - an old April 2026
+             offer stood here, found by an outside review) -->
+        🏨 <b>First &amp; Last Tracks 2026/27</b> — 30% הנחה על פס 4–7 ימים · עד 04/12/2026, ושוב 05/04–02/05/2027 · מינימום 4 לילות · בהזמנה ישירה מול המלון<br>
         👥 <b>קבוצות</b> — פס חינם על כל 15 שרוכשים (הפס ה-16)<br>
-        🗓️ <b>רכישה מראש אונליין</b> — ממוצע 5-10% זול יותר<br>
-        🏨 <b>מבצע אפריל 2026</b> — 30% הנחה עם 4+ לילות ו-4+ ימי סקי<br>
-        🎓 <b>סטודנטים</b> — Aosta Valley University Pass (יומי + 6 ימים)<br>
+        🗓️ <b>רכישה אונליין</b> — חוסכת את התור בקופה, אך המחיר זהה למחירון<br>
       </div>
     </details>
 
@@ -23428,35 +23520,35 @@ async function _admRenderUsers() {
         <div class="wcam-label"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> Plan Maison</div>
         <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_PLANMAISON.jpg"
              class="wcam-img" alt="Plan Maison" onclick="openCamFull(this)"
-             onerror="this.parentElement.style.display='none'">
+             onerror="_wcamFail(this)">
       </div>
 
       <div class="wcam-card" data-area="cervinia">
         <div class="wcam-label"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> Cretaz</div>
         <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_CRETAZ.jpg"
              class="wcam-img" alt="Cretaz" onclick="openCamFull(this)"
-             onerror="this.parentElement.style.display='none'">
+             onerror="_wcamFail(this)">
       </div>
 
       <div class="wcam-card" data-area="cervinia">
         <div class="wcam-label"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> Cime Bianche Laghi</div>
         <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_CIMEBIANCHELAGHI.jpg"
              class="wcam-img" alt="Cime Bianche Laghi" onclick="openCamFull(this)"
-             onerror="this.parentElement.style.display='none'">
+             onerror="_wcamFail(this)">
       </div>
 
       <div class="wcam-card" data-area="cervinia">
         <div class="wcam-label"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> Plateau Rosa</div>
         <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_PLATEAUROSA.jpg"
              class="wcam-img" alt="Plateau Rosa" onclick="openCamFull(this)"
-             onerror="this.parentElement.style.display='none'">
+             onerror="_wcamFail(this)">
       </div>
 
       <div class="wcam-card" data-area="cervinia">
         <div class="wcam-label"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> Pancheron</div>
         <img src="https://cervinia-api.devtherocks.it/api/webcam/CEWC_AREA_PANCHERON.jpg"
              class="wcam-img" alt="Pancheron" onclick="openCamFull(this)"
-             onerror="this.parentElement.style.display='none'">
+             onerror="_wcamFail(this)">
       </div>
 
       <!-- VALTOURNENCHE cameras -->
@@ -23464,28 +23556,28 @@ async function _admRenderUsers() {
         <div class="wcam-label">🏔️ Salette</div>
         <img src="https://cervinia-api.devtherocks.it/api/webcam/CBWC_AREA_SALETTE.jpg"
              class="wcam-img" alt="Salette" onclick="openCamFull(this)"
-             onerror="this.parentElement.style.display='none'">
+             onerror="_wcamFail(this)">
       </div>
 
       <div class="wcam-card" data-area="valt">
         <div class="wcam-label">🏔️ Seggiovia Motta</div>
         <img src="https://cervinia-api.devtherocks.it/api/webcam/CBWC_AREA_MOTTA_M.jpg"
              class="wcam-img" alt="Motta" onclick="openCamFull(this)"
-             onerror="this.parentElement.style.display='none'">
+             onerror="_wcamFail(this)">
       </div>
 
       <div class="wcam-card" data-area="valt">
         <div class="wcam-label">🏔️ Du Col Monte</div>
         <img src="https://cervinia-api.devtherocks.it/api/webcam/CBWC_AREA_DUCOL_M.jpg"
              class="wcam-img" alt="Du Col" onclick="openCamFull(this)"
-             onerror="this.parentElement.style.display='none'">
+             onerror="_wcamFail(this)">
       </div>
 
       <div class="wcam-card" data-area="valt">
         <div class="wcam-label">🏔️ Gran Sommetta</div>
         <img src="https://cervinia-api.devtherocks.it/api/webcam/CBWC_AREA_SOMETTA.jpg"
              class="wcam-img" alt="Sommetta" onclick="openCamFull(this)"
-             onerror="this.parentElement.style.display='none'">
+             onerror="_wcamFail(this)">
       </div>
 
       <!-- ZERMATT / external links -->
@@ -23541,7 +23633,8 @@ async function _admRenderUsers() {
 
     <!-- PARKING TAB -->
     <div id="park-panel-parking" style="display:none;">
-      <h3 style="margin:0 0 14px;font-size:1.05rem;" data-en="🅿️ Parking in Cervinia">🅿️ חניה בצ'רוויניה</h3>
+      <h3 style="margin:0 0 6px;font-size:1.05rem;" data-en="🅿️ Parking in Cervinia">🅿️ חניה בצ'רוויניה</h3>
+      <div class="checked-on" style="font-size:0.71rem;margin-bottom:12px;"></div>
 
       <div id="parking-lots-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
 
@@ -24931,6 +25024,142 @@ function _maybeOpenFriends() {
 }
 window.addEventListener('load', _maybeOpenFriends);
 
+// a reply notification: ?open=forum&post=ID opens the forum at that post,
+// once the posts are there (they load a moment after the page)
+function _openForumPost(id) {
+  var tries = 0;
+  (function go() {
+    var have = id && typeof allPosts !== 'undefined' && allPosts.some(function (p) { return String(p.id) === String(id); });
+    if (have || ++tries > 30) { if (have) peekOpenPost(id); else { try { forumOpen(true); } catch (e) {} } return; }
+    setTimeout(go, 300);
+  })();
+}
+function _maybeOpenForum() {
+  try {
+    var m = location.search.match(/[?&]open=forum\b/);
+    if (!m) return;
+    var post = (location.search.match(/[?&]post=([^&]+)/) || [])[1];
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.hash);
+    setTimeout(function () { _openForumPost(post ? decodeURIComponent(post) : ''); }, 500);
+  } catch (e) {}
+}
+window.addEventListener('load', _maybeOpenForum);
+
+// ── "what is right for me?": six questions for a first visit ──
+// (an outside review, 18.11, and Yossi: a newcomer meets everything at once.)
+// Six taps - first time or not, children, level, gear, lessons, Shabbat - and
+// the site lists the panels that matter to him, in the order he will need
+// them, each with one line of why. The answers stay on the device; the level
+// is handed to the navigation too.
+var GUIDE_Q = [
+  { k: 'first', q: ['פעם ראשונה בצ\'רוויניה?', 'First time in Cervinia?'], a: [['yes', 'כן, פעם ראשונה', 'Yes, the first time'], ['no', 'כבר הייתי', 'I have been before']] },
+  { k: 'kids',  q: ['מי נוסע?', 'Who is going?'], a: [['no', 'מבוגרים', 'Grown-ups'], ['yes', 'עם ילדים', 'With children']] },
+  { k: 'level', q: ['באיזו רמה גולשים?', 'What level do you ski at?'], a: [['1', 'מתחילים', 'Beginners'], ['2', 'בינוניים', 'Intermediate'], ['3', 'מתקדמים', 'Advanced']] },
+  { k: 'gear',  q: ['ציוד?', 'Gear?'], a: [['rent', 'צריכים להשכיר', 'We need to hire it'], ['own', 'מביאים מהבית', 'We bring our own']] },
+  { k: 'lessons', q: ['שיעורים או מדריך?', 'Lessons or an instructor?'], a: [['yes', 'כן, כדאי', 'Yes'], ['no', 'לא צריך', 'No need']] },
+  { k: 'shabbat', q: ['שומרים שבת וכשרות?', 'Do you keep Shabbat and kashrut?'], a: [['yes', 'כן', 'Yes'], ['no', 'לא', 'No']] }
+];
+var GUIDE = { step: 0, ans: {} };
+function _guideBox() {
+  var m = document.getElementById('guideModal');
+  if (m) return m;
+  m = document.createElement('div');
+  m.id = 'guideModal'; m.className = 'modal';
+  m.onclick = function (e) { if (e.target === m) closeM('guideModal'); };
+  m.innerHTML = '<div class="modal-content" style="max-width:520px;max-height:88vh;overflow-y:auto;">'
+    + '<span class="close-btn" onclick="closeM(\'guideModal\')">×</span>'
+    + '<h2 style="margin-top:0;color:#0a192f;font-size:1.15rem;">🧭 ' + L('מה מתאים לי?', 'What is right for me?') + '</h2>'
+    + '<div id="guide-body"></div></div>';
+  document.body.appendChild(m);
+  return m;
+}
+function openGuide(again) {
+  _guideBox();
+  var keep = null;
+  try { keep = JSON.parse(localStorage.getItem('guideAns') || 'null'); } catch (e) {}
+  if (keep && !again) { GUIDE.ans = keep; GUIDE.step = GUIDE_Q.length; }
+  else { GUIDE.ans = {}; GUIDE.step = 0; }
+  _guidePaint();
+  openM('guideModal');
+}
+function guideAnswer(v) {
+  var q = GUIDE_Q[GUIDE.step];
+  GUIDE.ans[q.k] = v;
+  GUIDE.step++;
+  if (GUIDE.step >= GUIDE_Q.length) {
+    try { localStorage.setItem('guideAns', JSON.stringify(GUIDE.ans)); } catch (e) {}
+    // the level goes to "where am I", so the routes there start right
+    try { localStorage.setItem('geoLevel', String(GUIDE.ans.level || 2)); } catch (e) {}
+    if (window.GEO) GEO.level = +GUIDE.ans.level || 2;
+  }
+  _guidePaint();
+}
+function guideBack() { if (GUIDE.step > 0) { GUIDE.step--; _guidePaint(); } }
+function guideGo(i) {
+  var r = _guideResults()[i];
+  if (!r) return;
+  closeM('guideModal');
+  setTimeout(function () { try { (new Function(r.go))(); } catch (e) {} }, 60);
+}
+function _guideResults() {
+  var a = GUIDE.ans, out = [], seen = {};
+  function add(key, icon, he, en, whyHe, whyEn, go) {
+    if (seen[key]) return; seen[key] = 1;
+    out.push({ icon: icon, t: L(he, en), why: L(whyHe, whyEn), go: go });
+  }
+  if (a.first === 'yes') {
+    add('why', '🏔️', 'למה צ\'רוויניה', 'Why Cervinia', 'מה מיוחד כאן, בקצרה', 'What is special here, in short', "openM('whyModal')");
+    add('when', '📅', 'מתי כדאי לנסוע', 'When to go', 'שלג, עומס וחגים לפי חודש', 'Snow, crowds and holidays by month', 'openWhenToGo()');
+    add('stay', '🏘️', 'איפה להתארח', 'Where to stay', 'שלושה אזורים בכפר, ומה לשאול לפני שמזמינים', 'Three parts of the village, and what to ask before booking', "openM('lodgingModal')");
+    add('arrive', '🛬', 'נחתתי — איך מגיעים?', 'Landed — how do I get there?', 'מהשדה לכפר: הסעה, אוטובוס או רכב', 'From the airport to the village: shuttle, bus or car', 'openArrivalPlanner()');
+  }
+  if (a.shabbat === 'yes') {
+    add('kosher', '🍽️', 'אוכל כשר ושבת', 'Kosher food and Shabbat', 'משלוחים, מסעדות וזמני שבת — הצד שהאתר הזה בנוי בשבילו', 'Deliveries, restaurants and Shabbat times — what this site is built for', "openM('kosherModal')");
+    add('prep', '🧳', 'הכנות לפני הנסיעה', 'Before you travel', 'ציוד, ביטוח וההכנות לשבת', 'Gear, insurance and getting ready for Shabbat', "openPlanner('prep')");
+  }
+  add('skipass', '🎫', 'סקי פס', 'Ski pass', 'המחירון, ההנחות לפי גיל, ומה לקנות', 'The prices, the age discounts, and what to buy', "openM('skipassModal')");
+  if (a.lessons === 'yes' || a.level === '1' || a.kids === 'yes')
+    add('lessons', '🏫', 'שיעורי סקי', 'Ski lessons', a.kids === 'yes' ? 'שיעורים לילדים, קבוצות ופרטיים' : 'קבוצה או פרטי, ומתי להזמין', a.kids === 'yes' ? 'Lessons for children, group and private' : 'Group or private, and when to book', "openM('lessonsModal')");
+  if (a.gear === 'rent') add('rent', '⛷️', 'השכרת ציוד', 'Equipment rental', 'איפה שוכרים, כמה זה עולה, ומה לבדוק', 'Where to hire, what it costs, and what to check', "openM('rentalModal')");
+  else add('fly', '🧳', 'טסים עם ציוד', 'Flying with your gear', 'איזו חבילה בחברת התעופה כוללת ציוד סקי', 'Which airline fare carries ski gear', 'openWizzGuide()');
+  add('pistes', '⛷️', a.level === '1' ? 'מסלולים למתחילים' : a.level === '3' ? 'המסלולים המאתגרים' : 'מדריך המסלולים', a.level === '1' ? 'Runs for beginners' : a.level === '3' ? 'The challenging runs' : 'Piste guide',
+      a.level === '1' ? 'איפה לומדים בלי לחץ' : a.level === '3' ? 'השחורים, והירידה לצרמט' : 'לפי רמה, עם הבקתות בדרך', a.level === '1' ? 'Where to learn without pressure' : a.level === '3' ? 'The blacks, and the run down to Zermatt' : 'By level, with the huts on the way', "openM('pisteModal')");
+  if (a.kids === 'yes') add('around', '🎡', 'מה עושים מחוץ למסלולים', 'Off the slopes', 'יום בלי סקי, מזג אוויר רע, ילדים שהתעייפו', 'A day without skiing, bad weather, tired children', "openM('aroundModal')");
+  if (a.level === '3') add('areas', '🎿', 'אתרי סקי נוספים באזור', 'Other ski areas nearby', 'עם פס של 3 ימים ומעלה אפשר יום באתר אחר', 'A pass of 3 days or more gives a day elsewhere', 'openSkiAreas()');
+  add('nav', '📡', 'ניווט על ההר', 'Navigation on the mountain', 'הדרך ליעד לפי הרמה שלך — כבר מוגדרת', 'The way to anywhere at your level — already set', "openM('mapModal');loadMap('gps')");
+  add('cost', '💶', 'כמה זה יעלה', 'What it will cost', 'סקי פס, ציוד, לינה וטיסה — הערכה אחת', 'Pass, gear, lodging and flight — one estimate', "openCost('free')");
+  add('trip', '✈️', 'תכנון טיול', 'Trip planner', 'טיסה, לינה ורכב בחיפוש אחד', 'Flight, lodging and car in one search', "openPlanner('hub')");
+  return out;
+}
+function _guidePaint() {
+  var host = document.getElementById('guide-body');
+  if (!host) return;
+  var btn = 'display:block;width:100%;margin:0 0 8px;padding:12px 14px;border-radius:11px;border:1.5px solid #c9d6e3;background:#fff;color:#16314f;font-family:inherit;font-size:0.95rem;cursor:pointer;text-align:start;';
+  if (GUIDE.step < GUIDE_Q.length) {
+    var q = GUIDE_Q[GUIDE.step];
+    var dots = GUIDE_Q.map(function (x, i) {
+      return '<span style="display:inline-block;width:' + (i === GUIDE.step ? 18 : 8) + 'px;height:8px;border-radius:4px;margin:0 2px;background:' + (i <= GUIDE.step ? '#1a73e8' : '#d6dde6') + ';"></span>';
+    }).join('');
+    host.innerHTML = '<div style="text-align:center;margin:2px 0 14px;">' + dots + '</div>'
+      + '<div style="font-size:1.05rem;font-weight:bold;color:#0a192f;margin-bottom:12px;">' + L(q.q[0], q.q[1]) + '</div>'
+      + q.a.map(function (x) {
+          var on = GUIDE.ans[q.k] === x[0];
+          return '<button type="button" onclick="guideAnswer(\'' + x[0] + '\')" style="' + btn + (on ? 'border-color:#1a73e8;background:#e8f0fe;' : '') + '">' + L(x[1], x[2]) + '</button>';
+        }).join('')
+      + (GUIDE.step > 0 ? '<button type="button" onclick="guideBack()" style="background:none;border:none;color:#1a73e8;cursor:pointer;font-family:inherit;font-size:0.82rem;padding:4px 0;">' + L('→ חזרה', '← Back') + '</button>' : '')
+      + '<div style="font-size:0.72rem;color:#8a97a5;margin-top:10px;">' + L('התשובות נשמרות רק במכשיר הזה.', 'The answers stay on this device only.') + '</div>';
+    return;
+  }
+  var res = _guideResults();
+  host.innerHTML = '<div style="font-size:0.85rem;color:#4b5d70;margin-bottom:10px;">' + L('לפי התשובות שלך, זה מה שכדאי לפתוח — בערך בסדר הזה:', 'From your answers, this is what to open - roughly in this order:') + '</div>'
+    + res.map(function (r, i) {
+        return '<button type="button" onclick="guideGo(' + i + ')" style="' + btn + 'display:flex;gap:10px;align-items:center;">'
+          + '<span style="font-size:1.4rem;flex:none;">' + r.icon + '</span><span style="min-width:0;"><b style="display:block;">' + r.t + '</b>'
+          + '<span style="font-size:0.78rem;color:#5b6b7a;">' + r.why + '</span></span><span style="margin-inline-start:auto;color:#1a73e8;flex:none;">' + L('←', '→') + '</span></button>';
+      }).join('')
+    + '<button type="button" onclick="openGuide(true)" style="background:none;border:none;color:#1a73e8;cursor:pointer;font-family:inherit;font-size:0.82rem;padding:6px 0;">↺ ' + L('לענות מחדש', 'Answer again') + '</button>';
+}
+
 // ── simulation: trying the navigation from home ──
 // Opened by ?sim=1. A pretend skier is put anywhere on the map with a tap,
 // then glides along the route the navigation gives - on the runs, up the
@@ -25090,6 +25319,7 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
       try { openAlertPanel(); } catch (err) {}
     }
     if (e && e.data && e.data.type === 'open-friends') openFriendsPanel();
+    if (e && e.data && e.data.type === 'open-forum') _openForumPost(e.data.post);
   });
 }
 

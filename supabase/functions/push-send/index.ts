@@ -182,6 +182,63 @@ function buildPayload(a: Record<string, unknown>, lang = "he") {
 
 /* ------------------------------------------------- a friend invitation -- */
 
+// A reply in the forum, to the writer of the post (and of the reply it
+// answers), on each device where he switched notifications on while signed
+// in. The rows come from cl_reply_targets, which answers only for a fresh
+// reply and never names the replier himself.
+async function sendReply(
+  rest: (path: string, init?: RequestInit) => Promise<Response>,
+  reply: string, subject: string, pub: string, priv: string,
+) {
+  const tRes = await rest("rpc/cl_reply_targets", { method: "POST", body: JSON.stringify({ p_reply: reply }) });
+  if (!tRes.ok) return new Response("reply targets failed: " + (await tRes.text()), { status: 500 });
+  const targets: { endpoint: string; p256dh: string; auth: string; lang: string; replier: string; snippet: string; post_id: string; to_post: boolean }[] =
+    await tRes.json();
+  let sent = 0, gone = 0, failed = 0;
+  for (const t of targets) {
+    const en = t.lang === "en";
+    const who = (t.replier || "").slice(0, 30) || (en ? "Someone" : "מישהו");
+    const text = (t.snippet || "").replace(/\s+/g, " ").trim();
+    const payload = JSON.stringify({
+      title: t.to_post
+        ? (en ? "💬 A reply to your post - CerviniaLive" : "💬 תגובה לפוסט שלך - צ'רוויניה לייב")
+        : (en ? "💬 A reply to you - CerviniaLive" : "💬 ענו לך בפורום - צ'רוויניה לייב"),
+      body: `${who}: ${text.length > 100 ? text.slice(0, 100) + "…" : text}`,
+      severity: "info",
+      tag: "cervinia-reply-" + t.post_id,
+      url: "./index.html?open=forum&post=" + encodeURIComponent(t.post_id) + (en ? "&lang=en" : ""),
+    });
+    try {
+      const res = await fetch(t.endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: await vapidHeader(t.endpoint, subject, pub, priv),
+          "Content-Encoding": "aes128gcm",
+          "Content-Type": "application/octet-stream",
+          TTL: "86400",
+          Urgency: "normal",
+        },
+        body: await encryptPayload(payload, t.p256dh, t.auth),
+      });
+      if (res.status === 404 || res.status === 410) {
+        gone++;
+        await rest("push_subs?endpoint=eq." + encodeURIComponent(t.endpoint), { method: "DELETE" });
+      } else if (res.ok) {
+        sent++;
+      } else {
+        failed++;
+        console.error("reply push " + res.status + " " + (await res.text()).slice(0, 200));
+      }
+    } catch (e) {
+      failed++;
+      console.error("reply push threw: " + (e instanceof Error ? e.message : String(e)));
+    }
+  }
+  return new Response(JSON.stringify({ reply, sent, gone, failed }), {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 // One invited user, on each device where he switched notifications on while
 // signed in. The rows come from cl_invite_targets, which answers only for an
 // invitation a few minutes old - a retried call cannot ring him twice later.
@@ -292,6 +349,7 @@ Deno.serve(async (req) => {
 
   let alertId = "";
   let invite: { group?: string; user?: string } | null = null;
+  let reply = "";
   try {
     const body = await req.json();
     // Supabase's database webhook shape, with a plain {id} accepted too so the
@@ -299,7 +357,13 @@ Deno.serve(async (req) => {
     alertId = String(body?.record?.id ?? body?.id ?? "");
     // An invitation to a friend group (cl_invite_push): {invite:{group,user}}
     if (body?.invite) invite = body.invite;
+    // A reply in the forum (cl_reply_push): {reply: id}
+    if (body?.reply) reply = String(body.reply);
   } catch { /* falls through to the check below */ }
+
+  if (reply) {
+    return await sendReply(rest, reply, SUBJECT, VAPID_PUB, VAPID_PRIV);
+  }
 
   if (invite) {
     return await sendInvite(rest, String(invite.group || ""), String(invite.user || ""), SUBJECT, VAPID_PUB, VAPID_PRIV);
