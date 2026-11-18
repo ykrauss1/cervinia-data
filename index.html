@@ -1471,7 +1471,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.23';
+  var v='v18.24';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5037,6 +5037,8 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
       <div id="map-geo-wrap" style="display:none;position:absolute;inset:0;flex-direction:column;background:#fff;">
         <!-- take me to: a destination from the site's own verified points -->
         <div id="map-geo-dest-row" style="flex-shrink:0;padding:6px 9px;border-bottom:1px solid #e3eaf2;background:#f8fbfe;font-size:0.76rem;color:#33475b;">
+          <!-- the kinds of destination, one button each (Yossi, 18.11) -->
+          <div id="map-geo-cats" role="tablist" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;"></div>
           <div style="display:flex;gap:6px;align-items:center;">
             <select id="map-geo-dest" onchange="geoDest(this.value)" aria-label="קח אותי ל…" data-en-aria-label="Take me to…"
               style="flex:1;min-width:0;padding:6px 8px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;font-family:inherit;font-size:0.8rem;color:#16314f;"></select>
@@ -7350,19 +7352,40 @@ function _geoLL(v) {
 // A flag inside an <option> cannot be swapped for the site's svg, and
 // Windows draws the emoji as two bare letters - so the names lose it there.
 function _geoName(v) { return String(v || '').replace(/\ud83c[\udde6-\uddff]/g, '').replace(/\s+/g, ' ').trim(); }
+var GEO_CATS = [
+  ['v', '🏘️ בכפר', '🏘️ Village'],
+  ['s', '🚡 תחנות', '🚡 Stations'],
+  ['h', '🍽️ בקתות', '🍽️ Huts'],
+  ['p', '⛷️ מסלולים', '⛷️ Runs']
+];
 function _geoDestList() {
   var p = (window._texts && window._texts.pistes) || {};
   var groups = [], all = {};
-  function add(label, items) { if (items.length) groups.push({ label: label, items: items }); }
-  // the stations
-  var st = [];
-  var rp = p.route_places || {};
-  Object.keys(rp).forEach(function (k) {
-    var ll = _geoLL(rp[k]); if (!ll) return;
-    var name = (k === 'cervinia') ? L('צ׳רוויניה — הכפר (Cervinia)', 'Cervinia — the village') : String(rp[k][2] || k);
-    st.push({ id: 's:' + k, name: name, ll: ll });
-  });
-  add(L('🚡 תחנות', '🚡 Stations'), st);
+  function add(cat, label, items) { if (items.length) groups.push({ cat: cat, label: label, items: items }); }
+  // the village and the stations: the ends of lifts and the railway's
+  // stations, as the ski router's graph holds them
+  var pl = SKI.graph && SKI.graph.places;
+  if (pl && pl.length) {
+    [['v', 'it'], ['v', 'ch'], ['s', 'it'], ['s', 'ch']].forEach(function (gc) {
+      var it = [];
+      pl.forEach(function (x, i) {
+        if (x[0] !== gc[0] || x[1] !== gc[1]) return;
+        it.push({ id: 'l:' + i, name: L(x[2], x[3]), ll: [x[4], x[5]] });
+      });
+      add(gc[0], gc[1] === 'it' ? L('איטליה — צ׳רוויניה וולטורננש', 'Italy — Cervinia and Valtournenche')
+                                : L('שוויץ — צרמט', 'Switzerland — Zermatt'), it);
+    });
+  } else {
+    // before the graph has loaded: the stations of the recommended routes
+    var st = [];
+    var rp = p.route_places || {};
+    Object.keys(rp).forEach(function (k) {
+      var ll = _geoLL(rp[k]); if (!ll) return;
+      var name = (k === 'cervinia') ? L('צ׳רוויניה — הכפר (Cervinia)', 'Cervinia — the village') : String(rp[k][2] || k);
+      st.push({ id: 's:' + k, name: name, ll: ll });
+    });
+    add('s', L('🚡 תחנות', '🚡 Stations'), st);
+  }
   // the huts, by area
   GEO_AREAS.forEach(function (a) {
     var it = [];
@@ -7371,7 +7394,7 @@ function _geoDestList() {
       var ll = _geoLL(r.latlon); if (!ll) return;
       it.push({ id: 'h:' + i, name: _geoName(r.name), ll: ll });
     });
-    add(L('🍽️ בקתות — ' + a[1], '🍽️ Huts — ' + a[2]), it);
+    add('h', L(a[1], a[2]), it);
   });
   // the top of every run, by area, in the order of the map's numbers
   GEO_AREAS.forEach(function (a) {
@@ -7385,28 +7408,50 @@ function _geoDestList() {
       });
     });
     it.sort(function (x, y) { return (isNaN(x.num) ? 999 : x.num) - (isNaN(y.num) ? 999 : y.num); });
-    add(L('⛷️ תחילת מסלול — ' + a[1], '⛷️ Top of a run — ' + a[2]), it);
+    add('p', L(a[1], a[2]), it);
   });
   groups.forEach(function (g) { g.items.forEach(function (d) { all[d.id] = d; }); });
   return { groups: groups, all: all };
 }
+function geoCat(k) {
+  GEO.destCat = k;
+  _geoDestFill();
+}
 function _geoDestFill() {
   var sel = document.getElementById('map-geo-dest');
   if (!sel) return;
+  // the stations and the village come from the router's graph: load it now,
+  // and fill the list again when it is in
+  if (!SKI.graph && !SKI.failed) _skiLoad().then(_geoDestFill, function () {});
   var data = _geoDestList();
   GEO.dests = data.all;
+  if (GEO.dest && GEO.dest.id && GEO.dest.id.indexOf('l:') !== 0 && !GEO.destCat) {
+    GEO.destCat = GEO.dest.id.charAt(0) === 'h' ? 'h' : GEO.dest.id.charAt(0) === 'p' ? 'p' : 's';
+  }
+  var cat = GEO.destCat || 'v';
+  if (!data.groups.some(function (g) { return g.cat === cat; })) cat = 's';
+  var bar = document.getElementById('map-geo-cats');
+  if (bar) {
+    bar.innerHTML = GEO_CATS.map(function (c) {
+      var on = c[0] === cat;
+      return '<button type="button" role="tab" aria-selected="' + on + '" onclick="geoCat(\'' + c[0] + '\')" style="'
+        + 'padding:4px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;font-weight:' + (on ? '700' : '500') + ';'
+        + 'border:1px solid ' + (on ? '#1a73e8' : '#c9d6e3') + ';background:' + (on ? '#e8f0fe' : '#fff') + ';color:' + (on ? '#174ea6' : '#33475b') + ';">'
+        + L(c[1], c[2]) + '</button>';
+    }).join('');
+  }
   sel.innerHTML = '';
   var o0 = document.createElement('option');
   o0.value = ''; o0.textContent = L('🎯 קח אותי ל…', '🎯 Take me to…');
   sel.appendChild(o0);
-  data.groups.forEach(function (g) {
+  data.groups.filter(function (g) { return g.cat === cat; }).forEach(function (g) {
     var og = document.createElement('optgroup'); og.label = g.label;
     g.items.forEach(function (d) {
       var o = document.createElement('option'); o.value = d.id; o.textContent = d.name; og.appendChild(o);
     });
     sel.appendChild(og);
   });
-  sel.value = (GEO.dest && GEO.dests[GEO.dest.id]) ? GEO.dest.id : '';
+  sel.value = (GEO.dest && GEO.dests[GEO.dest.id] && sel.querySelector('option[value="' + GEO.dest.id + '"]')) ? GEO.dest.id : '';
   _geoDestPaint();
 }
 function geoDest(id) {

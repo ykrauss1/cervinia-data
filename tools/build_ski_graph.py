@@ -581,8 +581,33 @@ def main():
         comps.append(comp)
     comps.sort(key=len, reverse=True)
 
+    # ── destinations: each the end of a lift or a railway station ──
+    places = []
+    if feed and feed.get('places'):
+        ends_by_way = {}
+        for e in out_edges:
+            if e[4] == 'u' and e[2] >= 0:
+                ends_by_way.setdefault(wayinfo[e[2]]['id'], []).append((e[0], e[1]))
+        for pl in feed['places']:
+            if pl.get('rail'):
+                st_ = stations.get(pl['rail'])
+                if not st_:
+                    sys.exit('place on an unknown railway station: ' + pl['rail'])
+                ll = (st_[1], st_[2])
+            else:
+                pairs = ends_by_way.get(pl['lift'])
+                if not pairs:
+                    sys.exit('place on a lift not in the graph: ' + str(pl['lift']))
+                starts = set(a_ for a_, b_ in pairs); stops = set(b_ for a_, b_ in pairs)
+                if pl['at'] == 'bottom':
+                    n_ = next(iter(starts - stops), pairs[0][0])
+                else:
+                    n_ = next(iter(stops - starts), pairs[-1][1])
+                ll = tuple(node_list[n_][:2])
+            places.append([pl['g'], pl['c'], pl['he'], pl['en'], round(ll[0], 5), round(ll[1], 5)])
+
     graph = {
-        'v': 1, 'area': area, 'fetched': raw['fetched'], 'license': raw['license'],
+        'v': 1, 'area': area, 'places': places, 'fetched': raw['fetched'], 'license': raw['license'],
         'speed': {'ski': 7, 'flat': 3, 'walk': 1, 'lift': LIFT_SPEED, 'wait': LIFT_WAIT},
         'nodes': node_list, 'ways': wayinfo, 'edges': out_edges,
     }

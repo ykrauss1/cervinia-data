@@ -139,5 +139,190 @@
       45.98332,
       7.78231
     ]
-  }
+  },
+  "_about_places": "Destinations for 'take me to', by group: v = in the village, where a day starts and ends; s = stations on the mountain. Each is the bottom or the top of a lift (by OSM way id) or a railway station above, so its point comes from the map, not typed in. he/en are the names shown.",
+  "places": [
+    {
+      "g": "v",
+      "c": "it",
+      "he": "צ׳רוויניה — תחנת העמק ל־Plan Maison (Breuil, הקופות)",
+      "en": "Cervinia — the valley station to Plan Maison (Breuil, ticket office)",
+      "lift": 114942017,
+      "at": "bottom"
+    },
+    {
+      "g": "v",
+      "c": "it",
+      "he": "קרטז (Cretaz)",
+      "en": "Cretaz",
+      "lift": 22341549,
+      "at": "bottom"
+    },
+    {
+      "g": "v",
+      "c": "it",
+      "he": "צ׳יאלו אלטו (Cielo Alto)",
+      "en": "Cielo Alto",
+      "lift": 50249647,
+      "at": "bottom"
+    },
+    {
+      "g": "v",
+      "c": "it",
+      "he": "ולטורננש — תחנת הגונדולה (Salette)",
+      "en": "Valtournenche — the gondola station (Salette)",
+      "lift": 30833737,
+      "at": "bottom"
+    },
+    {
+      "g": "v",
+      "c": "ch",
+      "he": "צרמט — תחנת Matterhorn Express (סוף המסלול בכפר)",
+      "en": "Zermatt — Matterhorn Express station (the run's end in the village)",
+      "lift": 903540909,
+      "at": "bottom"
+    },
+    {
+      "g": "v",
+      "c": "ch",
+      "he": "צרמט — הפוניקולר ל־Sunnegga",
+      "en": "Zermatt — the Sunnegga funicular",
+      "lift": 22330086,
+      "at": "bottom"
+    },
+    {
+      "g": "v",
+      "c": "ch",
+      "he": "צרמט — תחנת רכבת Gornergrat",
+      "en": "Zermatt — Gornergrat railway station",
+      "rail": "Zermatt GGB"
+    },
+    {
+      "g": "s",
+      "c": "it",
+      "he": "Plan Maison",
+      "en": "Plan Maison",
+      "lift": 114942017,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "it",
+      "he": "Cime Bianche Laghi",
+      "en": "Cime Bianche Laghi",
+      "lift": 322784212,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "it",
+      "he": "Plateau Rosà (Testa Grigia)",
+      "en": "Plateau Rosà (Testa Grigia)",
+      "lift": 22341544,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "it",
+      "he": "Fornet",
+      "en": "Fornet",
+      "lift": 22341546,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "it",
+      "he": "Bontadini",
+      "en": "Bontadini",
+      "lift": 22341547,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "it",
+      "he": "Lago Goillet — ראש הכיסא",
+      "en": "Lago Goillet — top of the chair",
+      "lift": 102661014,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "it",
+      "he": "Salette (ולטורננש)",
+      "en": "Salette (Valtournenche)",
+      "lift": 30833737,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "ch",
+      "he": "Furi",
+      "en": "Furi",
+      "lift": 903540909,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "ch",
+      "he": "Schwarzsee",
+      "en": "Schwarzsee",
+      "lift": 46715051,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "ch",
+      "he": "Trockener Steg",
+      "en": "Trockener Steg",
+      "lift": 22337638,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "ch",
+      "he": "Klein Matterhorn (Matterhorn Glacier Paradise)",
+      "en": "Klein Matterhorn (Matterhorn Glacier Paradise)",
+      "lift": 22341540,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "ch",
+      "he": "Riffelberg",
+      "en": "Riffelberg",
+      "lift": 22337636,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "ch",
+      "he": "Gornergrat",
+      "en": "Gornergrat",
+      "rail": "Gornergrat"
+    },
+    {
+      "g": "s",
+      "c": "ch",
+      "he": "Sunnegga",
+      "en": "Sunnegga",
+      "lift": 22330086,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "ch",
+      "he": "Blauherd",
+      "en": "Blauherd",
+      "lift": 171854366,
+      "at": "top"
+    },
+    {
+      "g": "s",
+      "c": "ch",
+      "he": "Rothorn",
+      "en": "Rothorn",
+      "lift": 22330669,
+      "at": "top"
+    }
+  ]
 }

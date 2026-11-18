@@ -2345,8 +2345,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       blueDown: blueDown && { d: maxD(blueDown), rideDown: blueDown.edges.some(i => g.edges[i][4] === 'r') },
       redDown: redDown && { d: maxD(redDown), refs: refs(redDown) },
       blueUp: blueUp && { d: maxD(blueUp), lifts: blueUp.edges.filter(i => g.edges[i][4] === 'u').length },
-      steps: blueDown ? skiSteps(blueDown).length : 0
-    };
+      steps: blueDown ? skiSteps(blueDown).length : 0,
+      places: (g.places || []).length,
+      placesOut: (g.places || []).filter(x => !(x[4] > 45.85 && x[4] < 46.05 && x[5] > 7.55 && x[5] < 7.85)).map(x => x[3]),
+      zermattEnd: !!skiRoute(plateau, ((g.places || []).find(x => /Matterhorn Express station/.test(x[3])) || [0,0,0,0,0,0]).slice(4), 2)
   }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
   const T = 'the ski router keeps to the level that was asked for';
   if (r.err) fail(T, 'the graph did not load: ' + r.err);
@@ -2365,6 +2367,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     if (!r.blueUp || r.blueUp.d > 1 || r.blueUp.lifts < 1) fail(T,
       `Plan Maison to Bontadini on blue: ${JSON.stringify(r.blueUp)}`); else ok();
     if (r.steps < 2) fail(T, 'the route has no readable steps'); else ok();
+    if (r.places < 20) fail(T, `only ${r.places} named destinations in the graph`); else ok();
+    if (r.placesOut.length) fail(T, 'destinations off the map: ' + r.placesOut.join(', ')); else ok();
+    if (!r.zermattEnd) fail(T, 'no red way from Plateau Rosa to the end of the run in Zermatt'); else ok();
   }
 }
 
