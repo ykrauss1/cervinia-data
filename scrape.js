@@ -500,6 +500,51 @@ async function scrape() {
     }).filter(Boolean)
   ).catch(() => []);
 
+  // ============================================================
+  // ZERMATT, LIFT BY LIFT
+  // The Italian feed reports on the lifts of the glacier link only. The rest
+  // of Zermatt - Sunnegga-Rothorn, Gornergrat, Schwarzsee - is on the
+  // Zermatt Bergbahnen page, one tab per area, each lift with "Open",
+  // "in preparation" or "Closed". Saved beside the Italian list, in the same
+  // form: [area, name, O|P|F].
+  // ============================================================
+  if (lifts_detail) {
+    try {
+      const zp = await browser.newPage();
+      await zp.goto('https://www.matterhornparadise.ch/en/information/lifts-and-pistes', { waitUntil: 'networkidle2', timeout: 60000 });
+      await sleep(2000);
+      const zermatt = [];
+      for (const area of ['MATTERHORN GLACIER PARADISE', 'SUNNEGGA', 'GORNERGRAT']) {
+        const ok = await zp.evaluate((area) => {
+          const a = [...document.querySelectorAll('a.js-dynamic-tabbing__toggle')]
+            .find(x => x.getClientRects().length && x.innerText.trim().toUpperCase().startsWith(area));
+          if (!a) return false;
+          a.click();
+          return true;
+        }, area);
+        if (!ok) { console.log('ZERMATT TAB NOT FOUND:', area); continue; }
+        await sleep(3500);
+        const rows = await zp.evaluate(() => [...document.querySelectorAll('.facilities-collapse-item')]
+          .filter(it => it.getClientRects().length && it.querySelector('.facilities-collapse-item__name'))
+          .map(it => [it.querySelector('.facilities-collapse-item__name').innerText.trim(),
+                      ((it.querySelector('.facilities-collapse-item__text') || {}).innerText || '').trim()]));
+        rows.forEach(([name, st]) => {
+          const e = /^open/i.test(st) ? 'O' : /prepar/i.test(st) ? 'P' : /closed/i.test(st) ? 'F' : '';
+          if (name && e && !zermatt.some(z => z[1] === name)) zermatt.push([area, name, e]);
+        });
+      }
+      await zp.close();
+      if (zermatt.length) {
+        lifts_detail.zermatt = zermatt;
+        console.log('Zermatt one by one:', zermatt.map(z => z[1] + '=' + z[2]).join(', '));
+      } else {
+        console.log('ZERMATT LIFTS NOT FOUND');
+      }
+    } catch (e) {
+      console.log('ZERMATT LIFTS FAILED:', e.message);
+    }
+  }
+
   await browser.close();
   console.log('Browser closed.');
 

@@ -47,6 +47,9 @@ def main():
   way["aerialway"]["aerialway"!~"^(station|goods|pylon|zip_line)$"]({bb});
   way["railway"="funicular"]({bb});
   way["railway"]["rack"]({bb});
+  node["railway"~"^(station|halt|stop)$"]({bb});
+  node["public_transport"="station"]({bb});
+  node["aerialway"="station"]({bb});
 );
 out tags geom;'''
     osm, last = None, ''
