@@ -1109,9 +1109,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   });
   if (r.real.slopes !== '9/109') fail('the bar counts the whole area first',
     `the feed says 9 of 109 open, the bar says "${r.real.slopes}"`); else ok();
-  if (r.real.lifts !== '13/47 (4/5)') fail('the bar counts the whole area first',
+  if (r.real.lifts !== '13/47 (צ׳רוויניה 4/5)') fail('the bar counts the whole area first',
     `lifts came back as "${r.real.lifts}"`); else ok();
-  if (!/\(4\/9\)/.test(r.withLocal.slopes)) fail('the bar counts the whole area first',
+  if (!/\(צ׳רוויניה 4\/9\)/.test(r.withLocal.slopes)) fail('the bar counts the whole area first',
     `a real local figure was dropped: "${r.withLocal.slopes}"`); else ok();
   if (/\(/.test(r.impossible.lifts)) fail('the bar counts the whole area first',
     `9 open out of 5 was printed anyway: "${r.impossible.lifts}"`); else ok();
@@ -1119,13 +1119,17 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `with no feed at all it showed "${r.empty.slopes}" and "${r.empty.lifts}"`); else ok();
 
   // the caption has to describe the numbers that are on the screen: it used
-  // to promise "whole area (Cervinia)" on a line with no Cervinia figure
+  // to promise "whole area (Cervinia)" on a line with no Cervinia figure.
+  // Since 18.11 the Cervinia figure carries its own name in its brackets,
+  // so the caption names only the area, and a bracket always says whose it is.
   const cap = await page.evaluate(() => {
     const read = () => ({
       slopes: document.getElementById('bar-slopes-scope').textContent.trim(),
       lifts:  document.getElementById('bar-lifts-scope').textContent.trim(),
       slopeBracket: /\(/.test(document.getElementById('bar-slopes-global').textContent),
-      liftBracket:  /\(/.test(document.getElementById('bar-lifts-global').textContent)
+      liftBracket:  /\(/.test(document.getElementById('bar-lifts-global').textContent),
+      slopeNamed:   /\(צ׳רוויניה /.test(document.getElementById('bar-slopes-global').textContent),
+      liftNamed:    /\(צ׳רוויניה /.test(document.getElementById('bar-lifts-global').textContent)
     });
     const feed = { slopes_open_global: 9, slopes_total_global: 109,
                    slopes_open_local: 0, slopes_total_local: 0,
@@ -1138,12 +1142,12 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     renderLiveBar({}); out.empty = read();
     return out;
   });
-  const agrees = (c) => (c.slopes.indexOf('(') > -1) === c.slopeBracket
-                     && (c.lifts.indexOf('(') > -1) === c.liftBracket;
+  const agrees = (c) => c.slopes.indexOf('(') < 0 && c.lifts.indexOf('(') < 0
+                     && c.slopeBracket === c.slopeNamed && c.liftBracket === c.liftNamed;
   if (!agrees(cap.real)) fail('the caption matches the numbers',
     `caption "${cap.real.slopes}" but brackets ${cap.real.slopeBracket}`); else ok();
   if (!agrees(cap.withLocal)) fail('the caption matches the numbers',
-    'with a local figure present the caption did not mention it'); else ok();
+    'with a local figure present its brackets did not say it is Cervinia'); else ok();
   if (cap.empty.slopes || cap.empty.lifts) fail('the caption matches the numbers',
     'with no feed at all the caption still described a scope'); else ok();
 

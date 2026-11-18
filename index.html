@@ -442,7 +442,16 @@ html[dir="ltr"] #map-route-off { float: right !important; margin: -2px 0 0 -4px 
 /* The small grey labels sit over snow. Darkening the whole picture until
    they read would put the mountain back where it was; a shadow on the
    letters costs the photograph nothing. */
-#live-data-bar.has-hero .bar-inner { text-shadow: 0 1px 3px rgba(4,12,26,0.9); }
+#live-data-bar.has-hero .bar-inner { text-shadow: 0 1px 3px rgba(4,12,26,0.9), 0 0 8px rgba(4,12,26,0.55); }
+
+/* The crossing to Zermatt */
+.zm-badge { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;
+  background: rgba(9,20,38,0.3);
+  border: 1px solid rgba(231,76,60,0.3); border-radius: 14px; padding: 6px 10px 7px; }
+.zm-badge:focus-visible { outline: 2px solid #8fe0ff; outline-offset: 2px; }
+.zm-txt { text-align: center; line-height: 1.15; }
+.zm-label { display: block; font-size: 0.66rem; color: rgba(255,255,255,0.75); white-space: nowrap; }
+.zm-state { display: block; font-size: 0.86rem; font-weight: 800; color: #e74c3c; white-space: nowrap; }
 
 /* A peek at the forum, above the forum itself. */
 /* The strip used to be a scrolling box: a scrollbar under three and a bit
@@ -919,21 +928,38 @@ img, svg, video { max-width: 100%; }
     align-items: stretch !important;
     gap: 12px !important;
   }
-  /* Stats: 3-column grid */
+  /* Stats: 3-column grid. Every row as tall as the tallest tile in the
+     whole grid, so the six tiles line up however many lines each label
+     takes (Yossi, 18.11). */
   #live-data-bar > div > div:first-child {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
-    gap: 10px !important;
+    grid-auto-rows: 1fr;
+    gap: 8px !important;
     width: 100%;
   }
   /* Hide vertical dividers in stats group */
   #live-data-bar > div > div:first-child > div[style*="width:1px"] { display: none !important; }
-  /* Each stat tile */
+  /* Each stat tile: dark glass over the photograph, so the numbers keep
+     their contrast where the mountain behind them is snow */
   #live-data-bar > div > div:first-child > div {
-    background: rgba(255,255,255,0.04);
-    border-radius: 8px;
-    padding: 8px 6px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    min-height: 54px;
+    /* see-through enough to keep the mountain behind it (Yossi, 18.11):
+       a light tint and no blur; the letters keep their shadow for contrast */
+    background: rgba(9,20,38,0.24);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 12px;
+    padding: 7px 4px;
   }
+  /* the small labels: legible, and one size everywhere */
+  #live-data-bar > div > div:first-child > div > div:last-child,
+  #live-data-bar > div > div:first-child > div > div:last-child span {
+    font-size: 0.66rem !important; color: rgba(255,255,255,0.78) !important; margin-top: 4px;
+  }
+  #live-data-bar #bar-closed-notice { color: #fff !important; }
+  /* the sky in words, not in a size of its own */
+  #live-data-bar #bar-weather-desc { font-size: 1rem !important; }
   #live-data-bar [id^="bar-"][id$="temp"],
   #live-data-bar [id^="bar-"][id$="wind"],
   #live-data-bar [id^="bar-"][id$="snow"],
@@ -958,8 +984,8 @@ img, svg, video { max-width: 100%; }
   }
   /* Hide the vertical divider before matterhorn */
   #live-data-bar > div > div:nth-child(2) > div[style*="width:1px"] { display: none !important; }
-  /* Smaller matterhorn on mobile */
-  #matterhorn-svg { width: 60px !important; height: 54px !important; }
+  /* The Matterhorn on a phone */
+  #matterhorn-svg { width: 66px !important; height: 54px !important; }
   /* Stack forecast buttons */
   #live-data-bar button[onclick*="forecastModal"],
   #live-data-bar button[onclick*="ZermattForecast"] {
@@ -1445,7 +1471,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.22';
+  var v='v18.23';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1641,27 +1667,42 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
         <div style="width:1px;height:52px;background:rgba(255,255,255,0.12);"></div>
 
         <!-- הר מטרהורן + כיתוב בתוכו -->
-        <div id="bar-zermatt" style="cursor:default;position:relative;display:inline-block;">
-          <svg id="matterhorn-svg" width="90" height="80" viewBox="0 0 56 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- The crossing to Zermatt: a drawn Matterhorn with the state as a
+             light on its summit, and the words under it in plain HTML, not
+             inside the drawing where they came out blurred and tiny. A tap
+             opens the full crossing forecast. -->
+        <div id="bar-zermatt" class="zm-badge" role="button" tabindex="0"
+             onclick="openZermattForecast()" onkeydown="if(event.key==='Enter')openZermattForecast()"
+             title="המעבר לצרמט — פותח את תחזית הלינק" data-en-title="The crossing to Zermatt — opens the link forecast">
+          <svg id="matterhorn-svg" width="78" height="64" viewBox="0 0 78 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
+              <linearGradient id="zm-sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#3d6a98"/><stop offset="1" stop-color="#1a3150"/>
+              </linearGradient>
               <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
-                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feGaussianBlur stdDeviation="2.6" result="blur"/>
                 <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
               </filter>
             </defs>
-            <!-- גוף ההר -->
-            <polygon points="26,6 2,54 50,54" fill="#1e2d40" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
-            <!-- כיפת שלג -->
-            <polygon points="26,6 17,23 35,23" fill="rgba(255,255,255,0.95)"/>
-            <!-- קו שלוחה ימנית -->
-            <line x1="26" y1="6" x2="35" y2="23" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
-            <!-- כיתוב בתוך ההר -->
-            <text id="zermatt-label" x="26" y="37" text-anchor="middle" font-size="6.5" font-weight="bold" fill="#e74c3c" font-family="Arial,sans-serif" data-en="Zermatt link">חיבור לצרמט</text>
-            <text id="zermatt-status" x="26" y="47" text-anchor="middle" font-size="5.5" fill="rgba(255,255,255,0.55)" font-family="Arial,sans-serif" data-en="Closed">סגור</text>
-            <!-- עיגול מעבר -->
-            <circle id="matterhorn-dot" cx="39" cy="9" r="9" fill="#e74c3c" filter="url(#glow)"/>
-            <circle cx="39" cy="9" r="5" fill="white" opacity="0.95"/>
+            <!-- the west face, in light -->
+            <path d="M2 62 L14 47 L21 41 L27 30 L32 19 L36 9 L41 5 L43 8 L41 15 L38 26 L35 40 L33 62 Z" fill="url(#zm-sky)"/>
+            <!-- the east face, in shade -->
+            <path d="M33 62 L35 40 L38 26 L41 15 L43 8 L46 13 L49 22 L55 30 L60 37 L67 46 L76 62 Z" fill="#132439"/>
+            <!-- snow on the summit and the ridges -->
+            <path d="M36 9 L41 5 L43 8 L46 13 L44 17 L41 15 L39 21 L36.5 17 L34 22 Z" fill="#f4f8fc"/>
+            <path d="M27 30 L30 26 L31.5 31 L29 35 Z M49 22 L52 27 L50 29 L48 26 Z M55 30 L59 35 L56.5 36 Z" fill="rgba(244,248,252,0.8)"/>
+            <!-- the outline -->
+            <path d="M2 62 L14 47 L21 41 L27 30 L32 19 L36 9 L41 5 L43 8 L46 13 L49 22 L55 30 L60 37 L67 46 L76 62"
+                  fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M43 8 L41 15 L38 26 L35 40 L33 62" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1" stroke-linejoin="round"/>
+            <!-- the state: a light on the summit -->
+            <circle id="matterhorn-dot" cx="56" cy="9" r="7" fill="#e74c3c" filter="url(#glow)"/>
+            <circle cx="56" cy="9" r="3.2" fill="#fff" opacity="0.92"/>
           </svg>
+          <div class="zm-txt">
+            <span id="zermatt-label" class="zm-label" data-en="Zermatt link">חיבור לצרמט</span>
+            <span id="zermatt-status" class="zm-state" data-en="Closed">סגור</span>
+          </div>
         </div>
 
         <!-- כפתורות תחזית -->
@@ -2129,7 +2170,7 @@ what counts.">
       <!-- Today forecast -->
       <div id="forecast-today-section" style="margin-bottom:14px;">
         <div style="font-weight:bold;font-size:0.82rem;color:#0a192f;margin-bottom:8px;" id="forecast-today-date" data-en="📅 Today">📅 היום</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="forecast-today-grid"></div>
+        <div style="display:grid;grid-template-columns:1fr;gap:8px;" id="forecast-today-grid"></div>
       </div>
 
       <!-- Next days -->
@@ -20353,7 +20394,7 @@ function renderLiveBar(d) {
   // It used to promise "whole area (Cervinia)" even on the line where the
   // feed had no Cervinia figure at all and nothing was in brackets.
   function _scope(area, local) {
-    if (area && local) return L('כל האזור (צ׳רוויניה)', 'whole area (Cervinia)');
+    if (area && local) return L('כל האזור', 'whole area');
     if (area)  return L('כל האזור', 'whole area');
     if (local) return L('צ׳רוויניה', 'Cervinia');
     return '';
@@ -20416,7 +20457,8 @@ function renderLiveBar(d) {
              && (parseInt(d.slopes_open_global, 10) || 0) === 0
              && (parseInt(d.slopes_open_local,  10) || 0) === 0;
   set('bar-slopes-local',  sArea || sLocal || (sShut ? '0' : '--'));
-  set('bar-slopes-global', (sArea && sLocal) ? ' (' + sLocal + ')' : '');
+  // the Cervinia figure says whose it is, beside it - not in a third line
+  set('bar-slopes-global', (sArea && sLocal) ? ' (' + L('צ׳רוויניה ', 'Cervinia ') + sLocal + ')' : '');
   set('bar-slopes-scope',  sShut ? L('אף מסלול לא פתוח', 'no slope open') : _scope(sArea, sLocal));
   _tip('bar-slopes-cell',  sShut
         ? L('הפיד מדווח שאין כרגע מסלול פתוח באזור. לחץ להסבר.', 'The feed reports no slope open in the area right now. Tap for an explanation.')
@@ -20425,7 +20467,7 @@ function renderLiveBar(d) {
   const lArea  = _count(d.lifts_open_global, d.lifts_total_global);
   const lLocal = _count(d.lifts_open_local,  d.lifts_total_local);
   set('bar-lifts-local',   lArea || lLocal || '--');
-  set('bar-lifts-global',  (lArea && lLocal) ? ' (' + lLocal + ')' : '');
+  set('bar-lifts-global',  (lArea && lLocal) ? ' (' + L('צ׳רוויניה ', 'Cervinia ') + lLocal + ')' : '');
   set('bar-lifts-scope',   _scope(lArea, lLocal));
   _tip('bar-lifts-cell',   _countTip(L('מעליות', 'Lifts'), lArea, lLocal));
   _severity('bar-lifts-local', 'bar-lifts-global', lArea || lLocal);
@@ -20552,15 +20594,22 @@ function renderLiveBar(d) {
         // array of locations (scraper format)
         if (Array.isArray(data)) {
           if (!data.length) return '';
-          const icons = data.map(function(loc) {
-            return '<span title="'+(loc.name||'')+'">' + (iconMap[loc.icon] || '🌤️') + '</span>';
-          }).join(' ');
-          return '<div style="background:#f0f8ff;border-radius:9px;padding:9px 12px;">'
-            + '<div style="font-size:0.72rem;color:#888;margin-bottom:4px;">'+label+'</div>'
-            + '<div style="font-size:1.5rem;letter-spacing:3px;">'+icons+'</div>'
-            + '<div style="font-size:0.65rem;color:#aaa;margin-top:3px;">'
-            + data.map(function(l){return l.name||'';}).join(' · ')
-            + '</div></div>';
+          // Each place in its own column, its name right under its own icon.
+          // The names used to run on one line below a row of icons, and on a
+          // phone the two never lined up (Yossi, 18.11).
+          const HE = { 'Breuil-Cervinia': 'צ׳רוויניה', 'Cervinia': 'צ׳רוויניה', 'Valtournenche': 'ולטורננש',
+                       'Chamois': 'שמואה', 'Torgnon': 'טורגנון' };
+          const cols = data.map(function(loc) {
+            const n = String(loc.name || '');
+            const shown = L(HE[n] || n, n.replace(/^Breuil-/, ''));
+            return '<div style="flex:1 1 0;min-width:0;text-align:center;" title="' + escHtml(n) + '">'
+              + '<div style="font-size:1.55rem;line-height:1.2;">' + (iconMap[loc.icon] || '🌤️') + '</div>'
+              + '<div style="font-size:0.66rem;color:#7a8797;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+              + escHtml(shown) + '</div></div>';
+          }).join('');
+          return '<div style="background:#f0f8ff;border-radius:9px;padding:9px 10px;">'
+            + '<div style="font-size:0.72rem;color:#888;margin-bottom:5px;">'+label+'</div>'
+            + '<div style="display:flex;gap:4px;align-items:flex-start;">' + cols + '</div></div>';
         }
         // single object (DEMO format): {icon, temp_min, temp_max, desc}
         const icon = iconMap[data.icon] || '🌤️';
@@ -20623,8 +20672,8 @@ function renderLiveBar(d) {
     }
     if (zVal2 === 'OPEN' && !_zermattSkiable(d)) zText = L('רכבל בלבד', 'Cable car only');
     if (dot) { dot.setAttribute('fill', zColor); }
-    if (label) { label.setAttribute('fill', zColor); }
-    if (status) { status.textContent = zText; }
+    if (status) { status.textContent = zText; status.style.color = zColor; }
+    zBarEl.style.borderColor = zBorder;
   }
 
   // Zermatt dot in nav
