@@ -260,6 +260,32 @@ def main():
                 edges.append((a, b, wi, m, [a, b], 'down1'))
                 stats['area_edges'] += 1
 
+    # ── the live feed: which lift is which, and which the feed covers ──
+    try:
+        feed = json.load(open(f'data/ski-lifts-{area}.json', encoding='utf-8'))
+    except FileNotFoundError:
+        feed = None
+    if feed:
+        by_id = {}
+        for fname, ids in feed['lifts'].items():
+            for i in ids:
+                by_id[i] = fname
+        S, Wb, Nb, Eb = feed['covered']
+        found = set()
+        for wi, info in enumerate(wayinfo):
+            if info['k'] != 'l':
+                continue
+            g0 = ways[wi]['geom'][0]
+            if info['id'] in by_id:
+                info['feed'] = by_id[info['id']]
+                found.add(info['id'])
+            elif S <= g0[0] <= Nb and Wb <= g0[1] <= Eb and info.get('lt') != 'yes':
+                # (aerialway=yes is a passage between two stations, not a lift)
+                info['cov'] = 1          # the feed reports on it: absent = not running
+        missing = [n for n, ids in feed['lifts'].items() if not any(i in found for i in ids)]
+        if missing:
+            sys.exit('lifts named in the feed map but not on the map: ' + ', '.join(missing))
+
     # ── write it out ──
     out_edges = []
     def push(a, b, wi, m, geom, kind, rev=False):

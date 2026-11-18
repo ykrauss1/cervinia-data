@@ -199,6 +199,14 @@ async function scrape() {
   // disagree with the page it is quoting.
   console.log('Fetching lifts and slopes page...');
 
+  // Every lift and every run, each with its own state, as the page's own
+  // data holds them (window.__NUXT__.state.impianti, the resort's Lumiplan
+  // feed): [sector, name, state, type]. State is O open, F closed, P
+  // expected later today. The ski router uses this so as not to send anybody
+  // to a lift that is not running. The page shows only the lifts in service
+  // this period, so a lift missing from the list is not running either.
+  let lifts_detail = null;
+
   try {
     await page.goto('https://www.cervinia.it/en/impianti', {
       waitUntil: 'networkidle2',
@@ -218,6 +226,29 @@ async function scrape() {
     });
 
     console.log('Area totals found:', JSON.stringify(pairs));
+
+    lifts_detail = await page.evaluate(() => {
+      try {
+        const st = window.__NUXT__ && window.__NUXT__.state && window.__NUXT__.state.impianti;
+        const S = st && st.SECTEUR;
+        if (!Array.isArray(S)) return null;
+        const arr = x => !x ? [] : Array.isArray(x) ? x : [x];
+        const at = x => (x && x['@attributes']) || {};
+        const lifts = [], pistes = [];
+        S.forEach(sec => {
+          const n = String(at(sec).nom || '').trim();
+          arr(sec.REMONTEE).forEach(r => { const a = at(r); lifts.push([n, String(a.nom || '').trim(), a.etat || '', a.type || '']); });
+          arr(sec.PISTE).forEach(r => { const a = at(r); pistes.push([n, String(a.nom || '').trim(), a.etat || '', a.niveau || '']); });
+        });
+        return lifts.length ? { lifts, pistes } : null;
+      } catch (e) { return null; }
+    }).catch(() => null);
+    if (lifts_detail) {
+      lifts_detail.at = new Date().toISOString();
+      console.log('Lifts one by one:', lifts_detail.lifts.map(l => l[1] + '=' + l[2]).join(', '));
+    } else {
+      console.log('LIFTS ONE BY ONE NOT FOUND');
+    }
 
     // the page prints lifts first, then slopes
     if (pairs.length >= 2) {
@@ -509,7 +540,9 @@ async function scrape() {
       afternoon: forecast_afternoon
     },
 
-    forecast_next_days
+    forecast_next_days,
+
+    lifts_detail
   };
 
   return result;
@@ -519,9 +552,17 @@ async function scrape() {
 // SAVE TO SUPABASE
 // ============================================================
 async function saveToSupabase(data) {
-  const { error } = await supabase
+  let { error } = await supabase
     .from('ski_status_history')
     .insert([data]);
+
+  // lifts_detail is a newer column. Until the database has it, a reading
+  // without it is far better than no reading at all.
+  if (error && /lifts_detail/.test(error.message || '')) {
+    console.warn('No lifts_detail column yet - saving without it');
+    delete data.lifts_detail;
+    ({ error } = await supabase.from('ski_status_history').insert([data]));
+  }
 
   if (error) {
     console.error('Supabase insert error:', error);

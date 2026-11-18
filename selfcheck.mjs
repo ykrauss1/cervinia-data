@@ -2364,6 +2364,55 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── the ski router does not send anybody to a closed lift ───────────────
+// With a fresh reading of the resort's feed, a closed lift is never part of
+// a route; a lift of the area the feed covers that is missing from it is not
+// running; a reading too old to trust is not used at all; and when today's
+// lifts leave no way at all, the way is still shown - with its closed lifts
+// named, never silently.
+{
+  const r = await page.evaluate(async (graph) => {
+    _skiUse(graph);
+    const g = SKI.graph;
+    const names = (rt) => rt ? rt.edges.map(i => g.edges[i]).filter(e => e[4] === 'u' || e[4] === 'r').map(e => g.ways[e[2]].feed || g.ways[e[2]].name) : null;
+    // every lift the feed reports on, open
+    const allOpen = [...new Set(g.ways.filter(w => w.feed).map(w => w.feed))].map(n => ['CERVINIA', n, 'O', 'X']);
+    const feed = (closed, ageMin) => ({ updated_at: new Date().toISOString(), lifts_detail: {
+      at: new Date(Date.now() - ageMin * 60000).toISOString(),
+      lifts: allOpen.map(l => closed.includes(l[1]) ? [l[0], l[1], 'F', l[3]] : l), pistes: [] } });
+    const planMaison = [45.9418, 7.6564], plateau = [45.93447, 7.70765];
+    const bontadiniHut = [45.947931, 7.694082];
+    // the Fornet chair closed: Bontadini is still reached, the other way round
+    window._liveRow = feed(['Fornet'], 20);
+    const noFornet = names(skiRoute(planMaison, bontadiniHut, 3));
+    // the Cime Bianche gondola closed: from Plan Maison there truly is no way
+    // up to Plateau Rosa - and the way as if it ran still names it
+    window._liveRow = feed(['Cime Bianche Laghi'], 20);
+    const noCbl = names(skiRoute(planMaison, plateau, 3));
+    SKI.ignoreLive = true;
+    const asIfOpen = names(skiRoute(planMaison, plateau, 3));
+    SKI.ignoreLive = false;
+    const state = skiLiftState(g.ways.find(w => w.feed === 'Cime Bianche Laghi'));
+    const cretaz = skiLiftState(g.ways.find(w => w.k === 'l' && w.name === 'Cretaz' && w.lt === 'chair_lift'));
+    const zermatt = skiLiftState(g.ways.find(w => w.k === 'l' && /Matterhorn Express 1/.test(w.name || '')));
+    window._liveRow = feed(['Cime Bianche Laghi'], 600);
+    const stale = names(skiRoute(planMaison, plateau, 3));
+    const staleState = skiLiftState(g.ways.find(w => w.feed === 'Cime Bianche Laghi'));
+    window._liveRow = null;
+    return { noFornet, noCbl, asIfOpen, state, cretaz, zermatt, stale, staleState };
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'the ski router does not send anybody to a closed lift';
+  if (r.state !== 'closed') fail(T, `a lift the feed calls F reads as ${r.state}`); else ok();
+  if (!r.noFornet) fail(T, 'with the Fornet chair closed there was no way to Bontadini'); else ok();
+  if (r.noFornet && r.noFornet.includes('Fornet')) fail(T, 'a route used the closed Fornet chair: ' + r.noFornet.join(' > ')); else ok();
+  if (r.noCbl) fail(T, 'a way up to Plateau Rosa with the Cime Bianche gondola closed: ' + r.noCbl.join(' > ')); else ok();
+  if (!r.asIfOpen || !r.asIfOpen.includes('Cime Bianche Laghi')) fail(T,
+    'the way as if the lifts ran does not go through the gondola: ' + (r.asIfOpen || []).join(' > ')); else ok();
+  if (r.cretaz !== 'closed') fail(T, `a covered lift missing from the feed reads as ${r.cretaz}, not closed`); else ok();
+  if (r.zermatt !== 'unknown') fail(T, `a Zermatt lift the feed does not report on reads as ${r.zermatt}`); else ok();
+  if (r.staleState !== 'unknown') fail(T, `a ten-hour-old reading was still used: ${r.staleState}`); else ok();
+}
+
 // ── the community links have a standing door ─────────────────────────────
 // The Israeli Facebook group, the video and the Hebrew write-ups lived in a
 // panel reachable from a banner that shows once and never again. A reader

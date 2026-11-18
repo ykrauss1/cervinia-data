@@ -7462,7 +7462,17 @@ function _geoDestPaint() {
   var moved = !SKI.at || GEO.map.distance(here, SKI.at) > 40;
   var fresh = key !== SKI.key;
   if (fresh || (moved && now - SKI.t > 8000)) {
+    SKI.ignoreLive = false;
     SKI.route = skiRoute(here, d.ll, GEO.level);
+    SKI.closedRoute = false;
+    if (!SKI.route && _skiLive()) {
+      // nothing with today's lifts: show the way as if they ran, and say
+      // which of them do not
+      SKI.ignoreLive = true;
+      SKI.route = skiRoute(here, d.ll, GEO.level);
+      SKI.ignoreLive = false;
+      SKI.closedRoute = !!SKI.route;
+    }
     SKI.key = key; SKI.at = here; SKI.t = now;
     _skiDraw(SKI.route);
     if (fresh && SKI.layer) {
@@ -7486,12 +7496,25 @@ function _geoDestPaint() {
                        : L('כ-' + Math.floor(mins / 60) + ':' + ('0' + mins % 60).slice(-2) + ' שע\'',
                            'about ' + Math.floor(mins / 60) + 'h ' + ('0' + mins % 60).slice(-2));
   var steps = skiSteps(SKI.route);
-  info.innerHTML = '🎯 ' + name + ' · ' + time
+  var live = _skiLive();
+  var shut = steps.filter(function (st) { return st.kind === 'lift' && /^(closed|later)$/.test(skiLiftState(SKI.graph.ways[st.way])); });
+  var warn = SKI.closedRoute && shut.length
+    ? '<div style="margin:4px 0;padding:5px 8px;border-radius:7px;background:#fdecea;color:#a3271b;">⛔ '
+      + L('אין כרגע דרך עם המעליות שפועלות. זו הדרך כשהן פועלות, והמעליות האלה סגורות עכשיו: ',
+          'No way right now with the lifts that are running. This is the way when they run, and these are closed now: ')
+      + shut.map(function (st) { return escHtml(st.name || ''); }).join(', ') + '</div>'
+    : '';
+  var liveNote = live
+    ? L('מצב המעליות: מהאתר הרשמי, לפני ' + Math.max(1, Math.round(live._age)) + ' דק\'. ',
+        'Lift status: from the official site, ' + Math.max(1, Math.round(live._age)) + ' min ago. ')
+    : L('מצב המעליות לא ידוע כרגע. ', 'Lift status unknown right now. ');
+  info.innerHTML = '🎯 ' + name + ' · ' + time + warn
     + '<ol style="margin:4px 0 2px;padding-inline-start:20px;">'
     + steps.map(function (st) { return '<li style="margin:2px 0;">' + _skiStepHtml(st) + '</li>'; }).join('')
     + '</ol><span style="color:#6b7c8f;font-size:0.72rem;">'
-    + L('מחושב לפי מפת OpenStreetMap, לא לפי מצב המעליות היום. ודא בשילוט ובמפה הרשמית.',
-        'Worked out from the OpenStreetMap map, not from today\'s lift status. Check the signs and the official map.')
+    + liveNote
+    + L('המסלולים לפי מפת OpenStreetMap. ודא בשילוט ובמפה הרשמית.',
+        'Runs from the OpenStreetMap map. Check the signs and the official map.')
     + '</span>';
 }
 
@@ -7537,6 +7560,38 @@ function _skiDist(a, b) {
   return 2 * 6371000 * Math.asin(Math.sqrt(h));
 }
 
+// ── is this lift running? ──
+// From the resort's live feed (lifts_detail, saved by the scraper every half
+// hour): 'open', 'closed', 'later' (expected later today) or 'unknown'.
+// The feed reports on Breuil-Cervinia, Valtournenche and the lifts of the
+// glacier link; a lift there that is missing from it is not in service this
+// period. A reading older than three hours is not used at all - a route
+// built on this morning's closures is worse than one that says it does not
+// know.
+var SKI_LIVE_MAX_MIN = 180;
+function _skiLive() {
+  var d = window._liveRow && window._liveRow.lifts_detail;
+  if (!d || !Array.isArray(d.lifts) || d.lifts.length < 3) return null;
+  var age = (Date.now() - new Date(d.at || window._liveRow.updated_at).getTime()) / 60000;
+  if (!(age >= -10 && age <= SKI_LIVE_MAX_MIN)) return null;
+  if (d._by === undefined) {
+    d._by = {};
+    d.lifts.forEach(function (l) { d._by[String(l[1]).toLowerCase()] = l[2]; });
+  }
+  d._age = age;
+  return d;
+}
+function skiLiftState(w) {
+  if (!w || w.k !== 'l') return 'unknown';
+  var d = _skiLive();
+  if (!d) return 'unknown';
+  if (w.feed) {
+    var st = d._by[w.feed.toLowerCase()];
+    return st === 'O' ? 'open' : st === 'P' ? 'later' : 'closed';
+  }
+  return w.cov ? 'closed' : 'unknown';
+}
+
 // seconds for one edge, or -1 when the level forbids it
 function _skiCost(g, e, prevLine, level) {
   var k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null, sp = g.speed;
@@ -7546,6 +7601,10 @@ function _skiCost(g, e, prevLine, level) {
     return e[3] / (k === 's' ? sp.ski : sp.flat);
   }
   if (k === 'u' || k === 'r') {
+    if (!SKI.ignoreLive) {
+      var ls = skiLiftState(w);
+      if (ls === 'closed' || ls === 'later') return -1;
+    }
     var t = e[3] / (sp.lift[w.lt] || 3);
     if (prevLine !== e[2]) t += (sp.wait[w.lt] || 60);
     if (k === 'r') {
@@ -7662,6 +7721,8 @@ function skiSteps(route) {
   route.edges.forEach(function (ei) {
     var e = g.edges[ei], k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null;
     var kind = (k === 'u' || k === 'r') ? 'lift' : (k === 'w' || k === 'v') ? 'walk' : 'run';
+    // aerialway=yes is a passage between two stations, walked, not ridden
+    if (kind === 'lift' && w.lt === 'yes') kind = 'walk';
     var last = steps[steps.length - 1];
     if (kind === 'run') {
       var d = (w && w.d) || 2, ref = w && w.ref ? _skiRef(w.ref) : '', name = w && w.name ? w.name : '';
@@ -7689,8 +7750,13 @@ function _skiStepHtml(s) {
   var dist = s.m < 1000 ? Math.round(s.m / 10) * 10 + L(' מ\'', ' m') : (s.m / 1000).toFixed(1) + L(' ק״מ', ' km');
   if (s.kind === 'lift') {
     var t = L(SKI_LIFT_HE[s.lt] || 'מעלית', SKI_LIFT_EN[s.lt] || 'lift');
+    var ls = skiLiftState(SKI.graph.ways[s.way]);
+    var tag = ls === 'closed' ? ' <span style="color:#c5221f;">· ⛔ ' + L('סגורה כרגע', 'closed now') + '</span>'
+            : ls === 'later' ? ' <span style="color:#b06000;">· ' + L('תיפתח בהמשך היום', 'opens later today') + '</span>'
+            : ls === 'unknown' && _skiLive() ? ' <span style="color:#7b8798;">· ' + L('מצב לא ידוע', 'state unknown') + '</span>'
+            : '';
     return '🚡 ' + (s.down ? L('ירידה ב', 'Ride down in the ') : L('עלה ב', 'Take the ')) + t
-      + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '');
+      + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '') + tag;
   }
   if (s.kind === 'walk') return '🚶 ' + (s.village ? L('הליכה בכפר', 'Walk through the village') : L('הליכה', 'Walk')) + ' · ' + dist;
   var label = s.ref ? L('מסלול ', 'Run ') + escHtml(s.ref) : L('מסלול', 'Run');
@@ -19880,6 +19946,7 @@ async function loadLiveData() {
         const rows = await res.json();
         console.log('✅ Live data from Supabase:', rows && rows.length > 0 ? rows[0].updated_at : 'empty array', 'count:', rows ? rows.length : 0, 'keys:', rows && rows[0] ? Object.keys(rows[0]).join(',') : 'none', 'temp:', rows && rows[0] ? rows[0].temperature : 'N/A');
         if (rows && rows.length > 0) {
+          window._liveRow = rows[0];     // the ski router reads each lift's state from it
           renderLiveBar(rows[0]);
           showDataSourceBadge('live', rows[0].updated_at);
           return;

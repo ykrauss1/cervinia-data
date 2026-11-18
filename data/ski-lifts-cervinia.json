@@ -1,0 +1,26 @@
+{
+  "_about": "Which lift on the map is which lift in the resort's live feed (cervinia.it/en/impianti). Keys are the feed's names, values the OpenStreetMap way ids of that lift. 'covered' is the box of the lifts the feed reports on (Breuil-Cervinia and Valtournenche): a lift there that is missing from today's feed is not running today. Lifts outside the box and not named here - most of Zermatt - have no live state, and the router says so.",
+  "covered": [45.875, 7.60, 45.95, 7.725],
+  "lifts": {
+    "FU Breuil-Plan Maison": [22341548],
+    "TC Breuil-Plan Maison": [114942017],
+    "Plateau Rosa": [22341544],
+    "Cime Bianche Laghi": [322784212],
+    "Bontadini": [22341547],
+    "Fornet": [22341546],
+    "Pancheron": [49885289],
+    "Plan Maison": [22341545],
+    "Goillet": [102661014],
+    "Tappeto Plan Maison": [322784409],
+    "Gran Sometta": [30833742],
+    "Furi-Trockener steg": [22337638],
+    "Trockener steg - Klein Matterhorn": [22341540],
+    "Zermatt-Furi": [22338264],
+    "3S Matterhorn Glacier Ride": [519981791],
+    "3S Matterhorn Glacier Ride II": [618950310],
+    "Furggsattel": [22341538],
+    "Plateau Rosa 1": [44334075],
+    "Plateau Rosa 2": [30833440],
+    "Plateau Rosa 3": [44334074]
+  }
+}
