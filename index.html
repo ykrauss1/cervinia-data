@@ -1479,7 +1479,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.36';
+  var v='v18.37';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5223,6 +5223,18 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                         <button type="button" id="adv-span-all" onclick="_admVisitDetail('all')" style="flex:1;padding:6px 2px;border:1px solid #d6dde6;background:#fff;color:#456;border-radius:8px;font-size:0.74rem;cursor:pointer;">הכול</button>
                     </div>
                     <div id="admin-visits-detail" style="font-size:0.8rem;color:#555;margin-top:10px;"></div>
+                </div>
+
+                <!-- Google search: how people find the site in Google (Search Console,
+                     through the search-stats function - an admin only). 19.11 -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:8px;">🔎 חיפוש בגוגל</div>
+                    <div style="display:flex;gap:6px;margin-bottom:10px;">
+                        <button type="button" id="gsc-span-7" onclick="_admSearch(7)" style="flex:1;padding:6px 2px;border:1px solid #d6dde6;background:#fff;color:#456;border-radius:8px;font-size:0.74rem;cursor:pointer;font-family:inherit;">7 ימים</button>
+                        <button type="button" id="gsc-span-28" onclick="_admSearch(28)" style="flex:1;padding:6px 2px;border:1px solid #d6dde6;background:#fff;color:#456;border-radius:8px;font-size:0.74rem;cursor:pointer;font-family:inherit;">28 ימים</button>
+                        <button type="button" id="gsc-span-90" onclick="_admSearch(90)" style="flex:1;padding:6px 2px;border:1px solid #d6dde6;background:#fff;color:#456;border-radius:8px;font-size:0.74rem;cursor:pointer;font-family:inherit;">3 חודשים</button>
+                    </div>
+                    <div id="admin-search-detail" style="font-size:0.8rem;color:#555;"></div>
                 </div>
 
                 <!-- פעילות אחרונה -->
@@ -23237,6 +23249,63 @@ async function _admRenderUsers() {
         host.innerHTML = html;
     }
 
+    // How people find the site in Google: Search Console's figures, through
+    // the search-stats function (its key never reaches the page). Google's
+    // figures arrive two or three days late, so the span ends three days ago.
+    var CV_SEARCH_URL = 'https://cdgqodtbdhsqkvcgcdlm.functions.supabase.co/search-stats';
+    var _admSearchSeq = 0;
+    async function _admSearch(days) {
+        var host = document.getElementById('admin-search-detail');
+        if (!host) return;
+        days = days || 28;
+        [7, 28, 90].forEach(function (k) {
+            var b = document.getElementById('gsc-span-' + k);
+            if (!b) return;
+            var on = k === days;
+            b.style.background = on ? '#1a73e8' : '#fff'; b.style.color = on ? '#fff' : '#456';
+            b.style.borderColor = on ? '#1a73e8' : '#d6dde6'; b.style.fontWeight = on ? 'bold' : 'normal';
+        });
+        var say = function (t, warn) {
+            host.innerHTML = '<div style="padding:10px 12px;border-radius:8px;font-size:0.78rem;line-height:1.7;' +
+                (warn ? 'color:#b26a00;background:#fff8e1;">' : 'color:#aaa;text-align:center;">') + esc(t) + '</div>';
+        };
+        var seq = ++_admSearchSeq;
+        say(L('טוען…', 'Loading…'));
+        var data = null, res = null;
+        try {
+            var sb = _frSB(), ses = sb && (await sb.auth.getSession()).data.session;
+            if (!ses) { say(L('צריך להיות מחובר כמנהל.', 'Sign in as an admin.'), true); return; }
+            for (var n = 0; n < 2; n++) {
+                res = await fetch(CV_SEARCH_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + ses.access_token }, body: JSON.stringify({ days: days }) });
+                data = await res.json().catch(function () { return null; });
+                if (res.ok || res.status < 500) break;
+                await new Promise(function (r) { setTimeout(r, 2500); });
+            }
+        } catch (e) { res = null; }
+        if (seq !== _admSearchSeq) return;
+        if (!res) { say(L('אין חיבור לשרת.', 'No connection to the server.'), true); return; }
+        if (res.status === 404) { say(L('הפונקציה search-stats עוד לא הותקנה ב-Supabase.', 'The search-stats function is not installed in Supabase yet.'), true); return; }
+        if (!data || !data.ok) { say(L('גוגל לא ענה: ', 'Google did not answer: ') + ((data && (data.error + (data.said ? ' — ' + data.said : ''))) || ('HTTP ' + res.status)), true); return; }
+        var t = data.totals || {};
+        var big = function (v, label) { return '<div style="text-align:center;flex:1;"><div style="font-size:1.25rem;font-weight:800;color:#1a73e8;">' + esc(String(v)) + '</div><div style="font-size:0.68rem;color:#888;">' + label + '</div></div>'; };
+        var html = '<div style="display:flex;gap:6px;margin-bottom:6px;">'
+            + big(t.impressions || 0, L('הופעות', 'Impressions')) + big(t.clicks || 0, L('הקלקות', 'Clicks'))
+            + big((t.ctr || 0) + '%', L('אחוז הקלקה', 'Click rate')) + big(t.position || '—', L('מקום ממוצע', 'Avg. position')) + '</div>'
+            + '<div style="font-size:0.68rem;color:#9aa5b1;margin-bottom:8px;">' + esc(data.start) + ' – ' + esc(data.end) + ' · ' + L('הנתונים של גוגל מגיעים באיחור של כ־3 ימים', "Google's figures come about 3 days late") + '</div>';
+        var table = function (title, rows, name) {
+            if (!rows || !rows.length) return '';
+            return '<div style="font-weight:bold;color:#333;margin:10px 0 4px;">' + title + '</div>'
+                + '<table style="width:100%;border-collapse:collapse;font-size:0.74rem;"><tr style="color:#888;"><td></td><td style="text-align:center;">' + L('הופעות', 'Impr.') + '</td><td style="text-align:center;">' + L('הקלקות', 'Clicks') + '</td><td style="text-align:center;">' + L('מקום', 'Pos.') + '</td></tr>'
+                + rows.map(function (r) {
+                    return '<tr style="border-top:1px solid #f2f2f2;"><td style="padding:3px 0;word-break:break-word;" dir="auto">' + esc(name(r)) + '</td><td style="text-align:center;">' + r.impressions + '</td><td style="text-align:center;">' + r.clicks + '</td><td style="text-align:center;">' + (r.position != null ? r.position : '') + '</td></tr>';
+                }).join('') + '</table>';
+        };
+        html += table(L('מה חיפשו', 'What they searched for'), data.queries, function (r) { return r.q; });
+        html += table(L('אילו דפים הופיעו', 'Which pages showed'), data.pages, function (r) { return String(r.page).replace(/^https?:\/\/[^/]+/, '') || '/'; });
+        if (!data.queries || !data.queries.length) html += '<div style="color:#aaa;text-align:center;padding:8px;">' + L('עוד אין שאילתות בטווח הזה — גוגל התחיל לאסוף ב־17/11.', 'No searches in this span yet — Google started collecting on 17/11.') + '</div>';
+        host.innerHTML = html;
+    }
+
     async function populateAdminStats() {
         // `allPosts` is declared with `let` at the top level of a classic
         // script, and a top-level `let` is a LEXICAL binding - it never
@@ -23245,6 +23314,7 @@ async function _admRenderUsers() {
         // posts the forum actually held.
         _admVisits();
         _admVisitDetail('week');
+        _admSearch(28);
         const postsData = (typeof allPosts !== 'undefined' && allPosts) ? allPosts : [];
         const today = new Date().toDateString();
         const todayPosts = postsData.filter(p => p.timestamp && new Date(p.timestamp).toDateString() === today);
