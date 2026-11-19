@@ -2462,6 +2462,30 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.upLifts || r.upLifts[0] !== 'gondola:Plan Maison') fail(T, 'Breuil to Laghi does not start with the Plan Maison gondola: ' + (r.upLifts || []).join(' > ')); else ok();
 }
 
+// ── a route keeps to the runs, not straight across a piste area ──
+// (Yossi, 19.11) From the top of the Rocce Nere chair to Plan Maison on blues
+// the router crossed the whole Plan Maison plateau in straight lines: one
+// 1.7 km 'easy' area in the map let it hop 800 m at a time off every run.
+{
+  const r = await page.evaluate(async (graph) => {
+    _skiUse(graph);
+    window._liveRow = null; GEO.rideDown = false;
+    const g = SKI.graph, rt = skiRoute([45.95676, 7.66892], [45.9408, 7.65418], 1);
+    if (!rt) return null;
+    let area = 0, runs = 0;
+    rt.edges.forEach(i => { const e = g.edges[i], w = g.ways[e[2]] || {}; if (w.k === 'a') area += e[3]; else if (e[4] === 's' || e[4] === 'f') runs += e[3]; });
+    const longest = Math.max(0, ...g.edges.filter(e => (g.ways[e[2]] || {}).k === 'a').map(e => e[3]));
+    return { area: Math.round(area), runs: Math.round(runs), longest: Math.round(longest) };
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'a route keeps to the runs';
+  if (!r) fail(T, 'no route from Rocce Nere to Plan Maison on blues');
+  else {
+    // (Yossi, 19.11, second word: "only on the line of the run" - no area hops at all)
+    if (r.area > 0) fail(T, `${r.area} m straight across a piste area`); else ok();
+    if (r.longest > 0) fail(T, `the map still crosses piste areas (a hop of ${r.longest} m)`); else ok();
+  }
+}
+
 // ── the simulation glides along the route, in one piece and the right way ─
 // The pretend skier of ?sim=1 follows the route as one line: if a piece came
 // out back to front he would jump across the mountain and the voice would

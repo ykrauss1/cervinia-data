@@ -353,9 +353,13 @@ def main():
                         edges.append((a, b, wi, m, run, mode))
                 run = [g[i]]
 
-    # ── areas: every junction inside or on the edge of a piste area may
-    #    reach every lower one across it ──
-    for ar in areas:
+    # ── areas: none. The route goes on a run's own line and nowhere else
+    #    (Yossi, 19.11: "what looks flat can be something else altogether -
+    #    only on the line of the run"). A piste area in the map - the whole
+    #    Plan Maison plateau is one - says nothing about where a skier can
+    #    go across it, so it no longer joins anything. Kept, switched off,
+    #    for the record of what it did. ──
+    for ar in (areas if False else []):
         poly = ar['poly']
         inside = [k for k in junction
                   if point_in_poly(k, poly) or min(dist(k, q) for q in poly) < 40]
@@ -370,7 +374,15 @@ def main():
                 ha, hb = height.get(a), height.get(b)
                 if ha is None or hb is None or ha - hb < -5: continue
                 m = dist(a, b)
-                if m > 800: continue
+                # A short hop only, and only where the straight line stays in
+                # the area. 800 m let the router cross the whole Plan Maison
+                # plateau (one 1.7 km 'easy' area, OSM 50243340) in straight
+                # lines off every run (Yossi, 19.11: "a way not on the run at
+                # all"). The runs themselves carry the long way.
+                if m > 250: continue
+                if not all(point_in_poly((a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f), poly)
+                           for f in (0.2, 0.4, 0.6, 0.8)):
+                    continue
                 edges.append((a, b, wi, m, [a, b], 'down1'))
                 stats['area_edges'] += 1
 

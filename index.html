@@ -1514,7 +1514,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.45';
+  var v='v18.46';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -15104,6 +15104,16 @@ function _chipRow(label, defs, active, fn) {
     + '</div></div>';
 }
 
+var _pisteQT = null;
+function pisteSearch(v) {
+  window.pisteQ = v;
+  clearTimeout(_pisteQT);
+  _pisteQT = setTimeout(function () {
+    renderPisteGuide();
+    var i = document.getElementById('piste-q');
+    if (i) { i.focus(); try { i.setSelectionRange(v.length, v.length); } catch (e) {} }
+  }, 200);
+}
 function renderPisteGuide() {
   var el = document.getElementById('piste-guide-content');
   if (!el) return;
@@ -15142,8 +15152,18 @@ function renderPisteGuide() {
           + (kind === 'runs' ? _chipRow(L('דרגה', 'Level'), PISTE_DIFFS, diff, 'setPisteDiff') : '')
         : '');
 
+  // a run found by its name or its number (Yossi, 19.11), across every area
+  // and level - the chips are for browsing, the box is for "where is 34?"
+  var q = String(window.pisteQ || '');
+  var searchHtml = activeTab === 'map' ? ''
+    : '<div style="position:relative;margin-bottom:7px;">'
+      + '<input id="piste-q" type="search" value="' + esc(q) + '" oninput="pisteSearch(this.value)" autocomplete="off"'
+      + ' placeholder="' + L('🔎 חיפוש מסלול לפי שם או מספר', '🔎 Find a run by name or number') + '"'
+      + ' style="width:100%;box-sizing:border-box;padding:8px 11px;border:1px solid #d6e2ef;border-radius:9px;font-family:inherit;font-size:0.84rem;">'
+      + '</div>';
+
   // the switcher and both chip rows stay put while the list scrolls
-  var headHtml = '<div id="piste-sticky">' + tabHtml + chipHtml + '</div>';
+  var headHtml = '<div id="piste-sticky">' + tabHtml + searchHtml + (q ? '' : chipHtml) + '</div>';
 
   var bodyHtml = '';
 
@@ -15164,7 +15184,19 @@ function renderPisteGuide() {
       : L('האוכל בבקתות אינו כשר ואיננו מפרסמים המלצות על אוכל. עם זאת, ניתן בהחלט לשבת בבקתות ובמרפסות המשקיפות לנוף הנפלא, ליהנות מהשמש החורפית, לשתות בירה, משקאות קלים או חריף — ובכל הבקתות יש שירותים לשימוש הגולשים.', 'The food in the huts is not kosher, and we don\'t publish food recommendations. You can still sit in the huts and on the terraces overlooking the wonderful view, enjoy the winter sun and have a beer, a soft drink or something stronger — and every hut has toilets for skiers.');
     var kosherNotice = L('<div style="margin-bottom:12px;padding:11px 14px;background:#fff8e1;border:1.5px solid #f39c12;border-radius:10px;font-size:0.8rem;color:#555;line-height:1.7;"><b>🕍 הערה לשומרי כשרות</b><br>', '<div style="margin-bottom:12px;padding:11px 14px;background:#fff8e1;border:1.5px solid #f39c12;border-radius:10px;font-size:0.8rem;color:#555;line-height:1.7;"><b>🕍 A note for those who keep kosher</b><br>') + _kosherText + '</div>';
 
+    var qn = q.trim().toLowerCase();
+    if (qn) kind = 'runs';
     var flat = _pisteFlat().filter(function (x) {
+      if (qn) {
+        var p = x.p || {}, num = String(p.num || '').toLowerCase();
+        // a number finds the run's number only: "7" is 7, 7.0 and 7.00 (not 70,
+        // and not a height of 2,750 m in the text); words find the name
+        if (/^\d[\d.]*(bis|b)?$/.test(qn)) {
+          return num.split(/[^0-9a-z.]+/).some(function (t) { return t === qn || t.indexOf(qn + '.') === 0 || t === qn + 'bis'; });
+        }
+        var hay = [p.name, p.trail, (p.runs || []).join(' '), p.area].join(' ').toLowerCase();
+        return hay.indexOf(qn) >= 0;
+      }
       var areaOk = area === 'all' ? true
                  : area === 'small' ? (x.area === 'torgnon' || x.area === 'chamois')
                  : x.area === area;
@@ -15192,7 +15224,10 @@ function renderPisteGuide() {
 
     if (kind === 'hut' || kind === 'apres') bodyHtml += kosherNotice;
 
-    if (!flat.length) {
+    if (!flat.length && qn) {
+      bodyHtml += '<div style="padding:22px 14px;text-align:center;color:#888;font-size:0.84rem;line-height:1.9;">'
+        + L('לא נמצא מסלול בשם או במספר הזה.', 'No run by that name or number.') + '</div>';
+    } else if (!flat.length) {
       bodyHtml += '<div style="padding:22px 14px;text-align:center;color:#888;font-size:0.84rem;line-height:1.9;">'
         + L('אין מה להציג בשילוב הזה.<br>', 'Nothing to show for this combination.<br>')
         + L('<span style="font-size:0.78rem;">נסו אזור אחר, או "הכל" באחד משני הסרגלים.</span></div>', '<span style="font-size:0.78rem;">Try another area, or "All" in one of the two rows.</span></div>');
