@@ -1511,7 +1511,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.40';
+  var v='v18.41';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -23393,7 +23393,11 @@ async function _admRenderUsers() {
         };
         html += table(L('מה חיפשו', 'What they searched for'), data.queries, function (r) { return r.q; });
         html += table(L('אילו דפים הופיעו', 'Which pages showed'), data.pages, function (r) { return String(r.page).replace(/^https?:\/\/[^/]+/, '') || '/'; });
-        if (!data.queries || !data.queries.length) html += '<div style="color:#aaa;text-align:center;padding:8px;">' + L('עוד אין שאילתות בטווח הזה — גוגל התחיל לאסוף ב־17/11.', 'No searches in this span yet — Google started collecting on 17/11.') + '</div>';
+        // Google withholds a query that few people typed (privacy): the
+        // impressions count, the words do not show until there are more
+        if (!data.queries || !data.queries.length) html += '<div style="color:#8a97a5;text-align:center;padding:8px;line-height:1.6;">' + ((t.impressions || 0) > 0
+            ? L('יש הופעות, אבל גוגל לא מציג את מילות החיפוש כשרק מעט אנשים חיפשו אותן (מטעמי פרטיות). כשיהיו יותר חיפושים הן יופיעו כאן.', 'There are impressions, but Google hides search words that few people typed (for privacy). They will show here as searches grow.')
+            : L('עוד אין חיפושים בטווח הזה — גוגל התחיל לאסוף ב־17/11.', 'No searches in this span yet — Google started collecting on 17/11.')) + '</div>';
         host.innerHTML = html;
     }
 
