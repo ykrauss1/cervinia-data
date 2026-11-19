@@ -1514,7 +1514,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.46';
+  var v='v18.48';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5097,17 +5097,27 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
         <!-- take me to: a destination from the site's own verified points -->
         <div id="map-geo-dest-row" style="flex-shrink:0;padding:6px 9px;border-bottom:1px solid #e3eaf2;background:#f8fbfe;font-size:0.76rem;color:#33475b;">
           <!-- the kinds of destination, one button each (Yossi, 18.11), and friends -->
-          <div id="map-geo-cats-row" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px;align-items:center;">
-            <div id="map-geo-cats" role="tablist" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
-            <button type="button" id="map-geo-friends-btn" onclick="geoFriends()" style="margin-inline-start:auto;padding:4px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;font-weight:600;border:1px solid #c9d6e3;background:#fff;color:#16314f;" data-en="👥 Friends">👥 חברים</button>
+          <!-- one row: the four kinds of place, and the friends as a round button of
+               their own at its end - not a fifth chip that wrapped to the middle of
+               the next line (Yossi, 19.11) -->
+          <div id="map-geo-cats-row" style="display:flex;gap:6px;flex-wrap:nowrap;margin-bottom:6px;align-items:center;">
+            <div id="map-geo-cats" role="tablist" style="display:flex;gap:5px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;"></div>
+            <button type="button" id="map-geo-friends-btn" onclick="geoFriends()" aria-label="חברים" data-en-aria-label="Friends" title="חברים"
+              style="position:relative;flex:none;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.15rem;line-height:1;border:none;background:linear-gradient(135deg,#7b4fd6,#5a33b0);color:#fff;box-shadow:0 2px 6px rgba(90,51,176,0.35);">👥</button>
           </div>
           <div id="map-geo-friends" style="display:none;margin-bottom:6px;padding:7px 8px;border:1px solid #d6e2ef;border-radius:9px;background:#fff;line-height:1.5;max-height:32vh;overflow:auto;"></div>
           <div style="display:flex;gap:6px;align-items:center;">
-            <select id="map-geo-dest" onchange="geoDest(this.value)" aria-label="קח אותי ל…" data-en-aria-label="Take me to…"
-              style="flex:1;min-width:0;padding:6px 8px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;font-family:inherit;font-size:0.8rem;color:#16314f;"></select>
+            <!-- the phone's own list for a <select> was plain and crowded (Yossi,
+                 19.11): the select stays, hidden, as the state; a button and a list
+                 of our own do the choosing -->
+            <select id="map-geo-dest" onchange="geoDest(this.value)" aria-hidden="true" tabindex="-1" style="display:none;"></select>
+            <button type="button" id="map-geo-pick" onclick="geoPickOpen()" aria-haspopup="listbox"
+              style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:10px;border:1.5px solid #1a73e8;background:#fff;font-family:inherit;font-size:0.84rem;color:#16314f;cursor:pointer;text-align:start;">
+              <span id="map-geo-pick-t" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">🎯 קח אותי ל…</span><span style="color:#1a73e8;">▾</span></button>
             <button type="button" id="map-geo-dest-x" onclick="geoDest('')" aria-label="ביטול היעד" data-en-aria-label="Clear the destination"
               style="display:none;padding:5px 10px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-size:0.8rem;">✕</button>
           </div>
+          <div id="map-geo-picklist" role="listbox" style="display:none;margin-top:6px;border:1px solid #d6e2ef;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(16,40,70,0.16);max-height:46vh;overflow:auto;"></div>
           <div id="map-geo-level-row" style="display:none;margin-top:5px;align-items:center;gap:6px 10px;flex-wrap:wrap;">
             <span data-en="Level:">רמה:</span>
             <select id="map-geo-level" onchange="geoLevel(this.value)"
@@ -5121,6 +5131,8 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <span data-en="Ride down in cabins too (gondola, cable car, train)">לרדת גם בקבינות (גונדולה, רכבל, רכבת)</span>
             </label>
             <button type="button" id="map-geo-voice" onclick="geoVoice(!VOICE.on)" style="display:none;padding:4px 9px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;">🔈 הדרכה קולית</button>
+            <!-- the voice language, beside the voice button (Yossi, 19.11) -->
+            <span id="map-geo-vlang" style="display:inline-flex;"></span>
           </div>
           <div id="map-geo-dest-info" style="display:none;margin-top:5px;line-height:1.5;max-height:34vh;overflow:auto;"></div>
           <!-- simulation: a pretend skier along the route, for trying the navigation from home (?sim=1) -->
@@ -7555,6 +7567,7 @@ function _geoDestList() {
 function geoCat(k) {
   GEO.destCat = k;
   _geoDestFill();
+  geoPickOpen(true);   // choosing a kind of place opens its list
 }
 function _geoDestFill() {
   var sel = document.getElementById('map-geo-dest');
@@ -7574,7 +7587,7 @@ function _geoDestFill() {
     bar.innerHTML = GEO_CATS.map(function (c) {
       var on = c[0] === cat;
       return '<button type="button" role="tab" aria-selected="' + on + '" onclick="geoCat(\'' + c[0] + '\')" style="'
-        + 'padding:4px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;font-weight:' + (on ? '700' : '500') + ';'
+        + 'flex:none;white-space:nowrap;padding:5px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;font-weight:' + (on ? '700' : '500') + ';'
         + 'border:1px solid ' + (on ? '#1a73e8' : '#c9d6e3') + ';background:' + (on ? '#e8f0fe' : '#fff') + ';color:' + (on ? '#174ea6' : '#33475b') + ';">'
         + L(c[1], c[2]) + '</button>';
     }).join('');
@@ -7591,13 +7604,53 @@ function _geoDestFill() {
     sel.appendChild(og);
   });
   sel.value = (GEO.dest && GEO.dests[GEO.dest.id] && sel.querySelector('option[value="' + GEO.dest.id + '"]')) ? GEO.dest.id : '';
+  GEO.pickGroups = data.groups.filter(function (g) { return g.cat === cat; });
+  _geoPickLabel();
+  if (GEO.pickOpen) _geoPickPaint();
   _geoDestPaint();
+}
+function _geoPickLabel() {
+  var t = document.getElementById('map-geo-pick-t');
+  if (t) t.textContent = GEO.dest ? '🎯 ' + GEO.dest.name : L('🎯 קח אותי ל…', '🎯 Take me to…');
+}
+function geoPickOpen(force) {
+  GEO.pickOpen = force != null ? !!force : !GEO.pickOpen;
+  var box = document.getElementById('map-geo-picklist');
+  if (!box) return;
+  box.style.display = GEO.pickOpen ? 'block' : 'none';
+  if (GEO.pickOpen) { GEO.pickQ = ''; _geoPickPaint(); var i = document.getElementById('map-geo-pick-q'); if (i && (GEO.pickGroups || []).reduce(function (n, g) { return n + g.items.length; }, 0) > 12) i.focus(); }
+}
+function geoPickSet(id) { geoPickOpen(false); geoDest(id); _geoPickLabel(); }
+function geoPickFilter(v) { GEO.pickQ = v; _geoPickPaint(true); }
+function _geoPickPaint(keepInput) {
+  var box = document.getElementById('map-geo-picklist');
+  if (!box) return;
+  var q = String(GEO.pickQ || '').trim().toLowerCase();
+  var groups = GEO.pickGroups || [], count = 0, list = '';
+  groups.forEach(function (g) {
+    var items = g.items.filter(function (d) { return !q || String(d.name).toLowerCase().indexOf(q) >= 0; });
+    if (!items.length) return;
+    list += '<div style="position:sticky;top:0;background:#f4f7fb;padding:5px 12px;font-size:0.72rem;font-weight:700;color:#5b6b80;letter-spacing:0.02em;border-bottom:1px solid #e3e9f1;">' + esc(g.label) + '</div>';
+    items.forEach(function (d) {
+      count++;
+      var on = GEO.dest && GEO.dest.id === d.id;
+      list += '<button type="button" role="option" aria-selected="' + !!on + '" onclick="geoPickSet(\'' + String(d.id).replace(/'/g, "\\'") + '\')" style="display:block;width:100%;text-align:start;padding:10px 14px;border:none;border-bottom:1px solid #f0f3f7;'
+        + 'background:' + (on ? '#e8f0fe' : '#fff') + ';font-family:inherit;font-size:0.86rem;color:#16314f;cursor:pointer;line-height:1.35;' + (on ? 'font-weight:700;' : '') + '">' + esc(d.name) + '</button>';
+    });
+  });
+  if (!count) list = '<div style="padding:14px;text-align:center;color:#8a97a5;font-size:0.82rem;">' + L('לא נמצא יעד בשם הזה', 'No destination by that name') + '</div>';
+  var many = groups.reduce(function (n, g) { return n + g.items.length; }, 0) > 12;
+  if (keepInput && document.getElementById('map-geo-pick-body')) { document.getElementById('map-geo-pick-body').innerHTML = list; return; }
+  box.innerHTML = (many ? '<div style="padding:8px;border-bottom:1px solid #e3e9f1;"><input id="map-geo-pick-q" type="search" oninput="geoPickFilter(this.value)" autocomplete="off" placeholder="'
+      + L('🔎 חיפוש יעד', '🔎 Find a destination') + '" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #d6e2ef;border-radius:8px;font-family:inherit;font-size:0.84rem;"></div>' : '')
+    + '<div id="map-geo-pick-body">' + list + '</div>';
 }
 function geoDest(id) {
   var lf = window.Leaflet;
   var d = id && GEO.dests ? GEO.dests[id] : null;
   if (d && !GEO.dest) geoFull(true);
   GEO.dest = d || null;
+  try { _geoPickLabel(); } catch (e) {}
   skiClear();
   var sel = document.getElementById('map-geo-dest');
   if (sel && sel.value !== (d ? d.id : '')) sel.value = d ? d.id : '';
@@ -7753,10 +7806,12 @@ function _geoDestPaint() {
     ? L('מצב המעליות: מהאתר הרשמי, לפני ' + Math.max(1, Math.round(live._age)) + ' דק\'. ',
         'Lift status: from the official site, ' + Math.max(1, Math.round(live._age)) + ' min ago. ')
     : L('מצב המעליות לא ידוע כרגע. ', 'Lift status unknown right now. ');
-  var vnote = VOICE.on
-    ? '<div style="margin:3px 0;color:#1a5fb4;">🔊 ' + L('המסך יישאר דלוק בזמן הניווט, כי בלי מסך אין קול.', 'The screen stays on while navigating: with it off, there is no voice.')
-      + _voiceLangNote() + '</div>'
-    : '';
+  // only the language choice under the route; the "screen stays on" line took
+  // a row and told nothing to act on (Yossi, 19.11)
+  var vlBox = document.getElementById('map-geo-vlang');
+  if (vlBox) vlBox.innerHTML = _voiceLangToggle();
+  var vl = VOICE.on ? _voiceLangNote() : '';
+  var vnote = vl ? '<div style="margin:3px 0;color:#1a5fb4;">' + vl + '</div>' : '';
   info.innerHTML = '🎯 ' + name + ' · ' + time + _skiAltsHtml() + warn + vnote
     + '<ol style="margin:4px 0 2px;padding-inline-start:20px;">'
     + steps.map(function (st) { return '<li style="margin:2px 0;">' + _skiStepHtml(st) + '</li>'; }).join('')
@@ -8315,6 +8370,26 @@ try {
 } catch (e) {}
 function _voiceLangNote() {
   if (!L(true, false)) return '';
+  // Hebrew voices misread a good deal (Yossi, 19.11): English is a choice
+  // at any time, whatever voices the phone has
+  if (VOICE.on && !(VOICE.noHe && !VOICE.enSaid)) {
+    // the choice itself sits beside the voice button (_voiceLangToggle);
+    // here only a word when the phone has no Hebrew voice
+    return VOICE.noHe && !VOICE.en ? ' <span style="color:#7a4b00;">בטלפון לא נמצא קול בעברית.</span>' : '';
+  }
+  return _voiceLangNoteRest();
+}
+function _voiceLangToggle() {
+  if (!L(true, false) || !VOICE.on || (VOICE.noHe && !VOICE.enSaid)) return '';
+  {
+    var c = 'padding:3px 10px;border-radius:12px;font-family:inherit;font-size:0.74rem;cursor:pointer;';
+    return '<span style="display:inline-flex;gap:4px;align-items:center;">'
+      + '<button type="button" onclick="geoVoiceEn(false)" style="' + c + (VOICE.en ? 'border:1px solid #c9d6e3;background:#fff;color:#33475b;' : 'border:1px solid #1a73e8;background:#e8f0fe;color:#174ea6;font-weight:700;') + '">עברית</button>'
+      + '<button type="button" onclick="geoVoiceEn(true)" style="' + c + (VOICE.en ? 'border:1px solid #1a73e8;background:#e8f0fe;color:#174ea6;font-weight:700;' : 'border:1px solid #c9d6e3;background:#fff;color:#33475b;') + '">English</button>'
+      + '</span>';
+  }
+}
+function _voiceLangNoteRest() {
   var b = 'padding:2px 9px;margin:2px 3px 0 0;border-radius:7px;border:1px solid #1a73e8;background:#fff;color:#1a5fb4;cursor:pointer;font-family:inherit;font-size:0.74rem;';
   if (VOICE.en) return ' ההקראה באנגלית.'
     + (_voiceHasHe() ? ' <button type="button" style="' + b + '" onclick="geoVoiceEn(false)">חזרה להקראה בעברית</button>' : '');
@@ -8333,6 +8408,8 @@ function _voiceButton() {
   b.textContent = VOICE.on ? L('🔊 הדרכה קולית פועלת', '🔊 Voice on') : L('🔈 הדרכה קולית', '🔈 Voice guidance');
   b.style.background = VOICE.on ? '#e8f0fe' : '#fff';
   b.style.borderColor = VOICE.on ? '#1a73e8' : '#c9d6e3';
+  var vb = document.getElementById('map-geo-vlang');
+  if (vb) vb.innerHTML = _voiceLangToggle();
 }
 
 var _VOICE_COL_HE = ['', 'כחול', 'אדום', 'שחור', 'שחור'];
@@ -8389,7 +8466,10 @@ function _voiceStep(route, steps, track, here, why) {
   if (nx && !VOICE.pre[cur + 1]) {
     var at = g.nodes[g.edges[route.edges[nx.i]][0]];
     var dn = _skiDist(here, at);
-    if (dn < 150) {
+    // the pretend skier of the simulation moves several times faster than a
+    // real one: the warning comes as many seconds ahead, not as many metres
+    var lead = (SIM.on && SIM.run) ? 150 * Math.max(1, SIM.f / 2.5) : 150;
+    if (dn < lead) {
       VOICE.pre[cur + 1] = true;
       voiceSay(VL('בעוד ', 'In ') + Math.max(50, Math.round(dn / 50) * 50) + VL(' מטר: ', ' metres: ') + _stepSpeech(nx), true);
     }
@@ -8466,10 +8546,15 @@ function _frPaint() {
   var btn = document.getElementById('map-geo-friends-btn');
   if (btn) {
     var n = FR.members.filter(function (m) { return !m.is_me && m.lat != null; }).length;
-    btn.textContent = L('👥 חברים', '👥 Friends') + (n ? ' · ' + n : '') + (FR.sharing ? ' · 📡' : '')
-      + (FR.invites && FR.invites.length ? ' · 📩' + FR.invites.length : '');
-    btn.style.background = FR.open ? '#e8f0fe' : '#fff';
-    btn.style.borderColor = FR.open ? '#1a73e8' : '#c9d6e3';
+    // a round button: the people, and a small badge - invitations first, then
+    // how many friends are on the map; a green ring while sharing
+    var inv = FR.invites && FR.invites.length ? FR.invites.length : 0;
+    var badge = inv ? '📩' + inv : (n ? String(n) : '');
+    btn.innerHTML = '👥' + (badge ? '<span style="position:absolute;top:-4px;inset-inline-end:-4px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:'
+      + (inv ? '#d93025' : '#1a73e8') + ';color:#fff;font-size:0.62rem;font-weight:700;line-height:17px;font-family:inherit;">' + badge + '</span>' : '');
+    btn.title = L('חברים', 'Friends') + (n ? ' · ' + n : '') + (FR.sharing ? ' · ' + L('משתף מיקום', 'sharing') : '');
+    btn.style.boxShadow = FR.sharing ? '0 0 0 3px #34a853, 0 2px 6px rgba(90,51,176,0.35)'
+      : FR.open ? '0 0 0 3px #c9b6f2, 0 2px 6px rgba(90,51,176,0.35)' : '0 2px 6px rgba(90,51,176,0.35)';
   }
   if (!box) return;
   box.style.display = FR.open ? 'block' : 'none';
