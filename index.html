@@ -1514,7 +1514,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.44';
+  var v='v18.45';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5414,6 +5414,12 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
 
             <!-- ══ מערכת ══ -->
             <div id="adtab-content-system" style="display:none;">
+                <!-- the navigation demo, one tap from the dashboard (Yossi, 19.11) -->
+                <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:6px;">🧪 דמו הניווט</div>
+                    <div style="font-size:0.76rem;color:#666;line-height:1.6;margin-bottom:8px;">נקודה מדומה שגולשת לאורך המסלול, עם ההקראה והחישוב מחדש — כדי לנסות את הניווט מהבית. לוחצים על המפה לנקודת התחלה, בוחרים יעד, ו"▶ סע".</div>
+                    <button type="button" onclick="admNavDemo()" style="width:100%;padding:10px;border:none;border-radius:9px;background:#b06000;color:#fff;font-family:inherit;font-size:0.86rem;font-weight:bold;cursor:pointer;">🧪 פתח את דמו הניווט</button>
+                </div>
                 <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
                     <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:10px;">🔍 מצב Scraper ו-Data</div>
                     <div id="admin-system-status" style="font-size:0.82rem;color:#555;line-height:2;"></div>
@@ -25520,6 +25526,12 @@ function _simStart() {
     }
     _simPaint();
   }, 250);
+}
+// from the admin dashboard: close it and start the simulation where it is
+function admNavDemo() {
+  try { sessionStorage.setItem('geoSim', '1'); } catch (e) {}
+  try { closeM('adminModal'); } catch (e) {}
+  setTimeout(_simStart, 150);
 }
 function _maybeSim() {
   try {
