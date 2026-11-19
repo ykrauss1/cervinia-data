@@ -1514,7 +1514,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.43';
+  var v='v18.44';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7276,6 +7276,42 @@ function loadMap(type) {
 var GEO = { map: null, watch: null, me: null, acc: null, first: true, lib: null, hi: true };
 var GEO_HOME = [45.9364, 7.6269];          // Breuil-Cervinia
 var GEO_LEAFLET = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/';
+
+// One run, every piece of it, drawn on the "where am I" map: the pieces are
+// found in the ski map by their names, so a run that the map splits in three
+// (Ventina: Ghiacciaio, Goillet, Bardoney) comes out whole. 19.11
+function showRunOnSiteMap(o) {
+  if (typeof o === 'string') { try { o = JSON.parse(o); } catch (e) { return; } }
+  var names = (o && o.n) || [];
+  try { closeM('pisteModal'); } catch (e) {}
+  openM('mapModal'); loadMap('gps');
+  var tries = 0;
+  (function go() {
+    if (++tries > 80) return;
+    if (!GEO.map || !window.Leaflet) { setTimeout(go, 150); return; }
+    _skiLoad().then(function (g) {
+      var lf = window.Leaflet, grp = lf.layerGroup(), b = null, len = 0;
+      g.edges.forEach(function (e) {
+        var w = e[2] >= 0 ? g.ways[e[2]] : null;
+        if (!w || w.k !== 'p' || names.indexOf(w.name) < 0) return;
+        var pts = _skiGeom(e);
+        lf.polyline(pts, { color: '#fff', weight: 10, opacity: 0.9, interactive: false }).addTo(grp);
+        lf.polyline(pts, { color: '#d93025', weight: 6, opacity: 0.95, interactive: false }).addTo(grp);
+        pts.forEach(function (q) { b = b ? b.extend(q) : lf.latLngBounds([q, q]); });
+        len += e[3];
+      });
+      if (GEO.runLayer) { try { GEO.map.removeLayer(GEO.runLayer); } catch (e) {} }
+      if (!b) {   // a run of another valley (Torgnon, Chamois...) is not in the site's ski map
+        _geoMsg('🗺️ <b>' + esc(o.t || '') + '</b> · ' + L('המסלול הזה עוד לא במפת האתר — הכפתור "⛷️ המסלול על המפה" בכרטיס פותח אותו ב-Mapy.', 'This run is not on our map yet — the "⛷️ The run on the map" button on its card opens it in Mapy.'));
+        return;
+      }
+      GEO.runLayer = grp.addTo(GEO.map);
+      if (b) GEO.map.fitBounds(b, { padding: [30, 30] });
+      _geoMsg('🗺️ <b>' + esc(o.t || '') + '</b>' + (len ? ' · ' + (len / 1000).toFixed(1) + L(' ק״מ על המפה', ' km on the map') : '')
+        + ' · <a href="#" onclick="if(GEO.runLayer){GEO.map.removeLayer(GEO.runLayer);GEO.runLayer=null;}_geoMsg(\'\');return false;">' + L('הסתר', 'Hide') + '</a>');
+    }).catch(function () { _geoMsg(L('מפת המסלולים לא נטענה. נסה שוב.', 'The ski map did not load. Try again.')); });
+  })();
+}
 
 function _geoMsg(html) { var m = document.getElementById('map-geo-msg'); if (m) m.innerHTML = html; }
 
@@ -14861,6 +14897,14 @@ function _pisteCard(p, col) {
           Lb.push('<a href="' + u + '" target="_blank" rel="noopener" style="' + btn
             + 'color:#0b6b3a;border:1px solid #bfe3cd;background:#f1fbf5;">'
             + L('⛷️ המסלול על המפה', '⛷️ The run on the map') + '</a>');
+        }
+        // the run drawn whole on the site's own map - every piece of it
+        // (Ventina is three runs on the map: 7, 7.0 and 7.00; Yossi, 19.11)
+        var runs = p.runs || (p.trail ? [p.trail] : null);
+        if (runs) {
+          Lb.push('<a href="#" onclick="showRunOnSiteMap(' + esc(JSON.stringify({ n: runs, t: (p.num ? p.num + ' · ' : '') + String(p.name).replace(/\s*⭐/, '') })).replace(/"/g, '&quot;')
+            + ');return false;" style="' + btn + 'color:#8a2a1c;border:1px solid #f0c9c0;background:#fff4f1;">'
+            + L('🗺️ כל המסלול על מפת האתר', '🗺️ The whole run on our map') + '</a>');
         }
         if (mapIsUrl && /google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
           Lb.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
