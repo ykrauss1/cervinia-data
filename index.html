@@ -600,6 +600,9 @@ mark.cl-hit {
   position: absolute; top: 15px; inset-inline-end: 54px;
   font-size: 1.05rem; line-height: 1; cursor: pointer; opacity: 0.55;
   user-select: none; transition: opacity 0.15s; padding: 4px;
+  /* above a panel's own sticky header, like the close button beside it -
+     the lodging panel's pinned chip grid slid over half of it (Yossi, 19.11) */
+  z-index: 10; background: #fff; border-radius: 50%;
 }
 .panel-share:hover, .panel-share:focus { opacity: 1; outline: none; }
 .fl-fold { border:1.5px solid #cfe0f2; border-radius:11px;
@@ -1511,7 +1514,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.42';
+  var v='v18.43';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
