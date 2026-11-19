@@ -8437,7 +8437,7 @@ function _frPaint() {
     h += '<div style="font-weight:bold;margin-bottom:4px;">' + L('הוזמנת לקבוצה', 'You were invited to a group') + '</div>';
     if (!_frSignedIn()) {
       h += L('כדי להצטרף צריך להתחבר. ', 'Sign in to join. ')
-        + '<a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;font-weight:bold;">' + L('כניסה / הרשמה', 'Sign in') + '</a>';
+        + '<a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;font-weight:bold;">' + L('כניסה / הרשמה', 'Sign in / Sign up') + '</a>';
       box.innerHTML = h + note; return;
     }
     h += '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' + L('השם שיופיע לחברים:', 'Your name for the group:')
@@ -8449,7 +8449,7 @@ function _frPaint() {
   }
   if (!_frSignedIn()) {
     box.innerHTML = L('כדי לראות חברים ולשתף מיקום צריך להתחבר. ', 'Sign in to see friends and share your location. ')
-      + '<a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;font-weight:bold;">' + L('כניסה / הרשמה', 'Sign in') + '</a>' + note;
+      + '<a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;font-weight:bold;">' + L('כניסה / הרשמה', 'Sign in / Sign up') + '</a>' + note;
     return;
   }
   if (FR.groups === null) { box.innerHTML = '⏳ ' + L('טוען…', 'Loading…'); return; }
@@ -20953,7 +20953,7 @@ function renderHeader() {
   } else {
     // It used to borrow .service-btn, which is now a large card with an icon
     // tile - so the sign-in button grew into a white block in the header.
-    area.innerHTML = `<button onclick="openM('authModal')" class="signin-btn">${L('כניסה<span class="si-more"> / הרשמה</span>', 'Sign in')}</button>`;
+    area.innerHTML = `<button onclick="openM('authModal')" class="signin-btn">${L('כניסה<span class="si-more"> / הרשמה</span>', 'Sign in<span class="si-more"> / Sign up</span>')}</button>`;
   }
 }
 
@@ -22027,7 +22027,7 @@ function renderPostBtn() {
   if (user) {
     area.innerHTML = `<button onclick="showNewPost()" style="padding:12px 28px;background:var(--accent);color:white;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-weight:bold;box-shadow:0 3px 10px rgba(76,201,240,0.35);transition:all 0.15s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">${L('✏️ פוסט חדש', '✏️ New post')}</button>`;
   } else {
-    area.innerHTML = `<button onclick="openM('authModal')" class="service-btn" style="padding:8px 18px;">${L('כניסה / הרשמה', 'Sign in')}</button>`;
+    area.innerHTML = `<button onclick="openM('authModal')" class="service-btn" style="padding:8px 18px;">${L('כניסה / הרשמה', 'Sign in / Sign up')}</button>`;
   }
 }
 
