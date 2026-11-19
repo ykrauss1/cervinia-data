@@ -1479,7 +1479,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.38';
+  var v='v18.39';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -19941,6 +19941,10 @@ async function paintTravelTeaser() {
     return (a.price || 1e9) - (b.price || 1e9);
   })[0];
   if (!cheap || cheap.price == null) return;
+  // The offers are of flights from Tel Aviv. Whoever reads the site in
+  // English is as likely to be flying from London, and "From Tel Aviv: $124"
+  // on the home page tells him the site is not for him (Yossi, 19.11).
+  if (window.LANG === 'en') return;
   var host = card.querySelector('.svc-txt small');
   if (!host || host.querySelector('.fl-teaser')) return;
   var b = document.createElement('span');
@@ -22687,6 +22691,58 @@ function countReplies(item) {
   return (item.replies || []).reduce(function(acc, r){ return acc + 1 + countReplies(r); }, 0);
 }
 
+// ── posts in other languages (19.11) ─────────────────────────────────────
+// The site is in two languages and the forum is what its readers wrote, in
+// whichever they write. On the English home page a strip of Hebrew posts
+// read as a part nobody had translated. So each side sees its own language
+// first, and one button brings the rest in or puts it away:
+//   English site - other languages start hidden;
+//   Hebrew site  - they start shown (its readers mostly read English too).
+// The choice is kept. A post with no words in it (a photo, a number) has no
+// language and is always shown, and so is the reader's own post - or what he
+// had just written in the "wrong" language would vanish as he sent it.
+var FORUM_LANGS_KEY = 'forumAllLangs';
+function _postLang(p) {
+  var t = String((p && p.content) || '').replace(/<[^>]*>/g, ' ').replace(/https?:\/\/\S+/g, ' ');
+  if (/[\u0590-\u05FF]/.test(t)) return 'he';
+  if ((t.match(/[A-Za-z\u00C0-\u024F]/g) || []).length >= 3) return 'en';
+  return '';
+}
+function _forumAllLangs() {
+  var v = null;
+  try { v = localStorage.getItem(FORUM_LANGS_KEY); } catch (e) {}
+  if (v === '1') return true;
+  if (v === '0') return false;
+  return window.LANG !== 'en';
+}
+function _forumOtherLang(p) {
+  var l = _postLang(p);
+  if (!l || l === (window.LANG === 'en' ? 'en' : 'he')) return false;
+  try { if (typeof isMine === 'function' && isMine(p)) return false; } catch (e) {}
+  return true;
+}
+function _forumVisible(posts) {
+  posts = posts || [];
+  return _forumAllLangs() ? posts : posts.filter(function (p) { return !_forumOtherLang(p); });
+}
+function toggleForumLangs() {
+  try { localStorage.setItem(FORUM_LANGS_KEY, _forumAllLangs() ? '0' : '1'); } catch (e) {}
+  if (typeof _peekIdx !== 'undefined') _peekIdx = 0;
+  filterPosts();
+}
+// The button itself. Nothing when there is nothing in another language.
+function _forumLangBar() {
+  var n = (allPosts || []).filter(_forumOtherLang).length;
+  if (!n) return '';
+  var on = _forumAllLangs();
+  return '<div style="text-align:center;margin:0 0 9px;">'
+    + '<button type="button" onclick="toggleForumLangs()" style="padding:5px 13px;background:#fff;border:1px solid #c9d6e6;'
+    + 'border-radius:16px;cursor:pointer;font-size:0.8rem;color:#456;font-family:inherit;">'
+    + (on ? L('🌐 להסתיר פוסטים בשפות אחרות', '🌐 Hide posts in other languages')
+          : L('🌐 להציג גם פוסטים בשפות אחרות', '🌐 Show posts in other languages too') + ' (' + n + ')')
+    + '</button></div>';
+}
+
 function renderPosts(query, sort, chips) {
   // The strip summarises the forum, not the current filter, and it is the
   // only way in now that the forum starts closed - so it renders first,
@@ -22698,7 +22754,9 @@ function renderPosts(query, sort, chips) {
   const list = document.getElementById('posts-list');
   if (!list) return;
   const nq = String(query || '').toLowerCase();
-  let filtered = allPosts.filter(function(p) {
+  const langBar = _forumLangBar();
+  const shown = _forumVisible(allPosts);
+  let filtered = shown.filter(function(p) {
     const c = String(p.content || '').toLowerCase();
     const u = String(p.user || '').toLowerCase();
     const matchQ = !nq || c.indexOf(nq) !== -1 || u.indexOf(nq) !== -1;
@@ -22720,7 +22778,7 @@ function renderPosts(query, sort, chips) {
   const banner = filtering
     ? '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;'
       + 'background:#eef4ff;border:1px solid #d0d8f0;border-radius:8px;padding:7px 11px;margin-bottom:9px;font-size:0.82rem;color:#456;">'
-      + L('<span>סינון פעיל — מוצגים ', '<span>Filter on — showing ') + filtered.length + L(' מתוך ', ' of ') + allPosts.length + '</span>'
+      + L('<span>סינון פעיל — מוצגים ', '<span>Filter on — showing ') + filtered.length + L(' מתוך ', ' of ') + shown.length + '</span>'
       + '<button onclick="clearForumFilter()" style="padding:3px 11px;background:white;border:1px solid #9ab;'
       + L('border-radius:6px;cursor:pointer;font-size:0.8rem;color:#456;">✕ נקה סינון</button>', 'border-radius:6px;cursor:pointer;font-size:0.8rem;color:#456;">✕ Clear filter</button>')
       + '</div>'
@@ -22731,11 +22789,12 @@ function renderPosts(query, sort, chips) {
       + '<div style="color:#aaa;text-align:center;padding:20px;">'
       + (filtering ? L('אין תוצאות לסינון הנוכחי', 'No results for the current filter')
          : sort === 'unanswered' ? L('כל השאלות כבר קיבלו תשובה 👍', 'Every question has had an answer 👍')
+         : langBar && !_forumAllLangs() ? L('אין עדיין פוסטים בעברית. אפשר לכתוב את הראשון.', 'No posts in English yet. Be the first to write.')
          : L('אין פוסטים עדיין', 'No posts yet'))
-      + '</div>';
+      + '</div>' + langBar;
     return;
   }
-  list.innerHTML = banner + filtered.map(function(p) {
+  list.innerHTML = langBar + banner + filtered.map(function(p) {
     const isOwner = isMine(p);
     const canDel = user && (isOwner || isAdmin());
     let fileHtml = '';
@@ -22848,7 +22907,7 @@ function peekPerView() {
 }
 
 function _peekPosts() {
-  var posts = (typeof allPosts !== 'undefined' && allPosts) ? allPosts.slice() : [];
+  var posts = (typeof allPosts !== 'undefined' && allPosts) ? _forumVisible(allPosts).slice() : [];
   posts.sort(function (a, b) { return b.timestamp - a.timestamp; });
   return posts.slice(0, PEEK_POOL);
 }
