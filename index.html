@@ -1511,7 +1511,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.41';
+  var v='v18.42';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -22727,12 +22727,14 @@ function countReplies(item) {
 // The site is in two languages and the forum is what its readers wrote, in
 // whichever they write. On the English home page a strip of Hebrew posts
 // read as a part nobody had translated. So each side sees its own language
-// first, and one button brings the rest in or puts it away:
-//   English site - other languages start hidden;
-//   Hebrew site  - they start shown (its readers mostly read English too).
-// The choice is kept. A post with no words in it (a photo, a number) has no
-// language and is always shown, and so is the reader's own post - or what he
-// had just written in the "wrong" language would vanish as he sent it.
+// first - on both sites the other languages start hidden - and one button
+// brings the rest in or puts it away. The choice is kept.
+// A post with no words in it (a photo, a number) has no language and is
+// always shown. So is a post the reader wrote in the last ten minutes, or
+// what he had just written in the "wrong" language would vanish as he sent
+// it. Not every post of his, though: Yossi wrote the first English posts
+// himself, asked the Hebrew forum for Hebrew only, and got his own English
+// ones at the top of it (19.11).
 var FORUM_LANGS_KEY = 'forumAllLangs';
 function _postLang(p) {
   var t = String((p && p.content) || '').replace(/<[^>]*>/g, ' ').replace(/https?:\/\/\S+/g, ' ');
@@ -22745,12 +22747,14 @@ function _forumAllLangs() {
   try { v = localStorage.getItem(FORUM_LANGS_KEY); } catch (e) {}
   if (v === '1') return true;
   if (v === '0') return false;
-  return window.LANG !== 'en';
+  return false;
 }
 function _forumOtherLang(p) {
   var l = _postLang(p);
   if (!l || l === (window.LANG === 'en' ? 'en' : 'he')) return false;
-  try { if (typeof isMine === 'function' && isMine(p)) return false; } catch (e) {}
+  try {
+    if (typeof isMine === 'function' && isMine(p) && Date.now() - (Number(p.timestamp) || 0) < 10 * 60 * 1000) return false;
+  } catch (e) {}
   return true;
 }
 function _forumVisible(posts) {
