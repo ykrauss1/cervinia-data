@@ -1514,7 +1514,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.51';
+  var v='v18.52';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -22153,24 +22153,106 @@ function timeAgo(ts) {
 
 
 // One forum for both languages (Yossi, 12.11): a post stays as its author
-// wrote it, and a reader who meets one in the other language gets a link
-// that opens it in Google Translate. Nothing is stored and nothing is sent
-// anywhere until the reader asks.
+// wrote it, and a reader who meets one in the other language can have it
+// translated. In place, under the post (Yossi, 22.11: opening Google
+// Translate in a new screen "is not the point - like every other site").
+// Nothing is stored and nothing is sent anywhere until the reader asks.
+// The browser's own on-device translator first (Chrome), then the free
+// MyMemory service; only if both fail is Google Translate offered.
 function _textLang(t) {
   t = String(t || '');
-  var he = (t.match(/[\u0590-\u05ff]/g) || []).length;
+  var he = (t.match(/[֐-׿]/g) || []).length;
   var la = (t.match(/[A-Za-z]/g) || []).length;
   if (!he && !la) return '';
   return he >= la ? 'he' : 'en';
 }
 function _xlateLink(t) {
-  var tl = window.LANG === 'en' ? 'en' : 'iw';
+  var to = window.LANG === 'en' ? 'en' : 'he';
   var lg = _textLang(t);
-  if (!lg || lg === (window.LANG === 'en' ? 'en' : 'he')) return '';
-  var u = 'https://translate.google.com/?sl=auto&tl=' + tl + '&op=translate&text=' + encodeURIComponent(String(t).slice(0, 1500));
-  return '<a href="' + esc(u) + '" target="_blank" rel="noopener" '
-    + 'style="display:inline-block;font-size:0.76rem;color:#1a73e8;text-decoration:none;margin:0 0 5px;">'
-    + L('🌐 תרגום לעברית', '🌐 Translate to English') + '</a>';
+  if (!lg || lg === to) return '';
+  return '<span class="xl-link" onclick="xlateHere(this)" data-from="' + lg + '" data-to="' + to + '" '
+    + 'style="display:inline-block;font-size:0.76rem;color:#1a73e8;cursor:pointer;margin:0 0 5px;">'
+    + L('🌐 תרגום לעברית', '🌐 Translate to English') + '</span>';
+}
+var _xlCache = {};
+function _xlChunks(t) {
+  // MyMemory takes up to 500 bytes a request: cut at sentence ends
+  var out = [], cur = '';
+  String(t).split(/(?<=[.!?\n])\s+/).forEach(function (p) {
+    while (p.length > 400) { out.push(p.slice(0, 400)); p = p.slice(400); }
+    if ((cur + ' ' + p).length > 400) { if (cur) out.push(cur); cur = p; }
+    else cur = cur ? cur + ' ' + p : p;
+  });
+  if (cur) out.push(cur);
+  return out;
+}
+async function _xlate(text, from, to) {
+  var key = from + '|' + to + '|' + text;
+  if (_xlCache[key]) return _xlCache[key];
+  var res = '';
+  // The on-device model only when it is already on the phone - a first
+  // download can take minutes - and never longer than a few seconds.
+  var cap = function (p, ms) {
+    return Promise.race([p, new Promise(function (_, no) { setTimeout(function () { no(new Error('slow')); }, ms); })]);
+  };
+  try {
+    if (self.Translator && Translator.availability) {
+      var av = await cap(Translator.availability({ sourceLanguage: from, targetLanguage: to }), 2000);
+      if (av === 'available') {
+        var tr = await cap(Translator.create({ sourceLanguage: from, targetLanguage: to }), 4000);
+        res = await cap(tr.translate(text), 6000);
+      }
+    }
+  } catch (e) { res = ''; }
+  if (!res) {
+    var parts = [];
+    for (var c of _xlChunks(text)) {
+      var r = await cap(fetch('https://api.mymemory.translated.net/get?langpair=' + from + '|' + to
+        + '&q=' + encodeURIComponent(c)), 10000);
+      var j = await r.json();
+      var o = j && j.responseData && j.responseData.translatedText;
+      if (!o || j.responseStatus != 200 || /MYMEMORY WARNING|QUERY LENGTH LIMIT/i.test(o)) throw new Error('mymemory');
+      parts.push(o);
+    }
+    res = parts.join(' ');
+  }
+  _xlCache[key] = res;
+  return res;
+}
+async function xlateHere(el) {
+  var box = el.nextElementSibling && el.nextElementSibling.classList.contains('xl-out') ? el.nextElementSibling : null;
+  if (box) {                                   // second press hides it
+    var shown = box.style.display !== 'none';
+    box.style.display = shown ? 'none' : '';
+    el.textContent = shown ? L('🌐 תרגום לעברית', '🌐 Translate to English') : L('🌐 הסתר תרגום', '🌐 Hide translation');
+    return;
+  }
+  var src = el.previousElementSibling;
+  var text = src ? src.innerText.trim() : '';
+  if (!text) return;
+  var from = el.getAttribute('data-from'), to = el.getAttribute('data-to');
+  box = document.createElement('div');
+  box.className = 'xl-out';
+  box.dir = to === 'he' ? 'rtl' : 'ltr';
+  box.style.cssText = 'margin:0 0 6px;padding:7px 10px;border-radius:8px;background:#f3f7fd;'
+    + 'border-inline-start:3px solid #1a73e8;font-size:0.85rem;color:#333;line-height:1.6;white-space:pre-wrap;';
+  box.textContent = L('מתרגם…', 'Translating…');
+  el.after(box);
+  el.textContent = L('🌐 הסתר תרגום', '🌐 Hide translation');
+  try {
+    var out = await _xlate(text, from, to);
+    box.textContent = out;
+    var note = document.createElement('div');
+    note.style.cssText = 'font-size:0.68rem;color:#999;margin-top:3px;';
+    note.textContent = L('תרגום אוטומטי', 'Automatic translation');
+    box.appendChild(note);
+  } catch (e) {
+    var u = 'https://translate.google.com/?sl=' + from + '&tl=' + (to === 'he' ? 'iw' : 'en')
+      + '&op=translate&text=' + encodeURIComponent(text.slice(0, 1500));
+    box.innerHTML = escHtml(L('התרגום לא זמין כרגע.', 'Translation is not available right now.'))
+      + ' <a href="' + esc(u) + '" target="_blank" rel="noopener" style="color:#1a73e8;">'
+      + escHtml(L('לפתוח ב-Google Translate', 'Open in Google Translate')) + '</a>';
+  }
 }
 
 function renderFilterChips() {
