@@ -1515,7 +1515,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.58';
+  var v='v18.59';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6014,7 +6014,7 @@ var PANEL_LINKS = {
 // reader on a locked door or on a form with no context. The pair of lists
 // is what makes the next new modal a decision rather than an oversight:
 // selfcheck fails on any modal that appears in neither.
-var PANEL_PRIVATE = ['authModal', 'profileModal', 'adminModal', 'cropperModal',
+var PANEL_PRIVATE = ['authModal', 'profileModal', 'adminModal', 'cropperModal', 'kfModal',
                      'userInfoModal', 'avatarMenuModal', 'avatarCamModal',
                      'pwResetModal'];
 function _panelHashOf(modalId) {
@@ -10371,6 +10371,40 @@ function gFlightsUrl(from, to, ci, co, pax) {
     return 'https://www.google.com/travel/flights';
   }
 }
+// Kosher Fly is our own site, so it opens inside this one (Yossi, 22.11):
+// a panel over the page with the search running in it, rather than a new
+// tab that leaves the trip being planned here behind. "Open separately"
+// stays for whoever wants it on its own.
+var KF_HOST = 'https://ykrauss1.github.io/trip-finder/';
+function openKosherFly(url) {
+  var m = document.getElementById('kfModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'kfModal'; m.className = 'modal';
+    m.innerHTML = '<div class="modal-content" style="position:fixed;inset:2vh 2vw;max-width:none;width:auto;height:auto;padding:0;display:flex;flex-direction:column;overflow:hidden;border-radius:14px;">'
+      + '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#0a192f;color:#fff;flex-shrink:0;">'
+      + '<b style="font-size:0.92rem;">✈️ Kosher Fly</b>'
+      + '<span style="font-size:0.7rem;opacity:0.75;">' + escHtml(L('מנוע החיפוש שלנו', 'our search engine')) + '</span>'
+      + '<a id="kf-out" href="#" target="_blank" rel="noopener" style="margin-inline-start:auto;color:#9ed0ff;font-size:0.76rem;text-decoration:none;">'
+      + escHtml(L('פתח בחלון נפרד ↗', 'Open separately ↗')) + '</a>'
+      + '<button type="button" onclick="closeM(\'kfModal\')" aria-label="' + escHtml(L('סגירה', 'Close')) + '" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;">✕</button>'
+      + '</div>'
+      + '<iframe id="kf-frame" title="Kosher Fly" style="flex:1;border:none;width:100%;background:#0b1530;"></iframe>'
+      + '</div>';
+    document.body.appendChild(m);
+  }
+  var f = document.getElementById('kf-frame');
+  if (f.getAttribute('src') !== url) f.setAttribute('src', url);   // the same search is not run twice
+  document.getElementById('kf-out').href = url;
+  openM('kfModal');
+}
+document.addEventListener('click', function (e) {
+  var a = e.target && e.target.closest && e.target.closest('a[href^="' + KF_HOST + '"]');
+  if (!a || a.id === 'kf-out' || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  e.preventDefault();
+  openKosherFly(a.href);
+}, true);
+
 // Kosher Fly — מנוע החיפוש שלנו. הפרמטרים נקראים שם וממלאים את הטופס,
 // ו-run=1 מריץ את החיפוש מיד — המטייל נוחת על תוצאות, לא על טופס ריק.
 function kosherFlyUrl(code, ci, co, pax) {
