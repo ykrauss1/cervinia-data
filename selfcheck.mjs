@@ -239,6 +239,16 @@ if (leaked.length) fail('no private numbers in the page or texts.json', leaked.j
   if (bad.length) fail(T6, bad.slice(0, 6).join(' | ')); else ok();
 }
 
+// ── 6c. the shop rents out, the skier rents ──────────────────────────────
+// Yossi, 22.11: "צריכים לשכור, לא להשכיר" - the reader never rents anything
+// out on this site, so the verb that means renting OUT has no place in it.
+{
+  const T6c = 'the skier rents (לשכור), the shop rents out';
+  const src = [fs.readFileSync(PAGE, "utf8"), fs.readFileSync(TEXTS, 'utf8'), fs.readFileSync(TEXTS.replace(/texts\.json$/, 'texts.en.json'), 'utf8')].join('\n');
+  const hits = [...src.matchAll(/[^\s'"<>]{0,12}\s?(?:להשכיר|נשכיר|תשכירו|אשכיר)[^'"<]{0,20}/g)].map(m => m[0]);
+  if (hits.length) fail(T6c, hits.slice(0, 4).join(' | ')); else ok();
+}
+
 // ── 7. every key the page asks for actually exists ────────────────────────
 // _applyTexts reads dozens of fields. A renamed key fails silently - the
 // element simply keeps whatever placeholder the HTML had.

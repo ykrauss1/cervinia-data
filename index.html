@@ -720,6 +720,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         #mapModal.geo-full .modal-content { position: fixed !important; inset: 0 !important; max-width: none !important;
           width: auto !important; height: auto !important; max-height: none !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; }
         #mapModal.geo-full #map-head, #mapModal.geo-full #map-picks { display: none !important; }
+        #mapModal.geo-mode #map-picks { display: none !important; }
         #mapModal.geo-full #map-geo-dest-info { max-height: 16vh !important; }
         #mapModal.geo-full.geo-nav #map-geo-cats-row { display: none !important; }
         #mapModal.geo-full #map-geo-dest-row { padding: 4px 7px !important; }
@@ -1514,7 +1515,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.54';
+  var v='v18.55';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5004,12 +5005,19 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
     <!-- כותרת -->
     <div id="map-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;">
       <h3 style="margin:0;font-size:1rem;" data-en="🗺️ Maps">🗺️ מפות</h3>
+      <button type="button" id="map-geo-back" onclick="geoBackToMaps()"
+        style="display:none;margin-inline-start:auto;margin-inline-end:10px;padding:5px 11px;border-radius:8px;border:1px solid #c9d8e8;background:#f4f8fc;color:#17324c;font-family:inherit;font-size:0.78rem;font-weight:bold;cursor:pointer;"
+        data-en="🗺️ All maps">🗺️ כל המפות</button>
       <span class="close-btn" style="position:static;font-size:1.4rem;cursor:pointer;" onclick="closeMapModal()">×</span>
     </div>
     <!-- כפתורי בחירה -->
     <div id="map-picks" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;flex-shrink:0;">
+      <!-- "Where am I" is not one more map (Yossi, 22.11): a button of its
+           own kind, and once it is pressed the map buttons step aside. -->
+      <button type="button" id="map-nav-btn" onclick="loadMap('gps')"
+        style="width:100%;padding:11px 10px;border:none;border-radius:12px;background:linear-gradient(135deg,#1e7d46,#2eb067);color:#fff;font-family:inherit;font-size:0.92rem;font-weight:bold;cursor:pointer;box-shadow:0 3px 10px rgba(30,125,70,.28);"
+        data-en="📡 Where am I — navigation on the mountain">📡 איפה אני — ניווט על ההר</button>
       <div style="display:flex;gap:6px;">
-        <button class="service-btn map-pick" data-map="gps" style="flex:1;padding:9px 6px;font-size:0.78rem;font-weight:bold;" onclick="loadMap('gps')" data-en="📡 Where am I">📡 איפה אני</button>
         <button class="service-btn map-pick" data-map="mymap" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('mymap')" data-en="📍 Points of interest">📍 נקודות ציון</button>
         <button class="service-btn map-pick" data-map="town" style="flex:1;padding:9px 6px;font-size:0.78rem;" onclick="loadMap('town')" data-en="🏘️ Village map">🏘️ מפת הכפר</button>
       </div>
@@ -7173,6 +7181,7 @@ function _mapCancel() {
 }
 function closeMapModal() {
   geoFull(false);
+  _geoMode(false);
   _mapCancel();
   _mapReset();
   _mapIdle();
@@ -7214,6 +7223,7 @@ function _mapShowToolbar(downloadUrl, downloadName) {
 
 function loadMap(type) {
   if (type !== 'gps') geoFull(false);
+  _geoMode(type === 'gps');
   _mapCancel();
   _mapReset();
   _mapMarkPick(type);
@@ -7412,6 +7422,23 @@ function geoOpen() {
   });
 }
 
+// "Where am I" hides the map buttons, and shows the one way back to them
+function _geoMode(on) {
+  var m = document.getElementById('mapModal');
+  if (m) { if (on) m.classList.add('geo-mode'); else m.classList.remove('geo-mode'); }
+  var bk = document.getElementById('map-geo-back');
+  if (bk) bk.style.display = on ? '' : 'none';
+}
+function geoBackToMaps() {
+  if (SIM.on) simExit();
+  geoFull(false);
+  _geoMode(false);
+  _mapCancel();
+  _mapReset();
+  _mapMarkPick(null);
+  _mapIdle();
+}
+
 // the map on the whole screen, the site's buttons out of the way
 function geoFull(on) {
   var m = document.getElementById('mapModal');
@@ -7473,8 +7500,15 @@ function _geoFix(pos) {
   var b = document.getElementById('map-geo-btn');
   if (b) b.style.display = 'none';
   if (far) {
-    _geoMsg(L('נראה שאתה לא באזור צ\'רוויניה, אז המפה נשארת על אתר הסקי. כשתהיה שם, הנקודה הכחולה תראה איפה אתה.',
-              'You seem to be away from Cervinia, so the map stays on the ski area. Once you are there, the blue dot shows where you are.'));
+    // Away from the mountain the real position says nothing; the demo shows
+    // what the navigation does (Yossi, 22.11: "just switch to the demo").
+    if (!SIM.on) {
+      geoStop();
+      if (GEO.me) { GEO.map.removeLayer(GEO.me); GEO.map.removeLayer(GEO.acc); GEO.me = GEO.acc = null; }
+      SIM.farNote = L('אתה לא באזור צ\'רוויניה. עברנו להדגמה: לחץ על המפה במקום שממנו יוצאים, בחר יעד ולחץ ▶ סע. כשתהיה באתר, "איפה אני" יראה את המיקום האמיתי.',
+                'You are away from Cervinia. This is the demo: tap the map where you start, pick a destination and press ▶ Go. Once you are at the resort, "Where am I" shows your real position.');
+      setTimeout(_simStart, 200);
+    }
     return;
   }
   var alt = (c.altitude !== null && c.altitude !== undefined && !isNaN(c.altitude))
@@ -25514,7 +25548,7 @@ var GUIDE_Q = [
   { k: 'first', q: ['פעם ראשונה בצ\'רוויניה?', 'First time in Cervinia?'], a: [['yes', 'כן, פעם ראשונה', 'Yes, the first time'], ['no', 'כבר הייתי', 'I have been before']] },
   { k: 'kids',  q: ['מי נוסע?', 'Who is going?'], a: [['no', 'מבוגרים', 'Grown-ups'], ['yes', 'עם ילדים', 'With children']] },
   { k: 'level', q: ['באיזו רמה גולשים?', 'What level do you ski at?'], a: [['1', 'מתחילים', 'Beginners'], ['2', 'בינוניים', 'Intermediate'], ['3', 'מתקדמים', 'Advanced']] },
-  { k: 'gear',  q: ['ציוד?', 'Gear?'], a: [['rent', 'צריכים להשכיר', 'We need to hire it'], ['own', 'מביאים מהבית', 'We bring our own']] },
+  { k: 'gear',  q: ['ציוד?', 'Gear?'], a: [['rent', 'צריכים לשכור', 'We need to hire it'], ['own', 'מביאים מהבית', 'We bring our own']] },
   { k: 'lessons', q: ['שיעורים או מדריך?', 'Lessons or an instructor?'], a: [['yes', 'כן, כדאי', 'Yes'], ['no', 'לא צריך', 'No need']] },
   { k: 'shabbat', q: ['שומרים שבת וכשרות?', 'Do you keep Shabbat and kashrut?'], a: [['yes', 'כן', 'Yes'], ['no', 'לא', 'No']] }
 ];
@@ -25609,7 +25643,7 @@ function _guideResults() {
   var a = GUIDE.ans, out = [], seen = {};
   function add(key, icon, he, en, whyHe, whyEn, go) {
     if (seen[key]) return; seen[key] = 1;
-    out.push({ icon: icon, t: L(he, en), why: L(whyHe, whyEn), go: go });
+    out.push({ key: key, icon: icon, t: L(he, en), why: L(whyHe, whyEn), go: go });
   }
   if (a.first === 'yes') {
     add('why', '🏔️', 'למה צ\'רוויניה', 'Why Cervinia', 'מה מיוחד כאן, בקצרה', 'What is special here, in short', "openM('whyModal')");
@@ -25633,6 +25667,12 @@ function _guideResults() {
   add('nav', '📡', 'ניווט על ההר', 'Navigation on the mountain', 'הדרך ליעד לפי הרמה שלך — כבר מוגדרת', 'The way to anywhere at your level — already set', "openM('mapModal');loadMap('gps')");
   add('cost', '💶', 'כמה זה יעלה', 'What it will cost', 'סקי פס, ציוד, לינה וטיסה — הערכה אחת', 'Pass, gear, lodging and flight — one estimate', "openCost('free')");
   add('trip', '✈️', 'תכנון טיול', 'Trip planner', 'טיסה, לינה ורכב בחיפוש אחד', 'Flight, lodging and car in one search', "openPlanner('hub')");
+  // In the order a trip is made (Yossi, 22.11: the trip planner at the end
+  // "is not the right order"): decide, price it, book, get there, then the
+  // things of the days on the snow.
+  var ORDER = ['why', 'when', 'cost', 'trip', 'stay', 'fly', 'arrive', 'kosher', 'prep',
+               'skipass', 'rent', 'lessons', 'pistes', 'around', 'areas', 'nav'];
+  out.sort(function (x, y) { return ORDER.indexOf(x.key) - ORDER.indexOf(y.key); });
   return out;
 }
 function _guidePaint() {
@@ -25763,6 +25803,7 @@ function simOff() {          // the route left on purpose: about 150 m to one si
 }
 function simSpeed(v) { SIM.f = +v || 5; _simPaint(); }
 function simExit() {
+  SIM.farNote = '';
   SIM.on = false; SIM.run = false; SIM.ll = null; SIM.sig = null; SIM.path = null;
   if (SIM.t) { clearInterval(SIM.t); SIM.t = null; }
   try { sessionStorage.removeItem('geoSim'); } catch (e) {}
@@ -25772,12 +25813,14 @@ function simExit() {
 function _simPaint(note) {
   var box = document.getElementById('map-geo-sim');
   if (!box || !SIM.on) return;
+  if (!note && SIM.farNote && !SIM.ll) note = SIM.farNote;
   box.style.display = 'block';
   var b = 'padding:3px 9px;border-radius:7px;border:1px solid #c9a46a;background:#fff;cursor:pointer;font-family:inherit;font-size:0.76rem;';
   var sp = [1, 5, 20].map(function (v) { return '<option value="' + v + '"' + (SIM.f === v ? ' selected' : '') + '>×' + v + '</option>'; }).join('');
-  box.innerHTML = '<b>🧪 ' + L('הדמיה', 'Simulation') + '</b> · '
+  var farFirst = !SIM.ll && note && note === SIM.farNote;   // the note already says where to tap
+  box.innerHTML = '<b>🧪 ' + L('הדמיה', 'Simulation') + '</b>' + (farFirst ? '' : ' · '
     + (SIM.ll ? L('נקודת ההתחלה נבחרה. לחיצה על המפה מזיזה אותה.', 'Start chosen. A tap on the map moves it.')
-              : L('לחץ על המפה במקום שממנו "יוצאים".', 'Tap the map where the pretend skier starts.'))
+              : L('לחץ על המפה במקום שממנו "יוצאים".', 'Tap the map where the pretend skier starts.')))
     + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px;">'
     + (SIM.run ? '<button type="button" style="' + b + '" onclick="simPause()">⏸ ' + L('עצור', 'Pause') + '</button>'
                : '<button type="button" style="' + b + '" onclick="simPlay()">▶ ' + L('סע', 'Go') + '</button>')
