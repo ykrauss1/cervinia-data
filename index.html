@@ -1515,7 +1515,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.57';
+  var v='v18.58';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5116,7 +5116,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               style="position:relative;flex:none;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.15rem;line-height:1;border:none;background:linear-gradient(135deg,#7b4fd6,#5a33b0);color:#fff;box-shadow:0 2px 6px rgba(90,51,176,0.35);">👥</button>
           </div>
           <div id="map-geo-friends" style="display:none;margin-bottom:6px;padding:7px 8px;border:1px solid #d6e2ef;border-radius:9px;background:#fff;line-height:1.5;max-height:32vh;overflow:auto;"></div>
-          <div style="display:flex;gap:6px;align-items:center;">
+          <div id="map-geo-pick-row" style="display:flex;gap:6px;align-items:center;">
             <!-- the phone's own list for a <select> was plain and crowded (Yossi,
                  19.11): the select stays, hidden, as the state; a button and a list
                  of our own do the choosing -->
@@ -5126,6 +5126,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <span id="map-geo-pick-t" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">🎯 קח אותי ל…</span><span style="color:#1a73e8;">▾</span></button>
             <button type="button" id="map-geo-dest-x" onclick="geoDest('')" aria-label="ביטול היעד" data-en-aria-label="Clear the destination"
               style="display:none;padding:5px 10px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-size:0.8rem;">✕</button>
+            <!-- the way out of full screen, at the top where it is seen (Yossi, 22.11) -->
+            <button type="button" id="map-geo-full-top" onclick="geoFull(false)"
+              style="display:none;flex:none;padding:6px 9px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;color:#16314f;cursor:pointer;font-family:inherit;font-size:0.76rem;white-space:nowrap;"
+              data-en="↙ Normal screen">↙ מסך רגיל</button>
           </div>
           <div id="map-geo-picklist" role="listbox" style="display:none;margin-top:6px;border:1px solid #d6e2ef;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(16,40,70,0.16);max-height:46vh;overflow:auto;"></div>
           <div id="map-geo-level-row" style="display:none;margin-top:5px;align-items:center;gap:6px 10px;flex-wrap:wrap;">
@@ -7452,6 +7456,9 @@ function geoFull(on) {
   if (m) { if (GEO.full) m.classList.add('geo-full'); else m.classList.remove('geo-full'); }
   var b = document.getElementById('map-geo-full');
   if (b) b.textContent = GEO.full ? L('↙ יציאה ממסך מלא', '↙ Exit full screen') : L('⛶ מסך מלא', '⛶ Full screen');
+  var bt = document.getElementById('map-geo-full-top');
+  if (bt) bt.style.display = GEO.full ? '' : 'none';
+  if (GEO.map && typeof _geoDestPaint === 'function') _geoDestPaint();   // the friends button follows
   setTimeout(function () { if (GEO.map) GEO.map.invalidateSize(); }, 80);
 }
 
@@ -7749,6 +7756,11 @@ function _geoDestPaint() {
   if (lvRow) lvRow.style.display = d ? 'flex' : 'none';
   var mm = document.getElementById('mapModal');   // while navigating, full screen keeps only what the way needs
   if (mm) { if (d) mm.classList.add('geo-nav'); else mm.classList.remove('geo-nav'); }
+  // On the way the kinds of place step aside, the friends do not (Yossi,
+  // 22.11): their button moves up beside the destination, and back after.
+  var fb = document.getElementById('map-geo-friends-btn');
+  var home = document.getElementById(d && GEO.full ? 'map-geo-pick-row' : 'map-geo-cats-row');
+  if (fb && home && fb.parentNode !== home) home.appendChild(fb);
   _voiceButton();
   if (!d && VOICE.on) { _wakeOff(); try { speechSynthesis.cancel(); } catch (e) {} }
   if (!info) return;
