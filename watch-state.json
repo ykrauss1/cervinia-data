@@ -1,7 +1,7 @@
 {
  "hubs": {
   "https://www.cervinia.it/en/impianti": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "links": [
     "https://drive.google.com/file/d/15SPVS6W4LUnCu5o-ofHpiZgkA6B9Siy1/view?usp=sharing",
@@ -12,7 +12,7 @@
    ]
   },
   "https://www.cervinia.it/en/parcheggio-cervino-ski-paradise": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "links": [
     "https://cervinia-api.devtherocks.it/wp-content/uploads/2024/10/REGOLAMENTO-GENERALE-DI-PARCHEGGI-1.pdf",
@@ -22,7 +22,7 @@
    ]
   },
   "https://www.cervinia.it/en/skirama": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "links": [
     "https://cervinia-api.devtherocks.it/wp-content/uploads/2023/10/ESECUTIVO_Cervinia-POSTER-skirama.pdf",
@@ -32,7 +32,7 @@
    ]
   },
   "https://www.cervinia.it/eventi/accesso-alle-biglietterie-e-acquisto-ticket-online": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "links": [
     "https://drive.google.com/file/d/1SXCz1UqLcLAvnhy5WhspdsuBbcPhgdpO/view?usp=share_link",
@@ -40,34 +40,35 @@
    ]
   },
   "https://www.matterhornparadise.ch/en/book/tickets": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "links": []
   },
   "https://www.torgnon.org/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "links": [
     "https://www.torgnon.org/wp-content/uploads/2024/09/Promozione-Inverno-2026-2027-1.pdf"
    ]
   }
  },
- "last_run": "2026-11-15",
+ "last_run": "2026-11-22",
  "sources": {
   "https://allsportdb.com/Events/2027-FIS-Snowboard-World-Cup-Snowboard-Cross-20674": {
    "checked": "2026-11-15",
-   "fails": 0,
+   "error": "HTTP Error 403: Forbidden",
+   "fails": 1,
    "present": {
     "11 - 13 December 2026": true
    }
   },
   "https://aosta-api.municipiumapp.it/s3/266/allegati/sport/avviso-edizione-2026_con-data_signed.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "e23a6b563b65ce24c009aa664e4a0cdf1241a787536ea7a58334451dfea0a8bb"
   },
   "https://aosta.arriva.it/en/aosta-malpensa-airport/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Monday – Thursday Friday – Saturday – Sunday and holidays until December 31, 2026": true,
@@ -79,7 +80,7 @@
    }
   },
   "https://aosta.arriva.it/en/aosta-torino/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "BOOKING REQUIRED!": true,
@@ -89,7 +90,7 @@
    }
   },
   "https://aosta.arriva.it/valtournenche-cervinia/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "App #vdatransports, previa creazione di una carta mobile QR.": false,
@@ -102,7 +103,7 @@
    }
   },
   "https://aostasera.it/notizie/societa/marche-vert-noel-mercatini-natale-aosta-2026-27/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "da sabato 21 novembre 2026 a mercoledì 6 gennaio 2027": true,
@@ -110,41 +111,43 @@
    }
   },
   "https://arriva.it/app/uploads/sites/3/2023/12/Tariffario-Arriva-Italia-Valle-dAosta_2024.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "58a2ebb236b45b456a16c8251ad731f4281ce5012a3b6484c5084fdb25e5c818"
   },
   "https://arriva.it/app/uploads/sites/3/2025/04/BR-ORARI-AOSTA-MILANO_Aprile2025.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "94513ece290422749e6a48e81a62b3120935f0c921efb796778cd69fd74fe9c9"
   },
   "https://arriva.it/app/uploads/sites/3/2025/12/AOSTA-MALPENSA_2026.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "6f80738c725b24cac175b84385c84f66788b4202f944c767e15528d2626939a4"
   },
   "https://arriva.it/app/uploads/sites/3/2026/09/000503-Chatillon-Breuil-Cervinia.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "1bf9a315aa67ceb7ff3c3340e133caec25a317b90faeac24a977a03e2a84fbeb"
   },
   "https://balteus.lovevda.it/en/database/5/cross-country-skiing/torgnon/torgnon-pistes/2588": {
    "checked": "2026-11-15",
-   "fails": 0,
+   "error": "<urlopen error timed out>",
+   "fails": 1,
    "present": {
     "Winter rates": true
    }
   },
   "https://balteus.lovevda.it/it/banca-dati/8/musei/bard/museo-delle-alpi/1267": {
    "checked": "2026-11-15",
-   "fails": 0,
+   "error": "<urlopen error timed out>",
+   "fails": 1,
    "present": {
     "chiuso per lavori di riallestimento dal 13 ottobre al 22 novembre 2026": true
    }
   },
   "https://bazg.admin.ch/bazg/en/home/information-individuals/travel-and-purchases--allowances-and-duty-free-limit/importation-into-switzerland/tax-free-limit.html": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "If the total value exceeds CHF 150, you must pay VAT on the total value of the imported goods": true,
@@ -152,12 +155,12 @@
    }
   },
   "https://drive.google.com/file/d/1mXQHehvBzR39FtN9t_5SFMKihn1bmam4/view": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
-   "hash": "e859e88a91df686999c60bf85796ebeaf0c2c5fe9d92b510ac2156dc6286c898"
+   "hash": "58dd991477e58d4e0190403e60435f8be6fef37c3f214d1f1d3b6bb20964aa95"
   },
   "https://letunnel.com/en/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "RETURN WITHIN 30 DAYS": true,
@@ -166,22 +169,29 @@
    }
   },
   "https://portale.locautorent.com/doc/condizioni_particolari.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "e5184617519a7d98b6e391d1c4f6198ea40c63f92c7616f0930f92081021b5b0"
   },
   "https://scuolacervino.com/lezioni-di-sci-cervinia/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {}
   },
   "https://www.adm.gov.it/portale/documents/20182/909411/Carta-viaggiatore-2019_ITA_per_sito.pdf/1b7194f1-ad42-451c-9340-29e6a4023292": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "3f74f6b326b21705e5f16d9024f505fa11e827c4ad152f774f4d0a09a7b3875e"
   },
+  "https://www.alps2alps.com/milan-malpensa-airport/mxp-transfer-to-cervinia": {
+   "checked": "2026-11-22",
+   "fails": 0,
+   "present": {
+    "From €50 / £42 per person": false
+   }
+  },
   "https://www.bazg.admin.ch/en/e-vignette-and-adhesive-vignette-two-types": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "The vignette is valid from 1 December of the previous year until 31 January of the following year and costs CHF 40.": true,
@@ -189,7 +199,7 @@
    }
   },
   "https://www.cervinia.it/en/eventi": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "11 - 13 December": true,
@@ -198,7 +208,7 @@
    }
   },
   "https://www.cervinia.it/en/impianti": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Winter season from the 24th October 2026 to the 2nd May 2027": true,
@@ -206,13 +216,26 @@
     "Winter season: w.e. 28-29/11; 5-8/12; 12-13/12 and from 19/12/26 to 29/03/27.": true
    }
   },
+  "https://www.cervinia.it/en/ospitalita-servizi/taxi": {
+   "checked": "2026-11-22",
+   "fails": 0,
+   "present": {
+    "+39 3355653189": true,
+    "+39 3391396490": true,
+    "+39 3392360399": true,
+    "+39 3394810614": true,
+    "+39 3395033525": true,
+    "+39 3483123036": true,
+    "+39 3505832417": true
+   }
+  },
   "https://www.cervinia.it/en/parcheggio-cervino-ski-paradise": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {}
   },
   "https://www.cerviniataxiservices.com/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Bergamo Airport / Cervinia | €531 | €1012 | 03h15": false,
@@ -226,7 +249,7 @@
    }
   },
   "https://www.ch.ch/en/travel-and-emigrate/holidays-in-switzerland/how-to-behave-in-road-traffic/motorway-vignette/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Each Swiss motorway vignette costs CHF 40.": true,
@@ -235,21 +258,21 @@
    }
   },
   "https://www.ch.ch/en/travel-and-emigrate/holidays-in-switzerland/how-to-behave-in-road-traffic/winter-tyres/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "In Switzerland, there is no legal obligation to fit your vehicle with winter tyres.": true
    }
   },
   "https://www.europcar.com/en-us/places/car-rental-italy/ferno/milan-malpensa-airport-t1": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "The airport station is open every day between 7:30 AM and 11:30 PM, although opening times may change on public holidays.": true
    }
   },
   "https://www.funfit-fam.com/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "All inclusive": true,
@@ -267,7 +290,7 @@
    }
   },
   "https://www.hertz.it/p/noleggio-auto-inverno": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Alcuni modelli Standard e Premium sono forniti di pneumatici invernali, contrassegnati come INVERNO sul nostro sito.": true,
@@ -275,14 +298,21 @@
    }
   },
   "https://www.hertz.it/rentacar/productservice/index.jsp?targetPage=IT_winter_tyres.jsp": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "nelle principali agenzie Hertz del Nord e del Centro Italia dal 15 novembre al 15 aprile": true
    }
   },
+  "https://www.hoppa.com/en/italy/cervinia": {
+   "checked": "2026-11-22",
+   "fails": 0,
+   "present": {
+    "Private car from £371": true
+   }
+  },
   "https://www.igloocervinia.com/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "+39 389 194 3622": true,
@@ -290,8 +320,12 @@
     "Pista n.7 Ventina, Breuil-Cervinia": true
    }
   },
+  "https://www.ihg.com/holidayinnexpress/hotels/us/en/somma-lombardo/milap/hoteldetail/amenities": {
+   "error": "HTTP Error 403: Forbidden",
+   "fails": 1
+  },
   "https://www.isprambiente.gov.it/it/attivita/museo/regioni/musei/museo-delle-guide-del-cervino": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "0166 948169": true,
@@ -300,7 +334,7 @@
    }
   },
   "https://www.italycarrent.com/en/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "10,00 € /day": false,
@@ -311,7 +345,7 @@
    }
   },
   "https://www.italycarrent.com/en/locations/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "+39 06 5655 7837": true,
@@ -323,7 +357,7 @@
    }
   },
   "https://www.italycarrent.com/en/territorio/car-rental-milan-malpensa/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Desk inside the arrivals terminal": true,
@@ -332,7 +366,7 @@
    }
   },
   "https://www.locautorent.com/en/car-rental/locations/lombardy/bergamo/airport/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Mon-Sun: From 07:30-23:00": true,
@@ -340,7 +374,7 @@
    }
   },
   "https://www.locautorent.com/en/car-rental/locations/lombardy/milan/malpensa-airport-terminal-1": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Locauto offices are located on floor -1 in the car rental area.": false,
@@ -349,10 +383,14 @@
   },
   "https://www.locopapan.it/en/contacts": {
    "error": "HTTP Error 403: Forbidden: Access is denied.",
+   "fails": 2
+  },
+  "https://www.lovevda.it/Media/LovevdaResp/Allegati-PDF/Cartina_Cervinia_Valtournenche.pdf": {
+   "error": "<urlopen error timed out>",
    "fails": 1
   },
   "https://www.maggiore.it/agenzie/noleggio-auto-torino-aeroporto-caselle/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "08.30-20.00": true,
@@ -361,16 +399,16 @@
    }
   },
   "https://www.matterhornparadise.ch/ZBAG/17-PDF/flyer/flyer-winter/2026-2027/fahrplan_winter%202026_27.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "3cb3f2a2eb141787314fe2fa238b2a252618de82234660a5e581d93655fd965d"
   },
   "https://www.noleggiare.it/en/car-rent-2/locations/rent-a-car-in-milano-malpensa/": {
    "error": "HTTP Error 404: Not Found",
-   "fails": 1
+   "fails": 2
   },
   "https://www.numbeo.com/cost-of-living/compare_countries_result.jsp?country1=Italy&country2=Switzerland&displayCurrency=EUR": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "21 October 2026": false,
@@ -384,7 +422,7 @@
    }
   },
   "https://www.oraridiapertura24.it/filiale/Breuil-Cervinia%20%28AO%29-Ristorante%20Self%20service%20Ventina-519434G.html": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "338.6642596": true,
@@ -392,7 +430,7 @@
    }
   },
   "https://www.orizzontescuola.it/calendario-scolastico-2026-27-ponti-e-festivita-ecco-le-date-regione-per-regione/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "25 al 30 marzo 2027": false,
@@ -402,7 +440,7 @@
    }
   },
   "https://www.primapaginanews.it/adi-news/valle-daosta-da-domani-sulle-statali-obbligo-di-catene-a-bordo-o-gomme-invernali-17538/": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Da giovedì 15 ottobre e fino al 15 aprile 2027": true,
@@ -410,7 +448,7 @@
    }
   },
   "https://www.sicilybycar.it/en/car-hire/italy/milan/milan-malpensa-airport-terminal-1": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Damage penalty reduction": false,
@@ -421,27 +459,47 @@
   },
   "https://www.skiholidaytransfers.com/airport-shuttle/cervinia-shuttle": {
    "error": "HTTP Error 403: Forbidden: Access is denied.",
-   "fails": 1
+   "fails": 2
   },
   "https://www.torgnon.org/wp-content/uploads/2024/02/Tariffe-Torgnon-inverno-26-27.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "75bf5dfd00749098a1633c41690f5fd0d9add5588f5b344a3c0d88c0b26d69f0"
   },
   "https://www.torinooutletvillage.com/it/la-tua-visita": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "Siamo aperti tutti i giorni, dalle 10.00 alle 20.00": false
    }
   },
   "https://www.trenitalia.com/content/dam/trenitalia/regionale/carte-dei-servizi/2026/Carta_Servizi_2026_VdA.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "301521467ad3d3485925137c8e8b1fd8df851bde0ef77338a57af8ad27b3b2a7"
   },
+  "https://www.trustpilot.com/review/alps2alps.com": {
+   "error": "HTTP Error 403: Forbidden",
+   "fails": 1
+  },
+  "https://www.trustpilot.com/review/transfeero.com": {
+   "error": "HTTP Error 403: Forbidden",
+   "fails": 1
+  },
+  "https://www.trustpilot.com/review/transferme24.com": {
+   "error": "HTTP Error 403: Forbidden",
+   "fails": 1
+  },
+  "https://www.trustpilot.com/review/transfermilan.com": {
+   "error": "HTTP Error 403: Forbidden",
+   "fails": 1
+  },
+  "https://www.trustpilot.com/review/www.hoppa.com": {
+   "error": "HTTP Error 403: Forbidden",
+   "fails": 1
+  },
   "https://www.valledaostaglocal.it/2026/10/14/leggi-notizia/argomenti/cronaca-4/articolo/in-valle-daosta-torna-lobbligo-di-gomme-invernali-o-catene-attenzione-scatta-gia-da-domani.html": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "present": {
     "La disposizione resterà valida fino al 15 aprile 2027.": false,
@@ -450,7 +508,7 @@
    }
   },
   "https://www.vitagroup.it/wp-content/uploads/2026/03/000503-Chatillon-Breuil-Cervinia-1.pdf": {
-   "checked": "2026-11-15",
+   "checked": "2026-11-22",
    "fails": 0,
    "hash": "e876c2906a78f193c9b7eb0b3487e2f1b990dc57f43d0a37ee0073c58abaf7c8"
   }
