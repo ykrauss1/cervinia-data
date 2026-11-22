@@ -1515,7 +1515,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.56';
+  var v='v18.57';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -8277,16 +8277,33 @@ function _skiDraw(route) {
   if (SKI.layer) { GEO.map.removeLayer(SKI.layer); SKI.layer = null; }
   if (!route || !lf) return;
   var grp = lf.layerGroup();
+  // One line, not a chain of pieces (Yossi, 22.11: "why is it broken into
+  // sections?"). Each edge used to bring its own white edging, laid over the
+  // end of the coloured edge before it, which cut a white notch at every
+  // join. Now edges of the same kind and colour are joined into one line,
+  // all the white edging goes down first, and the colours go on top.
+  var runs = [], cur = null;
   route.edges.forEach(function (ei) {
     var e = g.edges[ei], k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null, pts = _skiGeom(e);
-    var st;
-    if (k === 'u' || k === 'r') st = { color: '#5b3cc4', weight: 4, dashArray: '2 7', lineCap: 'round' };
-    else if (k === 'w' || k === 'v') st = { color: '#555', weight: 3, dashArray: '1 6', lineCap: 'round' };
-    else st = { color: SKI_COL[(w && w.d) || 2], weight: 6, opacity: 0.85 };
-    st.interactive = false;
-    // a white edge under each run keeps it readable over the piste layer
-    if (k === 's' || k === 'f') lf.polyline(pts, { color: '#fff', weight: 9, opacity: 0.8, interactive: false }).addTo(grp);
-    lf.polyline(pts, st).addTo(grp);
+    var kind = (k === 'u' || k === 'r') ? 'lift' : (k === 'w' || k === 'v') ? 'walk' : 'run';
+    var col = kind === 'run' ? SKI_COL[(w && w.d) || 2] : '';
+    if (cur && cur.kind === kind && cur.col === col) {
+      var last = cur.pts[cur.pts.length - 1], first = pts[0];
+      cur.pts = cur.pts.concat(last && first && last[0] === first[0] && last[1] === first[1] ? pts.slice(1) : pts);
+    } else {
+      cur = { kind: kind, col: col, pts: pts.slice() };
+      runs.push(cur);
+    }
+  });
+  runs.forEach(function (r) {
+    if (r.kind === 'run') lf.polyline(r.pts, { color: '#fff', weight: 10, opacity: 0.85, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(grp);
+  });
+  runs.forEach(function (r) {
+    var st = r.kind === 'lift' ? { color: '#5b3cc4', weight: 4, dashArray: '2 7' }
+           : r.kind === 'walk' ? { color: '#555', weight: 3, dashArray: '1 6' }
+           : { color: r.col, weight: 6, opacity: 1 };
+    st.lineCap = 'round'; st.lineJoin = 'round'; st.interactive = false;
+    lf.polyline(r.pts, st).addTo(grp);
   });
   SKI.layer = grp.addTo(GEO.map);
 }
