@@ -1515,7 +1515,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.55';
+  var v='v18.56';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5004,10 +5004,12 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
   <div class="modal-content" style="max-width:960px;height:92vh;display:flex;flex-direction:column;padding:14px;gap:0;">
     <!-- כותרת -->
     <div id="map-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:10px;">
       <h3 style="margin:0;font-size:1rem;" data-en="🗺️ Maps">🗺️ מפות</h3>
       <button type="button" id="map-geo-back" onclick="geoBackToMaps()"
-        style="display:none;margin-inline-start:auto;margin-inline-end:10px;padding:5px 11px;border-radius:8px;border:1px solid #c9d8e8;background:#f4f8fc;color:#17324c;font-family:inherit;font-size:0.78rem;font-weight:bold;cursor:pointer;"
+        style="display:none;padding:5px 11px;border-radius:8px;border:1px solid #c9d8e8;background:#f4f8fc;color:#17324c;font-family:inherit;font-size:0.78rem;font-weight:bold;cursor:pointer;"
         data-en="🗺️ All maps">🗺️ כל המפות</button>
+      </div>
       <span class="close-btn" style="position:static;font-size:1.4rem;cursor:pointer;" onclick="closeMapModal()">×</span>
     </div>
     <!-- כפתורי בחירה -->
@@ -7412,6 +7414,10 @@ function geoOpen() {
     if (_frSignedIn() && FR.groups === null) _frLoadGroups(); else if (FR.gid) _frPollNow();
     _geoMsg(L('המסלולים והמעליות מסומנים עם המספרים של המפה הרשמית. <b>המיקום שלך נשאר במכשיר</b>, אלא אם תבחר לשתף אותו עם קבוצת חברים ב"👥 חברים".',
               'Runs and lifts carry the numbers of the official map. <b>Your position stays on your device</b> unless you choose to share it with a friend group under "👥 Friends".'));
+    // "Where am I" asks where you are straight away (Yossi, 22.11: pressed,
+    // it showed the map and nothing else) - and away from the mountain that
+    // answer is what switches to the demo.
+    if (!SIM.on && GEO.watch === null && !GEO.me) geoLocate();
   }).catch(function () {
     if (ph) {
       ph.style.display = 'flex';
@@ -16424,6 +16430,42 @@ function getInitial(name) {
   return trimmed.charAt(0).toUpperCase();
 }
 
+// The letter in a round avatar sits by the font's own box, and in many
+// fonts a Hebrew letter's ink is not in the middle of that box - ח came out
+// low (Yossi, 22.11). The ink is measured and the letter moved by the
+// difference, so it sits in the middle in whatever font the phone draws it.
+function _avInitial(ch) {
+  return '<span class="av-ini" data-ch="' + escHtml(ch) + '">' + escHtml(ch) + '</span>';
+}
+// Draws each pending initial as an SVG letter placed by its measured ink,
+// in the avatar's own font, size and weight - the canvas measures exactly
+// what the SVG then draws.
+function _avPaint(root) {
+  (root || document).querySelectorAll('.av-ini').forEach(function (sp) {
+    var box = sp.parentElement; if (!box) return;
+    var cs0 = getComputedStyle(box);
+    var bw = (parseFloat(cs0.borderLeftWidth) || 0) + (parseFloat(cs0.borderRightWidth) || 0);
+    // a hidden panel has no layout yet: its own width, less the border, is the box
+    var w = box.clientWidth || (parseFloat(cs0.width) - (cs0.boxSizing === 'border-box' ? bw : 0));
+    var h = box.clientHeight || (parseFloat(cs0.height) - (cs0.boxSizing === 'border-box' ? bw : 0));
+    if (!w || !h) return;
+    var cs = getComputedStyle(box), ch = sp.getAttribute('data-ch') || '';
+    var px = parseFloat(cs.fontSize) || 16;
+    var font = (cs.fontWeight || 'bold') + ' ' + px + 'px ' + (cs.fontFamily || 'sans-serif');
+    try {
+      var c = _avPaint.c || (_avPaint.c = document.createElement('canvas').getContext('2d'));
+      c.font = font; c.direction = 'ltr';
+      var m = c.measureText(ch);
+      if (m.actualBoundingBoxAscent === undefined) return;      // an old browser keeps the plain letter
+      var x0 = w / 2 - (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2;
+      var y0 = h / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+      sp.outerHTML = '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true" style="display:block;">'
+        + '<text x="' + x0.toFixed(2) + '" y="' + y0.toFixed(2) + '" direction="ltr" fill="currentColor" '
+        + 'style="font:' + escHtml(font) + ';">' + escHtml(ch) + '</text></svg>';
+    } catch (e) {}
+  });
+}
+
 // Helper: render avatar into a DOM element (image or initial letter)
 function renderAvatarInto(el, opts) {
   if (!el) return;
@@ -16435,11 +16477,12 @@ function renderAvatarInto(el, opts) {
     el.innerHTML = '<img src="' + avatarUrl + '?t=' + Date.now() + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.innerHTML=\'' + getInitial(name).replace(/'/g,"\\'") + '\'">';
     el.style.background = '#fff';
   } else {
-    el.textContent = getInitial(name);
     el.style.background = 'linear-gradient(135deg,#4cc9f0,#2a6cb5)';
     el.style.color = 'white';
     el.style.fontWeight = 'bold';
     el.style.fontSize = fontSize;
+    el.innerHTML = _avInitial(getInitial(name));
+    _avPaint(el);
   }
 }
 
@@ -21185,11 +21228,12 @@ function renderHeader() {
     if (user.avatar_url) {
       avatarInner = '<img src="' + user.avatar_url + '?t=' + Date.now() + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.innerHTML=\'' + initial.replace(/'/g, "\\'") + '\'">';
     } else {
-      avatarInner = initial;
+      avatarInner = _avInitial(initial);
     }
     const avatar = `<div onclick="openM('profileModal')" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4cc9f0,#2a6cb5);display:flex;align-items:center;justify-content:center;font-size:0.95rem;color:white;font-weight:bold;cursor:pointer;border:2px solid rgba(255,255,255,0.3);overflow:hidden;">${avatarInner}</div>`;
     const lvEmoji = {'מתחיל':'🟢','בינוני':'🔵','מתקדם':'🔴','מקצועי':'⚫'}[user.level] || '';
     area.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">${adminBadge}${gear}${avatar}<div class="au-name" style="display:flex;flex-direction:column;line-height:1.2;cursor:pointer;" onclick="openM('profileModal')"><b style="color:white;font-size:0.9rem;">${user.name}</b>${user.level?`<span style="color:#4cc9f0;font-size:0.68rem;">${lvEmoji} ${user.level}</span>`:''}</div><button class="au-out" onclick="logout()" title="${L('התנתקות', 'Sign out')}" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);font-size:0.8rem;padding:4px 6px;border-radius:6px;transition:color 0.15s;" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">⏏</button></div>`;
+    _avPaint(area);
   } else {
     // It used to borrow .service-btn, which is now a large card with an icon
     // tile - so the sign-in button grew into a white block in the header.
