@@ -30,7 +30,10 @@ def _near(name):
             return f
     return os.path.join(_HERE, name)
 
-MONEY = re.compile(r'(?:€|EUR|CHF|\$)\s?\d|\b\d+(?:[.,]\d{2})?\s?(?:EUR|CHF|€)')
+MONEY = re.compile(r'(?:€|£|EUR|CHF|\$)\s?\d|\b\d+(?:[.,]\d{2})?\s?(?:EUR|CHF|€)')
+# A review score the site quotes (Yossi, 22.11: the transfer companies'
+# Trustpilot ratings must be re-checked like any other fact).
+RATING = re.compile(r'TrustScore\s+\d(?:\.\d)?\s+out of\s+5', re.I)
 # A clock time only counts when it reads like opening hours - as one end of a
 # range, or next to a word about opening. Without that, "0.33 Liter" and
 # "45.93" look exactly like times and every source turns volatile.
@@ -91,6 +94,7 @@ def classify(quote):
     if HOURS.search(quote):  kinds.append('שעות')
     if DATE.search(quote):   kinds.append('עונה/תאריכים')
     if PHONE.search(quote) and not MONEY.search(quote): kinds.append('טלפון')
+    if RATING.search(quote): kinds.append('דירוג')
     if not kinds:
         return 'stable', []
     # A price list is the thing that changes every season and costs real money
@@ -147,7 +151,7 @@ def build():
             'canary': quotes,
         })
     # price first, then hours, then the rest - worst consequence first
-    rank = {'מחירון עונתי': 0, 'מחיר': 1, 'שעות': 2, 'עונה/תאריכים': 3, 'טלפון': 4}
+    rank = {'מחירון עונתי': 0, 'מחיר': 1, 'שעות': 2, 'עונה/תאריכים': 3, 'טלפון': 4, 'דירוג': 5}
     items.sort(key=lambda i: (i['volatility'] != 'volatile',
                               min([rank.get(k, 9) for k in i['kinds']] or [9]),
                               i['name']))

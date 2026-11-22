@@ -1514,7 +1514,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.50';
+  var v='v18.51';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6877,6 +6877,12 @@ function buildPanelToc(panelId) {
     strip.appendChild(b);
   });
   return strip.children.length;
+}
+// A card that names another card links to it rather than saying "below"
+// (Yossi, 22.11: a direction is only true until the cards are reordered).
+function goGroup(id) {
+  var el = document.getElementById('grp-' + id);
+  if (el) scrollToSection(el);
 }
 function scrollToSection(sec) {
   if (!sec) return;
@@ -18557,7 +18563,8 @@ function _groupsHtml(tr) {
                    + _fixNums(_aEsc(tr.alert)) + '</div>';
 
   (tr.groups || []).forEach(function (g) {
-    h += '<div style="border:1.5px solid #e3e8ef;border-radius:11px;background:#fbfcfe;'
+    // the id lets a line in another card link straight here (goGroup)
+    h += '<div' + (g.id ? ' id="grp-' + _aEsc(g.id) + '"' : '') + ' style="border:1.5px solid #e3e8ef;border-radius:11px;background:#fbfcfe;'
        + 'padding:13px 14px;margin-bottom:12px;">'
        + '<div data-toc="' + _aEsc((g.icon ? g.icon + ' ' : '') + (g.title || ''))
        + '" style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;">'

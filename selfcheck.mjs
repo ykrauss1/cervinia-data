@@ -213,6 +213,32 @@ const leakTexts = JSON.stringify(T);
 const leaked = PRIVATE.filter(n => leakHtml.includes(n) || leakTexts.includes(n));
 if (leaked.length) fail('no private numbers in the page or texts.json', leaked.join(', ')); else ok();
 
+// ── 6b. a card that points at another card links to it ───────────────────
+// Yossi, 22.11: "below" and "above" are only true until the cards are
+// reordered - and a new card put between the bus card and its timetables
+// made "the next cards" wrong. So: every goGroup() target is a real card,
+// and no card text sends the reader up or down to another card in words.
+{
+  const T6 = 'a card that names another card links to it';
+  const ENT = JSON.parse(fs.readFileSync(TEXTS.replace(/texts\.json$/, 'texts.en.json'), 'utf8'));
+  const bad = [];
+  for (const [lang, src] of [['he', T], ['en', ENT]]) {
+    const ids = new Set();
+    const walk = (o) => {
+      if (Array.isArray(o)) return o.forEach(walk);
+      if (o && typeof o === 'object') {
+        if (Array.isArray(o.groups)) o.groups.forEach(g => g && g.id && ids.add(g.id));
+        Object.values(o).forEach(walk);
+      }
+    };
+    walk(src);
+    const s = JSON.stringify(src);
+    for (const m of s.matchAll(/goGroup\(\\?'([^'\\]+)\\?'\)/g)) if (!ids.has(m[1])) bad.push(lang + ': no card ' + m[1]);
+    for (const m of s.matchAll(/(?:בכרטיס|בכרטיסים)[^."<]{0,50}(?:למטה|למעלה|הבאים|הבא|הקודם)|\b(?:card|cards) (?:below|above)|next cards/g)) bad.push(lang + ': "' + m[0] + '"');
+  }
+  if (bad.length) fail(T6, bad.slice(0, 6).join(' | ')); else ok();
+}
+
 // ── 7. every key the page asks for actually exists ────────────────────────
 // _applyTexts reads dozens of fields. A renamed key fails silently - the
 // element simply keeps whatever placeholder the HTML had.
