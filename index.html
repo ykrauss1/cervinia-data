@@ -1514,7 +1514,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.53';
+  var v='v18.54';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -21093,6 +21093,7 @@ async function register() {
     if (error) { showAuthErr(error); return; }
     user = { name, level: null, discipline: 'ski', sbId: data.user?.id };
     saveAndClose();
+    setTimeout(function () { openWelcome(name); }, 350);
     return;
   }
 
@@ -25530,6 +25531,51 @@ function _guideBox() {
     + '<div id="guide-body"></div></div>';
   document.body.appendChild(m);
   return m;
+}
+// A word of welcome on joining (Yossi, 22.11): what joining gives, and a
+// few ways in - the guide first, for whoever does not know where to start.
+// Shown once, right after the account is made; never again on that device.
+// The navigation stays out of it until it is finished (Yossi, same day).
+function openWelcome(name) {
+  try {
+    var k = 'welcomed:' + String(name || '');
+    if (localStorage.getItem(k)) return;
+    localStorage.setItem(k, '1');
+  } catch (e) {}
+  var m = document.getElementById('welcomeModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'welcomeModal'; m.className = 'modal';
+    m.onclick = function (e) { if (e.target === m) closeM('welcomeModal'); };
+    document.body.appendChild(m);
+  }
+  var row = function (ico, t, sub, go, hi) {
+    return '<button type="button" onclick="welcomeGo(\'' + go.replace(/'/g, "\\'") + '\')" style="display:flex;align-items:center;gap:11px;width:100%;'
+      + 'margin:0 0 8px;padding:11px 13px;border-radius:11px;border:1.5px solid ' + (hi ? '#1a73e8' : '#d6e0ea') + ';'
+      + 'background:' + (hi ? '#eef5ff' : '#fff') + ';cursor:pointer;font-family:inherit;text-align:start;">'
+      + '<span style="font-size:1.35rem;flex:none;">' + ico + '</span><span style="min-width:0;">'
+      + '<b style="display:block;font-size:0.92rem;color:#16314f;">' + escHtml(t) + '</b>'
+      + '<span style="font-size:0.76rem;color:#6b7a8c;">' + escHtml(sub) + '</span></span></button>';
+  };
+  m.innerHTML = '<div class="modal-content" style="max-width:460px;max-height:90vh;overflow-y:auto;">'
+    + '<span class="close-btn" onclick="closeM(\'welcomeModal\')">×</span>'
+    + '<h2 style="margin:0 0 6px;color:#0a192f;font-size:1.2rem;">👋 ' + escHtml(L('ברוך הבא, ', 'Welcome, ') + String(name || '')) + '!</h2>'
+    + '<p style="margin:0 0 12px;font-size:0.86rem;color:#444;line-height:1.7;">'
+    + escHtml(L('נרשמת לצ\'רוויניה לייב. עכשיו אפשר לכתוב בפורום ולקבל התראה על תגובה, לקבל עדכוני שלג ומזג אוויר ישירות לטלפון, ועוד. מאיפה להתחיל?',
+                'You have joined CerviniaLive. You can now write in the forum and be told of a reply, get snow and weather updates straight to your phone, and more. Where to start?'))
+    + '</p>'
+    + row('🧭', L('מה מתאים לי?', 'What is right for me?'), L('שש שאלות קצרות, ומה שרלוונטי לטיול שלך', 'Six short questions, and what fits your trip'), 'openGuide(true)', true)
+    + row('💶', L('כמה זה יעלה', 'What it will cost'), L('סקי פס, ציוד, לינה וטיסה — הערכה אחת', 'Pass, gear, lodging and flight — one estimate'), "openCost('free')")
+    + row('💬', L('הפורום', 'The forum'), L('לשאול, לענות, ולקרוא מה גולשים אחרים כותבים', 'Ask, answer, and read what other skiers write'), 'forumOpen()')
+    + row('🔔', L('התראות', 'Notifications'), L('עדכוני שלג, ותשובות בפורום — בטלפון', 'Snow updates, and forum answers — on your phone'), "smGo('push')")
+    + row(_candles('ico-inline').replace('class="ico-inline"', 'style="width:1.35em;height:1.35em;"'), L('אוכל כשר ושבת', 'Kosher food and Shabbat'), L('משלוחים, מסעדות וזמני שבת', 'Deliveries, restaurants and Shabbat times'), "openM('kosherModal')")
+    + '<p style="margin:4px 0 0;font-size:0.72rem;color:#999;">' + escHtml(L('את "מה מתאים לי?" אפשר לפתוח תמיד מהתפריט ☰.', '"What is right for me?" is always in the ☰ menu.')) + '</p>'
+    + '</div>';
+  openM('welcomeModal');
+}
+function welcomeGo(go) {
+  closeM('welcomeModal');
+  setTimeout(function () { try { (new Function(go))(); } catch (e) {} }, 60);
 }
 function openGuide(again) {
   _guideBox();
