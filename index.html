@@ -1514,7 +1514,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.52';
+  var v='v18.53';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -6882,10 +6882,15 @@ function buildPanelToc(panelId) {
 // (Yossi, 22.11: a direction is only true until the cards are reordered).
 function goGroup(id) {
   var el = document.getElementById('grp-' + id);
-  if (el) scrollToSection(el);
+  if (!el) return;
+  if (el.tagName === 'DETAILS') el.open = true;   // a folded card opens on the way
+  scrollToSection(el);
 }
 function scrollToSection(sec) {
   if (!sec) return;
+  // a chip for a folded card opens the card it names
+  var fd = sec.closest && sec.closest('details.grp-card');
+  if (fd) fd.open = true;
   var box = sec.closest('.modal-content') || sec.closest('[style*="overflow"]');
   if (box && box.scrollHeight > box.clientHeight) {
     var top = sec.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
@@ -15205,6 +15210,11 @@ function pisteSearch(v) {
     if (i) { i.focus(); try { i.setSelectionRange(v.length, v.length); } catch (e) {} }
   }, 200);
 }
+function pisteToNav() {
+  try { closeM('pisteModal'); } catch (e) {}
+  openM('mapModal');
+  loadMap('gps');
+}
 function renderPisteGuide() {
   var el = document.getElementById('piste-guide-content');
   if (!el) return;
@@ -15218,7 +15228,12 @@ function renderPisteGuide() {
     + [['list',L('📋 מסלולים', '📋 Runs')],['map',L('🗺️ מפה', '🗺️ Map')]].map(function (t) {
         var on = t[0] === activeTab;
         return '<button onclick="setPisteTab(\'' + t[0] + '\')" style="flex:1;padding:6px;border-radius:8px;border:none;cursor:pointer;font-size:0.8rem;font-weight:' + (on ? 'bold' : 'normal') + ';background:' + (on ? '#1a3a6c' : '#f0f0f0') + ';color:' + (on ? 'white' : '#555') + ';">' + t[1] + '</button>';
-      }).join('') + '</div>';
+      }).join('')
+    // the on-mountain navigation from here too (Yossi, 22.11) - it is the
+    // same "where am I" map, opened ready to pick where to go
+    + '<button onclick="pisteToNav()" style="flex:1;padding:6px;border-radius:8px;border:none;cursor:pointer;font-size:0.8rem;background:#e8f5ec;color:#1e6b3a;font-weight:bold;">'
+    + L('🧭 ניווט', '🧭 Navigate') + '</button>'
+    + '</div>';
 
   var open = window.pisteChipsOpen !== false;
   var lbl = function (defs, k) {
@@ -18535,7 +18550,9 @@ function _apCard(bg, edge, ink, title, body) {
 function renderTransport(tr) {
   var box = document.getElementById('transport-body');
   if (!box || !tr) return;
-  box.innerHTML = _groupsHtml(tr);
+  // Each card folds to its title (Yossi, 22.11: "no need to go over all of
+  // this on every scroll") - the chips and the links between cards open it.
+  box.innerHTML = _groupsHtml(tr, { fold: true });
   buildPanelToc('park-panel-transport');
 }
 // The lodging guide (Yossi, 11.11) is written the same way as the transport
@@ -18544,10 +18561,11 @@ function renderTransport(tr) {
 function renderLodgingGuide(lg) {
   var box = document.getElementById('lodging-body');
   if (!box || !lg) return;
-  box.innerHTML = _groupsHtml(lg);
+  box.innerHTML = _groupsHtml(lg, { fold: true });
   buildPanelToc('lodgingModal');
 }
-function _groupsHtml(tr) {
+function _groupsHtml(tr, opt) {
+  var foldCards = !!(opt && opt.fold);
   var h = '';
 
   // the chips go above everything, so the panel says what it holds
@@ -18564,11 +18582,18 @@ function _groupsHtml(tr) {
 
   (tr.groups || []).forEach(function (g) {
     // the id lets a line in another card link straight here (goGroup)
-    h += '<div' + (g.id ? ' id="grp-' + _aEsc(g.id) + '"' : '') + ' style="border:1.5px solid #e3e8ef;border-radius:11px;background:#fbfcfe;'
-       + 'padding:13px 14px;margin-bottom:12px;">'
-       + '<div data-toc="' + _aEsc((g.icon ? g.icon + ' ' : '') + (g.title || ''))
-       + '" style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;">'
-       + _aEsc((g.icon ? g.icon + ' ' : '') + (g.title || '')) + '</div>';
+    var gid = g.id ? ' id="grp-' + _aEsc(g.id) + '"' : '';
+    var head = _aEsc((g.icon ? g.icon + ' ' : '') + (g.title || ''));
+    if (foldCards) {
+      h += '<details class="fold grp-card"' + gid + ' style="margin-bottom:10px;background:#fbfcfe;border:1.5px solid #e3e8ef;border-radius:11px;">'
+         + '<summary data-toc="' + head + '" style="font-size:0.9rem;color:#1a3a6c;padding:12px 14px;">' + head + '</summary>'
+         + '<div class="fold-body" style="padding:0 14px 13px;">';
+    } else {
+      h += '<div' + gid + ' style="border:1.5px solid #e3e8ef;border-radius:11px;background:#fbfcfe;'
+         + 'padding:13px 14px;margin-bottom:12px;">'
+         + '<div data-toc="' + head + '" style="font-weight:bold;font-size:0.9rem;color:#1a3a6c;margin-bottom:8px;">'
+         + head + '</div>';
+    }
 
     if (g.lead) h += '<div style="font-size:0.8rem;color:#555;line-height:1.8;margin-bottom:9px;">'
                    + _fixNums(_aEsc(g.lead)) + '</div>';
@@ -18621,7 +18646,7 @@ function _groupsHtml(tr) {
       h += '</div>';
     }
 
-    h += '</div>';
+    h += foldCards ? '</div></details>' : '</div>';
   });
 
   if (tr.footer) h += '<div style="font-size:0.74rem;color:#888;line-height:1.75;margin-top:4px;">'

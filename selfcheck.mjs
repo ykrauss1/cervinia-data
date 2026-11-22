@@ -9546,7 +9546,7 @@ for (const [w, h] of [[360, 740], [390, 800], [1366, 800]]) {
     openM('lodgingModal');
     const toc = $('lodgingModal').querySelector('.panel-toc');
     out.tocGrid = innerWidth > 600 ? getComputedStyle(toc).display === 'grid' : true;
-    out.giomein = /הירידה מהשכונה ואל השכונה אינה מסלול רשמי/.test($('lodging-body').innerText);
+    out.giomein = /הירידה מהשכונה ואל השכונה אינה מסלול רשמי/.test($('lodging-body').textContent  /* the cards fold (22.11): read what is in them, open or not */);
     closeM('lodgingModal');
     // the routes are chosen in the pistes card only; the map puts one away
     out.noPickRow = getComputedStyle($('map-route-pick')).display === 'none';
@@ -9733,7 +9733,7 @@ for (const [w, h] of [[360, 740], [390, 800], [1366, 800]]) {
     card && card.click();
     await new Promise(res => setTimeout(res, 150));
     out.open = getComputedStyle($('lodgingModal')).display !== 'none';
-    const txt = $('lodging-body').innerText;
+    const txt = $('lodging-body').textContent  /* the cards fold (22.11): read what is in them, open or not */;
     out.areas = ['מרכז הכפר', 'Giomein', 'Cielo Alto', 'Plan Maison', 'Valtournenche'].filter(w => !txt.includes(w));
     out.yossi = [/20 דקות הליכה בעלייה תלולה/, /Ski in\/Ski out/, /רק לשני מסלולים שחורים/, /Zona a Traffico Limitato/, /אינה מופיעה במפות/, /בחצי עמידה/, /רכבל הכיסא הראשון/, /Hotel Lo Stambecco/, /אין אליו כביש/, /בדקו מראש היכן חונים/, /רק בתנאי שלג מתאימים/, /פריקה וטעינה/, /צמודה לתקרה/, /מרווחות יותר באותו מחיר/, /פינוי שלג/, /ZTL/, /Genzianella/].filter(re => !re.test(txt)).map(String);
     out.chips = $('lodgingModal').querySelectorAll('.panel-toc button').length;
