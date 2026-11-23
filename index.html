@@ -1572,7 +1572,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.62';
+  var v='v18.63';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7686,7 +7686,10 @@ function _geoDestList() {
     if (a[0] === 'cervinia') (p.apres_ski || []).forEach(function (r, i) {
       if (!/מסלול|Plan |piste|run/i.test(String(r.area || ''))) return;
       var ll = _geoLL(r.latlon); if (!ll) return;
-      if (it.some(function (x) { return _skiDist(x.ll, ll) < 150; })) return;
+      // the same place under two names (Love, "Love Cervinia"): close by and
+      // the same first word. Pit Stop and Super G stand side by side - two places
+      var w0 = String(r.name || '').toLowerCase().split(/\s+/)[0];
+      if (it.some(function (x) { return _skiDist(x.ll, ll) < 150 && String(x.name).toLowerCase().split(/\s+/)[0] === w0; })) return;
       it.push({ id: 'a:' + i, name: _geoName(String(r.name || '').replace(/\ud83c[\udf00-\udfff]|\ud83d[\udc00-\udeff]|\ud83e[\udd00-\uddff]/g, '')), ll: ll });
     });
     add('h', L(a[1], a[2]), it);
@@ -8100,14 +8103,33 @@ function _navNearItems(k) {
   if (k === 'lift') return _navLiftFoot();
   var all = GEO.allGroups || [];
   if (k === 'food') return [].concat.apply([], all.filter(function (g) { return g.cat === 'h'; }).map(function (g) { return g.items; }));
+  // every hut has toilets (Yossi, 23.11): the nearest toilet may well be a hut.
+  // And some stations: Plan Maison (Yossi, who has been there); Trockener Steg
+  // and Furi (Zermatt Bergbahnen, news on their restrooms, 2026); Klein
+  // Matterhorn (its restaurant, matterhornparadise.ch); the valley station in
+  // Cervinia (Yossi). A station nobody has
+  // confirmed is not on the list - Cretaz, he says, has none.
+  if (k === 'wc') return _navPoi('wc').concat(_navWcStations(), _navNearItems('food').map(function (d) {
+    return { id: 'wc' + d.id, name: '🚻 ' + d.name + L(' · בבקתה', ' · in the hut'), en: d.en, ll: d.ll };
+  }));
   if (k === 'park') return [].concat.apply([], all.filter(function (g) { return g.cat === 'v'; }).map(function (g) { return g.items.filter(function (d) { return d.id.indexOf('k:') === 0; }); }));
   return _navPoi(k);
+}
+// the valley station in Cervinia, by the ticket office (Yossi, 23.11: "for sure")
+var NAV_WC = ['Cervinia — the valley station', 'Plan Maison', 'Trockener Steg', 'Furi', 'Klein Matterhorn'];
+function _navWcStations() {
+  var pl = (SKI.graph && SKI.graph.places) || [], out = [];
+  NAV_WC.forEach(function (nm, i) {
+    var x = pl.filter(function (q) { return (q[0] === 's' || q[0] === 'v') && q[3].indexOf(nm) === 0; })[0];
+    if (x) out.push({ id: 'wcs:' + i, name: '🚻 ' + L(x[2], x[3]) + L(' · בתחנה', ' · at the station'), en: x[3], ll: [x[4], x[5]] });
+  });
+  return out;
 }
 function _navNearChips() {
   var c = 'flex:none;white-space:nowrap;padding:5px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;border:1px solid #c9d6e3;background:#fff;color:#33475b;';
   var out = '<span aria-hidden="true" style="flex:none;align-self:center;color:#9aa8b8;font-size:0.72rem;padding:0 2px;">' + L('הכי קרוב:', 'Nearest:') + '</span>';
   NAV_NEAR.forEach(function (nk) {
-    if (nk.poi && !_navPoi(nk.k).length) return;           // nothing of the kind on the map yet
+    if (nk.poi && nk.k !== 'wc' && !_navPoi(nk.k).length) return;   // nothing of the kind on the map yet
     if (nk.k === 'lift' && !SKI.graph) return;
     var on = GEO.nearRes && GEO.nearRes.k === nk.k;
     out += '<button type="button" onclick="geoNear(\'' + nk.k + '\')" style="' + c + (on ? 'border-color:#0b8043;background:#e6f4ea;color:#0b5d2e;font-weight:700;' : '') + '">'

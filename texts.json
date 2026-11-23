@@ -1334,6 +1334,58 @@
         "area_key": "cervinia"
       },
       {
+        "name": "Pit Stop",
+        "piste": "Plan Torrette, ליד תחנת התחתית של מעלית Pancheron",
+        "area": "Plan Torrette",
+        "len": "",
+        "diff": "🍽️",
+        "map": "",
+        "desc": "בקתה על המסלולים ליד תחילת מעלית Pancheron, עם מסעדה, שירות עצמי ובר. מגיעים אליה בגלישה מצ'רוויניה ומ-Plan Maison.",
+        "tip": "☎ +39 328 726 6633 · pitstopcervinia.it · פתוח בעונת החורף",
+        "tags": [
+          "בקתה",
+          "Plan Torrette"
+        ],
+        "geo": "Pit Stop Cervinia",
+        "latlon": "45.947778,7.650278",
+        "area_key": "cervinia"
+      },
+      {
+        "name": "The Sky Club Valtur",
+        "piste": "Plan Maison, ביציאה מהרכבל",
+        "area": "Plan Maison ~2,550מ",
+        "len": "",
+        "diff": "🍽️",
+        "map": "",
+        "desc": "מקום אוכל, בר ואפרה-סקי ביציאה מהרכבל של Plan Maison.",
+        "tip": "פתוח כל יום בעונה · theskyclubvaltur.com",
+        "tags": [
+          "בקתה",
+          "Plan Maison"
+        ],
+        "geo": "The Sky Club Valtur Cervinia",
+        "latlon": "45.9411341,7.65499",
+        "area_key": "cervinia"
+      },
+      {
+        "name": "Pousset",
+        "piste": "על מסלול 7 (Ventina), בתחנת התחתית של מעלית Goillet",
+        "area": "~2,700מ",
+        "len": "",
+        "diff": "🍽️",
+        "map": "",
+        "desc": "בקתה עם מרפסת על מסלול 7 (Ventina), ליד תחילת מעלית Goillet.",
+        "tip": "",
+        "tags": [
+          "בקתה",
+          "Ventina"
+        ],
+        "geo": "Pousset Cervinia",
+        "latlon": "45.9227681,7.6729597",
+        "xy_approx": true,
+        "area_key": "cervinia"
+      },
+      {
         "name": "Cime Bianche Laghi",
         "piste": "בתוך תחנת הרכבל Cime Bianche Laghi",
         "area": "2,814מ",
@@ -1563,6 +1615,42 @@
         ],
         "geo": "La Motta, Valtournenche",
         "latlon": "45.904170,7.654960",
+        "xy_approx": true,
+        "area_key": "valtournenche"
+      },
+      {
+        "name": "La Roisette",
+        "piste": "Salette, כ-100 מ' מהתחנה העליונה של הרכבל מוולטורננש",
+        "area": "Salette",
+        "len": "",
+        "diff": "🍽️",
+        "map": "",
+        "desc": "בקתה כ-100 מ' מהיציאה מהרכבל Valtournenche–Salette, מול ה-Grandes Murailles, ליד תחילת כמה מעליות.",
+        "tip": "☎ +39 338 381 0592 · ☎ +39 338 867 5733 · פתוח כל יום, מדצמבר עד אפריל",
+        "tags": [
+          "בקתה",
+          "ולטורננש"
+        ],
+        "geo": "La Roisette Valtournenche",
+        "latlon": "45.8931471,7.6472901",
+        "xy_approx": true,
+        "area_key": "valtournenche"
+      },
+      {
+        "name": "Willy Bar",
+        "piste": "Salette, מעל התחנה העליונה של הרכבל מוולטורננש",
+        "area": "Salette",
+        "len": "",
+        "diff": "🍽️",
+        "map": "",
+        "desc": "בקתת עץ עם מרפסת פנורמית גדולה, מעל התחנה העליונה של הרכבל מוולטורננש.",
+        "tip": "☎ +39 339 195 2952 · ☎ +39 334 943 3533 · פתוח בשעות פעילות המעליות",
+        "tags": [
+          "בקתה",
+          "ולטורננש"
+        ],
+        "geo": "Willy Bar Valtournenche",
+        "latlon": "45.89363,7.64673",
         "xy_approx": true,
         "area_key": "valtournenche"
       },
@@ -5448,6 +5536,36 @@
             "url": "https://lovecervinia.com/",
             "covers": "המיקום, הטלפון, השעות והזמנת שולחן",
             "quote": "Loc. Plantorrette (2450 mt.) · +39 3458002544 · dalle 8.30 alle 16.45"
+          },
+          {
+            "name": "Pit Stop — Plan Torrette, ליד מעלית Pancheron",
+            "url": "http://www.pitstopcervinia.it/show-cooking.html",
+            "covers": "המיקום, הקואורדינטות והטלפון",
+            "quote": "Località Plan Torrette accanto alla partenza della seggiovia Pancheron · tel. 328 7266633"
+          },
+          {
+            "name": "Pousset — מסלול 7 Ventina",
+            "url": "https://lovevda.it/en/database/16/restaurants/breuil-cervinia/restaurant-bar-pizzeria-pousset/3114",
+            "covers": "המיקום והגובה (אתר התיירות של ואלה ד'אוסטה)",
+            "quote": "located on the famous Ventina ski slope n.7 at the start of the Goillet chairlift"
+          },
+          {
+            "name": "The Sky Club Valtur — Plan Maison",
+            "url": "https://www.cervinia.it/en/ospitalita-servizi/sky-club-valtur",
+            "covers": "המיקום והשעות (האתר הרשמי של אזור הגלישה)",
+            "quote": "Loc. Plan Maison · Monday to Sunday: 8:00 AM – 4:30 PM"
+          },
+          {
+            "name": "La Roisette — Salette, ולטורננש",
+            "url": "https://lovevda.it/en/database/16/restaurants/valtournenche/la-roisette/1770",
+            "covers": "המיקום, הטלפונים והשעות (אתר התיירות של ואלה ד'אוסטה)",
+            "quote": "Località Desert · (+39) 338 3810592 (+39) 338 8675733 · 08:30 - 17:00"
+          },
+          {
+            "name": "Willy Bar — Salette, ולטורננש",
+            "url": "https://lovevda.it/en/database/16/restaurants/valtournenche/willy-bar/2773",
+            "covers": "המיקום, הטלפונים והשעות (אתר התיירות של ואלה ד'אוסטה)",
+            "quote": "Località Desert - La Salette · (+39) 339 1952952 (+39) 334 9433533 · 08:00 - 17:30"
           },
           {
             "name": "Self Service Ventina — מקור שני לטלפון",

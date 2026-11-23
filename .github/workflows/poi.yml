@@ -1,0 +1,59 @@
+# =====================================================================
+#  CerviniaLive — the small places of the navigation
+#
+#  Run by hand (Actions → "Navigation places" → Run workflow). Downloads
+#  toilets, first aid, ski-pass offices, ski rental, cash machines and
+#  pharmacies of one area from OpenStreetMap into data/poi-AREA.json -
+#  the "nearest ..." buttons of the on-mountain navigation read it.
+#
+#  Apart from the ski router data on purpose: that one also asks a
+#  height service, which limits how often it may be asked, and a refusal
+#  there must not hold these back.
+# =====================================================================
+name: Navigation places
+
+on:
+  workflow_dispatch:
+    inputs:
+      area:
+        description: 'Short name of the ski area'
+        default: 'cervinia'
+      bbox:
+        description: 'south west north east'
+        default: '45.86 7.58 46.04 7.83'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cervinia-poi
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the places
+        env:
+          AREA: ${{ inputs.area }}
+          BBOX: ${{ inputs.bbox }}
+        run: python3 tools/fetch_poi_osm.py "$AREA" $BBOX
+
+      - name: Commit them
+        env:
+          AREA: ${{ inputs.area }}
+        run: |
+          set -e
+          git config user.name  "cervinia-bot"
+          git config user.email "cervinia-bot@users.noreply.github.com"
+          f="data/poi-$AREA.json"
+          git add "$f"
+          if git diff --cached --quiet -- "$f"; then
+            echo "unchanged — nothing to commit"; exit 0
+          fi
+          git commit -m "navigation: places (toilets, first aid...) for $AREA"
+          git pull --rebase --autostash
+          git push
