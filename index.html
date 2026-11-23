@@ -1572,7 +1572,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.64';
+  var v='v18.65';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7639,10 +7639,12 @@ function _geoLL(v) {
 // A flag inside an <option> cannot be swapped for the site's svg, and
 // Windows draws the emoji as two bare letters - so the names lose it there.
 function _geoName(v) { return String(v || '').replace(/\ud83c[\udde6-\uddff]/g, '').replace(/\s+/g, ' ').trim(); }
+// the cup of the huts (Yossi's picture, 23.11), where the emoji was
+var GEO_CUP = '<img src="img/cup.png" alt="" aria-hidden="true" style="width:1.35em;height:1.35em;vertical-align:-0.35em;">';
 var GEO_CATS = [
   ['v', '🏘️ בכפר', '🏘️ Village'],
   ['s', '🚡 תחנות', '🚡 Stations'],
-  ['h', '🍽️ בקתות', '🍽️ Huts'],
+  ['h', GEO_CUP + ' בקתות', GEO_CUP + ' Huts'],
   ['p', '⛷️ מסלולים', '⛷️ Runs']
 ];
 function _geoDestList() {
@@ -7785,6 +7787,7 @@ function geoPickOpen(force, typing) {
   if (!box) return;
   box.style.display = GEO.pickOpen ? 'block' : 'none';
   if (!GEO.pickOpen) { GEO.nearRes = null; return; }
+  box.setAttribute('dir', L('rtl', 'ltr'));   // the rows read from the right in Hebrew
   GEO.pickQ = '';
   _geoPickPaint();
   // the search box takes the keyboard when the reader opened the list to
@@ -7802,7 +7805,9 @@ function _geoPickRow(d, extra) {
   var on = GEO.dest && GEO.dest.id === d.id;
   return '<button type="button" role="option" aria-selected="' + !!on + '" onclick="geoPickSet(\'' + String(d.id).replace(/'/g, "\\'") + '\')" style="display:flex;width:100%;align-items:baseline;gap:8px;text-align:start;padding:10px 14px;border:none;border-bottom:1px solid #f0f3f7;'
     + 'background:' + (on ? '#e8f0fe' : '#fff') + ';font-family:inherit;font-size:0.86rem;color:#16314f;cursor:pointer;line-height:1.35;' + (on ? 'font-weight:700;' : '') + '">'
-    + '<span style="flex:1;min-width:0;">' + esc(d.name) + '</span>'
+    // a Latin name gets a left-to-right box from the page's own bidi pass,
+    // which then sat on the left of a Hebrew list (Yossi, 23.11)
+    + '<span style="flex:1;min-width:0;text-align:' + L('right', 'left') + ';">' + esc(d.name) + '</span>'
     + (extra ? '<span style="flex:none;font-size:0.76rem;color:#0b8043;font-weight:600;">' + extra + '</span>' : '') + '</button>';
 }
 function _geoPickHead(t) {
@@ -7824,7 +7829,8 @@ function _geoPickPaint(keepInput) {
         return words.every(function (w) { return hay.indexOf(w) >= 0; });
       });
       if (!items.length) return;
-      list += _geoPickHead(esc(({ v: L('🏘️ בכפר', '🏘️ Village'), s: L('🚡 תחנות', '🚡 Stations'), h: L('🍽️ בקתות', '🍽️ Huts'), p: L('⛷️ מסלולים', '⛷️ Runs') })[g.cat] || '') + ' · ' + esc(g.label));
+      var cn = ({ v: L('🏘️ בכפר', '🏘️ Village'), s: L('🚡 תחנות', '🚡 Stations'), h: L('\u2615 בקתות', '\u2615 Huts'), p: L('⛷️ מסלולים', '⛷️ Runs') })[g.cat];
+      list += _geoPickHead((cn ? esc(cn).replace('\u2615', GEO_CUP) + ' · ' : '') + esc(g.label));
       items.slice(0, 25).forEach(function (d) { count++; list += _geoPickRow(d); });
     });
     if (!count) list = '<div style="padding:14px;text-align:center;color:#8a97a5;font-size:0.82rem;">' + L('לא נמצא מקום בשם הזה', 'No place by that name') + '</div>';
@@ -8053,7 +8059,9 @@ var NAV = { open: false, panel: '', rep: null, repMk: null, repSig: '' };
 
 // the kinds of place "the nearest" finds. poi: from data/poi-*.json
 var NAV_NEAR = [
-  { k: 'food',   ico: '🍽️', he: 'אוכל',        en: 'Food' },
+  // a hut is somewhere to sit, drink, warm up - "food" said more than we
+  // know about any of them (Yossi, 23.11: kashrut)
+  { k: 'food',   ico: '☕', html: GEO_CUP, he: 'בקתה',        en: 'Hut' },
   { k: 'wc',     ico: '🚻', he: 'שירותים',     en: 'Toilets',     poi: true },
   { k: 'lift',   ico: '🚡', he: 'מעלית',       en: 'Lift' },
   { k: 'aid',    ico: '⛑️', he: 'רפואה',       en: 'Medical',     poi: true },
@@ -8169,7 +8177,7 @@ function _navNearChips() {
     if (nk.k === 'lift' && !SKI.graph) return;
     var on = GEO.nearRes && GEO.nearRes.k === nk.k;
     out += '<button type="button" onclick="geoNear(\'' + nk.k + '\')" style="' + c + (on ? 'border-color:#0b8043;background:#e6f4ea;color:#0b5d2e;font-weight:700;' : '') + '">'
-      + nk.ico + ' ' + L(nk.he, nk.en) + '</button>';
+      + (nk.html || nk.ico) + ' ' + L(nk.he, nk.en) + '</button>';
   });
   return out;
 }
