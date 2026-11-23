@@ -1584,7 +1584,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.68';
+  var v='v18.69';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -14904,7 +14904,8 @@ CM.send = async function (id) {
     var btn = box.querySelector('button'); if (btn) { btn.disabled = true; btn.textContent = '⏳ שולח…'; }
     try {
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_REPLY_TEMPLATE_ID,
-        { to_email: r.email, to_name: r.name || '', subject: subj, message: body, reply_to: 'info@cervinialive.co.il' },
+        { email: r.email, name: r.name || '', mail_subject: subj, intro: _mailHtml(text),
+          quote_title: 'ההודעה שלך' + (when ? ' מ-' + when : '') + ':', message: r.message || '' },
         { publicKey: EMAILJS_PUBLIC_KEY });
       sent = true;
     } catch (e) {
@@ -21563,7 +21564,14 @@ const EMAILJS_TEMPLATE_ID = 'template_m32nf8s';  // ← החלף
 // made in EmailJS; until then the answer opens in the admin's own mail app.
 // The template: To {{to_email}} · From name CerviniaLive · Reply-To
 // info@cervinialive.co.il · Subject {{subject}} · Content {{message}}
-const EMAILJS_REPLY_TEMPLATE_ID = '';
+// The free plan has two templates, so the acknowledgement ("we got your
+// message", linked to the Contact Us one) and this answer share one: its
+// subject and opening come from the site each time - mail_subject, intro,
+// quote_title - with the message quoted under them (23.11).
+const EMAILJS_REPLY_TEMPLATE_ID = 'template_9pc739l';
+function _mailHtml(t) {
+  return String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/\n/g, '<br>');
+}
 
 function showCfMsg(text, ok) {
   const el = document.getElementById('cf-msg');
@@ -21698,7 +21706,12 @@ async function submitContactForm() {
       title:      subject,
       subject:    subject,
       message:    message,
-      reply_to:   email
+      reply_to:   email,
+      // for the acknowledgement that goes back to the writer
+      mail_subject: L('קיבלנו את פנייתך', 'We received your message'),
+      intro:        L('תודה שכתבת לנו בנושא <b>' + _mailHtml(subject) + '</b>. נחזור אליך בהקדם.',
+                      'Thank you for writing to us about <b>' + _mailHtml(subject) + '</b>. We will get back to you soon.'),
+      quote_title:  L('זו ההודעה שקיבלנו ממך:', 'This is the message we received from you:')
     };
     // Send notification to site owner
     // The key is passed again here, as v4's fourth options argument. Local
