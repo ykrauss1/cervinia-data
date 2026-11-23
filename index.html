@@ -1584,7 +1584,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.67';
+  var v='v18.68';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5290,6 +5290,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                     style="flex:1;padding:9px 4px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid white;border-radius:8px 8px 0 0;">
                     📊 סטטיסטיקות
                 </button>
+                <button id="adtab-msgs" onclick="switchAdminTab('msgs')"
+                    style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
+                    📬 הודעות<span id="adtab-msgs-n"></span>
+                </button>
                 <button id="adtab-content" onclick="switchAdminTab('content')"
                     style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
                     📝 ניהול תוכן
@@ -5307,6 +5311,21 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
 
         <!-- תוכן גלילה -->
         <div style="overflow-y:auto;flex:1;padding:18px;background:#fafafa;">
+
+            <!-- ══ הודעות מטופס צור קשר ══ (Yossi, 23.11: read and answer them
+                 on the site, not only in the mail) -->
+            <div id="adtab-content-msgs" style="display:none;">
+                <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+                    <select id="cm-filter" onchange="CM.paint()" style="padding:6px 8px;border:1px solid #ddd;border-radius:8px;font-size:0.8rem;font-family:inherit;">
+                        <option value="open">ממתינות לטיפול</option>
+                        <option value="all">כל ההודעות</option>
+                        <option value="done">טופלו</option>
+                    </select>
+                    <button onclick="CM.load()" style="padding:6px 11px;border:1px solid #ddd;background:white;border-radius:8px;font-size:0.76rem;cursor:pointer;">↻ רענון</button>
+                </div>
+                <div id="cm-msg" style="display:none;margin-bottom:8px;padding:8px 10px;border-radius:8px;font-size:0.78rem;"></div>
+                <div id="cm-list"></div>
+            </div>
 
             <!-- ══ סטטיסטיקות ══ -->
             <div id="adtab-content-stats">
@@ -14785,6 +14804,137 @@ AI.del = async function (id) {
   AI.load();
 };
 
+// ── הודעות מטופס צור קשר ───────────────────────────────────────────────────
+// Every message is kept in contact_messages besides the mail it sends. Here
+// the admin reads them, marks them handled and answers. The answer goes out
+// from his own mail app (mailto), already addressed, titled and quoting the
+// message - the site holds no mailbox of its own to send from - and the
+// reply he wrote is kept with the message, so the site knows what was said.
+// Reading, marking and deleting need the policies in
+// supabase/sql/cl_contact_admin.sql (admins only).
+var CM = { rows: [], open: null };
+CM.msg = function (t, ok) {
+  var m = document.getElementById('cm-msg'); if (!m) return;
+  m.style.display = t ? 'block' : 'none';
+  m.style.background = ok ? '#e8f8ec' : '#ffecec';
+  m.style.color = ok ? '#157a37' : '#b00';
+  m.textContent = t || '';
+};
+CM.count = async function () {
+  var sb = (typeof getSB === 'function') ? getSB() : null, el = document.getElementById('adtab-msgs-n');
+  if (!sb || !el) return;
+  var res = await sb.from('contact_messages').select('id', { count: 'exact', head: true }).or('status.is.null,status.eq.new');
+  el.textContent = (!res.error && res.count) ? ' (' + res.count + ')' : '';
+};
+CM.load = async function () {
+  var box = document.getElementById('cm-list'); if (!box) return;
+  var sb = (typeof getSB === 'function') ? getSB() : null;
+  if (!sb) { box.innerHTML = '<div style="font-size:0.8rem;color:#999;">Supabase לא מחובר.</div>'; return; }
+  box.innerHTML = '<div style="font-size:0.8rem;color:#999;">טוען…</div>';
+  CM.msg('');
+  var res = await sb.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(200);
+  if (res.error) {
+    box.innerHTML = '';
+    CM.msg(/status|reply|column/i.test(res.error.message || '')
+      ? 'צריך להריץ פעם אחת את supabase/sql/cl_contact_admin.sql (' + res.error.message + ')'
+      : 'שגיאה: ' + res.error.message, false);
+    return;
+  }
+  CM.rows = res.data || [];
+  CM.paint();
+  CM.count();
+};
+CM.paint = function () {
+  var box = document.getElementById('cm-list'); if (!box) return;
+  var f = (document.getElementById('cm-filter') || {}).value || 'open';
+  var rows = CM.rows.filter(function (r) {
+    var done = r.status === 'done' || r.status === 'replied';
+    return f === 'all' || (f === 'done' ? done : !done);
+  });
+  if (!rows.length) {
+    // an empty list is also what the policies give someone not marked admin
+    box.innerHTML = '<div style="font-size:0.8rem;color:#999;line-height:1.6;">' + (CM.rows.length
+      ? 'אין הודעות בתצוגה הזאת.' : 'אין הודעות. אם יש הודעות במייל וכאן ריק — צריך להריץ את cl_contact_admin.sql, או שהחשבון לא מסומן is_admin.') + '</div>';
+    return;
+  }
+  var b = 'padding:6px 11px;border-radius:8px;font-size:0.76rem;cursor:pointer;font-family:inherit;';
+  box.innerHTML = rows.map(function (r) {
+    var when = r.created_at ? new Date(r.created_at).toLocaleString('he-IL', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    var st = r.status === 'replied' ? '<span style="background:#e6f4ea;color:#137333;border-radius:10px;padding:1px 8px;font-size:0.68rem;">נענתה</span>'
+      : r.status === 'done' ? '<span style="background:#eef1f4;color:#5f6b7a;border-radius:10px;padding:1px 8px;font-size:0.68rem;">טופלה</span>'
+      : '<span style="background:#fde7e5;color:#a50e0e;border-radius:10px;padding:1px 8px;font-size:0.68rem;font-weight:bold;">חדשה</span>';
+    var id = JSON.stringify(r.id).replace(/"/g, '&quot;');
+    return '<div style="background:white;border-radius:12px;padding:12px 13px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:9px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">'
+      + '<b style="font-size:0.86rem;color:#16314f;">' + CE.esc(r.subject || '') + '</b>' + st + '</div>'
+      + '<div style="font-size:0.74rem;color:#5f6b7a;margin:3px 0 7px;">' + CE.esc(r.name || '') + ' · <bdi dir="ltr">' + CE.esc(r.email || '') + '</bdi> · ' + when + '</div>'
+      + '<div dir="auto" style="font-size:0.82rem;color:#222;white-space:pre-wrap;line-height:1.55;">' + CE.esc(r.message || '') + '</div>'
+      + (r.reply ? '<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:#f1f8f3;font-size:0.78rem;color:#26493a;white-space:pre-wrap;"><b>התשובה שלך' + (r.replied_at ? ' (' + new Date(r.replied_at).toLocaleDateString('he-IL') + ')' : '') + ':</b>\n' + CE.esc(r.reply) + '</div>' : '')
+      + '<div id="cm-rep-' + CE.esc(String(r.id)) + '" style="display:none;margin-top:8px;">'
+      + '<textarea dir="auto" rows="4" placeholder="התשובה שלך…" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:8px;font-family:inherit;font-size:0.84rem;"></textarea>'
+      + '<button onclick="CM.send(' + id + ')" style="' + b + 'margin-top:6px;width:100%;background:#1a73e8;color:white;border:none;font-weight:bold;padding:9px;">'
+      + (EMAILJS_REPLY_TEMPLATE_ID ? '📤 שלח מ-info@cervinialive.co.il' : '✉️ פתח במייל שלי לשליחה') + '</button></div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;">'
+      + '<button onclick="CM.reply(' + id + ')" style="' + b + 'border:1px solid #1a73e8;background:white;color:#1a73e8;font-weight:bold;">↩️ השב</button>'
+      + (r.status === 'done' || r.status === 'replied'
+          ? '<button onclick="CM.mark(' + id + ',\'new\')" style="' + b + 'border:1px solid #ddd;background:white;color:#555;">↺ החזר לממתינות</button>'
+          : '<button onclick="CM.mark(' + id + ',\'done\')" style="' + b + 'border:1px solid #ddd;background:white;color:#137333;">✓ טופלה</button>')
+      + '<button onclick="CM.del(' + id + ')" style="' + b + 'border:1px solid #f1c0bc;background:white;color:#b00;">🗑 מחיקה</button>'
+      + '</div></div>';
+  }).join('');
+};
+CM.reply = function (id) {
+  var el = document.getElementById('cm-rep-' + id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  var t = el.querySelector('textarea'); if (t && el.style.display === 'block') t.focus();
+};
+CM.send = async function (id) {
+  var r = CM.rows.filter(function (x) { return x.id === id; })[0]; if (!r) return;
+  var box = document.getElementById('cm-rep-' + id), t = box ? box.querySelector('textarea') : null, text = t ? t.value.trim() : '';
+  if (!text) { CM.msg('כתוב תשובה קודם.', false); return; }
+  var when = r.created_at ? new Date(r.created_at).toLocaleDateString('he-IL') : '';
+  var body = text + '\n\n— CerviniaLive\nhttps://cervinialive.co.il\n\n'
+    + '----- ' + (r.name || '') + ' כתב/ה' + (when ? ' ב-' + when : '') + ' -----\n'
+    + String(r.message || '').split('\n').map(function (l) { return '> ' + l; }).join('\n');
+  var subj = 'Re: ' + (r.subject || 'CerviniaLive');
+  var sent = false;
+  if (EMAILJS_REPLY_TEMPLATE_ID) {
+    // straight from the site, in the name of info@cervinialive.co.il
+    var btn = box.querySelector('button'); if (btn) { btn.disabled = true; btn.textContent = '⏳ שולח…'; }
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_REPLY_TEMPLATE_ID,
+        { to_email: r.email, to_name: r.name || '', subject: subj, message: body, reply_to: 'info@cervinialive.co.il' },
+        { publicKey: EMAILJS_PUBLIC_KEY });
+      sent = true;
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = '📤 שלח מ-info@cervinialive.co.il'; }
+      CM.msg('השליחה נכשלה (' + ((e && (e.text || e.message)) || e) + '). התשובה לא נשמרה; אפשר לנסות שוב.', false);
+      return;
+    }
+  } else {
+    // the mail app opens with all of it; the site keeps what was answered
+    location.href = 'mailto:' + encodeURIComponent(r.email || '') + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body);
+  }
+  var res = await getSB().from('contact_messages').update({ status: 'replied', reply: text, replied_at: new Date().toISOString() }).eq('id', id);
+  if (res.error) { CM.msg((sent ? 'התשובה נשלחה' : 'המייל נפתח') + ', אבל שמירתה באתר נכשלה: ' + res.error.message, false); return; }
+  CM.msg(sent ? 'התשובה נשלחה ל-' + r.email + ' ונשמרה כאן.' : 'המייל נפתח לשליחה, והתשובה נשמרה כאן.', true);
+  CM.load();
+};
+CM.mark = async function (id, status) {
+  var res = await getSB().from('contact_messages').update({ status: status }).eq('id', id);
+  if (res.error) { CM.msg('שגיאה: ' + res.error.message, false); return; }
+  CM.load();
+};
+CM.del = async function (id) {
+  var r = CM.rows.filter(function (x) { return x.id === id; })[0] || {};
+  if (!(await uiConfirm('למחוק את ההודעה של ' + (r.name || '') + '? אי אפשר לשחזר.', 'מחיקה', true))) return;
+  var res = await getSB().from('contact_messages').delete().eq('id', id);
+  if (res.error) { CM.msg('שגיאה: ' + res.error.message, false); return; }
+  CM.msg('נמחקה.', true);
+  CM.load();
+};
+
 // ── בדיקה עצמית מתוך הדף ──────────────────────────────────────────────────
 // The same suite as texts/selfcheck.mjs, running inside the page so it needs
 // nothing installed. Most of it is just reading this document. The one check
@@ -21408,6 +21558,12 @@ const EMAILJS_PUBLIC_KEY  = 'm1ROEZZ7XSLtH2Pb8';   // ← החלף
 // password, which does not expire on its own.
 const EMAILJS_SERVICE_ID  = 'service_s4q8qb9';
 const EMAILJS_TEMPLATE_ID = 'template_m32nf8s';  // ← החלף
+// The answer to a contact message, sent from the site itself in the name of
+// info@cervinialive.co.il (control panel -> 📬). Empty until the template is
+// made in EmailJS; until then the answer opens in the admin's own mail app.
+// The template: To {{to_email}} · From name CerviniaLive · Reply-To
+// info@cervinialive.co.il · Subject {{subject}} · Content {{message}}
+const EMAILJS_REPLY_TEMPLATE_ID = '';
 
 function showCfMsg(text, ok) {
   const el = document.getElementById('cf-msg');
@@ -24441,7 +24597,8 @@ function switchAdminTab(tab) {
             if (typeof AI !== 'undefined') { try { AI.load(); } catch (e) { console.warn(e); } }
             if (typeof RC !== 'undefined') { try { RC.open(); } catch (e) { console.warn(e); } }
         }
-        ['stats','content','users','system'].forEach(t => {
+        if (tab === 'msgs' && typeof CM !== 'undefined') { try { CM.load(); } catch (e) { console.warn(e); } }
+        ['stats','msgs','content','users','system'].forEach(t => {
             const btn = document.getElementById('adtab-' + t);
             const panel = document.getElementById('adtab-content-' + t);
             if (!btn || !panel) return;
@@ -24463,6 +24620,7 @@ function switchAdminTab(tab) {
         if (!isAdmin()) return;
         populateAdminStats();
         openM('adminModal');
+        try { CM.count(); } catch (e) {}
     }
 
 // The users tab was a placeholder reading "full user management will need
