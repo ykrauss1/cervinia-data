@@ -1572,7 +1572,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.63';
+  var v='v18.64';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7831,6 +7831,9 @@ function _geoPickPaint(keepInput) {
   } else if (GEO.nearRes) {
     var nr = GEO.nearRes, nk = NAV_NEAR.filter(function (x) { return x.k === nr.k; })[0];
     list += _geoPickHead(esc(L(nk.he, nk.en)) + ' · ' + (nr.fromMe ? L('הקרובים אליך', 'nearest to you') : L('הקרובים למרכז המפה', 'nearest to the middle of the map')));
+    // after a fall the pharmacy in the village helps and advises too (Yossi, 23.11, who was helped there)
+    if (nr.k === 'pharm' || nr.k === 'aid') list += '<div style="padding:7px 14px;font-size:0.76rem;color:#5f6b7a;border-bottom:1px solid #f0f3f7;">'
+      + L('אחרי נפילה: גם בבית המרקחת בעיירה נותנים ייעוץ ועזרה, ופיזיותרפיה יכולה לעזור כשהרגל התעקמה.', 'After a fall: the pharmacy in the village advises and helps too, and a physiotherapist can help with a twisted leg.') + '</div>';
     nr.items.forEach(function (d) {
       var dist = d.m < 1000 ? (Math.round(d.m / 10) * 10) + L(' מ\'', ' m') : (d.m / 1000).toFixed(1) + L(' ק״מ', ' km');
       var t = d.secs != null ? (Math.max(1, Math.round(d.secs / 60)) + L(' דק\'', ' min') + ' · ') : '';
@@ -8053,7 +8056,7 @@ var NAV_NEAR = [
   { k: 'food',   ico: '🍽️', he: 'אוכל',        en: 'Food' },
   { k: 'wc',     ico: '🚻', he: 'שירותים',     en: 'Toilets',     poi: true },
   { k: 'lift',   ico: '🚡', he: 'מעלית',       en: 'Lift' },
-  { k: 'aid',    ico: '⛑️', he: 'עזרה ראשונה', en: 'First aid',   poi: true },
+  { k: 'aid',    ico: '⛑️', he: 'רפואה',       en: 'Medical',     poi: true },
   { k: 'ticket', ico: '🎫', he: 'קופות',       en: 'Ski passes',  poi: true },
   { k: 'rental', ico: '🎿', he: 'השכרת ציוד',  en: 'Ski rental',  poi: true },
   { k: 'park',   ico: '🅿️', he: 'חניה',        en: 'Parking' },
@@ -8070,12 +8073,45 @@ function _navPoiLoad() {
     if (NAV_POI.items.length) _geoDestFill();
   }).catch(function () { NAV_POI.items = []; NAV_POI.loading = false; });
 }
+// What OpenStreetMap does not have, from the site's own sources. The rental
+// shops are the site's rental card and the resort's list of rental shops
+// (cervinia.it); a shop is placed by the lift it stands at, or by a
+// neighbour on the same street whose address the site already holds.
+// Valle Ski Service, 20 m from the Cielo Alto chairlift, also sells ski
+// passes (its own description) - so it is a ticket office too (Yossi, 23.11).
+var NAV_EXTRA = [
+  ['rental', 'Genzianella Sport · Piazzale Funivie 14', 45.93428, 7.63366],
+  ['rental', 'Adriano Sport · Plan Maison', 45.9408, 7.65418],
+  ['rental', 'Valle Ski Service · Cielo Alto', 45.92934, 7.63326],
+  ['ticket', 'Valle Ski Service · Cielo Alto', 45.92934, 7.63326],
+  ['rental', 'GalSport · Valtournenche, at the gondola', 45.88823, 7.62400],
+  // on the SR46 in the village, Capoluogo 20 (Yossi's map, 23.11)
+  ['rental', 'Pellissier Sport · Valtournenche', 45.87520, 7.62260],
+  ['rental', 'Cervinia Ski Service · Via Bich 7', 45.93620, 7.63060],
+  ['rental', 'Noleggio Cretaz · Via Bich 15', 45.93645, 7.63055],
+  ['rental', 'Nol-Ski · Via Bich 2', 45.93600, 7.63065],
+  ['rental', 'Sport Center · Piazza Guide Maquignaz', 45.93713, 7.62954]
+];
 function _navPoi(k) {
   var nk = NAV_NEAR.filter(function (x) { return x.k === k; })[0];
   var out = [];
+  NAV_EXTRA.forEach(function (it, i) {
+    if (it[0] === k) out.push({ id: 'x:' + i, name: nk.ico + ' ' + it[1], en: it[1], ll: [it[2], it[3]] });
+  });
   (NAV_POI.items || []).forEach(function (it, i) {
+    // the same shop twice: OpenStreetMap's point within 40 m of ours
+    if (it[0] === k && out.some(function (o) { return _skiDist(o.ll, [+it[2], +it[3]]) < 40; })) return;
     if (it[0] !== k) return;
-    out.push({ id: 'o:' + i, name: nk.ico + ' ' + (it[1] || L(nk.he, nk.en)), en: it[1] || nk.en, ll: [+it[2], +it[3]] });
+    // no name on the map: say where it is instead - "toilets · near Plan Maison"
+    var where = '';
+    if (!it[1] && SKI.graph) {
+      // a station or the village close by says it best; else the run it is on
+      var q = [+it[2], +it[3]], near = null;
+      (SKI.graph.places || []).forEach(function (x) { var dd = _skiDist(q, [x[4], x[5]]); if (dd < 300 && (!near || dd < near.d)) near = { d: dd, n: L(x[2], x[3]) }; });
+      where = near ? L('ליד ', 'near ') + near.n : _navPlaceName(q);
+      if (/^(נקודה|A point)/.test(where)) where = '';
+    }
+    out.push({ id: 'o:' + i, name: nk.ico + ' ' + (it[1] || L(nk.he, nk.en) + (where ? ' · ' + where : '')), en: it[1] || nk.en, ll: [+it[2], +it[3]] });
   });
   return out;
 }
