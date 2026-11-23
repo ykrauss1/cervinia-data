@@ -1584,7 +1584,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.70';
+  var v='v18.71';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -8059,6 +8059,15 @@ function _geoDestPaint0() {
   }
   if (!SKI.route) {
     straight(here);
+    // Torgnon, Chamois, the Monterosa side: places with no runs or lifts
+    // from here at all - "choose a higher level" would send him looking
+    var cut = SKI.cutKey === key ? SKI.cut : (SKI.cutKey = key, SKI.cut = _skiCut(here, d.ll));
+    if (cut) {
+      info.innerHTML = '🎯 ' + name + ' · ' + crow + '<br>⚠️ '
+        + L('אין לשם דרך במסלולים ובמעליות מכאן — זה אזור נפרד. מגיעים ברכב או באוטובוס.',
+            'There is no way there on the runs and lifts from here - it is a separate area. Go by car or bus.') + lineNote;
+      return;
+    }
     info.innerHTML = '🎯 ' + name + ' · ' + crow + '<br>⚠️ '
       + (GEO.level < 3 ? L('לא מצאתי מסלול בגלישה ברמה הזאת. אפשר לבחור רמה גבוהה יותר'
                              + (GEO.rideDown ? '.' : ', או לסמן "לרדת גם בקבינות".'),
@@ -8506,7 +8515,9 @@ function _navPaint() {
     card.style.background = '#3c4043';
     card.innerHTML = '<span style="' + big + 'display:inline-block;transform:rotate(' + Math.round(deg) + 'deg);">⬆</span><div><div style="font-weight:700;">'
       + esc(_navFmtDist(m) + ' · ' + L(_GEO_DIRS_HE[i], _GEO_DIRS_EN[i])) + '</div><div style="font-size:0.8rem;opacity:0.85;">'
-      + esc(SKI.graph ? L('לא נמצא מסלול ברמה הזאת — פתח את הפרטים למטה', 'No route at this level — open the details below') : L('טוען את מפת הניווט…', 'Loading the route map…')) + '</div></div>';
+      + esc(!SKI.graph ? L('טוען את מפת הניווט…', 'Loading the route map…')
+          : SKI.cut ? L('אזור נפרד — אין דרך במסלולים ובמעליות. ברכב או באוטובוס.', 'A separate area - no way on the runs and lifts. By car or bus.')
+          : L('לא נמצא מסלול ברמה הזאת — פתח את הפרטים למטה', 'No route at this level — open the details below')) + '</div></div>';
     return _navLayout();
   }
   var steps = skiSteps(rt);
@@ -8523,7 +8534,15 @@ function _navPaint() {
   card.style.background = rt.offPath ? '#b06000' : '#0b8043';
   // no marked way at one end: the dotted line is a straight line, and says so
   var offNote = rt.offPath ? '<div style="font-size:0.76rem;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,0.35);">⚠️ '
-    + L('אין כאן דרך מסומנת: הקו המנוקד הוא קו אוויר. ייתכן שהמעלית בדרך סגורה.', 'No marked way here: the dotted line is a straight line. A lift on the way may be shut.') + '</div>' : '';
+    + (rt.far
+      // the place itself stands away from the runs (Gandegghütte, 23.11):
+      // the lift is not the reason, and saying so sent him looking for one
+      ? (rt.walkOut >= rt.walkIn
+        ? L('המקום רחוק מהמסלולים המסומנים: ה-' + Math.round(rt.walkOut / 10) * 10 + ' מ\' האחרונים הם קו אוויר, בלי דרך מסומנת.',
+            'The place is away from the marked runs: the last ' + Math.round(rt.walkOut / 10) * 10 + ' m are a straight line, with no marked way.')
+        : L('אתה רחוק מהמסלולים המסומנים: ה-' + Math.round(rt.walkIn / 10) * 10 + ' מ\' הראשונים הם קו אוויר, בלי דרך מסומנת.',
+            'You are away from the marked runs: the first ' + Math.round(rt.walkIn / 10) * 10 + ' m are a straight line, with no marked way.'))
+      : L('אין כאן דרך מסומנת: הקו המנוקד הוא קו אוויר. ייתכן שהמעלית בדרך סגורה.', 'No marked way here: the dotted line is a straight line. A lift on the way may be shut.')) + '</div>' : '';
   card.innerHTML = '<div style="flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:52px;"><span style="' + big + '">' + ico + '</span>'
     + '<span style="font-size:0.78rem;font-weight:700;white-space:nowrap;">' + _navFmtDist(left) + '</span></div>'
     + '<div style="min-width:0;"><div style="font-weight:700;font-size:1.02rem;">' + _navStepHtml(st) + '</div>'
@@ -8936,6 +8955,14 @@ function _skiAltAt(g, ll) {
   }
   return best <= 500 ? alt : null;
 }
+// the nodes where a lift starts or ends
+function _skiStation(g, n) {
+  if (!g._sta) {
+    g._sta = {};
+    g.edges.forEach(function (e) { if (e[4] === 'u' || e[4] === 'r') { g._sta[e[0]] = 1; g._sta[e[1]] = 1; } });
+  }
+  return !!g._sta[n];
+}
 function _skiCost(g, e, prevLine, level) {
   var k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null, sp = g.speed;
   if (k === 's' || k === 'f') {
@@ -8962,7 +8989,11 @@ function _skiCost(g, e, prevLine, level) {
   }
   // a climb counts on a real walk only: the heights of the map's points come
   // from a terrain model, and across a lift station's few metres they jump
-  var up = e[3] >= 100 ? Math.min(_skiClimb(g.nodes[e[0]][2], g.nodes[e[1]][2]), e[3] * 0.4 * SKI_CLIMB_S) : 0;
+  // - and not on the way out of a lift station either: at Klein Matterhorn
+  // the terrain model puts the station's corridor 100 m up the rock, and
+  // every route from there carried a quarter of an hour of climbing
+  var up = e[3] >= 100 && !_skiStation(g, e[0]) && !_skiStation(g, e[1])
+    ? Math.min(_skiClimb(g.nodes[e[0]][2], g.nodes[e[1]][2]), e[3] * 0.4 * SKI_CLIMB_S) : 0;
   if (k === 'w') return (e[3] / sp.walk * 1.5 + up) * _skiWalkF();
   if (k === 'v') return (e[3] / sp.walk * 1.2 + (e[6] ? 0 : (g._streets ? 400 : 120)) + up) * _skiWalkF();
   return -1;
@@ -9115,17 +9146,37 @@ function skiRoute(fromLL, toLL, level) {
   // a long flat walk is the village streets, which the map does not draw -
   // fine; climbing more than 20 m with no path is the snow of a slope
   if (!r) { r = _skiRoute1(fromLL, toLL, level, 400); if (r) r.offPath = (r.climbIn + r.climbOut) / SKI_CLIMB_S > 20; }
+  // A place further than that from any run it can be reached by
+  // (the test of 23.11: Gandegghütte, whose own short paths on the map
+  // are marked freeride; toilets 500 m from the nearest run) got "no
+  // route" at every level. Now: the nearest point the runs do reach, up to
+  // 800 m away, and the warning. Only when the place really is off the
+  // runs - not when it is simply above the level chosen: that one is
+  // still "choose a higher level".
+  if (!r && !_skiRoute1(fromLL, toLL, 3, 400)) {
+    r = _skiRoute1(fromLL, toLL, level, 800, 40);
+    if (r) { r.offPath = true; r.far = true; }
+  }
   return r;
 }
 var SKI_OFF_F = 2.5, SKI_OFF_CLIMB = 2;
-function _skiRoute1(fromLL, toLL, level, maxWalk) {
+// true when no level and no cabin down reaches the place from here
+function _skiCut(fromLL, toLL) {
+  var keepR = GEO.rideDown, keepL = SKI.ignoreLive;
+  GEO.rideDown = true; SKI.ignoreLive = true;
+  var r = null;
+  try { r = _skiRoute1(fromLL, toLL, 3, 800, 40); } catch (e) {}
+  GEO.rideDown = keepR; SKI.ignoreLive = keepL;
+  return !r;
+}
+function _skiRoute1(fromLL, toLL, level, maxWalk, many) {
   var g = SKI.graph;
   if (!g) return null;
   var WALK_IN = maxWalk, WALK_OUT = maxWalk;
-  var starts = _skiNear(g, fromLL, WALK_IN, true).slice(0, 12);
+  var starts = _skiNear(g, fromLL, WALK_IN, true).slice(0, many || 12);
   if (!starts.length && maxWalk >= 400) starts = _skiNear(g, fromLL, 1500, true).slice(0, 3);
   var ends = {};
-  _skiNear(g, toLL, WALK_OUT, false).slice(0, 12).forEach(function (h) { ends[h[1]] = h[0]; });
+  _skiNear(g, toLL, WALK_OUT, false).slice(0, many || 12).forEach(function (h) { ends[h[1]] = h[0]; });
   if (!starts.length || !Object.keys(ends).length) return null;
   var NW = g.ways.length + 1;
   var best = {}, prev = {}, heap = new _SkiHeap();

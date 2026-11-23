@@ -2524,6 +2524,29 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   }
 }
 
+// ── the test of 23.11: places off the runs, and separate areas ──
+// Of 64,000 routes between every two places on the list: Gandegghütte had
+// no route at any level (its own short paths are marked freeride); Torgnon
+// and Chamois said "choose a higher level" though nothing reaches them; and
+// at Klein Matterhorn the corridor out of the station "climbed" 100 m.
+{
+  const r = await page.evaluate(async (graph) => {
+    _skiUse(graph);
+    window._liveRow = null; GEO.rideDown = false; SKI.prof = 'fast';
+    const plateau = [45.93447, 7.70765], gandegg = [45.9641715, 7.7254617], torgnon = [45.8, 7.57], km = [45.93927, 7.7295];
+    const gh = skiRoute(plateau, gandegg, 2);
+    const g = SKI.graph; let up = 0;
+    const kr = skiRoute(km, [45.93428, 7.63366], 2);
+    (kr ? kr.edges : []).forEach(i => { const e = g.edges[i]; if (e[4] === 'w') up += _skiCost(g, e, -1, 2) - e[3] / g.speed.walk * 1.5; });
+    return { gh: gh ? { far: !!gh.far, off: !!gh.offPath } : null, cut: _skiCut(plateau, torgnon), notCut: _skiCut(plateau, gandegg), kmUp: Math.round(up) };
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'places off the runs';
+  if (!r.gh || !r.gh.far || !r.gh.off) fail(T, 'Plateau Rosa to Gandegghütte: ' + JSON.stringify(r.gh)); else ok();
+  if (!r.cut) fail(T, 'Torgnon is not seen as a separate area'); else ok();
+  if (r.notCut) fail(T, 'Gandegghütte is taken for a separate area'); else ok();
+  if (r.kmUp > 30) fail(T, `the walk out of Klein Matterhorn still counts ${r.kmUp} s of climbing`); else ok();
+}
+
 // ── the simulation glides along the route, in one piece and the right way ─
 // The pretend skier of ?sim=1 follows the route as one line: if a piece came
 // out back to front he would jump across the mountain and the voice would
