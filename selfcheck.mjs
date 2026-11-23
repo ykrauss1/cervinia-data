@@ -2483,7 +2483,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const ca = _skiPlan(A, B);
     const fast = ca.find(a => a.ids.includes('fast'));
     out.caFastMin = fast && Math.round(fast.route.secs / 60);
-    out.caSki = (ca.find(a => a.ids.includes('ski')) || {}).route ? _skiWalked(ca.find(a => a.ids.includes('ski')).route).m : null;
+    // a way on skis among the choices - its own, or the quickest itself now
+    // that a straight walk across the snow costs what it really does
+    out.caSki = ca.length ? Math.min.apply(null, ca.map(a => _skiWalked(a.route).m)) : null;
     // up from Breuil to Laghi: the gondola, then the next lift - not two chairs round by Cretaz
     const up = skiRoute(A, [45.9311, 7.6838], 2);
     out.upLifts = up ? up.edges.map(i => g.edges[i]).filter(e => e[4] === 'u').map(e => g.ways[e[2]].lt + ':' + g.ways[e[2]].name).filter((x, i, a) => x !== a[i - 1]) : null;

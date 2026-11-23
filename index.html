@@ -57,6 +57,18 @@ function _guessLang() {
   document.documentElement.dir = l === 'en' ? 'ltr' : 'rtl';
 })();
 function L(he, en) { return window.LANG === 'en' && en != null ? en : he; }
+// A field the reader types in says which language the site is in (lang),
+// and one that holds his own words follows what he types (dir="auto"), so a
+// post in English on the Hebrew site, or in Hebrew on the English one, sits
+// the right way round (Yossi, 23.11). Which keyboard opens is the phone's
+// choice: a page cannot switch it; some keyboards take the lang as a hint.
+document.addEventListener('focusin', function (e) {
+  var t = e.target;
+  if (!t || !/^(TEXTAREA|INPUT)$/.test(t.tagName)) return;
+  if (t.tagName === 'INPUT' && !/^(text|search|)$/.test(t.type || '')) return;
+  if (!t.hasAttribute('lang')) t.setAttribute('lang', window.LANG === 'en' ? 'en' : 'he');
+  if (t.tagName === 'TEXTAREA' && !t.readOnly && !t.hasAttribute('dir') && !t.style.direction) t.setAttribute('dir', 'auto');
+}, true);
 function setLang(l) {
   try { localStorage.setItem('cl_lang', l); } catch (e) {}
   var u = new URL(location.href);
@@ -1572,7 +1584,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.65';
+  var v='v18.66';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1999,7 +2011,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <div id="post-btn-area"></div>
     </div>
     <div id="new-post-area" style="margin-bottom:15px;display:none;">
-      <textarea id="new-post-text" placeholder="שאל שאלה, שתף עדכון או טיפ מהשטח..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;direction:rtl;resize:vertical;font-family:inherit;" data-en-placeholder="Ask a question, share an update or a tip from the mountain..."></textarea>
+      <textarea id="new-post-text" dir="auto" placeholder="שאל שאלה, שתף עדכון או טיפ מהשטח..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;resize:vertical;font-family:inherit;" data-en-placeholder="Ask a question, share an update or a tip from the mountain..."></textarea>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
         <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;"><span data-en="📎 File">📎 קובץ</span><input type="file" id="new-post-file" style="display:none;" accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,.heic,.heif,.bmp,.avif,.pdf" onchange="showPickedFile('new-post-file','new-post-file-name')"></label>
         <span id="new-post-file-name" style="font-size:0.78rem;color:#888;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -2096,7 +2108,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       </div>
       <div>
         <label style="font-size:0.78rem;color:#666;display:block;margin-bottom:4px;" data-en="Message">הודעה</label>
-        <textarea id="cf-message" placeholder="כתוב את הודעתך כאן..." dir="rtl" rows="4"
+        <textarea id="cf-message" placeholder="כתוב את הודעתך כאן..." dir="auto" rows="4"
           style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:0.9rem;font-family:inherit;resize:vertical;" data-en-placeholder="Write your message here..."></textarea>
       </div>
       <button onclick="submitContactForm()"
@@ -5448,8 +5460,8 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                 <!-- באנר מערכת -->
                 <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;">
                     <div style="font-size:0.82rem;font-weight:bold;color:#333;margin-bottom:8px;">🚨 הודעת מערכת / באנר חירום</div>
-                    <textarea id="admin-banner-text" placeholder="למשל: הרכבל העליון סגור היום בגלל רוח..." 
-                        style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;min-height:60px;resize:vertical;direction:rtl;font-family:inherit;"></textarea>
+                    <textarea dir="auto" id="admin-banner-text" placeholder="למשל: הרכבל העליון סגור היום בגלל רוח..." 
+                        style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;min-height:60px;resize:vertical;font-family:inherit;"></textarea>
                     <div style="display:flex;gap:8px;margin-top:8px;">
                         <select id="admin-banner-type" style="padding:7px;border:1px solid #ddd;border-radius:8px;font-size:0.82rem;flex:1;">
                             <option value="info">ℹ️ מידע</option>
@@ -5559,8 +5571,8 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
     <!-- About me -->
     <div style="margin-bottom:10px;">
       <label style="font-size:0.76rem;color:#888;display:block;margin-bottom:3px;" data-en="About me">קצת על עצמי</label>
-      <textarea id="prof-bio" maxlength="300" rows="2" placeholder="ספר קצת על עצמך..."
-        style="width:100%;box-sizing:border-box;padding:8px 11px;border:1.5px solid #ddd;border-radius:8px;font-size:0.88rem;font-family:inherit;direction:rtl;resize:vertical;min-height:50px;"
+      <textarea dir="auto" id="prof-bio" maxlength="300" rows="2" placeholder="ספר קצת על עצמך..."
+        style="width:100%;box-sizing:border-box;padding:8px 11px;border:1.5px solid #ddd;border-radius:8px;font-size:0.88rem;font-family:inherit;resize:vertical;min-height:50px;"
         oninput="updateBioCounter()" data-en-placeholder="Tell us a little about yourself..."></textarea>
       <div style="text-align:left;font-size:0.68rem;color:#aaa;margin-top:1px;"><span id="bio-counter">0</span>/300</div>
     </div>
@@ -7751,15 +7763,11 @@ function _geoDestFill() {
   var cat = GEO.destCat || 'v';
   if (!data.groups.some(function (g) { return g.cat === cat; })) cat = 's';
   var bar = document.getElementById('map-geo-cats');
-  if (bar) {
-    bar.innerHTML = GEO_CATS.map(function (c) {
-      var on = c[0] === cat;
-      return '<button type="button" role="tab" aria-selected="' + on + '" onclick="geoCat(\'' + c[0] + '\')" style="'
-        + 'flex:none;white-space:nowrap;padding:5px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;font-weight:' + (on ? '700' : '500') + ';'
-        + 'border:1px solid ' + (on ? '#1a73e8' : '#c9d6e3') + ';background:' + (on ? '#e8f0fe' : '#fff') + ';color:' + (on ? '#174ea6' : '#33475b') + ';">'
-        + L(c[1], c[2]) + '</button>';
-    }).join('') + _navNearChips();
-  }
+  // the row under the search is "the nearest" alone; the lists by kind
+  // (village, stations, huts, runs) are tabs inside the list (Yossi, 23.11:
+  // the two looked the same and read as one row)
+  if (bar) bar.innerHTML = _navNearChips();
+  GEO.pickCat = cat;
   sel.innerHTML = '';
   var o0 = document.createElement('option');
   o0.value = ''; o0.textContent = L('🎯 קח אותי ל…', '🎯 Take me to…');
@@ -7842,11 +7850,17 @@ function _geoPickPaint(keepInput) {
       + L('אחרי נפילה: גם בבית המרקחת בעיירה נותנים ייעוץ ועזרה, ופיזיותרפיה יכולה לעזור כשהרגל התעקמה.', 'After a fall: the pharmacy in the village advises and helps too, and a physiotherapist can help with a twisted leg.') + '</div>';
     nr.items.forEach(function (d) {
       var dist = d.m < 1000 ? (Math.round(d.m / 10) * 10) + L(' מ\'', ' m') : (d.m / 1000).toFixed(1) + L(' ק״מ', ' km');
-      var t = d.secs != null ? (Math.max(1, Math.round(d.secs / 60)) + L(' דק\'', ' min') + ' · ') : '';
+      var t = d.off ? '⚠️ ' + L('בלי דרך מסומנת', 'no marked way') + ' · ' : d.secs != null ? (Math.max(1, Math.round(d.secs / 60)) + L(' דק\'', ' min') + ' · ') : '';
       list += _geoPickRow(d, t + dist);
     });
     if (!nr.items.length) list += '<div style="padding:14px;text-align:center;color:#8a97a5;font-size:0.82rem;">' + L('לא נמצא מקום כזה באזור', 'None found in the area') + '</div>';
   } else {
+    var cur = GEO.pickCat || GEO.destCat || 'v';
+    list += '<div role="tablist" style="display:flex;gap:0;border-bottom:1px solid #e3e9f1;background:#fff;">' + GEO_CATS.map(function (c) {
+      var on = c[0] === cur;
+      return '<button type="button" role="tab" aria-selected="' + on + '" onclick="geoCat(\'' + c[0] + '\')" style="flex:1;padding:9px 2px 7px;border:0;border-bottom:3px solid ' + (on ? '#1a73e8' : 'transparent')
+        + ';background:none;cursor:pointer;font-family:inherit;font-size:0.76rem;white-space:nowrap;font-weight:' + (on ? '700' : '500') + ';color:' + (on ? '#174ea6' : '#5f6b7a') + ';">' + L(c[1], c[2]) + '</button>';
+    }).join('') + '</div>';
     list += '<button type="button" onclick="geoPickMap()" style="' + act + '">📌 ' + L('סמן את היעד על המפה', 'Mark the destination on the map') + '</button>';
     if ((GEO.destCat || 'v') === 'p') list += '<button type="button" onclick="navToGuide()" style="' + act + '">📖 ' + L('לבחור מתוך מדריך המסלולים, עם הפרטים של כל מסלול', 'Choose from the piste guide, with each run\'s details') + '</button>';
     (GEO.pickGroups || []).forEach(function (g) {
@@ -8107,16 +8121,22 @@ function _navPoi(k) {
     if (it[0] === k) out.push({ id: 'x:' + i, name: nk.ico + ' ' + it[1], en: it[1], ll: [it[2], it[3]] });
   });
   (NAV_POI.items || []).forEach(function (it, i) {
-    // the same shop twice: OpenStreetMap's point within 40 m of ours
-    if (it[0] === k && out.some(function (o) { return _skiDist(o.ll, [+it[2], +it[3]]) < 40; })) return;
+    // the same place twice - ours and OpenStreetMap's, or two of the map's
+    // own points for one block of toilets (Yossi, 23.11: the valley station
+    // came up twice); and toilets at a station already on the list
+    var q = [+it[2], +it[3]];
+    if (it[0] === k && out.some(function (o) { return _skiDist(o.ll, q) < 70 && (!it[1] || o.en === it[1] || o.id.indexOf('x:') === 0); })) return;
+    if (it[0] === 'wc' && k === 'wc' && _navWcStations().some(function (o) { return _skiDist(o.ll, q) < 120; })) return;
     if (it[0] !== k) return;
     // no name on the map: say where it is instead - "toilets · near Plan Maison"
     var where = '';
     if (!it[1] && SKI.graph) {
       // a station or the village close by says it best; else the run it is on
       var q = [+it[2], +it[3]], near = null;
-      (SKI.graph.places || []).forEach(function (x) { var dd = _skiDist(q, [x[4], x[5]]); if (dd < 300 && (!near || dd < near.d)) near = { d: dd, n: L(x[2], x[3]) }; });
-      where = near ? L('ליד ', 'near ') + near.n : _navPlaceName(q);
+      (SKI.graph.places || []).forEach(function (x) { var dd = _skiDist(q, [x[4], x[5]]); if (dd < 150 && (!near || dd < near.d)) near = { d: dd, n: L(x[2], x[3]) }; });
+      // further than that, "near the valley station" sent him to a second
+      // set of toilets 400 m away as if it were the same one
+      where = near ? L('ליד ', 'near ') + near.n : '';
       if (/^(נקודה|A point)/.test(where)) where = '';
     }
     out.push({ id: 'o:' + i, name: nk.ico + ' ' + (it[1] || L(nk.he, nk.en) + (where ? ' · ' + where : '')), en: it[1] || nk.en, ll: [+it[2], +it[3]] });
@@ -8170,8 +8190,8 @@ function _navWcStations() {
   return out;
 }
 function _navNearChips() {
-  var c = 'flex:none;white-space:nowrap;padding:5px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;border:1px solid #c9d6e3;background:#fff;color:#33475b;';
-  var out = '<span aria-hidden="true" style="flex:none;align-self:center;color:#9aa8b8;font-size:0.72rem;padding:0 2px;">' + L('הכי קרוב:', 'Nearest:') + '</span>';
+  var c = 'flex:none;white-space:nowrap;padding:6px 11px;border-radius:18px;cursor:pointer;font-family:inherit;font-size:0.78rem;border:1px solid #d6dde6;background:#fff;color:#33475b;';
+  var out = '<span style="flex:none;align-self:center;color:#16314f;font-size:0.76rem;font-weight:700;padding:0 2px 0 4px;">📍 ' + L('הכי קרוב אליך:', 'Nearest to you:') + '</span>';
   NAV_NEAR.forEach(function (nk) {
     if (nk.poi && nk.k !== 'wc' && !_navPoi(nk.k).length) return;   // nothing of the kind on the map yet
     if (nk.k === 'lift' && !SKI.graph) return;
@@ -8202,7 +8222,9 @@ function geoNear(k) {
     SKI.prof = 'fast';
     items.forEach(function (d) {
       if (d.m < 60) { d.secs = 0; return; }
-      try { var r = skiRoute(here, d.ll, GEO.level); d.secs = r ? r.secs : null; } catch (e) { d.secs = null; }
+      // a route that ends in a long walk across the snow with no path is
+      // the last resort, not "the nearest"
+      try { var r = skiRoute(here, d.ll, GEO.level); d.secs = r ? r.secs + (r.offPath ? 900 : 0) : null; d.off = !!(r && r.offPath); } catch (e) { d.secs = null; }
     });
     SKI.prof = prof;
     items.sort(function (a, b) {
@@ -8364,6 +8386,9 @@ function navBack() {
   if (GEO.pickMap) { GEO.pickMap = false; return true; }
   if (FR.open && GEO.full) { geoFriends(); return true; }
   if (NAV.open && GEO.full) { navSheet(false); return true; }
+  // with a route on: back ends it and leaves the search, still full screen -
+  // the next step is a new destination, not another screen (Yossi, 23.11)
+  if (GEO.dest && GEO.full) { geoDest(''); return true; }
   if (GEO.full) { geoFull(false); return true; }
   return false;
 }
@@ -8401,24 +8426,31 @@ function _navPaint() {
     + '<div style="flex:1;min-width:0;">'
     + '<div style="font-size:1.02rem;font-weight:700;color:' + (rt ? '#0b8043' : '#16314f') + ';">' + esc(line) + '</div>'
     + '<div style="font-size:0.8rem;color:#5f6b7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🎯 ' + esc(d.name) + '</div></div>'
-    + '<span aria-hidden="true" style="flex:none;color:#5f6b7a;font-size:1.1rem;padding:0 4px;">' + (NAV.open ? '⌄' : '⌃') + '</span>';
+    + '<span style="flex:none;padding:6px 11px;border-radius:16px;background:#e8f0fe;color:#174ea6;font-size:0.78rem;font-weight:700;white-space:nowrap;">'
+    + (NAV.open ? L('סגור ⌄', 'Close ⌄') : L('📋 שלבי המסלול ⌃', '📋 Route steps ⌃')) + '</span>';
   sum.setAttribute('role', 'button');
   sum.setAttribute('aria-expanded', NAV.open ? 'true' : 'false');
   // what is behind the tap: the run's card, another destination, normal screen
   var b = 'padding:6px 11px;border-radius:16px;border:1px solid #dadce0;background:#fff;color:#1a5fb4;cursor:pointer;font-family:inherit;font-size:0.78rem;';
   if (more) more.innerHTML = (_navRunOf(d) ? '<button type="button" style="' + b + '" onclick="navPanel(\'run\')">📖 ' + L('על המסלול', 'About the run') + '</button>' : '')
-    + '<button type="button" style="' + b + '" onclick="navSheet(false);geoFull(true);GEO.nearRes=null;geoDest(\'\');setTimeout(function(){geoPickOpen(true,true)},80)">🔍 ' + L('יעד אחר', 'Another destination') + '</button>'
+    + '<button type="button" style="' + b + '" onclick="navNew()">🔍 ' + L('יעד אחר', 'Another destination') + '</button>'
     + '<button type="button" style="' + b + '" onclick="geoFull(false)">↙ ' + L('מסך רגיל', 'Normal screen') + '</button>';
   // the green card on top: what to do now, and what comes after it
   var big = 'flex:none;font-size:1.9rem;line-height:1;', now = '', next = '';
+  card.onclick = null; card.style.cursor = '';
   if (!here) {
     card.style.background = '#3c4043';
     card.innerHTML = '<span style="' + big + '">📍</span><div>' + esc(line) + '</div>';
     return _navLayout();
   }
+  var cb = 'padding:7px 13px;border-radius:16px;border:0;cursor:pointer;font-family:inherit;font-size:0.8rem;font-weight:700;';
+  var newBtn = '<button type="button" onclick="event.stopPropagation();navNew()" style="' + cb + 'background:#fff;color:#0b8043;">🔍 ' + L('יעד חדש', 'New destination') + '</button>';
   if (m < 60) {
+    // arrived: say so, and the two ways on from here, on the card itself
     card.style.background = '#0b8043';
-    card.innerHTML = '<span style="' + big + '">✅</span><div style="font-weight:700;">' + esc(L('הגעת אל ', 'You have reached ') + d.name) + '</div>';
+    card.innerHTML = '<span style="' + big + '">✅</span><div style="min-width:0;"><div style="font-weight:700;">' + esc(L('הגעת אל ', 'You have reached ') + d.name) + '</div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;">' + newBtn
+      + '<button type="button" onclick="event.stopPropagation();geoDest(\'\')" style="' + cb + 'background:rgba(255,255,255,0.18);color:#fff;">✕ ' + L('סיום', 'Done') + '</button></div></div>';
     return _navLayout();
   }
   if (!rt) {
@@ -8440,11 +8472,16 @@ function _navPaint() {
   if (nx) { var at = g.nodes[g.edges[rt.edges[nx.i]][0]]; left = _skiDist(here, [at[0], at[1]]); }
   else left = m;
   next = nx ? L('ואז: ', 'Then: ') + _navStepHtml(nx) : L('ואז: ', 'Then: ') + '<bdi>' + esc(d.name) + '</bdi>';
-  card.style.background = '#0b8043';
+  card.style.background = rt.offPath ? '#b06000' : '#0b8043';
+  // no marked way at one end: the dotted line is a straight line, and says so
+  var offNote = rt.offPath ? '<div style="font-size:0.76rem;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,0.35);">⚠️ '
+    + L('אין כאן דרך מסומנת: הקו המנוקד הוא קו אוויר. ייתכן שהמעלית בדרך סגורה.', 'No marked way here: the dotted line is a straight line. A lift on the way may be shut.') + '</div>' : '';
   card.innerHTML = '<div style="flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:52px;"><span style="' + big + '">' + ico + '</span>'
     + '<span style="font-size:0.78rem;font-weight:700;white-space:nowrap;">' + _navFmtDist(left) + '</span></div>'
     + '<div style="min-width:0;"><div style="font-weight:700;font-size:1.02rem;">' + _navStepHtml(st) + '</div>'
-    + '<div style="font-size:0.8rem;opacity:0.9;margin-top:3px;">' + next + '</div></div>';
+    + '<div style="font-size:0.8rem;opacity:0.9;margin-top:3px;">' + next + '</div>' + offNote + '</div>';
+  card.style.cursor = 'pointer';
+  card.onclick = function () { navSheet(true); };     // the card opens the steps
   _navLayout();
 }
 // one step, short, for the card: the Latin names kept whole inside the line
@@ -8490,6 +8527,14 @@ function _navFit(pad, maxZoom) {
   var top = pad;
   if (GEO.full && GEO.dest) { var c = document.getElementById('nav-step'); top = Math.max(pad, (c && c.offsetHeight ? c.offsetHeight + 16 : 110) + 8); }
   return { paddingTopLeft: [pad, top], paddingBottomRight: [pad + 40, pad], maxZoom: maxZoom };
+}
+// a new destination: the route ends, the search opens
+function navNew() {
+  NAV.open = false;
+  var mm = document.getElementById('mapModal'); if (mm) mm.classList.remove('nav-open');
+  geoDest('');
+  GEO.nearRes = null;
+  setTimeout(function () { geoPickOpen(true, true); }, 60);
 }
 function navCenter() {
   if (!GEO.me || !GEO.map) return;
@@ -8955,12 +9000,27 @@ function _skiNear(g, ll, max, needOut) {
   return hits;
 }
 
+// The walk from where you stand to the first junction, and from the last
+// one to the place, is a straight line across the snow - no path is known
+// there. It was allowed 400 m, and a route once "walked" 300 m straight up a
+// beginners' slope to a hut because the lift beside it was shut (Yossi,
+// 23.11). So: first look for a route that leaves the marked network for at
+// most 150 m at either end; only if there is none, allow 400 m and say so
+// (rt.offPath). Off the network every metre costs more, and climbing more.
 function skiRoute(fromLL, toLL, level) {
+  var r = _skiRoute1(fromLL, toLL, level, 150);
+  // a long flat walk is the village streets, which the map does not draw -
+  // fine; climbing more than 20 m with no path is the snow of a slope
+  if (!r) { r = _skiRoute1(fromLL, toLL, level, 400); if (r) r.offPath = (r.climbIn + r.climbOut) / SKI_CLIMB_S > 20; }
+  return r;
+}
+var SKI_OFF_F = 2.5, SKI_OFF_CLIMB = 2;
+function _skiRoute1(fromLL, toLL, level, maxWalk) {
   var g = SKI.graph;
   if (!g) return null;
-  var WALK_IN = 400, WALK_OUT = 400;
+  var WALK_IN = maxWalk, WALK_OUT = maxWalk;
   var starts = _skiNear(g, fromLL, WALK_IN, true).slice(0, 12);
-  if (!starts.length) starts = _skiNear(g, fromLL, 1500, true).slice(0, 3);
+  if (!starts.length && maxWalk >= 400) starts = _skiNear(g, fromLL, 1500, true).slice(0, 3);
   var ends = {};
   _skiNear(g, toLL, WALK_OUT, false).slice(0, 12).forEach(function (h) { ends[h[1]] = h[0]; });
   if (!starts.length || !Object.keys(ends).length) return null;
@@ -8969,7 +9029,7 @@ function skiRoute(fromLL, toLL, level) {
   var altFrom = _skiAltAt(g, fromLL), altTo = _skiAltAt(g, toLL);
   starts.forEach(function (h) {
     var st = h[1] * NW;               // no lift being ridden
-    var c = (h[0] / g.speed.walk * 1.5 + _skiClimb(altFrom, g.nodes[h[1]][2])) * _skiWalkF();
+    var c = (h[0] / g.speed.walk * SKI_OFF_F + _skiClimb(altFrom, g.nodes[h[1]][2]) * SKI_OFF_CLIMB) * _skiWalkF();
     if (best[st] === undefined || c < best[st]) { best[st] = c; heap.push([c, st]); }
   });
   var goal = -1, goalCost = Infinity;
@@ -8978,7 +9038,7 @@ function skiRoute(fromLL, toLL, level) {
     if (c > best[st] || c >= goalCost) continue;
     var n = Math.floor(st / NW), line = st % NW - 1;
     if (ends[n] !== undefined) {
-      var cg = c + (ends[n] / g.speed.walk * 1.5 + _skiClimb(g.nodes[n][2], altTo)) * _skiWalkF();
+      var cg = c + (ends[n] / g.speed.walk * SKI_OFF_F + _skiClimb(g.nodes[n][2], altTo) * SKI_OFF_CLIMB) * _skiWalkF();
       if (cg < goalCost) { goalCost = cg; goal = st; }
     }
     var outs = g.out[n];
@@ -10322,7 +10382,7 @@ function closeReplyBox(targetId) {
 }
 function makeReplyBox(targetId, postId) {
   const sid = safeId(targetId);
-  return '<div id="rbox-' + sid + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'    + '<textarea id="rtxt-' + sid + '" rows="2" placeholder="כתוב תגובה..." '    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;direction:rtl;font-family:inherit;font-size:0.87rem;"></textarea>'    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + sid + '" style="display:none;" accept="' + FORUM_ACCEPT + '" onchange="showPickedFile(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')"></label>'    + '<span id="rfile-name-' + sid + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'    + '<button id="rfile-name-' + sid + '-clr" onclick="clearAttachment(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')" title="הסר את הקובץ" style="display:none;padding:2px 7px;background:#fff;border:1px solid #d9a;color:#c0392b;border-radius:5px;cursor:pointer;font-size:0.76rem;line-height:1.4;">✕</button>'        + '<div style="margin-inline-start:auto;display:flex;gap:6px;">'    + '<button onclick="closeReplyBox(\'' + sid + '\')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'    + '<button id="rsend-' + sid + '" onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'    + '</div></div></div>';
+  return '<div id="rbox-' + sid + '" style="display:none;margin-top:8px;padding:10px;background:#f0f4ff;border-radius:8px;border:1px solid #d0d8f0;">'    + '<textarea id="rtxt-' + sid + '" dir="auto" rows="2" placeholder="כתוב תגובה..." '    + 'style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;font-family:inherit;font-size:0.87rem;"></textarea>'    + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'    + '<label style="cursor:pointer;font-size:0.8rem;color:#666;padding:4px 8px;border:1px solid #ccc;border-radius:6px;">📎 קובץ<input type="file" id="rfile-' + sid + '" style="display:none;" accept="' + FORUM_ACCEPT + '" onchange="showPickedFile(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')"></label>'    + '<span id="rfile-name-' + sid + '" style="font-size:0.78rem;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>'    + '<button id="rfile-name-' + sid + '-clr" onclick="clearAttachment(\'rfile-' + sid + '\',\'rfile-name-' + sid + '\')" title="הסר את הקובץ" style="display:none;padding:2px 7px;background:#fff;border:1px solid #d9a;color:#c0392b;border-radius:5px;cursor:pointer;font-size:0.76rem;line-height:1.4;">✕</button>'        + '<div style="margin-inline-start:auto;display:flex;gap:6px;">'    + '<button onclick="closeReplyBox(\'' + sid + '\')" style="padding:5px 12px;background:#eee;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;">ביטול</button>'    + '<button id="rsend-' + sid + '" onclick="submitReply(\'' + targetId + '\',\'' + postId + '\')" style="padding:5px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.83rem;">שלח</button>'    + '</div></div></div>';
 }
 async function submitReply(targetId, postId) {
   if (!user) return;
@@ -16636,7 +16696,7 @@ function renderReviewWriteArea() {
     + L('<div style="font-size:0.78rem;color:#888;margin-bottom:4px;">דירוג:</div>', '<div style="font-size:0.78rem;color:#888;margin-bottom:4px;">Rating:</div>')
     + '<div style="margin-bottom:10px;" id="review-stars">' + starsHtml(0, true, 'setReviewStar') + '</div>'
     // text
-    + L('<textarea id="review-text" rows="3" placeholder="ספר על החוויה שלך..." style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;direction:rtl;resize:none;font-family:inherit;margin-bottom:10px;"></textarea>', '<textarea id="review-text" rows="3" placeholder="Tell us about your experience..." style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;direction:ltr;resize:none;font-family:inherit;margin-bottom:10px;"></textarea>')
+    + L('<textarea dir="auto" id="review-text" rows="3" placeholder="ספר על החוויה שלך..." style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;resize:none;font-family:inherit;margin-bottom:10px;"></textarea>', '<textarea dir="auto" id="review-text" rows="3" placeholder="Tell us about your experience..." style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;resize:none;font-family:inherit;margin-bottom:10px;"></textarea>')
     + L('<button onclick="submitReview()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">⭐ פרסמו ביקורת</button>', '<button onclick="submitReview()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.95rem;cursor:pointer;font-weight:bold;">⭐ Post review</button>')
     // A browser alert says "cervinialive.co.il says" above it and puts an OK
     // button under it. It is the browser talking, not the site, and it looks
@@ -16926,7 +16986,7 @@ function reviewEditHtml(r) {
       }).join('')
     + '</div>'
     + '<div id="rev-edit-stars" style="margin-bottom:8px;">' + starsHtml(_revEditDraft.rating, true, 'setEditStar') + '</div>'
-    + '<textarea id="rev-edit-text" rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;direction:rtl;resize:none;font-family:inherit;">' + escHtml(_revEditDraft.text) + '</textarea>'
+    + '<textarea dir="auto" id="rev-edit-text" rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid #ddd;border-radius:9px;font-size:0.88rem;resize:none;font-family:inherit;">' + escHtml(_revEditDraft.text) + '</textarea>'
     + '<div id="rev-edit-msg" style="display:none;margin-top:8px;padding:8px 11px;border-radius:8px;font-size:0.82rem;"></div>'
     + '<div style="display:flex;gap:8px;margin-top:9px;">'
     + '<button onclick="saveEditReview(\'' + escJs(String(r.id)) + '\')" style="flex:2;padding:9px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:0.86rem;font-weight:bold;cursor:pointer;">שמירה</button>'
@@ -23762,7 +23822,7 @@ function editReply(postId, replyId) {
   div.className = 'edit-area';
   div.setAttribute('data-edit-for', safeId(replyId));
   div.style.cssText = 'margin-top:6px;';
-  div.innerHTML = '<textarea data-edit-id="reply" rows="2" style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--accent);border-radius:6px;direction:rtl;font-family:inherit;font-size:0.87rem;resize:vertical;text-align:start;">' + r.content.replace(/</g,'&lt;') + '</textarea>'
+  div.innerHTML = '<textarea dir="auto" data-edit-id="reply" rows="2" style="width:100%;box-sizing:border-box;padding:6px;border:1px solid var(--accent);border-radius:6px;font-family:inherit;font-size:0.87rem;resize:vertical;text-align:start;">' + r.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">'
     + L('<button onclick="removeEditArea(this)" style="padding:3px 10px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">ביטול</button>', '<button onclick="removeEditArea(this)" style="padding:3px 10px;background:#eee;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;">Cancel</button>')
     + '<button onclick="saveEditReply(\'' + postId + '\',\'' + replyId + L('\')" style="padding:3px 10px;background:var(--accent);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-weight:bold;">שמור</button>', '\')" style="padding:3px 10px;background:var(--accent);color:white;border:none;border-radius:5px;cursor:pointer;font-size:0.82rem;font-weight:bold;">Save</button>')
@@ -23846,7 +23906,7 @@ function editPost(id) {
   div.className = 'edit-area';
   div.setAttribute('data-edit-for', safeId(id));
   div.style.cssText = 'margin-top:8px;';
-  div.innerHTML = '<textarea data-edit-id="post" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--accent);border-radius:8px;direction:rtl;font-family:inherit;font-size:0.9rem;resize:vertical;text-align:start;">' + p.content.replace(/</g,'&lt;') + '</textarea>'
+  div.innerHTML = '<textarea dir="auto" data-edit-id="post" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--accent);border-radius:8px;font-family:inherit;font-size:0.9rem;resize:vertical;text-align:start;">' + p.content.replace(/</g,'&lt;') + '</textarea>'
     + '<div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end;">'
     + L('<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">ביטול</button>', '<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">Cancel</button>')
     + '<button onclick="saveEditPost(\'' + id + L('\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">שמור</button>', '\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">Save</button>')
@@ -25457,9 +25517,9 @@ function renderAlertWriteArea() {
           + escHtml(p.icon + ' ' + p.text) + '</button>';
       }).join('')
     + '</div>'
-    + '<textarea id="alert-text" maxlength="' + ALERT_TEXT_MAX + '" oninput="updateAlertCount()" '
+    + '<textarea dir="auto" id="alert-text" maxlength="' + ALERT_TEXT_MAX + '" oninput="updateAlertCount()" '
     + L('placeholder="תאר את ההתראה (מסלול, מיקום, פרטים)..." ', 'placeholder="Describe the alert — run, place, details..." ')
-    + 'style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.82rem;height:62px;resize:none;font-family:inherit;direction:rtl;"></textarea>'
+    + 'style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #ddd;border-radius:8px;font-size:0.82rem;height:62px;resize:none;font-family:inherit;"></textarea>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;">'
     + '<div style="display:flex;gap:5px;" id="alert-sev-row">'
     + ['danger', 'warning', 'info'].map(function (s) {
