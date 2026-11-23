@@ -1584,7 +1584,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.69';
+  var v='v18.70';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5284,8 +5284,9 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                     <div style="color:#c8a0ff;font-size:0.75rem;">CerviniaLive Admin</div>
                 </div>
             </div>
-            <!-- לשוניות -->
-            <div style="display:flex;gap:2px;">
+            <!-- לשוניות (six of them since 23.11: on a narrow phone the row scrolls
+                 sideways rather than widening the whole window) -->
+            <div style="display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;">
                 <button id="adtab-stats" onclick="switchAdminTab('stats')"
                     style="flex:1;padding:9px 4px;border:none;background:rgba(255,255,255,0.18);color:white;font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid white;border-radius:8px 8px 0 0;">
                     📊 סטטיסטיקות
@@ -5293,6 +5294,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                 <button id="adtab-msgs" onclick="switchAdminTab('msgs')"
                     style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
                     📬 הודעות<span id="adtab-msgs-n"></span>
+                </button>
+                <button id="adtab-chan" onclick="switchAdminTab('chan')"
+                    style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
+                    📣 ערוץ
                 </button>
                 <button id="adtab-content" onclick="switchAdminTab('content')"
                     style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
@@ -5325,6 +5330,30 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                 </div>
                 <div id="cm-msg" style="display:none;margin-bottom:8px;padding:8px 10px;border-radius:8px;font-size:0.78rem;"></div>
                 <div id="cm-list"></div>
+            </div>
+
+            <!-- ══ הודעה לערוץ הוואטסאפ ══ (23.11) -->
+            <div id="adtab-content-chan" style="display:none;">
+                <div style="font-size:0.78rem;color:#666;line-height:1.6;margin-bottom:10px;">הודעה מוכנה לערוץ מהנתונים שהאתר שומר: עומק השלג, מסלולים ומעליות פתוחים בצד של צ'רוויניה, ותחזית. אפשר לערוך את הטקסט לפני ההעתקה.</div>
+                <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+                    <span style="font-size:0.8rem;">השוואה ל-</span>
+                    <select id="ch-days" style="padding:6px 8px;border:1px solid #ddd;border-radius:8px;font-size:0.8rem;font-family:inherit;">
+                        <option value="3">3 ימים</option><option value="4">4 ימים</option><option value="5">5 ימים</option>
+                        <option value="7" selected>שבוע</option><option value="10">10 ימים</option><option value="14">שבועיים</option>
+                    </select>
+                    <button onclick="CH.load()" style="padding:6px 13px;border:none;background:#4a1a6e;color:white;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">✨ הכן הודעה</button>
+                </div>
+                <div id="ch-msg" style="display:none;margin-bottom:8px;padding:8px 10px;border-radius:8px;font-size:0.78rem;"></div>
+                <div id="ch-out" style="display:none;">
+                    <textarea id="ch-text" dir="rtl" rows="15" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ddd;border-radius:10px;font-size:0.85rem;line-height:1.55;font-family:inherit;resize:vertical;"></textarea>
+                    <canvas id="ch-canvas" width="1080" height="1080" style="width:100%;border-radius:12px;margin-top:10px;display:block;"></canvas>
+                    <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+                        <button onclick="CH.copy()" style="flex:1;padding:9px;border:1px solid #ddd;background:white;border-radius:10px;font-size:0.8rem;cursor:pointer;font-family:inherit;">📋 העתק טקסט</button>
+                        <button onclick="CH.download()" style="flex:1;padding:9px;border:1px solid #ddd;background:white;border-radius:10px;font-size:0.8rem;cursor:pointer;font-family:inherit;">🖼️ הורד תמונה</button>
+                        <button onclick="CH.share()" style="flex:1;padding:9px;border:none;background:#25D366;color:white;border-radius:10px;font-size:0.8rem;cursor:pointer;font-family:inherit;">📤 שתף</button>
+                    </div>
+                    <div style="font-size:0.72rem;color:#888;margin-top:6px;line-height:1.5;">בטלפון: "שתף" ← וואטסאפ. במחשב: הורד את התמונה, העתק את הטקסט, ובערוץ צרף את התמונה והדבק את הטקסט ככיתוב.</div>
+                </div>
             </div>
 
             <!-- ══ סטטיסטיקות ══ -->
@@ -14812,6 +14841,214 @@ AI.del = async function (id) {
 // reply he wrote is kept with the message, so the site knows what was said.
 // Reading, marking and deleting need the policies in
 // supabase/sql/cl_contact_admin.sql (admins only).
+// ── Channel post (Yossi, 23.11): a ready text and picture for the WhatsApp
+// channel, from what the site already records - snow depth at the four
+// measuring points, runs and lifts open on the Cervinia side, now against N
+// days ago, and the next snowy day in the forecast. He posts it himself:
+// channels have no way in from outside.
+var CH = { data: null };
+CH.RLM = '‏';
+CH.DAYS = { Sunday: 'ראשון', Monday: 'שני', Tuesday: 'שלישי', Wednesday: 'רביעי', Thursday: 'חמישי', Friday: 'שישי', Saturday: 'שבת' };
+CH.msg = function (t, ok) {
+  var m = document.getElementById('ch-msg'); if (!m) return;
+  m.style.display = t ? 'block' : 'none';
+  m.style.background = ok ? '#e8f8ec' : '#ffecec';
+  m.style.color = ok ? '#157a37' : '#b00';
+  m.textContent = t || '';
+};
+CH._day = function (iso) {   // the day in Cervinia
+  try { return new Date(iso).toLocaleDateString('en-CA', { timeZone: 'Europe/Rome' }); } catch (e) { return String(iso).slice(0, 10); }
+};
+CH._pt = function (row, name) {
+  var p = (row && row.snow_points || []).filter(function (x) { return x && x.name === name; })[0];
+  return p || null;
+};
+CH.load = async function () {
+  var sb = (typeof getSB === 'function') ? getSB() : null;
+  if (!sb) { CH.msg('Supabase לא מחובר.', false); return; }
+  var n = +((document.getElementById('ch-days') || {}).value || 7);
+  CH.msg('אוסף נתונים…', true);
+  var since = new Date(Date.now() - (n + 2) * 864e5).toISOString();
+  var res = await sb.from('ski_status_history')
+    .select('created_at,lifts_open_local,lifts_total_local,slopes_open_local,slopes_total_local,snow_points,last_snowfall,forecast_next_days')
+    .gte('created_at', since).order('created_at', { ascending: true }).limit(2000);
+  if (res.error) { CH.msg('שגיאה: ' + res.error.message, false); return; }
+  var rows = res.data || [];
+  if (!rows.length) { CH.msg('אין נתונים לתקופה הזאת.', false); return; }
+  // Per day: the most runs and lifts open during it (at night everything
+  // reads 0), and the last reading for the snow.
+  var days = {}, order = [];
+  rows.forEach(function (r) {
+    var k = CH._day(r.created_at), d = days[k];
+    if (!d) { d = days[k] = { day: k, lifts: 0, liftsT: 0, runs: 0, runsT: 0, last: null }; order.push(k); }
+    d.lifts = Math.max(d.lifts, r.lifts_open_local || 0);
+    d.runs = Math.max(d.runs, r.slopes_open_local || 0);
+    if (r.lifts_total_local) d.liftsT = r.lifts_total_local;
+    if (r.slopes_total_local) d.runsT = r.slopes_total_local;
+    if (r.snow_points && r.snow_points.length) d.last = r;
+  });
+  // today, or yesterday if nothing has opened yet this morning
+  var nowK = order[order.length - 1];
+  if (!days[nowK].runs && order.length > 1) nowK = order[order.length - 2];
+  var nowD = days[nowK];
+  var target = new Date(new Date(nowK + 'T12:00:00Z').getTime() - n * 864e5).toISOString().slice(0, 10);
+  var thenK = order.filter(function (k) { return k <= target; }).pop() || order[0];
+  var thenD = days[thenK];
+  // the snowfall dates the resort reported inside the window
+  var falls = {};
+  rows.forEach(function (r) {
+    if (CH._day(r.created_at) <= thenK) return;
+    var s = String(r.last_snowfall || '').match(/^(\d\d)\/(\d\d)\/(\d{4})$/);
+    if (s) { var iso = s[3] + '-' + s[2] + '-' + s[1]; if (iso > thenK && iso <= nowK) falls[iso] = 1; }
+  });
+  var last = rows[rows.length - 1], fc = null;
+  (last.forecast_next_days || []).some(function (d) {
+    var snow = (d.periods || []).some(function (p) { return /snow/i.test(p.icon || ''); });
+    if (snow) { fc = CH.DAYS[String(d.date || '').split(',')[0]] || null; return true; }
+    return false;
+  });
+  CH.data = { n: n, now: nowD, then: thenD, falls: Object.keys(falls).length,
+    span: Math.round((new Date(nowK) - new Date(thenK)) / 864e5) || n, fc: fc };
+  CH.msg('');
+  CH.paint();
+};
+CH.POINTS = [
+  { name: 'Plateau Rosa', label: 'Plateau Rosa', icon: '🏔️' },
+  { name: 'Cime Bianche Laghi', label: 'Cime Bianche', icon: '🏔️' },
+  { name: 'Plan Maison', label: 'Plan Maison', icon: '⛷️' },
+  { name: 'Breuil', label: 'Breuil', icon: '🏘️', town: true }
+];
+CH.points = function () {
+  var d = CH.data; if (!d) return [];
+  return CH.POINTS.map(function (P) {
+    var a = CH._pt(d.then.last, P.name), b = CH._pt(d.now.last, P.name);
+    if (!b) return null;
+    return { label: P.label, icon: P.icon, town: P.town, alt: b.altitude, from: a ? a.depth : null, to: b.depth };
+  }).filter(Boolean);
+};
+CH.text = function () {
+  var d = CH.data, R = CH.RLM; if (!d) return '';
+  var ago = d.span === 7 ? 'לפני שבוע' : 'לפני ' + d.span + ' ימים';
+  var period = d.span === 7 ? 'בשבוע האחרון' : 'ב-' + d.span + ' הימים האחרונים';
+  var pts = CH.points(), sumA = 0, sumB = 0;
+  pts.forEach(function (p) { if (p.from != null) { sumA += p.from; sumB += p.to; } });
+  var L1 = [];
+  L1.push(R + (d.falls ? '❄️ שלג טרי בצ\'רוויניה!' : '⛷️ עדכון מצ\'רוויניה'));
+  L1.push('');
+  var head = d.falls ? period + ' ירד שלג ב-' + d.falls + (d.falls === 1 ? ' יום' : ' ימים') : period + ' לא ירד שלג חדש';
+  if (sumA && sumB >= sumA * 2) head += ', ועומק השלג יותר מהוכפל';
+  else if (sumA && sumB >= sumA * 1.7) head += ', ועומק השלג כמעט הוכפל';
+  L1.push(R + head + ':');
+  pts.forEach(function (p) {
+    var name = p.town ? 'העיירה ' + p.label : p.label + (p.alt ? ' (' + Number(p.alt).toLocaleString('en-US') + ' מ\')' : '');
+    L1.push(R + p.icon + ' ' + name + ': ' + (p.from != null && p.from !== p.to ? 'מ-' + p.from + ' ל-' + p.to + ' ס"מ' : p.to + ' ס"מ'));
+  });
+  L1.push('');
+  var more = d.now.runs > d.then.runs;
+  L1.push(R + (more ? 'המסלולים נפתחים בהדרגה:' : 'מצב המסלולים:'));
+  L1.push(R + '✅ ' + d.now.runs + ' מסלולים פתוחים' + (d.now.runsT ? ' מתוך ' + d.now.runsT : '') + ' (' + ago + ': ' + d.then.runs + ')');
+  L1.push(R + '🚡 ' + d.now.lifts + ' מעליות פתוחות (' + ago + ': ' + d.then.lifts + ')');
+  if (d.fc) { L1.push(''); L1.push(R + 'ובימים הקרובים: שלג נוסף צפוי ביום ' + d.fc + ' 🌨️'); }
+  L1.push('');
+  L1.push(R + 'מצב עדכני של מסלולים, מעליות, מצלמות ותחזית באתר 👈 cervinialive.co.il');
+  return L1.join('\n');
+};
+CH.paint = function () {
+  var t = document.getElementById('ch-text'); if (t) t.value = CH.text();
+  var w = document.getElementById('ch-out'); if (w) w.style.display = 'block';
+  CH.draw();
+};
+CH._img = function (src) {
+  return new Promise(function (ok) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = src; });
+};
+CH.draw = async function () {
+  var d = CH.data, cv = document.getElementById('ch-canvas'); if (!d || !cv) return;
+  var x = cv.getContext('2d'), W = 1080, F = '"Segoe UI", system-ui, Arial, sans-serif';
+  var hero = await CH._img('hero-cervino.jpg'), logo = await CH._img('img/logo.png');
+  x.fillStyle = '#0b1830'; x.fillRect(0, 0, W, W);
+  if (hero) {   // cover, a little above the middle
+    var s = Math.max(W / hero.width, 500 / hero.height), hw = hero.width * s, hh = hero.height * s;
+    x.save(); x.beginPath(); x.rect(0, 0, W, 500); x.clip();
+    x.drawImage(hero, (W - hw) / 2, (500 - hh) * 0.35, hw, hh);
+    x.restore();
+  }
+  var g = x.createLinearGradient(0, 225, 0, 500); g.addColorStop(0, 'rgba(11,24,48,0)'); g.addColorStop(1, '#0b1830');
+  x.fillStyle = g; x.fillRect(0, 225, W, 276);
+  if (logo) {
+    var lh = 64, lw = logo.width * lh / logo.height;
+    x.fillStyle = 'rgba(11,24,48,.75)'; CH._rr(x, W - 32 - lw - 32, 28, lw + 32, lh + 20, 14); x.fill();
+    x.drawImage(logo, W - 32 - lw - 16, 38, lw, lh);
+  }
+  function T(s, px, py, size, color, weight, dir, align) {
+    x.font = (weight || 400) + ' ' + size + 'px ' + F; x.fillStyle = color; x.direction = dir || 'rtl';
+    x.textAlign = align || 'center'; x.fillText(s, px, py);
+  }
+  x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 14;
+  T(d.falls ? '❄️ שלג טרי בצ\'רוויניה' : '⛷️ עדכון מצ\'רוויניה', W / 2, 440, 64, '#fff', 800);
+  x.shadowBlur = 0;
+  var ago = d.span === 7 ? 'לפני שבוע' : 'לפני ' + d.span + ' ימים';
+  var nd = d.now.day.split('-');
+  T('עומק השלג בס"מ · ' + ago + ' ← היום (' + (+nd[2]) + '.' + (+nd[1]) + ')', W / 2, 488, 28, '#9fd0ff');
+  var pts = CH.points(), cw = (W - 80 - 16 * (pts.length - 1)) / pts.length;
+  pts.forEach(function (p, i) {   // right to left, like the page
+    var cx = W - 40 - i * (cw + 16) - cw, mid = cx + cw / 2;
+    x.fillStyle = '#14274a'; CH._rr(x, cx, 530, cw, 180, 20); x.fill();
+    if (p.from != null && p.from !== p.to) {
+      T(String(p.from), mid, 572, 26, '#7f93b5', 400, 'ltr');
+      var fw = x.measureText(String(p.from)).width; x.fillRect(mid - fw / 2, 563, fw, 2);
+    }
+    T(String(p.to), mid, 628, 56, '#fff', 800, 'ltr');
+    T(p.label, mid, 666, 24, '#cfe3ff', 400, 'ltr');
+    if (p.alt) T(Number(p.alt).toLocaleString('en-US') + ' מ\'', mid, 694, 20, '#7f93b5');
+  });
+  var bw = (W - 80 - 16) / 2;
+  [[W - 40 - bw, 'מסלולים פתוחים', d.now.runs, d.now.runsT], [40, 'מעליות פתוחות', d.now.lifts, 0]].forEach(function (b) {
+    x.fillStyle = '#1c3a2e'; CH._rr(x, b[0], 740, bw, 130, 20); x.fill();
+    var mid = b[0] + bw / 2;
+    T(b[1], mid, 786, 30, '#fff');
+    if (b[3]) {   // "20 מתוך 24", drawn in pieces so the numbers keep their places
+      x.font = '800 52px ' + F; var w1 = x.measureText(String(b[2])).width;
+      x.font = '400 30px ' + F; var w2 = x.measureText(' מתוך ').width, w3 = x.measureText(String(b[3])).width;
+      var tot = w1 + w2 + w3, right = mid + tot / 2;
+      T(String(b[2]), right - w1 / 2, 846, 52, '#5df59a', 800, 'ltr');
+      T('מתוך', right - w1 - w2 / 2, 846, 30, '#fff');
+      T(String(b[3]), right - w1 - w2 - w3 / 2, 846, 30, '#fff', 400, 'ltr');
+    } else T(String(b[2]), mid, 846, 52, '#5df59a', 800, 'ltr');
+  });
+  T('cervinialive.co.il', W / 2, 930, 30, '#9fd0ff', 400, 'ltr');
+};
+CH._rr = function (x, a, b, w, h, r) {
+  x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r);
+  x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath();
+};
+CH.copy = async function () {
+  var t = document.getElementById('ch-text'); if (!t) return;
+  try { await navigator.clipboard.writeText(t.value); CH.msg('הטקסט הועתק ✓', true); }
+  catch (e) { t.select(); try { document.execCommand('copy'); CH.msg('הטקסט הועתק ✓', true); } catch (e2) { CH.msg('סמן את הטקסט והעתק ידנית.', false); } }
+};
+CH._blob = function () {
+  var cv = document.getElementById('ch-canvas');
+  return new Promise(function (ok) { cv.toBlob(function (b) { ok(b); }, 'image/jpeg', 0.9); });
+};
+CH._name = function () { return 'cervinia-' + (CH.data ? CH.data.now.day : 'update') + '.jpg'; };
+CH.download = async function () {
+  var b = await CH._blob(); if (!b) return;
+  var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = CH._name();
+  document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+};
+// On the phone: the share sheet, with the picture and the text together
+CH.share = async function () {
+  var b = await CH._blob(), t = document.getElementById('ch-text');
+  try {
+    var f = new File([b], CH._name(), { type: 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      await navigator.share({ files: [f], text: t ? t.value : '' });
+      return;
+    }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  CH.msg('השיתוף לא נתמך בדפדפן הזה - הורד את התמונה והעתק את הטקסט.', false);
+};
+
 var CM = { rows: [], open: null };
 CM.msg = function (t, ok) {
   var m = document.getElementById('cm-msg'); if (!m) return;
@@ -24611,7 +24848,7 @@ function switchAdminTab(tab) {
             if (typeof RC !== 'undefined') { try { RC.open(); } catch (e) { console.warn(e); } }
         }
         if (tab === 'msgs' && typeof CM !== 'undefined') { try { CM.load(); } catch (e) { console.warn(e); } }
-        ['stats','msgs','content','users','system'].forEach(t => {
+        ['stats','msgs','chan','content','users','system'].forEach(t => {
             const btn = document.getElementById('adtab-' + t);
             const panel = document.getElementById('adtab-content-' + t);
             if (!btn || !panel) return;
