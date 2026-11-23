@@ -724,6 +724,63 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         #mapModal.geo-full #map-geo-dest-info { max-height: 16vh !important; }
         #mapModal.geo-full.geo-nav #map-geo-cats-row { display: none !important; }
         #mapModal.geo-full #map-geo-dest-row { padding: 4px 7px !important; }
+        /* Full screen the way Waze and Google Maps draw it (Yossi, 23.11): the
+           map is the screen; a search box and a row of chips float over its
+           top; while navigating, one green card on top says what to do now,
+           a small sheet at the bottom says where to and how long, and a few
+           round buttons sit on the map. Everything else waits in the sheet. */
+        #mapModal.geo-full #map-geo-bar,
+        #mapModal.geo-full .leaflet-control-zoom { display: none !important; }
+        #mapModal.geo-full #map-geo-dest-row { display: flex; flex-direction: column; }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-dest-row { position: absolute; top: 0; left: 0; right: 0; z-index: 1100;
+          background: transparent !important; border: 0 !important; pointer-events: none; padding: 8px 8px 0 !important; }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-dest-row > * { pointer-events: auto; }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-pick-row { order: 1; }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-cats-row { order: 2; margin: 7px 0 0 !important; }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-picklist { order: 3; }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-friends { order: 4; margin-top: 6px; }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-sim { order: 5; }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-pick { border: 0 !important; border-radius: 24px !important; padding: 11px 14px !important;
+          box-shadow: 0 2px 10px rgba(16,40,70,0.25); }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-full-top { border: 0 !important; border-radius: 50% !important; width: 42px; height: 42px;
+          padding: 0 !important; font-size: 1.05rem !important; box-shadow: 0 2px 10px rgba(16,40,70,0.25); }
+        #mapModal.geo-full:not(.geo-nav) #map-geo-full-top .fs-word { display: none; }
+        #mapModal.geo-full #map-geo-cats button { box-shadow: 0 1px 6px rgba(16,40,70,0.22); border-color: transparent !important; }
+        #mapModal.geo-full #map-geo-friends-btn, #mapModal.geo-full #map-geo-voice { display: none !important; }
+        #mapModal.geo-full.geo-nav .leaflet-bottom { bottom: 14px; }
+        /* while navigating: the map on top, the sheet under it */
+        #mapModal.geo-full.geo-nav #map-geo { order: 1; }
+        #mapModal.geo-full.geo-nav #map-geo-dest-row { order: 2; max-height: 58vh; overflow: auto; background: #fff !important;
+          border: 0 !important; border-radius: 16px 16px 0 0; box-shadow: 0 -3px 14px rgba(16,40,70,0.18); margin-top: -14px; z-index: 1100;
+          position: relative; padding: 4px 12px 8px !important; }
+        #mapModal.geo-full.geo-nav #map-geo-pick-row,
+        #mapModal.geo-full.geo-nav #map-geo-cats-row { display: none !important; }
+        #mapModal.geo-full.geo-nav #nav-sum { display: flex !important; order: 1; }
+        #mapModal.geo-full.geo-nav #map-geo-sim { order: 2; }
+        #mapModal.geo-full.geo-nav #map-geo-friends { order: 3; }
+        #mapModal.geo-full.geo-nav #nav-more { order: 4; }
+        #mapModal.geo-full.geo-nav #map-geo-level-row { order: 5; }
+        #mapModal.geo-full.geo-nav #map-geo-dest-info { order: 6; max-height: none !important; }
+        #mapModal.geo-full.geo-nav #map-geo-picklist { order: 7; }
+        #mapModal.geo-full.geo-nav:not(.nav-open) #map-geo-level-row,
+        #mapModal.geo-full.geo-nav:not(.nav-open) #map-geo-dest-info,
+        #mapModal.geo-full.geo-nav:not(.nav-open) #nav-more { display: none !important; }
+        #mapModal.geo-full.geo-nav.nav-open #nav-more { display: flex !important; }
+        #mapModal.geo-full.geo-nav #nav-step { display: flex !important; }
+        #nav-step { max-width: 480px; margin-inline-end: auto; }
+        #mapModal.geo-full #nav-fabs { display: block !important; }
+        #nav-fabs button { display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 50%;
+          border: 0; background: #fff; color: #16314f; box-shadow: 0 2px 10px rgba(16,40,70,0.3); cursor: pointer;
+          font-family: inherit; font-size: 1.2rem; line-height: 1; margin-top: 10px; padding: 0; }
+        #nav-fabs .nav-fab-col { position: absolute; display: flex; flex-direction: column; align-items: center; pointer-events: auto; }
+        #nav-panel { display: none; position: absolute; left: 0; right: 0; bottom: 0; z-index: 1300; max-height: 78%; overflow: auto;
+          background: #fff; border-radius: 16px 16px 0 0; box-shadow: 0 -4px 22px rgba(16,40,70,0.3); padding: 10px 14px 14px;
+          font-size: 0.84rem; color: #16314f; line-height: 1.55; }
+        #nav-panel .np-chip { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; width: 76px; padding: 9px 4px;
+          border-radius: 12px; border: 1px solid #e1e8f0; background: #fff; cursor: pointer; font-family: inherit; font-size: 0.74rem;
+          color: #16314f; line-height: 1.25; }
+        #nav-panel .np-chip b { font-size: 1.5rem; font-weight: normal; line-height: 1; }
+        #nav-panel .np-chip[aria-pressed="true"] { border: 2px solid #e8710a; background: #fff4e8; }
 .modal-content { --mc-pad: 30px; background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; position: relative; max-height: 95vh; overflow-y: auto; }
 .modal-content::-webkit-scrollbar { width: 8px; }
 .modal-content::-webkit-scrollbar-track { background: transparent; }
@@ -1515,7 +1572,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.61';
+  var v='v18.62';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5106,6 +5163,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
       <div id="map-geo-wrap" style="display:none;position:absolute;inset:0;flex-direction:column;background:#fff;">
         <!-- take me to: a destination from the site's own verified points -->
         <div id="map-geo-dest-row" style="flex-shrink:0;padding:6px 9px;border-bottom:1px solid #e3eaf2;background:#f8fbfe;font-size:0.76rem;color:#33475b;">
+          <!-- while navigating in full screen: the sheet's one line - where to,
+               how long - and a tap opens the rest (_navPaint) -->
+          <div id="nav-sum" style="display:none;align-items:center;gap:10px;padding:6px 0 4px;cursor:pointer;" onclick="navSheet()"></div>
+          <div id="nav-more" style="display:none;gap:6px;flex-wrap:wrap;margin:2px 0 6px;"></div>
           <!-- the kinds of destination, one button each (Yossi, 18.11), and friends -->
           <!-- one row: the four kinds of place, and the friends as a round button of
                their own at its end - not a fifth chip that wrapped to the middle of
@@ -5123,13 +5184,14 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
             <select id="map-geo-dest" onchange="geoDest(this.value)" aria-hidden="true" tabindex="-1" style="display:none;"></select>
             <button type="button" id="map-geo-pick" onclick="geoPickOpen()" aria-haspopup="listbox"
               style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:10px;border:1.5px solid #1a73e8;background:#fff;font-family:inherit;font-size:0.84rem;color:#16314f;cursor:pointer;text-align:start;">
-              <span id="map-geo-pick-t" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;">🎯 קח אותי ל…</span><span style="color:#1a73e8;">▾</span></button>
+              <span id="map-geo-pick-t" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;" data-en="🔍 Where to? Search">🔍 לאן? חיפוש מקום</span><span style="color:#1a73e8;">▾</span></button>
             <button type="button" id="map-geo-dest-x" onclick="geoDest('')" aria-label="ביטול היעד" data-en-aria-label="Clear the destination"
               style="display:none;padding:5px 10px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-size:0.8rem;">✕</button>
             <!-- the way out of full screen, at the top where it is seen (Yossi, 22.11) -->
             <button type="button" id="map-geo-full-top" onclick="geoFull(false)"
               style="display:none;flex:none;padding:6px 9px;border-radius:8px;border:1px solid #c9d6e3;background:#fff;color:#16314f;cursor:pointer;font-family:inherit;font-size:0.76rem;white-space:nowrap;"
-              data-en="↙ Normal screen">↙ מסך רגיל</button>
+              aria-label="מסך רגיל" data-en-aria-label="Normal screen"
+              data-en="↙ <span class=&quot;fs-word&quot;>Normal screen</span>">↙ <span class="fs-word">מסך רגיל</span></button>
           </div>
           <div id="map-geo-picklist" role="listbox" style="display:none;margin-top:6px;border:1px solid #d6e2ef;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(16,40,70,0.16);max-height:46vh;overflow:auto;"></div>
           <div id="map-geo-level-row" style="display:none;margin-top:5px;align-items:center;gap:6px 10px;flex-wrap:wrap;">
@@ -5153,6 +5215,13 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
           <div id="map-geo-sim" style="display:none;margin-top:6px;padding:6px 8px;border:1px dashed #b06000;border-radius:9px;background:#fff8ef;line-height:1.6;"></div>
         </div>
         <div id="map-geo" dir="ltr" style="flex:1;min-height:0;"></div>
+        <!-- full screen only: what to do now, the round buttons, and the sheet
+             for reports, help and a run's card -->
+        <div id="nav-step" role="status" aria-live="polite" style="display:none;position:absolute;top:8px;left:8px;right:8px;z-index:1200;
+             align-items:center;gap:12px;padding:11px 14px;border-radius:14px;background:#0b8043;color:#fff;box-shadow:0 3px 12px rgba(0,0,0,0.3);
+             font-size:0.95rem;line-height:1.35;"></div>
+        <div id="nav-fabs" style="display:none;position:absolute;inset:0;pointer-events:none;z-index:1150;"></div>
+        <div id="nav-panel" role="dialog" aria-modal="false"></div>
         <div id="map-geo-bar" style="flex-shrink:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 9px;border-top:1px solid #e3eaf2;font-size:0.76rem;color:#33475b;background:#f8fbfe;">
           <button type="button" id="map-geo-btn" onclick="geoLocate()"
             style="padding:6px 12px;border-radius:8px;border:none;background:#1a73e8;color:#fff;font-weight:bold;font-family:inherit;font-size:0.78rem;cursor:pointer;"
@@ -7120,6 +7189,10 @@ document.addEventListener('keydown', function(e) {
   } else if (top.id === 'sourcesModal') {
     closeSources();
   } else if (top.id === 'mapModal') {
+    // inside the navigation Escape (and the phone's back button) steps back
+    // one layer - an open sheet, then full screen - and only then leaves
+    // (Yossi, 23.11: in full screen it threw him out of the navigation)
+    if (typeof navBack === 'function' && navBack()) { e.preventDefault(); return; }
     closeMapModal();
   } else if (top.id) {
     closeM(top.id);
@@ -7410,7 +7483,10 @@ function geoOpen() {
         attribution: '<a href="https://www.opensnowmap.org" target="_blank">OpenSnowMap</a> CC-BY-SA'
       }).addTo(GEO.map);
       GEO.map.attributionControl.setPrefix(false);
+      _navMapEvents();
     }
+    _navPoiLoad();
+    try { fetchAlerts(true); } catch (e) {}
     setTimeout(function () { if (GEO.map) GEO.map.invalidateSize(); }, 60);
     _geoDestFill();
     // friends: the panel as it was, and their positions while the map is open
@@ -7458,6 +7534,7 @@ function geoFull(on) {
   if (b) b.textContent = GEO.full ? L('↙ יציאה ממסך מלא', '↙ Exit full screen') : L('⛶ מסך מלא', '⛶ Full screen');
   var bt = document.getElementById('map-geo-full-top');
   if (bt) bt.style.display = GEO.full ? '' : 'none';
+  if (!GEO.full && typeof navPanel === 'function' && NAV.panel) navPanel('');
   if (GEO.map && typeof _geoDestPaint === 'function') _geoDestPaint();   // the friends button follows
   setTimeout(function () { if (GEO.map) GEO.map.invalidateSize(); }, 80);
 }
@@ -7496,6 +7573,7 @@ function _geoFix(pos) {
   if (!lf || !GEO.map) return;
   var c = pos.coords, ll = [c.latitude, c.longitude];
   var acc = Math.round(c.accuracy || 0);
+  GEO.alt = (c.altitude !== null && c.altitude !== undefined && !isNaN(c.altitude)) ? c.altitude : null;
   if (!GEO.me) {
     GEO.acc = lf.circle(ll, { radius: acc, color: '#1a73e8', weight: 1, fillColor: '#1a73e8', fillOpacity: 0.12, interactive: false }).addTo(GEO.map);
     GEO.me = lf.circleMarker(ll, { radius: 8, color: '#fff', weight: 3, fillColor: '#1a73e8', fillOpacity: 1 }).addTo(GEO.map);
@@ -7603,7 +7681,29 @@ function _geoDestList() {
       var ll = _geoLL(r.latlon); if (!ll) return;
       it.push({ id: 'h:' + i, name: _geoName(r.name), ll: ll });
     });
+    // the après-ski places that stand on a run (Super G, Love...) are huts
+    // too for somebody skiing to them; the same place twice is shown once
+    if (a[0] === 'cervinia') (p.apres_ski || []).forEach(function (r, i) {
+      if (!/מסלול|Plan |piste|run/i.test(String(r.area || ''))) return;
+      var ll = _geoLL(r.latlon); if (!ll) return;
+      if (it.some(function (x) { return _skiDist(x.ll, ll) < 150; })) return;
+      it.push({ id: 'a:' + i, name: _geoName(String(r.name || '').replace(/\ud83c[\udf00-\udfff]|\ud83d[\udc00-\udeff]|\ud83e[\udd00-\uddff]/g, '')), ll: ll });
+    });
     add('h', L(a[1], a[2]), it);
+  });
+  // the parking places of the village
+  var pk = [];
+  ((window._texts && window._texts.parking && window._texts.parking.lots) || []).forEach(function (r, i) {
+    var ll = _geoLL(r.latlon); if (!ll) return;
+    pk.push({ id: 'k:' + i, name: '🅿️ ' + _geoName(String(r.name || '').replace(/^[^A-Za-z\u0590-\u05ff]+/, '').split(/\s+[—-]\s+/)[0]), ll: ll });
+  });
+  add('v', L('🅿️ חניונים', '🅿️ Car parks'), pk);
+  // toilets, first aid, rental... (data/poi-*.json, from OpenStreetMap):
+  // found by the search and by "the nearest", not a tab of their own
+  NAV_NEAR.forEach(function (nk) {
+    if (!nk.poi) return;
+    var it = _navPoi(nk.k);
+    add('o', L(nk.he, nk.en), it);
   });
   // the top of every run, by area, in the order of the map's numbers
   GEO_AREAS.forEach(function (a) {
@@ -7624,6 +7724,7 @@ function _geoDestList() {
 }
 function geoCat(k) {
   GEO.destCat = k;
+  GEO.nearRes = null;
   _geoDestFill();
   geoPickOpen(true);   // choosing a kind of place opens its list
 }
@@ -7635,8 +7736,12 @@ function _geoDestFill() {
   if (!SKI.graph && !SKI.failed) _skiLoad().then(_geoDestFill, function () {});
   var data = _geoDestList();
   GEO.dests = data.all;
-  if (GEO.dest && GEO.dest.id && GEO.dest.id.indexOf('l:') !== 0 && !GEO.destCat) {
-    GEO.destCat = GEO.dest.id.charAt(0) === 'h' ? 'h' : GEO.dest.id.charAt(0) === 'p' ? 'p' : 's';
+  GEO.allGroups = data.groups;
+  // a point marked on the map, or one of "the nearest", is not in the lists
+  if (GEO.dest && !GEO.dests[GEO.dest.id]) GEO.dests[GEO.dest.id] = GEO.dest;
+  if (GEO.nearRes) GEO.nearRes.items.forEach(function (d) { GEO.dests[d.id] = d; });
+  if (GEO.dest && GEO.dest.id && /^[hasp]:/.test(GEO.dest.id) && !GEO.destCat) {
+    GEO.destCat = /^[ha]:/.test(GEO.dest.id) ? 'h' : GEO.dest.id.charAt(0) === 'p' ? 'p' : 's';
   }
   var cat = GEO.destCat || 'v';
   if (!data.groups.some(function (g) { return g.cat === cat; })) cat = 's';
@@ -7648,7 +7753,7 @@ function _geoDestFill() {
         + 'flex:none;white-space:nowrap;padding:5px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;font-weight:' + (on ? '700' : '500') + ';'
         + 'border:1px solid ' + (on ? '#1a73e8' : '#c9d6e3') + ';background:' + (on ? '#e8f0fe' : '#fff') + ';color:' + (on ? '#174ea6' : '#33475b') + ';">'
         + L(c[1], c[2]) + '</button>';
-    }).join('');
+    }).join('') + _navNearChips();
   }
   sel.innerHTML = '';
   var o0 = document.createElement('option');
@@ -7669,38 +7774,78 @@ function _geoDestFill() {
 }
 function _geoPickLabel() {
   var t = document.getElementById('map-geo-pick-t');
-  if (t) t.textContent = GEO.dest ? '🎯 ' + GEO.dest.name : L('🎯 קח אותי ל…', '🎯 Take me to…');
+  if (t) t.textContent = GEO.dest ? '🎯 ' + GEO.dest.name : L('🔍 לאן? חיפוש מקום', '🔍 Where to? Search');
 }
-function geoPickOpen(force) {
+function geoPickOpen(force, typing) {
   GEO.pickOpen = force != null ? !!force : !GEO.pickOpen;
   var box = document.getElementById('map-geo-picklist');
   if (!box) return;
   box.style.display = GEO.pickOpen ? 'block' : 'none';
-  if (GEO.pickOpen) { GEO.pickQ = ''; _geoPickPaint(); var i = document.getElementById('map-geo-pick-q'); if (i && (GEO.pickGroups || []).reduce(function (n, g) { return n + g.items.length; }, 0) > 12) i.focus(); }
+  if (!GEO.pickOpen) { GEO.nearRes = null; return; }
+  GEO.pickQ = '';
+  _geoPickPaint();
+  // the search box takes the keyboard when the reader opened the list to
+  // look for a place, not when a chip opened it
+  if (typing || force == null) { var i = document.getElementById('map-geo-pick-q'); if (i) try { i.focus(); } catch (e) {} }
 }
 function geoPickSet(id) { geoPickOpen(false); geoDest(id); _geoPickLabel(); }
 function geoPickFilter(v) { GEO.pickQ = v; _geoPickPaint(true); }
+// written the way it is typed: no case, no geresh, no niqqud, no dashes
+function _geoNorm(v) {
+  return String(v || '').toLowerCase().replace(/[֑-ׇ]/g, '').replace(/[׳'"״`’.]/g, '')
+    .replace(/[-–—_·,()]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function _geoPickRow(d, extra) {
+  var on = GEO.dest && GEO.dest.id === d.id;
+  return '<button type="button" role="option" aria-selected="' + !!on + '" onclick="geoPickSet(\'' + String(d.id).replace(/'/g, "\\'") + '\')" style="display:flex;width:100%;align-items:baseline;gap:8px;text-align:start;padding:10px 14px;border:none;border-bottom:1px solid #f0f3f7;'
+    + 'background:' + (on ? '#e8f0fe' : '#fff') + ';font-family:inherit;font-size:0.86rem;color:#16314f;cursor:pointer;line-height:1.35;' + (on ? 'font-weight:700;' : '') + '">'
+    + '<span style="flex:1;min-width:0;">' + esc(d.name) + '</span>'
+    + (extra ? '<span style="flex:none;font-size:0.76rem;color:#0b8043;font-weight:600;">' + extra + '</span>' : '') + '</button>';
+}
+function _geoPickHead(t) {
+  return '<div style="position:sticky;top:0;background:#f4f7fb;padding:5px 12px;font-size:0.72rem;font-weight:700;color:#5b6b80;letter-spacing:0.02em;border-bottom:1px solid #e3e9f1;">' + t + '</div>';
+}
 function _geoPickPaint(keepInput) {
   var box = document.getElementById('map-geo-picklist');
   if (!box) return;
-  var q = String(GEO.pickQ || '').trim().toLowerCase();
-  var groups = GEO.pickGroups || [], count = 0, list = '';
-  groups.forEach(function (g) {
-    var items = g.items.filter(function (d) { return !q || String(d.name).toLowerCase().indexOf(q) >= 0; });
-    if (!items.length) return;
-    list += '<div style="position:sticky;top:0;background:#f4f7fb;padding:5px 12px;font-size:0.72rem;font-weight:700;color:#5b6b80;letter-spacing:0.02em;border-bottom:1px solid #e3e9f1;">' + esc(g.label) + '</div>';
-    items.forEach(function (d) {
-      count++;
-      var on = GEO.dest && GEO.dest.id === d.id;
-      list += '<button type="button" role="option" aria-selected="' + !!on + '" onclick="geoPickSet(\'' + String(d.id).replace(/'/g, "\\'") + '\')" style="display:block;width:100%;text-align:start;padding:10px 14px;border:none;border-bottom:1px solid #f0f3f7;'
-        + 'background:' + (on ? '#e8f0fe' : '#fff') + ';font-family:inherit;font-size:0.86rem;color:#16314f;cursor:pointer;line-height:1.35;' + (on ? 'font-weight:700;' : '') + '">' + esc(d.name) + '</button>';
+  var q = _geoNorm(GEO.pickQ);
+  var count = 0, list = '';
+  var act = 'display:block;width:100%;text-align:start;padding:10px 14px;border:none;border-bottom:1px solid #f0f3f7;background:#fff;font-family:inherit;font-size:0.84rem;color:#1a5fb4;cursor:pointer;';
+  if (q) {
+    // the search runs over every kind of place, whatever chip is chosen
+    // (Yossi, 23.11: "is there a free search? only choosing")
+    var words = q.split(' ');
+    (GEO.allGroups || []).forEach(function (g) {
+      var items = g.items.filter(function (d) {
+        var hay = _geoNorm(d.name + ' ' + (d.en || ''));
+        return words.every(function (w) { return hay.indexOf(w) >= 0; });
+      });
+      if (!items.length) return;
+      list += _geoPickHead(esc(({ v: L('🏘️ בכפר', '🏘️ Village'), s: L('🚡 תחנות', '🚡 Stations'), h: L('🍽️ בקתות', '🍽️ Huts'), p: L('⛷️ מסלולים', '⛷️ Runs') })[g.cat] || '') + ' · ' + esc(g.label));
+      items.slice(0, 25).forEach(function (d) { count++; list += _geoPickRow(d); });
     });
-  });
-  if (!count) list = '<div style="padding:14px;text-align:center;color:#8a97a5;font-size:0.82rem;">' + L('לא נמצא יעד בשם הזה', 'No destination by that name') + '</div>';
-  var many = groups.reduce(function (n, g) { return n + g.items.length; }, 0) > 12;
+    if (!count) list = '<div style="padding:14px;text-align:center;color:#8a97a5;font-size:0.82rem;">' + L('לא נמצא מקום בשם הזה', 'No place by that name') + '</div>';
+  } else if (GEO.nearRes) {
+    var nr = GEO.nearRes, nk = NAV_NEAR.filter(function (x) { return x.k === nr.k; })[0];
+    list += _geoPickHead(esc(L(nk.he, nk.en)) + ' · ' + (nr.fromMe ? L('הקרובים אליך', 'nearest to you') : L('הקרובים למרכז המפה', 'nearest to the middle of the map')));
+    nr.items.forEach(function (d) {
+      var dist = d.m < 1000 ? (Math.round(d.m / 10) * 10) + L(' מ\'', ' m') : (d.m / 1000).toFixed(1) + L(' ק״מ', ' km');
+      var t = d.secs != null ? (Math.max(1, Math.round(d.secs / 60)) + L(' דק\'', ' min') + ' · ') : '';
+      list += _geoPickRow(d, t + dist);
+    });
+    if (!nr.items.length) list += '<div style="padding:14px;text-align:center;color:#8a97a5;font-size:0.82rem;">' + L('לא נמצא מקום כזה באזור', 'None found in the area') + '</div>';
+  } else {
+    list += '<button type="button" onclick="geoPickMap()" style="' + act + '">📌 ' + L('סמן את היעד על המפה', 'Mark the destination on the map') + '</button>';
+    if ((GEO.destCat || 'v') === 'p') list += '<button type="button" onclick="navToGuide()" style="' + act + '">📖 ' + L('לבחור מתוך מדריך המסלולים, עם הפרטים של כל מסלול', 'Choose from the piste guide, with each run\'s details') + '</button>';
+    (GEO.pickGroups || []).forEach(function (g) {
+      if (!g.items.length) return;
+      list += _geoPickHead(esc(g.label));
+      g.items.forEach(function (d) { count++; list += _geoPickRow(d); });
+    });
+  }
   if (keepInput && document.getElementById('map-geo-pick-body')) { document.getElementById('map-geo-pick-body').innerHTML = list; return; }
-  box.innerHTML = (many ? '<div style="padding:8px;border-bottom:1px solid #e3e9f1;"><input id="map-geo-pick-q" type="search" oninput="geoPickFilter(this.value)" autocomplete="off" placeholder="'
-      + L('🔎 חיפוש יעד', '🔎 Find a destination') + '" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #d6e2ef;border-radius:8px;font-family:inherit;font-size:0.84rem;"></div>' : '')
+  box.innerHTML = '<div style="padding:8px;border-bottom:1px solid #e3e9f1;"><input id="map-geo-pick-q" type="search" oninput="geoPickFilter(this.value)" autocomplete="off" enterkeyhint="search" placeholder="'
+      + L('🔎 חיפוש: בקתה, מסלול, תחנה, חניון…', '🔎 Search: hut, run, station, car park…') + '" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d6e2ef;border-radius:8px;font-family:inherit;font-size:0.86rem;"></div>'
     + '<div id="map-geo-pick-body">' + list + '</div>';
 }
 function geoDest(id) {
@@ -7708,6 +7853,8 @@ function geoDest(id) {
   var d = id && GEO.dests ? GEO.dests[id] : null;
   if (d && !GEO.dest) geoFull(true);
   GEO.dest = d || null;
+  GEO.nearRes = null; GEO.pickMap = false;
+  try { _navRunShow(d); } catch (e) {}
   try { _geoPickLabel(); } catch (e) {}
   skiClear();
   var sel = document.getElementById('map-geo-dest');
@@ -7723,7 +7870,7 @@ function geoDest(id) {
   if (!GEO.destMk) GEO.destMk = lf.marker(d.ll, { icon: icon, keyboard: false }).addTo(GEO.map);
   else GEO.destMk.setLatLng(d.ll);
   GEO.destMk.bindTooltip(d.name, { direction: 'top', offset: [0, -12] });
-  if (GEO.me && !GEO.far) GEO.map.fitBounds(lf.latLngBounds([GEO.me.getLatLng(), d.ll]), { padding: [40, 40], maxZoom: 16 });
+  if (GEO.me && !GEO.far) GEO.map.fitBounds(lf.latLngBounds([GEO.me.getLatLng(), d.ll]), _navFit(40, 16));
   else GEO.map.setView(d.ll, Math.max(GEO.map.getZoom(), 15));
   _geoDestPaint();
 }
@@ -7735,7 +7882,9 @@ function _geoBearing(a, b) {
   var x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl);
   return (Math.atan2(y, x) / r + 360) % 360;
 }
-function _geoDestPaint() {
+// the panel as before, then the full-screen card, sheet and buttons
+function _geoDestPaint() { _geoDestPaint0(); try { _navPaint(); } catch (e) {} }
+function _geoDestPaint0() {
   var info = document.getElementById('map-geo-dest-info');
   var x = document.getElementById('map-geo-dest-x');
   var lvRow = document.getElementById('map-geo-level-row');
@@ -7831,7 +7980,7 @@ function _geoDestPaint() {
     _skiDraw(SKI.route);
     if (fresh && SKI.layer) {
       try { GEO.map.fitBounds(SKI.layer.getLayers().reduce(function (b, l) { return b.extend(l.getBounds()); },
-              lf.latLngBounds([here, here])).extend(d.ll), { padding: [30, 30], maxZoom: 16 }); } catch (e) {}
+              lf.latLngBounds([here, here])).extend(d.ll), _navFit(30, 16)); } catch (e) {}
     }
   }
   if (!SKI.route) {
@@ -7883,6 +8032,577 @@ function _geoDestPaint() {
     + L('המסלולים לפי מפת OpenStreetMap. ודא בשילוט ובמפה הרשמית.',
         'Runs from the OpenStreetMap map. Check the signs and the official map.')
     + '</span>';
+}
+
+// ── full-screen navigation: the card, the sheet, the round buttons ────────
+//
+// Yossi, 23.11: think Waze and Google Maps while navigating. The map is the
+// screen. On top, one green card: what to do now, and after it what next.
+// At the bottom, a sheet with one line - where to, how long, how far - and
+// the rest (the level, the alternatives, the steps, the voice) a tap away.
+// On the map, a few round buttons: report what is on the run, help, friends,
+// the voice, back to where I am. Escape (or the phone's back) closes the top
+// layer only: a sheet, then full screen, and only then the navigation.
+var NAV = { open: false, panel: '', rep: null, repMk: null, repSig: '' };
+
+// the kinds of place "the nearest" finds. poi: from data/poi-*.json
+var NAV_NEAR = [
+  { k: 'food',   ico: '🍽️', he: 'אוכל',        en: 'Food' },
+  { k: 'wc',     ico: '🚻', he: 'שירותים',     en: 'Toilets',     poi: true },
+  { k: 'lift',   ico: '🚡', he: 'מעלית',       en: 'Lift' },
+  { k: 'aid',    ico: '⛑️', he: 'עזרה ראשונה', en: 'First aid',   poi: true },
+  { k: 'ticket', ico: '🎫', he: 'קופות',       en: 'Ski passes',  poi: true },
+  { k: 'rental', ico: '🎿', he: 'השכרת ציוד',  en: 'Ski rental',  poi: true },
+  { k: 'park',   ico: '🅿️', he: 'חניה',        en: 'Parking' },
+  { k: 'atm',    ico: '🏧', he: 'כספומט',      en: 'Cash machine', poi: true },
+  { k: 'pharm',  ico: '💊', he: 'בית מרקחת',   en: 'Pharmacy',    poi: true }
+];
+var NAV_POI = { items: null, loading: false };
+function _navPoiLoad() {
+  if (NAV_POI.items || NAV_POI.loading) return;
+  NAV_POI.loading = true;
+  fetch('data/poi-cervinia.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    NAV_POI.items = (j && Array.isArray(j.items)) ? j.items : [];
+    NAV_POI.loading = false;
+    if (NAV_POI.items.length) _geoDestFill();
+  }).catch(function () { NAV_POI.items = []; NAV_POI.loading = false; });
+}
+function _navPoi(k) {
+  var nk = NAV_NEAR.filter(function (x) { return x.k === k; })[0];
+  var out = [];
+  (NAV_POI.items || []).forEach(function (it, i) {
+    if (it[0] !== k) return;
+    out.push({ id: 'o:' + i, name: nk.ico + ' ' + (it[1] || L(nk.he, nk.en)), en: it[1] || nk.en, ll: [+it[2], +it[3]] });
+  });
+  return out;
+}
+// where a lift is boarded: the lower end of each lift, from the router's graph
+function _navLiftFoot() {
+  var g = SKI.graph, out = [], seen = {};
+  if (!g) return out;
+  g.edges.forEach(function (e) {
+    if (e[4] !== 'u') return;
+    var w = g.ways[e[2]];
+    // the carpets and ropes of the nursery slopes are not what "the nearest
+    // lift" is asked for
+    if (!w || /^(yes|rack|magic_carpet|rope_tow)$/.test(w.lt)) return;
+    var key = w.ln !== undefined ? 'l' + w.ln : 'w' + e[2];
+    var n = g.nodes[e[0]];
+    if (!seen[key] || n[2] < seen[key].alt) seen[key] = { alt: n[2], ll: [n[0], n[1]], w: w, wi: e[2] };
+  });
+  Object.keys(seen).forEach(function (k) {
+    var x = seen[k];
+    out.push({ id: 'lb:' + x.wi, name: '🚡 ' + L(SKI_LIFT_HE[x.w.lt] || 'מעלית', SKI_LIFT_EN[x.w.lt] || 'lift') + (x.w.name ? ' ' + x.w.name : ''), en: x.w.name || '', ll: x.ll });
+  });
+  return out;
+}
+function _navNearItems(k) {
+  if (k === 'lift') return _navLiftFoot();
+  var all = GEO.allGroups || [];
+  if (k === 'food') return [].concat.apply([], all.filter(function (g) { return g.cat === 'h'; }).map(function (g) { return g.items; }));
+  if (k === 'park') return [].concat.apply([], all.filter(function (g) { return g.cat === 'v'; }).map(function (g) { return g.items.filter(function (d) { return d.id.indexOf('k:') === 0; }); }));
+  return _navPoi(k);
+}
+function _navNearChips() {
+  var c = 'flex:none;white-space:nowrap;padding:5px 10px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:0.76rem;border:1px solid #c9d6e3;background:#fff;color:#33475b;';
+  var out = '<span aria-hidden="true" style="flex:none;align-self:center;color:#9aa8b8;font-size:0.72rem;padding:0 2px;">' + L('הכי קרוב:', 'Nearest:') + '</span>';
+  NAV_NEAR.forEach(function (nk) {
+    if (nk.poi && !_navPoi(nk.k).length) return;           // nothing of the kind on the map yet
+    if (nk.k === 'lift' && !SKI.graph) return;
+    var on = GEO.nearRes && GEO.nearRes.k === nk.k;
+    out += '<button type="button" onclick="geoNear(\'' + nk.k + '\')" style="' + c + (on ? 'border-color:#0b8043;background:#e6f4ea;color:#0b5d2e;font-weight:700;' : '') + '">'
+      + nk.ico + ' ' + L(nk.he, nk.en) + '</button>';
+  });
+  return out;
+}
+// where "here" is: the real position, or the pretend skier's
+function _navHere() {
+  if (!GEO.me || GEO.far) return null;
+  var p = GEO.me.getLatLng();
+  return [p.lat, p.lng];
+}
+// the nearest of a kind - by the time it takes on skis when the router can
+// tell, since the hut 300 m above is further than the one 800 m below
+function geoNear(k) {
+  var here = _navHere(), from = here;
+  if (!from && GEO.map) { var c = GEO.map.getCenter(); from = [c.lat, c.lng]; }
+  if (!from) from = GEO_HOME;
+  var items = _navNearItems(k).map(function (d) { return { id: d.id, name: d.name, en: d.en, ll: d.ll, m: _skiDist(from, d.ll) }; });
+  items.sort(function (a, b) { return a.m - b.m; });
+  items = items.slice(0, 8);
+  if (here && SKI.graph) {
+    var prof = SKI.prof;
+    if (!GEO.level) GEO.level = 2;
+    SKI.prof = 'fast';
+    items.forEach(function (d) {
+      if (d.m < 60) { d.secs = 0; return; }
+      try { var r = skiRoute(here, d.ll, GEO.level); d.secs = r ? r.secs : null; } catch (e) { d.secs = null; }
+    });
+    SKI.prof = prof;
+    items.sort(function (a, b) {
+      return (a.secs == null ? 1e9 + a.m : a.secs) - (b.secs == null ? 1e9 + b.m : b.secs);
+    });
+  }
+  GEO.nearRes = { k: k, items: items, fromMe: !!here };
+  _geoDestFill();                         // the chip of the kind lights up; the list keeps the results
+  GEO.pickOpen = false;
+  geoPickOpen(true);
+}
+
+// ── a destination marked on the map ──
+// "Mark it on the map" in the list, then a tap; or a long press anywhere
+function geoPickMap() {
+  geoPickOpen(false);
+  GEO.pickMap = true;
+  _backToast(L('לחץ על המפה במקום שאליו אתה רוצה להגיע', 'Tap the map where you want to go'));
+}
+function _navMapEvents() {
+  GEO.map.on('click', function (ev) {
+    if (!GEO.pickMap) return;
+    GEO.pickMap = false; GEO.pickedAt = Date.now();
+    _navCustomDest([ev.latlng.lat, ev.latlng.lng]);
+  });
+  // a long press on a phone, a right click on a computer
+  GEO.map.on('contextmenu', function (ev) {
+    var lf = window.Leaflet, ll = [ev.latlng.lat, ev.latlng.lng];
+    if (!lf) return;
+    GEO.pinLL = ll;
+    lf.popup({ closeButton: false, offset: [0, -4] }).setLatLng(ev.latlng)
+      .setContent('<div dir="' + L('rtl', 'ltr') + '" style="font-family:inherit;text-align:center;">'
+        + '<div style="font-size:0.78rem;color:#5b6b80;margin-bottom:5px;">' + esc(_navPlaceName(ll)) + '</div>'
+        + '<button type="button" onclick="GEO.map.closePopup();_navCustomDest(GEO.pinLL)" style="padding:7px 14px;border-radius:18px;border:0;background:#1a73e8;color:#fff;font-weight:700;cursor:pointer;font-family:inherit;">🎯 ' + L('נווט לכאן', 'Go here') + '</button></div>')
+      .openOn(GEO.map);
+  });
+}
+// what a point on the mountain is called: the run it is on, the lift or
+// station beside it - or just "a point on the map"
+function _navNearWay(ll, maxM, want) {
+  var g = SKI.graph, best = null;
+  if (!g) return null;
+  var kx = Math.cos(ll[0] * Math.PI / 180) * 111320, ky = 110540;
+  g.edges.forEach(function (e) {
+    var w = e[2] >= 0 ? g.ways[e[2]] : null;
+    if (!w || !want(e, w)) return;
+    var pts = _skiGeom(e);
+    for (var i = 0; i + 1 < pts.length; i++) {
+      var ax = (pts[i][1] - ll[1]) * kx, ay = (pts[i][0] - ll[0]) * ky;
+      var bx = (pts[i + 1][1] - ll[1]) * kx, by = (pts[i + 1][0] - ll[0]) * ky;
+      var dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+      var t = l2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / l2)) : 0;
+      var px = ax + t * dx, py = ay + t * dy, d = Math.sqrt(px * px + py * py);
+      if (d <= maxM && (!best || d < best.d)) best = { d: d, w: w };
+    }
+  });
+  return best;
+}
+function _navPlaceName(ll) {
+  var run = _navNearWay(ll, 90, function (e, w) { return (e[4] === 's' || e[4] === 'f') && (w.ref || w.name) && w.k !== 'a'; });
+  if (run) return L('על מסלול ', 'On run ') + (run.w.ref ? _skiRef(run.w.ref) + ' ' : '') + (run.w.name || '');
+  var lift = _navNearWay(ll, 90, function (e, w) { return (e[4] === 'u' || e[4] === 'r') && w.name; });
+  if (lift) return L('ליד ', 'By the ') + L(SKI_LIFT_HE[lift.w.lt] || 'מעלית', SKI_LIFT_EN[lift.w.lt] || 'lift') + ' ' + lift.w.name;
+  var pl = SKI.graph && SKI.graph.places, near = null;
+  (pl || []).forEach(function (x) {
+    var d = _skiDist(ll, [x[4], x[5]]);
+    if (d < 400 && (!near || d < near.d)) near = { d: d, n: L(x[2], x[3]) };
+  });
+  if (near) return L('ליד ', 'Near ') + near.n;
+  return L('נקודה על המפה', 'A point on the map');
+}
+function _navCustomDest(ll) {
+  if (!ll) return;
+  var id = 'm:' + ll[0].toFixed(5) + ',' + ll[1].toFixed(5);
+  GEO.dests[id] = { id: id, name: '📌 ' + _navPlaceName(ll), ll: ll };
+  geoDest(id);
+}
+
+// ── a run as the destination: drawn whole, and its card a tap away ──
+function _navRunOf(d) {
+  var m = d && /^p:([a-z_]+):(\d+)$/.exec(d.id);
+  var p = m && window._texts && window._texts.pistes && window._texts.pistes[m[1]];
+  return (p && p[+m[2]]) || null;
+}
+function _navRunShow(d) {
+  var lf = window.Leaflet;
+  if (GEO.navRun) { try { GEO.map.removeLayer(GEO.navRun); } catch (e) {} GEO.navRun = null; }
+  var p = _navRunOf(d);
+  if (!p || !lf || !GEO.map) return;
+  var names = p.runs || (p.trail ? [p.trail] : null);
+  if (!names) return;
+  _skiLoad().then(function (g) {
+    if (GEO.dest !== d) return;
+    var grp = lf.layerGroup(), n = 0;
+    g.edges.forEach(function (e) {
+      var w = e[2] >= 0 ? g.ways[e[2]] : null;
+      if (!w || w.k !== 'p' || names.indexOf(w.name) < 0) return;
+      lf.polyline(_skiGeom(e), { color: '#e8710a', weight: 5, opacity: 0.55, dashArray: '2 7', lineCap: 'round', interactive: false }).addTo(grp);
+      n++;
+    });
+    if (n) { GEO.navRun = grp.addTo(GEO.map); try { if (SKI.layer) SKI.layer.eachLayer(function (l) { if (l.bringToFront) l.bringToFront(); }); if (GEO.me) GEO.me.bringToFront(); } catch (e) {} }
+  }, function () {});
+}
+// from the piste guide: "navigate here" on a run's card
+function navToPiste(o) {
+  if (typeof o === 'string') { try { o = JSON.parse(o); } catch (e) { return; } }
+  var P = (window._texts && window._texts.pistes) || {}, id = '';
+  ['beginner', 'intermediate', 'advanced', 'valtournenche', 'zermatt', 'nearby'].forEach(function (k) {
+    (Array.isArray(P[k]) ? P[k] : []).forEach(function (r, i) {
+      if (!id && r.name === o.name && String(r.num || '') === String(o.num || '')) id = 'p:' + k + ':' + i;
+    });
+  });
+  // a hut, or an après-ski place on a run
+  (P.restaurants || []).forEach(function (r, i) { if (!id && r.name === o.name) id = 'h:' + i; });
+  (P.apres_ski || []).forEach(function (r, i) { if (!id && r.name === o.name) id = 'a:' + i; });
+  if (!id) return;
+  var pm = document.getElementById('pisteModal');
+  try { closeM('pisteModal'); } catch (e) {}
+  if (pm) pm.style.zIndex = '';
+  var mm = document.getElementById('mapModal');
+  if (!mm || mm.style.display === 'none' || !mm.style.display) { openM('mapModal'); loadMap('gps'); }
+  var tries = 0;
+  (function go() {
+    if (++tries > 80) return;
+    if (!GEO.map || !GEO.dests) { setTimeout(go, 150); return; }
+    if (!GEO.dests[id] && id.indexOf('a:') === 0) {
+      // the same place is on the list once, as a hut: go to that one
+      var r = P.apres_ski[+id.slice(2)], ll = r && _geoLL(r.latlon);
+      Object.keys(GEO.dests).forEach(function (k) { if (ll && /^h:/.test(k) && _skiDist(GEO.dests[k].ll, ll) < 150) id = k; });
+    }
+    if (!GEO.dests[id]) { setTimeout(go, 150); return; }
+    geoDest(id);
+  })();
+}
+// from the navigation: the piste guide over the map, to choose a run there
+function navToGuide() {
+  geoPickOpen(false);
+  window.pisteKind = 'runs';
+  var pm = document.getElementById('pisteModal');
+  if (pm) pm.style.zIndex = '10050';
+  openM('pisteModal');
+  try { renderPisteGuide(); } catch (e) {}
+}
+
+// ── the sheet ──
+function navSheet(open) {
+  NAV.open = open != null ? !!open : !NAV.open;
+  var mm = document.getElementById('mapModal');
+  if (mm) { if (NAV.open) mm.classList.add('nav-open'); else mm.classList.remove('nav-open'); }
+  _navPaint();
+  setTimeout(function () { if (GEO.map) GEO.map.invalidateSize(); _navLayout(); }, 60);
+}
+// one layer back: Escape and the phone's back button
+function navBack() {
+  var mm = document.getElementById('mapModal');
+  if (!mm || mm.style.display === 'none' || _mapCurrentType !== 'gps') return false;
+  if (NAV.panel) { navPanel(''); return true; }
+  if (GEO.pickOpen) { geoPickOpen(false); return true; }
+  if (GEO.pickMap) { GEO.pickMap = false; return true; }
+  if (FR.open && GEO.full) { geoFriends(); return true; }
+  if (NAV.open && GEO.full) { navSheet(false); return true; }
+  if (GEO.full) { geoFull(false); return true; }
+  return false;
+}
+function _navFmtDist(m) {
+  return m < 1000 ? (Math.round(m / 10) * 10) + L(' מ\'', ' m') : (m / 1000).toFixed(1) + L(' ק״מ', ' km');
+}
+function _navPlain(html) { var t = document.createElement('div'); t.innerHTML = html; return (t.textContent || '').replace(/\s+/g, ' ').trim(); }
+function _navPaint() {
+  _navFabs();
+  _navReports();
+  var sum = document.getElementById('nav-sum'), card = document.getElementById('nav-step'), more = document.getElementById('nav-more');
+  var mm = document.getElementById('mapModal');
+  var d = GEO.dest;
+  if (!d) {
+    NAV.open = false;
+    if (mm) mm.classList.remove('nav-open');
+    if (card) card.innerHTML = '';
+    _navLayout();
+    return;
+  }
+  if (!sum || !card) return;
+  var here = _navHere(), m = here ? _skiDist(here, d.ll) : null;
+  var rt = (here && SKI.graph && SKI.route && m >= 60) ? SKI.route : null;
+  // the one line of the sheet
+  var line = '';
+  if (rt) {
+    var mins = Math.max(1, Math.round(rt.secs / 60)), len = rt.walkIn + rt.walkOut;
+    rt.edges.forEach(function (ei) { len += SKI.graph.edges[ei][3]; });
+    line = (mins < 60 ? L(mins + ' דק\'', mins + ' min') : Math.floor(mins / 60) + ':' + ('0' + mins % 60).slice(-2) + L(' שע\'', ' h'))
+      + ' · ' + _navFmtDist(len);
+  } else if (m != null) line = m < 60 ? L('הגעת', 'You are there') : _navFmtDist(m) + L(' בקו אוויר', ' as the crow flies');
+  else line = GEO.far ? L('המסלול יופיע כשתהיה באזור', 'The route shows once you are in the area') : L('מחכה למיקום שלך…', 'Waiting for your position…');
+  var x = 'flex:none;width:36px;height:36px;border-radius:50%;border:1px solid #dadce0;background:#fff;color:#3c4043;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;padding:0;';
+  sum.innerHTML = '<button type="button" onclick="event.stopPropagation();geoDest(\'\')" aria-label="' + L('סיום הניווט', 'End navigation') + '" title="' + L('סיום הניווט', 'End navigation') + '" style="' + x + '">✕</button>'
+    + '<div style="flex:1;min-width:0;">'
+    + '<div style="font-size:1.02rem;font-weight:700;color:' + (rt ? '#0b8043' : '#16314f') + ';">' + esc(line) + '</div>'
+    + '<div style="font-size:0.8rem;color:#5f6b7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🎯 ' + esc(d.name) + '</div></div>'
+    + '<span aria-hidden="true" style="flex:none;color:#5f6b7a;font-size:1.1rem;padding:0 4px;">' + (NAV.open ? '⌄' : '⌃') + '</span>';
+  sum.setAttribute('role', 'button');
+  sum.setAttribute('aria-expanded', NAV.open ? 'true' : 'false');
+  // what is behind the tap: the run's card, another destination, normal screen
+  var b = 'padding:6px 11px;border-radius:16px;border:1px solid #dadce0;background:#fff;color:#1a5fb4;cursor:pointer;font-family:inherit;font-size:0.78rem;';
+  if (more) more.innerHTML = (_navRunOf(d) ? '<button type="button" style="' + b + '" onclick="navPanel(\'run\')">📖 ' + L('על המסלול', 'About the run') + '</button>' : '')
+    + '<button type="button" style="' + b + '" onclick="navSheet(false);geoFull(true);GEO.nearRes=null;geoDest(\'\');setTimeout(function(){geoPickOpen(true,true)},80)">🔍 ' + L('יעד אחר', 'Another destination') + '</button>'
+    + '<button type="button" style="' + b + '" onclick="geoFull(false)">↙ ' + L('מסך רגיל', 'Normal screen') + '</button>';
+  // the green card on top: what to do now, and what comes after it
+  var big = 'flex:none;font-size:1.9rem;line-height:1;', now = '', next = '';
+  if (!here) {
+    card.style.background = '#3c4043';
+    card.innerHTML = '<span style="' + big + '">📍</span><div>' + esc(line) + '</div>';
+    return _navLayout();
+  }
+  if (m < 60) {
+    card.style.background = '#0b8043';
+    card.innerHTML = '<span style="' + big + '">✅</span><div style="font-weight:700;">' + esc(L('הגעת אל ', 'You have reached ') + d.name) + '</div>';
+    return _navLayout();
+  }
+  if (!rt) {
+    var deg = _geoBearing(here, d.ll), i = Math.round(deg / 45) % 8;
+    card.style.background = '#3c4043';
+    card.innerHTML = '<span style="' + big + 'display:inline-block;transform:rotate(' + Math.round(deg) + 'deg);">⬆</span><div><div style="font-weight:700;">'
+      + esc(_navFmtDist(m) + ' · ' + L(_GEO_DIRS_HE[i], _GEO_DIRS_EN[i])) + '</div><div style="font-size:0.8rem;opacity:0.85;">'
+      + esc(SKI.graph ? L('לא נמצא מסלול ברמה הזאת — פתח את הפרטים למטה', 'No route at this level — open the details below') : L('טוען את מפת הניווט…', 'Loading the route map…')) + '</div></div>';
+    return _navLayout();
+  }
+  var steps = skiSteps(rt);
+  if (!steps.length) steps = [{ kind: 'walk', i: 0, village: true, m: Math.round(m) }];
+  var tr = _skiTrack(rt, here), cur = 0;
+  for (var k = 0; k < steps.length; k++) if (steps[k].i <= tr.j) cur = k;
+  var st = steps[cur], nx = steps[cur + 1];
+  var ico = st.kind === 'lift' ? '🚡' : st.kind === 'walk' ? '🚶' : '⛷️';
+  // how far this step still goes: to where the next one begins
+  var g = SKI.graph, left = null;
+  if (nx) { var at = g.nodes[g.edges[rt.edges[nx.i]][0]]; left = _skiDist(here, [at[0], at[1]]); }
+  else left = m;
+  next = nx ? L('ואז: ', 'Then: ') + _navStepHtml(nx) : L('ואז: ', 'Then: ') + '<bdi>' + esc(d.name) + '</bdi>';
+  card.style.background = '#0b8043';
+  card.innerHTML = '<div style="flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:52px;"><span style="' + big + '">' + ico + '</span>'
+    + '<span style="font-size:0.78rem;font-weight:700;white-space:nowrap;">' + _navFmtDist(left) + '</span></div>'
+    + '<div style="min-width:0;"><div style="font-weight:700;font-size:1.02rem;">' + _navStepHtml(st) + '</div>'
+    + '<div style="font-size:0.8rem;opacity:0.9;margin-top:3px;">' + next + '</div></div>';
+  _navLayout();
+}
+// one step, short, for the card: the Latin names kept whole inside the line
+function _navStepHtml(s) {
+  if (s.kind === 'lift') {
+    var t = L(SKI_LIFT_HE[s.lt] || 'מעלית', SKI_LIFT_EN[s.lt] || 'lift');
+    var ls = skiLiftState(SKI.graph.ways[s.way]);
+    return (s.down ? L('ירידה ב', 'Ride down in the ') : L('עלה ב', 'Take the ')) + t + (s.name ? ' <bdi>' + esc(s.name) + '</bdi>' : '')
+      + (ls === 'closed' ? ' · ⛔ ' + L('סגורה', 'closed') : '');
+  }
+  if (s.kind === 'walk') return s.village ? L('הליכה בכפר', 'Walk through the village') : L('הליכה', 'Walk');
+  return L('מסלול', 'Run') + (s.ref ? ' ' + esc(s.ref) : '') + (s.name ? ' <bdi>' + esc(s.name) + '</bdi>' : '') + ' ' + SKI_DOT[s.d];
+}
+// the round buttons stand clear of the sheet and of the map's credit line
+function _navLayout() {
+  var fab = document.getElementById('nav-fabs'), map = document.getElementById('map-geo'), wrap = document.getElementById('map-geo-wrap');
+  if (!fab || !map || !wrap) return;
+  var bottom = Math.max(0, wrap.clientHeight - (map.offsetTop + map.offsetHeight)) + 22;
+  var a = document.getElementById('nav-fab-a'), b = document.getElementById('nav-fab-b');
+  if (a) a.style.bottom = bottom + 'px';
+  if (b) b.style.bottom = (bottom + 14) + 'px';
+}
+window.addEventListener('resize', function () { if (GEO.full) _navLayout(); });
+function _navFabs() {
+  var box = document.getElementById('nav-fabs');
+  if (!box) return;
+  if (!box.firstChild) {
+    // in the reader's direction: help on the side the thumb reaches first
+    box.innerHTML = '<div id="nav-fab-a" class="nav-fab-col" style="left:12px;"></div><div id="nav-fab-b" class="nav-fab-col" style="right:12px;"></div>';
+  }
+  var a = document.getElementById('nav-fab-a'), b = document.getElementById('nav-fab-b');
+  var me = !!GEO.me;
+  a.innerHTML = '<button type="button" onclick="geoFriends();navSheet(GEO.dest?true:NAV.open)" aria-label="' + L('חברים', 'Friends') + '" title="' + L('חברים', 'Friends') + '" style="background:linear-gradient(135deg,#7b4fd6,#5a33b0);color:#fff;">👥</button>'
+    + '<button type="button" onclick="navPanel(\'sos\')" aria-label="' + L('עזרה דחופה', 'Emergency help') + '" title="' + L('עזרה דחופה', 'Emergency help') + '" style="background:#d93025;color:#fff;font-size:0.78rem;font-weight:800;letter-spacing:0.03em;">SOS</button>'
+    + '<button type="button" onclick="navPanel(\'report\')" aria-label="' + L('דיווח על המסלול', 'Report on the run') + '" title="' + L('דיווח: קרח, מכשול, ערפל…', 'Report: ice, obstacle, fog…') + '" style="width:56px;height:56px;background:#f29900;color:#fff;font-size:1.45rem;">⚠️</button>';
+  b.innerHTML = (GEO.dest && window.speechSynthesis
+      ? '<button type="button" onclick="geoVoice(!VOICE.on)" aria-label="' + (VOICE.on ? L('השתק הדרכה קולית', 'Mute voice guidance') : L('הדרכה קולית', 'Voice guidance')) + '" aria-pressed="' + !!VOICE.on + '">' + (VOICE.on ? '🔊' : '🔇') + '</button>' : '')
+    + (me ? '<button type="button" onclick="navCenter()" aria-label="' + L('למיקום שלי', 'To my position') + '" title="' + L('למיקום שלי', 'To my position') + '" style="color:#1a73e8;font-size:1.35rem;">◎</button>' : '');
+  _navLayout();
+}
+// fitting the map to a route: in full screen the green card covers the top
+function _navFit(pad, maxZoom) {
+  var top = pad;
+  if (GEO.full && GEO.dest) { var c = document.getElementById('nav-step'); top = Math.max(pad, (c && c.offsetHeight ? c.offsetHeight + 16 : 110) + 8); }
+  return { paddingTopLeft: [pad, top], paddingBottomRight: [pad + 40, pad], maxZoom: maxZoom };
+}
+function navCenter() {
+  if (!GEO.me || !GEO.map) return;
+  GEO.map.setView(GEO.me.getLatLng(), Math.max(GEO.map.getZoom(), 16));
+}
+
+// ── the panel over the map: a report, help, a run's card ──
+function navPanel(kind) {
+  NAV.panel = kind || '';
+  var p = document.getElementById('nav-panel');
+  if (!p) return;
+  if (!kind) { p.style.display = 'none'; p.innerHTML = ''; return; }
+  var close = '<button type="button" onclick="navPanel(\'\')" aria-label="' + L('סגור', 'Close') + '" style="position:absolute;top:8px;' + L('left', 'right') + ':10px;width:34px;height:34px;border-radius:50%;border:0;background:#f1f3f4;cursor:pointer;font-size:1rem;">✕</button>';
+  var handle = '<div aria-hidden="true" style="width:38px;height:4px;border-radius:2px;background:#dadce0;margin:0 auto 10px;"></div>';
+  p.setAttribute('dir', L('rtl', 'ltr'));
+  if (kind === 'report') p.innerHTML = handle + close + _navReportHtml();
+  else if (kind === 'sos') p.innerHTML = handle + close + _navSosHtml();
+  else if (kind === 'run') {
+    var r = _navRunOf(GEO.dest);
+    // the card as in the guide, less its "navigate here" - that is where we are going
+    var cardHtml = r ? _pisteCard(r, AREA_COLORS[r.area_key || 'cervinia'] || '#1a3a6c').replace(/<a href="#" onclick="navToPiste\([^"]*"[^>]*>[^<]*<\/a>/, '') : '';
+    p.innerHTML = handle + close + '<div style="margin-top:30px;">' + cardHtml + '</div>';
+  }
+  p.style.display = 'block';
+}
+
+// ── a report from the run, the way Waze has them ──
+// It goes into the site's alerts - the same board and the same phones -
+// with what was seen, where (the run by name), and the point itself, so the
+// navigation can show it on the map to whoever passes there next.
+var NAV_REPORTS = [
+  { k: 'ice',    ico: '🧊', he: 'קרח על המסלול',        en: 'Ice on the run',         sev: 'danger'  },
+  { k: 'obst',   ico: '🪨', he: 'מכשול על המסלול',      en: 'Obstacle on the run',    sev: 'danger'  },
+  { k: 'fog',    ico: '🌫️', he: 'ערפל, ראות מוגבלת',    en: 'Fog, poor visibility',   sev: 'warning' },
+  { k: 'rough',  ico: '〰️', he: 'המסלול לא חרוש',        en: 'Run not groomed',        sev: 'warning' },
+  { k: 'closed', ico: '🚧', he: 'מסלול סגור',           en: 'Run closed',             sev: 'danger'  },
+  { k: 'lift',   ico: '🚡', he: 'מעלית עצורה',          en: 'Lift stopped',           sev: 'warning' },
+  { k: 'crowd',  ico: '👥', he: 'עומס',                 en: 'Crowded',                sev: 'info'    },
+  { k: 'hurt',   ico: '🩹', he: 'גולש פצוע',            en: 'Injured skier',          sev: 'danger'  }
+];
+function _navReportHtml() {
+  var here = _navHere();
+  var head = '<div style="font-weight:800;font-size:1rem;margin:2px 0 2px;">⚠️ ' + L('מה יש על המסלול?', 'What is on the run?') + '</div>'
+    + '<div style="font-size:0.76rem;color:#5f6b7a;margin-bottom:10px;">' + L('הדיווח יופיע לכל הגולשים בהתראות של האתר ועל מפת הניווט, עם המקום שבו אתה עומד.', 'The report shows to every skier in the site\'s alerts and on the navigation map, with the spot where you stand.') + '</div>';
+  if (!here) return head + '<div style="padding:10px;border-radius:10px;background:#fef7e0;">📍 ' + L('כדי לדווח צריך את המיקום שלך: לחץ "איפה אני" על ההר.', 'To report, the map needs your position: use "Where am I" on the mountain.') + '</div>';
+  if (typeof user === 'undefined' || !user) {
+    return head + '<div style="padding:10px;border-radius:10px;background:#f1f3f4;">🔒 ' + L('דיווח אפשר רק אחרי התחברות, כדי שלא יפרסמו דברים שלא קרו.', 'Reporting needs you to sign in, so nobody posts what did not happen.')
+      + ' <a href="#" onclick="openM(\'authModal\');return false;" style="color:#1a73e8;font-weight:700;">' + L('התחבר', 'Sign in') + '</a></div>';
+  }
+  var place = _navPlaceName(here);
+  var chips = NAV_REPORTS.map(function (r) {
+    return '<button type="button" class="np-chip" aria-pressed="' + (NAV.rep === r.k) + '" onclick="navRepPick(\'' + r.k + '\')"><b>' + r.ico + '</b>' + L(r.he, r.en) + '</button>';
+  }).join('');
+  return head + '<div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;">' + chips + '</div>'
+    + '<div style="margin:10px 0 6px;font-size:0.8rem;color:#33475b;">📍 ' + esc(place) + '</div>'
+    + '<input id="nav-rep-note" type="text" maxlength="120" placeholder="' + L('פרטים, אם יש (לא חובה)', 'Details, if any (optional)') + '" style="width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #d6e2ef;border-radius:9px;font-family:inherit;font-size:0.84rem;">'
+    + '<div id="nav-rep-err" style="display:none;margin-top:6px;color:#c5221f;font-size:0.78rem;"></div>'
+    + (SIM.on ? '<div style="margin-top:8px;font-size:0.76rem;color:#b06000;">🧪 ' + L('בהדגמה הדיווח לא נשלח.', 'In the demo the report is not sent.') + '</div>' : '')
+    + '<button type="button" id="nav-rep-send" onclick="navRepSend()" style="margin-top:10px;width:100%;padding:11px;border-radius:22px;border:0;background:#f29900;color:#fff;font-weight:800;font-family:inherit;font-size:0.92rem;cursor:pointer;">'
+    + L('שלח דיווח', 'Send the report') + '</button>';
+}
+function navRepPick(k) {
+  NAV.rep = k;
+  [].forEach.call(document.querySelectorAll('#nav-panel .np-chip'), function (b, i) { b.setAttribute('aria-pressed', NAV_REPORTS[i].k === k ? 'true' : 'false'); });
+}
+async function navRepSend() {
+  var err = document.getElementById('nav-rep-err'), btn = document.getElementById('nav-rep-send');
+  function fail(t) { if (err) { err.textContent = t; err.style.display = 'block'; } }
+  var r = NAV_REPORTS.filter(function (x) { return x.k === NAV.rep; })[0];
+  if (!r) return fail(L('בחר מה ראית', 'Choose what you saw'));
+  var here = _navHere();
+  if (!here) return fail(L('אין מיקום', 'No position'));
+  if (SIM.on) { navPanel(''); _backToast(L('🧪 בהדגמה: הדיווח לא נשלח', '🧪 Demo: the report was not sent')); return; }
+  var sb = (typeof USE_SUPABASE !== 'undefined' && USE_SUPABASE) ? getSB() : null;
+  if (!sb || !user || !user.sbId) return fail(L('צריך להיות מחובר', 'You need to be signed in'));
+  var note = ((document.getElementById('nav-rep-note') || {}).value || '').trim();
+  var text = (r.ico + ' ' + r.he + ' · ' + _navPlaceNameHe(here) + (note ? ' · ' + note : '')).slice(0, ALERT_TEXT_MAX);
+  var row = { author_id: user.sbId, author_name: user.name, text: text, kind: 'alert', severity: r.sev };
+  if (_alertsHasGeo) { row.lat = +here[0].toFixed(6); row.lon = +here[1].toFixed(6); }
+  if (btn) { btn.disabled = true; btn.textContent = L('שולח…', 'Sending…'); }
+  try {
+    var res = await sb.from('alerts').insert(row);
+    if (res.error && /\blat\b|\blon\b/i.test(res.error.message || '') && _alertsHasGeo) {
+      _alertsHasGeo = false; delete row.lat; delete row.lon;
+      res = await sb.from('alerts').insert(row);
+    }
+    if (res.error) throw res.error;
+    NAV.rep = null;
+    navPanel('');
+    _backToast(L('תודה! הדיווח פורסם', 'Thank you! The report is up'));
+    fetchAlerts(true);
+  } catch (e) {
+    var msg = (e && e.message) || '';
+    fail(/row-level security|policy/i.test(msg)
+      ? L('שלחת כבר שלושה דיווחים בעשר הדקות האחרונות. נסה שוב בעוד כמה דקות.', 'You have sent three reports in the last ten minutes. Try again in a few minutes.')
+      : L('השליחה נכשלה. בדוק את הקליטה ונסה שוב.', 'Sending failed. Check the signal and try again.'));
+    if (btn) { btn.disabled = false; btn.textContent = L('שלח דיווח', 'Send the report'); }
+  }
+}
+// the alert's text is stored in Hebrew, as every alert on the board is
+function _navPlaceNameHe(ll) {
+  var was = window.LANG;
+  try { window.LANG = 'he'; return _navPlaceName(ll); } finally { window.LANG = was; }
+}
+// the reports of the last few hours that carry a point, on the map
+var NAV_REP_HOURS = 4;
+function _navReports() {
+  var lf = window.Leaflet;
+  if (!lf || !GEO.map || typeof getLiveAlerts !== 'function') return;
+  var since = Date.now() - NAV_REP_HOURS * 3600000;
+  var list = getLiveAlerts().filter(function (a) { return a.ll && a.ts >= since; });
+  var sig = list.map(function (a) { return a.id; }).join(',');
+  if (sig === NAV.repSig) return;
+  NAV.repSig = sig;
+  if (NAV.repMk) { GEO.map.removeLayer(NAV.repMk); NAV.repMk = null; }
+  if (!list.length) return;
+  NAV.repMk = lf.layerGroup();
+  list.forEach(function (a) {
+    var t = _alertText(a), ico = (t.match(/^\S+/) || ['⚠️'])[0];
+    var col = a.severity === 'danger' ? '#d93025' : a.severity === 'info' ? '#1a73e8' : '#f29900';
+    lf.marker(a.ll, { keyboard: false, icon: lf.divIcon({ className: 'geo-rep-ico', iconSize: [30, 30], iconAnchor: [15, 15],
+      html: '<div style="width:30px;height:30px;border-radius:50%;background:' + col + ';border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:15px;">' + esc(ico) + '</div>' }) })
+      .bindTooltip(esc(t) + ' · ' + _frAgo(a.ts), { direction: 'top', offset: [0, -14] })
+      .addTo(NAV.repMk);
+  });
+  NAV.repMk.addTo(GEO.map);
+}
+
+// ── help ──
+// 112 is the number in Italy and in Switzerland alike. With it, the one
+// thing the person answering will ask: where are you - read off the screen.
+function _navSosHtml() {
+  var here = _navHere();
+  var out = '<div style="font-weight:800;font-size:1rem;margin:2px 0 10px;color:#a50e0e;">🆘 ' + L('עזרה דחופה', 'Emergency help') + '</div>'
+    + '<a href="tel:112" style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:14px;background:#d93025;color:#fff;text-decoration:none;">'
+    + '<span style="font-size:1.7rem;">📞</span><span><b style="font-size:1.15rem;">112</b> · ' + L('חירום', 'Emergency') + '<br><span style="font-size:0.76rem;opacity:0.9;">'
+    + L('אמבולנס, חילוץ, משטרה · באיטליה ובשוויץ', 'Ambulance, rescue, police · in Italy and Switzerland') + '</span></span></a>';
+  if (here) {
+    var c = here[0].toFixed(5) + ', ' + here[1].toFixed(5);
+    var alt = GEO.alt != null ? ' · ' + L('גובה כ-', 'altitude about ') + (Math.round(GEO.alt / 10) * 10).toLocaleString('en-US') + L(' מ\'', ' m') : '';
+    out += '<div style="margin-top:10px;padding:10px 12px;border-radius:12px;background:#f1f3f4;">'
+      + '<div style="font-size:0.76rem;color:#5f6b7a;">' + L('המיקום שלך, להקריא למוקד:', 'Your position, to read out:') + (SIM.on ? ' 🧪 ' + L('(הדגמה)', '(demo)') : '') + '</div>'
+      + '<div style="font-size:1.05rem;font-weight:800;margin:2px 0;"><bdi dir="ltr">' + c + '</bdi></div>'
+      + '<div style="font-size:0.8rem;">' + esc(_navPlaceName(here)) + alt + '</div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">'
+      + '<button type="button" onclick="navSosCopy()" style="padding:7px 12px;border-radius:16px;border:1px solid #dadce0;background:#fff;cursor:pointer;font-family:inherit;font-size:0.8rem;">📋 ' + L('העתק', 'Copy') + '</button>'
+      + '<button type="button" onclick="navSosShare()" style="padding:7px 12px;border-radius:16px;border:0;background:#1a73e8;color:#fff;cursor:pointer;font-family:inherit;font-size:0.8rem;font-weight:700;">📤 ' + L('שלח את המיקום שלי', 'Send my position') + '</button>'
+      + (FR.gid && _frSignedIn() ? '<button type="button" onclick="navSosFriends()" style="padding:7px 12px;border-radius:16px;border:0;background:#5a33b0;color:#fff;cursor:pointer;font-family:inherit;font-size:0.8rem;font-weight:700;">👥 ' + L('הצג אותי לקבוצה', 'Show me to my group') + '</button>' : '')
+      + '</div></div>';
+  } else {
+    out += '<div style="margin-top:10px;padding:10px 12px;border-radius:12px;background:#fef7e0;font-size:0.82rem;">📍 '
+      + L('עוד אין מיקום. אם אפשר, לחץ "איפה אני" כדי שתוכל להקריא אותו.', 'No position yet. If you can, use "Where am I" so you can read it out.') + '</div>';
+  }
+  out += '<div style="margin-top:10px;font-size:0.78rem;color:#5f6b7a;line-height:1.6;">⛷️ ' + L('ליד פצוע על המסלול: שמור עליו חם, ונעץ את המגלשיים ב-X במדרון מעליו, כדי שיראו אותו מרחוק.', 'By an injured skier on the run: keep them warm, and plant skis in an X on the slope above them so they are seen from afar.')
+    + ' <a href="#" onclick="navPanel(\'\');openParkEmergency();return false;" style="color:#1a73e8;">' + L('כל מספרי החירום', 'All emergency numbers') + '</a></div>';
+  return out;
+}
+function _navSosText() {
+  var here = _navHere();
+  if (!here) return '';
+  var c = here[0].toFixed(5) + ',' + here[1].toFixed(5);
+  return L('אני צריך עזרה. המיקום שלי: ', 'I need help. My position: ') + 'https://maps.google.com/?q=' + c + ' (' + _navPlaceName(here) + ')';
+}
+function navSosCopy() {
+  var here = _navHere(); if (!here) return;
+  var t = here[0].toFixed(5) + ', ' + here[1].toFixed(5);
+  try { navigator.clipboard.writeText(t).then(function () { _backToast(L('הועתק', 'Copied')); }, function () { _backToast(t); }); }
+  catch (e) { _backToast(t); }
+}
+function navSosShare() {
+  var t = _navSosText(); if (!t) return;
+  if (navigator.share) { navigator.share({ text: t }).catch(function () {}); return; }
+  try { navigator.clipboard.writeText(t).then(function () { _backToast(L('ההודעה הועתקה — הדבק אותה בוואטסאפ', 'Copied — paste it into WhatsApp')); }, function () { _backToast(t); }); }
+  catch (e) { _backToast(t); }
+}
+function navSosFriends() {
+  navPanel('');
+  if (!FR.open) geoFriends();
+  frShare(60);
 }
 
 // ── the ski router ────────────────────────────────────────────────────────
@@ -15140,6 +15860,13 @@ function _pisteCard(p, col) {
         if (mapIsUrl && !/google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(p.map)) {
           Lb.push('<a href="' + p.map + '" target="_blank" rel="noopener" style="' + btn
             + 'color:#1a73e8;border:1px solid #c0d4f0;background:#f0f7ff;">🌐 ' + L('אתר', 'Website') + '</a>');
+        }
+        // from the run straight into the navigation, with the run as the
+        // destination (Yossi, 23.11)
+        if (p.start_latlon || (p.latlon && (p.piste !== undefined || /מסלול|Plan |piste|run/i.test(String(p.area || ''))))) {
+          Lb.unshift('<a href="#" onclick="navToPiste(' + esc(JSON.stringify({ num: String(p.num || ''), name: p.name })).replace(/"/g, '&quot;')
+            + ');return false;" style="' + btn + 'color:#fff;border:1px solid #0b8043;background:#0b8043;font-weight:bold;">'
+            + L('🧭 נווט לכאן', '🧭 Navigate here') + '</a>');
         }
         return Lb.length ? '<div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;">' + Lb.join('') + '</div>' : '';
       })()
@@ -24522,6 +25249,8 @@ function _rowToAlert(r) {
     // somebody standing at the lift sees things no feed reports.
     auto:     !r.author_id,
     kind:     (r.kind === 'notice') ? 'notice' : 'alert',
+    // a report from the navigation carries the spot it was made at
+    ll:       (r.lat != null && r.lon != null && isFinite(+r.lat) && isFinite(+r.lon)) ? [+r.lat, +r.lon] : null,
     // a notice sets its own lifetime, so trust the row rather than the
     // 24 hour rule that governs alerts
     until:    r.expires_at ? new Date(r.expires_at).getTime() : (new Date(r.created_at).getTime() + ALERTS_EXPIRY_MS)
@@ -24534,6 +25263,7 @@ var _alertsProblem = '';   // '' | 'offline' | 'server'
 var _alertsHasKind = true; // set to false once the server tells us otherwise
 var _alertsHasTextEn = true; // likewise for text_en (English wording of automatic alerts)
 var _alertsHasPush = true; // likewise for push_requested, added in the push migration
+var _alertsHasGeo = true;  // likewise for lat/lon: where a report from the navigation was made (supabase/sql/cl_alerts_geo.sql)
 
 async function fetchAlerts(quiet) {
   if (_alertsFetching) return;
@@ -24547,9 +25277,13 @@ async function fetchAlerts(quiet) {
       // the English wording of automatic alerts, once its column exists
       var colsEn = _alertsHasTextEn ? cols + ',text_en' : cols;
       var res = await sb.from('alerts')
-        .select(colsEn)
+        .select(_alertsHasGeo ? colsEn + ',lat,lon' : colsEn)
         .order('created_at', { ascending: false })
         .limit(50);
+      if (res.error && /\blat\b|\blon\b/i.test(res.error.message || '') && _alertsHasGeo) {
+        _alertsHasGeo = false;
+        res = await sb.from('alerts').select(colsEn).order('created_at', { ascending: false }).limit(50);
+      }
       if (res.error && /text_en/i.test(res.error.message || '') && _alertsHasTextEn) {
         _alertsHasTextEn = false;
         res = await sb.from('alerts').select(cols).order('created_at', { ascending: false }).limit(50);
@@ -25953,6 +26687,8 @@ function _simStart() {
       SIM.ready = true;
       GEO.map.on('click', function (ev) {
         if (!SIM.on) return;
+        // a tap that marked the destination does not also move the start
+        if (GEO.pickMap || Date.now() - (GEO.pickedAt || 0) < 500) return;
         geoStop(); GEO.first = false; SIM.sig = null; SIM.path = null; SIM.drift = 0;
         _simFix([ev.latlng.lat, ev.latlng.lng]);
         _simPaint();

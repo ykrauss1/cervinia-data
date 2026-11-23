@@ -2647,6 +2647,56 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.said.some(t => /undefined|NaN|null/.test(t))) fail(T, 'a broken announcement: ' + r.said.find(t => /undefined|NaN|null/.test(t))); else ok();
 }
 
+// ── the navigation in full screen: search, the nearest, Escape ──────────
+// Yossi, 23.11: Escape in full screen threw him out of the navigation; the
+// destination could only be chosen, never searched; "the nearest toilets"
+// did not exist. Each of those is checked here.
+{
+  const r = await page.evaluate(async (graph) => {
+    _skiUse(graph);
+    window._liveRow = null;
+    const out = {};
+    _geoDestFill();
+    const find = (q) => {
+      const w = _geoNorm(q).split(' ');
+      return [].concat(...(GEO.allGroups || []).map(g => g.items)).filter(d => w.every(x => _geoNorm(d.name + ' ' + (d.en || '')).indexOf(x) >= 0)).map(d => d.id);
+    };
+    out.love = find('love');
+    out.superg = find('super g');
+    out.planMaison = find('plan maison').length;
+    out.norm = _geoNorm("צ׳רוויניה") === _geoNorm("צ'רוויניה");
+    // the nearest food from Plan Maison: every one a destination, the first close by
+    const realMe = GEO.me, realFar = GEO.far;
+    GEO.me = { getLatLng: () => ({ lat: 45.9404, lng: 7.6545 }) }; GEO.far = false;
+    try {
+      const items = _navNearItems('food').map(d => ({ d, m: _skiDist([45.9404, 7.6545], d.ll) })).sort((a, b) => a.m - b.m);
+      out.nearFood = items.length; out.nearFirst = items[0] && Math.round(items[0].m);
+      out.lifts = _navNearItems('lift').filter(d => /מסוע|Magic/i.test(d.name)).length;
+      out.place = _navPlaceName([45.9457506, 7.649758]);
+      out.sos = _navSosHtml();
+    } finally { GEO.me = realMe; GEO.far = realFar; }
+    // Escape: full screen first, the panel stays open
+    const mm = document.getElementById('mapModal');
+    const was = { disp: mm.style.display, type: _mapCurrentType, full: GEO.full };
+    try {
+      mm.style.display = 'flex'; _mapCurrentType = 'gps'; GEO.full = true;
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      out.afterEsc = { open: mm.style.display, full: GEO.full };
+    } finally { mm.style.display = was.disp; _mapCurrentType = was.type; GEO.full = was.full; mm.classList.remove('geo-full'); }
+    return out;
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'the navigation: free search, the nearest, Escape leaves full screen only';
+  if (!r.love.length) fail(T, 'searching "love" found nothing'); else ok();
+  if (!r.superg.length) fail(T, 'searching "super g" found nothing - the après-ski places on a run are missing'); else ok();
+  if (r.planMaison < 2) fail(T, 'searching "plan maison" found ' + r.planMaison); else ok();
+  if (!r.norm) fail(T, 'a geresh written two ways does not match'); else ok();
+  if (r.nearFood < 10 || !(r.nearFirst < 800)) fail(T, `the nearest food: ${r.nearFood} places, the first ${r.nearFirst} m away`); else ok();
+  if (r.lifts) fail(T, 'a magic carpet counts as "the nearest lift"'); else ok();
+  if (!/^על מסלול 5\b/.test(r.place)) fail(T, 'a point on run 5 is called: ' + r.place); else ok();
+  if (!/href="tel:112"/.test(r.sos) || !/45\.94040, 7\.65450/.test(r.sos)) fail(T, 'the help panel has no 112 or no position to read out'); else ok();
+  if (r.afterEsc.open !== 'flex' || r.afterEsc.full) fail(T, 'Escape in full screen: ' + JSON.stringify(r.afterEsc)); else ok();
+}
+
 // ── the community links have a standing door ─────────────────────────────
 // The Israeli Facebook group, the video and the Hebrew write-ups lived in a
 // panel reachable from a banner that shows once and never again. A reader

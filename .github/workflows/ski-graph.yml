@@ -41,6 +41,16 @@ jobs:
           BBOX: ${{ inputs.bbox }}
         run: python3 tools/fetch_ski_osm.py "$AREA" $BBOX
 
+      # toilets, first aid, ski-pass offices, rental, cash machines and
+      # pharmacies - the "nearest ..." buttons of the navigation. A failure
+      # here never holds back the ski data above.
+      - name: Download the small places (toilets, first aid, rental...)
+        continue-on-error: true
+        env:
+          AREA: ${{ inputs.area }}
+          BBOX: ${{ inputs.bbox }}
+        run: python3 tools/fetch_poi_osm.py "$AREA" $BBOX
+
       - name: Commit the raw data
         env:
           AREA: ${{ inputs.area }}
@@ -50,9 +60,10 @@ jobs:
           git config user.email "cervinia-bot@users.noreply.github.com"
           f="data/ski-raw-$AREA.json"
           git add "$f"
-          if git diff --cached --quiet -- "$f"; then
+          [ -f "data/poi-$AREA.json" ] && git add "data/poi-$AREA.json"
+          if git diff --cached --quiet; then
             echo "unchanged — nothing to commit"; exit 0
           fi
-          git commit -m "ski router: raw OSM data for $AREA"
+          git commit -m "ski router: raw OSM data and places for $AREA"
           git pull --rebase --autostash
           git push
