@@ -2699,6 +2699,29 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (r.afterEsc.open !== 'flex' || r.afterEsc.full) fail(T, 'Escape in full screen: ' + JSON.stringify(r.afterEsc)); else ok();
 }
 
+// ── a walk through the village follows its streets ──────────────────────
+// Yossi, 23.11: from the valley station to Cretaz the route walked in a
+// straight line across the houses. With the village streets in the graph
+// (data/streets-*.json) the walk goes along them.
+{
+  const r = await page.evaluate(async (graph) => {
+    const g = JSON.parse(JSON.stringify(graph));
+    const pts = [[45.93428, 7.63366], [45.9350, 7.6330], [45.9360, 7.6325], [45.9368, 7.6318], [45.93713, 7.63137]];
+    const f = []; let pa = 0, po = 0;
+    pts.forEach(p => { const a = Math.round(p[0] * 1e5), o = Math.round(p[1] * 1e5); f.push(a - pa, o - po); pa = a; po = o; });
+    const realGraph = SKI.graph;
+    try {
+      _skiStreets(g, { ways: [f] }); _skiUse(g);
+      SKI.prof = 'fast'; GEO.level = 2;
+      const rt = skiRoute(pts[0], pts[4], 2);
+      return { streets: g._streets, onStreet: rt ? rt.edges.filter(i => g.edges[i][6]).length : -1, off: rt ? Math.round(rt.walkIn + rt.walkOut) : -1 };
+    } finally { if (realGraph) _skiUse(realGraph); }
+  }, JSON.parse(fs.readFileSync(path.join(path.dirname(PAGE), 'data', 'ski-graph-cervinia.json'), 'utf8')));
+  const T = 'a walk through the village follows the streets';
+  if (r.streets !== 5) fail(T, 'the streets did not join the graph: ' + r.streets); else ok();
+  if (r.onStreet < 4 || r.off > 40) fail(T, `the route took ${r.onStreet} street pieces and walked ${r.off} m straight`); else ok();
+}
+
 // ── the community links have a standing door ─────────────────────────────
 // The Israeli Facebook group, the video and the Hebrew write-ups lived in a
 // panel reachable from a banner that shows once and never again. A reader

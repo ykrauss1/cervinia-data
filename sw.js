@@ -134,7 +134,7 @@ self.addEventListener('fetch', function (e) {
   const rel = same ? url.pathname.slice(scopePath.length) : '';
 
   // ── the texts: network first, the saved copy when slow or offline ─────
-  if (same && /^(texts\.json|texts\.en\.json|manifest\.json|data\/(ski-graph|poi)-[a-z0-9-]+\.json)$/.test(rel)) {
+  if (same && /^(texts\.json|texts\.en\.json|manifest\.json|data\/(ski-graph|poi|streets)-[a-z0-9-]+\.json)$/.test(rel)) {
     // one key per file, whatever ?query the page added
     e.respondWith(networkFirst(req, './' + rel, SLOW_MS));
     return;

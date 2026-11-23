@@ -42,6 +42,13 @@ jobs:
           BBOX: ${{ inputs.bbox }}
         run: python3 tools/fetch_poi_osm.py "$AREA" $BBOX
 
+      # the streets and footpaths of the villages, for walks that follow them
+      - name: Download the village streets
+        continue-on-error: true
+        env:
+          AREA: ${{ inputs.area }}
+        run: python3 tools/fetch_streets_osm.py "$AREA"
+
       - name: Commit them
         env:
           AREA: ${{ inputs.area }}
@@ -49,11 +56,10 @@ jobs:
           set -e
           git config user.name  "cervinia-bot"
           git config user.email "cervinia-bot@users.noreply.github.com"
-          f="data/poi-$AREA.json"
-          git add "$f"
-          if git diff --cached --quiet -- "$f"; then
+          for f in "data/poi-$AREA.json" "data/streets-$AREA.json"; do [ -f "$f" ] && git add "$f"; done
+          if git diff --cached --quiet; then
             echo "unchanged — nothing to commit"; exit 0
           fi
-          git commit -m "navigation: places (toilets, first aid...) for $AREA"
+          git commit -m "navigation: places and village streets for $AREA"
           git pull --rebase --autostash
           git push

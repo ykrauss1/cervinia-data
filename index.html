@@ -1584,7 +1584,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.66';
+  var v='v18.67';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -8736,11 +8736,65 @@ var SKI_URL = 'data/ski-graph-cervinia.json';
 function _skiLoad() {
   if (SKI.graph) return Promise.resolve(SKI.graph);
   if (SKI.loading) return SKI.loading;
-  SKI.loading = fetch(SKI_URL).then(function (r) {
+  // the village streets come beside the graph; without them the graph works
+  // as before, with its straight walks
+  var streets = fetch(SKI_URL.replace('ski-graph-', 'streets-')).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+  SKI.loading = Promise.all([fetch(SKI_URL).then(function (r) {
     if (!r.ok) throw new Error('graph ' + r.status);
     return r.json();
-  }).then(_skiUse).catch(function (e) { SKI.loading = null; throw e; });
+  }), streets]).then(function (x) { if (x[1]) _skiStreets(x[0], x[1]); return _skiUse(x[0]); })
+    .catch(function (e) { SKI.loading = null; throw e; });
   return SKI.loading;
+}
+// The streets and footpaths of the villages (data/streets-*.json, from
+// OpenStreetMap) join the graph as walks: each street both ways, and every
+// junction of the graph down in the village tied to the street beside it.
+// Yossi, 23.11: from the valley station to Cretaz the way is on foot, and
+// it went in a straight line across the houses - the streets are right there
+// on the map. A street edge carries a 1 in its seventh place: a walk with no
+// detour charge, unlike the graph's own straight village links.
+var SKI_STREET_TIE = 40;
+function _skiStreets(g, st) {
+  if (!st || !Array.isArray(st.ways) || g._streets) return;
+  var n0 = g.nodes.length, idx = {}, grid = {}, CELL = 0.0006;
+  function node(la, lo) {
+    var k = la + ',' + lo;
+    if (idx[k] === undefined) {
+      idx[k] = g.nodes.length;
+      g.nodes.push([la / 1e5, lo / 1e5, null]);
+      var gk = Math.floor(la / 1e5 / CELL) + ',' + Math.floor(lo / 1e5 / CELL);
+      (grid[gk] = grid[gk] || []).push(idx[k]);
+    }
+    return idx[k];
+  }
+  function enc(a, b) { return [Math.round(a[0] * 1e5), Math.round(a[1] * 1e5), Math.round((b[0] - a[0]) * 1e5), Math.round((b[1] - a[1]) * 1e5)]; }
+  function link(a, b) {
+    var m = Math.round(_skiDist(g.nodes[a], g.nodes[b]));
+    g.edges.push([a, b, -1, m, 'v', enc(g.nodes[a], g.nodes[b]), 1]);
+    g.edges.push([b, a, -1, m, 'v', enc(g.nodes[b], g.nodes[a]), 1]);
+  }
+  st.ways.forEach(function (w) {
+    var la = 0, lo = 0, prev = -1;
+    for (var i = 0; i + 1 < w.length; i += 2) {
+      la += w[i]; lo += w[i + 1];
+      var n = node(la, lo);
+      if (prev >= 0 && prev !== n) link(prev, n);
+      prev = n;
+    }
+  });
+  // the graph's own points in the village: tied to the nearest street point
+  for (var i = 0; i < n0; i++) {
+    var p = g.nodes[i];
+    if (p[2] != null && p[2] > 2200) continue;
+    var cx = Math.floor(p[0] / CELL), cy = Math.floor(p[1] / CELL), best = -1, bm = SKI_STREET_TIE;
+    for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) {
+      (grid[(cx + dx) + ',' + (cy + dy)] || []).forEach(function (q) { var m = _skiDist(p, g.nodes[q]); if (m < bm) { bm = m; best = q; } });
+    }
+    if (best >= 0) link(i, best);
+  }
+  // a street point takes the height of the graph point it is tied to, or
+  // none: a climb is counted only where both ends have a height
+  g._streets = g.nodes.length - n0;
 }
 function _skiUse(g) {
   var out = [], open = [];
@@ -8829,6 +8883,7 @@ function _skiAltAt(g, ll) {
   var best = Infinity, alt = null;
   for (var i = 0; i < g.nodes.length; i++) {
     var m = _skiDist(ll, g.nodes[i]);
+    if (g.nodes[i][2] == null) continue;          // a street point has no height
     if (m < best) { best = m; alt = g.nodes[i][2]; }
   }
   return best <= 500 ? alt : null;
@@ -8861,7 +8916,7 @@ function _skiCost(g, e, prevLine, level) {
   // from a terrain model, and across a lift station's few metres they jump
   var up = e[3] >= 100 ? Math.min(_skiClimb(g.nodes[e[0]][2], g.nodes[e[1]][2]), e[3] * 0.4 * SKI_CLIMB_S) : 0;
   if (k === 'w') return (e[3] / sp.walk * 1.5 + up) * _skiWalkF();
-  if (k === 'v') return (e[3] / sp.walk * 1.2 + 120 + up) * _skiWalkF();
+  if (k === 'v') return (e[3] / sp.walk * 1.2 + (e[6] ? 0 : (g._streets ? 400 : 120)) + up) * _skiWalkF();
   return -1;
 }
 // the time a route really takes, whatever profile chose it
@@ -8921,7 +8976,7 @@ function _skiWalked(rt) {
   var g = SKI.graph, m = rt.walkIn + rt.walkOut, up = (rt.climbIn + rt.climbOut) / SKI_CLIMB_S;
   rt.edges.forEach(function (ei) {
     var e = g.edges[ei];
-    if (e[4] === 'w' || e[4] === 'v') { m += e[3]; if (e[3] >= 100) up += Math.max(0, g.nodes[e[1]][2] - g.nodes[e[0]][2]); }
+    if (e[4] === 'w' || e[4] === 'v') { m += e[3]; if (e[3] >= 100) up += _skiClimb(g.nodes[e[0]][2], g.nodes[e[1]][2]) / SKI_CLIMB_S; }
   });
   return { m: m, up: up };
 }
