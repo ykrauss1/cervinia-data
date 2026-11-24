@@ -1587,7 +1587,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.75';
+  var v='v18.76';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -9902,7 +9902,19 @@ async function frRemove(handle) {
   _frPollNow();
 }
 async function frShare(minutes) {
-  if (!GEO.me) { FR.err = L('קודם לחץ על "📍 הצג את המיקום שלי".', 'First tap "📍 Show my location".'); _frPaint(); return; }
+  // The map's marker is the usual source. In the demo (away from the resort)
+  // there is none, so the phone is asked once for its real position: sharing
+  // always sends where the phone really is, never the pretend one (24.11).
+  if (!GEO.me || SIM.on) {
+    FR.err = L('מאתר את המיקום…', 'Finding your position…'); _frPaint();
+    FR.real = await new Promise(function (ok) {
+      if (!navigator.geolocation) return ok(null);
+      navigator.geolocation.getCurrentPosition(function (p) {
+        ok({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy });
+      }, function () { ok(null); }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 });
+    });
+    if (!FR.real) { FR.err = L('אין גישה למיקום. אשר הרשאת מיקום ונסה שוב.', 'No access to your position. Allow location and try again.'); _frPaint(); return; }
+  } else FR.real = null;
   FR.err = '';
   FR.shareMinutes = minutes;
   await _frPush(true);
@@ -9950,13 +9962,14 @@ async function _frBgStart() {
 }
 // sends my position when sharing: on start, then as the phone moves
 async function _frPush(start) {
-  if (!FR.gid || !GEO.me || (!FR.sharing && !start)) return;
-  var ll = GEO.me.getLatLng(), now = Date.now();
+  var me = (GEO.me && !SIM.on) ? GEO.me.getLatLng() : FR.real;
+  if (!FR.gid || !me || (!FR.sharing && !start)) return;
+  var ll = me, now = Date.now();
   if (!start && now - FR.lastPush < FR_PUSH_MS) return;
   FR.lastPush = now;
   try {
     var until = await _frRpc('cl_loc_share', { p_group: FR.gid, p_lat: ll.lat, p_lon: ll.lng,
-      p_acc: GEO.acc ? Math.round(GEO.acc.getRadius()) : null, p_minutes: start ? FR.shareMinutes : 0 });
+      p_acc: (GEO.me && !SIM.on && GEO.acc) ? Math.round(GEO.acc.getRadius()) : (FR.real && FR.real.acc ? Math.round(FR.real.acc) : null), p_minutes: start ? FR.shareMinutes : 0 });
     FR.until = until;
     FR.sharing = new Date(until).getTime() > Date.now();
   } catch (e) { FR.err = L('השיתוף לא עבר: ', 'Sharing failed: ') + e.message; FR.sharing = false; }
