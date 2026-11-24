@@ -19,6 +19,9 @@
 //   { kind: "trip",      text, today: "YYYY-MM-DD", chagim: "<name> <iso> · ..." }
 //   { kind: "translate", text, to: "it" | "en" | "he" }
 //   { kind: "kosherfly", text, today: "YYYY-MM-DD" }      (Kosher Fly, 10 Nov)
+//   { kind: "skitime",   text, now: "HH:MM" }                  (24 Nov) the navigation's
+//        "planning by time": a skier's question, read into a few fields. The
+//        site works out every time and route itself; the model only reads.
 //   { kind: "site", text }  + Authorization: Bearer <admin's session token>
 //        (17 Nov) the admin's text editor: a Hebrew site text into English,
 //        markup kept. Only for a signed-in user whose profile is_admin.
@@ -50,8 +53,8 @@ const ALLOW_ORIGINS = [
 // Short on purpose. The real sentences are one line; the trip parser caps
 // its own input at 400 characters. A cap is what makes the endpoint useless
 // as a general-purpose model.
-const MAX_TEXT = { trip: 400, translate: 600, kosherfly: 600, legacy: 1200, site: 4000 };
-const MAX_TOKENS = { trip: 900, translate: 400, kosherfly: 900, legacy: 500, site: 3000 };
+const MAX_TEXT = { trip: 400, translate: 600, kosherfly: 600, legacy: 1200, site: 4000, skitime: 300 };
+const MAX_TOKENS = { trip: 900, translate: 400, kosherfly: 900, legacy: 500, site: 3000, skitime: 300 };
 
 // Per IP per hour, and for everybody together per day. The daily one is the
 // number that matters: it is the most this function can cost in 24 hours
@@ -155,6 +158,29 @@ function tripPrompt(text: string, today: string, chagim: string) {
     + '- summary: תקציר עברי קצר של מה שהובן\n'
     + 'אל תמציא ערך שלא נכתב. פלט: {"airport":null,"checkin":null,"checkout":null,"nights":null,"adults":null,"children":null,"car":null,"hotel":null,"accType":null,"airportPickup":null,"automatic":null,"summary":""}\n'
     + 'הבקשה: "' + text + '"';
+}
+
+// The navigation's "planning by time" (24 Nov). A skier asks in his own words
+// - "I have an hour, what is worth it?", "will I make it back from Zermatt?",
+// "my pass runs out at 12:30 and I want to be down by two" - and the model
+// says only WHAT is asked and WHICH times and durations were given. Every
+// answer (routes, lift hours, the last ride back) the page works out itself.
+function skiTimePrompt(text: string, now: string) {
+  return 'קרא שאלה של גולש סקי בצ׳רוויניה (איטליה) והחזר אך ורק JSON תקין, בלי טקסט ובלי markdown. אל תענה על השאלה ואל תחשב זמנים: רק סווג אותה וחלץ ממנה ערכים.\n'
+    + 'השעה עכשיו בצ׳רוויניה: ' + now + '.\n'
+    + 'שדות:\n'
+    + '- kind: "zermatt" אם השאלה על נסיעה לצרמט/שווייץ או חזרה משם; "budget" אם השאלה על מה להספיק בזמן שיש (סיבוב, עוד ירידה, עד שעה מסוימת, סקיפס שנגמר, חצי יום, עד סגירת המעליות); "unknown" אם זה לא אחד מאלה\n'
+    + '- stay: לצרמט בלבד — כמה דקות רוצים להיות בעיירה ("שעה"=60, "שעה וחצי"=90), אחרת null\n'
+    + '- min: כמה דקות יש לגולש מעכשיו ("שעה"=60, "שעתיים"=120, "חצי שעה"=30), אחרת null\n'
+    + '- until: שעה בפורמט "HH:MM" שעד אליה יש זמן, או שבה הסקיפס נגמר, אחרת null. "בשתיים בצהריים"="14:00", "ב-3"="15:00"\n'
+    + '- pass: true אם השעה ב-until היא סוף תוקף הסקיפס (ואז רק העלייה האחרונה חייבת להיות לפניה, והירידה בגלישה יכולה להיות אחריה), אחרת false\n'
+    + '- halfDay: true אם נזכר סקיפס לחצי יום, אחרת false\n'
+    + '- finish: שעה "HH:MM" שעד אליה רוצים להיות למטה, אם נאמרה בנפרד מסוף הסקיפס, אחרת null\n'
+    + '- close: true אם רוצים לגלוש עד סגירת המעליות, אחרת false\n'
+    + '- end: איפה לסיים — "breuil" (תחנת העמק/הקופות/Breuil), "cretaz", "village" (הכפר בלי לפרט), "here" (לחזור לאן שאני עכשיו), או null\n'
+    + '- summary: משפט עברי קצר של מה שהובן, למשל "יש לך שעה, ורוצה לסיים בכפר"\n'
+    + 'אל תמציא ערך שלא נכתב. פלט: {"kind":"unknown","stay":null,"min":null,"until":null,"pass":false,"halfDay":false,"finish":null,"close":false,"end":null,"summary":""}\n'
+    + 'השאלה: "' + text + '"';
 }
 
 // Kosher Fly (ykrauss1.github.io/trip-finder) used to build this prompt in the
@@ -268,6 +294,14 @@ Deno.serve(async (req) => {
         return J({ ok: false, error: "bad date" }, 400, origin);
       prompt = kosherFlyPrompt(text, today);
       maxTokens = MAX_TOKENS.kosherfly;
+
+    } else if (kind === "skitime") {
+      const text = String(body.text || "").trim().slice(0, MAX_TEXT.skitime);
+      if (!text) return J({ ok: false, error: "text required" }, 400, origin);
+      const now = String(body.now || "");
+      if (!/^\d{1,2}:\d{2}$/.test(now)) return J({ ok: false, error: "bad time" }, 400, origin);
+      prompt = skiTimePrompt(text, now);
+      maxTokens = MAX_TOKENS.skitime;
 
     } else if (kind === "site") {
       if (!(await callerIsAdmin(req)))

@@ -9793,6 +9793,20 @@ TP.now = function () {
   if ((typeof SIM !== 'undefined' && SIM.on) || t < 8 * 60 + 30 || t > 16 * 60 + 15) { TP.assumed = true; t = 10 * 60 + 30; }
   return t;
 };
+// sunset in Cervinia today, local minutes (the usual NOAA approximation; a
+// valley goes into shade earlier, so the plans keep a margin before it)
+TP.sunset = function () {
+  var d = new Date(), lat = 45.936, lon = 7.633, rad = Math.PI / 180;
+  var start = Date.UTC(d.getUTCFullYear(), 0, 0), n = Math.floor((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - start) / 864e5);
+  var g = 2 * Math.PI / 365 * (n - 1 + 0.5);
+  var eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+  var dec = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+  var ha = Math.acos(Math.cos(90.833 * rad) / (Math.cos(lat * rad) * Math.cos(dec)) - Math.tan(lat * rad) * Math.tan(dec)) / rad;
+  var utc = 720 - 4 * (lon - ha) - eq;                       // minutes after midnight UTC
+  var off = 60;                                            // Rome: +1, +2 in summer time
+  try { var p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', timeZoneName: 'short' }).format(d); if (/GMT\+2|CEST/.test(p)) off = 120; } catch (e) {}
+  return utc + off;
+};
 // when the lifts stop: one lift's last ride up, or the day's, or 16:00
 TP.dayClose = function () {
   var d = window._liveData || {}, x = /[-–]\s*(\d{1,2}[:.]\d{2})/.exec(String(d.opening_hours || ''));
@@ -9819,14 +9833,14 @@ TP.route = function (a, b, prof) {
 // the clock along a route from a start time: when it ends, and every lift
 // reached after its last ride up
 TP.walk = function (rt, start) {
-  var g = SKI.graph, t = start * 60, line = -1, late = [], lastBoard = null, keepP = SKI.prof, keepL = SKI.ignoreLive;
+  var g = SKI.graph, t = start * 60, line = -1, late = [], lastBoard = null, lastLift = null, keepP = SKI.prof, keepL = SKI.ignoreLive;
   SKI.prof = 'fast'; SKI.ignoreLive = true;
   t += rt.walkIn / g.speed.walk * 1.5 + rt.climbIn;
   rt.edges.forEach(function (ei) {
     var e = g.edges[ei], w = e[2] >= 0 ? g.ways[e[2]] : null;
     var isLift = e[4] === 'u' || e[4] === 'r', ln = isLift ? (w.ln !== undefined ? w.ln : e[2]) : -1;
     if (isLift && ln !== line) {
-      lastBoard = t / 60;
+      lastBoard = t / 60; lastLift = w;
       var cl = TP.liftClose(w);
       if (cl !== null && t / 60 > cl) late.push({ name: w.name || w.feed || '', at: t / 60, close: cl });
     }
@@ -9836,7 +9850,7 @@ TP.walk = function (rt, start) {
   });
   t += rt.walkOut / g.speed.walk * 1.5 + rt.climbOut;
   SKI.prof = keepP; SKI.ignoreLive = keepL;
-  return { end: t / 60, late: late, lastBoard: lastBoard };
+  return { end: t / 60, late: late, lastBoard: lastBoard, lastLift: lastLift };
 };
 TP.swissLift = function (w, top) {
   if (!w) return false;
@@ -9934,7 +9948,7 @@ TP.go = function (kind, i) {
 
 // "I have N minutes" / "till 13:00": the best rounds from here that end
 // back at the chosen place in time - each one up a lift and down again
-TP.budget = function (here, minutes, endO, passUntil, finishBy) {
+TP.budget = function (here, minutes, endO, passUntil, finishBy, byClose) {
   var g = SKI.graph, now = TP.now(), closeDay = TP.dayClose();
   var ends = endO.many || [endO], endName = endO.name;
   // with a pass that runs out, only the lifts count: the last ride up has to
@@ -9978,12 +9992,17 @@ TP.budget = function (here, minutes, endO, passUntil, finishBy) {
       if (TP.walk(down, 0).lastBoard !== null) return;        // the way down needs no lift
       if (wUp.lastBoard === null) return;
       var toBoard = wUp.lastBoard - now;                      // from here to boarding the last lift
-      leaveBy = passUntil - 3 - toBoard;
-      if (leaveBy < now) return;
-      lastUp = passUntil - 3;
-      // at ease: half as long again as the router's pace, and 20 minutes for a drink
-      calm = lastUp + (wUp.end - wUp.lastBoard) + down.secs / 60 * 1.5 + 20;
-      if (finishBy && calm > finishBy) return;
+      var rideRest = wUp.end - wUp.lastBoard;                 // that lift, and anything after it to the top
+      var calmDown = down.secs / 60 * 1.5 + 20;               // at ease: half as long again, and a drink
+      // board as late as the pass, that lift's own last ride and the finish allow
+      var own = TP.liftClose(wUp.lastLift);
+      var board = Math.min(passUntil, own !== null ? own : passUntil) - 3;
+      if (finishBy) board = Math.min(board, finishBy - rideRest - calmDown);
+      if (board < now + toBoard) return;
+      leaveBy = board - toBoard;
+      if (TP.walk(up, leaveBy).late.length) return;           // a lift on the way would be shut by then
+      lastUp = board;
+      calm = board + rideRest + calmDown;
       if (!finishBy && calm > closeDay + 60) return;
     }
     var ski = 0, runs = [];
@@ -10010,7 +10029,10 @@ TP.budget = function (here, minutes, endO, passUntil, finishBy) {
   pick(res.slice().sort(function (a, b) { return passUntil ? a.calm - b.calm : a.total - b.total; }), passUntil ? L('😌 למטה הכי מוקדם', '😌 Down the soonest') : L('😌 הכי רגוע בזמן', '😌 The most relaxed'));
   TP.loops = picks;
   var at = L(/^[A-Za-z]/.test(endName) ? ' ב-' : ' ב', ' at ') + escHtml(endName);
-  var head = passUntil
+  var head = byClose
+    ? L('המעליות נסגרות בסביבות ', 'The lifts stop at about ') + '<b dir="ltr">' + TP.hm(passUntil) + '</b>' + L(' (העליונות לפעמים קודם), והשמש שוקעת היום בערך ב-', ' (the upper ones sometimes sooner), and the sun sets today at about ')
+      + '<b dir="ltr">' + TP.hm(finishBy + 15) + '</b>' + L('. העיקר להגיע למעלה לפני שהמעליות נעצרות, ולהיות למטה לפני שמחשיך. לסיים', '. What matters is to be up before the lifts stop, and down before dark. Ending') + at + ':'
+    : passUntil
     ? L('הסקיפס שלך עד ', 'Your pass runs till ') + '<b dir="ltr">' + TP.hm(passUntil) + '</b>'
       + (finishBy ? L(', ולסיים עד ', ', finishing by ') + '<b dir="ltr">' + TP.hm(finishBy) + '</b>' : '')
       + L('. העלייה האחרונה צריכה להתחיל לפני שהכרטיס נגמר; את הירידה בגלישה אפשר לעשות גם אחר כך, בנחת. לסיים', '. The last ride up has to start before the pass runs out; the run down can come after, at ease. Ending') + at + ':'
@@ -10119,6 +10141,7 @@ function _tpPaint() {
   if (o && o.innerHTML !== TP.out) o.innerHTML = TP.out;
 }
 TP.say = function (html) {
+  if (TP.heard && !/^(מחשב|Working|קורא|Reading)/.test(html)) { html = '<div style="color:#4b5d70;font-size:0.74rem;margin-bottom:4px;">💬 ' + escHtml(TP.heard) + '</div>' + html; }
   var note = TP.assumed ? '<div style="color:#8a6d00;font-size:0.72rem;margin-bottom:4px;">' + L('🕐 מחוץ לשעות הגלישה (או בהדגמה) החישוב מניח שהשעה עכשיו 10:30.', '🕐 Outside skiing hours (or in the demo) the reckoning assumes it is 10:30 now.') + '</div>' : '';
   TP.out = note + html + '<div style="color:#7b8798;font-size:0.7rem;margin-top:6px;">' + L('הזמנים הם הערכה לפי מפת המסלולים ושעות המעליות הרשמיות, כולל המתנה ממוצעת. בתורים ארוכים ובמזג אוויר רע זה לוקח יותר, ומעליות נסגרות לפעמים מוקדם.', 'Times are an estimate from the piste map and the official lift hours, with average waits. Long queues and bad weather take longer, and lifts sometimes close early.') + '</div>';
   _tpPaint();
@@ -10139,24 +10162,55 @@ TP.run = function (p) {
       // a morning half-day pass runs till 12:30; the afternoon one from 12:00 to the close
       if (p.halfDay && !p.until) p.until = now < 12 * 60 + 30 ? 12 * 60 + 30 : null;
       if (p.pass || p.halfDay) {
-        if (!p.until) { TP.say(L('סקיפס של אחר הצהריים תקף עד סגירת המעליות, אז זה כמו "עד סגירת המעליות".', 'An afternoon pass runs till the lifts close, so it is the same as "till the lifts close".')); p = { kind: 'budget', close: true }; }
+        if (!p.until) { p = { kind: 'budget', close: true }; TP.say(TP.budget(here, null, end, TP.dayClose(), TP.sunset() - 15, true)); return; }
         else { if (p.until <= now) { TP.say(L('השעה הזאת כבר עברה.', 'That time has passed.')); return; } TP.say(TP.budget(here, null, end, p.until, p.finish || null)); return; }
       }
       if (!min && p.until) min = p.until - now;
-      if (!min && p.close) min = TP.dayClose() - now;
+      if (p.close) {
+        var dark = TP.sunset() - 15;
+        TP.say(TP.budget(here, null, end, TP.dayClose(), dark, true));
+        return;
+      }
       if (!min) { TP.say(L('כמה זמן יש לך? כתוב למשל "יש לי שעה" או "עד 14:30".', 'How much time do you have? Write for example "I have an hour" or "till 14:30".')); return; }
       if (min <= 0) { TP.say(L('השעה הזאת כבר עברה.', 'That time has passed.')); return; }
       TP.say(TP.budget(here, min, end, null));
     } catch (e) { console.warn('tp', e); TP.say(L('משהו השתבש בחישוב.', 'Something went wrong in the reckoning.')); }
   }, 30);
 };
-TP.ask = function () {
-  var q = (document.getElementById('tp-q') || {}).value || '';
-  var p = TP.parse(q);
+// A question in words goes to the model to be read (tf-translate, kind
+// "skitime": it answers only what is asked and which times were given); the
+// patterns here are the fallback when it cannot be reached.
+TP.read = async function (q) {
+  var ctrl = new AbortController(), timer = setTimeout(function () { ctrl.abort(); }, 8000);
+  try {
+    var r = await fetch(CV_TRANSLATE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: 'skitime', text: q.slice(0, 300), now: TP.hm(TP.now()) }), signal: ctrl.signal });
+    var d = await r.json();
+    if (!d || !d.ok || !d.intent) return null;
+    var it = d.intent, num = function (x) { x = +x; return isFinite(x) && x > 0 && x < 24 * 60 ? x : null; };
+    if (it.kind !== 'zermatt' && it.kind !== 'budget') return { kind: 'unknown' };
+    var p = { kind: it.kind, stay: num(it.stay), min: num(it.min), until: TP.mins(it.until), pass: !!it.pass,
+              halfDay: !!it.halfDay, finish: TP.mins(it.finish), close: !!it.close, summary: String(it.summary || '').slice(0, 160) };
+    if (p.kind === 'budget' && p.until && p.min) p.min = null;
+    var end = String(it.end || '');
+    if (/^(breuil|cretaz|village|here)$/.test(end)) { var sel = document.getElementById('tp-end'); if (sel) sel.value = end; }
+    return p;
+  } catch (e) { return null; }
+  finally { clearTimeout(timer); }
+};
+TP.ask = async function () {
+  var q = ((document.getElementById('tp-q') || {}).value || '').trim();
+  if (!q) return;
+  TP.say(L('קורא את השאלה…', 'Reading the question…'));
+  var p = await TP.read(q);
+  if (!p) p = TP.parse(q);
+  else if (p.kind === 'unknown') p = TP.parse(q);
+  TP.heard = p && p.summary ? p.summary : '';
   if (!p) { TP.say(L('לא הבנתי את השאלה. נסה למשל: "יש לי שעה, מה כדאי?", "אספיק לחזור מצרמט?", "רוצה שעה בצרמט, מתי לצאת?", "הסקיפס שלי עד 13:00".', 'I did not follow. Try: "I have an hour", "Will I make it back from Zermatt?", "An hour in Zermatt, when do I leave?", "My pass runs till 13:00".')); return; }
   TP.run(p);
 };
 TP.quick = function (k) {
+  TP.heard = '';
   if (k === 'back') TP.run({ kind: 'zermatt', stay: null });
   else if (k === 'stay') TP.run({ kind: 'zermatt', stay: 60 });
   else if (k === 'hour') TP.run({ kind: 'budget', min: 60 });
