@@ -1584,7 +1584,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.73';
+  var v='v18.74';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -9718,6 +9718,12 @@ function _frPaint() {
   if (FR.sharing) {
     h += '<span style="color:#188038;font-weight:bold;">📡 ' + L('משתף עד ', 'Sharing until ') + _frUntil(FR.until) + '</span>'
       + '<button type="button" onclick="frStop()" style="' + _frBtn() + '">⏹ ' + L('הפסק', 'Stop') + '</button>';
+    // in the app the sharing goes on in a pocket; in a browser, only while
+    // this page is open - say which (24.11)
+    h += '<div style="flex-basis:100%;font-size:0.78rem;color:#6b7c8f;">' + (_frBgApp()
+      ? '📲 ' + L('ממשיך גם כשהמסך כבוי — התראה בטלפון מראה את זה, ושם אפשר לעצור.', 'Goes on with the screen off - a notification on the phone shows it, with a Stop button.')
+        + ' <a href="#" onclick="_frBgStart();return false;" style="color:#1a73e8;">' + L('אין התראה? הפעל שוב', 'No notification? Start again') + '</a>'
+      : L('המיקום נשלח רק כשהדף פתוח על המסך. באפליקציה מ-Google Play הוא נשלח גם כשהמסך כבוי.', 'Your position is sent only while this page is open. In the Google Play app it goes on with the screen off.')) + '</div>';
   } else {
     h += '<span>' + L('לשתף את המיקום שלי:', 'Share my location:') + '</span>'
       + [[60, L('שעה', '1 h')], [180, L('3 שעות', '3 h')], [720, L('עד הערב', 'all day')]].map(function (o) {
@@ -9860,11 +9866,47 @@ async function frShare(minutes) {
   FR.err = '';
   FR.shareMinutes = minutes;
   await _frPush(true);
+  if (FR.sharing && _frBgApp()) _frBgStart();
 }
 async function frStop() {
   FR.sharing = false; FR.until = null;
   try { await _frRpc('cl_loc_stop', { p_group: FR.gid }); } catch (e) {}
+  if (_frBgApp()) _frBgIntent('stop');
   _frPollNow();
+}
+
+// ── sharing with the screen off (24.11) ──
+// The Play app opens the site with ?app=android2: that version has a small
+// service that goes on sending while the phone is in a pocket. The page
+// hands it a key that can only move this position in this group until the
+// chosen time (supabase/sql/cl_friends_bg.sql), and the service shows a
+// notification all the while. Older versions of the app, and browsers, keep
+// to sending while the page is open.
+(function () {
+  try {
+    if (/[?&]app=android2\b/.test(location.search)) {
+      sessionStorage.setItem('clApp', '2');
+      history.replaceState(null, '', location.pathname + location.search.replace(/([?&])app=android2\b&?/, '$1').replace(/[?&]$/, '') + location.hash);
+    }
+  } catch (e) {}
+})();
+function _frBgApp() {
+  try { return sessionStorage.getItem('clApp') === '2'; } catch (e) { return false; }
+}
+function _frBgIntent(what, q) {
+  location.href = 'intent://' + what + (q ? '?' + q : '') + '#Intent;scheme=cervinialive;package=il.co.cervinialive;end';
+}
+async function _frBgStart() {
+  if (!FR.gid || !FR.sharing || !FR.until) return;
+  try {
+    var key = await _frRpc('cl_loc_bg_key', { p_group: FR.gid });
+    var g = (FR.groups || []).find(function (x) { return x.id === FR.gid; });
+    _frBgIntent('share', 'k=' + encodeURIComponent(key) + '&g=' + encodeURIComponent(g ? g.name : '')
+      + '&u=' + new Date(FR.until).getTime() + '&l=' + (window.LANG === 'en' ? 'en' : 'he'));
+  } catch (e) {
+    FR.err = L('השיתוף כשהמסך כבוי לא הופעל: ', 'Sharing with the screen off did not start: ') + e.message;
+    _frPaint();
+  }
 }
 // sends my position when sharing: on start, then as the phone moves
 async function _frPush(start) {

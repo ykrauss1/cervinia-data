@@ -1,0 +1,59 @@
+// The Play app: the site in a Trusted Web Activity (as PWABuilder made it,
+// 17.11), plus one thing a web page cannot do - go on sharing the position
+// with a friend group while the phone is in a pocket (24.11).
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'il.co.cervinialive'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'il.co.cervinialive'
+        minSdk 23
+        targetSdk 36
+        versionCode 2
+        versionName '1.1.0'
+
+        // where the app opens; the "app" mark tells the site it may hand
+        // sharing to the service
+        manifestPlaceholders = [
+            hostName       : 'cervinialive.co.il',
+            defaultUrl     : 'https://cervinialive.co.il/index.html?app=android2',
+            launcherName   : 'CerviniaLive',
+            themeColor     : '#152238',
+            backgroundColor: '#152238',
+        ]
+        resValue 'string', 'appName', 'CerviniaLive'
+    }
+
+    signingConfigs {
+        release {
+            // filled by the GitHub workflow from its secrets; never in the repo
+            storeFile System.getenv('KEYSTORE_FILE') ? file(System.getenv('KEYSTORE_FILE')) : null
+            storePassword System.getenv('KEYSTORE_PASSWORD')
+            keyAlias System.getenv('KEY_ALIAS') ?: 'cervinialive'
+            keyPassword System.getenv('KEY_PASSWORD')
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig System.getenv('KEYSTORE_FILE') ? signingConfigs.release : null
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+    implementation 'com.google.androidbrowserhelper:locationdelegation:1.1.1'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'androidx.core:core:1.13.1'
+}

@@ -10,7 +10,9 @@
      the translation function. No ads. Visits are counted with
      GoatCounter (17.11): no cookies, nothing that identifies a reader.
      Location only inside a friend group the reader chose to share with, for
-     at most 12 hours, then deleted (supabase/sql/cl_friends.sql, 18.11). -->
+     at most 12 hours, then deleted (supabase/sql/cl_friends.sql, 18.11).
+     In the Play app it goes on with the screen off, with a notification
+     all the while (cl_friends_bg.sql, 24.11). -->
 <title>מדיניות פרטיות · CerviniaLive</title>
 <meta name="robots" content="index,follow">
 <link rel="icon" href="favicon.ico">
@@ -55,7 +57,7 @@
   <h2>מה לא נעשה</h2>
   <ul>
     <li>אין פרסומות, אין עוגיות מעקב, ולא נבנה פרופיל שימוש של אף גולש.</li>
-    <li>לא אוספים אנשי קשר או מידע אחר מהטלפון. הכפתור "איפה אני" מציג את המיקום שלכם על המפה במכשיר עצמו, והמיקום לא נשלח לשום מקום, אלא אם בחרתם לשתף אותו עם קבוצת חברים (ראו למעלה). גם אז הוא לא נשלח לאף אחד מחוץ לקבוצה, ולא כשהאתר סגור.</li>
+    <li>לא אוספים אנשי קשר או מידע אחר מהטלפון. הכפתור "איפה אני" מציג את המיקום שלכם על המפה במכשיר עצמו, והמיקום לא נשלח לשום מקום, אלא אם בחרתם לשתף אותו עם קבוצת חברים (ראו למעלה). גם אז הוא לא נשלח לאף אחד מחוץ לקבוצה. בדפדפן הוא נשלח רק כשהאתר פתוח על המסך. באפליקציה מ-Google Play, אם בחרתם לשתף, הוא נשלח גם כשהמסך כבוי, עד השעה שבחרתם. כל אותו זמן מוצגת בטלפון התראה קבועה שאפשר לעצור ממנה.</li>
     <li>לא מוכרים מידע ולא מעבירים אותו לאף אחד לצורכי שיווק.</li>
   </ul>
 
@@ -93,7 +95,7 @@
   <h2>What we do not do</h2>
   <ul>
     <li>No ads, no tracking cookies, and no usage profile is built of any visitor.</li>
-    <li>No contacts or other data is collected from your phone. The "Where am I" button shows your position on the map on your own device, and it is sent nowhere unless you choose to share it with a friend group (see above). Even then it goes to nobody outside the group, and never while the site is closed.</li>
+    <li>No contacts or other data is collected from your phone. The "Where am I" button shows your position on the map on your own device, and it is sent nowhere unless you choose to share it with a friend group (see above). Even then it goes to nobody outside the group. In a browser it is sent only while the site is open on the screen. In the Google Play app, if you chose to share, it is also sent with the screen off, until the time you chose; all that time a notification on the phone shows it, with a button to stop.</li>
     <li>No data is sold or shared with anyone for marketing.</li>
   </ul>
 

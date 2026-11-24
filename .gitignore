@@ -35,3 +35,13 @@ desktop.ini
 # Python bytecode, written whenever validate.py or freshness.py runs
 __pycache__/
 *.pyc
+
+# The Android app's build output and anything signing-related: the upload
+# key lives only in the repository's secrets (android.yml).
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.keystore
+*.jks
+signing-key-info.txt
