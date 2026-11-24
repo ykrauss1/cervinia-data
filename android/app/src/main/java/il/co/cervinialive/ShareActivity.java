@@ -37,10 +37,16 @@ public class ShareActivity extends Activity {
             return;
         }
 
+        he = !"en".equals(u.getQueryParameter("l"));
+        say(he ? "צ'רוויניה לייב: מפעיל שיתוף כשהמסך כבוי…" : "CerviniaLive: starting screen-off sharing…");
         String key = u.getQueryParameter("k");
         long until = 0;
         try { until = Long.parseLong(u.getQueryParameter("u")); } catch (Exception ignored) { }
-        if (key == null || key.length() != 48 || until < System.currentTimeMillis()) { finish(); return; }
+        if (key == null || key.length() != 48 || until < System.currentTimeMillis()) {
+            say(he ? "השיתוף לא הופעל: הבקשה מהאתר לא תקינה (" + (key == null ? "אין מפתח" : until < System.currentTimeMillis() ? "הזמן עבר" : "מפתח באורך " + key.length()) + ")"
+                   : "Sharing did not start: the request from the site is not valid");
+            finish(); return;
+        }
 
         pending = new Intent(this, ShareService.class)
                 .setAction(ShareService.ACTION_START)
@@ -61,6 +67,9 @@ public class ShareActivity extends Activity {
         requestPermissions(ask.toArray(new String[0]), REQ);
     }
 
+    private boolean he = true;
+    private void say(String t) { Toast.makeText(getApplicationContext(), t, Toast.LENGTH_LONG).show(); }
+
     private boolean granted(String p) {
         return ContextCompat.checkSelfPermission(this, p) == PackageManager.PERMISSION_GRANTED;
     }
@@ -69,6 +78,10 @@ public class ShareActivity extends Activity {
     public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
         super.onRequestPermissionsResult(code, perms, res);
         if (granted(Manifest.permission.ACCESS_FINE_LOCATION) || granted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            if (Build.VERSION.SDK_INT >= 33 && !granted(Manifest.permission.POST_NOTIFICATIONS)) {
+                say(he ? "ההתראות של האפליקציה כבויות, אז ההודעה על השיתוף לא תוצג. אפשר להפעיל אותן בהגדרות."
+                       : "The app's notifications are off, so the sharing notice will not show. Turn them on in Settings.");
+            }
             start();
         } else {
             boolean he = "he".equals(pending.getStringExtra("lang"));
@@ -79,7 +92,11 @@ public class ShareActivity extends Activity {
     }
 
     private void start() {
-        try { ContextCompat.startForegroundService(this, pending); } catch (Exception ignored) { }
+        try {
+            ContextCompat.startForegroundService(this, pending);
+        } catch (Exception e) {
+            say((he ? "השיתוף לא הופעל: " : "Sharing did not start: ") + e.getClass().getSimpleName() + " " + e.getMessage());
+        }
         finish();
     }
 }

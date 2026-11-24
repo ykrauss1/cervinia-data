@@ -88,10 +88,15 @@ public class ShareService extends Service {
         try {
             ServiceCompat.startForeground(this, NOTE_ID, note(),
                     Build.VERSION.SDK_INT >= 29 ? ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION : 0);
-        } catch (Exception e) {   // no permission after all: leave quietly
+        } catch (Exception e) {   // no permission after all: say so and leave
+            final String why = e.getClass().getSimpleName() + " " + e.getMessage();
+            main.post(() -> android.widget.Toast.makeText(getApplicationContext(),
+                    (he() ? "השיתוף לא הופעל: " : "Sharing did not start: ") + why, android.widget.Toast.LENGTH_LONG).show());
             stopSelf();
             return START_NOT_STICKY;
         }
+        main.post(() -> android.widget.Toast.makeText(getApplicationContext(),
+                he() ? "📍 השיתוף פעיל גם כשהמסך כבוי" : "📍 Sharing goes on with the screen off", android.widget.Toast.LENGTH_SHORT).show());
         main.removeCallbacks(timeUp);
         main.postDelayed(timeUp, Math.max(1000, until - System.currentTimeMillis()));
         listen();
