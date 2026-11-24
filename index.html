@@ -1639,7 +1639,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.85';
+  var v='v18.86';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5298,9 +5298,12 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                the next line (Yossi, 19.11) -->
           <div id="map-geo-cats-row" style="display:flex;gap:6px;flex-wrap:nowrap;margin-bottom:6px;align-items:center;">
             <div id="map-geo-cats" role="tablist" style="display:flex;gap:5px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;"></div>
+            <button type="button" id="map-geo-time-btn" onclick="geoTime()" aria-label="תכנון לפי זמן" data-en-aria-label="Planning by time" title="תכנון לפי זמן"
+              style="flex:none;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.1rem;line-height:1;border:none;background:linear-gradient(135deg,#1a73e8,#0f4fa8);color:#fff;box-shadow:0 2px 6px rgba(26,115,232,0.35);">⏱️</button>
             <button type="button" id="map-geo-friends-btn" onclick="geoFriends()" aria-label="חברים" data-en-aria-label="Friends" title="חברים"
               style="position:relative;flex:none;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.15rem;line-height:1;border:none;background:linear-gradient(135deg,#7b4fd6,#5a33b0);color:#fff;box-shadow:0 2px 6px rgba(90,51,176,0.35);">👥</button>
           </div>
+          <div id="map-geo-time" style="display:none;margin-bottom:6px;padding:7px 8px;border:1px solid #d6e2ef;border-radius:9px;background:#fff;line-height:1.5;max-height:40vh;overflow:auto;"></div>
           <div id="map-geo-friends" style="display:none;margin-bottom:6px;padding:7px 8px;border:1px solid #d6e2ef;border-radius:9px;background:#fff;line-height:1.5;max-height:32vh;overflow:auto;"></div>
           <div id="map-geo-pick-row" style="display:flex;gap:6px;align-items:center;">
             <!-- the phone's own list for a <select> was plain and crowded (Yossi,
@@ -9759,8 +9762,412 @@ async function _frRpc(fn, args) {
 }
 
 // ── the panel ──
+// ── Planning by time (Yossi, 24.11): "will I make it back from Zermatt?",
+// "when do I leave to have an hour there?", "I have an hour - what is worth
+// a run?", "my pass is till 13:00". The router already knows how long each
+// way takes; this adds the clock: the last ride up of each lift (the official
+// 2026/27 timetable, texts.lift_hours) and the last ride back from Zermatt
+// (texts.swiss.last_lift). Answers are worked out here, never guessed - the
+// words a skier types are only read for what is asked and how long he has.
+var TP = { open: false, out: '', margin: 20 };
+TP.ZV = [46.01464, 7.74266];     // Zermatt, the Matterhorn Express valley station
+TP.TG = [45.93447, 7.70765];     // Testa Grigia / Plateau Rosa, the border
+TP.hm = function (m) { m = Math.round(m); var h = Math.floor(m / 60) % 24, mm = ((m % 60) + 60) % 60; return h + ':' + ('0' + mm).slice(-2); };
+TP.about = function (m) { var d = TP.dur(m); return L(/^\d/.test(d) ? 'כ-' + d : 'כ' + d, 'about ' + d); };
+TP.mins = function (s) { var x = /^(\d{1,2})[:.](\d{2})/.exec(String(s || '').trim()); return x ? +x[1] * 60 + +x[2] : null; };
+TP.dur = function (m) {
+  m = Math.max(0, Math.round(m / 5) * 5);
+  if (m < 60) return L(m + ' דקות', m + ' min');
+  var h = Math.floor(m / 60), r = m % 60;
+  return L((h === 1 ? 'שעה' : h === 2 ? 'שעתיים' : h + ' שעות') + (r ? ' ו-' + r + ' דקות' : ''), h + ' h' + (r ? ' ' + r + ' min' : ''));
+};
+// the time in Cervinia now, in minutes from midnight. Away from the resort
+// (the demo) or outside the lifts' hours, a morning hour is assumed and said.
+TP.now = function () {
+  var t = null;
+  try {
+    var p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+    t = TP.mins(p);
+  } catch (e) { var d = new Date(); t = d.getHours() * 60 + d.getMinutes(); }
+  TP.assumed = false;
+  if ((typeof SIM !== 'undefined' && SIM.on) || t < 8 * 60 + 30 || t > 16 * 60 + 15) { TP.assumed = true; t = 10 * 60 + 30; }
+  return t;
+};
+// when the lifts stop: one lift's last ride up, or the day's, or 16:00
+TP.dayClose = function () {
+  var d = window._liveData || {}, x = /[-–]\s*(\d{1,2}[:.]\d{2})/.exec(String(d.opening_hours || ''));
+  return x ? TP.mins(x[1]) : 16 * 60;
+};
+TP.liftClose = function (w) {
+  var lh = window._texts && window._texts.lift_hours;
+  if (w && w.feed && lh && lh.close && lh.close[w.feed] && (typeof _aLive !== 'function' || _aLive(lh.until))) return TP.mins(lh.close[w.feed]);
+  return null;
+};
+TP.lastBack = function () {
+  var ll = window._texts && window._texts.swiss && window._texts.swiss.last_lift, w = ll && _swissLastLift(ll);
+  return w ? TP.mins(w.time) : null;
+};
+// a route by one of the router's profiles, with its time, or null
+TP.route = function (a, b, prof) {
+  var keep = SKI.prof;
+  SKI.prof = prof || 'fast';
+  var r = null;
+  try { r = skiRoute(a, b, GEO.level || 2); } catch (e) {}
+  SKI.prof = keep;
+  return r;
+};
+// the clock along a route from a start time: when it ends, and every lift
+// reached after its last ride up
+TP.walk = function (rt, start) {
+  var g = SKI.graph, t = start * 60, line = -1, late = [], lastBoard = null, keepP = SKI.prof, keepL = SKI.ignoreLive;
+  SKI.prof = 'fast'; SKI.ignoreLive = true;
+  t += rt.walkIn / g.speed.walk * 1.5 + rt.climbIn;
+  rt.edges.forEach(function (ei) {
+    var e = g.edges[ei], w = e[2] >= 0 ? g.ways[e[2]] : null;
+    var isLift = e[4] === 'u' || e[4] === 'r', ln = isLift ? (w.ln !== undefined ? w.ln : e[2]) : -1;
+    if (isLift && ln !== line) {
+      lastBoard = t / 60;
+      var cl = TP.liftClose(w);
+      if (cl !== null && t / 60 > cl) late.push({ name: w.name || w.feed || '', at: t / 60, close: cl });
+    }
+    var c = _skiCost(g, e, line, 9);
+    if (c > 0) t += c;
+    line = ln;
+  });
+  t += rt.walkOut / g.speed.walk * 1.5 + rt.climbOut;
+  SKI.prof = keepP; SKI.ignoreLive = keepL;
+  return { end: t / 60, late: late, lastBoard: lastBoard };
+};
+TP.swissLift = function (w, top) {
+  if (!w) return false;
+  if (w.zf) return true;
+  if (/furi|trockener|klein matterhorn|furggsattel|3s matterhorn|zermatt/i.test(w.feed || '')) return true;
+  return !w.feed && !w.cov && top && top[0] > 45.95;
+};
+TP.usesSwiss = function (rt) {
+  var g = SKI.graph;
+  return rt.edges.some(function (ei) { var e = g.edges[ei]; return e[4] === 'u' && TP.swissLift(g.ways[e[2]], g.nodes[e[1]]); });
+};
+TP.swiss = function (ll) { return ll[0] > 45.952 || _skiDist(ll, TP.ZV) < 4000; };
+
+// ── the questions ──
+// will I make it back to Italy from Zermatt, and how long can I stay there
+TP.zermatt = function (here, stay) {
+  var now = TP.now(), last = TP.lastBack(), out = [];
+  if (last === null) return '<div>' + L('אין לי כרגע את שעת החזרה האחרונה מצרמט.', 'I have no last-return time from Zermatt now.') + '</div>';
+  var back = TP.route(TP.ZV, TP.TG, 'fast');
+  if (!back) return '<div>' + L('לא הצלחתי לחשב את הדרך חזרה מצרמט.', 'I could not work out the way back from Zermatt.') + '</div>';
+  var backMin = back.secs / 60;
+  var lastLine = L('העלייה האחרונה מצרמט חזרה לאיטליה: ', 'The last ride up from Zermatt back to Italy: ') + '<b dir="ltr">' + TP.hm(last) + '</b>';
+  if (TP.swiss(here)) {
+    // already on the Swiss side: get to the border in time
+    var toTG = TP.route(here, TP.TG, 'fast');
+    if (!toTG) return '<div>' + L('לא מצאתי מכאן דרך חזרה לאיטליה.', 'I found no way back to Italy from here.') + '</div>';
+    // the last ride up from the village passes here at about last + (village -> here);
+    // be on the way up before it does. Where the router finds no way up from
+    // the village to here, the border is the measure instead.
+    var fromZV = _skiDist(here, TP.ZV) < 400 ? { secs: 0 } : TP.route(TP.ZV, here, 'fast');
+    var leaveBy = fromZV ? last + fromZV.secs / 60 - TP.margin : last + backMin - TP.margin - toTG.secs / 60;
+    var spare = leaveBy - now + TP.margin;
+    out.push(lastLine);
+    if (spare >= TP.margin + 5) {
+      out.push('✅ ' + L('כן. מכאן הדרך לגבול לוקחת ', 'Yes. From here the way to the border takes ') + TP.about(toTG.secs / 60)
+        + L(', ויש לך עוד ', ', and you have ') + TP.about(spare - TP.margin) + L(' לפני שצריך לצאת.', ' before you have to set off.'));
+      out.push('🕐 ' + L('צא לכיוון איטליה לכל המאוחר ב-', 'Head back to Italy by ') + '<b dir="ltr">' + TP.hm(leaveBy) + '</b>.');
+    } else if (spare >= 0) {
+      out.push('⚠️ ' + L('צמוד מאוד. צא לכיוון איטליה עכשיו.', 'Very tight. Head back to Italy now.'));
+    } else {
+      out.push('⛔ ' + L('לפי החישוב כבר לא תספיק לחזור במעליות. כדאי לברר מיד באחת התחנות, או לתכנן חזרה במונית דרך המנהרה.',
+                         'By the reckoning you can no longer make it back by lift. Ask at a lift station now, or plan a taxi back through the tunnel.'));
+    }
+    out.push(TP._plan('back', toTG));
+    return out.join('<br>');
+  }
+  // still in Italy: the way over, and the time left in Zermatt
+  TP.rt_fast = TP.rt_easy = null;
+  var alts = [['fast', L('⚡ בדרך הקצרה', '⚡ The quickest way')], ['easy', L('😌 בדרך הקלה', '😌 The easiest way')]], rows = [], seen = {};
+  alts.forEach(function (a) {
+    var rt = TP.route(here, TP.ZV, a[0]); if (!rt) return;
+    var sig = rt.edges.join(','); if (seen[sig]) return; seen[sig] = 1;
+    // the easy way, when it is no slower than the quick one, is the same answer twice
+    if (a[0] === 'easy' && TP.rt_fast && Math.abs(rt.secs - TP.rt_fast.secs) < 180) return;
+    var w = TP.walk(rt, now), there = last - TP.margin - w.end;
+    var line = a[1] + ': ' + TP.dur(rt.secs / 60) + L(' עד צרמט', ' to Zermatt');
+    if (stay) {
+      var leave = last - TP.margin - stay - rt.secs / 60;
+      line += ' · ' + (leave >= now
+        ? L('כדי שתהיה ', 'for ') + TP.dur(stay) + L(' בעיירה, צא עד ', ' in town, leave by ') + '<b dir="ltr">' + TP.hm(leave) + '</b>'
+        : '<span style="color:#c5221f;">' + L('כבר לא יספיק ל-', 'too late for ') + TP.dur(stay) + L(' בעיירה', ' in town') + '</span>');
+    } else {
+      line += ' · ' + (there >= 15
+        ? L('אם תצא עכשיו, יהיו לך ', 'leave now and you have ') + TP.about(there) + L(' בעיירה', ' in town')
+        : '<span style="color:#c5221f;">' + L('לא יישאר זמן בעיירה', 'no time left in town') + '</span>');
+    }
+    if (w.late.length) line += '<br><span style="color:#c5221f;">⛔ ' + L('בדרך הזאת ', 'On this way ') + escHtml(w.late[0].name)
+      + L(' כבר תיסגר (', ' will have closed (') + '<span dir="ltr">' + TP.hm(w.late[0].close) + '</span>)</span>';
+    rows.push(line);
+    TP['rt_' + a[0]] = rt;
+  });
+  if (!rows.length) return '<div>' + L('לא מצאתי מכאן דרך לצרמט ברמה שבחרת.', 'I found no way to Zermatt from here at the level you chose.') + '</div>';
+  out.push(lastLine);
+  out.push('<span style="color:#4b5d70;">' + L('השעות כאן משאירות ', 'The times here leave ') + TP.margin + L(' דקות מרווח לפני הרכבל האחרון.', ' minutes to spare before the last ride.') + '</span>');
+  out = out.concat(rows);
+  out.push(TP._plan('zermatt', TP.rt_fast || TP.rt_easy));
+  return out.join('<br>');
+};
+// a button that sends the navigation the way just worked out
+TP._plan = function (kind, rt) {
+  if (!rt) return '';
+  return '<button type="button" onclick="TP.go(\'' + kind + '\')" style="margin-top:6px;padding:6px 12px;border:none;border-radius:8px;background:#1a73e8;color:#fff;font-weight:bold;font-size:0.78rem;cursor:pointer;font-family:inherit;">'
+    + (kind === 'back' ? L('🧭 נווט חזרה לאיטליה', '🧭 Navigate back to Italy') : L('🧭 נווט לצרמט', '🧭 Navigate to Zermatt')) + '</button>';
+};
+TP.go = function (kind, i) {
+  var d;
+  if (kind === 'back') d = { id: 'tp-tg', name: L('<svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> הגבול – Plateau Rosa', '<svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> The border – Plateau Rosa'), ll: TP.TG };
+  else if (kind === 'zermatt') d = { id: 'tp-zv', name: L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> צרמט – תחנת Matterhorn Express', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> Zermatt – Matterhorn Express station'), ll: TP.ZV };
+  else { var o = TP.loops && TP.loops[i]; if (!o) return; d = { id: 'tp-loop', name: '⏱️ ' + o.name, ll: o.ll }; }
+  GEO.dests = GEO.dests || {};
+  GEO.dests[d.id] = d;
+  TP.open = false; _tpPaint();
+  geoDest(d.id);
+};
+
+// "I have N minutes" / "till 13:00": the best rounds from here that end
+// back at the chosen place in time - each one up a lift and down again
+TP.budget = function (here, minutes, endO, passUntil, finishBy) {
+  var g = SKI.graph, now = TP.now(), closeDay = TP.dayClose();
+  var ends = endO.many || [endO], endName = endO.name;
+  // with a pass that runs out, only the lifts count: the last ride up has to
+  // start before it ends, and the way down on skis needs no pass (Yossi, 24.11)
+  var budget = passUntil ? Infinity : minutes - 5;
+  if (passUntil && passUntil - now < 10) return '<div>' + L('הסקיפס כמעט נגמר. אפשר לגלוש למטה גם בלעדיו.', 'The pass is nearly over. You can ski down without it.') + '</div>';
+  if (!passUntil && budget < 15) return '<div>' + L('בפחות מרבע שעה כדאי פשוט לגלוש חזרה.', 'With under a quarter of an hour, just ski back.') + '</div>';
+  var endAlt = Math.min.apply(null, ends.map(function (x) { return _skiAltAt(g, x.ll); }));
+  // the top of every lift, once, nearest first
+  var tops = {}, cand = [];
+  g.edges.forEach(function (e) {
+    if (e[4] !== 'u') return;
+    var w = g.ways[e[2]], ln = w.ln !== undefined ? w.ln : e[2], n = g.nodes[e[1]];
+    if (w.lt === 'magic_carpet' || w.lt === 'yes') return;
+    if (!tops[ln] || n[2] > tops[ln].n[2]) tops[ln] = { n: n, w: w };
+  });
+  Object.keys(tops).forEach(function (k) {
+    var t = tops[k];
+    if (t.n[2] < endAlt + 60) return;
+    if (skiLiftState(t.w) === 'closed') return;
+    cand.push({ ll: [t.n[0], t.n[1]], alt: t.n[2], w: t.w, m: _skiDist(here, t.n) });
+  });
+  cand.sort(function (a, b) { return a.m - b.m; });
+  cand = cand.slice(0, 28);
+  var res = [];
+  cand.forEach(function (c) {
+    var up = TP.route(here, c.ll, 'fast'); if (!up) return;
+    var down = null, endHere = null;
+    ends.forEach(function (x) { var r = TP.route(c.ll, x.ll, 'fast'); if (r && (!down || r.secs < down.secs)) { down = r; endHere = x; } });
+    if (!down) return;
+    var wUp = TP.walk(up, now); if (wUp.late.length || wUp.end > closeDay) return;
+    var total = (up.secs + down.secs) / 60;
+    if (total > budget) return;
+    var swiss = TP.usesSwiss(up) || TP.usesSwiss(down), lastUp = null, calm = null, leaveBy = null;
+    if (passUntil) {
+      // The plan for the end of a pass (Yossi, 24.11): ski as you like, then
+      // the last ride up just before the pass runs out, and from the top a
+      // long way down at ease, with a stop for a drink. So: when to set off
+      // from here for the last lift, and when that brings you down.
+      if (swiss) return;                                      // an Italian pass: no Zermatt lifts
+      if (TP.walk(down, 0).lastBoard !== null) return;        // the way down needs no lift
+      if (wUp.lastBoard === null) return;
+      var toBoard = wUp.lastBoard - now;                      // from here to boarding the last lift
+      leaveBy = passUntil - 3 - toBoard;
+      if (leaveBy < now) return;
+      lastUp = passUntil - 3;
+      // at ease: half as long again as the router's pace, and 20 minutes for a drink
+      calm = lastUp + (wUp.end - wUp.lastBoard) + down.secs / 60 * 1.5 + 20;
+      if (finishBy && calm > finishBy) return;
+      if (!finishBy && calm > closeDay + 60) return;
+    }
+    var ski = 0, runs = [];
+    [up, down].forEach(function (rt) {
+      skiSteps(rt).forEach(function (s) {
+        if (s.kind === 'run') { ski += s.m; if (s.ref && runs.indexOf(s.ref) < 0) runs.push(s.ref); }
+      });
+    });
+    res.push({ ll: c.ll, alt: c.alt, total: total, ski: ski, runs: runs, w: c.w, name: TP.placeName(c.ll, c.w), end: endHere.name,
+               swiss: swiss, lastUp: lastUp, calm: calm, leaveBy: leaveBy, skiDown: down ? skiSteps(down).reduce(function (m, s) { return m + (s.kind === 'run' ? s.m : 0); }, 0) : 0 });
+  });
+  if (!res.length) return '<div>' + L('לא מצאתי סיבוב שנכנס בזמן הזה. כדאי פשוט לגלוש חזרה.', 'I found no round that fits that time. Best to ski straight back.') + '</div>';
+  // three different kinds of answer: the most skiing, the highest, the most relaxed
+  var picks = [], used = {};
+  function pick(list, tag) {
+    for (var i = 0; i < list.length; i++) {
+      var o = list[i], sig = o.runs.slice(0, 3).join(',');
+      if (!used[o.name] && !used['r:' + sig]) { used[o.name] = 1; used['r:' + sig] = 1; o.tag = tag; picks.push(o); return; }
+    }
+  }
+  var skiOf = function (o) { return passUntil ? o.skiDown : o.ski; };
+  pick(res.slice().sort(function (a, b) { return skiOf(b) - skiOf(a); }), passUntil ? L('⛷️ הירידה הארוכה ביותר', '⛷️ The longest way down') : L('⛷️ הכי הרבה גלישה', '⛷️ The most skiing'));
+  pick(res.slice().sort(function (a, b) { return b.alt - a.alt; }), L('🏔️ הכי גבוה', '🏔️ The highest'));
+  pick(res.slice().sort(function (a, b) { return passUntil ? a.calm - b.calm : a.total - b.total; }), passUntil ? L('😌 למטה הכי מוקדם', '😌 Down the soonest') : L('😌 הכי רגוע בזמן', '😌 The most relaxed'));
+  TP.loops = picks;
+  var at = L(/^[A-Za-z]/.test(endName) ? ' ב-' : ' ב', ' at ') + escHtml(endName);
+  var head = passUntil
+    ? L('הסקיפס שלך עד ', 'Your pass runs till ') + '<b dir="ltr">' + TP.hm(passUntil) + '</b>'
+      + (finishBy ? L(', ולסיים עד ', ', finishing by ') + '<b dir="ltr">' + TP.hm(finishBy) + '</b>' : '')
+      + L('. העלייה האחרונה צריכה להתחיל לפני שהכרטיס נגמר; את הירידה בגלישה אפשר לעשות גם אחר כך, בנחת. לסיים', '. The last ride up has to start before the pass runs out; the run down can come after, at ease. Ending') + at + ':'
+    : L('יש לך ', 'You have ') + TP.dur(minutes) + L(', לסיים', ', ending') + at + ':';
+  return head + picks.map(function (o, i) {
+    return '<div style="margin-top:6px;padding:7px 9px;border:1px solid #d6e2ef;border-radius:9px;background:#fff;">'
+      + '<b>' + o.tag + '</b>: ' + L('עלייה אל ', 'up to ') + '<b>' + escHtml(o.name) + '</b> (<span dir="ltr">' + Math.round(o.alt) + '</span>' + L(' מ\')', ' m)')
+      + (passUntil
+        ? '<br><span style="color:#16314f;">' + L('🕐 עד ', '🕐 Ski as you like till ') + '<b dir="ltr">' + TP.hm(o.leaveBy) + '</b>' + L(' גולשים חופשי, ואז יוצאים מכאן לכיוון המעלית (העלייה האחרונה ב-', ', then head from here for the lift (last ride up at ') + '<span dir="ltr">' + TP.hm(o.lastUp) + '</span>)'
+          + L('. ירידה של ', '. A way down of ') + (o.skiDown / 1000).toFixed(1) + L(' ק"מ בנחת, עם עצירה לשתייה; למטה בערך ב-', ' km at ease, with a stop for a drink; at the bottom at about ') + '<b dir="ltr">' + TP.hm(o.calm) + '</b>.</span>'
+          + '<br><span style="color:#4b5d70;">'
+        : '<br><span style="color:#4b5d70;">' + TP.about(o.total) + L(' בסך הכול · ', ' in all · ') + (o.ski / 1000).toFixed(1) + L(' ק"מ גלישה', ' km on skis') + (o.runs.length ? ' · ' : ''))
+      + (o.runs.length ? L('מסלולים ', 'runs ') + o.runs.slice(0, 4).map(escHtml).join(', ') : '')
+      + (endO.many ? L(' · עד ', ' · to ') + escHtml(o.end) : '') + '</span>'
+      + (o.swiss ? '<br><span style="color:#b06000;">' + L('⚠️ עובר במעליות של צרמט: צריך סקיפס בינלאומי.', '⚠️ Uses Zermatt lifts: an international pass is needed.') + '</span>' : '')
+      + '<br><button type="button" onclick="TP.go(\'loop\',' + i + ')" style="margin-top:4px;padding:4px 10px;border:none;border-radius:7px;background:#1a73e8;color:#fff;font-size:0.74rem;font-weight:bold;cursor:pointer;font-family:inherit;">'
+      + L('🧭 נווט לשם', '🧭 Navigate there') + '</button></div>';
+  }).join('');
+};
+TP.placeName = function (ll, w) {
+  var g = SKI.graph, best = null, bm = 500;
+  (g.places || []).forEach(function (p) { if (p[0] !== 's') return; var m = _skiDist(ll, [p[4], p[5]]); if (m < bm) { bm = m; best = p; } });
+  if (best) return L(best[2], best[3]);
+  return (w && (w.name || w.feed)) || L('ראש המעלית', 'the top of the lift');
+};
+// where a round ends: the village below, or here
+TP.BREUIL = [45.93428, 7.63366]; TP.CRETAZ = [45.93713, 7.63137];
+TP.end = function (here) {
+  var g = SKI.graph, sel = (document.getElementById('tp-end') || {}).value || 'village';
+  if (sel === 'here') return { ll: here, name: L('המקום שבו אתה עכשיו', 'where you are now') };
+  if (sel === 'dest' && GEO.dest) return { ll: GEO.dest.ll, name: GEO.dest.name };
+  if (sel === 'breuil') return { ll: TP.BREUIL, name: L('תחנת העמק Breuil', 'the Breuil valley station') };
+  if (sel === 'cretaz') return { ll: TP.CRETAZ, name: 'Cretaz' };
+  // in Cervinia: whichever of the two the level allows and is quicker
+  if (!TP.swiss(here) && _skiDist(here, TP.BREUIL) < 9000) return { many: [
+    { ll: TP.BREUIL, name: L('תחנת העמק Breuil', 'the Breuil valley station') },
+    { ll: TP.CRETAZ, name: 'Cretaz' }], name: L('כפר (Breuil או Cretaz)', 'the village (Breuil or Cretaz)') };
+  var side = TP.swiss(here) ? 'ch' : 'it', best = null, bm = Infinity;
+  (g.places || []).forEach(function (p) { if (p[0] !== 'v' || p[1] !== side) return; var m = _skiDist(here, [p[4], p[5]]); if (m < bm) { bm = m; best = p; } });
+  // the name without its bracketed note, which only tangles a sentence
+  return best ? { ll: [best[4], best[5]], name: L(best[2], best[3]).replace(/\s*\([^)]*\)\s*$/, '') } : { ll: here, name: L('המקום שבו אתה עכשיו', 'where you are now') };
+};
+
+// ── reading a question in words (Hebrew or English): what is asked, and
+// how long. No model: a few patterns cover how people put it.
+TP.parse = function (q) {
+  var s = ' ' + String(q || '').toLowerCase().replace(/[״"׳']/g, '') + ' ', min = null, until = null, x;
+  var times = [], re = /(\d{1,2})[:.](\d{2})/g;
+  while ((x = re.exec(s))) times.push(+x[1] * 60 + +x[2]);
+  times.sort(function (a, b) { return a - b; });
+  if (times.length) until = times[0];
+  else if ((x = /עד\s*(ה)?(שעה\s*)?(\d{1,2})(?!\d)/.exec(s)) && +x[3] >= 8 && +x[3] <= 17) until = +x[3] * 60;
+  if (/שעה וחצי|1\.5 ?(h|שעות)|hour and a half/.test(s)) min = 90;
+  else if (/שעתיים|two hours|2 hours/.test(s)) min = 120;
+  else if (/חצי שעה|half an hour|half hour/.test(s)) min = 30;
+  else if (/רבע שעה|quarter of an hour/.test(s)) min = 15;
+  else if ((x = /(\d+(?:\.\d)?)\s*(דק|דקות|min|minutes)/.exec(s))) min = +x[1];
+  else if ((x = /(\d+(?:\.\d)?)\s*(שעות|hours|h)(?![a-z])/.exec(s))) min = +x[1] * 60;
+  else if (/(^|[\s,.?!])שעה(?=[\s,.?!]|$)|an hour|one hour|1 hour/.test(s)) min = 60;
+  var halfDay = /חצי יום|half[- ]day/.test(s);
+  var pass = /סקי ?פס|skipass|ski pass|כרטיס|\bpass\b/.test(s);
+  var zm = /צרמט|zermatt|שוויי?ץ|swiss|switzerland/.test(s);
+  var back = /לחזור|חזרה|אספיק|אגיע|back|make it|return/.test(s);
+  if (zm) return { kind: 'zermatt', stay: back && !/לבקר|להיות|לשהות|stay|visit|spend/.test(s) ? null : min };
+  var finish = null;
+  if ((pass || halfDay) && times.length >= 2) finish = times[times.length - 1];
+  if (halfDay && times.length === 1 && times[0] > 12 * 60 + 30) { finish = times[0]; until = null; }
+  if (min || until || halfDay || pass || /סיבוב|ירידה|עוד|round|run|left|נשאר/.test(s)) return { kind: 'budget', min: min, until: until, halfDay: halfDay, pass: pass && !!until, finish: finish };
+  return null;
+};
+
+// ── the panel ──
+function geoTime() { TP.open = !TP.open; if (TP.open && typeof FR !== 'undefined' && FR.open) { FR.open = false; try { _frPaint(); } catch (e) {} } _tpPaint(); }
+function _tpPaint() {
+  var p = document.getElementById('map-geo-time'), b = document.getElementById('map-geo-time-btn');
+  if (b) b.style.outline = TP.open ? '2px solid #1a73e8' : 'none';
+  if (!p) return;
+  if (!TP.open) { p.style.display = 'none'; return; }
+  p.style.display = 'block';
+  if (p.dataset.built !== '1') {
+    p.dataset.built = '1';
+    var chip = 'padding:5px 9px;border-radius:14px;border:1px solid #c9d6e3;background:#f4f8fd;color:#16314f;font-family:inherit;font-size:0.74rem;cursor:pointer;white-space:nowrap;';
+    p.innerHTML = '<div style="font-weight:bold;font-size:0.84rem;margin-bottom:5px;">' + L('⏱️ תכנון לפי זמן', '⏱️ Planning by time') + '</div>'
+      + '<div style="display:flex;gap:5px;">'
+      + '<input id="tp-q" type="text" maxlength="200" placeholder="' + L('למשל: יש לי שעה · סקיפס עד 12:30, לסיים ב-14:00', 'e.g. I have an hour · pass till 12:30, done by 14:00') + '"'
+      + ' style="flex:1;min-width:0;padding:7px 9px;border:1px solid #c9d6e3;border-radius:8px;font-family:inherit;font-size:0.82rem;" onkeydown="if(event.key===\'Enter\')TP.ask()">'
+      + '<button type="button" onclick="TP.ask()" style="padding:6px 12px;border:none;border-radius:8px;background:#1a73e8;color:#fff;font-weight:bold;cursor:pointer;font-family:inherit;font-size:0.8rem;">' + L('חשב', 'Go') + '</button></div>'
+      + '<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-top:6px;">'
+      + '<button type="button" style="' + chip + '" onclick="TP.quick(\'back\')">' + L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> אספיק לחזור מצרמט?', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> Will I make it back from Zermatt?') + '</button>'
+      + '<button type="button" style="' + chip + '" onclick="TP.quick(\'stay\')">' + L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> שעה בצרמט – מתי לצאת?', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> An hour in Zermatt – when to leave?') + '</button>'
+      + '<button type="button" style="' + chip + '" onclick="TP.quick(\'hour\')">' + L('⏳ יש לי שעה', '⏳ I have an hour') + '</button>'
+      + '<button type="button" style="' + chip + '" onclick="TP.quick(\'half\')">' + L('⏳ חצי שעה', '⏳ Half an hour') + '</button>'
+      + '<button type="button" style="' + chip + '" onclick="TP.quick(\'halfday\')">' + L('🎫 חצי יום עד 12:30, למטה ב-14:00', '🎫 Half-day till 12:30, down by 14:00') + '</button>'
+      + '<button type="button" style="' + chip + '" onclick="TP.quick(\'close\')">' + L('🕓 עד סגירת המעליות', '🕓 Till the lifts close') + '</button>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:0.76rem;color:#4b5d70;">' + L('לסיים ב:', 'End at:')
+      + '<select id="tp-end" style="padding:3px 6px;border:1px solid #c9d6e3;border-radius:6px;font-family:inherit;font-size:0.76rem;">'
+      + '<option value="village">' + L('הכפר (הנוח מבין השניים)', 'the village (the handier of the two)') + '</option>'
+      + '<option value="breuil">' + L('תחנת העמק Breuil', 'Breuil valley station') + '</option>'
+      + '<option value="cretaz">Cretaz</option>'
+      + '<option value="here">' + L('המקום שבו אני עכשיו', 'where I am now') + '</option>'
+      + '<option value="dest">' + L('היעד שבחרתי', 'the destination I chose') + '</option></select></div>'
+      + '<div id="tp-out" style="margin-top:7px;font-size:0.8rem;line-height:1.6;color:#16314f;"></div>';
+  }
+  var o = document.getElementById('tp-out');
+  if (o && o.innerHTML !== TP.out) o.innerHTML = TP.out;
+}
+TP.say = function (html) {
+  var note = TP.assumed ? '<div style="color:#8a6d00;font-size:0.72rem;margin-bottom:4px;">' + L('🕐 מחוץ לשעות הגלישה (או בהדגמה) החישוב מניח שהשעה עכשיו 10:30.', '🕐 Outside skiing hours (or in the demo) the reckoning assumes it is 10:30 now.') + '</div>' : '';
+  TP.out = note + html + '<div style="color:#7b8798;font-size:0.7rem;margin-top:6px;">' + L('הזמנים הם הערכה לפי מפת המסלולים ושעות המעליות הרשמיות, כולל המתנה ממוצעת. בתורים ארוכים ובמזג אוויר רע זה לוקח יותר, ומעליות נסגרות לפעמים מוקדם.', 'Times are an estimate from the piste map and the official lift hours, with average waits. Long queues and bad weather take longer, and lifts sometimes close early.') + '</div>';
+  _tpPaint();
+};
+TP.here = function () {
+  var h = _navHere();
+  if (!h) TP.say(L('צריך קודם את המיקום שלך על המפה (או נקודת התחלה בהדגמה).', 'First I need your position on the map (or a starting point in the demo).'));
+  return h;
+};
+TP.run = function (p) {
+  var here = TP.here(); if (!here) return;
+  if (!SKI.graph) { TP.say(L('מפת המסלולים עוד נטענת. נסה שוב בעוד רגע.', 'The piste map is still loading. Try again in a moment.')); return; }
+  TP.say(L('מחשב…', 'Working it out…'));
+  setTimeout(function () {
+    try {
+      if (p.kind === 'zermatt') { TP.say(TP.zermatt(here, p.stay)); return; }
+      var now = TP.now(), min = p.min, end = TP.end(here);
+      // a morning half-day pass runs till 12:30; the afternoon one from 12:00 to the close
+      if (p.halfDay && !p.until) p.until = now < 12 * 60 + 30 ? 12 * 60 + 30 : null;
+      if (p.pass || p.halfDay) {
+        if (!p.until) { TP.say(L('סקיפס של אחר הצהריים תקף עד סגירת המעליות, אז זה כמו "עד סגירת המעליות".', 'An afternoon pass runs till the lifts close, so it is the same as "till the lifts close".')); p = { kind: 'budget', close: true }; }
+        else { if (p.until <= now) { TP.say(L('השעה הזאת כבר עברה.', 'That time has passed.')); return; } TP.say(TP.budget(here, null, end, p.until, p.finish || null)); return; }
+      }
+      if (!min && p.until) min = p.until - now;
+      if (!min && p.close) min = TP.dayClose() - now;
+      if (!min) { TP.say(L('כמה זמן יש לך? כתוב למשל "יש לי שעה" או "עד 14:30".', 'How much time do you have? Write for example "I have an hour" or "till 14:30".')); return; }
+      if (min <= 0) { TP.say(L('השעה הזאת כבר עברה.', 'That time has passed.')); return; }
+      TP.say(TP.budget(here, min, end, null));
+    } catch (e) { console.warn('tp', e); TP.say(L('משהו השתבש בחישוב.', 'Something went wrong in the reckoning.')); }
+  }, 30);
+};
+TP.ask = function () {
+  var q = (document.getElementById('tp-q') || {}).value || '';
+  var p = TP.parse(q);
+  if (!p) { TP.say(L('לא הבנתי את השאלה. נסה למשל: "יש לי שעה, מה כדאי?", "אספיק לחזור מצרמט?", "רוצה שעה בצרמט, מתי לצאת?", "הסקיפס שלי עד 13:00".', 'I did not follow. Try: "I have an hour", "Will I make it back from Zermatt?", "An hour in Zermatt, when do I leave?", "My pass runs till 13:00".')); return; }
+  TP.run(p);
+};
+TP.quick = function (k) {
+  if (k === 'back') TP.run({ kind: 'zermatt', stay: null });
+  else if (k === 'stay') TP.run({ kind: 'zermatt', stay: 60 });
+  else if (k === 'hour') TP.run({ kind: 'budget', min: 60 });
+  else if (k === 'half') TP.run({ kind: 'budget', min: 30 });
+  else if (k === 'close') TP.run({ kind: 'budget', close: true });
+  else if (k === 'halfday') TP.run({ kind: 'budget', halfDay: true, until: 12 * 60 + 30, finish: 14 * 60 });
+};
+
 function geoFriends() {
   FR.open = !FR.open;
+  if (FR.open && TP.open) { TP.open = false; _tpPaint(); }
   _frPaint();
   if (FR.open) _frLoadGroups();
 }
