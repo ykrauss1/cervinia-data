@@ -839,6 +839,9 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 
 .bar-u { font-size: 0.6em; font-weight: 600; opacity: 0.75; margin-inline-start: 2px; }
 
+.place-tip { font-size: 0.72rem; line-height: 1.35; padding: 3px 7px; direction: rtl; text-align: right; }
+.place-tip-main { font-size: 0.85rem; border-color: #e8710a; }
+#place-map.place-far .place-tip:not(.place-tip-main) { display: none; }
 #why-banner {
   position: fixed; z-index: 9998;
   bottom: calc(16px + var(--pwa-h, 0px)); inset-inline-start: 14px; inset-inline-end: auto;
@@ -1584,7 +1587,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.74';
+  var v='v18.75';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1907,6 +1910,10 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <div id="svc-maps" class="service-btn" onclick="openM('mapModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-world-map"/></svg></span>
       <span class="svc-txt"><b>מפות</b><small>מסלולים, הכפר, ולטורננש ושוויץ</small></span>
+    </div>
+    <div id="svc-place" class="service-btn svc-wide" onclick="placeOpen()">
+      <span class="svc-ico" style="font-size:1.9rem;line-height:1;" aria-hidden="true">🧭</span>
+      <span class="svc-txt"><b data-en="&lt;span style=&quot;display:block;font-size:0.72em;font-weight:normal;opacity:0.8;&quot;&gt;Getting to know&lt;/span&gt;Cervinia"><span style="display:block;font-size:0.72em;font-weight:normal;opacity:0.8;">היכרות עם</span>צ'רוויניה</b><small data-en="Where it is on the map, the distances · photos of the village and the slopes">איפה זה על המפה, המרחקים · תמונות מהכפר ומהמסלולים</small></span>
     </div>
     <div id="svc-around" class="service-btn svc-wide" onclick="openM('aroundModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-snow-capped-mountain"/></svg></span>
@@ -4728,6 +4735,31 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
   </div>
 </div>
 
+<div id="placeModal" class="modal" onclick="if(event.target===this)closeM('placeModal')">
+  <div class="modal-content" style="max-width:640px;max-height:92vh;overflow-y:auto;padding:0 18px 20px;">
+    <span class="close-btn" onclick="closeM('placeModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.1rem;" data-en="🗺️ Where is Cervinia?">🗺️ איפה זה צ'רוויניה?</h3>
+    <div style="font-size:0.84rem;color:#555;line-height:1.8;margin-bottom:10px;" data-en="Breuil-Cervinia is a ski village at 2,050 m in the &lt;b&gt;north-west of Italy&lt;/b&gt;, in the Aosta Valley, right on the Swiss border - across the mountain is Zermatt, and the two share one ski area under the Matterhorn.">צ'רוויניה (Breuil-Cervinia) היא כפר סקי בגובה 2,050 מ' <b>בצפון-מערב איטליה</b>, בעמק אאוסטה (Valle d'Aosta), ממש על הגבול עם שווייץ. מעבר להר נמצאת צרמט (Zermatt), ושני הכפרים חולקים אזור סקי אחד מתחת למטרהורן.</div>
+    <div class="ttab-row" style="display:flex;gap:6px;margin-bottom:10px;">
+      <button id="place-tab-map" class="ttab-btn active" style="flex:1;" onclick="placeTab('map')" data-en="🗺️ On the map">🗺️ על המפה</button>
+      <button id="place-tab-photos" class="ttab-btn" style="flex:1;" onclick="placeTab('photos')" data-en="📸 Photos">📸 תמונות</button>
+    </div>
+    <div id="place-panel-map">
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <button id="place-z-italy" onclick="placeZoom('italy')" style="flex:1;padding:6px;border:1.5px solid #1a4b8c;border-radius:8px;background:#fff;color:#1a4b8c;font-size:0.78rem;cursor:pointer;font-family:inherit;" data-en="&lt;svg class=fl-it aria-hidden=true&gt;&lt;use href=#flag-it&gt;&lt;/use&gt;&lt;/svg&gt; All of Italy"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> כל איטליה</button>
+        <button id="place-z-region" onclick="placeZoom('region')" style="flex:1;padding:6px;border:1.5px solid #1a4b8c;border-radius:8px;background:#1a4b8c;color:#fff;font-size:0.78rem;cursor:pointer;font-family:inherit;" data-en="🔍 The distances">🔍 המרחקים</button>
+      </div>
+      <div id="place-map" style="height:380px;border-radius:12px;overflow:hidden;background:#e8eef5;" dir="ltr"></div>
+      <div style="font-size:0.72rem;color:#888;margin:6px 2px 8px;" data-en="The lines are straight; the distances and times are by road, without snow or traffic - in winter add a quarter of an hour for the 27 km of hairpins up from Châtillon.">הקווים ישרים; המרחקים והזמנים הם בכביש, בלי שלג ופקקים. בחורף כדאי להוסיף רבע שעה ל-27 ק"מ של הסרפנטינות מ-Châtillon.</div>
+      <div id="place-list" style="font-size:0.82rem;"></div>
+    </div>
+    <div id="place-panel-photos" style="display:none;">
+      <div id="place-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;"></div>
+      <div style="font-size:0.72rem;color:#888;margin-top:10px;" data-en="The photos are from Wikimedia Commons, under the licence shown on each; a tap on the credit opens the source.">התמונות מ-Wikimedia Commons, ברישיון שמופיע ליד כל אחת; לחיצה על שם הצלם פותחת את המקור.</div>
+    </div>
+  </div>
+</div>
+
 <div id="aroundModal" class="modal" onclick="if(event.target===this)closeM('aroundModal')">
   <div class="modal-content" style="max-width:600px;max-height:92vh;overflow-y:auto;padding:0 24px 24px;">
     <span class="close-btn" onclick="closeM('aroundModal')">×</span>
@@ -4933,6 +4965,11 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
           <span style="font-size:0.8rem;color:#1a3a6c;">לגבי מוצרים נוספים — ראה <b>רשימת מוצרים כשרים</b> להלן.</span>
         </div>
         <div id="kosher-community"></div>
+      </div>
+      <!-- the nearest mikveh (24.11) - filled from texts.json kosher.mikveh_* -->
+      <div id="kosher-mikveh-box" style="display:none;padding:13px;background:#eef6ff;border:1.5px solid #b9d4f2;border-radius:11px;margin-bottom:12px;">
+        <div id="kosher-mikveh-title" data-toc="💧 מקווה" data-en-toc="💧 Mikveh" style="font-size:0.88rem;font-weight:bold;margin-bottom:6px;"></div>
+        <div id="kosher-mikveh-text" style="font-size:0.82rem;color:#444;line-height:1.8;"></div>
       </div>
       <div style="padding:13px;background:#f0fff4;border:1.5px solid #a5d6a7;border-radius:11px;">
         <div id="kosher-tips-title" data-toc="💡 טיפים לשהייה כשרה" style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;" data-en-toc="💡 Tips for a kosher stay">💡 טיפים לשהייה כשרה</div>
@@ -6123,6 +6160,7 @@ var PANEL_LINKS = {
   lessons:  'lessonsModal',  skipass: 'skipassModal',
   parking:  'parkingModal',  maps:    'mapModal',
   around:   'aroundModal',   trip:    'hotelModal',
+  where:    'placeModal',
   'ski-areas': 'skiAreasModal',
   'ski-italy': 'skiItalyModal',
   why:      'whyModal',      about:   'aboutModal',
@@ -6932,6 +6970,8 @@ function openM(id) {
   // menu would, asking for nights and people.
   // the snow panel fills itself, however it was reached (a link, the bar)
   if (id === 'snowModal' && typeof _snowFill === 'function') _snowFill();
+  // the map and the photos fill themselves, from the button or from #where
+  if (id === 'placeModal' && typeof placeTab === 'function') setTimeout(function () { placeTab(PLACE.tab); }, 30);
   if (id === 'costModal' && typeof _costRender === 'function' && !COST.opening
       && !(document.getElementById('cost-rows') || {}).innerHTML) {
     COST.mode = 'free'; _costDefaults(); _costRecalc(); _costRender();
@@ -14934,6 +14974,137 @@ AI.del = async function (id) {
 // reply he wrote is kept with the message, so the site knows what was said.
 // Reading, marking and deleting need the policies in
 // supabase/sql/cl_contact_admin.sql (admins only).
+// ── Where it is, and what it looks like (24.11) ─────────────────────────────
+// A friend's remark: somebody who hears "Cervinia" for the first time does
+// not know where on the map it is, nor what it looks like. One panel: Italy
+// with the village on it and the road distances to the cities people fly to,
+// and photographs of the village and the slopes from Wikimedia Commons, each
+// with its author and licence (shown from Commons, nothing copied here).
+var PLACE = { map: null, tab: 'map' };
+PLACE.CERVINIA = [45.9336, 7.6300];
+// road distance and a winter-free driving time: hoppa, ultimate-ski,
+// percorsokm, skiresort.info, airconnect (OSRM) - rounded
+PLACE.CITIES = [
+  { ll: [45.7376, 7.3172], he: 'אאוסטה (Aosta)', en: 'Aosta', s_he: 'אאוסטה', s_en: 'Aosta', dir: 'left', km: 50, he_t: 'כשעה', en_t: 'about 1 h' },
+  { ll: [45.0703, 7.6869], he: 'טורינו (Torino) ושדה התעופה', en: 'Turin (Torino) and its airport', s_he: 'טורינו', s_en: 'Turin', dir: 'left', km: 120, he_t: 'כשעה ו-40 דק\'', en_t: 'about 1 h 40' },
+  { ll: [45.6301, 8.7231], he: 'נמל התעופה מלפנסה (Malpensa)', en: 'Milan Malpensa airport', s_he: '✈️ מלפנסה', s_en: '✈️ Malpensa', dir: 'top', km: 185, he_t: 'כשעתיים ורבע', en_t: 'about 2 h 15' },
+  { ll: [45.4642, 9.1900], he: 'מילאנו (Milano)', en: 'Milan (Milano)', s_he: 'מילאנו', s_en: 'Milan', dir: 'bottom', km: 187, he_t: 'כשעתיים ו-20 דק\'', en_t: 'about 2 h 20' },
+  { ll: [46.2044, 6.1432], he: 'ז\'נבה (Genève)', en: 'Geneva', s_he: 'ז\'נבה', s_en: 'Geneva', dir: 'top', km: 200, he_t: 'כ-3 שעות', en_t: 'about 3 h' },
+  { ll: [46.0207, 7.7491], he: 'צרמט (Zermatt)', en: 'Zermatt', s_he: 'צרמט', s_en: 'Zermatt', dir: 'right', ski: true }
+];
+PLACE.PHOTOS = [
+  ['Breuil-Cervinia, view to Matterhorn - panoramio.jpg', 'הכפר מול המטרהורן (Cervino)', 'The village below the Matterhorn (Cervino)', 'qwesy qwesy', 'CC BY 3.0'],
+  ['Breuil-Cervinia 2050 m - panoramio.jpg', 'צ\'רוויניה, 2,050 מ\'', 'Cervinia, 2,050 m', 'qwesy qwesy', 'CC BY 3.0'],
+  ['Breuil-Cervinia - panoramio (1).jpg', 'הכפר בחורף', 'The village in winter', 'qwesy qwesy', 'CC BY 3.0'],
+  ['Breuil-Cervinia - panoramio (3).jpg', 'בתי מלון בכפר', 'Hotels in the village', 'qwesy qwesy', 'CC BY 3.0'],
+  ['Breuil-Cervinia - panoramio.jpg', 'צ\'רוויניה בחורף', 'Cervinia in winter', 'qwesy qwesy', 'CC BY 3.0'],
+  ['Breuil-Cervinia - panoramio (4).jpg', 'צ\'רוויניה בחורף', 'Cervinia in winter', 'qwesy qwesy', 'CC BY 3.0'],
+  ['After one day of snowfall, Cervinia, Italy (27834665829).jpg', 'אחרי יום של שלג', 'After a day of snowfall', 'Cosmo F Kramer', 'CC BY 2.0'],
+  ['Matterhorn from ski area.jpg', 'המטרהורן ממסלולי צ\'רוויניה', 'The Matterhorn from the Cervinia slopes', 'Giustino', 'CC BY 2.0'],
+  ['Matterhorn-SouthSide-viewedFromSkiRegionBreuilCervinia.jpg', 'הצד הדרומי של המטרהורן, מאזור הסקי', 'The south face of the Matterhorn, from the ski area', 'Marcel Wiesweg', 'CC BY-SA 3.0'],
+  ['Matterhorn Glacier Paradise, Theodulglacier - panoramio.jpg', 'גלישה על קרחון Theodul, בין צ\'רוויניה לצרמט', 'Skiing the Theodul glacier, between Cervinia and Zermatt', 'qwesy qwesy', 'CC BY 3.0'],
+  ['Funivia Piccolo Cervino (3).JPG', 'הרכבל ל-Klein Matterhorn, בצד השווייצרי', 'The cable car to the Klein Matterhorn, Swiss side', 'SteGrifo27', 'CC BY 3.0'],
+  ['Matterhorn Express.JPG', 'הגונדולה Matterhorn Express בצרמט', 'The Matterhorn Express gondola, Zermatt', 'SteGrifo27', 'CC BY-SA 3.0'],
+  ['Matterhorn Cervino 4478 m from ski run from Gornergrat 3089 m to Riffelberg 2582 m - panoramio.jpg', 'מסלול בצד של צרמט (Gornergrat)', 'A run on the Zermatt side (Gornergrat)', 'qwesy qwesy', 'CC BY 3.0']
+];
+PLACE.src = function (f, w) {
+  return 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(f) + '?width=' + w;
+};
+PLACE.page = function (f) {
+  return 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(f.replace(/ /g, '_'));
+};
+function placeTab(t) {
+  PLACE.tab = t;
+  ['map', 'photos'].forEach(function (k) {
+    var b = document.getElementById('place-tab-' + k), p = document.getElementById('place-panel-' + k);
+    if (b) b.classList.toggle('active', k === t);
+    if (p) p.style.display = k === t ? 'block' : 'none';
+  });
+  if (t === 'map') placeMap(); else placePhotos();
+}
+function placeOpen() { openM('placeModal'); }
+function placeMap() {
+  var box = document.getElementById('place-map');
+  if (!box) return;
+  // the list under the map: the same numbers, readable without zooming
+  var ls = document.getElementById('place-list');
+  if (ls && !ls.innerHTML) {
+    ls.innerHTML = PLACE.CITIES.map(function (c) {
+      return '<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 2px;border-bottom:1px solid #eef1f5;">'
+        + '<span>' + L(c.he, c.en) + '</span><span style="color:#1a4b8c;white-space:nowrap;">'
+        + (c.ski ? L('⛷️ על המגלשיים, דרך Plateau Rosa', '⛷️ on skis, over Plateau Rosa')
+                 : '🚗 ' + L('כ-' + c.km + ' ק"מ · ' + c.he_t, 'about ' + c.km + ' km · ' + c.en_t))
+        + '</span></div>';
+    }).join('');
+  }
+  if (PLACE.map) { setTimeout(function () { PLACE.map.invalidateSize(); }, 60); return; }
+  _geoLib().then(function (lf) {
+    var m = PLACE.map = lf.map(box, { zoomControl: true, attributionControl: true, scrollWheelZoom: false, zoomSnap: 0.25 });
+    lf.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 12, attribution: '© OpenStreetMap'
+    }).addTo(m);
+    var dot = function (color, r) {
+      return { radius: r, color: '#fff', weight: 2, fillColor: color, fillOpacity: 1 };
+    };
+    PLACE.CITIES.forEach(function (c) {
+      // Zermatt is just over the ridge - on this scale it would sit on the
+      // village itself; it is in the list under the map
+      if (c.ski) return;
+      if (!c.ski) lf.polyline([PLACE.CERVINIA, c.ll], { color: '#1a73e8', weight: 2, dashArray: '5 6', opacity: 0.8 }).addTo(m);
+      lf.circleMarker(c.ll, dot(c.ski ? '#d93025' : '#1a73e8', 6)).addTo(m)
+        // short on the map, the whole line in the list under it
+        .bindTooltip('<b>' + L(c.s_he, c.s_en) + '</b> · ' + (c.ski ? L('⛷️ במגלשיים', '⛷️ on skis')
+          : L(c.km + ' ק"מ', c.km + ' km')),
+          { permanent: true, direction: c.dir, offset: c.dir === 'right' ? [6, 0] : c.dir === 'top' ? [0, -6] : [0, 6], className: 'place-tip' });
+    });
+    lf.circleMarker(PLACE.CERVINIA, dot('#e8710a', 9)).addTo(m)
+      .bindTooltip('<b style="font-size:0.95rem;">📍 ' + L('צ\'רוויניה', 'Cervinia') + '</b>',
+        { permanent: true, direction: 'top', offset: [0, -10], className: 'place-tip place-tip-main' });
+    placeZoom('region');
+  }).catch(function () {
+    box.innerHTML = '<div dir="' + L('rtl', 'ltr') + '" style="padding:30px;text-align:center;color:#888;">' + L('המפה לא נטענה — אין חיבור?', 'The map did not load - no connection?') + '</div>';
+  });
+}
+// all of Italy, to see where; the region, to read the distances
+function placeZoom(w) {
+  var m = PLACE.map, lf = window.Leaflet;
+  if (!m || !lf) return;
+  ['italy', 'region'].forEach(function (k) {
+    var b = document.getElementById('place-z-' + k);
+    if (!b) return;
+    b.style.background = k === w ? '#1a4b8c' : '#fff';
+    b.style.color = k === w ? '#fff' : '#1a4b8c';
+  });
+  if (w === 'italy') m.fitBounds([[36.4, 6.6], [47.4, 18.6]], { paddingTopLeft: [10, 40], paddingBottomRight: [10, 10] });
+  else m.fitBounds(lf.latLngBounds(PLACE.CITIES.map(function (c) { return c.ll; }).concat([PLACE.CERVINIA])),
+    { paddingTopLeft: [70, 40], paddingBottomRight: [70, 30] });
+  document.getElementById('place-map').classList.toggle('place-far', w === 'italy');
+}
+function placePhotos() {
+  var g = document.getElementById('place-gallery');
+  if (!g || g.innerHTML) return;
+  g.innerHTML = PLACE.PHOTOS.map(function (p, i) {
+    return '<figure style="margin:0;">'
+      + '<img src="' + PLACE.src(p[0], 640) + '" alt="' + escHtml(L(p[1], p[2])) + '" loading="lazy" onclick="placeBig(' + i + ')"'
+      + ' style="width:100%;height:150px;object-fit:cover;border-radius:10px;display:block;cursor:zoom-in;background:#e8eef5;">'
+      + '<figcaption style="font-size:0.76rem;color:#333;margin-top:4px;line-height:1.4;">' + escHtml(L(p[1], p[2]))
+      + '<br><a href="' + PLACE.page(p[0]) + '" target="_blank" rel="noopener" style="color:#8a97a8;font-size:0.68rem;text-decoration:none;" dir="ltr">'
+      + escHtml(p[3]) + ' · ' + p[4] + ' · Wikimedia Commons</a></figcaption></figure>';
+  }).join('');
+}
+// one photo over the whole screen; a tap anywhere closes it
+function placeBig(i) {
+  var p = PLACE.PHOTOS[i];
+  var o = document.createElement('div');
+  o.id = 'place-big';
+  o.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(5,12,24,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;cursor:zoom-out;';
+  o.innerHTML = '<img src="' + PLACE.src(p[0], 1600) + '" alt="" style="max-width:100%;max-height:82vh;border-radius:8px;">'
+    + '<div style="color:#fff;font-size:0.88rem;margin-top:10px;text-align:center;">' + escHtml(L(p[1], p[2]))
+    + '<div style="font-size:0.72rem;color:#9fb3c8;margin-top:3px;" dir="ltr">' + escHtml(p[3]) + ' · ' + p[4] + ' · Wikimedia Commons</div></div>';
+  o.onclick = function () { o.remove(); };
+  document.body.appendChild(o);
+}
+
 // ── Channel post (Yossi, 23.11): a ready text and picture for the WhatsApp
 // channel, from what the site already records - snow depth at the four
 // measuring points, runs and lifts open on the Cervinia side, now against N
@@ -21018,6 +21189,12 @@ function _applyTexts(t) {
       if (_gb) _gb.style.display = 'block';
     }
     _set('kosher-tips-title',        ko.cervinia_tips_title);
+    if (ko.mikveh_text) {
+      _set('kosher-mikveh-title', ko.mikveh_title);
+      _set('kosher-mikveh-text',  ko.mikveh_text);
+      var _mb = document.getElementById('kosher-mikveh-box');
+      if (_mb) _mb.style.display = 'block';
+    }
     _set('kosher-products-title',    ko.cervinia_products_title);
     if (ko.cervinia_products) {
       var prEl = document.getElementById('kosher-products-list');
@@ -25777,26 +25954,52 @@ async function _admRenderUsers() {
           <div data-en="&lt;div style=&quot;font-weight:bold;font-size:1.1rem;&quot;&gt;115 — Fire brigade&lt;/div&gt;&lt;div style=&quot;font-size:0.78rem;opacity:0.85;&quot;&gt;Vigili del Fuoco&lt;/div&gt;"><div style="font-weight:bold;font-size:1.1rem;">115 — כיבוי אש</div><div style="font-size:0.78rem;opacity:0.85;">Vigili del Fuoco</div></div>
         </a>
 
-        <a href="tel:+39016694016" style="padding:14px 16px;background:#2e7d32;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
+        <!-- 24.11: in the Aosta Valley mountain rescue answers on 112 (the
+             single number since 2017); the old "Cervinia" rescue number could
+             not be traced to any source, and the hospital button dialled one
+             number while showing another. Both from AUSL / the Region now. -->
+        <a href="tel:112" style="padding:14px 16px;background:#2e7d32;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
           <span style="font-size:1.8rem;">🏔️</span>
-          <div><div style="font-weight:bold;font-size:1.1rem;">Soccorso Alpino</div><div style="font-size:0.78rem;opacity:0.85;" data-en="Mountain rescue — Cervinia: +39 0166 94 016">חילוץ הרים — Cervinia: +39 0166 94 016</div></div>
+          <div data-en="&lt;div style=&quot;font-weight:bold;font-size:1.1rem;&quot;&gt;Mountain rescue — 112&lt;/div&gt;&lt;div style=&quot;font-size:0.78rem;opacity:0.85;&quot;&gt;In the Aosta Valley 112 also sends the Soccorso Alpino Valdostano&lt;/div&gt;"><div style="font-weight:bold;font-size:1.1rem;">חילוץ בהר — 112</div><div style="font-size:0.78rem;opacity:0.85;">בעמק אאוסטה (Aosta) ה-112 מפעיל גם את Soccorso Alpino Valdostano</div></div>
         </a>
 
-        <a href="tel:+390166941111" style="padding:14px 16px;background:#4a148c;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
+        <a href="tel:+3901655431" style="padding:14px 16px;background:#4a148c;color:white;border-radius:11px;text-decoration:none;display:flex;align-items:center;gap:12px;">
           <span style="font-size:1.8rem;">🏥</span>
-          <div><div style="font-weight:bold;font-size:1.1rem;" data-en="Hospital — Aosta">בית חולים — Aosta</div><div style="font-size:0.78rem;opacity:0.85;">Ospedale Regionale: +39 0165 543 111</div></div>
+          <div data-en="&lt;div style=&quot;font-weight:bold;font-size:1.1rem;&quot;&gt;Hospital — Aosta&lt;/div&gt;&lt;div style=&quot;font-size:0.78rem;opacity:0.85;&quot;&gt;Ospedale regionale Umberto Parini, Viale Ginevra 3 · &lt;span dir=&quot;ltr&quot;&gt;+39 0165 5431&lt;/span&gt;&lt;/div&gt;"><div style="font-weight:bold;font-size:1.1rem;">בית חולים — אאוסטה (Aosta)</div><div style="font-size:0.78rem;opacity:0.85;">Ospedale regionale Umberto Parini, Viale Ginevra 3 · <span dir="ltr">+39 0165 5431</span></div></div>
         </a>
 
       </div>
 
       <!-- Additional info -->
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="padding:11px 14px;background:#fff8e1;border:1px solid #ffe082;border-radius:9px;font-size:0.8rem;color:#555;line-height:1.7;" data-en="🏥 &lt;b&gt;First-aid post in the village:&lt;/b&gt;&lt;br&gt;
-          Ambulatorio Medico — on the main street of Breuil-Cervinia&lt;br&gt;
-          &lt;span style=&quot;font-size:0.73rem;color:#888;&quot;&gt;Open in season · check current hours&lt;/span&gt;">
-          🏥 <b>תחנת עזרה ראשונה בכפר:</b><br>
-          Ambulatorio Medico — ברחוב הראשי של Breuil-Cervinia<br>
-          <span style="font-size:0.73rem;color:#888;">פתוח בעונה · בדוק שעות עדכניות</span>
+<div id="park-medical" style="padding:11px 14px;background:#fff8e1;border:1px solid #ffe082;border-radius:9px;font-size:0.8rem;color:#555;line-height:1.7;" data-en="&lt;b style=&quot;font-size:0.88rem;&quot;&gt;🩺 Medical services in the village and the valley&lt;/b&gt;
+          &lt;div style=&quot;margin-top:6px;&quot;&gt;&lt;b&gt;⛑️ Centro Traumatologico — the Cervinia trauma centre&lt;/b&gt;&lt;br&gt;
+          By the lift station (Piazzale funivie). Winter season only, roughly early December to spring, 9:00–18:00. Orthopaedists, X-ray and casts — most ski injuries are treated here without going down to Aosta. Charged by the regional price list — insurance is worth having.&lt;br&gt;
+          📞 &lt;a href=&quot;tel:+393334852272&quot; style=&quot;color:#1a4b8c;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;+39 333 485 2272&lt;/a&gt;&lt;/div&gt;
+          &lt;div style=&quot;margin-top:8px;&quot;&gt;&lt;b&gt;💊 Lafarmacia — the Cervinia pharmacy&lt;/b&gt;&lt;br&gt;
+          Usually 8:30–12:30 and 15:30–19:30. Advice and minor first aid too.&lt;br&gt;
+          📞 &lt;a href=&quot;tel:+390166949059&quot; style=&quot;color:#1a4b8c;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;+39 0166 949 059&lt;/a&gt;&lt;/div&gt;
+          &lt;div style=&quot;margin-top:8px;&quot;&gt;&lt;b&gt;💊 Farmacia Varvello — Valtournenche&lt;/b&gt;&lt;br&gt;
+          Via Roma 11. The night duty rotates with Cervinia and Antey-Saint-André.&lt;br&gt;
+          📞 &lt;a href=&quot;tel:+39016692094&quot; style=&quot;color:#1a4b8c;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;+39 0166 92 094&lt;/a&gt;&lt;/div&gt;
+          &lt;div style=&quot;margin-top:8px;&quot;&gt;&lt;b&gt;🥾 Sport Center — ski boot fitting&lt;/b&gt;&lt;br&gt;
+          Piazza Guide Maquignaz 5. Bootfitting by the SIDAS method: a 3D scan of the foot, made-to-measure footbeds and liners, and work on the boot itself — for a boot that presses or hurts, or a foot that is hard to fit.
+          &lt;a href=&quot;https://www.sportcenter.it/index.php/en/boot-fitting-cervinia&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; style=&quot;color:#1a4b8c;&quot;&gt;Website ↗&lt;/a&gt;&lt;/div&gt;
+          &lt;div style=&quot;margin-top:6px;font-size:0.73rem;color:#888;&quot;&gt;Hours and dates change from season to season — call before you go.&lt;/div&gt;">
+          <b style="font-size:0.88rem;">🩺 שירותי רפואה בכפר ובעמק</b>
+          <div style="margin-top:6px;"><b>⛑️ Centro Traumatologico — מרכז הטראומה של צ'רוויניה</b><br>
+          ליד תחנת הרכבלים (Piazzale funivie). בעונת החורף בלבד, בערך מתחילת דצמבר עד האביב, בין 9:00 ל-18:00. אורתופדים, צילום וגבס — רוב הפציעות של הסקי מטופלות כאן בלי לרדת לאאוסטה. התשלום לפי המחירון האזורי — כדאי ביטוח.<br>
+          📞 <a href="tel:+393334852272" style="color:#1a4b8c;direction:ltr;unicode-bidi:embed;display:inline-block;">+39 333 485 2272</a></div>
+          <div style="margin-top:8px;"><b>💊 Lafarmacia — בית המרקחת של צ'רוויניה</b><br>
+          בדרך כלל בין 8:30 ל-12:30 ובין 15:30 ל-19:30. גם ייעוץ ועזרה ראשונה קלה.<br>
+          📞 <a href="tel:+390166949059" style="color:#1a4b8c;direction:ltr;unicode-bidi:embed;display:inline-block;">+39 0166 949 059</a></div>
+          <div style="margin-top:8px;"><b>💊 Farmacia Varvello — ולטורננש (Valtournenche)</b><br>
+          Via Roma 11. התורנות בלילה מתחלפת בינה לבין צ'רוויניה ו-Antey-Saint-André.<br>
+          📞 <a href="tel:+39016692094" style="color:#1a4b8c;direction:ltr;unicode-bidi:embed;display:inline-block;">+39 0166 92 094</a></div>
+          <div style="margin-top:8px;"><b>🥾 Sport Center — התאמת נעלי סקי</b><br>
+          Piazza Guide Maquignaz 5. Bootfitting לפי שיטת SIDAS: סריקה תלת־ממדית של כף הרגל, מדרסים ופנימיות לפי מידה, ועיבוד של הנעל עצמה — למי שהנעל לוחצת, כואבת, או לכף רגל שקשה להתאים לה נעל.
+          <a href="https://www.sportcenter.it/index.php/en/boot-fitting-cervinia" target="_blank" rel="noopener" style="color:#1a4b8c;">לאתר ↗</a></div>
+          <div style="margin-top:6px;font-size:0.73rem;color:#888;">שעות ותאריכים משתנים מעונה לעונה — כדאי להתקשר לפני שמגיעים.</div>
         </div>
 
         <div class="he-only" style="padding:11px 14px;background:#e8f4fd;border:1px solid #c0d8f0;border-radius:9px;font-size:0.8rem;color:#1a5276;line-height:1.7;">
