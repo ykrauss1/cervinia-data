@@ -1639,7 +1639,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.84';
+  var v='v18.85';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4821,6 +4821,15 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       <div id="place-list" style="font-size:0.82rem;"></div>
     </div>
     <div id="place-panel-photos" style="display:none;">
+      <!-- photos that skiers upload, shown once the admin approves (Yossi, 24.11) -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <div style="font-weight:bold;font-size:0.92rem;" data-en="📸 Skiers' photos">📸 תמונות של גולשים</div>
+        <button type="button" onclick="UP.form()" style="padding:7px 12px;border:none;border-radius:8px;background:#1a4b8c;color:#fff;font-size:0.8rem;font-weight:bold;cursor:pointer;font-family:inherit;" data-en="+ Add your photo">+ הוספת תמונה שלך</button>
+      </div>
+      <div id="up-form" style="display:none;background:#f3f7fc;border:1px solid #d9e4f2;border-radius:10px;padding:12px;margin-bottom:10px;"></div>
+      <div id="up-msg" style="display:none;margin-bottom:8px;padding:8px 10px;border-radius:8px;font-size:0.8rem;"></div>
+      <div id="up-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px;"></div>
+      <div style="font-weight:bold;font-size:0.92rem;margin:4px 0 8px;" data-en="🏔️ Around Cervinia">🏔️ מסביב לצ'רוויניה</div>
       <div id="place-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;"></div>
       <div style="font-size:0.72rem;color:#888;margin-top:10px;" data-en="The photos are from Wikimedia Commons, under the licence shown on each; a tap on the credit opens the source.">התמונות מ-Wikimedia Commons, ברישיון שמופיע ליד כל אחת; לחיצה על שם הצלם פותחת את המקור.</div>
     </div>
@@ -5403,6 +5412,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                     style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
                     📣 ערוץ
                 </button>
+                <button id="adtab-photos" onclick="switchAdminTab('photos')"
+                    style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:6px 6px 0 0;white-space:nowrap;">
+                    📷 תמונות<span id="adtab-photos-n"></span>
+                </button>
                 <button id="adtab-content" onclick="switchAdminTab('content')"
                     style="flex:1;padding:9px 4px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:0.75rem;font-weight:bold;cursor:pointer;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;">
                     📝 ניהול תוכן
@@ -5434,6 +5447,20 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
                 </div>
                 <div id="cm-msg" style="display:none;margin-bottom:8px;padding:8px 10px;border-radius:8px;font-size:0.78rem;"></div>
                 <div id="cm-list"></div>
+            </div>
+
+            <!-- ══ תמונות של גולשים לאישור ══ (24.11) -->
+            <div id="adtab-content-photos" style="display:none;">
+                <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+                    <select id="ap-filter" onchange="AP.load()" style="padding:6px 8px;border:1px solid #ddd;border-radius:8px;font-size:0.8rem;font-family:inherit;">
+                        <option value="new">ממתינות לאישור</option>
+                        <option value="approved">מאושרות</option>
+                        <option value="rejected">נדחו</option>
+                    </select>
+                    <button onclick="AP.load()" style="padding:6px 11px;border:1px solid #ddd;background:white;border-radius:8px;font-size:0.76rem;cursor:pointer;">↻ רענון</button>
+                </div>
+                <div id="ap-msg" style="display:none;margin-bottom:8px;padding:8px 10px;border-radius:8px;font-size:0.78rem;"></div>
+                <div id="ap-list"></div>
             </div>
 
             <!-- ══ הודעה לערוץ הוואטסאפ ══ (23.11) -->
@@ -15211,6 +15238,7 @@ function placeZoom(w) {
   document.getElementById('place-map').classList.toggle('place-far', w === 'italy');
 }
 function placePhotos() {
+  try { UP.load(); } catch (e) {}
   var g = document.getElementById('place-gallery');
   if (!g || g.innerHTML) return;
   g.innerHTML = PLACE.PHOTOS.map(function (p, i) {
@@ -15234,6 +15262,214 @@ function placeBig(i) {
   o.onclick = function () { o.remove(); };
   document.body.appendChild(o);
 }
+
+
+// ── Skiers' photos (Yossi, 24.11). A signed-in visitor sends a photo; the
+// site shrinks it to a JPEG of at most 1600 px and puts it in the private
+// bucket cl-photos under his own folder, with a row in cl_photos that waits.
+// Nobody else sees it until the admin approves it (control panel -> 📷).
+// Files are read through signed addresses, which storage makes only for an
+// approved photo (cl_photos.sql), so a waiting one cannot be fetched by guess.
+var UP = { BUCKET: 'cl-photos', loaded: false, urls: {} };
+UP.msg = function (t, ok) {
+  var m = document.getElementById('up-msg'); if (!m) return;
+  m.style.display = t ? 'block' : 'none';
+  m.style.background = ok ? '#e8f8ec' : '#ffecec';
+  m.style.color = ok ? '#157a37' : '#b00';
+  m.textContent = t || '';
+};
+UP.signed = async function (paths) {
+  var need = paths.filter(function (p) { return !UP.urls[p]; });
+  if (need.length) {
+    var r = await _sb.storage.from(UP.BUCKET).createSignedUrls(need, 3600);
+    (r.data || []).forEach(function (x) { if (x && x.signedUrl && x.path) UP.urls[x.path] = x.signedUrl; });
+  }
+  return paths.map(function (p) { return UP.urls[p] || ''; });
+};
+UP.load = async function (force) {
+  var g = document.getElementById('up-gallery');
+  if (!g || !_sb || (UP.loaded && !force)) return;
+  UP.loaded = true;
+  try {
+    var r = await _sb.rpc('cl_photos_public', { p_limit: 60 });
+    if (r.error) throw r.error;
+    var rows = r.data || [];
+    if (!rows.length) {
+      g.innerHTML = '<div style="grid-column:1/-1;font-size:0.8rem;color:#777;background:#f7f9fc;border-radius:8px;padding:10px;">'
+        + L('עוד אין תמונות של גולשים. אפשר להיות הראשון!', 'No skiers\' photos yet. You can be the first!') + '</div>';
+      return;
+    }
+    var urls = await UP.signed(rows.map(function (x) { return x.path; }));
+    UP.rows = rows;
+    g.innerHTML = rows.map(function (x, i) {
+      if (!urls[i]) return '';
+      var who = x.name ? escHtml(x.name) : '';
+      return '<figure style="margin:0;">'
+        + '<img src="' + urls[i] + '" alt="' + escHtml(x.caption || '') + '" loading="lazy" onclick="UP.big(' + i + ')"'
+        + ' style="width:100%;height:140px;object-fit:cover;border-radius:10px;display:block;cursor:zoom-in;background:#e8eef5;">'
+        + '<figcaption style="font-size:0.74rem;color:#333;margin-top:4px;line-height:1.4;">' + escHtml(x.caption || '')
+        + (who ? '<div style="color:#8a97a8;font-size:0.68rem;">📷 ' + who + '</div>' : '') + '</figcaption></figure>';
+    }).join('');
+  } catch (e) {
+    console.warn('photos', e);
+    g.innerHTML = '';
+    UP.loaded = false;
+  }
+};
+UP.big = function (i) {
+  var x = UP.rows && UP.rows[i]; if (!x || !UP.urls[x.path]) return;
+  var o = document.createElement('div');
+  o.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(5,12,24,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;cursor:zoom-out;';
+  o.innerHTML = '<img src="' + UP.urls[x.path] + '" alt="" style="max-width:100%;max-height:82vh;border-radius:8px;">'
+    + '<div style="color:#fff;font-size:0.88rem;margin-top:10px;text-align:center;">' + escHtml(x.caption || '')
+    + (x.name ? '<div style="font-size:0.72rem;color:#9fb3c8;margin-top:3px;">📷 ' + escHtml(x.name) + '</div>' : '') + '</div>';
+  o.onclick = function () { o.remove(); };
+  document.body.appendChild(o);
+};
+UP.form = function () {
+  var f = document.getElementById('up-form'); if (!f) return;
+  if (!user || !user.sbId) {
+    UP.msg(L('כדי להוסיף תמונה צריך להתחבר לאתר.', 'Sign in to the site to add a photo.'), false);
+    try { openM('authModal'); } catch (e) {}
+    return;
+  }
+  if (f.style.display === 'block') { f.style.display = 'none'; return; }
+  UP.msg('');
+  f.innerHTML = ''
+    + '<input id="up-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" style="font-size:0.82rem;max-width:100%;">'
+    + '<input id="up-cap" type="text" maxlength="140" placeholder="' + L('כמה מילים על התמונה (לא חובה)', 'A few words about the photo (optional)') + '"'
+    + ' style="display:block;width:100%;margin-top:8px;padding:8px 10px;border:1px solid #ccd6e3;border-radius:8px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">'
+    + '<label style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:0.8rem;"><input id="up-name" type="checkbox" checked> '
+    + L('להציג את שם המשתמש שלי ליד התמונה', 'Show my username beside the photo') + '</label>'
+    + '<label style="display:flex;gap:6px;align-items:flex-start;margin-top:6px;font-size:0.8rem;line-height:1.5;"><input id="up-ok" type="checkbox" style="margin-top:3px;"> '
+    + L('צילמתי את התמונה בעצמי, ואני מסכים שתוצג באתר. התמונה תופיע רק אחרי אישור.', 'I took this photo myself and agree to its being shown on the site. It appears only once approved.') + '</label>'
+    + '<button type="button" id="up-send" onclick="UP.send()" style="margin-top:10px;padding:8px 16px;border:none;border-radius:8px;background:#1a4b8c;color:#fff;font-weight:bold;cursor:pointer;font-family:inherit;">'
+    + L('שליחה לאישור', 'Send for approval') + '</button>';
+  f.style.display = 'block';
+};
+// shrink to at most 1600 px on the long side, as a JPEG
+UP.shrink = function (file) {
+  return new Promise(function (ok, bad) {
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function () {
+      var w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, 1600 / Math.max(w, h));
+      var c = document.createElement('canvas');
+      c.width = Math.round(w * k); c.height = Math.round(h * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(function (b) { b ? ok(b) : bad(new Error('jpeg')); }, 'image/jpeg', 0.85);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); bad(new Error('decode')); };
+    img.src = url;
+  });
+};
+UP.send = async function () {
+  var file = (document.getElementById('up-file') || {}).files;
+  file = file && file[0];
+  var cap = ((document.getElementById('up-cap') || {}).value || '').trim().slice(0, 140);
+  var show = !!(document.getElementById('up-name') || {}).checked;
+  if (!file) { UP.msg(L('בחר תמונה.', 'Choose a photo.'), false); return; }
+  if (!(document.getElementById('up-ok') || {}).checked) { UP.msg(L('צריך לאשר שהתמונה שלך ושמותר להציג אותה.', 'Please confirm the photo is yours and may be shown.'), false); return; }
+  if (file.size > 25 * 1024 * 1024) { UP.msg(L('הקובץ גדול מדי.', 'The file is too large.'), false); return; }
+  var btn = document.getElementById('up-send');
+  if (btn) { btn.disabled = true; btn.textContent = L('שולח…', 'Sending…'); }
+  try {
+    if (!(await requireAuth(L('להוסיף תמונה', 'add a photo')))) throw new Error('auth');
+    var blob;
+    try { blob = await UP.shrink(file); }
+    catch (e) { throw new Error(L('הדפדפן לא הצליח לפתוח את התמונה. נסה קובץ JPG.', 'The browser could not open the photo. Try a JPG.')); }
+    var rnd = '';
+    var a = new Uint8Array(12); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach(function (_, i) { a[i] = Math.random() * 256; });
+    a.forEach(function (v) { rnd += ('0' + v.toString(16)).slice(-2); });
+    var path = user.sbId + '/' + rnd + '.jpg';
+    var up = await _sb.storage.from(UP.BUCKET).upload(path, blob, { contentType: 'image/jpeg', upsert: false, cacheControl: '3600' });
+    if (up.error) throw new Error(L('שגיאת העלאה: ', 'Upload error: ') + up.error.message);
+    var ins = await _sb.from('cl_photos').insert({ path: path, caption: cap || null, show_name: show });
+    if (ins.error) {
+      try { await _sb.storage.from(UP.BUCKET).remove([path]); } catch (e) {}
+      throw new Error(/row-level|policy/i.test(ins.error.message)
+        ? L('יש כבר 10 תמונות שלך שממתינות לאישור. אפשר לשלוח עוד אחרי שיאושרו.', 'You already have 10 photos waiting. You can send more once they are reviewed.')
+        : ins.error.message);
+    }
+    document.getElementById('up-form').style.display = 'none';
+    UP.msg(L('תודה! התמונה נשלחה, ותופיע כאן אחרי אישור.', 'Thank you! The photo was sent and will appear here once approved.'), true);
+  } catch (e) {
+    if (e && e.message !== 'auth') UP.msg(e.message || String(e), false);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = L('שליחה לאישור', 'Send for approval'); }
+  }
+};
+
+// ── the admin's side: approve, reject, remove
+var AP = {};
+AP.msg = function (t, ok) {
+  var m = document.getElementById('ap-msg'); if (!m) return;
+  m.style.display = t ? 'block' : 'none';
+  m.style.background = ok ? '#e8f8ec' : '#ffecec';
+  m.style.color = ok ? '#157a37' : '#b00';
+  m.textContent = t || '';
+};
+AP.count = async function () {
+  if (!_sb || !isAdmin()) return;
+  try {
+    var r = await _sb.rpc('cl_photos_admin', { p_status: 'new' });
+    var n = (r.data || []).length, el = document.getElementById('adtab-photos-n');
+    if (el) el.textContent = n ? ' (' + n + ')' : '';
+  } catch (e) {}
+};
+AP.load = async function () {
+  var box = document.getElementById('ap-list'); if (!box || !_sb) return;
+  var st = (document.getElementById('ap-filter') || {}).value || 'new';
+  AP.msg('');
+  box.innerHTML = '<div style="color:#888;font-size:0.8rem;">טוען…</div>';
+  try {
+    var r = await _sb.rpc('cl_photos_admin', { p_status: st });
+    if (r.error) throw r.error;
+    var rows = AP.rows = r.data || [];
+    if (!rows.length) {
+      box.innerHTML = '<div style="color:#888;font-size:0.82rem;background:#fff;border:1px solid #eee;border-radius:8px;padding:12px;">'
+        + (st === 'new' ? 'אין תמונות שממתינות לאישור.' : 'אין תמונות בתצוגה הזאת.') + '</div>';
+      AP.count();
+      return;
+    }
+    var urls = await UP.signed(rows.map(function (x) { return x.path; }));
+    box.innerHTML = rows.map(function (x, i) {
+      var d = new Date(x.created_at);
+      return '<div style="background:#fff;border:1px solid #e6e6e6;border-radius:10px;padding:10px;margin-bottom:10px;">'
+        + (urls[i] ? '<img src="' + urls[i] + '" alt="" style="width:100%;max-height:340px;object-fit:contain;border-radius:8px;background:#f2f4f7;display:block;">' : '<div style="color:#b00;font-size:0.8rem;">הקובץ לא נמצא</div>')
+        + '<div style="font-size:0.82rem;margin-top:6px;">' + escHtml(x.caption || '(בלי כיתוב)') + '</div>'
+        + '<div style="font-size:0.72rem;color:#888;margin-top:2px;">' + escHtml(x.name || '?') + (x.show_name ? '' : ' · ביקש לא להציג את השם')
+        + ' · <span dir="ltr">' + d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) + '</span></div>'
+        + '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'
+        + (x.status !== 'approved' ? '<button onclick="AP.set(' + i + ',\'approved\')" style="padding:6px 12px;border:none;border-radius:7px;background:#157a37;color:#fff;font-size:0.78rem;font-weight:bold;cursor:pointer;">✓ אישור</button>' : '')
+        + (x.status !== 'rejected' ? '<button onclick="AP.set(' + i + ',\'rejected\')" style="padding:6px 12px;border:1px solid #d33;border-radius:7px;background:#fff;color:#b00;font-size:0.78rem;cursor:pointer;">' + (x.status === 'approved' ? 'הסרה מהאתר' : '✕ דחייה') + '</button>' : '')
+        + '<button onclick="AP.del(' + i + ')" style="padding:6px 12px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#666;font-size:0.78rem;cursor:pointer;">🗑 מחיקה</button>'
+        + '</div></div>';
+    }).join('');
+    AP.count();
+  } catch (e) {
+    box.innerHTML = '';
+    AP.msg('לא הצלחתי לטעון. אם עוד לא הורץ cl_photos.sql ב-Supabase, צריך להריץ אותו. (' + (e.message || e) + ')', false);
+  }
+};
+AP.set = async function (i, status) {
+  var x = AP.rows && AP.rows[i]; if (!x) return;
+  var r = await _sb.from('cl_photos').update({ status: status, reviewed_at: new Date().toISOString() }).eq('id', x.id);
+  if (r.error) { AP.msg(r.error.message, false); return; }
+  AP.msg(status === 'approved' ? 'התמונה אושרה ומופיעה באתר.' : 'התמונה לא תופיע באתר.', true);
+  UP.loaded = false;
+  AP.load();
+};
+AP.del = async function (i) {
+  var x = AP.rows && AP.rows[i]; if (!x) return;
+  if (!(await uiConfirm('למחוק את התמונה לגמרי? אי אפשר לבטל.', 'מחיקה', true))) return;
+  try { await _sb.storage.from(UP.BUCKET).remove([x.path]); } catch (e) {}
+  var r = await _sb.from('cl_photos').delete().eq('id', x.id);
+  if (r.error) { AP.msg(r.error.message, false); return; }
+  AP.msg('התמונה נמחקה.', true);
+  UP.loaded = false;
+  AP.load();
+};
 
 // ── Channel post (Yossi, 23.11): a ready text and picture for the WhatsApp
 // channel, from what the site already records - snow depth at the four
@@ -25252,7 +25488,8 @@ function switchAdminTab(tab) {
             if (typeof RC !== 'undefined') { try { RC.open(); } catch (e) { console.warn(e); } }
         }
         if (tab === 'msgs' && typeof CM !== 'undefined') { try { CM.load(); } catch (e) { console.warn(e); } }
-        ['stats','msgs','chan','content','users','system'].forEach(t => {
+        if (tab === 'photos' && typeof AP !== 'undefined') { try { AP.load(); } catch (e) { console.warn(e); } }
+        ['stats','msgs','photos','chan','content','users','system'].forEach(t => {
             const btn = document.getElementById('adtab-' + t);
             const panel = document.getElementById('adtab-content-' + t);
             if (!btn || !panel) return;
@@ -25275,6 +25512,7 @@ function switchAdminTab(tab) {
         populateAdminStats();
         openM('adminModal');
         try { CM.count(); } catch (e) {}
+        try { AP.count(); } catch (e) {}
     }
 
 // The users tab was a placeholder reading "full user management will need
