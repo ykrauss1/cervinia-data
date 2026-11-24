@@ -1661,7 +1661,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.88';
+  var v='v18.89';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4218,12 +4218,26 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
             למטה יש ארונות מחוממים — €8 ליום לארון שמכיל את הציוד של שני מבוגרים.
             <div style="font-size:0.74rem;color:#777;margin-top:4px;">🕐 08:00–19:00 ברצף, לפי האתר שלהם.</div>
           </div>
-          <!-- The 20% coupon for Ski 2.0 was for the 2025/26 season and has
-           expired. The card, the modal and the image came out together
-           rather than being left to show a coupon nobody can use; the
-           picture alone was 149 KB of the page. If the shop issues a new
-           one, it goes back here - a thumbnail that opens a full-size
-           modal with a download link. -->
+          <!-- The 20% coupon for Ski 2.0, season 2026/27 (the Dereh Haski
+           "Cervinia for skiers 2027" coupon, sent by the site owner on
+           25/11/2026). The picture is a file, not base64, and loads only when
+           the rental panel is shown. When the season ends, remove this box
+           and img/coupon-ski20-2027.jpg together. -->
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid #3dbfa0;border-radius:10px;margin-bottom:10px;background:#f0fffc;">
+            <img src="img/coupon-ski20-2027.jpg" loading="lazy" width="72" height="102" alt="קופון הנחה 20% ל-Ski 2.0" data-en-alt="20% discount coupon for Ski 2.0"
+              onclick="openImg(this.src)" title="לחץ להגדלה" data-en-title="Tap to enlarge"
+              style="width:72px;height:auto;border-radius:7px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:bold;font-size:0.88rem;color:#2a9d8f;margin-bottom:3px;" data-en="🎟️ 20% discount coupon">🎟️ קופון הנחה 20%</div>
+              <div style="font-size:0.75rem;color:#555;margin-bottom:8px;" data-en="On ski and snowboard rental, clothing and lockers. From Dereh Haski, for the 2026/27 season. Show it at the shop.">על השכרת ציוד סקי וסנובורד, על הביגוד ועל הלוקרים. של דרך הסקי (Dereh Haski), לעונת 2026/27. מציגים אותו בחנות.</div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;">
+                <button type="button" onclick="openImg('img/coupon-ski20-2027.jpg')"
+                  style="padding:6px 12px;border:1.5px solid #3dbfa0;background:white;color:#2a9d8f;border-radius:7px;font-size:0.78rem;font-weight:bold;cursor:pointer;" data-en="🔍 Enlarge">🔍 הגדל</button>
+                <a href="img/coupon-ski20-2027.jpg" download="Ski2.0-coupon-20.jpg"
+                  style="padding:6px 12px;background:#3dbfa0;color:white;border-radius:7px;font-size:0.78rem;font-weight:bold;text-decoration:none;" data-en="📥 Download">📥 הורד</a>
+              </div>
+            </div>
+          </div>
                     <div style="display:flex;gap:8px;">
             <a href="https://nolski.it/20skirental" target="_blank"
               style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🌐 Website">🌐 אתר</a>
@@ -11324,7 +11338,29 @@ async function submitReply(targetId, postId) {
   const currentQuery = document.getElementById('search-input')?.value || '';
   renderPosts(currentQuery);
 }
-function openImg(src) { window.open(src, '_blank'); }
+// A picture opens over the page, not in a new tab: in the Android app a new
+// tab is a browser window the reader then has to find his way back from.
+function openImg(src) {
+  var old = document.getElementById('img-view'); if (old) old.remove();
+  var w = document.createElement('div');
+  w.id = 'img-view';
+  w.setAttribute('role', 'dialog');
+  w.setAttribute('aria-modal', 'true');
+  w.style.cssText = 'position:fixed;inset:0;z-index:100001;background:rgba(8,14,24,0.88);display:flex;align-items:center;justify-content:center;padding:14px;cursor:zoom-out;';
+  var im = document.createElement('img');
+  im.src = src; im.alt = '';
+  im.style.cssText = 'max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,0.5);';
+  var x = document.createElement('button');
+  x.type = 'button'; x.textContent = '✕';
+  x.setAttribute('aria-label', L('סגירה', 'Close'));
+  x.style.cssText = 'position:absolute;top:12px;inset-inline-end:12px;width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,0.92);font-size:1.1rem;cursor:pointer;';
+  w.appendChild(im); w.appendChild(x);
+  function close() { w.remove(); document.removeEventListener('keydown', onKey); }
+  function onKey(e) { if (e.key === 'Escape') close(); }
+  w.addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(w);
+}
 
 // תמונה שלא נטענה — נסיון נוסף אחד (ה-CDN של האחסון איטי מיד אחרי העלאה),
 // ורק אם גם הוא נכשל — מעבר לקישור
