@@ -759,6 +759,28 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 .filter-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border:1px solid #ddd; border-radius:20px; font-size:0.78rem; cursor:pointer; background:white; color:#444; }
 .filter-chip:has(input:checked) { background:#e8f4fd; border-color:var(--accent); color:var(--accent); font-weight:bold; }
 .filter-chip input { display:none; }
+.tagpick-row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:7px; }
+.tagpick-hint { font-size:0.78rem; color:#778; }
+.tagpick { padding:4px 10px; border:1px solid #d5dbe5; border-radius:16px; background:#fff; color:#556; font-size:0.78rem; cursor:pointer; font-family:inherit; }
+.tagpick.on { background:#e8f4fd; border-color:var(--accent); color:#1a6f8e; font-weight:bold; }
+.post-tags { display:flex; flex-wrap:wrap; gap:5px; margin:0 0 6px; }
+.post-tag { padding:2px 9px; border:1px solid #d0e6f2; border-radius:12px; background:#f2f9fd; color:#2a7090; font-size:0.74rem; cursor:pointer; font-family:inherit; }
+.post-tag:hover { border-color:var(--accent); }
+.tagadm-btn { border-style:dashed !important; font-family:inherit; }
+.tagadm { border:1px solid #d5dbe5; border-radius:10px; background:#f8fafc; padding:10px; margin-top:8px; display:flex; flex-direction:column; gap:6px; }
+.tagadm-head { font-size:0.78rem; color:#667; line-height:1.5; }
+.tagadm-row { display:grid; grid-template-columns:3.2em 1fr 1fr auto auto; gap:5px; align-items:center; padding-bottom:6px; border-bottom:1px solid #e6eaf0; }
+.tagadm-row.off { opacity:0.55; }
+.tagadm-row input:not([type=checkbox]) { padding:4px 6px; border:1px solid #ccd; border-radius:6px; font-size:0.8rem; font-family:inherit; min-width:0; }
+.tagadm-row .ta-ico { text-align:center; }
+.tagadm-row .ta-kw { grid-column:1 / span 3; }
+.tagadm-row .ta-act { grid-column:4 / span 2; }
+.tagadm-row .ta-act { font-size:0.76rem; color:#556; white-space:nowrap; }
+.tagadm-row button, .tagadm-foot button { padding:3px 8px; border:1px solid #ccd; background:#fff; border-radius:6px; cursor:pointer; font-size:0.78rem; font-family:inherit; }
+.tagadm-row button:disabled { opacity:0.3; cursor:default; }
+.tagadm-foot { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:4px; }
+.tagadm-foot #tagadm-msg { margin-inline-start:auto; font-size:0.8rem; }
+.tagadm-foot .ta-save { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:bold; }
 .ttab-btn { flex:1; padding:8px 4px; border:1.5px solid #ddd; border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:bold; background:#f5f5f5; color:#555; transition:all 0.15s; }
         .ttab-active { background:var(--accent) !important; color:var(--dark) !important; border-color:var(--accent) !important; }
         .ttab-btn.ttab-done::after { content:' ✓'; color:#1e8449; }
@@ -1639,7 +1661,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.86';
+  var v='v18.87';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2055,9 +2077,9 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <!-- Forum panel -->
     <div id="forum-panel">
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px;">
       <div style="font-size:0.88rem;color:#888;" data-en="Conversations, updates and tips from the mountain">שיחות, עדכונים ועצות מהשטח</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="filter-area"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="filter-area"></div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
       <div id="search-input" contenteditable="true" role="searchbox" spellcheck="false"
@@ -2080,7 +2102,8 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <div id="post-btn-area"></div>
     </div>
     <div id="new-post-area" style="margin-bottom:15px;display:none;">
-      <textarea id="new-post-text" dir="auto" placeholder="שאל שאלה, שתף עדכון או טיפ מהשטח..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;resize:vertical;font-family:inherit;" data-en-placeholder="Ask a question, share an update or a tip from the mountain..."></textarea>
+      <textarea id="new-post-text" oninput="suggestTags('new-post-tags', this.value)" dir="auto" placeholder="שאל שאלה, שתף עדכון או טיפ מהשטח..." rows="3" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:0.9rem;resize:vertical;font-family:inherit;" data-en-placeholder="Ask a question, share an update or a tip from the mountain..."></textarea>
+      <div id="new-post-tags" class="tagpick-row"></div>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
         <label style="cursor:pointer;font-size:0.82rem;color:#666;padding:5px 10px;border:1px solid #ccc;border-radius:6px;"><span data-en="📎 File">📎 קובץ</span><input type="file" id="new-post-file" style="display:none;" accept=".jpg,.jpeg,.jfif,.png,.gif,.webp,.heic,.heif,.bmp,.avif,.pdf" onchange="showPickedFile('new-post-file','new-post-file-name')"></label>
         <span id="new-post-file-name" style="font-size:0.78rem;color:#888;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -24841,22 +24864,240 @@ async function xlateHere(el) {
   }
 }
 
-function renderFilterChips() {
+// ── Forum tags ──
+// The writer picks up to three topics when he posts; readers filter by them.
+// Posts from before tags existed have none, so for those the filter still
+// falls back to the old keyword search. The ids must match the list allowed
+// in supabase/sql/cl_forum_tags.sql. The admin manages the list there
+// (table cl_forum_tags); this one is only the fallback until it loads.
+let FORUM_TAGS = [
+  { id: 'runs',      ico: '⛷️', he: 'מסלולים',        en: 'Runs',             kw: 'מסלול|run|slope|piste' },
+  { id: 'zermatt',   ico: 'ch', he: 'צרמט',           en: 'Zermatt',          kw: 'צרמט|zermatt' },
+  { id: 'snow',      ico: '❄️', he: 'שלג ומזג אוויר', en: 'Snow & weather',   kw: 'שלג|snow' },
+  { id: 'transfers', ico: '🚌', he: 'הסעות',          en: 'Transfers',        kw: 'הסע|transfer|shuttle|bus' },
+  { id: 'lodging',   ico: '🏨', he: 'לינה',           en: 'Lodging',          kw: 'לינה|מלון|דירה|hotel|apartment|lodg' },
+  { id: 'kosher',    ico: '☕', he: 'כשרות ושבת',     en: 'Kosher & Shabbat', kw: 'כשר|שבת|kosher|shabbat' },
+  { id: 'family',    ico: '👨‍👩‍👧', he: 'משפחות',  en: 'Families',         kw: 'ילד|משפח|kids|child|famil' },
+  { id: 'gear',      ico: '🎿', he: 'ציוד והשכרה',    en: 'Gear & rental',    kw: 'השכר|ציוד|rental|equipment|skis' },
+];
+const FORUM_TAG_MAX = 3;
+function _tagDef(id) { return FORUM_TAGS.find(function (t) { return t.id === id; }); }
+function _tagsOffered() { return FORUM_TAGS.filter(function (t) { return t.active !== false; }); }
+async function _loadForumTags() {
+  try {
+    const rows = await sbFetch('cl_forum_tags?select=id,ico,he,en,kw,sort,active&order=sort.asc,id.asc');
+    if (!Array.isArray(rows) || !rows.length) return;
+    const was = JSON.stringify(FORUM_TAGS);
+    FORUM_TAGS = rows.map(function (r) {
+      return { id: r.id, ico: r.ico || '', he: r.he, en: r.en, kw: r.kw || '', sort: r.sort, active: r.active !== false };
+    });
+    if (JSON.stringify(FORUM_TAGS) !== was) {
+      const keep = pickedTags('new-post-tags');
+      const filt = Array.from(document.querySelectorAll('.filter-chip input:checked')).map(function (el) { return el.value; });
+      _renderTagChips();
+      renderTagPicker('new-post-tags', keep);
+      document.querySelectorAll('.filter-chip input').forEach(function (el) { el.checked = filt.indexOf(el.value) !== -1; });
+    }
+  } catch (e) { console.warn('forum tags:', e.message); }
+}
+function _tagLabel(t) {
+  const ico = t.ico === 'ch' ? '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg>' : t.ico;
+  return ico + ' ' + escHtml(L(t.he, t.en));
+}
+function _tagKwMatch(t, text) {
+  const c = String(text || '').toLowerCase();
+  return String(t.kw || '').split('|').some(function (w) { return w && c.indexOf(w) !== -1; });
+}
+// The picker under a text box: chips that toggle, up to three.
+function renderTagPicker(boxId, selected) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  const sel = (selected || []).filter(_tagDef);
+  box.innerHTML = '<span class="tagpick-hint">' + escHtml(L('נושא (עד 3):', 'Topic (up to 3):')) + '</span>'
+    + _tagsOffered().map(function (t) {
+      const on = sel.indexOf(t.id) !== -1;
+      return '<button type="button" class="tagpick' + (on ? ' on' : '') + '" data-tag="' + t.id + '"'
+        + ' aria-pressed="' + on + '" onclick="toggleTagPick(this)">' + _tagLabel(t) + '</button>';
+    }).join('');
+}
+function toggleTagPick(btn) {
+  const box = btn.parentNode;
+  box.dataset.touched = '1';                 // from now on the writer decides, not the keywords
+  const on = !btn.classList.contains('on');
+  if (on && box.querySelectorAll('.tagpick.on').length >= FORUM_TAG_MAX) {
+    forumMsg(L('אפשר לבחור עד 3 נושאים.', 'You can pick up to 3 topics.'), true);
+    return;
+  }
+  btn.classList.toggle('on', on);
+  btn.setAttribute('aria-pressed', String(on));
+}
+function pickedTags(boxId) {
+  const box = document.getElementById(boxId);
+  if (!box) return [];
+  return Array.from(box.querySelectorAll('.tagpick.on')).map(function (b) { return b.dataset.tag; });
+}
+// While he types, suggest the topics his words point to - until he touches a chip himself.
+function suggestTags(boxId, text) {
+  const box = document.getElementById(boxId);
+  if (!box || box.dataset.touched) return;
+  const want = _tagsOffered().filter(function (t) { return _tagKwMatch(t, text); })
+    .slice(0, 2).map(function (t) { return t.id; });
+  box.querySelectorAll('.tagpick').forEach(function (b) {
+    const on = want.indexOf(b.dataset.tag) !== -1;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+}
+// A tag on a post filters the forum by that topic.
+function forumFilterTag(id) {
+  document.querySelectorAll('.filter-chip input').forEach(function (el) { el.checked = el.value === id; });
+  filterPosts();
+  const fr = document.getElementById('posts-frame');
+  if (fr) fr.scrollTop = 0;
+  const fa = document.getElementById('filter-area');
+  if (fa && fa.scrollIntoView) { try { fa.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+}
+function _postMatchesTag(p, id) {
+  const tags = p.tags || [];
+  if (tags.length) return tags.indexOf(id) !== -1;
+  const t = _tagDef(id);
+  return !!t && _tagKwMatch(t, p.content);
+}
+function _postTagsHtml(p) {
+  const tags = (p.tags || []).map(_tagDef).filter(Boolean);
+  if (!tags.length) return '';
+  return '<div class="post-tags">' + tags.map(function (t) {
+    return '<button type="button" class="post-tag" onclick="forumFilterTag(\'' + t.id + '\')" title="'
+      + escHtml(L('הצג את כל ההודעות בנושא הזה', 'Show every post on this topic')) + '">' + _tagLabel(t) + '</button>';
+  }).join('') + '</div>';
+}
+
+function _renderTagChips() {
   const area = document.getElementById('filter-area');
   if (!area) return;
-  // Tags to filter posts by topic
-  const filters = [
-    { label: L('⛷️ מסלולים', '⛷️ Runs'), val: 'מסלול|run|slope|piste' },
-    { label: "<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> " + L("צרמט", 'Zermatt'), val: "צרמט|zermatt" },
-    { label: L('❄️ שלג', '❄️ Snow'), val: 'שלג|snow' },
-    { label: L('🚌 הסעות', '🚌 Transfers'), val: 'הסע|transfer|shuttle|bus' },
-    { label: L('🏨 לינה', '🏨 Lodging'), val: 'לינ|hotel|apartment|lodg|stay' },
-  ];
-  area.innerHTML = filters.map(f =>
-    '<label class="filter-chip" title="' + L('סנן פוסטים לפי ', 'Filter posts by ') + f.label.replace(/<[^>]*>/g, '').trim() + '">'
-    + '<input type="checkbox" value="' + f.val + '" onchange="filterPosts()"> '
-    + f.label + '</label>'
-  ).join('');
+  const filt = Array.from(area.querySelectorAll('.filter-chip input:checked')).map(function (el) { return el.value; });
+  area.innerHTML = _tagsOffered().map(function (t) {
+    return '<label class="filter-chip" title="' + escHtml(L('סנן לפי הנושא ', 'Filter by topic ') + L(t.he, t.en)) + '">'
+      + '<input type="checkbox" value="' + t.id + '" onchange="filterPosts()"> '
+      + _tagLabel(t) + '</label>';
+  }).join('')
+  + (isAdmin() ? '<button type="button" class="filter-chip tagadm-btn" onclick="TAGADM.toggle()">⚙️ ' + escHtml(L('ניהול תגיות', 'Manage tags')) + '</button>' : '');
+  area.querySelectorAll('.filter-chip input').forEach(function (el) { el.checked = filt.indexOf(el.value) !== -1; });
+  if (!isAdmin()) { const ed = document.getElementById('tagadm'); if (ed) ed.remove(); }
+}
+
+// ── The admin's tag list editor ──
+// Add, rename, reorder and hide tags. Nothing is deleted: a hidden tag is no
+// longer offered, but the posts that carry it keep showing it.
+const TAGADM = {
+  rows: [],
+  toggle: function () {
+    let box = document.getElementById('tagadm');
+    if (box) { box.remove(); return; }
+    if (!isAdmin()) return;
+    box = document.createElement('div');
+    box.id = 'tagadm';
+    box.className = 'tagadm';
+    const row = document.getElementById('filter-area').parentNode;
+    row.parentNode.insertBefore(box, row.nextSibling);
+    TAGADM.rows = FORUM_TAGS.map(function (t) { return Object.assign({}, t); });
+    TAGADM.paint();
+  },
+  paint: function () {
+    const box = document.getElementById('tagadm');
+    if (!box) return;
+    const n = TAGADM.rows.length;
+    box.innerHTML = '<div class="tagadm-head">' + escHtml(L(
+        'התגיות שהכותבים בוחרים מהן. סמל: אמוג\'י אחד (ch = דגל שווייץ). מילות מפתח מופרדות ב-| ומשמשות להצעה אוטומטית ולסינון הודעות ישנות.',
+        'The tags writers choose from. Icon: one emoji (ch = Swiss flag). Keywords are |-separated; they suggest tags and filter old posts.')) + '</div>'
+      + TAGADM.rows.map(function (t, i) {
+        return '<div class="tagadm-row' + (t.active === false ? ' off' : '') + '" data-i="' + i + '">'
+          + '<input class="ta-ico" value="' + escHtml(t.ico || '') + '" maxlength="16" title="' + escHtml(L('סמל', 'Icon')) + '">'
+          + '<input class="ta-he" dir="rtl" value="' + escHtml(t.he || '') + '" maxlength="30" placeholder="עברית">'
+          + '<input class="ta-en" dir="ltr" value="' + escHtml(t.en || '') + '" maxlength="30" placeholder="English">'
+          + '<button type="button" onclick="TAGADM.move(' + i + ',-1)"' + (i ? '' : ' disabled') + ' title="' + escHtml(L('למעלה', 'Up')) + '">▲</button>'
+          + '<button type="button" onclick="TAGADM.move(' + i + ',1)"' + (i < n - 1 ? '' : ' disabled') + ' title="' + escHtml(L('למטה', 'Down')) + '">▼</button>'
+          + '<input class="ta-kw" dir="auto" value="' + escHtml(t.kw || '') + '" maxlength="200" placeholder="' + escHtml(L('מילות מפתח', 'Keywords')) + '">'
+          + '<label class="ta-act"><input type="checkbox"' + (t.active === false ? '' : ' checked') + '> ' + escHtml(L('מוצגת', 'Shown')) + '</label>'
+          + '</div>';
+      }).join('')
+      + '<div class="tagadm-foot">'
+      + '<button type="button" onclick="TAGADM.add()">＋ ' + escHtml(L('תגית חדשה', 'New tag')) + '</button>'
+      + '<span id="tagadm-msg"></span>'
+      + '<button type="button" onclick="TAGADM.toggle()">' + escHtml(L('סגירה', 'Close')) + '</button>'
+      + '<button type="button" class="ta-save" onclick="TAGADM.save()">' + escHtml(L('שמירה', 'Save')) + '</button>'
+      + '</div>';
+  },
+  read: function () {
+    document.querySelectorAll('#tagadm .tagadm-row').forEach(function (r) {
+      const t = TAGADM.rows[+r.dataset.i];
+      t.ico = r.querySelector('.ta-ico').value.trim();
+      t.he = r.querySelector('.ta-he').value.trim();
+      t.en = r.querySelector('.ta-en').value.trim();
+      t.kw = r.querySelector('.ta-kw').value.trim().replace(/\s*\|\s*/g, '|').toLowerCase();
+      t.active = r.querySelector('.ta-act input').checked;
+    });
+  },
+  move: function (i, d) {
+    TAGADM.read();
+    const j = i + d, r = TAGADM.rows;
+    if (j < 0 || j >= r.length) return;
+    const x = r[i]; r[i] = r[j]; r[j] = x;
+    TAGADM.paint();
+  },
+  add: function () {
+    TAGADM.read();
+    TAGADM.rows.push({ id: '', ico: '🏷️', he: '', en: '', kw: '', active: true, _new: true });
+    TAGADM.paint();
+    const last = document.querySelector('#tagadm .tagadm-row:last-of-type .ta-he');
+    if (last) last.focus();
+  },
+  say: function (t, bad) {
+    const m = document.getElementById('tagadm-msg');
+    if (m) { m.textContent = t; m.style.color = bad ? '#c0392b' : '#1d7a63'; }
+  },
+  // a new tag's id comes from its English name: 'Ski school' -> 'ski-school'
+  slug: function (t) {
+    let b = String(t.en || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 20);
+    if (b.length < 2) b = 'tag';
+    let id = b, k = 2;
+    while (TAGADM.rows.some(function (o) { return o !== t && o.id === id; })) id = b + '-' + (k++);
+    return id;
+  },
+  save: async function () {
+    TAGADM.read();
+    for (const t of TAGADM.rows) {
+      if (!t.he || !t.en) { TAGADM.say(L('לכל תגית צריך שם בעברית ובאנגלית.', 'Every tag needs a Hebrew and an English name.'), true); return; }
+    }
+    TAGADM.rows.forEach(function (t, i) { if (!t.id) t.id = TAGADM.slug(t); t.sort = (i + 1) * 10; });
+    const body = TAGADM.rows.map(function (t) {
+      return { id: t.id, ico: t.ico, he: t.he, en: t.en, kw: t.kw, sort: t.sort, active: t.active !== false, updated_at: new Date().toISOString() };
+    });
+    TAGADM.say(L('שומר…', 'Saving…'));
+    const token = await requireAuth(L('לשמור את התגיות', 'save the tags'));
+    if (!token) { TAGADM.say(''); return; }
+    const res = await fetch(SUPABASE_URL + '/rest/v1/cl_forum_tags?on_conflict=id', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json',
+                 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      TAGADM.say(L('השמירה נכשלה. האם הורץ הקובץ cl_forum_tags.sql?', 'Saving failed. Was cl_forum_tags.sql run?'), true);
+      return;
+    }
+    TAGADM.rows.forEach(function (t) { delete t._new; });
+    await _loadForumTags();
+    _renderTagChips();
+    filterPosts();
+    TAGADM.say(L('נשמר ✓', 'Saved ✓'));
+  }
+};
+
+function renderFilterChips() {
+  _renderTagChips();
+  renderTagPicker('new-post-tags', []);
+  _loadForumTags();
   const si = document.getElementById('search-input');
   if (si) {
     _asTextBox(si);                 // the box is a div now; this gives it .value
@@ -24870,6 +25111,9 @@ function renderFilterChips() {
 }
 
 function renderPostBtn() {
+  // signing in or out changes whether the admin's tag button belongs in the row
+  const fa = document.getElementById('filter-area');
+  if (fa && !!fa.querySelector('.tagadm-btn') !== !!isAdmin()) _renderTagChips();
   const area = document.getElementById('post-btn-area');
   if (!area) return;
   if (user) {
@@ -25015,7 +25259,7 @@ async function sbInsert(table, body) {
   let res = await fetch(url, { method: 'POST', headers: h, body: JSON.stringify(body) });
   if (res.ok) return res;
   const txt = await res.text().catch(function(){ return ''; });
-  const optional = ['user_id', 'file_url'];
+  const optional = ['user_id', 'file_url', 'tags'];
   const drop = optional.filter(function(k){ return (k in body) && txt.indexOf(k) !== -1; });
   if (drop.length) {
     console.warn('sbInsert: עמודות חסרות בבסיס הנתונים:', drop.join(', '));
@@ -25114,6 +25358,7 @@ async function loadPostsFromSupabase() {
       user: p.user,
       user_id: p.user_id || null,
       content: p.content,
+      tags: Array.isArray(p.tags) ? p.tags : [],
       timestamp: new Date(p.created_at).getTime(),
       file: fileMeta(p.file_url),
       reactions: {}, _userReacts: {},
@@ -25143,6 +25388,8 @@ async function loadPostsFromSupabase() {
 function clearNewPost() {
   const ta = document.getElementById('new-post-text'); if (ta) ta.value = '';
   clearAttachment('new-post-file', 'new-post-file-name');
+  const tb = document.getElementById('new-post-tags'); if (tb) delete tb.dataset.touched;
+  renderTagPicker('new-post-tags', []);
   const ar = document.getElementById('new-post-area');  if (ar) ar.style.display = 'none';
   forumMsg('');
 }
@@ -25166,9 +25413,10 @@ async function submitPost() {
       let fileUrl = null;
       if (file) { setBusy(true, L('מעלה קובץ…', 'Uploading file…')); fileUrl = await uploadForumFile(file); }
       setBusy(true, L('שולח…', 'Sending…'));
-      const res = await sbInsert('posts', {
-        user: user.name, user_id: user.sbId || null, content: txt, file_url: fileUrl
-      });
+      const row = { user: user.name, user_id: user.sbId || null, content: txt, file_url: fileUrl };
+      const tags = pickedTags('new-post-tags');
+      if (tags.length) row.tags = tags;
+      const res = await sbInsert('posts', row);
       if (res.sessionExpired) return;
       if (!res.ok) {
         forumMsg(L('לא הצלחנו לשמור את הפוסט. נסה להתנתק ולהתחבר מחדש.', 'We couldn\'t save the post. Try signing out and in again.'), true);
@@ -25181,7 +25429,7 @@ async function submitPost() {
       return;
     }
     // מצב מקומי בלבד (ללא Supabase)
-    allPosts.unshift({ id: Date.now(), user: user.name, content: txt, timestamp: Date.now(), replies: [], reactions: {} });
+    allPosts.unshift({ id: Date.now(), user: user.name, content: txt, tags: pickedTags('new-post-tags'), timestamp: Date.now(), replies: [], reactions: {} });
     clearNewPost();
     renderPosts('');
   } catch (e) {
@@ -25473,7 +25721,13 @@ function editPost(id) {
     + L('<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">ביטול</button>', '<button onclick="removeEditArea(this)" style="padding:4px 14px;background:#eee;border:none;border-radius:6px;cursor:pointer;">Cancel</button>')
     + '<button onclick="saveEditPost(\'' + id + L('\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">שמור</button>', '\')" style="padding:4px 14px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">Save</button>')
     + '</div>';
+  const tb = document.createElement('div');
+  tb.id = 'edit-tags-' + safeId(id);
+  tb.className = 'tagpick-row';
+  tb.dataset.touched = '1';
+  div.insertBefore(tb, div.children[1] || null);
   insertAboveReplies(postEl, div);
+  renderTagPicker(tb.id, p.tags || []);
   focusAtEnd(div.querySelector('textarea'));
 }
 async function saveEditPost(id) {
@@ -25483,17 +25737,24 @@ async function saveEditPost(id) {
   if (SUPABASE_URL && SUPABASE_KEY) {
     const token = await requireAuth(L('לערוך פוסט', 'edit a post'));
     if (!token) return;
-    const res = await fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
-      method: 'PATCH',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ content: txt })
-    });
+    const tags = pickedTags('edit-tags-' + safeId(id));
+    const patch = function (body) {
+      return fetch(SUPABASE_URL + '/rest/v1/posts?id=eq.' + id, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify(body)
+      });
+    };
+    let res = await patch({ content: txt, tags: tags });
+    // before the tags column exists the server refuses the whole edit - keep the text
+    if (!res.ok) res = await patch({ content: txt });
     if (!res.ok) { forumMsg(L('העריכה לא נשמרה — אין לך הרשאה או שהחיבור נכשל.', 'The edit wasn\'t saved — you don\'t have permission or the connection failed.'), true); return; }
     await loadPostsFromSupabase();
     renderPosts(document.getElementById('search-input')?.value || '');
     return;
   }
   p.content = txt;
+  p.tags = pickedTags('edit-tags-' + safeId(id));
   renderPosts('');
 }
 
@@ -25645,7 +25906,7 @@ function renderPosts(query, sort, chips) {
     const u = String(p.user || '').toLowerCase();
     const matchQ = !nq || c.indexOf(nq) !== -1 || u.indexOf(nq) !== -1;
     // a chip may carry several keywords, '|'-separated: the Hebrew stem and the English word
-    const matchC = chips.length === 0 || chips.some(function(k){ return String(k).toLowerCase().split('|').some(function (w) { return w && c.indexOf(w) !== -1; }); });
+    const matchC = chips.length === 0 || chips.some(function (id) { return _postMatchesTag(p, id); });
     return matchQ && matchC;
   });
   if (sort === 'newest') filtered.sort(function(a,b){ return b.timestamp - a.timestamp; });
@@ -25703,6 +25964,7 @@ function renderPosts(query, sort, chips) {
       +   '</div>'
       + '</div>'
       + '<div class="ugc" dir="auto" style="margin:8px 0 6px;">' + highlight(p.content, query) + '</div>'
+      + _postTagsHtml(p)
       + _xlateLink(p.content)
       + fileHtml
       + reactionsHtml(p, false)
