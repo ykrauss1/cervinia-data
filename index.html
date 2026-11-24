@@ -1610,7 +1610,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.81';
+  var v='v18.82';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -9824,7 +9824,10 @@ function _frPaint() {
     // this page is open - say which (24.11)
     h += '<div style="flex-basis:100%;font-size:0.78rem;color:#6b7c8f;">' + (_frBgApp()
       ? '📲 ' + L('ממשיך גם כשהמסך כבוי — התראה בטלפון מראה את זה, ושם אפשר לעצור.', 'Goes on with the screen off - a notification on the phone shows it, with a Stop button.')
-        + ' <a href="#" onclick="_frBgStart();return false;" style="color:#1a73e8;">' + L('אין התראה? הפעל שוב', 'No notification? Start again') + '</a>'
+        + (FR.bgUrl && FR.bgUntil === FR.until
+            ? '<a href="' + FR.bgUrl.replace(/"/g, '%22') + '" style="display:block;margin-top:6px;padding:8px 10px;border-radius:8px;background:#e8f0fe;color:#1a4b8c;font-weight:bold;text-decoration:none;text-align:center;">'
+              + L('📲 אין התראה למעלה? לחץ כאן להפעלה', '📲 No notification at the top? Tap here to start it') + '</a>'
+            : ' <a href="#" onclick="_frBgStart();return false;" style="color:#1a73e8;">' + L('אין התראה? הפעל שוב', 'No notification? Start again') + '</a>')
       : L('המיקום נשלח רק כשהדף פתוח על המסך. באפליקציה מ-Google Play הוא נשלח גם כשהמסך כבוי.', 'Your position is sent only while this page is open. In the Google Play app it goes on with the screen off.')) + '</div>';
   } else {
     h += '<span>' + L('לשתף את המיקום שלי:', 'Share my location:') + '</span>'
@@ -9985,6 +9988,7 @@ async function frShare(minutes) {
 async function frStop() {
   FR.sharing = false; FR.until = null;
   try { await _frRpc('cl_loc_stop', { p_group: FR.gid }); } catch (e) {}
+  FR.bgUrl = null;
   if (_frBgApp()) _frBgIntent('stop');
   _frPollNow();
 }
@@ -10007,16 +10011,23 @@ async function frStop() {
 function _frBgApp() {
   try { return sessionStorage.getItem('clApp') === '2'; } catch (e) { return false; }
 }
-function _frBgIntent(what, q) {
-  location.href = 'intent://' + what + (q ? '?' + q : '') + '#Intent;scheme=cervinialive;package=il.co.cervinialive;end';
+function _frBgUrl(what, q) {
+  return 'intent://' + what + (q ? '?' + q : '') + '#Intent;scheme=cervinialive;package=il.co.cervinialive;end';
 }
+function _frBgIntent(what, q) { location.href = _frBgUrl(what, q); }
 async function _frBgStart() {
   if (!FR.gid || !FR.sharing || !FR.until) return;
   try {
     var key = await _frRpc('cl_loc_bg_key', { p_group: FR.gid });
     var g = (FR.groups || []).find(function (x) { return x.id === FR.gid; });
-    _frBgIntent('share', 'k=' + encodeURIComponent(key) + '&g=' + encodeURIComponent(g ? g.name : '')
+    // Chrome hands an intent to the app only on a tap, and the key arrives
+    // after the tap's moment may have passed. So the address is kept, and
+    // the panel offers it as a plain link the person taps (24.11).
+    FR.bgUrl = _frBgUrl('share', 'k=' + encodeURIComponent(key) + '&g=' + encodeURIComponent(g ? g.name : '')
       + '&u=' + new Date(FR.until).getTime() + '&l=' + (window.LANG === 'en' ? 'en' : 'he'));
+    FR.bgUntil = FR.until;
+    _frPaint();
+    location.href = FR.bgUrl;
   } catch (e) {
     FR.err = L('השיתוף כשהמסך כבוי לא הופעל: ', 'Sharing with the screen off did not start: ') + e.message;
     _frPaint();
