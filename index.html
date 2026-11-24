@@ -1661,7 +1661,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.87';
+  var v='v18.88';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -10079,7 +10079,20 @@ TP.placeName = function (ll, w) {
   var g = SKI.graph, best = null, bm = 500;
   (g.places || []).forEach(function (p) { if (p[0] !== 's') return; var m = _skiDist(ll, [p[4], p[5]]); if (m < bm) { bm = m; best = p; } });
   if (best) return L(best[2], best[3]);
-  return (w && (w.name || w.feed)) || L('ראש המעלית', 'the top of the lift');
+  // No station there: say it is the top of a lift, and which kind, so a lift
+  // that happens to be called after a village (Cretaz) or a summit (Plateau
+  // Rosa 3, a T-bar on the glacier) is not read as that place.
+  var nm = w && (w.name || w.feed);
+  if (!nm) return L('ראש המעלית', 'the top of the lift');
+  var kind = { 't-bar': ['מעלית הגרירה', 'T-bar'], 'platter': ['מעלית הגרירה', 'drag lift'], 'j-bar': ['מעלית הגרירה', 'drag lift'],
+               'chair_lift': ['רכבל הכיסאות', 'chairlift'], 'gondola': ['הרכבל', 'gondola'], 'cable_car': ['הרכבל', 'cable car'],
+               'magic_carpet': ['המסוע', 'magic carpet'] }[w.lt] || ['המעלית', 'lift'];
+  var out = L('ראש ' + kind[0] + ' ' + nm, 'the top of the ' + nm + ' ' + kind[1]);
+  // a station within 2 km gives the reader a place to find it by
+  var near = null, nm2 = 2000;
+  (g.places || []).forEach(function (p) { if (p[0] !== 's') return; var m = _skiDist(ll, [p[4], p[5]]); if (m < nm2) { nm2 = m; near = p; } });
+  if (near) out += L(', ליד ', ', near ') + String(L(near[2], near[3])).replace(/\s*\(.*$/, '');
+  return out;
 };
 // where a round ends: the village below, or here
 TP.BREUIL = [45.93428, 7.63366]; TP.CRETAZ = [45.93713, 7.63137];
