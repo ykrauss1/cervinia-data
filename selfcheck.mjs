@@ -5637,28 +5637,46 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 }
 
 // ── nothing offers a coupon that has expired ─────────────────────────
-// The Ski 2.0 discount was for the 2025/26 season. Taking out the picture
-// and the modal is easy to do and easy to half-do: a badge reading "discount
-// coupon" stayed on the shop card, promising something that no longer opens.
+// The Ski 2.0 discount of 2025/26 was taken out when it ran out, and a
+// badge reading "discount coupon" stayed behind on the card. A coupon is
+// allowed in the hire panel only inside a box that carries the last day it
+// is good for (data-until), so it hides itself when the season ends, and
+// only with a picture that is a file that actually loads.
 {
-  const r = await page.evaluate(() => {
+  const r = await page.evaluate(async () => {
     openM('rentalModal');
-    const t = document.getElementById('rentalModal').textContent;
+    const m = document.getElementById('rentalModal');
+    const boxes = Array.from(m.querySelectorAll('.coupon-box'));
+    const clone = m.cloneNode(true);
+    clone.querySelectorAll('.coupon-box').forEach(function (b) { b.remove(); });
     const out = {
-      says: /קופון/.test(t),
-      wiring: typeof window.openCouponModal === 'function'
-           || typeof window._couponImg !== 'undefined'
-           || !!document.getElementById('coupon-modal')
-           || !!document.getElementById('coupon-thumb')
+      stray: /קופון/.test(clone.textContent),
+      noDate: boxes.filter(function (b) { return !/^\d{4}-\d{2}-\d{2}$/.test(b.getAttribute('data-until') || ''); }).length,
+      shownPast: boxes.filter(function (b) { return _isPast(b.getAttribute('data-until')) && b.offsetParent !== null; }).length,
+      wiring: typeof window.openCouponModal === 'function' || typeof window._couponImg !== 'undefined',
+      bad: []
     };
+    for (const b of boxes) {
+      const img = b.querySelector('img');
+      if (!img || /^data:/.test(img.getAttribute('src') || '')) { out.bad.push('no file'); continue; }
+      // the page is opened over file://, where fetch is refused; an Image loads
+      const okLoad = await new Promise(function (res) {
+        const t = new Image();
+        t.onload = function () { res(t.naturalWidth > 0); };
+        t.onerror = function () { res(false); };
+        t.src = img.src;
+      });
+      if (!okLoad) out.bad.push(img.getAttribute('src'));
+    }
     closeM('rentalModal');
     return out;
   });
   const T = 'nothing offers a coupon that has expired';
-  if (r.says) fail(T,
-    'the hire panel still mentions a coupon'); else ok();
-  if (r.wiring) fail(T,
-    'the coupon modal or its image is still wired into the page'); else ok();
+  if (r.stray) fail(T, 'the hire panel mentions a coupon outside a dated coupon box'); else ok();
+  if (r.noDate) fail(T, r.noDate + ' coupon box(es) without a data-until date'); else ok();
+  if (r.shownPast) fail(T, 'a coupon past its date is still shown'); else ok();
+  if (r.wiring) fail(T, 'the old base64 coupon modal is still wired into the page'); else ok();
+  if (r.bad.length) fail(T, 'coupon picture missing: ' + r.bad.join(', ')); else ok();
 }
 
 // ── what you buy before you go, and what you hire there ──────────────

@@ -4221,9 +4221,10 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
           <!-- The 20% coupon for Ski 2.0, season 2026/27 (the Dereh Haski
            "Cervinia for skiers 2027" coupon, sent by the site owner on
            25/11/2026). The picture is a file, not base64, and loads only when
-           the rental panel is shown. When the season ends, remove this box
+           the rental panel is shown. data-until hides it after the season's last
+           day; then remove this box
            and img/coupon-ski20-2027.jpg together. -->
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid #3dbfa0;border-radius:10px;margin-bottom:10px;background:#f0fffc;">
+          <div class="coupon-box" data-until="2027-05-02" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid #3dbfa0;border-radius:10px;margin-bottom:10px;background:#f0fffc;">
             <img src="img/coupon-ski20-2027.jpg" loading="lazy" width="72" height="102" alt="קופון הנחה 20% ל-Ski 2.0" data-en-alt="20% discount coupon for Ski 2.0"
               onclick="openImg(this.src)" title="לחץ להגדלה" data-en-title="Tap to enlarge"
               style="width:72px;height:auto;border-radius:7px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
