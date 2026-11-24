@@ -2755,7 +2755,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     menuText: [...document.querySelectorAll('#side-menu-links button')]
                 .map(b => b.textContent.trim()).join(' | '),
     actionExists: typeof SIDE_MENU_ACTIONS === 'object' && typeof SIDE_MENU_ACTIONS.why === 'function',
-    fbInWhy: !!document.querySelector('#whyModal a[href*="facebook.com/groups"]'),
+    fbInWhy: !!document.querySelector('#placeModal a[href*="facebook.com/groups"]'),
     fbInKosher: !!document.querySelector('#kosherModal a[href*="facebook.com/groups"]'),
     whatsappClaim: /קבוצות הווטסאפ/.test(
       (document.getElementById('kosher-cervinia-text') || {}).textContent || '')
@@ -9815,7 +9815,7 @@ for (const [w, h] of [[360, 740], [390, 800], [1366, 800]]) {
     mapShowRoute('grand_tour');
     out.noVideoElsewhere = !$('map-route-video').querySelector('a');
     mapShowRoute('grand_tour');
-    out.why = [...document.querySelectorAll('#whyModal a[href*="youtube.com"]')].map(x => x.href);
+    out.why = [...document.querySelectorAll('#placeModal a[href*="youtube.com"]')].map(x => x.href);
     out.valt = [...$('lodging-body').querySelectorAll('a[href*="youtube.com"]')].map(x => x.href);
     return out;
   });

@@ -604,6 +604,29 @@ mark.cl-hit {
 
 /* Kept so the class is harmless wherever it still appears in the markup. */
 .service-btn.svc-wide { flex: 0 1 calc((100% - 20px) / 3); }
+/* the summit tile: in the one-row bar on a computer the "feels like" stays in the tooltip */
+#bar-temps { display: contents; }
+@media (max-width: 768px) {
+  /* in the phone grid the two temperatures are two tiles like the rest */
+  #live-data-bar #bar-temps { display: contents !important; }
+  #live-data-bar #bar-temps > div {
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    min-height: 54px; background: rgba(9,20,38,0.24); border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 12px; padding: 7px 4px;
+  }
+  #live-data-bar #bar-temps > div > div:last-child,
+  #live-data-bar #bar-temps > div > div:last-child span {
+    font-size: 0.66rem !important; color: rgba(255,255,255,0.78) !important; margin-top: 4px;
+  }
+}
+@media (min-width: 769px) {
+  #bar-top-label .top-feels, #bar-top-label .top-word { display: none; }
+  #bar-temps { display: flex; flex-direction: column; gap: 4px; }
+  #bar-top-cell { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
+  #bar-top-temp { font-size: 0.8rem !important; }
+  #bar-top-label { margin-top: 0 !important; }
+}
+
 .svc-ico-img { width: 26px; height: 26px; display: block; }
 .panel-share {
   /* The close button is pinned with a PHYSICAL left, so this one must be
@@ -1587,7 +1610,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.76';
+  var v='v18.81';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1675,7 +1698,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
          backs it, and who we are last - the usual order of a menu. -->
     <!-- the six questions first (Yossi, 19.11) -->
     <button onclick="smGo('guide')" data-en="&lt;span&gt;🧭&lt;/span&gt;What's right for me? · 6 questions"><span>🧭</span>מה מתאים לי? · 6 שאלות</button>
-    <button onclick="smGo('why')" data-en="&lt;span&gt;🏔️&lt;/span&gt;Why Cervinia? · Community and links"><span>🏔️</span>למה צ׳רוויניה? · קהילה וקישורים</button>
+    <button onclick="smGo('why')" data-en="&lt;span&gt;🏔️&lt;/span&gt;Getting to know Cervinia · map and photos"><span>🏔️</span>היכרות עם צ'רוויניה · מפה ותמונות</button>
     <button onclick="smGo('cost')" data-en="&lt;span&gt;💶&lt;/span&gt;So, what will it cost us?"><span>💶</span>תכל'ס, כמה יעלה לנו?</button>
     <button id="sm-install" onclick="smGo('install')" data-en="&lt;span&gt;📲&lt;/span&gt;Install the app"><span>📲</span>התקנת האפליקציה</button>
     <button id="sm-push" onclick="smGo('push')" data-en="&lt;span&gt;🔔&lt;/span&gt;Notifications — on and off"><span>🔔</span>התראות — הפעלה וביטול</button>
@@ -1714,9 +1737,21 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <!-- Stats group -->
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
 
+        <!-- the village and the summit together: one column in the one-row bar on
+             a computer, two tiles in the phone's grid (display:contents) -->
+        <div id="bar-temps">
         <div style="text-align:center;">
           <div id="bar-temp" dir="ltr" style="color:white;font-size:1.15rem;font-weight:800;line-height:1;">--°</div>
           <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="🌡️ Weather">🌡️ מזג אויר</div>
+        </div>
+
+        <!-- The temperature up at Plateau Rosa (Yossi, 24.11): -2 in the
+             village can be -15 at the top, and that decides how many layers
+             to wear. Same cached call as the ridge gusts. -->
+        <div id="bar-top-cell" style="text-align:center;cursor:pointer;" onclick="openZermattForecast()" title="הטמפרטורה בפלטאו רוזה (3480 מ')" data-en-title="The temperature at Plateau Rosa (3480 m)">
+          <div id="bar-top-temp" dir="ltr" style="color:#9ad0ff;font-size:1.15rem;font-weight:800;line-height:1;white-space:nowrap;">--</div>
+          <div id="bar-top-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;white-space:nowrap;" data-en="🏔️ At the top">🏔️ בפסגה</div>
+        </div>
         </div>
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
@@ -1775,6 +1810,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
             <span id="bar-closed-notice" style="display:none;font-size:0.58rem;background:#e74c3c;color:white;border-radius:4px;padding:0 5px;font-weight:bold;line-height:0.6875rem;height:0.6875rem;display:inline-block;vertical-align:top;margin-inline-start:5px;" data-en="Closed">סגור</span>
           </div>
         </div>
+
 
       </div>
 
@@ -1911,10 +1947,6 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-world-map"/></svg></span>
       <span class="svc-txt"><b>מפות</b><small>מסלולים, הכפר, ולטורננש ושוויץ</small></span>
     </div>
-    <div id="svc-place" class="service-btn svc-wide" onclick="placeOpen()">
-      <span class="svc-ico" style="font-size:1.9rem;line-height:1;" aria-hidden="true">🧭</span>
-      <span class="svc-txt"><b data-en="&lt;span style=&quot;display:block;font-size:0.72em;font-weight:normal;opacity:0.8;&quot;&gt;Getting to know&lt;/span&gt;Cervinia"><span style="display:block;font-size:0.72em;font-weight:normal;opacity:0.8;">היכרות עם</span>צ'רוויניה</b><small data-en="Where it is on the map, the distances · photos of the village and the slopes">איפה זה על המפה, המרחקים · תמונות מהכפר ומהמסלולים</small></span>
-    </div>
     <div id="svc-around" class="service-btn svc-wide" onclick="openM('aroundModal')">
       <span class="svc-ico"><svg class="svc-ico-img" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-snow-capped-mountain"/></svg></span>
       <span class="svc-txt"><b>מה לעשות באזור</b><small>ימים סוערים · אחרי הסקי · ומה סגור בחורף</small></span>
@@ -1939,8 +1971,8 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
   <div id="why-banner" role="button" tabindex="0">
     <button id="why-banner-x" type="button" aria-label="סגור" onclick="dismissWhyBanner(event)" data-en-aria-label="Close">✕</button>
     <div id="why-banner-body" onclick="openWhyOnce()">
-      <span style="font-size:1.1rem;line-height:1;">🏔️</span>
-      <div id="why-banner-title">למה צ'רוויניה?</div>
+      <svg width="18" height="15" viewBox="0 0 78 64" aria-hidden="true" style="flex-shrink:0;"><path d="M2 62 L14 47 L21 41 L27 30 L32 19 L36 9 L41 5 L43 8 L46 13 L49 22 L55 30 L60 37 L67 46 L76 62 Z" fill="#5b8fc4"/><path d="M36 9 L41 5 L43 8 L46 13 L44 17 L41 15 L39 21 L36.5 17 L34 22 Z" fill="#fff"/></svg>
+      <div id="why-banner-title">היכרות עם צ'רוויניה</div>
       <span style="color:rgba(255,255,255,0.55);font-size:1rem;line-height:1;" data-en="→">←</span>
     </div>
     <div id="why-banner-sub" style="display:none;"></div>
@@ -3994,8 +4026,8 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
   <div class="modal-content" style="max-width:520px;max-height:85vh;overflow-y:auto;">
     <span class="close-btn" onclick="closeM('whyModal')">×</span>
     <h2 id="why-modal-title" style="margin-top:0;color:#0a192f;">⛷️ למה צ'רוויניה?</h2>
-    <button type="button" onclick="closeM('whyModal');openGuide()" style="width:100%;margin:0 0 12px;padding:10px 12px;border-radius:10px;border:1.5px solid #1a73e8;background:#e8f0fe;color:#16314f;font-family:inherit;font-size:0.88rem;font-weight:bold;cursor:pointer;text-align:start;"
-      data-en="🧭 First time here? Six short questions, and the site shows what is right for you →">🧭 פעם ראשונה כאן? שש שאלות קצרות, והאתר יראה לך מה מתאים לך ←</button>
+    <button type="button" onclick="closeM('placeModal');openGuide()" style="width:100%;margin:0 0 12px;padding:10px 12px;border-radius:10px;border:1.5px solid #1a73e8;background:#e8f0fe;color:#16314f;font-family:inherit;font-size:0.88rem;font-weight:bold;cursor:pointer;text-align:start;"
+      data-en="🧭 First time here? Six short questions, and the site shows what is right for you →">🧭 פעם ראשונה כאן? שש שאלות קצרות, והאתר יראה מה מתאים לך ←</button>
     <div id="why-items-list" style="display:flex;flex-direction:column;gap:14px;">
       <div style="border-top:1px solid #f0f0f0;padding-top:14px;display:flex;gap:14px;align-items:flex-start;">
         <span style="font-size:2rem;">⛷️</span>
@@ -4035,8 +4067,8 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
-      <button onclick="closeM('whyModal');openM('hotelModal');" style="flex:1;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;" data-en="📅 Plan a trip">📅 תכנון טיול</button>
-      <button onclick="closeM('whyModal');loadMap('piste');" class="signin-btn" style="flex:1;color:#16314f;background:#eef4fb;border-color:#cfe0f2;" data-en="⛷️ Slopes PDF">⛷️ מסלולים PDF</button>
+      <button onclick="closeM('placeModal');openM('hotelModal');" style="flex:1;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:bold;" data-en="📅 Plan a trip">📅 תכנון טיול</button>
+      <button onclick="closeM('placeModal');loadMap('piste');" class="signin-btn" style="flex:1;color:#16314f;background:#eef4fb;border-color:#cfe0f2;" data-en="⛷️ Slopes PDF">⛷️ מסלולים PDF</button>
     </div>
           <div id="why-community"></div>
   </div>
@@ -4738,13 +4770,18 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
 <div id="placeModal" class="modal" onclick="if(event.target===this)closeM('placeModal')">
   <div class="modal-content" style="max-width:640px;max-height:92vh;overflow-y:auto;padding:0 18px 20px;">
     <span class="close-btn" onclick="closeM('placeModal')">×</span>
-    <h3 style="margin:0 0 4px;font-size:1.1rem;" data-en="🗺️ Where is Cervinia?">🗺️ איפה זה צ'רוויניה?</h3>
-    <div style="font-size:0.84rem;color:#555;line-height:1.8;margin-bottom:10px;" data-en="Breuil-Cervinia is a ski village at 2,050 m in the &lt;b&gt;north-west of Italy&lt;/b&gt;, in the Aosta Valley, right on the Swiss border - across the mountain is Zermatt, and the two share one ski area under the Matterhorn.">צ'רוויניה (Breuil-Cervinia) היא כפר סקי בגובה 2,050 מ' <b>בצפון-מערב איטליה</b>, בעמק אאוסטה (Valle d'Aosta), ממש על הגבול עם שווייץ. מעבר להר נמצאת צרמט (Zermatt), ושני הכפרים חולקים אזור סקי אחד מתחת למטרהורן.</div>
+    <h3 style="margin:0 0 10px;font-size:1.1rem;" data-en="🏔️ Getting to know Cervinia">🏔️ היכרות עם צ'רוויניה</h3>
+    <div id="place-intro" style="display:none;font-size:0.84rem;color:#555;line-height:1.8;margin-bottom:10px;" data-en="Breuil-Cervinia is a ski village at 2,050 m in the &lt;b&gt;north-west of Italy&lt;/b&gt;, in the Aosta Valley, right on the Swiss border - across the mountain is Zermatt, and the two share one ski area under the Matterhorn.">צ'רוויניה (Breuil-Cervinia) היא כפר סקי בגובה 2,050 מ' <b>בצפון-מערב איטליה</b>, בעמק אאוסטה (Valle d'Aosta), ממש על הגבול עם שווייץ. מעבר להר נמצאת צרמט (Zermatt), ושני הכפרים חולקים אזור סקי אחד מתחת למטרהורן.</div>
     <div class="ttab-row" style="display:flex;gap:6px;margin-bottom:10px;">
-      <button id="place-tab-map" class="ttab-btn active" style="flex:1;" onclick="placeTab('map')" data-en="🗺️ On the map">🗺️ על המפה</button>
+      <button id="place-tab-why" class="ttab-btn ttab-active" style="flex:1;" onclick="placeTab('why')" data-en="💡 Why here">💡 למה כאן</button>
+      <button id="place-tab-map" class="ttab-btn" style="flex:1;" onclick="placeTab('map')" data-en="🗺️ On the map">🗺️ על המפה</button>
       <button id="place-tab-photos" class="ttab-btn" style="flex:1;" onclick="placeTab('photos')" data-en="📸 Photos">📸 תמונות</button>
     </div>
-    <div id="place-panel-map">
+    <!-- "Why Cervinia" lived in a modal of its own; it is one tab here now
+         (Yossi, 24.11). Its content is moved in on load, so the ids that
+         texts.json fills stay the same. -->
+    <div id="place-panel-why"></div>
+    <div id="place-panel-map" style="display:none;">
       <div style="display:flex;gap:6px;margin-bottom:6px;">
         <button id="place-z-italy" onclick="placeZoom('italy')" style="flex:1;padding:6px;border:1.5px solid #1a4b8c;border-radius:8px;background:#fff;color:#1a4b8c;font-size:0.78rem;cursor:pointer;font-family:inherit;" data-en="&lt;svg class=fl-it aria-hidden=true&gt;&lt;use href=#flag-it&gt;&lt;/use&gt;&lt;/svg&gt; All of Italy"><svg class=fl-it aria-hidden=true><use href=#flag-it></use></svg> כל איטליה</button>
         <button id="place-z-region" onclick="placeZoom('region')" style="flex:1;padding:6px;border:1.5px solid #1a4b8c;border-radius:8px;background:#1a4b8c;color:#fff;font-size:0.78rem;cursor:pointer;font-family:inherit;" data-en="🔍 The distances">🔍 המרחקים</button>
@@ -4966,11 +5003,6 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
         </div>
         <div id="kosher-community"></div>
       </div>
-      <!-- the nearest mikveh (24.11) - filled from texts.json kosher.mikveh_* -->
-      <div id="kosher-mikveh-box" style="display:none;padding:13px;background:#eef6ff;border:1.5px solid #b9d4f2;border-radius:11px;margin-bottom:12px;">
-        <div id="kosher-mikveh-title" data-toc="💧 מקווה" data-en-toc="💧 Mikveh" style="font-size:0.88rem;font-weight:bold;margin-bottom:6px;"></div>
-        <div id="kosher-mikveh-text" style="font-size:0.82rem;color:#444;line-height:1.8;"></div>
-      </div>
       <div style="padding:13px;background:#f0fff4;border:1.5px solid #a5d6a7;border-radius:11px;">
         <div id="kosher-tips-title" data-toc="💡 טיפים לשהייה כשרה" style="font-size:0.88rem;font-weight:bold;margin-bottom:8px;" data-en-toc="💡 Tips for a kosher stay">💡 טיפים לשהייה כשרה</div>
       <div id="kosher-tips-list" style="font-size:0.82rem;color:#555;line-height:2;">
@@ -5042,6 +5074,11 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
           </a>
 
         </div>
+      </div>
+      <!-- the nearest mikveh (24.11): after all the kosher content; its chip sits under the products chip (Yossi, 24.11) - filled from texts.json kosher.mikveh_* -->
+      <div id="kosher-mikveh-box" style="display:none;padding:13px;background:#eef6ff;border:1.5px solid #b9d4f2;border-radius:11px;margin-top:14px;">
+        <div id="kosher-mikveh-title" data-toc="💧 מקווה" data-toc-before="kosher-resources-title" data-en-toc="💧 Mikveh" style="font-size:0.88rem;font-weight:bold;margin-bottom:6px;"></div>
+        <div id="kosher-mikveh-text" style="font-size:0.82rem;color:#444;line-height:1.8;"></div>
       </div>
 </div>
 
@@ -5901,7 +5938,7 @@ async function _fetchCrossingWx() {
   if (_crossWx && Date.now() - _crossWxAt < 20 * 60 * 1000) return _crossWx;
   var url = 'https://api.open-meteo.com/v1/forecast'
     + '?latitude=' + CROSS_PT.lat + '&longitude=' + CROSS_PT.lon
-    + '&current=temperature_2m,windspeed_10m,windgusts_10m,weathercode'
+    + '&current=temperature_2m,apparent_temperature,windspeed_10m,windgusts_10m,weathercode'
     + '&daily=weathercode,temperature_2m_max,temperature_2m_min,snowfall_sum,'
     + 'windspeed_10m_max,windgusts_10m_max'
     + '&timezone=Europe%2FRome&forecast_days=5';
@@ -5943,6 +5980,7 @@ async function paintBarGust() {
   var seq = ++_barGustSeq;
   var wx = await _fetchCrossingWx();
   if (seq !== _barGustSeq) return;
+  _paintBarTop(wx);
   var g = wx && wx.current ? wx.current.windgusts_10m : null;
   if (g == null) { el.innerHTML = '--'; el.style.color = 'rgba(255,255,255,0.5)'; return; }
   var k = _gustBand(g).k;
@@ -5952,6 +5990,20 @@ async function paintBarGust() {
   var wrap = document.getElementById('bar-gust-wrap');
   if (wrap) wrap.title = L('משבי רוח בפלטאו רוזה: ', 'Wind gusts at Plateau Rosa: ') + Math.round(g)
     + ' km/h · ' + _gustBand(g).txt;
+}
+
+// the summit temperature tile, from the same Plateau Rosa reading
+function _paintBarTop(wx) {
+  var el = document.getElementById('bar-top-temp'), lb = document.getElementById('bar-top-label');
+  if (!el) return;
+  var c = wx && wx.current, t = c ? c.temperature_2m : null, f = c ? c.apparent_temperature : null;
+  el.textContent = t == null ? '--' : Math.round(t) + '°C';
+  if (lb) lb.innerHTML = '🏔️<span class="top-word"> ' + L('בפסגה', 'At the top') + '</span>'
+    + (t != null && f != null && Math.round(f) <= Math.round(t) - 3
+       ? '<span class="top-feels">' + L(' · מרגיש ', ' · feels ') + '<span dir="ltr" style="unicode-bidi:isolate;">' + Math.round(f) + '°</span></span>' : '');
+  var cell = document.getElementById('bar-top-cell');
+  if (cell && t != null) cell.title = L('בפלטאו רוזה (3480 מ\') עכשיו: ', 'At Plateau Rosa (3480 m) now: ') + Math.round(t) + '°C'
+    + (f != null ? L(', מרגיש כמו ', ', feels like ') + Math.round(f) + '°C' : '');
 }
 
 async function openZermattForecast() {
@@ -6163,7 +6215,7 @@ var PANEL_LINKS = {
   where:    'placeModal',
   'ski-areas': 'skiAreasModal',
   'ski-italy': 'skiItalyModal',
-  why:      'whyModal',      about:   'aboutModal',
+  why:      'placeModal',      about:   'aboutModal',
   sources:  'sourcesModal',  contact: 'contactModal',
   forecast: 'forecastModal', alerts:  'alertModal',
   help:     'helpModal',     zermatt: 'zermattForecastModal',
@@ -6949,6 +7001,7 @@ function openPanelFromHash() {
 window.addEventListener('hashchange', openPanelFromHash);
 
 function openM(id) {
+  if (id === 'whyModal') { if (typeof PLACE === 'object' && PLACE) PLACE.tab = 'why'; id = 'placeModal'; }   // merged (24.11)
   const m = document.getElementById(id);
   if (m) m.style.display = 'flex';
   _openModalId = id;
@@ -7057,7 +7110,16 @@ function buildPanelToc(panelId) {
       }
       scrollToSection(sec);
     };
+    b.dataset.sec = sec.id;
     strip.appendChild(b);
+  });
+  // a section kept at the end of the panel can still put its chip earlier
+  // in the strip: data-toc-before names the heading whose chip it goes before
+  secs.forEach(function (sec) {
+    var to = sec.getAttribute('data-toc-before');
+    var b = to && strip.querySelector('[data-sec="' + sec.id + '"]');
+    var t = b && strip.querySelector('[data-sec="' + to + '"]');
+    if (t) strip.insertBefore(b, t);
   });
   return strip.children.length;
 }
@@ -14993,7 +15055,7 @@ AI.del = async function (id) {
 // with the village on it and the road distances to the cities people fly to,
 // and photographs of the village and the slopes from Wikimedia Commons, each
 // with its author and licence (shown from Commons, nothing copied here).
-var PLACE = { map: null, tab: 'map' };
+var PLACE = { map: null, tab: 'why' };
 PLACE.CERVINIA = [45.9336, 7.6300];
 // road distance and a winter-free driving time: hoppa, ultimate-ski,
 // percorsokm, skiresort.info, airconnect (OSRM) - rounded
@@ -15028,14 +15090,27 @@ PLACE.page = function (f) {
 };
 function placeTab(t) {
   PLACE.tab = t;
-  ['map', 'photos'].forEach(function (k) {
+  var intro = document.getElementById('place-intro');
+  if (intro) intro.style.display = t === 'map' ? 'block' : 'none';
+  ['why', 'map', 'photos'].forEach(function (k) {
     var b = document.getElementById('place-tab-' + k), p = document.getElementById('place-panel-' + k);
-    if (b) b.classList.toggle('active', k === t);
+    if (b) b.classList.toggle('ttab-active', k === t);
     if (p) p.style.display = k === t ? 'block' : 'none';
   });
-  if (t === 'map') placeMap(); else placePhotos();
+  if (t === 'map') placeMap(); else if (t === 'photos') placePhotos();
 }
-function placeOpen() { openM('placeModal'); }
+function placeOpen(t) { if (t) PLACE.tab = t; openM('placeModal'); }
+// the content of the old "why Cervinia" modal becomes the first tab
+document.addEventListener('DOMContentLoaded', function () {
+  var from = document.querySelector('#whyModal .modal-content'), to = document.getElementById('place-panel-why');
+  if (!from || !to) return;
+  [].slice.call(from.children).forEach(function (c) {
+    if (c.classList.contains('close-btn') || c.id === 'why-modal-title') return;
+    to.appendChild(c);
+  });
+  var shell = document.getElementById('whyModal');
+  if (shell) shell.parentNode.removeChild(shell);
+});
 function placeMap() {
   var box = document.getElementById('place-map');
   if (!box) return;
@@ -23511,7 +23586,7 @@ const SEARCH_INDEX = [
   { text: 'צור קשר פנו אלינו', action: "openM('contactModal')", icon: '✉️', label: 'צור קשר' },
   { text: 'עזרה שאלות תשובות', action: "openM('helpModal')", icon: '❓', label: 'עזרה' },
   { text: 'התקנה להתקין אפליקציה מסך הבית אופליין בלי אינטרנט pwa', action: "openM('helpModal')", icon: '📲', label: 'התקנת האפליקציה' },
-  { text: "למה cervinia יתרונות", action: "openM('whyModal')", icon: "🏔️", label: "למה צ'רוויניה?" },
+  { text: "למה cervinia יתרונות היכרות איפה מפה תמונות", action: "openM('whyModal')", icon: "🏔️", label: "היכרות עם צ'רוויניה" },
   { text: 'ציוד גוגלס משקפי סקי מעיל מכנסיים ביגוד תרמי גרביים כפפות שכבות מה לקנות אריזה הכנות לפני הנסיעה', action: "openPlanner('prep')", icon: '🧳', label: 'הכנות לפני הנסיעה' },
   { text: 'ביטוח ספורט חורף חובה צד שלישי קנס קסדה חוק איטליה חילוץ', action: "openPlanner('prep')", icon: '🛡️', label: 'ביטוח וקסדה — חובה בחוק' },
   { text: 'סנובורד גלשן מגני פרקי כף יד רגל קדמית regular goofy', action: "openM('rentalModal')", icon: '🏂', label: 'סנובורד' },
