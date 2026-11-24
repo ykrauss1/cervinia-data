@@ -609,6 +609,29 @@ mark.cl-hit {
 @media (max-width: 768px) {
   /* in the phone grid the two temperatures are two tiles like the rest */
   #live-data-bar #bar-temps { display: contents !important; }
+  /* the summit tile is the wrapper's last child, so the rule for labels
+     (last child, 4px above) caught the whole tile and set it 2px low */
+  #live-data-bar #bar-top-cell { margin-top: 0 !important; font-size: inherit !important; }
+  /* nine tiles of one size (Yossi, 24.11): equal columns whatever the text
+     (a phone with large text no longer widens one column), equal rows, and
+     a label that does not fit is cut rather than wrapped onto a third line */
+  #live-data-bar > div > div:first-child {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  #live-data-bar > div > div:first-child > div,
+  #live-data-bar #bar-temps > div { min-width: 0; overflow: hidden; }
+  #live-data-bar > div > div:first-child > div > div:last-child,
+  #live-data-bar #bar-temps > div > div:last-child {
+    max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #live-data-bar #bar-hours { font-size: min(0.95rem, 4.1vw) !important; }
+  #live-data-bar .snow-w, #live-data-bar #bar-top-label .top-feels { display: none; }
+  #live-data-bar div:has(> #bar-closed-notice) { height: auto !important; line-height: 1 !important; overflow: visible !important;
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 3px; white-space: normal !important; }
+  #live-data-bar #bar-closed-notice { height: auto !important; line-height: 1.35 !important; padding: 1px 6px !important; }
+  #live-data-bar #bar-slopes-global, #live-data-bar #bar-lifts-global {
+    display: block; font-size: 0.72rem !important; margin-top: 2px; white-space: nowrap;
+  }
   #live-data-bar #bar-temps > div {
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     min-height: 54px; background: rgba(9,20,38,0.24); border: 1px solid rgba(255,255,255,0.16);
@@ -1229,10 +1252,16 @@ img, svg, video { max-width: 100%; }
   .services-grid .service-btn { padding: 12px 6px !important; font-size: 0.78rem !important; }
   nav > div:first-child > div:nth-child(2) { font-size: 0.95rem !important; }
   #global-search-input { font-size: 0.72rem !important; }
-  /* Live bar: 2 columns instead of 3 */
+  /* Live bar: three columns here too - nine tiles in two columns left one
+     alone at the bottom (24.11); the numbers get a little smaller instead */
   #live-data-bar > div > div:first-child {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
   }
+  #live-data-bar [id^="bar-"][id$="temp"], #live-data-bar [id^="bar-"][id$="wind"],
+  #live-data-bar [id^="bar-"][id$="snow"], #live-data-bar #bar-gust,
+  #live-data-bar #bar-slopes-local, #live-data-bar #bar-lifts-local,
+  #live-data-bar #bar-weather-desc { font-size: 0.95rem !important; }
   .modal-content { padding: 16px 12px !important; --mc-pad: 12px; }
 }
 
@@ -1610,7 +1639,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.82';
+  var v='v18.83';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -23231,8 +23260,8 @@ function renderLiveBar(d) {
   // It used to promise "whole area (Cervinia)" even on the line where the
   // feed had no Cervinia figure at all and nothing was in brackets.
   function _scope(area, local) {
-    if (area && local) return L('כל האזור', 'whole area');
-    if (area)  return L('כל האזור', 'whole area');
+    if (area && local) return L('באזור', 'area');
+    if (area)  return L('באזור', 'area');
     if (local) return L('צ׳רוויניה', 'Cervinia');
     return '';
   }
@@ -23335,7 +23364,11 @@ function renderLiveBar(d) {
     var here = snowNum == null ? null
       : (_snowPoints.filter(function (p) { return p.station === 'mid' && +p.depth === snowNum; })[0]
          || _snowPoints.filter(function (p) { return +p.depth === snowNum; })[0]);
-    _bsl.innerHTML = L('❄️ שלג', '❄️ Snow') + (here && here.name ? ' · <bdi>' + here.name + '</bdi>' : '');
+    // on a phone the tile is narrow: the flake and the number say "snow",
+    // so the word gives way to the station's name (24.11)
+    _bsl.innerHTML = here && here.name
+      ? '❄️ <span class="snow-w">' + L('שלג', 'Snow') + ' · </span><bdi>' + here.name + '</bdi>'
+      : L('❄️ שלג', '❄️ Snow');
   }
 
   // weather_description — Italian + English → Hebrew
