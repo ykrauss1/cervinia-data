@@ -15053,12 +15053,13 @@ function placeMap() {
       if (!c.ski) lf.polyline([PLACE.CERVINIA, c.ll], { color: '#1a73e8', weight: 2, dashArray: '5 6', opacity: 0.8 }).addTo(m);
       lf.circleMarker(c.ll, dot(c.ski ? '#d93025' : '#1a73e8', 6)).addTo(m)
         // short on the map, the whole line in the list under it
-        .bindTooltip('<b>' + L(c.s_he, c.s_en) + '</b> · ' + (c.ski ? L('⛷️ במגלשיים', '⛷️ on skis')
-          : L(c.km + ' ק"מ', c.km + ' km')),
+        // the map box is ltr (Leaflet); each label carries its own direction
+        .bindTooltip('<span dir="' + L('rtl', 'ltr') + '"><b>' + L(c.s_he, c.s_en) + '</b> · ' + (c.ski ? L('⛷️ במגלשיים', '⛷️ on skis')
+          : L(c.km + ' ק"מ', c.km + ' km')) + '</span>',
           { permanent: true, direction: c.dir, offset: c.dir === 'right' ? [6, 0] : c.dir === 'top' ? [0, -6] : [0, 6], className: 'place-tip' });
     });
     lf.circleMarker(PLACE.CERVINIA, dot('#e8710a', 9)).addTo(m)
-      .bindTooltip('<b style="font-size:0.95rem;">📍 ' + L('צ\'רוויניה', 'Cervinia') + '</b>',
+      .bindTooltip('<b dir="' + L('rtl', 'ltr') + '" style="font-size:0.95rem;">📍 ' + L('צ\'רוויניה', 'Cervinia') + '</b>',
         { permanent: true, direction: 'top', offset: [0, -10], className: 'place-tip place-tip-main' });
     placeZoom('region');
   }).catch(function () {
