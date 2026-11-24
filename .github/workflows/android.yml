@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -61,3 +61,24 @@ jobs:
             android/app/build/outputs/bundle/release/*.aab
             android/app/build/outputs/apk/release/*.apk
           retention-days: 30
+
+      # The bundle also goes to the android-builds branch, one file a build,
+      # so it can be fetched with git (artifact downloads need a browser
+      # sign-in). Never main: the site does not carry builds.
+      - name: Keep the bundle on the android-builds branch
+        run: |
+          set -e
+          AAB=$(ls android/app/build/outputs/bundle/release/*.aab | head -1)
+          V=$(grep -oP "versionName '\K[^']+" android/app/build.gradle)
+          mkdir -p "$RUNNER_TEMP/b" && cp "$AAB" "$RUNNER_TEMP/b/cervinialive-$V.aab"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin android-builds >/dev/null; then
+            git fetch origin android-builds && git checkout android-builds
+          else
+            git checkout --orphan android-builds && git rm -rqf .
+          fi
+          cp "$RUNNER_TEMP/b/"*.aab .
+          git add *.aab
+          git commit -m "Android bundle $V (run ${{ github.run_id }})"
+          git push origin android-builds
