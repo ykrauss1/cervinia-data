@@ -1670,7 +1670,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.00';
+  var v='v19.01';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4239,6 +4239,35 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
               style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🌐 Website">🌐 אתר</a>
             <a href="https://maps.app.goo.gl/M7SWb5vQ2xorhEVcA" target="_blank"
               style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
+          </div>
+        </div>
+
+        <!-- Top One: recommended warmly in the Facebook group (25.11.2026).
+             Address, phone, hours and season from the shop's own site
+             (skirentalcervinia.com, contact page); "side street off the
+             pedestrian area near the Cretaz field" from Cervino Outdoor;
+             "since 2006" from the shop's listing. -->
+        <div style="padding:13px 15px;border:1.5px solid #e0e0e0;border-radius:11px;background:#f9f9f9;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-weight:bold;font-size:0.92rem;">🎿 Top One</div>
+            <span style="background:#2ecc71;color:white;font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;" data-en="⭐ Recommended in the group">⭐ מומלץ בקבוצה</span>
+          </div>
+          <div style="font-size:0.78rem;color:#555;margin-bottom:8px;" data-en="📍 &lt;b&gt;Via Carrel 34&lt;/b&gt;, Breuil-Cervinia&lt;br&gt;
+            ☎ &lt;a href=&quot;tel:+390166948792&quot; style=&quot;color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;0166 948792&lt;/a&gt;&lt;br&gt;
+            In a side street off the pedestrian area, near the Cretaz slope, about 100 metres from the chairlift. Open since 2006; skis, snowboards, servicing and storage.
+            A skier in the Facebook group recommended it warmly. It can be booked ahead on their website.
+            &lt;div style=&quot;font-size:0.74rem;color:#777;margin-top:4px;&quot;&gt;🕐 Mon–Fri 08:00–12:30 · 14:00–19:30 · weekends 08:00–19:30 straight through&lt;br&gt;
+            &lt;b&gt;Closed at midday on weekdays.&lt;/b&gt; Season 12.11.2026 – 2.5.2027, according to their website.&lt;/div&gt;">
+            📍 <b>Via Carrel 34</b>, Breuil-Cervinia<br>
+            ☎ <a href="tel:+390166948792" style="color:#1a73e8;text-decoration:none;direction:ltr;unicode-bidi:embed;display:inline-block;">0166 948792</a><br>
+            בסמטה שיוצאת מהמדרחוב, ליד מגרש Cretaz, כ-100 מטר מהכיסאות. פועלת מאז 2006: סקי, סנובורד, טיפול בציוד ואחסון.
+            גולש בקבוצת הפייסבוק המליץ עליה בחום. אפשר להזמין מראש באתר שלהם.
+            <div style="font-size:0.74rem;color:#777;margin-top:4px;">🕐 ב׳–ו׳ 08:00–12:30 · 14:00–19:30 · בסופ״ש 08:00–19:30 ברצף<br>
+            <b>סגורה בצהריים באמצע השבוע.</b> העונה: 12.11.2026 – 2.5.2027, לפי האתר שלהם.</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <a href="https://www.skirentalcervinia.com/" target="_blank" rel="noopener" style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🌐 Website">🌐 אתר</a>
+            <a href="https://www.google.com/maps/search/Top%20One%20Ski%20Rental%20Via%20Carrel%2034%20Cervinia/@45.9366,7.6308,17z" target="_blank" rel="noopener" style="padding:6px 12px;background:#34a853;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🗺️ Map">🗺️ מפה</a>
           </div>
         </div>
 
@@ -8390,6 +8419,8 @@ var NAV_EXTRA = [
   ['rental', 'Cervinia Ski Service · Via Bich 7', 45.93620, 7.63060],
   ['rental', 'Noleggio Cretaz · Via Bich 15', 45.93645, 7.63055],
   ['rental', 'Nol-Ski · Via Bich 2', 45.93600, 7.63065],
+  // Via Carrel 34, about 100 m from the Cretaz chairlift - placed by that, not surveyed
+  ['rental', 'Top One · Via Carrel 34', 45.93660, 7.63080],
   ['rental', 'Sport Center · Piazza Guide Maquignaz', 45.93713, 7.62954]
 ];
 // which town a place is in - a pharmacy "in Zermatt" is a different trip
