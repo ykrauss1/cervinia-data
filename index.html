@@ -932,6 +932,10 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 /* The two forecast buttons answer the questions people open the site for -
    what the weather does next, and whether the crossing to Zermatt will run -
    and they were the smallest controls in the bar. */
+.hero-nav-btn { align-self:center; padding:10px 14px; border-radius:14px; border:2px solid rgba(255,255,255,0.85);
+  background:linear-gradient(135deg,#1a73e8,#0f4fa8); color:#fff; font-weight:800; font-size:0.9rem; line-height:1.25;
+  font-family:inherit; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.35); text-align:center; }
+.hero-nav-btn:active { transform:scale(0.97); }
 .fc-btn { font-size: 0.78rem; font-weight: 700; padding: 9px 14px; border-radius: 10px;
   cursor: pointer; white-space: nowrap; font-family: inherit; line-height: 1.15;
   transition: filter .15s, transform .15s; }
@@ -1661,7 +1665,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.94';
+  var v='v18.95';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1910,6 +1914,10 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
             <span id="zermatt-status" class="zm-state" data-en="Closed">סגור</span>
           </div>
         </div>
+
+        <!-- Navigation in one tap from the first screen (Yossi, 25.11: it was
+             hidden behind the maps menu) -->
+        <button type="button" class="hero-nav-btn" onclick="PANEL_ACTIONS.navigate()" data-en="🧭 Navigate&lt;br&gt;on the mountain">🧭 ניווט<br>על ההר</button>
 
         <!-- כפתורות תחזית -->
         <div style="display:flex;flex-direction:column;gap:4px;">
@@ -5327,9 +5335,12 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
             <div id="map-geo-cats" role="tablist" style="display:flex;gap:5px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;"></div>
             <button type="button" id="map-geo-time-btn" onclick="geoTime()" aria-label="תכנון לפי זמן" data-en-aria-label="Planning by time" title="תכנון לפי זמן"
               style="flex:none;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.1rem;line-height:1;border:none;background:linear-gradient(135deg,#1a73e8,#0f4fa8);color:#fff;box-shadow:0 2px 6px rgba(26,115,232,0.35);">⏱️</button>
+            <button type="button" id="map-geo-help-btn" onclick="geoHelp()" aria-label="עזרה" data-en-aria-label="Help" title="עזרה" data-en-title="Help"
+              style="flex:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:0.95rem;font-weight:bold;line-height:1;border:1.5px solid #9fb3c8;background:#fff;color:#33475b;font-family:inherit;">?</button>
             <button type="button" id="map-geo-friends-btn" onclick="geoFriends()" aria-label="חברים" data-en-aria-label="Friends" title="חברים"
               style="position:relative;flex:none;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.15rem;line-height:1;border:none;background:linear-gradient(135deg,#7b4fd6,#5a33b0);color:#fff;box-shadow:0 2px 6px rgba(90,51,176,0.35);">👥</button>
           </div>
+          <div id="map-geo-help" style="display:none;margin-bottom:6px;padding:7px 8px;border:1px solid #d6e2ef;border-radius:9px;background:#fff;line-height:1.6;max-height:44vh;overflow:auto;font-size:0.78rem;color:#16314f;"></div>
           <div id="map-geo-time" style="display:none;margin-bottom:6px;padding:7px 8px;border:1px solid #d6e2ef;border-radius:9px;background:#fff;line-height:1.5;max-height:40vh;overflow:auto;"></div>
           <div id="map-geo-friends" style="display:none;margin-bottom:6px;padding:7px 8px;border:1px solid #d6e2ef;border-radius:9px;background:#fff;line-height:1.5;max-height:32vh;overflow:auto;"></div>
           <div id="map-geo-pick-row" style="display:flex;gap:6px;align-items:center;">
@@ -8325,7 +8336,7 @@ var NAV_NEAR = [
   { k: 'food',   ico: '☕', html: GEO_CUP, he: 'בקתה',        en: 'Hut' },
   { k: 'wc',     ico: '🚻', he: 'שירותים',     en: 'Toilets',     poi: true },
   { k: 'lift',   ico: '🚡', he: 'מעלית',       en: 'Lift' },
-  { k: 'aid',    ico: '⛑️', he: 'רפואה',       en: 'Medical',     poi: true },
+  { k: 'aid',    ico: '🩺', he: 'רפואה',       en: 'Medical',     poi: true },
   { k: 'ticket', ico: '🎫', he: 'קופות',       en: 'Ski passes',  poi: true },
   { k: 'rental', ico: '🎿', he: 'השכרת ציוד',  en: 'Ski rental',  poi: true },
   { k: 'park',   ico: '🅿️', he: 'חניה',        en: 'Parking' },
@@ -8361,6 +8372,15 @@ var NAV_EXTRA = [
   ['rental', 'Nol-Ski · Via Bich 2', 45.93600, 7.63065],
   ['rental', 'Sport Center · Piazza Guide Maquignaz', 45.93713, 7.62954]
 ];
+// the kinds of medical place, as tools/fetch_poi_osm.py names them
+var NAV_AID = {
+  doctor:    ['🩺', 'רופא', 'Doctor'],
+  clinic:    ['🏥', 'מרפאה / מרכז רפואי', 'Clinic / medical centre'],
+  physio:    ['🦵', 'פיזיותרפיה', 'Physiotherapy'],
+  first_aid: ['🩹', 'עזרה ראשונה', 'First aid'],
+  ambulance: ['🚑', 'תחנת אמבולנס', 'Ambulance station'],
+  rescue:    ['🚁', 'חילוץ הררי', 'Mountain rescue']
+};
 function _navPoi(k) {
   var nk = NAV_NEAR.filter(function (x) { return x.k === k; })[0];
   var out = [];
@@ -8386,7 +8406,10 @@ function _navPoi(k) {
       where = near ? L('ליד ', 'near ') + near.n : '';
       if (/^(נקודה|A point)/.test(where)) where = '';
     }
-    out.push({ id: 'o:' + i, name: nk.ico + ' ' + (it[1] || L(nk.he, nk.en) + (where ? ' · ' + where : '')), en: it[1] || nk.en, ll: [+it[2], +it[3]] });
+    // a medical place says what it is: a doctor, a clinic, physiotherapy (Yossi, 25.11)
+    var sub = k === 'aid' ? NAV_AID[it[4]] : null;
+    var ico = sub ? sub[0] : nk.ico, kindName = sub ? L(sub[1], sub[2]) : L(nk.he, nk.en);
+    out.push({ id: 'o:' + i, name: ico + ' ' + (it[1] ? it[1] + (sub ? ' · ' + kindName : '') : kindName + (where ? ' · ' + where : '')), en: it[1] || nk.en, ll: [+it[2], +it[3]] });
   });
   return out;
 }
@@ -10145,6 +10168,80 @@ TP.parse = function (q) {
   return null;
 };
 
+// ── panel heads: a title, "? Help" and a close ✕ (Yossi, 25.11: the time
+// panel had no way to close it, and the navigation needs help in places) ──
+var PHELP = { open: {} };
+PHELP.text = {
+  nav: function () { return L(
+    '<b>הניווט על ההר</b><br>'
+    + '1. <b>🔍 לאן?</b> בחר לאן אתה רוצה להגיע: מעלית, בקתה, מסלול או מקום בכפר. האתר יראה את הדרך מהמקום שלך, במסלולים ובמעליות.<br>'
+    + '2. <b>רמה:</b> בחר עד איזה צבע מסלול הדרך מותרת. "רק כחולים" לא ישלח אותך לאדום.<br>'
+    + '3. <b>לרדת גם בקבינות:</b> סמן אם נוח לך לרדת ברכבל או בגונדולה במקום לגלוש למטה.<br>'
+    + '4. <b>🔈 הדרכה קולית:</b> הוראות בקול בזמן הגלישה, כמו בניווט ברכב.<br>'
+    + '5. <b>📍 הצג את המיקום שלי</b> (למטה): המיקום מתעדכן לבד, ונשאר במכשיר שלך.<br>'
+    + '6. <b>⏱️</b> תכנון לפי זמן: כמה אפשר להספיק, ומתי לצאת כדי לחזור בזמן.<br>'
+    + '7. <b>👥</b> חברים: לראות על המפה איפה החברים מהקבוצה שלך.<br>'
+    + 'רחוק מצ\'רוויניה? האתר עובר להדגמה, ואפשר לנסות הכל כאילו אתה על ההר.',
+    '<b>Navigation on the mountain</b><br>'
+    + '1. <b>🔍 Where to?</b> Choose where you want to get: a lift, a hut, a run or a place in the village. The site shows the way from where you are, by runs and lifts.<br>'
+    + '2. <b>Level:</b> the hardest run colour the way may use. "Blue runs only" will not send you down a red.<br>'
+    + '3. <b>Ride down in cabins:</b> tick it if you would rather ride a cable car or gondola down than ski.<br>'
+    + '4. <b>🔈 Voice guidance:</b> spoken directions while you ski, as in a car.<br>'
+    + '5. <b>📍 Show my location</b> (below): it updates by itself, and stays on your device.<br>'
+    + '6. <b>⏱️</b> Planning by time: how much you can fit in, and when to leave to be back in time.<br>'
+    + '7. <b>👥</b> Friends: see where the people in your group are on the map.<br>'
+    + 'Far from Cervinia? The site switches to a demo, and you can try everything as if you were on the mountain.'); },
+  time: function () { return L(
+    '<b>איך זה עובד</b><br>'
+    + 'כתוב בשורה מה יש לך, במילים שלך, ולחץ <b>חשב</b>. למשל: "יש לי שעה וחצי", "הסקיפס עד 12:30 ואני רוצה להיות למטה ב-14:00", "כמה זמן אפשר להישאר בצרמט?". אפשר גם ללחוץ על אחת השאלות המוכנות.<br>'
+    + '<b>לסיים ב:</b> איפה אתה רוצה להיות בסוף. ברירת המחדל היא הכפר: Breuil או Cretaz, מה שנוח יותר מהמקום שלך. אם בחרת יעד ב"🔍 לאן?", אפשר לסיים גם שם.<br>'
+    + 'החישוב יוצא מהמקום שבו אתה עכשיו ולפי הרמה שבחרת, ומביא בחשבון את שעות הסגירה של המעליות ואת השקיעה. רחוק מההר הוא מניח שהשעה 10:30.',
+    '<b>How it works</b><br>'
+    + 'Write what you have in your own words and press <b>Go</b>. For example: "I have an hour and a half", "my pass runs till 12:30 and I want to be down by 14:00", "how long can I stay in Zermatt?". Or tap one of the ready questions.<br>'
+    + '<b>End at:</b> where you want to be at the end. The village is the default: Breuil or Cretaz, whichever is handier from where you are. If you chose a destination in "🔍 Where to?", you can end there too.<br>'
+    + 'It starts from where you are now, at the level you chose, and counts the lift closing times and sunset. Away from the mountain it assumes it is 10:30.'); },
+  friends: function () { return L(
+    '<b>איך זה עובד</b><br>'
+    + '1. צור קבוצה, או הצטרף בקישור שחבר שלח לך. צריך להיות מחובר לאתר.<br>'
+    + '2. שלח את קישור ההזמנה לחברים, למשל בוואטסאפ.<br>'
+    + '3. לחץ <b>שתף</b> ובחר עד מתי. כל עוד אתה משתף, החברים רואים אותך על המפה ואתה רואה אותם.<br>'
+    + '4. באפליקציה לאנדרואיד השיתוף ממשיך גם כשהמסך כבוי. בדפדפן הוא פועל רק כשהאתר פתוח.<br>'
+    + 'בסוף הזמן שבחרת המיקום נמחק.',
+    '<b>How it works</b><br>'
+    + '1. Create a group, or join from a link a friend sent you. You need to be signed in.<br>'
+    + '2. Send the invitation link to your friends, for example on WhatsApp.<br>'
+    + '3. Press <b>Share</b> and choose until when. While you share, your friends see you on the map and you see them.<br>'
+    + '4. In the Android app sharing goes on with the screen off. In a browser it works only while the site is open.<br>'
+    + 'When the time you chose is up, your location is deleted.'); }
+};
+function _panelHead(title, kind, closeCall) {
+  var b = 'padding:3px 9px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;color:#33475b;cursor:pointer;font-family:inherit;font-size:0.74rem;';
+  return '<div class="ph-head" style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
+    + '<div style="flex:1;font-weight:bold;font-size:0.84rem;">' + title + '</div>'
+    + '<button type="button" style="' + b + '" onclick="phHelp(\'' + kind + '\',this)" aria-expanded="' + !!PHELP.open[kind] + '">❓ ' + L('עזרה', 'Help') + '</button>'
+    + '<button type="button" style="' + b + 'font-size:0.9rem;padding:1px 8px;" onclick="' + closeCall + '" aria-label="' + L('סגירה', 'Close') + '">✕</button>'
+    + '</div>'
+    + '<div class="ph-help" style="' + (PHELP.open[kind] ? '' : 'display:none;') + 'background:#f3f8fd;border:1px solid #d9e6f3;border-radius:8px;padding:7px 9px;margin-bottom:6px;font-size:0.76rem;line-height:1.65;color:#16314f;">'
+    + PHELP.text[kind]() + '</div>';
+}
+function phHelp(kind, btn) {
+  PHELP.open[kind] = !PHELP.open[kind];
+  var box = btn.closest('.ph-head').nextElementSibling;
+  if (box) box.style.display = PHELP.open[kind] ? 'block' : 'none';
+  btn.setAttribute('aria-expanded', String(!!PHELP.open[kind]));
+}
+// the "?" beside ⏱️ and 👥: what each part of the navigation does
+function geoHelp() {
+  var h = document.getElementById('map-geo-help');
+  if (!h) return;
+  var on = h.style.display === 'none';
+  h.style.display = on ? 'block' : 'none';
+  if (on) h.innerHTML = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'
+    + '<div style="flex:1;font-weight:bold;font-size:0.84rem;">❓ ' + L('עזרה', 'Help') + '</div>'
+    + '<button type="button" onclick="geoHelp()" aria-label="' + L('סגירה', 'Close') + '" style="padding:1px 8px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-size:0.9rem;">✕</button></div>'
+    + PHELP.text.nav();
+}
+
 // ── the panel ──
 function geoTime() { TP.open = !TP.open; if (TP.open && typeof FR !== 'undefined' && FR.open) { FR.open = false; try { _frPaint(); } catch (e) {} } _tpPaint(); }
 function _tpPaint() {
@@ -10156,11 +10253,12 @@ function _tpPaint() {
   if (p.dataset.built !== '1') {
     p.dataset.built = '1';
     var chip = 'padding:5px 9px;border-radius:14px;border:1px solid #c9d6e3;background:#f4f8fd;color:#16314f;font-family:inherit;font-size:0.74rem;cursor:pointer;white-space:nowrap;';
-    p.innerHTML = '<div style="font-weight:bold;font-size:0.84rem;margin-bottom:5px;">' + L('⏱️ תכנון לפי זמן', '⏱️ Planning by time') + '</div>'
+    p.innerHTML = _panelHead(L('⏱️ תכנון לפי זמן', '⏱️ Planning by time'), 'time', 'geoTime()')
       + '<div style="display:flex;gap:5px;">'
       + '<input id="tp-q" type="text" maxlength="200" placeholder="' + L('למשל: יש לי שעה · סקיפס עד 12:30, לסיים ב-14:00', 'e.g. I have an hour · pass till 12:30, done by 14:00') + '"'
       + ' style="flex:1;min-width:0;padding:7px 9px;border:1px solid #c9d6e3;border-radius:8px;font-family:inherit;font-size:0.82rem;" onkeydown="if(event.key===\'Enter\')TP.ask()">'
-      + '<button type="button" onclick="TP.ask()" style="padding:6px 12px;border:none;border-radius:8px;background:#1a73e8;color:#fff;font-weight:bold;cursor:pointer;font-family:inherit;font-size:0.8rem;">' + L('חשב', 'Go') + '</button></div>'
+      + '<button type="button" onclick="TP.ask()" style="padding:6px 12px;border:none;border-radius:8px;background:#1a73e8;color:#fff;font-weight:bold;cursor:pointer;font-family:inherit;font-size:0.8rem;">' + L('חשב', 'Go') + '</button>'
+      + '<button type="button" onclick="TP.reset()" title="' + L('מחיקה והתחלה מחדש', 'Clear and start again') + '" style="padding:6px 10px;border:1px solid #c9d6e3;border-radius:8px;background:#fff;color:#33475b;cursor:pointer;font-family:inherit;font-size:0.78rem;">' + L('🗑️ נקה', '🗑️ Clear') + '</button></div>'
       + '<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-top:6px;">'
       + '<button type="button" style="' + chip + '" onclick="TP.quick(\'back\')">' + L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> אספיק לחזור מצרמט?', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> Will I make it back from Zermatt?') + '</button>'
       + '<button type="button" style="' + chip + '" onclick="TP.quick(\'stay\')">' + L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> שעה בצרמט – מתי לצאת?', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> An hour in Zermatt – when to leave?') + '</button>'
@@ -10175,12 +10273,27 @@ function _tpPaint() {
       + '<option value="breuil">' + L('תחנת העמק Breuil', 'Breuil valley station') + '</option>'
       + '<option value="cretaz">Cretaz</option>'
       + '<option value="here">' + L('המקום שבו אני עכשיו', 'where I am now') + '</option>'
-      + '<option value="dest">' + L('היעד שבחרתי', 'the destination I chose') + '</option></select></div>'
+      + '<option value="dest" id="tp-end-dest"></option></select></div>'
       + '<div id="tp-out" style="margin-top:7px;font-size:0.8rem;line-height:1.6;color:#16314f;"></div>';
+  }
+  // "the destination" is offered only when there is one, and by its name:
+  // "the destination I chose" left a reader asking where he chose anything
+  var od = document.getElementById('tp-end-dest'), se = document.getElementById('tp-end');
+  if (od) {
+    od.hidden = od.disabled = !GEO.dest;
+    od.textContent = GEO.dest ? L('היעד שבחרת ב"לאן?": ', 'The destination from "Where to?": ') + GEO.dest.name : '';
+    if (!GEO.dest && se && se.value === 'dest') se.value = 'village';
   }
   var o = document.getElementById('tp-out');
   if (o && o.innerHTML !== TP.out) o.innerHTML = TP.out;
 }
+// a new question from scratch: the words, the answer and the end point go
+TP.reset = function () {
+  TP.out = ''; TP.heard = ''; TP.assumed = false;
+  var q = document.getElementById('tp-q'); if (q) { q.value = ''; q.focus(); }
+  var e = document.getElementById('tp-end'); if (e) e.value = 'village';
+  _tpPaint();
+};
 TP.say = function (html) {
   if (TP.heard && !/^(מחשב|Working|קורא|Reading)/.test(html)) { html = '<div style="color:#4b5d70;font-size:0.74rem;margin-bottom:4px;">💬 ' + escHtml(TP.heard) + '</div>' + html; }
   var note = TP.assumed ? '<div style="color:#8a6d00;font-size:0.72rem;margin-bottom:4px;">' + L('🕐 מחוץ לשעות הגלישה (או בהדגמה) החישוב מניח שהשעה עכשיו 10:30.', '🕐 Outside skiing hours (or in the demo) the reckoning assumes it is 10:30 now.') + '</div>' : '';
@@ -10287,6 +10400,11 @@ function frPick(gid) {
 }
 
 function _frPaint() {
+  _frPaintBody();
+  var box = document.getElementById('map-geo-friends');
+  if (box && FR.open && !box.querySelector('.ph-head')) box.insertAdjacentHTML('afterbegin', _panelHead(L('👥 חברים', '👥 Friends'), 'friends', 'geoFriends()'));
+}
+function _frPaintBody() {
   var box = document.getElementById('map-geo-friends');
   var btn = document.getElementById('map-geo-friends-btn');
   if (btn) {
@@ -27144,7 +27262,7 @@ async function _admRenderUsers() {
       <!-- Additional info -->
       <div style="display:flex;flex-direction:column;gap:8px;">
 <div id="park-medical" style="padding:11px 14px;background:#fff8e1;border:1px solid #ffe082;border-radius:9px;font-size:0.8rem;color:#555;line-height:1.7;" data-en="&lt;b style=&quot;font-size:0.88rem;&quot;&gt;🩺 Medical services in the village and the valley&lt;/b&gt;
-          &lt;div style=&quot;margin-top:6px;&quot;&gt;&lt;b&gt;⛑️ Centro Traumatologico — the Cervinia trauma centre&lt;/b&gt;&lt;br&gt;
+          &lt;div style=&quot;margin-top:6px;&quot;&gt;&lt;b&gt;🏥 Centro Traumatologico — the Cervinia trauma centre&lt;/b&gt;&lt;br&gt;
           By the lift station (Piazzale funivie). Winter season only, roughly early December to spring, 9:00–18:00. Orthopaedists, X-ray and casts — most ski injuries are treated here without going down to Aosta. Charged by the regional price list — insurance is worth having.&lt;br&gt;
           📞 &lt;a href=&quot;tel:+393334852272&quot; style=&quot;color:#1a4b8c;direction:ltr;unicode-bidi:embed;display:inline-block;&quot;&gt;+39 333 485 2272&lt;/a&gt;&lt;/div&gt;
           &lt;div style=&quot;margin-top:8px;&quot;&gt;&lt;b&gt;💊 Lafarmacia — the Cervinia pharmacy&lt;/b&gt;&lt;br&gt;
@@ -27158,7 +27276,7 @@ async function _admRenderUsers() {
           &lt;a href=&quot;https://www.sportcenter.it/index.php/en/boot-fitting-cervinia&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; style=&quot;color:#1a4b8c;&quot;&gt;Website ↗&lt;/a&gt;&lt;/div&gt;
           &lt;div style=&quot;margin-top:6px;font-size:0.73rem;color:#888;&quot;&gt;Hours and dates change from season to season — call before you go.&lt;/div&gt;">
           <b style="font-size:0.88rem;">🩺 שירותי רפואה בכפר ובעמק</b>
-          <div style="margin-top:6px;"><b>⛑️ Centro Traumatologico — מרכז הטראומה של צ'רוויניה</b><br>
+          <div style="margin-top:6px;"><b>🏥 Centro Traumatologico — מרכז הטראומה של צ'רוויניה</b><br>
           ליד תחנת הרכבלים (Piazzale funivie). בעונת החורף בלבד, בערך מתחילת דצמבר עד האביב, בין 9:00 ל-18:00. אורתופדים, צילום וגבס — רוב הפציעות של הסקי מטופלות כאן בלי לרדת לאאוסטה. התשלום לפי המחירון האזורי — כדאי ביטוח.<br>
           📞 <a href="tel:+393334852272" style="color:#1a4b8c;direction:ltr;unicode-bidi:embed;display:inline-block;">+39 333 485 2272</a></div>
           <div style="margin-top:8px;"><b>💊 Lafarmacia — בית המרקחת של צ'רוויניה</b><br>
