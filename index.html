@@ -932,9 +932,14 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
 /* The two forecast buttons answer the questions people open the site for -
    what the weather does next, and whether the crossing to Zermatt will run -
    and they were the smallest controls in the bar. */
-.hero-nav-btn { align-self:center; padding:10px 14px; border-radius:14px; border:2px solid rgba(255,255,255,0.85);
-  background:linear-gradient(135deg,#1a73e8,#0f4fa8); color:#fff; font-weight:800; font-size:0.9rem; line-height:1.25;
-  font-family:inherit; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.35); text-align:center; }
+/* see-through like the weather tiles, with a brighter frame so it reads as
+   the one thing to tap (Yossi, 25.11) */
+.hero-nav-btn { align-self:center; padding:10px 14px; border-radius:14px; border:2px solid rgba(255,255,255,0.95);
+  background:rgba(255,255,255,0.14); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  color:#fff; font-weight:800; font-size:0.9rem; line-height:1.25; text-shadow:0 1px 3px rgba(0,0,0,0.6);
+  font-family:inherit; cursor:pointer; text-align:center;
+  box-shadow:0 0 0 3px rgba(138,180,248,0.45), 0 4px 14px rgba(0,0,0,0.25); transition:background .15s, transform .15s; }
+.hero-nav-btn:hover { background:rgba(255,255,255,0.24); }
 .hero-nav-btn:active { transform:scale(0.97); }
 .fc-btn { font-size: 0.78rem; font-weight: 700; padding: 9px 14px; border-radius: 10px;
   cursor: pointer; white-space: nowrap; font-family: inherit; line-height: 1.15;
@@ -1665,7 +1670,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.97';
+  var v='v18.98';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
