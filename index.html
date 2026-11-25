@@ -1665,7 +1665,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.96';
+  var v='v18.97';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7961,7 +7961,10 @@ function _geoDestList() {
   var pk = [];
   ((window._texts && window._texts.parking && window._texts.parking.lots) || []).forEach(function (r, i) {
     var ll = _geoLL(r.latlon); if (!ll) return;
-    pk.push({ id: 'k:' + i, name: '🅿️ ' + _geoName(String(r.name || '').replace(/^[^A-Za-z\u0590-\u05ff]+/, '').split(/\s+[—-]\s+/)[0]), ll: ll });
+    // the name and what the lot is - free, paid, the lifts' own (Yossi, 25.11:
+    // a bare "Baselli" said nothing)
+    var parts = String(r.name || '').replace(/^[^A-Za-z\u0590-\u05ff]+/, '').split(/\s+[—-]\s+/);
+    pk.push({ id: 'k:' + i, name: '🅿️ ' + _geoName(parts[0]) + (parts[1] ? ' · ' + parts.slice(1).join(' – ') : ''), en: parts[0], ll: ll });
   });
   add('v', L('🅿️ חניונים', '🅿️ Car parks'), pk);
   // toilets, first aid, rental... (data/poi-*.json, from OpenStreetMap):
@@ -8372,6 +8375,12 @@ var NAV_EXTRA = [
   ['rental', 'Nol-Ski · Via Bich 2', 45.93600, 7.63065],
   ['rental', 'Sport Center · Piazza Guide Maquignaz', 45.93713, 7.62954]
 ];
+// what one place of each kind is called, after its name: "UBS · cash machine"
+var NAV_ONE = {
+  wc: ['שירותים', 'toilets'], ticket: ['קופת סקי פס / כרטיסים', 'ski pass / ticket office'],
+  rental: ['השכרת ציוד', 'ski rental'], atm: ['כספומט', 'cash machine'],
+  pharm: ['בית מרקחת', 'pharmacy'], aid: ['שירות רפואי', 'medical']
+};
 // the kinds of medical place, as tools/fetch_poi_osm.py names them
 var NAV_AID = {
   doctor:    ['🩺', 'רופא', 'Doctor'],
@@ -8384,8 +8393,9 @@ var NAV_AID = {
 function _navPoi(k) {
   var nk = NAV_NEAR.filter(function (x) { return x.k === k; })[0];
   var out = [];
+  var one = NAV_ONE[k] ? L(NAV_ONE[k][0], NAV_ONE[k][1]) : '';
   NAV_EXTRA.forEach(function (it, i) {
-    if (it[0] === k) out.push({ id: 'x:' + i, name: nk.ico + ' ' + it[1], en: it[1], ll: [it[2], it[3]] });
+    if (it[0] === k) out.push({ id: 'x:' + i, name: nk.ico + ' ' + it[1] + (one ? ' · ' + one : ''), en: it[1], ll: [it[2], it[3]] });
   });
   (NAV_POI.items || []).forEach(function (it, i) {
     // the same place twice - ours and OpenStreetMap's, or two of the map's
@@ -8408,8 +8418,13 @@ function _navPoi(k) {
     }
     // a medical place says what it is: a doctor, a clinic, physiotherapy (Yossi, 25.11)
     var sub = k === 'aid' ? NAV_AID[it[4]] : null;
+    // a "parafarmacia" sells without a prescription only - not the same as a pharmacy
+    if (k === 'pharm' && /parafarm/i.test(it[1] || '')) sub = ['💊', 'פארא-פארמה (בלי מרשם)', 'Parafarmacia (no prescriptions)'];
+    // the counters at the Swiss railway stations sell train tickets: "ski pass office" would mislead
+    if (k === 'ticket' && /bahn|billet/i.test(it[1] || '')) sub = ['🚆', 'קופת רכבת', 'railway ticket office'];
     var ico = sub ? sub[0] : nk.ico, kindName = sub ? L(sub[1], sub[2]) : L(nk.he, nk.en);
-    out.push({ id: 'o:' + i, name: ico + ' ' + (it[1] ? it[1] + (sub ? ' · ' + kindName : '') : kindName + (where ? ' · ' + where : '')), en: it[1] || nk.en, ll: [+it[2], +it[3]] });
+    var named = sub ? kindName : one;          // a name alone does not say what the place is
+    out.push({ id: 'o:' + i, name: ico + ' ' + (it[1] ? it[1] + (named ? ' · ' + named : '') : kindName + (where ? ' · ' + where : '')), en: it[1] || nk.en, ll: [+it[2], +it[3]] });
   });
   return out;
 }
