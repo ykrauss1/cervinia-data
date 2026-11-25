@@ -23,7 +23,7 @@ KINDS = [
     ('wc',     lambda t: t.get('amenity') == 'toilets'),
     ('aid',    lambda t: t.get('emergency') in ('first_aid', 'ambulance_station', 'mountain_rescue')
                          or t.get('amenity') in ('first_aid', 'doctors', 'clinic')
-                         or t.get('healthcare') in ('first_aid', 'doctor', 'clinic')),
+                         or t.get('healthcare') in ('first_aid', 'doctor', 'clinic', 'physiotherapist')),
     ('ticket', lambda t: t.get('shop') == 'ticket' or t.get('amenity') == 'ticket_office'
                          or (t.get('vending') or '').find('ticket') >= 0 and t.get('amenity') == 'vending_machine'
                          or 'ski' in (t.get('ticket') or '') or t.get('ski_pass') == 'yes'),
@@ -33,6 +33,26 @@ KINDS = [
     ('atm',    lambda t: t.get('amenity') == 'atm' or (t.get('amenity') == 'bank' and t.get('atm') == 'yes')),
     ('pharm',  lambda t: t.get('amenity') == 'pharmacy' or t.get('healthcare') == 'pharmacy'),
 ]
+
+
+# What kind of medical place it is, so the list can say "doctor" or
+# "physiotherapy" and not only a name (Yossi, 25.11: "medical, but what?")
+def aid_sub(t):
+    em, am, hc = t.get('emergency'), t.get('amenity'), t.get('healthcare')
+    spec = (t.get('healthcare:speciality') or '') + ' ' + (t.get('name') or '')
+    if em == 'mountain_rescue':
+        return 'rescue'
+    if em == 'ambulance_station':
+        return 'ambulance'
+    if hc == 'physiotherapist' or 'physio' in spec.lower():
+        return 'physio'
+    if 'first_aid' in (em, am, hc):
+        return 'first_aid'
+    if am == 'clinic' or hc == 'clinic':
+        return 'clinic'
+    if am == 'doctors' or hc == 'doctor':
+        return 'doctor'
+    return ''
 
 
 def post(url, data, timeout=200):
@@ -52,7 +72,7 @@ def main():
 (
   nwr["amenity"~"^(toilets|first_aid|doctors|clinic|atm|bank|pharmacy|ticket_office|ski_rental|vending_machine)$"]({bb});
   nwr["emergency"~"^(first_aid|ambulance_station|mountain_rescue)$"]({bb});
-  nwr["healthcare"~"^(first_aid|doctor|clinic|pharmacy)$"]({bb});
+  nwr["healthcare"~"^(first_aid|doctor|clinic|pharmacy|physiotherapist)$"]({bb});
   nwr["shop"~"^(ski|ticket|sports)$"]({bb});
   nwr["rental"]({bb});
 );
@@ -91,7 +111,10 @@ out tags center;'''
             if key in seen:
                 break
             seen.add(key)
-            items.append([kind, name, round(lat, 6), round(lon, 6)])
+            row = [kind, name, round(lat, 6), round(lon, 6)]
+            if kind == 'aid':
+                row.append(aid_sub(t))
+            items.append(row)
             break
     items.sort()
     out = {
