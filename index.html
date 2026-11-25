@@ -7964,7 +7964,7 @@ function _geoDestList() {
     // the name and what the lot is - free, paid, the lifts' own (Yossi, 25.11:
     // a bare "Baselli" said nothing)
     var parts = String(r.name || '').replace(/^[^A-Za-z\u0590-\u05ff]+/, '').split(/\s+[—-]\s+/);
-    pk.push({ id: 'k:' + i, name: '🅿️ ' + _geoName(parts[0]) + (parts[1] ? ' · ' + parts.slice(1).join(' – ') : ''), en: parts[0], ll: ll });
+    pk.push({ id: 'k:' + i, name: '🅿️ ' + _geoName(parts[0]) + (parts[1] ? ' · ' + parts.slice(1).join(' – ') : ''), en: parts[0], ll: ll, site: 'parkingModal' });
   });
   add('v', L('🅿️ חניונים', '🅿️ Car parks'), pk);
   // toilets, first aid, rental... (data/poi-*.json, from OpenStreetMap):
@@ -8063,6 +8063,18 @@ function _geoNorm(v) {
 }
 function _geoPickRow(d, extra) {
   var on = GEO.dest && GEO.dest.id === d.id;
+  var row = _geoPickRow1(d, extra, on);
+  if (!d.q && !d.site) return row;
+  // a button cannot hold a link, so they stand side by side: what the site
+  // writes about it, and the place in Google Maps (hours, phone)
+  var ls = 'flex:none;display:flex;align-items:center;padding:0 10px;text-decoration:none;font-size:0.74rem;color:#1a73e8;background:#fff;border:none;border-inline-start:1px solid #f0f3f7;cursor:pointer;font-family:inherit;white-space:nowrap;';
+  return '<div style="display:flex;align-items:stretch;border-bottom:1px solid #f0f3f7;">' + row.replace('style="display:flex;width:100%;', 'style="display:flex;flex:1;min-width:0;width:auto;')
+    + (d.site ? '<button type="button" onclick="geoSiteOpen(\'' + d.site + '\')" title="' + L('מה כתוב על זה באתר', 'What the site says about it') + '" style="' + ls + '">📖 ' + L('באתר', 'On site') + '</button>' : '')
+    + (d.q ? '<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(d.q) + '" target="_blank" rel="noopener"'
+      + ' title="' + L('פרטים ב-Google Maps: שעות, טלפון', 'Details in Google Maps: hours, phone') + '" style="' + ls + '">ℹ️ ' + L('פרטים', 'Info') + '</a>' : '')
+    + '</div>';
+}
+function _geoPickRow1(d, extra, on) {
   return '<button type="button" role="option" aria-selected="' + !!on + '" onclick="geoPickSet(\'' + String(d.id).replace(/'/g, "\\'") + '\')" style="display:flex;width:100%;align-items:baseline;gap:8px;text-align:start;padding:10px 14px;border:none;border-bottom:1px solid #f0f3f7;'
     + 'background:' + (on ? '#e8f0fe' : '#fff') + ';font-family:inherit;font-size:0.86rem;color:#16314f;cursor:pointer;line-height:1.35;' + (on ? 'font-weight:700;' : '') + '">'
     // a Latin name gets a left-to-right box from the page's own bidi pass,
@@ -8375,6 +8387,25 @@ var NAV_EXTRA = [
   ['rental', 'Nol-Ski · Via Bich 2', 45.93600, 7.63065],
   ['rental', 'Sport Center · Piazza Guide Maquignaz', 45.93713, 7.62954]
 ];
+// which town a place is in - a pharmacy "in Zermatt" is a different trip
+// from one in Cervinia (Yossi, 25.11). Within 2.5 km of the centre; up on
+// the mountain the nearest station says it instead.
+var NAV_TOWNS = [
+  ['בצ\'רוויניה', 'in Cervinia', 'Breuil-Cervinia', 45.9340, 7.6300],
+  ['בוולטורננש', 'in Valtournenche', 'Valtournenche', 45.8770, 7.6240],
+  ['בצרמט', 'in Zermatt', 'Zermatt', 46.0207, 7.7491]
+];
+function _navTown(ll) {
+  var best = null, bm = 2500;
+  NAV_TOWNS.forEach(function (t) { var m = _skiDist(ll, [t[3], t[4]]); if (m < bm) { bm = m; best = t; } });
+  return best;
+}
+// where the site itself writes about a kind of place
+var NAV_SITE = { rental: 'rentalModal', ticket: 'skipassModal' };
+function geoSiteOpen(id) {
+  if (_openModalId && _openModalId !== id) closeM(_openModalId);
+  openM(id);
+}
 // what one place of each kind is called, after its name: "UBS · cash machine"
 var NAV_ONE = {
   wc: ['שירותים', 'toilets'], ticket: ['קופת סקי פס / כרטיסים', 'ski pass / ticket office'],
@@ -8395,7 +8426,10 @@ function _navPoi(k) {
   var out = [];
   var one = NAV_ONE[k] ? L(NAV_ONE[k][0], NAV_ONE[k][1]) : '';
   NAV_EXTRA.forEach(function (it, i) {
-    if (it[0] === k) out.push({ id: 'x:' + i, name: nk.ico + ' ' + it[1] + (one ? ' · ' + one : ''), en: it[1], ll: [it[2], it[3]] });
+    if (it[0] !== k) return;
+    var town = _navTown([it[2], it[3]]);
+    out.push({ id: 'x:' + i, name: nk.ico + ' ' + it[1] + (one ? ' · ' + one : ''), en: it[1], ll: [it[2], it[3]], site: NAV_SITE[k],
+               q: it[1].split(' · ')[0] + (town ? ', ' + town[2] : '') });
   });
   (NAV_POI.items || []).forEach(function (it, i) {
     // the same place twice - ours and OpenStreetMap's, or two of the map's
@@ -8424,7 +8458,12 @@ function _navPoi(k) {
     if (k === 'ticket' && /bahn|billet/i.test(it[1] || '')) sub = ['🚆', 'קופת רכבת', 'railway ticket office'];
     var ico = sub ? sub[0] : nk.ico, kindName = sub ? L(sub[1], sub[2]) : L(nk.he, nk.en);
     var named = sub ? kindName : one;          // a name alone does not say what the place is
-    out.push({ id: 'o:' + i, name: ico + ' ' + (it[1] ? it[1] + (named ? ' · ' + named : '') : kindName + (where ? ' · ' + where : '')), en: it[1] || nk.en, ll: [+it[2], +it[3]] });
+    var town = _navTown([+it[2], +it[3]]), tn = town ? L(town[0], town[1]) : '';
+    out.push({ id: 'o:' + i, name: ico + ' ' + (it[1] ? it[1] + (named ? ' · ' + named : '') + (tn ? ' ' + tn : '') : kindName + (where ? ' · ' + where : tn ? ' ' + tn : '')),
+               en: it[1] || nk.en, ll: [+it[2], +it[3]],
+               site: NAV_SITE[k] || (/Traumatologico/i.test(it[1] || '') ? 'parkingModal' : ''),
+               // a named place opens in Google Maps too: opening hours, phone, reviews
+               q: it[1] ? it[1] + (town ? ', ' + town[2] : '') : '' });
   });
   return out;
 }
@@ -8498,7 +8537,7 @@ function geoNear(k) {
   var here = _navHere(), from = here;
   if (!from && GEO.map) { var c = GEO.map.getCenter(); from = [c.lat, c.lng]; }
   if (!from) from = GEO_HOME;
-  var items = _navNearItems(k).map(function (d) { return { id: d.id, name: d.name, en: d.en, ll: d.ll, m: _skiDist(from, d.ll) }; });
+  var items = _navNearItems(k).map(function (d) { return { id: d.id, name: d.name, en: d.en, ll: d.ll, q: d.q, site: d.site, m: _skiDist(from, d.ll) }; });
   items.sort(function (a, b) { return a.m - b.m; });
   items = items.slice(0, 8);
   if (here && SKI.graph) {
