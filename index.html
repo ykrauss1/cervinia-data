@@ -1670,7 +1670,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.99';
+  var v='v19.00';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -9658,12 +9658,73 @@ function _voicePick() {
   }
   return hit.find(function (v) { return v.localService; }) || hit[0] || null;
 }
+// ── how the Hebrew voice says things ──
+// A phone's Hebrew voice reads unpointed words by guessing ("עלה" can be
+// "he went up" or "a leaf") and reads Latin names as if they were English
+// ("Breuil", "Goillet", "Cretaz"). The vocabulary of the guidance is small,
+// so it is spoken from a fixed table: the Hebrew words with their vowel
+// points, and the place names spelled in Hebrew letters the way they are
+// said on the mountain. Only what is spoken changes - the screen keeps the
+// names as they are signposted (Yossi, 25.11).
+var SAY_HE_WORDS = [
+  ['יצאת מהמסלול', 'יָצָאתָ מֵהַמַּסְלוּל'], ['מסלול חדש', 'מַסְלוּל חָדָשׁ'],
+  ['הגעת אל', 'הִגַּעְתָּ אֶל'], ['הדרכה קולית פועלת', 'הַדְרָכָה קוֹלִית פּוֹעֶלֶת'],
+  ['מסלול אל', 'מַסְלוּל אֶל'], ['ראשית', 'רֵאשִׁית'], ['עכשיו', 'עַכְשָׁיו'],
+  ['בעוד', 'בְּעוֹד'], ['מטר', 'מֶטֶר'], ['דקות', 'דַּקּוֹת'],
+  ['עלה ב', 'עֲלֵה בַּ'], ['ירידה ב', 'יְרִידָה בַּ'], ['הליכה', 'הֲלִיכָה'],
+  ['רכבל כיסאות', 'רַכֶּבֶל כִּסְאוֹת'], ['מעלית גרירה', 'מַעֲלִית גְּרִירָה'],
+  ['רכבל', 'רַכֶּבֶל'], ['גונדולה', 'גּוֹנְדּוֹלָה'], ['מסוע', 'מַסּוֹעַ'], ['פוניקולר', 'פוּנִיקוּלָר'],
+  ['רכבת', 'רַכֶּבֶת'], ['מעלית', 'מַעֲלִית'], ['מסלול', 'מַסְלוּל'],
+  ['כחול', 'כָּחֹל'], ['אדום', 'אָדֹם'], ['שחור', 'שָׁחֹר']
+];
+// whole words, as they are said there (Italian, French, Swiss German)
+var SAY_HE_NAMES = {
+  'cervinia': 'צֶ\'רְוִוינְיָה', 'cervino': 'צֶ\'רְוִוינוֹ', 'breuil': 'בְּרוֹי', 'valtournenche': 'וַלְטוּרְנֵנְשׁ',
+  'plan': 'פְּלָאן', 'maison': 'מֵזוֹן', 'plateau': 'פְּלָטוֹ', 'rosa': 'רוֹזָה', 'testa': 'טֶסְטָה', 'grigia': 'גְּרִיגָ\'ה',
+  'cime': 'צִ\'ימֶה', 'bianche': 'בְּיָאנְקֶה', 'laghi': 'לָאגִי', 'lago': 'לָאגוֹ', 'cretaz': 'קְרֵטָז',
+  'cieloalto': 'צֶ\'לוֹ אַלְטוֹ', 'goillet': 'גּוֹיֶה', 'ventina': 'וֶנְטִינָה', 'bontadini': 'בּוֹנְטָדִינִי',
+  'pancheron': 'פַּנְשְׁרוֹן', 'fornet': 'פוֹרְנֶה', 'gran': 'גְּרָאן', 'sometta': 'סוֹמֶטָּה', 'bardoney': 'בַּרְדוֹנֵיי',
+  'chamois': 'שָׁמוּאָה', 'chateau': 'שָׁאטוֹ', 'gaspard': 'גַּסְפָּאר', 'salette': 'סָלֶט', 'motta': 'מוֹטָּה',
+  'baracon': 'בָּרָקוֹן', 'pirovano': 'פִּירוֹבָנוֹ', 'sigari': 'סִיגָרִי', 'rocce': 'רוֹצֶ\'ה', 'nere': 'נֵרֶה',
+  'nera': 'נֵרָה', 'pista': 'פִּיסְטָה', 'muro': 'מוּרוֹ', 'europa': 'אֵירוֹפָּה', 'gobba': 'גּוֹבָּה', 'rollin': 'רוֹלִין',
+  'reine': 'רֵן', 'baby': 'בֵּייבִּי', 'bis': 'בִּיס', 'colle': 'קוֹלֶה', 'del': 'דֶל', 'dei': 'דֵי', 'della': 'דֶלָּה',
+  'theodul': 'טֵאוֹדוּל', 'theodulgletscher': 'טֵאוֹדוּל גְּלֶטְשֶׁר', 'theodulo': 'טֵאוֹדוּלוֹ', 'zermatt': 'צֶרְמָט',
+  'furgg': 'פוּרְג', 'furggsattel': 'פוּרְג זָטֶל', 'furi': 'פוּרִי', 'trockener': 'טְרוֹקֶנֶר', 'steg': 'שְׁטֶג',
+  'matterhorn': 'מָטֶרְהוֹרְן', 'glacier': 'גְּלֵייסְיֶר', 'paradise': 'פָּרָדַייס', 'express': 'אֶקְסְפְּרֶס',
+  'klein': 'קְלַיין', 'sunnegga': 'סוּנֶגָּה', 'blauherd': 'בְּלָאוּהֶרְד', 'rothorn': 'רוֹטְהוֹרְן',
+  'gornergrat': 'גּוֹרְנֶרְגְרָאט', 'breithorn': 'בְּרַייטְהוֹרְן', 'gandegg': 'גַּאנְדֶג', 'stockhorn': 'שְׁטוֹקְהוֹרְן',
+  'riffelberg': 'רִיפֶלְבֶּרְג', 'riffelalp': 'רִיפֶלְאַלְפּ', 'rotenboden': 'רוֹטֶנְבּוֹדֶן', 'gant': 'גַּאנְט',
+  'hohtälli': 'הוֹטֶלִי', 'hörnli': 'הֶרְנְלִי', 'gletscherbahn': 'גְּלֶטְשֶׁרְבָּאן', 'ride': 'רַייד'
+};
+function _sayHe(text) {
+  var t = String(text);
+  t = t.replace(/[A-Za-zÀ-ÿ]+/g, function (w) { var h = SAY_HE_NAMES[w.toLowerCase()]; return h || w; });
+  SAY_HE_WORDS.forEach(function (p) { t = t.split(p[0]).join(p[1]); });
+  return t;
+}
+// to hear it before the mountain: every word of the guidance, one after another
+function voiceSample() {
+  var lines = [
+    'מסלול אל Plateau Rosa, כ־25 דקות. ראשית: עלה ברכבל כיסאות Bontadini',
+    'בעוד 150 מטר: מסלול 7 Ventina, אדום',
+    'עכשיו: ירידה ברכבל Cime Bianche Laghi',
+    'מסלול 5 Cretaz, כחול', 'עלה במעלית גרירה Plan Maison', 'הליכה 120 מטר',
+    'יצאת מהמסלול. מסלול חדש.', 'הגעת אל Breuil-Cervinia',
+    'Testa Grigia · Goillet · Cieloalto · Pancheron · Fornet · Gran Sometta · Bardoney · Valtournenche',
+    'Trockener Steg · Furggsattel · Theodulgletscher · Matterhorn Glacier Paradise · Zermatt'
+  ];
+  var was = VOICE.on; VOICE.on = true;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  lines.forEach(function (l) { voiceSay(l, false); });
+  VOICE.on = was;
+}
+
 function voiceSay(text, urgent) {
   if (!VOICE.on || !window.speechSynthesis || !text) return;
   if (L(true, false) && VOICE.noHe && !VOICE.en && !VOICE.enSaid) return;   // waiting for "in English instead?"
   try {
     if (urgent) speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(text);
+    var u = new SpeechSynthesisUtterance(_voiceEn() ? text : _sayHe(text));
     u.lang = _voiceEn() ? 'en-US' : 'he-IL';
     var v = _voicePick();
     if (v) u.voice = v;
@@ -10236,7 +10297,8 @@ PHELP.text = {
     + '1. <b>🔍 לאן?</b> בחר לאן אתה רוצה להגיע: מעלית, בקתה, מסלול או מקום בכפר. האתר יראה את הדרך מהמקום שלך, במסלולים ובמעליות.<br>'
     + '2. <b>רמה:</b> בחר עד איזה צבע מסלול הדרך מותרת. "רק כחולים" לא ישלח אותך לאדום.<br>'
     + '3. <b>לרדת גם בקבינות:</b> סמן אם נוח לך לרדת ברכבל או בגונדולה במקום לגלוש למטה.<br>'
-    + '4. <b>🔈 הדרכה קולית:</b> הוראות בקול בזמן הגלישה, כמו בניווט ברכב.<br>'
+    + '4. <b>🔈 הדרכה קולית:</b> הוראות בקול בזמן הגלישה, כמו בניווט ברכב. '
+    + '<button type="button" onclick="voiceSample()" style="padding:2px 9px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.74rem;">▶ שמע דוגמה</button><br>'
     + '5. <b>📍 הצג את המיקום שלי</b> (למטה): המיקום מתעדכן לבד, ונשאר במכשיר שלך.<br>'
     + '6. <b>⏱️</b> תכנון לפי זמן: כמה אפשר להספיק, ומתי לצאת כדי לחזור בזמן.<br>'
     + '7. <b>👥</b> חברים: לראות על המפה איפה החברים מהקבוצה שלך.<br>'
@@ -10245,7 +10307,8 @@ PHELP.text = {
     + '1. <b>🔍 Where to?</b> Choose where you want to get: a lift, a hut, a run or a place in the village. The site shows the way from where you are, by runs and lifts.<br>'
     + '2. <b>Level:</b> the hardest run colour the way may use. "Blue runs only" will not send you down a red.<br>'
     + '3. <b>Ride down in cabins:</b> tick it if you would rather ride a cable car or gondola down than ski.<br>'
-    + '4. <b>🔈 Voice guidance:</b> spoken directions while you ski, as in a car.<br>'
+    + '4. <b>🔈 Voice guidance:</b> spoken directions while you ski, as in a car. '
+    + '<button type="button" onclick="voiceSample()" style="padding:2px 9px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.74rem;">▶ Hear a sample</button><br>'
     + '5. <b>📍 Show my location</b> (below): it updates by itself, and stays on your device.<br>'
     + '6. <b>⏱️</b> Planning by time: how much you can fit in, and when to leave to be back in time.<br>'
     + '7. <b>👥</b> Friends: see where the people in your group are on the map.<br>'
