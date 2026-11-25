@@ -9694,7 +9694,10 @@ var SAY_HE_NAMES = {
   'klein': 'קְלַיין', 'sunnegga': 'סוּנֶגָּה', 'blauherd': 'בְּלָאוּהֶרְד', 'rothorn': 'רוֹטְהוֹרְן',
   'gornergrat': 'גּוֹרְנֶרְגְרָאט', 'breithorn': 'בְּרַייטְהוֹרְן', 'gandegg': 'גַּאנְדֶג', 'stockhorn': 'שְׁטוֹקְהוֹרְן',
   'riffelberg': 'רִיפֶלְבֶּרְג', 'riffelalp': 'רִיפֶלְאַלְפּ', 'rotenboden': 'רוֹטֶנְבּוֹדֶן', 'gant': 'גַּאנְט',
-  'hohtälli': 'הוֹטֶלִי', 'hörnli': 'הֶרְנְלִי', 'gletscherbahn': 'גְּלֶטְשֶׁרְבָּאן', 'ride': 'רַייד'
+  'hohtälli': 'הוֹטֶלִי', 'hörnli': 'הֶרְנְלִי', 'gletscherbahn': 'גְּלֶטְשֶׁרְבָּאן', 'ride': 'רַייד',
+  'ghiacciaio': 'גְּיָאצָ\'יוֹ', 'rientro': 'רִיֶנְטְרוֹ', 'raccordo': 'רָקוֹרְדוֹ', 'variante': 'וָרְיָאנְטֶה',
+  'canalino': 'קָנָלִינוֹ', 'larici': 'לָרִיצִ\'י', 'marmotte': 'מַרְמוֹטֶה', 'marmotta': 'מַרְמוֹטָה',
+  'tappeto': 'טָפֶּטוֹ', 'seggiovia': 'סֶגִ\'וֹבְיָה', 'funivia': 'פוּנִיבְיָה', 'telecabina': 'טֶלֶקָבִּינָה'
 };
 function _sayHe(text) {
   var t = String(text);
@@ -9725,6 +9728,7 @@ function voiceSay(text, urgent) {
   try {
     if (urgent) speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(_voiceEn() ? text : _sayHe(text));
+    u.plain = text;                       // what it says, before the pointing (selfcheck reads it)
     u.lang = _voiceEn() ? 'en-US' : 'he-IL';
     var v = _voicePick();
     if (v) u.voice = v;

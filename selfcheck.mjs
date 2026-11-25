@@ -2642,10 +2642,10 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
 {
   const r = await page.evaluate(async (graph) => {
     _skiUse(graph);
-    const said = [];
+    const said = [], spoken = [];
     const real = Object.getOwnPropertyDescriptor(window, 'speechSynthesis');
     Object.defineProperty(window, 'speechSynthesis', { configurable: true,
-      value: { speak(u) { said.push(u.text); }, cancel() {}, getVoices() { return [{ lang: 'he-IL', localService: true }]; } } });
+      value: { speak(u) { said.push(u.plain || u.text); spoken.push(u.text); }, cancel() {}, getVoices() { return [{ lang: 'he-IL', localService: true }]; } } });
     const RealU = window.SpeechSynthesisUtterance;
     window.SpeechSynthesisUtterance = function (t) { this.text = t; };
     try {
@@ -2658,7 +2658,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       // walk the route a point at a time
       const g = SKI.graph;
       route.edges.forEach(ei => _skiGeom(g.edges[ei]).forEach(q => _voiceStep(route, steps, _skiTrack(route, q), q, 'new')));
-      return { said, steps: steps.length };
+      return { said, spoken, steps: steps.length };
     } finally {
       VOICE.on = false; GEO.dest = null;
       window.SpeechSynthesisUtterance = RealU;
@@ -2670,6 +2670,11 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const ahead = r.said.filter(t => /^בעוד \d+ מטר: /.test(t)).length;
   if (ahead < r.steps - 1) fail(T, `${ahead} steps announced ahead, of ${r.steps - 1}`); else ok();
   if (r.said.some(t => /undefined|NaN|null/.test(t))) fail(T, 'a broken announcement: ' + r.said.find(t => /undefined|NaN|null/.test(t))); else ok();
+  // what the phone actually says: pointed Hebrew, and no name left in Latin
+  // letters for the Hebrew voice to read as English (Yossi, 25.11)
+  if (!r.spoken.length || !r.spoken.every(t => /[\u05B0-\u05BC]/.test(t))) fail(T, 'spoken without vowel points: ' + r.spoken[0]); else ok();
+  const latin = r.spoken.filter(t => /Ventina|Cervinia|Plateau|Bontadini|Cretaz/.test(t));
+  if (latin.length) fail(T, 'a known name still in Latin letters: ' + latin[0]); else ok();
 }
 
 // ── the navigation in full screen: search, the nearest, Escape ──────────
