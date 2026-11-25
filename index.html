@@ -1661,7 +1661,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.93';
+  var v='v18.94';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4218,27 +4218,9 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
             למטה יש ארונות מחוממים — €8 ליום לארון שמכיל את הציוד של שני מבוגרים.
             <div style="font-size:0.74rem;color:#777;margin-top:4px;">🕐 08:00–19:00 ברצף, לפי האתר שלהם.</div>
           </div>
-          <!-- The 20% coupon for Ski 2.0, season 2026/27 (the Dereh Haski
-           "Cervinia for skiers 2027" coupon, sent by the site owner on
-           25/11/2026). The picture is a file, not base64, and loads only when
-           the rental panel is shown. data-until hides it after the season's last
-           day; then remove this box
-           and img/coupon-ski20-2027.jpg together. -->
-          <div class="coupon-box" data-until="2027-05-02" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid #3dbfa0;border-radius:10px;margin-bottom:10px;background:#f0fffc;">
-            <img src="img/coupon-ski20-2027.jpg" loading="lazy" width="72" height="102" alt="קופון הנחה 20% ל-Ski 2.0" data-en-alt="20% discount coupon for Ski 2.0"
-              onclick="openImg(this.src)" title="לחץ להגדלה" data-en-title="Tap to enlarge"
-              style="width:72px;height:auto;border-radius:7px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
-            <div style="flex:1;min-width:0;">
-              <div style="font-weight:bold;font-size:0.88rem;color:#2a9d8f;margin-bottom:3px;" data-en="🎟️ 20% discount coupon">🎟️ קופון הנחה 20%</div>
-              <div style="font-size:0.75rem;color:#555;margin-bottom:8px;" data-en="On ski and snowboard rental, clothing and lockers. From Dereh Haski, for the 2026/27 season. Show it at the shop.">על השכרת ציוד סקי וסנובורד, על הביגוד ועל הלוקרים. של דרך הסקי (Dereh Haski), לעונת 2026/27. מציגים אותו בחנות.</div>
-              <div style="display:flex;gap:7px;flex-wrap:wrap;">
-                <button type="button" onclick="openImg('img/coupon-ski20-2027.jpg')"
-                  style="padding:6px 12px;border:1.5px solid #3dbfa0;background:white;color:#2a9d8f;border-radius:7px;font-size:0.78rem;font-weight:bold;cursor:pointer;" data-en="🔍 Enlarge">🔍 הגדל</button>
-                <a href="img/coupon-ski20-2027.jpg" download="Ski2.0-coupon-20.jpg"
-                  style="padding:6px 12px;background:#3dbfa0;color:white;border-radius:7px;font-size:0.78rem;font-weight:bold;text-decoration:none;" data-en="📥 Download">📥 הורד</a>
-              </div>
-            </div>
-          </div>
+          <!-- The Ski 2.0 coupon for 2026/27 (img/coupon-ski20-2027.jpg, commit
+           of 25/11/2026) was taken down the same day: Yossi is asking the shop
+           first. To bring it back, restore that box and picture from git. -->
                     <div style="display:flex;gap:8px;">
             <a href="https://nolski.it/20skirental" target="_blank"
               style="padding:6px 12px;background:#1a73e8;color:white;border-radius:7px;text-decoration:none;font-size:0.78rem;font-weight:bold;" data-en="🌐 Website">🌐 אתר</a>
