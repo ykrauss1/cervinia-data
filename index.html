@@ -1661,7 +1661,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v18.89';
+  var v='v18.90';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4844,6 +4844,7 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       <button id="place-tab-why" class="ttab-btn ttab-active" style="flex:1;" onclick="placeTab('why')" data-en="💡 Why here">💡 למה כאן</button>
       <button id="place-tab-map" class="ttab-btn" style="flex:1;" onclick="placeTab('map')" data-en="🗺️ On the map">🗺️ על המפה</button>
       <button id="place-tab-photos" class="ttab-btn" style="flex:1;" onclick="placeTab('photos')" data-en="📸 Photos">📸 תמונות</button>
+      <button id="place-tab-videos" class="ttab-btn" style="flex:1;" onclick="placeTab('videos')" data-en="🎬 Videos">🎬 סרטונים</button>
     </div>
     <!-- "Why Cervinia" lived in a modal of its own; it is one tab here now
          (Yossi, 24.11). Its content is moved in on load, so the ids that
@@ -4870,6 +4871,12 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
       <div style="font-weight:bold;font-size:0.92rem;margin:4px 0 8px;" data-en="🏔️ Around Cervinia">🏔️ מסביב לצ'רוויניה</div>
       <div id="place-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;"></div>
       <div style="font-size:0.72rem;color:#888;margin-top:10px;" data-en="The photos are from Wikimedia Commons, under the licence shown on each; a tap on the credit opens the source.">התמונות מ-Wikimedia Commons, ברישיון שמופיע ליד כל אחת; לחיצה על שם הצלם פותחת את המקור.</div>
+    </div>
+    <div id="place-panel-videos" style="display:none;">
+      <!-- Every video here was watched and approved by Yossi before it went in
+           (25.11). A still picture first; the player loads only on a tap. -->
+      <div id="place-videos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;"></div>
+      <div style="font-size:0.72rem;color:#888;margin-top:10px;" data-en="The videos play from YouTube.">הסרטונים מתנגנים מיוטיוב.</div>
     </div>
   </div>
 </div>
@@ -7356,6 +7363,7 @@ function closeM(id) {
   // next reader finds a panel with somebody else's word lit up in it.
   if (typeof clearSearchMarks === 'function') clearSearchMarks();
   const m = document.getElementById(id); if (m) m.style.display = 'none';
+  if (id === 'placeModal' && typeof placeVideosStop === 'function') placeVideosStop();   // a hidden player goes on playing
   var b = document.getElementById('modal-float-x'); if (b) b.classList.remove('on');
   if (_openModalId === id) _openModalId = null;
   var back = _modalReturn[id];
@@ -15694,12 +15702,47 @@ function placeTab(t) {
   PLACE.tab = t;
   var intro = document.getElementById('place-intro');
   if (intro) intro.style.display = t === 'map' ? 'block' : 'none';
-  ['why', 'map', 'photos'].forEach(function (k) {
+  ['why', 'map', 'photos', 'videos'].forEach(function (k) {
     var b = document.getElementById('place-tab-' + k), p = document.getElementById('place-panel-' + k);
     if (b) b.classList.toggle('ttab-active', k === t);
     if (p) p.style.display = k === t ? 'block' : 'none';
   });
-  if (t === 'map') placeMap(); else if (t === 'photos') placePhotos();
+  if (t !== 'videos') placeVideosStop();
+  if (t === 'map') placeMap(); else if (t === 'photos') placePhotos(); else if (t === 'videos') placeVideos();
+}
+// [YouTube id, Hebrew title, English title, who made it]
+PLACE.videos = [
+  ['LQWYZ-hb3DM', 'בעיני הגולש: מסלולים 38, 37, 7, 13, 16 ו-Ventina', "Skier's eye view: runs 38, 37, 7, 13, 16 and Ventina", ''],
+  ['Ott7LKZ9Fw4', 'אחרי שלג טרי: מ-Plan Maison במסלולי 6', 'After fresh snow: from Plan Maison down the 6 runs', ''],
+  ['nxFqVb40gak', 'הרכבל בין צרמט לצ\'רוויניה (Matterhorn Alpine Crossing)', 'The cable car between Zermatt and Cervinia (Matterhorn Alpine Crossing)', 'Zermatt Bergbahnen']
+];
+function placeVideos() {
+  var box = document.getElementById('place-videos');
+  if (!box || box.dataset.done) return;
+  box.dataset.done = '1';
+  box.innerHTML = PLACE.videos.map(function (v) {
+    var t = L(v[1], v[2]);
+    return '<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#fff;">'
+      + '<button type="button" class="vid-play" data-id="' + v[0] + '" onclick="placeVideoPlay(this)" aria-label="' + escHtml(L('נגן: ', 'Play: ') + t) + '"'
+      + ' style="display:block;position:relative;width:100%;aspect-ratio:16/9;padding:0;border:none;cursor:pointer;background:#0b1a2b url(https://i.ytimg.com/vi/' + v[0] + '/hqdefault.jpg) center/cover;">'
+      + '<span style="position:absolute;inset:0;margin:auto;width:58px;height:40px;border-radius:10px;background:rgba(200,20,20,0.9);color:#fff;font-size:1.2rem;display:flex;align-items:center;justify-content:center;">▶</span>'
+      + '</button>'
+      + '<div style="padding:8px 10px;font-size:0.8rem;line-height:1.5;"><b>' + escHtml(t) + '</b>'
+      + (v[3] ? '<div style="color:#888;font-size:0.72rem;">' + escHtml(v[3]) + '</div>' : '') + '</div></div>';
+  }).join('');
+}
+function placeVideosStop() {
+  var box = document.getElementById('place-videos');
+  if (box && box.querySelector('iframe')) { delete box.dataset.done; box.innerHTML = ''; }
+}
+function placeVideoPlay(btn) {
+  var f = document.createElement('iframe');
+  f.src = 'https://www.youtube-nocookie.com/embed/' + btn.dataset.id + '?autoplay=1&rel=0';
+  f.title = btn.getAttribute('aria-label') || '';
+  f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+  f.allowFullscreen = true;
+  f.style.cssText = 'display:block;width:100%;aspect-ratio:16/9;border:0;';
+  btn.replaceWith(f);
 }
 function placeOpen(t) { if (t) PLACE.tab = t; openM('placeModal'); }
 // the content of the old "why Cervinia" modal becomes the first tab
