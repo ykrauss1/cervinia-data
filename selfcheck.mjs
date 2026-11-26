@@ -5641,6 +5641,40 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `the zmanim show ${r.zmanimDrawn} drawn candles`); else ok();
 }
 
+// ── a closed run is not on the way ────────────────────────────────────
+// A season worker, 26.11: "the map implies that all pistes are open; the
+// black 24bis is often not". The feed's runs (lifts_detail.pistes) close a
+// run on the Italian side when it is missing or marked closed; a Swiss run
+// the feed does not name stays unknown; and a run numbered differently on
+// the map from the feed ("35" for a stretch of the Ventina) is matched by
+// its name rather than closed.
+{
+  const r = await page.evaluate(async () => {
+    const g = await _skiLoad();
+    const keep = window._liveRow, now = new Date().toISOString();
+    const feeds = [...new Set(g.ways.filter(w => w.feed).map(w => w.feed))];
+    window._liveRow = { updated_at: now, lifts_detail: { at: now, lifts: feeds.map(f => ['C', f, 'O', '']),
+      pistes: ['26 rocce nere 1', '6 teodulo-bontadini', '7 ventina-cime bianche laghi', '80 testa grigia'].map(n => ['C', n, n.startsWith('6 ') ? 'F' : 'O', '']) } };
+    const st = (ref, name) => { const i = g.ways.findIndex(w => w.k === 'p' && w.ref === ref && w.name === name); return i < 0 ? 'missing' : skiRunState(g.ways[i], i); };
+    const out = {
+      v24bis: st('24bis', 'Variante Pancheron'), v26: st('26', 'Rocce Nere 1'), v6: st('6', 'Plateau Rosa - Bontadini'),
+      v35: st('35', 'Ventina - Colle Cime Bianche'), v71: st('71', 'Theodulgletscher'), v80: st('80', 'Testa Grigia')
+    };
+    SKI.ignoreLive = false;
+    const rt = skiRoute([45.93447, 7.70765], [45.93428, 7.63366], 3);
+    out.usesClosed = !!rt && rt.edges.some(i => { const e = g.edges[i], w = e[2] >= 0 ? g.ways[e[2]] : null; return w && w.k === 'p' && skiRunState(w, e[2]) === 'closed'; });
+    window._liveRow = keep;
+    delete (keep && keep.lifts_detail || {})._runs;
+    return out;
+  });
+  const T = 'a closed run is not on the way';
+  if (r.v24bis !== 'closed') fail(T, '24bis, missing from the feed, reads ' + r.v24bis); else ok();
+  if (r.v26 !== 'open' || r.v6 !== 'closed') fail(T, `26 ${r.v26}, 6 ${r.v6}`); else ok();
+  if (r.v35 !== 'open') fail(T, 'the Ventina stretch numbered 35 reads ' + r.v35); else ok();
+  if (r.v71 !== 'unknown' || r.v80 !== 'open') fail(T, `Swiss runs: 71 ${r.v71}, 80 ${r.v80}`); else ok();
+  if (r.usesClosed) fail(T, 'the way from Testa Grigia to Breuil takes a closed run'); else ok();
+}
+
 // ── nothing offers a coupon that has expired ─────────────────────────
 // The Ski 2.0 discount of 2025/26 was taken out when it ran out, and a
 // badge reading "discount coupon" stayed behind on the card. A coupon is

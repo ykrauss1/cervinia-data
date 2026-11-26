@@ -246,6 +246,9 @@ async function scrape() {
     if (lifts_detail) {
       lifts_detail.at = new Date().toISOString();
       console.log('Lifts one by one:', lifts_detail.lifts.map(l => l[1] + '=' + l[2]).join(', '));
+      // the runs too: the router closes a run by these (26.11), and the log is
+      // where to check that a name on the map still matches a name here
+      console.log('Runs one by one:', (lifts_detail.pistes || []).map(r => r[0] + ':' + r[1] + '=' + r[2]).join(', '));
     } else {
       console.log('LIFTS ONE BY ONE NOT FOUND');
     }

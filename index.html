@@ -1670,7 +1670,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.07';
+  var v='v19.08';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -8432,7 +8432,13 @@ function _geoBearing(a, b) {
   return (Math.atan2(y, x) / r + 360) % 360;
 }
 // the panel as before, then the full-screen card, sheet and buttons
-function _geoDestPaint() { _geoDestPaint0(); try { _navPaint(); } catch (e) {} }
+function _geoDestPaint() {
+  _geoDestPaint0(); try { _navPaint(); } catch (e) {}
+  try {
+    if (SKI.graph) _skiClosedDraw();
+    else if (_skiLive() && GEO.map) _skiLoad().then(_skiClosedDraw, function () {});
+  } catch (e) {}
+}
 function _geoDestPaint0() {
   var info = document.getElementById('map-geo-dest-info');
   var x = document.getElementById('map-geo-dest-x');
@@ -8573,14 +8579,17 @@ function _geoDestPaint0() {
   if (!steps.length) steps = [{ kind: 'walk', i: 0, village: true, m: Math.round(m) }];
   if (VOICE.on) { _wakeOn(); _voiceStep(SKI.route, steps, _skiTrack(SKI.route, here), here, why); }
   var live = _skiLive();
-  var shut = steps.filter(function (st) { return st.kind === 'lift' && /^(closed|later)$/.test(skiLiftState(SKI.graph.ways[st.way])); });
+  var shut = steps.filter(function (st) {
+    return st.kind === 'lift' ? /^(closed|later)$/.test(skiLiftState(SKI.graph.ways[st.way]))
+         : st.kind === 'run' && st.way >= 0 ? /^(closed|later)$/.test(skiRunState(SKI.graph.ways[st.way], st.way)) : false;
+  });
   var warn = SKI.closedRoute && shut.length
     ? '<div style="margin:4px 0;padding:5px 8px;border-radius:7px;background:#fdecea;color:#a3271b;">⛔ '
       + ((SKI.alts || []).some(function (a) { return !a.closed; })
-          ? L('בדרך הזאת יש מעליות שסגורות עכשיו: ', 'This way takes lifts that are closed now: ')
-          : L('אין כרגע דרך עם המעליות שפועלות. זו הדרך כשהן פועלות, והמעליות האלה סגורות עכשיו: ',
-              'No way right now with the lifts that are running. This is the way when they run, and these are closed now: '))
-      + shut.map(function (st) { return escHtml(st.name || ''); }).join(', ') + '</div>'
+          ? L('בדרך הזאת יש מעליות או מסלולים שסגורים עכשיו: ', 'This way takes lifts or runs that are closed now: ')
+          : L('אין כרגע דרך במעליות ובמסלולים הפתוחים. זו הדרך כשהם פתוחים, ואלה סגורים עכשיו: ',
+              'No way right now on the lifts and runs that are open. This is the way when they are, and these are closed now: '))
+      + shut.map(function (st) { return escHtml(st.kind === 'run' ? (L('מסלול ', 'run ') + (st.ref || '') + (st.name ? ' ' + st.name : '')).trim() : (st.name || '')); }).join(', ') + '</div>'
     : '';
   var liveNote = live
     ? L('מצב המעליות: מהאתר הרשמי, לפני ' + Math.max(1, Math.round(live._age)) + ' דק\'. ',
@@ -9098,7 +9107,9 @@ function _navStepHtml(s) {
       + (ls === 'closed' ? ' · ⛔ ' + L('סגורה', 'closed') : '');
   }
   if (s.kind === 'walk') return s.village ? L('הליכה בכפר', 'Walk through the village') : L('הליכה', 'Walk');
-  return L('מסלול', 'Run') + (s.ref ? ' ' + esc(s.ref) : '') + (s.name ? ' <bdi>' + esc(s.name) + '</bdi>' : '') + ' ' + SKI_DOT[s.d];
+  var rs = s.way >= 0 ? skiRunState(SKI.graph.ways[s.way], s.way) : 'unknown';
+  return L('מסלול', 'Run') + (s.ref ? ' ' + esc(s.ref) : '') + (s.name ? ' <bdi>' + esc(s.name) + '</bdi>' : '') + ' ' + SKI_DOT[s.d]
+    + (rs === 'closed' ? ' · ⛔ ' + L('סגור', 'closed') : '');
 }
 // the round buttons stand clear of the sheet and of the map's credit line
 function _navLayout() {
@@ -9471,6 +9482,125 @@ function skiLiftState(w) {
   return w.cov ? 'closed' : 'unknown';
 }
 
+// ── whether a run is open today ──
+// The same official feed that gives each lift's state gives each run's
+// (lifts_detail.pistes: [sector, name, state, level]), and since 26.11 the
+// router reads it too - a skier who knows the mountain: "the map implies all
+// pistes are open; the black 24bis often is not". The feed names a run by
+// its number and a name of its own ("26 rocce nere 1", "6 bassa"), so a run
+// on the map is matched by its number, and where two runs on the map share a
+// number (Plan Torrette and Motta are both 4) by the words of the name too.
+// The feed lists only the runs in service this period: inside the area it
+// covers, a run missing from it is not open. Outside it (most of Zermatt)
+// a run the feed does not name has no known state.
+function _skiRunNorm(t) {
+  return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9.]+/g, ' ').trim();
+}
+function _skiRunSplit(name) {
+  var m = /^([0-9]+(?:\.[0-9]+)?(?:bis|[a-z])?)\b\s*(.*)$/.exec(_skiRunNorm(name));
+  return m ? [m[1], m[2]] : ['', _skiRunNorm(name)];
+}
+function _skiRunWords(t) {
+  // words shared by many runs say nothing about which run it is
+  return _skiRunNorm(t).split(' ').filter(function (x) {
+    return x.length >= 4 && !/^(pista|piste|plan|cervinia|gran|grande|bianche|bianca|rosa|plateau|cime|alpe|baby|testa|lago|laghi|colle|variante|bassa|alta|diretta)$/.test(x);
+  });
+}
+function _skiRunIdx(d) {
+  if (d._runs !== undefined) return d._runs;
+  d._runs = null;
+  if (!Array.isArray(d.pistes) || d.pistes.length < 3) return null;
+  var by = {}, all = [];
+  d.pistes.forEach(function (r) {
+    var sp = _skiRunSplit(r[1]), row = { words: _skiRunWords(sp[1]), st: _skiCode(r[2]) };
+    all.push(row);
+    if (sp[0]) (by[sp[0]] = by[sp[0]] || []).push(row);
+  });
+  by._all = all;
+  return (d._runs = by);
+}
+var SKI_RUN_RANK = { open: 3, later: 2, closed: 1, unknown: 0 };
+function _skiWayIn(g, i) {
+  // whether a way lies inside the box the feed covers (worked out once per way)
+  g._in = g._in || {};
+  if (g._in[i] !== undefined) return g._in[i];
+  var box = SKI_RUN_BOX, la = 0, lo = 0, n = 0;
+  (g._wayEdges || (g._wayEdges = (function () { var m = {}; g.edges.forEach(function (e, k) { if (e[2] >= 0) (m[e[2]] = m[e[2]] || []).push(k); }); return m; })()))[i]
+    && g._wayEdges[i].forEach(function (k) { var nd = g.nodes[g.edges[k][0]]; la += nd[0]; lo += nd[1]; n++; });
+  return (g._in[i] = n > 0 && la / n >= box[0] && la / n <= box[2] && lo / n >= box[1] && lo / n <= box[3]);
+}
+// The Italian side's runs, Breuil-Cervinia and Valtournenche, by where a run's
+// middle lies: west of 7.700 and south of 45.965. The Swiss runs by the
+// border all lie east of 7.704 (Testa Grigia, Ventina Glacier, Furggsattel,
+// Theodulgletscher): the feed names some of them, and one it does not name
+// is unknown, not closed.
+var SKI_RUN_BOX = [45.86, 7.58, 45.965, 7.700];
+// Closed runs drawn over the map: grey and dashed, so it is plain what is not
+// open today. Drawn again only when the feed's reading changes.
+function _skiClosedDraw() {
+  var lf = window.Leaflet, g = SKI.graph, d = _skiLive();
+  if (!lf || !GEO.map || !g) return;
+  var sig = d && d.pistes ? String(d.at || '') + (SIM.on ? 's' : '') : '';
+  if (GEO.closedSig === sig && GEO.closedOn === GEO.map) return;
+  GEO.closedSig = sig; GEO.closedOn = GEO.map;
+  if (GEO.closedRuns) { try { GEO.map.removeLayer(GEO.closedRuns); } catch (e) {} GEO.closedRuns = null; }
+  if (!sig || !_skiRunIdx(d)) return;
+  var grp = lf.layerGroup(), n = 0;
+  g.edges.forEach(function (e) {
+    if (e[4] !== 's' && e[4] !== 'f') return;
+    var w = e[2] >= 0 ? g.ways[e[2]] : null;
+    if (!w || w.k !== 'p' || skiRunState(w, e[2]) !== 'closed') return;
+    lf.polyline(_skiGeom(e), { color: '#5f6368', weight: 6, opacity: 0.55, dashArray: '3 7', lineCap: 'butt', interactive: false }).addTo(grp);
+    n++;
+  });
+  if (n) { GEO.closedRuns = grp.addTo(GEO.map); try { if (SKI.layer) SKI.layer.eachLayer(function (l) { if (l.bringToFront) l.bringToFront(); }); } catch (e) {} }
+}
+function skiRunState(w, wi) {
+  if (!w || w.k !== 'p') return 'unknown';
+  var d = _skiLive(), idx = d && _skiRunIdx(d), g = SKI.graph;
+  if (!idx || !g) return 'unknown';
+  var inside = wi !== undefined && _skiWayIn(g, wi);
+  var refs = String(w.ref || '').toLowerCase().split('/').map(function (r) { return r.replace(/\s+/g, ''); }).filter(Boolean);
+  if (!refs.length) return 'unknown';          // a stretch with no number: nothing to match it by
+  var mine = _skiRunWords(w.name), best = 'unknown', seen = false;
+  refs.forEach(function (ref) {
+    var rows = idx[ref];
+    if (!rows) return;
+    seen = true;
+    // rows whose name shares a word with this run's name decide; if none
+    // does, the number alone does - unless another run on the map with
+    // this number is the one the feed's names point at
+    var named = rows.filter(function (r) { return r.words.some(function (x) { return mine.indexOf(x) >= 0; }); });
+    var use = named.length ? named : (_skiRunOther(g, ref, rows, w) ? [] : rows);
+    use.forEach(function (r) { if (SKI_RUN_RANK[r.st] > SKI_RUN_RANK[best]) best = r.st; });
+  });
+  if (best !== 'unknown') return best;
+  // No row under its number. The map and the feed do not always number a run
+  // the same way ("6.00 Plan Maison 1" on the map, "6 plan maison" in the
+  // feed; a stretch of the Ventina numbered 35), and wrongly closing a run
+  // shuts a way that is open - so the name gets a hearing before the run is
+  // called closed: a feed row sharing a word with it decides.
+  idx._all.forEach(function (r) {
+    if (r.words.some(function (x) { return mine.indexOf(x) >= 0; }) && SKI_RUN_RANK[r.st] > SKI_RUN_RANK[best]) best = r.st;
+  });
+  if (best !== 'unknown') return best;
+  return inside ? 'closed' : 'unknown';
+}
+// is there another run on the map with this number whose name the feed's
+// names match? Then the feed is talking about that one, not this.
+function _skiRunOther(g, ref, rows, w) {
+  g._refWays = g._refWays || (function () {
+    var m = {};
+    g.ways.forEach(function (x) { if (x.k === 'p' && x.ref) String(x.ref).toLowerCase().split('/').forEach(function (r) { r = r.replace(/\s+/g, ''); (m[r] = m[r] || []).push(x); }); });
+    return m;
+  })();
+  return (g._refWays[ref] || []).some(function (x) {
+    if (x === w || x.name === w.name) return false;
+    var ws = _skiRunWords(x.name);
+    return rows.some(function (r) { return r.words.some(function (y) { return ws.indexOf(y) >= 0; }); });
+  });
+}
+
 // seconds for one edge, or -1 when the level forbids it
 // Three ways to the same place (Yossi, 18.11): the quickest; the easiest,
 // which takes a long blue over a short red; and the most challenging, which
@@ -9507,6 +9637,10 @@ function _skiCost(g, e, prevLine, level) {
   if (k === 's' || k === 'f') {
     var d = (w && w.d) || 2;
     if (d >= 4 || d > level) return -1;
+    if (!SKI.ignoreLive && w && w.k === 'p') {
+      var rs = skiRunState(w, e[2]);
+      if (rs === 'closed' || rs === 'later') return -1;
+    }
     return e[3] / (k === 's' ? sp.ski : sp.flat) * (SKI_PROF[SKI.prof] || SKI_PROF.fast)[d];
   }
   if (k === 'u' || k === 'r') {
@@ -9793,7 +9927,7 @@ function skiSteps(route) {
       if (last && last.kind === 'run' && !last.ref && !last.name && (ref || name)) {
         last.ref = ref; last.name = name; last.d = Math.max(last.d, d); last.m += e[3]; return;
       }
-      steps.push({ kind: 'run', i: idx, ref: ref, name: w && w.k !== 'a' ? name : '', d: d, m: e[3] });
+      steps.push({ kind: 'run', i: idx, way: e[2], ref: ref, name: w && w.k !== 'a' ? name : '', d: d, m: e[3] });
     } else if (kind === 'lift') {
       if (last && last.kind === 'lift' && (last.way === e[2] || (w.ln !== undefined && last.ln === w.ln))) { last.m += e[3]; return; }
       steps.push({ kind: 'lift', i: idx, way: e[2], ln: w.ln, name: w.lt === 'rack' ? 'Gornergratbahn' : (w.name || ''), ref: w.ref || '', lt: w.lt, down: k === 'r', m: e[3] });
@@ -9820,7 +9954,10 @@ function _skiStepHtml(s) {
   }
   if (s.kind === 'walk') return '🚶 ' + (s.village ? L('הליכה בכפר', 'Walk through the village') : L('הליכה', 'Walk')) + ' · ' + dist;
   var label = s.ref ? L('מסלול ', 'Run ') + escHtml(s.ref) : L('מסלול', 'Run');
-  return '⛷️ ' + label + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '') + ' ' + SKI_DOT[s.d] + ' · ' + dist;
+  var rs = s.way >= 0 ? skiRunState(SKI.graph.ways[s.way], s.way) : 'unknown';
+  var rtag = rs === 'closed' ? ' <span style="color:#c5221f;">· ⛔ ' + L('סגור כרגע', 'closed now') + '</span>'
+           : rs === 'later' ? ' <span style="color:#b06000;">· ' + L('ייפתח בהמשך היום', 'opens later today') + '</span>' : '';
+  return '⛷️ ' + label + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '') + ' ' + SKI_DOT[s.d] + ' · ' + dist + rtag;
 }
 
 function _skiDraw(route) {
@@ -10566,7 +10703,7 @@ PHELP.text = {
   nav: function () { return L(
     '<b>הניווט על ההר</b><br>'
     + '1. <b>🔍 לאן?</b> בחר לאן אתה רוצה להגיע: מעלית, בקתה, מסלול או מקום בכפר. האתר יראה את הדרך מהמקום שלך, במסלולים ובמעליות.<br>'
-    + '2. <b>רמה:</b> בחר עד איזה צבע מסלול הדרך מותרת. "רק כחולים" לא ישלח אותך לאדום.<br>'
+    + '2. <b>רמה:</b> בחר עד איזה צבע מסלול הדרך מותרת. "רק כחולים" לא ישלח אותך לאדום. מעליות ומסלולים שסגורים היום, לפי האתר הרשמי, לא נכנסים לדרך. מסלול סגור מופיע במפה בקו אפור מקווקו.<br>'
     + '3. <b>לרדת גם בקבינות:</b> סמן אם נוח לך לרדת ברכבל או בגונדולה במקום לגלוש למטה.<br>'
     + '4. <b>🔈 הדרכה קולית:</b> הוראות בקול בזמן הגלישה, כמו בניווט ברכב. '
     + '<button type="button" onclick="voiceSample()" style="padding:2px 9px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.74rem;">▶ שמע דוגמה</button><br>'
@@ -10578,7 +10715,7 @@ PHELP.text = {
     + '🗳️ רוצה ניווט כזה גם באתר סקי אחר? <a href="#" onclick="VOTE.open();return false;" style="color:#1a73e8;font-weight:bold;">ספר לנו ←</a>',
     '<b>Navigation on the mountain</b><br>'
     + '1. <b>🔍 Where to?</b> Choose where you want to get: a lift, a hut, a run or a place in the village. The site shows the way from where you are, by runs and lifts.<br>'
-    + '2. <b>Level:</b> the hardest run colour the way may use. "Blue runs only" will not send you down a red.<br>'
+    + '2. <b>Level:</b> the hardest run colour the way may use. "Blue runs only" will not send you down a red. Lifts and runs that are closed today, by the official site, are left out of the way; a closed run shows on the map as a grey dashed line.<br>'
     + '3. <b>Ride down in cabins:</b> tick it if you would rather ride a cable car or gondola down than ski.<br>'
     + '4. <b>🔈 Voice guidance:</b> spoken directions while you ski, as in a car. '
     + '<button type="button" onclick="voiceSample()" style="padding:2px 9px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.74rem;">▶ Hear a sample</button><br>'
