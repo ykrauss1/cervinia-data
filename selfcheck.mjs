@@ -1700,30 +1700,31 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const lb = document.getElementById('bar-hours-label');
     const grp = document.querySelector('#live-data-bar > div > div:first-child');
     const right = document.querySelector('#live-data-bar > div > div:last-child');
-    const kids = [...grp.children];
-    const cells = kids.filter(e => !(e.getAttribute('style') || '').includes('width:1px'));
-
-    // group the cells into the lines they actually render on
+    // two rows on a computer (Yossi, 26.11): the weather, then the mountain
+    const ids = ['bar-temp-cell','bar-top-cell','bar-wind-cell','bar-gust-wrap','bar-sky-cell',
+                 'bar-slopes-cell','bar-lifts-cell','bar-snow-cell','bar-hours-cell'];
+    const cells = ids.map(i => document.getElementById(i)).filter(Boolean);
     const lines = {};
     cells.forEach(e => {
       const b = e.getBoundingClientRect();
       const key = Math.round(b.top / 8);
-      (lines[key] = lines[key] || []).push(b.top);
+      (lines[key] = lines[key] || []).push(b);
     });
     const worstDrop = Math.max(...Object.values(lines)
-      .map(tops => Math.max(...tops) - Math.min(...tops)));
-
-    // gaps between neighbours that share a line
+      .map(bs => Math.max(...bs.map(b => b.top)) - Math.min(...bs.map(b => b.top))));
+    // equal columns: the centres along a line are evenly spaced
     const gaps = [];
-    for (let i = 0; i < kids.length - 1; i++) {
-      const a = kids[i].getBoundingClientRect(), c = kids[i + 1].getBoundingClientRect();
-      if (Math.abs(a.top - c.top) < 3) gaps.push(Math.round(a.left - c.right));
-    }
+    Object.values(lines).forEach(bs => {
+      const cx = bs.map(b => b.left + b.width / 2).sort((x, y) => x - y);
+      for (let i = 0; i < cx.length - 1; i++) gaps.push(Math.round(cx[i + 1] - cx[i]));
+    });
+    const rows = Object.keys(lines).length;
     return {
       worstDrop: Math.round(worstDrop),
       gapSpread: Math.max(...gaps) - Math.min(...gaps),
       slack: Math.round(grp.getBoundingClientRect().left - right.getBoundingClientRect().right),
-      labelShown: !!lb && getComputedStyle(lb).display !== 'none'
+      labelShown: !!lb && getComputedStyle(lb).display !== 'none',
+      rows
     };
   }, T);
   if (r.worstDrop > 1) fail('the data bar sits on its line',
@@ -1731,6 +1732,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   else ok();
   if (r.gapSpread > 1) fail('the data bar spacing is even',
     `gaps along a line differ by ${r.gapSpread}px`);
+  else ok();
+  if (r.rows !== 2) fail('the data bar is two rows on a computer', `${r.rows} rows`);
   else ok();
   if (r.slack > 40) fail('the data bar fills its width',
     `${r.slack}px of dead space between the readings and the Matterhorn`);

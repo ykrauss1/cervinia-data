@@ -651,11 +651,28 @@ mark.cl-hit {
   }
 }
 @media (min-width: 769px) {
-  #bar-top-label .top-feels, #bar-top-label .top-word { display: none; }
-  #bar-temps { display: flex; flex-direction: column; gap: 4px; }
-  #bar-top-cell { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
-  #bar-top-temp { font-size: 0.8rem !important; }
-  #bar-top-label { margin-top: 0 !important; }
+  /* Two even rows on a computer (Yossi, 26.11): the summit temperature
+     used to sit under the village one, so the first column was taller and
+     everything else floated off its line. Row one is the weather, row two
+     the mountain, every cell the same height. */
+  #live-data-bar #bar-stats {
+    display: grid !important; flex: 1 1 auto; min-width: 0;
+    grid-template-columns: repeat(5, minmax(max-content, 1fr));
+    align-items: start; column-gap: 20px; row-gap: 12px;
+  }
+  #live-data-bar #bar-stats > div[style*="width:1px"] { display: none; }
+  #live-data-bar #bar-temps { display: contents; }
+  #bar-temp-cell { order: 1; } #bar-top-cell { order: 2; } #bar-wind-cell { order: 3; }
+  #bar-gust-wrap { order: 4; } #bar-sky-cell { order: 5; }
+  #bar-slopes-cell { order: 6; } #bar-lifts-cell { order: 7; } #bar-snow-cell { order: 8; }
+  #bar-hours-cell { order: 9; }
+  #bar-top-label .top-feels { display: none; }
+  #bar-stats > div:not(#bar-temps) > div:first-child, #bar-stats > #bar-temps > div > div:first-child {
+    height: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 4px;
+    white-space: nowrap;
+  }
+  #bar-weather-desc { font-size: 1.05rem !important; line-height: 1 !important; }
+  #bar-hours { line-height: 1 !important; }
 }
 
 .svc-ico-img { width: 26px; height: 26px; display: block; }
@@ -726,7 +743,7 @@ mark.cl-hit {
 }
 #svc-webcam.has-live .svc-live {
   position: absolute; inset: 0; background-size: cover; background-position: center;
-  opacity: 0.7; transition: opacity 0.6s;
+  opacity: 1; transition: opacity 0.6s;
   /* the rule that lifts the card's children above the picture also catches
      this layer, so it is pinned back down below the darkening overlay */
   z-index: 0;
@@ -735,9 +752,16 @@ mark.cl-hit {
    is darkened hard and the far side is left showing the mountain. */
 #svc-webcam.has-live::after {
   content: ''; position: absolute; inset: 0; z-index: 0;
+  /* lighter (Yossi, 26.11): only the strip under the words is shaded,
+     and the letters carry their own shadow */
   background: linear-gradient(270deg,
-    rgba(8,22,42,0.93) 0%, rgba(8,22,42,0.86) 38%, rgba(8,22,42,0.3) 100%);
+    rgba(8,22,42,0.62) 0%, rgba(8,22,42,0.4) 45%, rgba(8,22,42,0) 100%);
 }
+html[dir="ltr"] #svc-webcam.has-live::after {
+  background: linear-gradient(90deg,
+    rgba(8,22,42,0.62) 0%, rgba(8,22,42,0.4) 45%, rgba(8,22,42,0) 100%);
+}
+#svc-webcam.has-live .svc-txt { text-shadow: 0 1px 3px rgba(0,0,0,0.85), 0 0 10px rgba(0,0,0,0.5); }
 #svc-webcam.has-live > * { position: relative; z-index: 1; }
 #svc-webcam.has-live .svc-txt b { color: #fff; }
 #svc-webcam.has-live .svc-txt small { color: rgba(255,255,255,0.78); }
@@ -1678,7 +1702,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.10';
+  var v='v19.11';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1807,12 +1831,12 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <div class="bar-inner" style="padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 3px 14px rgba(0,0,0,0.2);">
 
       <!-- Stats group -->
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div id="bar-stats" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
 
         <!-- the village and the summit together: one column in the one-row bar on
              a computer, two tiles in the phone's grid (display:contents) -->
         <div id="bar-temps">
-        <div style="text-align:center;">
+        <div id="bar-temp-cell" style="text-align:center;">
           <div id="bar-temp" dir="ltr" style="color:white;font-size:1.15rem;font-weight:800;line-height:1;">--°</div>
           <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="🌡️ Weather">🌡️ מזג אויר</div>
         </div>
@@ -1846,7 +1870,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
 
-        <div style="text-align:center;">
+        <div id="bar-wind-cell" style="text-align:center;">
           <div id="bar-wind" dir="ltr" style="color:white;font-size:1.15rem;font-weight:800;line-height:1;">--</div>
           <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="💨 Village wind">💨 רוח בכפר</div>
         </div>
@@ -1870,12 +1894,12 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
 
-        <div style="text-align:center;">
+        <div id="bar-sky-cell" style="text-align:center;">
           <div id="bar-weather-desc" style="color:#ffe066;font-size:1.02rem;font-weight:700;line-height:1.15;">--</div>
           <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="☁️ Sky">☁️ מזג</div>
         </div>
 
-        <div style="text-align:center;">
+        <div id="bar-hours-cell" style="text-align:center;">
           <div id="bar-hours" dir="ltr" style="color:rgba(255,255,255,0.85);font-size:0.95rem;font-weight:700;line-height:1.15rem;white-space:nowrap;">--</div>
           <div style="margin-top:2px;height:0.6875rem;line-height:0.6875rem;">
             <span id="bar-hours-label" style="color:rgba(255,255,255,0.4);font-size:0.58rem;" data-en="🕗 Hours">🕗 שעות</span>
