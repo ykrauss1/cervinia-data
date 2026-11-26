@@ -1670,7 +1670,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.08';
+  var v='v19.09';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -9497,7 +9497,8 @@ function _skiRunNorm(t) {
   return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9.]+/g, ' ').trim();
 }
 function _skiRunSplit(name) {
-  var m = /^([0-9]+(?:\.[0-9]+)?(?:bis|[a-z])?)\b\s*(.*)$/.exec(_skiRunNorm(name));
+  // "29 bis" in the feed is 29bis on the map
+  var m = /^([0-9]+(?:\.[0-9]+)?(?:bis|[a-z])?)\b\s*(.*)$/.exec(_skiRunNorm(name).replace(/^([0-9.]+) bis\b/, '$1bis'));
   return m ? [m[1], m[2]] : ['', _skiRunNorm(name)];
 }
 function _skiRunWords(t) {
@@ -9571,7 +9572,10 @@ function skiRunState(w, wi) {
     // does, the number alone does - unless another run on the map with
     // this number is the one the feed's names point at
     var named = rows.filter(function (r) { return r.words.some(function (x) { return mine.indexOf(x) >= 0; }); });
-    var use = named.length ? named : (_skiRunOther(g, ref, rows, w) ? [] : rows);
+    // a bare number in the feed ("5", "14") is that number's run, whatever
+    // the map calls the stretch
+    var bare = rows.filter(function (r) { return !r.words.length; });
+    var use = named.length ? named : bare.length ? bare : (_skiRunOther(g, ref, rows, w) ? [] : rows);
     use.forEach(function (r) { if (SKI_RUN_RANK[r.st] > SKI_RUN_RANK[best]) best = r.st; });
   });
   if (best !== 'unknown') return best;
