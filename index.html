@@ -1670,7 +1670,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.04';
+  var v='v19.05';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5418,6 +5418,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <input type="checkbox" id="map-geo-eco" onchange="geoEco(this.checked)">
               <span data-en="🔋 Save battery">🔋 חיסכון בסוללה</span>
             </label>
+            <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;" title="כשמגיעים ליעד המיקום נכבה לבד, כדי שה-GPS לא ימשיך לרוקן את הסוללה." data-en-title="On reaching the destination the location turns off by itself, so the GPS does not go on draining the battery.">
+              <input type="checkbox" id="map-geo-autostop" onchange="geoAutoStop(this.checked)">
+              <span data-en="⏹️ Off on arrival">⏹️ לכבות בהגעה</span>
+            </label>
             <button type="button" id="map-geo-voice" onclick="geoVoice(!VOICE.on)" style="display:none;padding:4px 9px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;">🔈 הדרכה קולית</button>
             <!-- the voice language, beside the voice button (Yossi, 19.11) -->
             <span id="map-geo-vlang" style="display:inline-flex;"></span>
@@ -7891,6 +7895,14 @@ function _geoEco() {
   if (GEO.eco === undefined) { try { GEO.eco = localStorage.getItem('geoEco') === '1'; } catch (e) { GEO.eco = false; } }
   return !!GEO.eco;
 }
+function _geoAutoStop() {
+  if (GEO.autoStop === undefined) { try { GEO.autoStop = localStorage.getItem('geoAutoStop') !== '0'; } catch (e) { GEO.autoStop = true; } }
+  return !!GEO.autoStop;
+}
+function geoAutoStop(on) {
+  GEO.autoStop = !!on;
+  try { localStorage.setItem('geoAutoStop', on ? '1' : '0'); } catch (e) {}
+}
 function geoEco(on) {
   GEO.eco = !!on;
   try { localStorage.setItem('geoEco', on ? '1' : ''); } catch (e) {}
@@ -8263,6 +8275,8 @@ function _geoDestPaint0() {
   if (rd) rd.checked = !!GEO.rideDown;
   var ec = document.getElementById('map-geo-eco');
   if (ec) ec.checked = _geoEco();
+  var as = document.getElementById('map-geo-autostop');
+  if (as) as.checked = _geoAutoStop();
   if (x) x.style.display = d ? '' : 'none';
   if (lvRow) lvRow.style.display = d ? 'flex' : 'none';
   var mm = document.getElementById('mapModal');   // while navigating, full screen keeps only what the way needs
@@ -8301,6 +8315,12 @@ function _geoDestPaint0() {
       VOICE.arrived = true;
       voiceSay(VL('הגעת אל ', 'You have reached ') + _voiceDest(d), true);
       _wakeOff();
+    }
+    // At the end of the way the GPS goes off by itself, if he asked for it
+    // (Yossi, 26.11: it is the GPS that drains the battery). 📍 starts it again.
+    if (_geoAutoStop() && GEO.watch !== null && !SIM.on) {
+      geoStop();
+      info.innerHTML += '<br><span style="font-size:0.74rem;color:#4b5d70;">' + L('🔋 המיקום כובה כדי לחסוך בסוללה. "📍 הצג את המיקום שלי" מפעיל אותו שוב.', '🔋 Location turned off to save the battery. "📍 Show my location" turns it on again.') + '</span>';
     }
     return;
   }
@@ -10376,7 +10396,7 @@ PHELP.text = {
     + '5. <b>📍 הצג את המיקום שלי</b> (למטה): המיקום מתעדכן לבד, ונשאר במכשיר שלך.<br>'
     + '6. <b>⏱️</b> תכנון לפי זמן: כמה אפשר להספיק, ומתי לצאת כדי לחזור בזמן.<br>'
     + '7. <b>👥</b> חברים: לראות על המפה איפה החברים מהקבוצה שלך.<br>'
-    + '8. <b>🔋 חיסכון בסוללה:</b> בקור הסוללה נגמרת מהר. במצב חיסכון המיקום מתעדכן פעם בדקה והמסך יכול לכבות. ההדרכה הקולית שותקת כשהמסך כבוי. כדאי לשמור את הטלפון בכיס פנימי חם, ולקחת מפת מסלולים מודפסת כגיבוי. את מפות המסלולים אפשר להוריד מלשונית המפות ולהדפיס.<br>'
+    + '8. <b>🔋 חיסכון בסוללה:</b> בקור הסוללה נגמרת מהר. במצב חיסכון המיקום מתעדכן פעם בדקה והמסך יכול לכבות. ההדרכה הקולית שותקת כשהמסך כבוי. <b>⏹️ לכבות בהגעה</b> מכבה את המיקום כשמגיעים ליעד. כדאי לשמור את הטלפון בכיס פנימי חם, לקחת סוללה ניידת (פאוור בנק), ומפת מסלולים מודפסת כגיבוי. את מפות המסלולים אפשר להוריד מלשונית המפות ולהדפיס.<br>'
     + 'רחוק מצ\'רוויניה? האתר עובר להדגמה, ואפשר לנסות הכל כאילו אתה על ההר.',
     '<b>Navigation on the mountain</b><br>'
     + '1. <b>🔍 Where to?</b> Choose where you want to get: a lift, a hut, a run or a place in the village. The site shows the way from where you are, by runs and lifts.<br>'
@@ -10387,7 +10407,7 @@ PHELP.text = {
     + '5. <b>📍 Show my location</b> (below): it updates by itself, and stays on your device.<br>'
     + '6. <b>⏱️</b> Planning by time: how much you can fit in, and when to leave to be back in time.<br>'
     + '7. <b>👥</b> Friends: see where the people in your group are on the map.<br>'
-    + '8. <b>🔋 Save battery:</b> the cold drains batteries fast. In saving mode your position updates once a minute and the screen may go dark; voice guidance is silent while it is dark. Keep the phone in a warm inside pocket, and carry a printed piste map as a backup - the piste maps can be downloaded from the maps tab and printed.<br>'
+    + '8. <b>🔋 Save battery:</b> the cold drains batteries fast. In saving mode your position updates once a minute and the screen may go dark; voice guidance is silent while it is dark. <b>⏹️ Off on arrival</b> turns the location off when you reach the destination. Keep the phone in a warm inside pocket, take a power bank, and carry a printed piste map as a backup - the piste maps can be downloaded from the maps tab and printed.<br>'
     + 'Far from Cervinia? The site switches to a demo, and you can try everything as if you were on the mountain.'); },
   time: function () { return L(
     '<b>איך זה עובד</b><br>'
