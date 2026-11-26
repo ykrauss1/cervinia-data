@@ -1670,7 +1670,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.03';
+  var v='v19.04';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -2271,6 +2271,14 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
       <span class="close-btn" onclick="closeM('zermattForecastModal')" style="color:white;background:rgba(255,255,255,0.15);">×</span>
     </div>
     <div style="padding:16px;max-height:80vh;overflow-y:auto;">
+
+      <!-- The time questions about Zermatt, one tap from the badge on the first
+           screen (a season worker's comment, 26.11: getting back before the
+           lifts close is the useful part) -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <button type="button" onclick="geoPlan('back')" style="flex:1 1 180px;padding:10px 12px;border:none;border-radius:10px;background:#1a73e8;color:#fff;font-weight:bold;font-size:0.84rem;cursor:pointer;font-family:inherit;" data-en="⏱️ Will I make it back from Zermatt?">⏱️ אספיק לחזור מצרמט?</button>
+        <button type="button" onclick="geoPlan('lifts')" style="flex:1 1 180px;padding:10px 12px;border:1.5px solid #1a73e8;border-radius:10px;background:#fff;color:#1a73e8;font-weight:bold;font-size:0.84rem;cursor:pointer;font-family:inherit;" data-en="🚡 Zermatt by lift only – how long?">🚡 לצרמט במעליות בלבד – כמה זמן?</button>
+      </div>
 
       <!-- נתוני פלטאו רוזה עכשיו -->
       <div id="zermatt-plateau-now" style="background:linear-gradient(135deg,#0a192f,#1a3a6c);border-radius:12px;padding:14px;color:white;margin-bottom:14px;">
@@ -5406,6 +5414,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <input type="checkbox" id="map-geo-ridedown" onchange="geoRideDown(this.checked)">
               <span data-en="Ride down in cabins too (gondola, cable car, train)">לרדת גם בקבינות (גונדולה, רכבל, רכבת)</span>
             </label>
+            <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;" title="המיקום מתעדכן פעם בדקה והמסך יכול לכבות. ההדרכה הקולית שותקת כשהמסך כבוי." data-en-title="Your position updates once a minute and the screen may go dark. Voice guidance is silent while the screen is off.">
+              <input type="checkbox" id="map-geo-eco" onchange="geoEco(this.checked)">
+              <span data-en="🔋 Save battery">🔋 חיסכון בסוללה</span>
+            </label>
             <button type="button" id="map-geo-voice" onclick="geoVoice(!VOICE.on)" style="display:none;padding:4px 9px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;">🔈 הדרכה קולית</button>
             <!-- the voice language, beside the voice button (Yossi, 19.11) -->
             <span id="map-geo-vlang" style="display:inline-flex;"></span>
@@ -7836,6 +7848,7 @@ function geoFull(on) {
 
 function geoStop() {
   if (GEO.watch !== null && navigator.geolocation) { try { navigator.geolocation.clearWatch(GEO.watch); } catch (e) {} }
+  if (GEO.ecoT) { clearInterval(GEO.ecoT); GEO.ecoT = null; }
   GEO.watch = null;
   var b = document.getElementById('map-geo-btn');
   if (b) { b.style.display = ''; }
@@ -7858,9 +7871,32 @@ function geoLocate() {
 
 function _geoWatch(hi) {
   if (GEO.watch !== null) { try { navigator.geolocation.clearWatch(GEO.watch); } catch (e) {} }
+  if (GEO.ecoT) { clearInterval(GEO.ecoT); GEO.ecoT = null; }
   GEO.hi = hi;
+  if (_geoEco()) {
+    // Battery saving: one fix a minute instead of the GPS running all the
+    // time, and the screen allowed to go dark (a skier who worked a season
+    // there, 26.11: "your battery will not last the day"). A tap on 📍 asks
+    // for a fix at once.
+    var once = function () { navigator.geolocation.getCurrentPosition(_geoFix, function () {}, { enableHighAccuracy: true, maximumAge: 20000, timeout: 30000 }); };
+    GEO.watch = 'eco';
+    once();
+    GEO.ecoT = setInterval(once, 60000);
+    return;
+  }
   GEO.watch = navigator.geolocation.watchPosition(_geoFix, _geoErr,
     { enableHighAccuracy: hi, maximumAge: 5000, timeout: hi ? 30000 : 20000 });
+}
+function _geoEco() {
+  if (GEO.eco === undefined) { try { GEO.eco = localStorage.getItem('geoEco') === '1'; } catch (e) { GEO.eco = false; } }
+  return !!GEO.eco;
+}
+function geoEco(on) {
+  GEO.eco = !!on;
+  try { localStorage.setItem('geoEco', on ? '1' : ''); } catch (e) {}
+  if (on) _wakeOff(); else if (VOICE.on && GEO.dest) _wakeOn();
+  if (GEO.watch !== null && navigator.geolocation) _geoWatch(GEO.hi !== false);
+  var c = document.getElementById('map-geo-eco'); if (c) c.checked = GEO.eco;
 }
 
 function _geoFix(pos) {
@@ -8225,6 +8261,8 @@ function _geoDestPaint0() {
   }
   var rd = document.getElementById('map-geo-ridedown');
   if (rd) rd.checked = !!GEO.rideDown;
+  var ec = document.getElementById('map-geo-eco');
+  if (ec) ec.checked = _geoEco();
   if (x) x.style.display = d ? '' : 'none';
   if (lvRow) lvRow.style.display = d ? 'flex' : 'none';
   var mm = document.getElementById('mapModal');   // while navigating, full screen keeps only what the way needs
@@ -9268,6 +9306,7 @@ function _skiStation(g, n) {
 }
 function _skiCost(g, e, prevLine, level) {
   var k = e[4], w = e[2] >= 0 ? g.ways[e[2]] : null, sp = g.speed;
+  if (SKI.liftsOnly && (k === 's' || k === 'f')) return -1;     // the whole way by lift, not a metre on skis
   if (k === 's' || k === 'f') {
     var d = (w && w.d) || 2;
     if (d >= 4 || d > level) return -1;
@@ -9285,8 +9324,8 @@ function _skiCost(g, e, prevLine, level) {
       // Riding a cabin down (a gondola, a cable car - never a chairlift)
       // is the skier's choice, not the router's: by default the way down
       // is on skis, and a cabin is ridden down only when the box is ticked.
-      if (!GEO.rideDown) return -1;
-      if (boarding) t += 240;       // even then, skiing down is preferred
+      if (!GEO.rideDown && !SKI.liftsOnly) return -1;
+      if (boarding && !SKI.liftsOnly) t += 240;       // even then, skiing down is preferred
     }
     return t;
   }
@@ -9769,7 +9808,7 @@ function voiceSay(text, urgent) {
 }
 function _wakeOn() {
   try {
-    if (!('wakeLock' in navigator) || VOICE.lock) return;
+    if (!('wakeLock' in navigator) || VOICE.lock || _geoEco()) return;   // saving the battery lets the screen go dark
     navigator.wakeLock.request('screen').then(function (l) {
       VOICE.lock = l;
       l.addEventListener('release', function () { VOICE.lock = null; });
@@ -10337,6 +10376,7 @@ PHELP.text = {
     + '5. <b>📍 הצג את המיקום שלי</b> (למטה): המיקום מתעדכן לבד, ונשאר במכשיר שלך.<br>'
     + '6. <b>⏱️</b> תכנון לפי זמן: כמה אפשר להספיק, ומתי לצאת כדי לחזור בזמן.<br>'
     + '7. <b>👥</b> חברים: לראות על המפה איפה החברים מהקבוצה שלך.<br>'
+    + '8. <b>🔋 חיסכון בסוללה:</b> בקור הסוללה נגמרת מהר. במצב חיסכון המיקום מתעדכן פעם בדקה והמסך יכול לכבות. ההדרכה הקולית שותקת כשהמסך כבוי. כדאי לשמור את הטלפון בכיס פנימי חם, ולקחת מפת מסלולים מודפסת כגיבוי. את מפות המסלולים אפשר להוריד מלשונית המפות ולהדפיס.<br>'
     + 'רחוק מצ\'רוויניה? האתר עובר להדגמה, ואפשר לנסות הכל כאילו אתה על ההר.',
     '<b>Navigation on the mountain</b><br>'
     + '1. <b>🔍 Where to?</b> Choose where you want to get: a lift, a hut, a run or a place in the village. The site shows the way from where you are, by runs and lifts.<br>'
@@ -10347,6 +10387,7 @@ PHELP.text = {
     + '5. <b>📍 Show my location</b> (below): it updates by itself, and stays on your device.<br>'
     + '6. <b>⏱️</b> Planning by time: how much you can fit in, and when to leave to be back in time.<br>'
     + '7. <b>👥</b> Friends: see where the people in your group are on the map.<br>'
+    + '8. <b>🔋 Save battery:</b> the cold drains batteries fast. In saving mode your position updates once a minute and the screen may go dark; voice guidance is silent while it is dark. Keep the phone in a warm inside pocket, and carry a printed piste map as a backup - the piste maps can be downloaded from the maps tab and printed.<br>'
     + 'Far from Cervinia? The site switches to a demo, and you can try everything as if you were on the mountain.'); },
   time: function () { return L(
     '<b>איך זה עובד</b><br>'
@@ -10419,6 +10460,7 @@ function _tpPaint() {
       + '<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-top:6px;">'
       + '<button type="button" style="' + chip + '" onclick="TP.quick(\'back\')">' + L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> אספיק לחזור מצרמט?', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> Will I make it back from Zermatt?') + '</button>'
       + '<button type="button" style="' + chip + '" onclick="TP.quick(\'stay\')">' + L('<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> שעה בצרמט – מתי לצאת?', '<svg class=fl-ch aria-hidden=true><use href=#flag-ch></use></svg> An hour in Zermatt – when to leave?') + '</button>'
+      + '<button type="button" style="' + chip + '" onclick="TP.quick(\'lifts\')">' + L('🚡 לצרמט במעליות בלבד – כמה זמן?', '🚡 Zermatt by lift only – how long?') + '</button>'
       + '<button type="button" style="' + chip + '" onclick="TP.quick(\'hour\')">' + L('⏳ יש לי שעה', '⏳ I have an hour') + '</button>'
       + '<button type="button" style="' + chip + '" onclick="TP.quick(\'half\')">' + L('⏳ חצי שעה', '⏳ Half an hour') + '</button>'
       + '<button type="button" style="' + chip + '" onclick="TP.quick(\'halfday\')">' + L('🎫 חצי יום עד 12:30, למטה ב-14:00', '🎫 Half-day till 12:30, down by 14:00') + '</button>'
@@ -10520,8 +10562,50 @@ TP.ask = async function () {
   if (!p) { TP.say(L('לא הבנתי את השאלה. נסה למשל: "יש לי שעה, מה כדאי?", "אספיק לחזור מצרמט?", "רוצה שעה בצרמט, מתי לצאת?", "הסקיפס שלי עד 13:00".', 'I did not follow. Try: "I have an hour", "Will I make it back from Zermatt?", "An hour in Zermatt, when do I leave?", "My pass runs till 13:00".')); return; }
   TP.run(p);
 };
+// Zermatt by lift only, there and back, with no skiing at all: the times a
+// skier asked for (26.11), and the answer for whoever rides over on foot
+TP.lifts = function (here) {
+  var keep = SKI.liftsOnly, there = null, back = null;
+  SKI.liftsOnly = true;
+  try { there = TP.route(here, TP.ZV, 'fast'); back = TP.route(TP.ZV, TP.swiss(here) ? TP.TG : here, 'fast'); } catch (e) {}
+  SKI.liftsOnly = keep;
+  var out = [];
+  if (!there && !back) return '<div>' + L('לא מצאתי מכאן דרך לצרמט במעליות בלבד. ייתכן שאחת המעליות סגורה עכשיו.', 'I found no way to Zermatt by lift only from here. One of the lifts may be closed now.') + '</div>';
+  var lifts = function (rt) {
+    var g = SKI.graph, seen = {}, names = [];
+    rt.edges.forEach(function (i) {
+      var e = g.edges[i]; if (e[4] !== 'u' && e[4] !== 'r') return;
+      var w = g.ways[e[2]], n = (w && (w.name || w.feed)) || ''; if (n && !seen[n]) { seen[n] = 1; names.push(n); }
+    });
+    return names.length ? '<div style="color:#4b5d70;font-size:0.74rem;" dir="auto">' + names.map(function (n) { return '🚡 ' + escHtml(n); }).join(' → ') + '</div>' : '';
+  };
+  if (there) out.push('➡️ ' + L('לצרמט במעליות בלבד: ', 'To Zermatt by lift only: ') + '<b>' + TP.dur(there.secs / 60) + '</b>' + lifts(there));
+  if (back) out.push('⬅️ ' + L('חזרה במעליות בלבד: ', 'Back by lift only: ') + '<b>' + TP.dur(back.secs / 60) + '</b>' + lifts(back));
+  var last = TP.lastBack();
+  if (last !== null && back) out.push('🕐 ' + L('כדי לחזור במעליות, צא מצרמט עד ', 'To come back by lift, leave Zermatt by ') + '<b dir="ltr">' + TP.hm(last - TP.margin) + '</b>'
+    + L(' (העלייה האחרונה ב-', ' (the last ride up at ') + '<span dir="ltr">' + TP.hm(last) + '</span>).');
+  out.push('<span style="color:#7b8798;font-size:0.72rem;">' + L('צריך סקיפס בינלאומי, או כרטיס Matterhorn Alpine Crossing למי שלא גולש. הזמן כולל המתנה משוערת בכל מעלית.',
+    'You need an international ski pass, or a Matterhorn Alpine Crossing ticket if you are not skiing. The time includes an estimated wait at each lift.') + '</span>');
+  return out.join('<br>');
+};
+// from outside the navigation: open it, wait for the map and a position,
+// then ask the planner (the buttons in the Zermatt window)
+function geoPlan(k) {
+  if (_openModalId && _openModalId !== 'mapModal') closeM(_openModalId);
+  PANEL_ACTIONS.navigate();
+  var tries = 0;
+  (function wait() {
+    if (SKI.graph && _navHere() && document.getElementById('map-geo-time')) {
+      if (!TP.open) geoTime();
+      TP.quick(k);
+      return;
+    }
+    if (++tries < 60) setTimeout(wait, 250);
+  })();
+}
 TP.quick = function (k) {
   TP.heard = '';
+  if (k === 'lifts') { var h = _navHere(); TP.say(h ? TP.lifts(h) : L('צריך קודם את המיקום שלך.', 'Your position is needed first.')); return; }
   if (k === 'back') TP.run({ kind: 'zermatt', stay: null });
   else if (k === 'stay') TP.run({ kind: 'zermatt', stay: 60 });
   else if (k === 'hour') TP.run({ kind: 'budget', min: 60 });
