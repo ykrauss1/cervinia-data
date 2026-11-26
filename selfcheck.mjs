@@ -4717,7 +4717,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
       'the cache name was not bumped, so browsers keep the old cache - and with ' +
       'it an offline copy that may be the privacy page'); else ok();
     // only the site itself, and only a good answer, may become the offline copy
-    if (!/isHome && res && res\.ok/.test(sw)) fail(T,
+    // (the home page, or since 26.11 the English site at /en/, each under its own key)
+    if (!/\(isHome \|\| isEn\) && res && res\.ok/.test(sw) || !/isEn = same && \(url\.pathname === scopePath \+ 'en\/'/.test(sw)) fail(T,
       'the worker stores any navigation as the offline copy again - the privacy ' +
       'page or a 404 would be shown in place of the site with no signal'); else ok();
     // and the rule that was there before must still hold

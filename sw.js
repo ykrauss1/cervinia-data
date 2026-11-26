@@ -32,6 +32,7 @@ const CACHE = 'cervinia-v7';
 const TILES = 'cervinia-tiles';
 const TILE_MAX = 800;
 const FALLBACK = './index.html';
+const FALLBACK_EN = './en/index.html';
 const SLOW_MS = 4000;
 
 // Precached at install, so all of it is there even for somebody who never
@@ -186,17 +187,20 @@ self.addEventListener('fetch', function (e) {
   // a 404 - so whoever opened one of those last and then lost the signal was
   // handed that page in place of the site.
   const isHome = same && (url.pathname === scopePath || url.pathname === scopePath + 'index.html');
+  // the English site at /en/ (26.11) keeps a parachute of its own
+  const isEn = same && (url.pathname === scopePath + 'en/' || url.pathname === scopePath + 'en/index.html');
+  const key = isEn ? FALLBACK_EN : FALLBACK;
   e.respondWith(
     fetch(req)
       .then(function (res) {
-        if (isHome && res && res.ok) {
+        if ((isHome || isEn) && res && res.ok) {
           const copy = res.clone();
-          caches.open(CACHE).then(function (c) { c.put(FALLBACK, copy); }).catch(function () {});
+          caches.open(CACHE).then(function (c) { c.put(key, copy); }).catch(function () {});
         }
         return res;
       })
       .catch(function () {
-        return caches.match(FALLBACK).then(function (hit) {
+        return caches.match(key).then(function (h) { return h || caches.match(FALLBACK); }).then(function (hit) {
           return hit || new Response('<h1 dir="rtl">אין חיבור</h1>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
         });
       })

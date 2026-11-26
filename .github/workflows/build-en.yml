@@ -1,0 +1,42 @@
+name: Build the English page
+
+# en/index.html is the site in English at its own address, made from
+# index.html by tools/build_en.py (Yossi, 26.11: an English search showed the
+# Hebrew description, because /en/ only forwarded to the Hebrew page). Only
+# index.html is ever edited; this makes the copy after every change to it.
+
+on:
+  push:
+    branches: [main]
+    paths: ['index.html', 'tools/build_en.py']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-en
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make en/index.html from index.html
+        run: python3 tools/build_en.py
+      - name: Commit it if it changed
+        run: |
+          if git diff --quiet -- en/index.html; then echo "en/index.html already up to date"; exit 0; fi
+          git config user.name "cervinia-bot"
+          git config user.email "cervinia-bot@users.noreply.github.com"
+          git add en/index.html
+          git commit -m "en: the English page, made from index.html"
+          for i in 1 2 3; do
+            git pull --rebase --autostash && python3 tools/build_en.py && git add en/index.html \
+              && (git diff --cached --quiet || git commit -m "en: the English page, made from index.html") \
+              && git push && exit 0
+            sleep 5
+          done
+          exit 1

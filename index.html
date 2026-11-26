@@ -46,7 +46,10 @@ function _guessLang() {
 (function () {
   var l = 'he';
   try {
-    var q = new URLSearchParams(location.search).get('lang');
+    // /en/ is the same page declared English (tools/build_en.py): there the
+    // page's own language decides, whatever was chosen before
+    var pg = document.documentElement.getAttribute('data-page-lang');
+    var q = pg || new URLSearchParams(location.search).get('lang');
     var saved = localStorage.getItem('cl_lang');
     if (q === 'en' || q === 'he') { l = q; localStorage.setItem('cl_lang', q); }
     else if (saved === 'en' || saved === 'he') l = saved;
@@ -71,8 +74,13 @@ document.addEventListener('focusin', function (e) {
 }, true);
 function setLang(l) {
   try { localStorage.setItem('cl_lang', l); } catch (e) {}
+  // English lives at /en/ and Hebrew at the root (26.11): the address says
+  // the language, so a search engine and a shared link see the right one
   var u = new URL(location.href);
-  if (l === 'en') u.searchParams.set('lang', 'en'); else u.searchParams.delete('lang');
+  u.searchParams.delete('lang');
+  var onEn = /\/en\/(index\.html)?$/.test(u.pathname);
+  if (l === 'en' && !onEn) u.pathname = u.pathname.replace(/[^\/]*$/, '') + 'en/';
+  if (l === 'he' && onEn) { u.pathname = u.pathname.replace(/en\/(index\.html)?$/, ''); u.searchParams.set('lang', 'he'); }
   location.href = u.toString();
 }
 // Static markup: the English sits beside the Hebrew as attributes.
@@ -1670,7 +1678,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.09';
+  var v='v19.10';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
