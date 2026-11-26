@@ -1702,7 +1702,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.12';
+  var v='v19.13';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5469,6 +5469,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <option value="2" data-en="🔴 Up to red">🔴 עד אדומים</option>
               <option value="3" data-en="⚫ Black too">⚫ גם שחורים</option>
             </select>
+            <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;" title="הניווט עוקף קטעים כמעט שטוחים, שבסנובורד צריך לדחוף בהם, ומזהיר כשאין ברירה." data-en-title="The route avoids near-flat stretches, where a snowboarder has to push, and warns when there is no way round.">
+              <input type="checkbox" id="map-geo-board" onchange="geoBoard(this.checked)">
+              <span data-en="🏂 Snowboard">🏂 סנובורד</span>
+            </label>
             <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;">
               <input type="checkbox" id="map-geo-ridedown" onchange="geoRideDown(this.checked)">
               <span data-en="Ride down in cabins too (gondola, cable car, train)">לרדת גם בקבינות (גונדולה, רכבל, רכבת)</span>
@@ -8488,6 +8492,8 @@ function _geoDestPaint0() {
   }
   var rd = document.getElementById('map-geo-ridedown');
   if (rd) rd.checked = !!GEO.rideDown;
+  var bd = document.getElementById('map-geo-board');
+  if (bd) bd.checked = _geoBoard();
   var ec = document.getElementById('map-geo-eco');
   if (ec) ec.checked = _geoEco();
   var as = document.getElementById('map-geo-autostop');
@@ -8556,7 +8562,7 @@ function _geoDestPaint0() {
     if (!SKI.failed) _skiLoad().then(_geoDestPaint, function () { SKI.failed = true; _geoDestPaint(); });
     return;
   }
-  var key = d.id + '|' + GEO.level + '|' + (GEO.rideDown ? 1 : 0) + '|' + _geoProf(), now = Date.now();
+  var key = d.id + '|' + GEO.level + '|' + (GEO.rideDown ? 1 : 0) + '|' + (_geoBoard() ? 'b' : '') + '|' + _geoProf(), now = Date.now();
   var fresh = key !== SKI.key;
   // computed again when the skier has left the route - not merely moved
   // along it, which would keep changing the steps under their feet
@@ -9699,7 +9705,8 @@ function _skiCost(g, e, prevLine, level) {
       var rs = skiRunState(w, e[2]);
       if (rs === 'closed' || rs === 'later') return -1;
     }
-    return e[3] / (k === 's' ? sp.ski : sp.flat) * (SKI_PROF[SKI.prof] || SKI_PROF.fast)[d];
+    return e[3] / (k === 's' ? sp.ski : sp.flat) * (SKI_PROF[SKI.prof] || SKI_PROF.fast)[d]
+      * (GEO.board && !SKI.liftsOnly ? _skiBoardF(g, e) : 1);
   }
   if (k === 'u' || k === 'r') {
     if (!SKI.ignoreLive) {
@@ -9976,16 +9983,17 @@ function skiSteps(route) {
     // aerialway=yes is a passage between two stations, walked, not ridden
     if (kind === 'lift' && w.lt === 'yes') kind = 'walk';
     var last = steps[steps.length - 1];
+    var fl = kind === 'run' ? _skiFlatM(g, e) : 0, rise = kind === 'run' ? _skiRiseM(g, e) : 0;
     if (kind === 'run') {
       var d = (w && w.d) || 2, ref = w && w.ref ? _skiRef(w.ref) : '', name = w && w.name ? w.name : '';
       // a stretch with no name of its own, or an open slope, belongs to the
       // run before it when that run is no harder
-      if (last && last.kind === 'run' && ((!ref && !name) || w.k === 'a') && d <= last.d) { last.m += e[3]; return; }
-      if (last && last.kind === 'run' && ref && last.ref === ref) { last.m += e[3]; last.d = Math.max(last.d, d); return; }
+      if (last && last.kind === 'run' && ((!ref && !name) || w.k === 'a') && d <= last.d) { last.m += e[3]; last.flat += fl; last.rise += rise; return; }
+      if (last && last.kind === 'run' && ref && last.ref === ref) { last.m += e[3]; last.flat += fl; last.rise += rise; last.d = Math.max(last.d, d); return; }
       if (last && last.kind === 'run' && !last.ref && !last.name && (ref || name)) {
-        last.ref = ref; last.name = name; last.d = Math.max(last.d, d); last.m += e[3]; return;
+        last.ref = ref; last.name = name; last.d = Math.max(last.d, d); last.m += e[3]; last.flat += fl; last.rise += rise; return;
       }
-      steps.push({ kind: 'run', i: idx, way: e[2], ref: ref, name: w && w.k !== 'a' ? name : '', d: d, m: e[3] });
+      steps.push({ kind: 'run', i: idx, way: e[2], ref: ref, name: w && w.k !== 'a' ? name : '', d: d, m: e[3], flat: fl, rise: rise });
     } else if (kind === 'lift') {
       if (last && last.kind === 'lift' && (last.way === e[2] || (w.ln !== undefined && last.ln === w.ln))) { last.m += e[3]; return; }
       steps.push({ kind: 'lift', i: idx, way: e[2], ln: w.ln, name: w.lt === 'rack' ? 'Gornergratbahn' : (w.name || ''), ref: w.ref || '', lt: w.lt, down: k === 'r', m: e[3] });
@@ -10015,7 +10023,11 @@ function _skiStepHtml(s) {
   var rs = s.way >= 0 ? skiRunState(SKI.graph.ways[s.way], s.way) : 'unknown';
   var rtag = rs === 'closed' ? ' <span style="color:#c5221f;">· ⛔ ' + L('סגור כרגע', 'closed now') + '</span>'
            : rs === 'later' ? ' <span style="color:#b06000;">· ' + L('ייפתח בהמשך היום', 'opens later today') + '</span>' : '';
-  return '⛷️ ' + label + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '') + ' ' + SKI_DOT[s.d] + ' · ' + dist + rtag;
+  var ftag = s.rise >= 5
+    ? ' <span style="color:#b06000;">· ⚠️ ' + L('יש עלייה בהמשך, צבור מהירות לפניה', 'a rise ahead, build speed before it') + '</span>'
+    : s.flat >= 150
+    ? ' <span style="color:#b06000;">· ⚠️ ' + L('כ־' + Math.round(s.flat / 50) * 50 + ' מ\' כמעט שטוחים, שמור על מהירות', 'about ' + Math.round(s.flat / 50) * 50 + ' m nearly flat, keep your speed') + '</span>' : '';
+  return (GEO.board ? '🏂 ' : '⛷️ ') + label + (s.name ? ' <b>' + escHtml(s.name) + '</b>' : '') + ' ' + SKI_DOT[s.d] + ' · ' + dist + rtag + ftag;
 }
 
 function _skiDraw(route) {
@@ -10051,6 +10063,12 @@ function _skiDraw(route) {
     st.lineCap = 'round'; st.lineJoin = 'round'; st.interactive = false;
     lf.polyline(r.pts, st).addTo(grp);
   });
+  // the stretches where speed runs out (nearly flat, or a rise) are marked
+  // on the route itself: a yellow stitch over the run's colour
+  route.edges.forEach(function (ei) {
+    var e = g.edges[ei];
+    if (_skiFlatM(g, e) >= 150 || _skiRiseM(g, e)) lf.polyline(_skiGeom(e), { color: '#ffd400', weight: 3, dashArray: '6 6', lineCap: 'butt', interactive: false }).addTo(grp);
+  });
   SKI.layer = grp.addTo(GEO.map);
   // the skier's dot goes over the route, not under it (Yossi, 22.11): the
   // route is redrawn as he moves, and each redraw landed on top of the dot
@@ -10070,6 +10088,53 @@ function geoRideDown(on) {
   _geoDestPaint();
 }
 
+// ── snowboard (a boarder's request, 26.11) ──
+// Some blue runs barely fall at all: on skis you pole along, on a board you
+// unstrap and walk. With this on, near-flat stretches cost the router far
+// more time, and a stretch it cannot avoid is announced in advance. The
+// heights are the terrain model's at each junction, so a stretch's slope is
+// its average fall between the two ends.
+function _geoBoard() {
+  if (GEO.board === undefined) { try { GEO.board = localStorage.getItem('geoBoard') === '1'; } catch (e) { GEO.board = false; } }
+  return !!GEO.board;
+}
+function geoBoard(on) {
+  GEO.board = !!on;
+  try { localStorage.setItem('geoBoard', on ? '1' : ''); } catch (e) {}
+  SKI.key = '';
+  _geoDestPaint();
+}
+var SKI_FLAT = 0.05;                 // a fall under 5% is pushed, not ridden
+function _skiGrade(g, e) {
+  var a = g.nodes[e[0]], b = g.nodes[e[1]];
+  if (!a || !b || a[2] == null || b[2] == null || !(e[3] > 0)) return null;
+  var dz = a[2] - b[2];
+  return (e[4] === 'f' ? Math.abs(dz) : dz) / e[3];
+}
+// metres of an edge where speed runs out: under 5% for a board, under 3%
+// on skis (Yossi, 26.11: the warning helps a skier too)
+function _skiFlatM(g, e) {
+  if (e[4] !== 's' && e[4] !== 'f') return 0;
+  if (e[3] < 40) return 0;
+  var gr = _skiGrade(g, e);
+  return gr !== null && gr < (GEO.board ? SKI_FLAT : 0.03) ? e[3] : 0;
+}
+// metres a run climbs on its way down - a dip and a rise, where whoever
+// arrives slow stops and walks. Only a real rise over a real stretch, away
+// from the stations where the terrain model's heights jump.
+function _skiRiseM(g, e) {
+  if (e[4] !== 's' || e[3] < 80 || _skiStation(g, e[0]) || _skiStation(g, e[1])) return 0;
+  var a = g.nodes[e[0]], b = g.nodes[e[1]];
+  if (!a || !b || a[2] == null || b[2] == null) return 0;
+  var up = b[2] - a[2];
+  return up >= 5 ? up : 0;
+}
+function _skiBoardF(g, e) {
+  if (e[3] < 40) return 1;
+  var gr = _skiGrade(g, e);
+  if (gr === null) return 1;
+  return gr < 0.03 ? 5 : gr < SKI_FLAT ? 3 : gr < 0.07 ? 1.5 : 1;
+}
 function geoLevel(v) {
   GEO.level = +v || 2;
   try { localStorage.setItem('geoLevel', String(GEO.level)); } catch (e) {}
@@ -10129,6 +10194,8 @@ function _voicePick() {
 // said on the mountain. Only what is spoken changes - the screen keeps the
 // names as they are signposted (Yossi, 25.11).
 var SAY_HE_WORDS = [
+  ['קטע שטוח, שמור על מהירות', 'קֶטַע שָׁטוּחַ, שְׁמֹר עַל מְהִירוּת'],
+  ['עלייה בהמשך, צבור מהירות', 'עֲלִיָּה בַּהֶמְשֵׁךְ, צְבֹר מְהִירוּת'],
   ['יצאת מהמסלול', 'יָצָאתָ מֵהַמַּסְלוּל'], ['מסלול חדש', 'מַסְלוּל חָדָשׁ'],
   ['הגעת אל', 'הִגַּעְתָּ אֶל'], ['הדרכה קולית פועלת', 'הַדְרָכָה קוֹלִית פּוֹעֶלֶת'],
   ['מסלול אל', 'מַסְלוּל אֶל'], ['ראשית', 'רֵאשִׁית'], ['עכשיו', 'עַכְשָׁיו'],
@@ -10304,7 +10371,9 @@ function _stepSpeech(s) {
   }
   if (s.kind === 'walk') return VL('הליכה ', 'walk ') + Math.round(s.m / 10) * 10 + VL(' מטר', ' metres');
   return VL('מסלול ', 'run ') + (s.ref ? s.ref + ' ' : '') + (s.name ? s.name + ', ' : ', ')
-    + VL(_VOICE_COL_HE[s.d], _VOICE_COL_EN[s.d]);
+    + VL(_VOICE_COL_HE[s.d], _VOICE_COL_EN[s.d])
+    + (s.rise >= 5 ? VL('. עלייה בהמשך, צבור מהירות', '. A rise ahead, build speed')
+       : s.flat >= 150 ? VL('. קטע שטוח, שמור על מהירות', '. A flat stretch, keep your speed') : '');
 }
 
 // where on the route the skier is: how far from it, and on which edge
@@ -10763,6 +10832,7 @@ PHELP.text = {
     + '1. <b>🔍 לאן?</b> בחר לאן אתה רוצה להגיע: מעלית, בקתה, מסלול או מקום בכפר. האתר יראה את הדרך מהמקום שלך, במסלולים ובמעליות.<br>'
     + '2. <b>רמה:</b> בחר עד איזה צבע מסלול הדרך מותרת. "רק כחולים" לא ישלח אותך לאדום. מעליות ומסלולים שסגורים היום, לפי האתר הרשמי, לא נכנסים לדרך. מסלול סגור מופיע במפה בקו אפור מקווקו.<br>'
     + '3. <b>לרדת גם בקבינות:</b> סמן אם נוח לך לרדת ברכבל או בגונדולה במקום לגלוש למטה.<br>'
+    + '🏂 <b>סנובורד:</b> הדרך עוקפת קטעים כמעט שטוחים, שבהם בסנובורד צריך לדחוף. קו צהוב מקווקו על הדרך מסמן קטע כמעט שטוח או עלייה קלה, והוראות הדרך מזהירות מראש לשמור על מהירות.<br>'
     + '4. <b>🔈 הדרכה קולית:</b> הוראות בקול בזמן הגלישה, כמו בניווט ברכב. '
     + '<button type="button" onclick="voiceSample()" style="padding:2px 9px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.74rem;">▶ שמע דוגמה</button><br>'
     + '5. <b>📍 הצג את המיקום שלי</b> (למטה): המיקום מתעדכן לבד, ונשאר במכשיר שלך.<br>'
@@ -10775,6 +10845,7 @@ PHELP.text = {
     + '1. <b>🔍 Where to?</b> Choose where you want to get: a lift, a hut, a run or a place in the village. The site shows the way from where you are, by runs and lifts.<br>'
     + '2. <b>Level:</b> the hardest run colour the way may use. "Blue runs only" will not send you down a red. Lifts and runs that are closed today, by the official site, are left out of the way; a closed run shows on the map as a grey dashed line.<br>'
     + '3. <b>Ride down in cabins:</b> tick it if you would rather ride a cable car or gondola down than ski.<br>'
+    + '🏂 <b>Snowboard:</b> the way avoids near-flat stretches, where a board has to push. A yellow stitched line on the way marks a near-flat stretch or a small rise, and the directions warn you in advance to keep your speed.<br>'
     + '4. <b>🔈 Voice guidance:</b> spoken directions while you ski, as in a car. '
     + '<button type="button" onclick="voiceSample()" style="padding:2px 9px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.74rem;">▶ Hear a sample</button><br>'
     + '5. <b>📍 Show my location</b> (below): it updates by itself, and stays on your device.<br>'

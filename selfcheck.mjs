@@ -5645,6 +5645,32 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `the zmanim show ${r.zmanimDrawn} drawn candles`); else ok();
 }
 
+// ── flat stretches: a snowboard goes round them, everyone is warned ──
+// A boarder's request (26.11): blues so flat a board has to be pushed. With
+// the snowboard box ticked the router steers round them where it can; on
+// skis or on a board, a stretch that is nearly flat or climbs is announced
+// ("keep your speed"), in pointed Hebrew like the rest of the voice.
+{
+  const r = await page.evaluate(async () => {
+    const g = await _skiLoad();
+    const keepB = GEO.board, keepL = SKI.ignoreLive; SKI.ignoreLive = true; SKI.prof = 'fast';
+    const flat5 = rt => { const kb = GEO.board; GEO.board = true; const n = skiSteps(rt).reduce((x, s) => x + (s.flat || 0), 0); GEO.board = kb; return n; };
+    GEO.board = false; const ski = skiRoute([45.93005, 7.68025], [45.88823, 7.624], 2);
+    GEO.board = true;  const brd = skiRoute([45.93005, 7.68025], [45.88823, 7.624], 2);
+    GEO.board = false; const zs = skiSteps(skiRoute([45.97181, 7.72224], [46.01464, 7.74266], 2));
+    const warn = zs.filter(s => s.flat >= 150 || s.rise >= 5);
+    const said = warn.length ? _sayHe(_stepSpeech(warn[0])) : '';
+    GEO.board = keepB; SKI.ignoreLive = keepL;
+    return { skiFlat: ski && flat5(ski), brdFlat: brd && flat5(brd), warns: warn.length, rise: zs.some(s => s.rise >= 5),
+             html: warn.length ? _skiStepHtml(warn[0]) : '', said };
+  });
+  const T = 'flat stretches: snowboard and warnings';
+  if (!(r.brdFlat < r.skiFlat)) fail(T, `the board route is no less flat: ${r.brdFlat} m against ${r.skiFlat} m`); else ok();
+  if (!r.warns || !r.rise) fail(T, 'Trockener Steg to Zermatt warns of no flat stretch or rise'); else ok();
+  if (!/⚠️/.test(r.html)) fail(T, 'the step shows no warning'); else ok();
+  if (!/שְׁמֹר עַל מְהִירוּת|צְבֹר מְהִירוּת/.test(r.said)) fail(T, 'the warning is not spoken in pointed Hebrew: ' + r.said); else ok();
+}
+
 // ── a closed run is not on the way ────────────────────────────────────
 // A season worker, 26.11: "the map implies that all pistes are open; the
 // black 24bis is often not". The feed's runs (lifts_detail.pistes) close a
