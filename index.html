@@ -1670,7 +1670,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.05';
+  var v='v19.06';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1735,6 +1735,9 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 
     <!-- The language switch, in the corner where people look for it (Yossi,
          12.11). Open since 13.11: EN on the Hebrew page, עב on the English. -->
+    <!-- the help centre, one tap from every screen (Yossi, 26.11) -->
+    <button id="help-btn" type="button" onclick="helpOpen('')" title="עזרה" aria-label="עזרה" data-en-title="Help" data-en-aria-label="Help"
+      style="width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.6);background:transparent;color:#fff;font-weight:800;font-size:0.95rem;cursor:pointer;font-family:inherit;line-height:1;padding:0;">?</button>
     <button id="lang-btn" type="button" onclick="langBtn()" lang="en"
       title="English · האתר באנגלית" aria-label="English · האתר באנגלית"
       data-en="עב" data-en-title="עברית" data-en-aria-label="עברית">EN</button>
@@ -1816,7 +1819,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 
         <div style="width:1px;height:32px;background:rgba(255,255,255,0.1);"></div>
 
-        <div id="bar-slopes-cell" style="text-align:center;cursor:pointer;" onclick="openM('helpModal')">
+        <div id="bar-slopes-cell" style="text-align:center;cursor:pointer;" onclick="helpOpen(L('מספרים', 'numbers'))">
           <div style="line-height:1;">
             <span id="bar-slopes-local" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;">--</span>
             <span id="bar-slopes-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
@@ -1824,7 +1827,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
           <div style="color:rgba(255,255,255,0.4);font-size:0.58rem;margin-top:2px;" data-en="⛷️ Slopes &lt;span id=&quot;bar-slopes-scope&quot; style=&quot;opacity:0.6;&quot;&gt;&lt;/span&gt;">⛷️ מסלולים <span id="bar-slopes-scope" style="opacity:0.6;"></span></div>
         </div>
 
-        <div id="bar-lifts-cell" style="text-align:center;cursor:pointer;" onclick="openM('helpModal')">
+        <div id="bar-lifts-cell" style="text-align:center;cursor:pointer;" onclick="helpOpen(L('מספרים', 'numbers'))">
           <div style="line-height:1;">
             <span id="bar-lifts-local" style="color:#4cc9f0;font-size:1.15rem;font-weight:800;">--</span>
             <span id="bar-lifts-global" style="color:#4cc9f0;font-size:0.85rem;font-weight:400;opacity:0.7;"></span>
@@ -2243,8 +2246,15 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="helpModal" class="modal" onclick="if(event.target===this)closeM('helpModal')">
   <div class="modal-content" style="max-width:480px;">
     <span class="close-btn" onclick="closeM('helpModal')">×</span>
-    <h3 style="margin:0 0 16px;font-size:1.1rem;" data-en="❓ Help">❓ עזרה</h3>
-    <div style="color:#555;font-size:0.88rem;line-height:1.8;">
+    <h3 style="margin:0 0 10px;font-size:1.1rem;" data-en="❓ Help">❓ עזרה</h3>
+    <!-- The help centre: every topic in texts.json (modals.help.faq), grouped,
+         searchable, each with a button that opens the place it talks about
+         (Yossi, 26.11: there is a lot on the site now, and no way to know
+         that a tap on the Zermatt badge also leads to the navigation). -->
+    <input id="help-q" type="search" dir="auto" autocomplete="off" oninput="HELPC.paint()"
+      placeholder="חפש: סוללה, צרמט, חניה, תגיות…" data-en-placeholder="Search: battery, Zermatt, parking, tags…"
+      style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #c9d6e3;border-radius:10px;font-family:inherit;font-size:0.9rem;margin-bottom:10px;">
+    <div id="help-list" style="color:#555;font-size:0.88rem;line-height:1.8;">
       <p><b>הנתונים לא מתעדכנים?</b><br>הנתונים מתעדכנים אוטומטית כל שעה. נסה לרענן את הדף.</p>
       <p><b>איך נרשמים?</b><br>לחץ על "כניסה / הרשמה" בפינה העליונה, ובחלון שנפתח בחר בלשונית "הרשמה".</p>
       <p><b>מה אומרים המספרים בבאנר?</b><br>המספר הגדול הוא כל מרחב הסקי; הקטן בסוגריים הוא צ'רוויניה בלבד.</p>
@@ -7339,6 +7349,82 @@ function _sideMenuOpen() {
 }
 // Close first, then open what was asked for: a panel opening behind the
 // drawer would be unreachable until the drawer was dismissed.
+// ── the help centre ──
+var HELPC = { faq: [], cats: {} };
+// where each topic's button leads: a fixed list, never text from the file
+HELPC.go = {
+  nav:       function () { PANEL_ACTIONS.navigate(); },
+  maps:      function () { openM('mapModal'); },
+  zermatt:   function () { openZermattForecast(); },
+  back:      function () { geoPlan('back'); },
+  lifts:     function () { geoPlan('lifts'); },
+  time:      function () { HELPC.inNav(function () { if (!TP.open) geoTime(); }); },
+  friends:   function () { HELPC.inNav(function () { if (!FR.open) geoFriends(); }); },
+  emergency: function () { openM('parkingModal'); setTimeout(openParkEmergency, 150); },
+  skipass:   function () { openM('skipassModal'); },
+  rental:    function () { openM('rentalModal'); },
+  lessons:   function () { openM('lessonsModal'); },
+  kosher:    function () { openM('kosherModal'); },
+  parking:   function () { openM('parkingModal'); },
+  webcam:    function () { openM('webcamModal'); },
+  cost:      function () { openCost('free'); },
+  place:     function () { openM('placeModal'); },
+  forum:     function () { PANEL_ACTIONS.forum(); },
+  push:      function () { SIDE_MENU_ACTIONS.push(); },
+  install:   function () { var el = document.getElementById('help-install'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+};
+HELPC.inNav = function (then) {
+  PANEL_ACTIONS.navigate();
+  var n = 0;
+  (function wait() { if (document.getElementById('map-geo-time') && GEO.map) { then(); return; } if (++n < 40) setTimeout(wait, 250); })();
+};
+// open the help, optionally already searching for something
+function helpOpen(q) {
+  openM('helpModal');
+  var el = document.getElementById('help-q');
+  if (el) { el.value = q || ''; HELPC.paint(); if (!q) try { el.focus({ preventScroll: true }); } catch (e) {} }
+}
+HELPC.open = function (i) {
+  var it = HELPC.faq[i], f = it && HELPC.go[it.go];
+  if (!f) return;
+  if (it.go !== 'install') closeM('helpModal');
+  setTimeout(f, 60);
+};
+HELPC.paint = function () {
+  var box = document.getElementById('help-list');
+  if (!box || !HELPC.faq.length) return;
+  var qEl = document.getElementById('help-q');
+  var q = qEl ? qEl.value.trim().toLowerCase() : '';
+  var words = q ? q.split(/\s+/) : [];
+  var plain = function (h) { return String(h || '').replace(/<[^>]+>/g, ' ').toLowerCase(); };
+  var hits = HELPC.faq.map(function (it, i) { return { it: it, i: i }; }).filter(function (x) {
+    if (!words.length) return true;
+    var hay = plain(x.it.q) + ' ' + plain(x.it.a) + ' ' + (x.it.k || '').toLowerCase();
+    return words.every(function (w) { return hay.indexOf(w) !== -1; });
+  });
+  if (!hits.length) {
+    box.innerHTML = '<p style="color:#777;">' + L('לא נמצא. נסה מילה אחרת, או ', 'Nothing found. Try another word, or ')
+      + '<a href="#" onclick="closeM(\'helpModal\');openM(\'contactModal\');return false;">' + L('שאל אותנו', 'ask us') + '</a>.</p>';
+    return;
+  }
+  var order = Object.keys(HELPC.cats), html = '';
+  var groups = {};
+  hits.forEach(function (x) { var c = x.it.cat || ''; (groups[c] = groups[c] || []).push(x); });
+  order.concat(Object.keys(groups).filter(function (c) { return order.indexOf(c) === -1; })).forEach(function (c) {
+    var g = groups[c]; if (!g) return;
+    if (HELPC.cats[c]) html += '<div style="font-weight:bold;color:#16314f;font-size:0.86rem;margin:12px 0 4px;">' + HELPC.cats[c] + '</div>';
+    g.forEach(function (x) {
+      var go = x.it.go && HELPC.go[x.it.go] && x.it.go !== 'install';
+      html += '<details class="help-item"' + (words.length && hits.length <= 3 ? ' open' : '') + ' style="border:1px solid #e3e9f0;border-radius:9px;padding:6px 10px;margin-bottom:6px;background:#fff;">'
+        + '<summary style="cursor:pointer;font-weight:bold;color:#22384f;list-style-position:inside;">' + x.it.q + '</summary>'
+        + '<div style="padding:6px 0 2px;">' + x.it.a + '</div>'
+        + (go ? '<button type="button" onclick="HELPC.open(' + x.i + ')" style="margin:4px 0 2px;padding:5px 12px;border:none;border-radius:8px;background:#1a73e8;color:#fff;font-family:inherit;font-size:0.78rem;font-weight:bold;cursor:pointer;">' + L('פתח ←', 'Open →') + '</button>' : '')
+        + '</details>';
+    });
+  });
+  box.innerHTML = html;
+};
+
 var SIDE_MENU_ACTIONS = {
   // The panel holding the Israeli Facebook group, the video and the Hebrew
   // write-ups was reachable from one banner that shows once and is gone
@@ -7350,7 +7436,7 @@ var SIDE_MENU_ACTIONS = {
   cost:    function () { openCost('free'); },
   about:   function () { openM('aboutModal'); },
   contact: function () { openM('contactModal'); },
-  help:    function () { openM('helpModal'); },
+  help:    function () { helpOpen(''); },
   sources: function () { openSources(); },
   // The invitation at the top of the page shows once and is gone for good
   // once it is turned down. Somebody who said "not now" in October and
@@ -22365,12 +22451,9 @@ function _applyTexts(t) {
 
   // ── מודאל "עזרה" — FAQ ──
   if (t.modals && t.modals.help && t.modals.help.faq) {
-    var helpEl = document.querySelector('#helpModal .modal-content div[style*="line-height"]');
-    if (helpEl) {
-      helpEl.innerHTML = t.modals.help.faq.map(function(item) {
-        return '<p><b>' + item.q + '</b><br>' + item.a + '</p>';
-      }).join('');
-    }
+    HELPC.faq = t.modals.help.faq;
+    HELPC.cats = t.modals.help.cats || {};
+    HELPC.paint();
   }
 
   // הכרזת כשרות בפסלולים נטענת דינמית ב-renderPisteGuide() דרך window._texts — ללא צורך ב-ID נפרד

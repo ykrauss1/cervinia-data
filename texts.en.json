@@ -73,22 +73,233 @@
    "title": "❓ Help",
    "faq": [
     {
-     "q": "The data is not updating?",
-     "a": "The data updates itself every hour. Try refreshing the page."
+     "cat": "home",
+     "q": "What is in the top box?",
+     "a": "The temperature in the village and at the summit, the snow, how many runs and lifts are open, and the opening hours. It all updates by itself from the official sites. Tap a tile for details.",
+     "k": "temperature snow lifts runs hours טמפרטורה שלג מעליות מסלולים שעות פתוחים"
     },
     {
-     "q": "How do I join?",
-     "a": "Tap “Sign in” in the top corner and choose “Join”."
+     "cat": "home",
+     "q": "What is the mountain with the coloured dot?",
+     "a": "It is the link to Zermatt. The colour of the dot and the words under it show whether the crossing is open. A tap opens the crossing forecast and two buttons: \"Will I make it back from Zermatt?\" and \"Zermatt by lift only - how long?\".",
+     "k": "matterhorn badge dot green red מטרהורן נקודה ירוק אדום תג",
+     "go": "zermatt"
     },
     {
-     "q": "What do the numbers in the banner mean?",
-     "a": "The big number is the <b>whole ski area</b> — Cervinia, Valtournenche, Chamois, Torgnon and Zermatt together — the same figure the official website shows. The small number in brackets, when there is one, is Cervinia alone. When there is no separate Cervinia figure, there are no brackets.<br><br><b>The number after the slash is not the total number of lifts</b>, but how many of them are running in the current period. In October, for example, five lifts run in Cervinia and 15 in the whole area; at the height of winter these numbers are several times larger. This is exactly what the operator itself publishes."
+     "cat": "home",
+     "q": "What does the \"🧭 Navigate on the mountain\" button do?",
+     "a": "It opens the navigation in one tap: a map with your position, and a search for a lift, a hut, a run or a place in the village.",
+     "k": "navigation map button ניווט מפה כפתור",
+     "go": "nav"
     },
     {
+     "cat": "nav",
+     "q": "How do I navigate on the mountain?",
+     "a": "Tap \"🧭 Navigate on the mountain\", then choose a destination in \"🔍 Where to?\". The site shows the way from where you are, by runs and lifts, step by step. Choose a level (\"Blue runs only\", \"Up to red\", \"Black too\") and the way will not use a harder run.",
+     "k": "route directions level blue red black destination מסלול דרך רמה כחול אדום שחור יעד לאן",
+     "go": "nav"
+    },
+    {
+     "cat": "nav",
+     "q": "Can I ride down in a lift instead of skiing?",
+     "a": "Yes. Tick \"Ride down in cabins too\" in the navigation options, and the way may go down by gondola, cable car or train. Without it the way down is always on skis.",
+     "k": "ride down gondola cable car ירידה רכבל גונדולה קבינות",
+     "go": "nav"
+    },
+    {
+     "cat": "nav",
+     "q": "How do I turn on voice guidance?",
+     "a": "While navigating tap \"🔈 Voice guidance\". The directions are spoken, as in a car. To hear it before the mountain, open the \"?\" in the navigation and tap \"▶ Hear a sample\".",
+     "k": "voice speech spoken sound קול דיבור הדרכה קולית שמע",
+     "go": "nav"
+    },
+    {
+     "cat": "nav",
+     "q": "What if the battery runs down fast?",
+     "a": "Tick \"🔋 Save battery\": your position updates once a minute instead of all the time, and the screen may go dark (voice guidance is silent while it is dark). \"⏹️ Off on arrival\" turns the location off when you reach the destination. Keep the phone in a warm inside pocket, and take a power bank and a printed piste map.",
+     "k": "battery power bank cold gps סוללה פאוור בנק קור חיסכון",
+     "go": "nav"
+    },
+    {
+     "cat": "nav",
+     "q": "And with no signal?",
+     "a": "In the maps tab there is a \"📥 Keep the piste maps for no signal\" button. Save them beforehand, while you have internet. The maps can be printed too.",
+     "k": "offline signal internet print pdf קליטה אינטרנט אופליין הדפסה מפות",
+     "go": "maps"
+    },
+    {
+     "cat": "nav",
+     "q": "What is \"Planning by time\" (⏱️)?",
+     "a": "In the navigation tap ⏱️ and write what you have in your own words: \"I have an hour and a half\", \"my pass runs till 12:30 and I want to be down by 14:00\". The site suggests what you can fit in, and when to leave to be on time. Or tap a ready question.",
+     "k": "time plan hour half day pass זמן שעה חצי יום סקיפס תכנון",
+     "go": "time"
+    },
+    {
+     "cat": "nav",
+     "q": "How do I find nearby toilets, a doctor or parking?",
+     "a": "The navigation has a row of kinds of place: toilets, medical, ticket offices, rental, cash machines, pharmacies, parking and more. A tap lists the nearest. Beside each place there is \"ℹ️ Info\" (Google Maps: hours and phone), and sometimes \"📖 On site\".",
+     "k": "toilets wc doctor medical pharmacy atm parking nearby שירותים רופא רפואה בית מרקחת כספומט חניה קרוב",
+     "go": "nav"
+    },
+    {
+     "cat": "nav",
+     "q": "What is the demo mode?",
+     "a": "Far from Cervinia, the navigation switches to a demo, and you can try everything as if you were on the mountain.",
+     "k": "demo simulation try הדגמה דמו",
+     "go": "nav"
+    },
+    {
+     "cat": "nav",
+     "q": "How do I see my friends on the map?",
+     "a": "In the navigation tap 👥. Create a group or join from a link a friend sent, then tap \"Share\" and choose until when. While you share, your friends see you and you see them. In the Android app sharing goes on with the screen off.",
+     "k": "friends group share location חברים קבוצה שיתוף מיקום",
+     "go": "friends"
+    },
+    {
+     "cat": "nav",
+     "q": "What do I do in an emergency on the mountain?",
+     "a": "The emergency number in Europe is 112. The navigation has an emergency button, and the \"Transport, parking and emergency\" panel has all the emergency numbers and the trauma centre in the village.",
+     "k": "emergency 112 accident injury rescue חירום תאונה פציעה חילוץ",
+     "go": "emergency"
+    },
+    {
+     "cat": "zm",
      "q": "What is the Zermatt link?",
-     "a": "The crossing between the Cervinia ski area and Zermatt (Switzerland) over the glacier. <b>Without skiing at all</b> you can do the whole round trip by lift: gondolas from the village via Plan Maison and Cime Bianche Laghi to Plateau Rosa, then the Matterhorn Alpine Crossing to Matterhorn Glacier Paradise, then gondolas down to Zermatt town. About an hour and a half each way. That gondola runs all year in good weather, even when no slope is open — then it says “Cable car only”. Crossing on skis is possible only when slopes are open."
+     "a": "The crossing between the Cervinia ski area and Zermatt (Switzerland) over the glacier. <b>Without skiing at all</b> you can do the whole round trip by lift: gondolas from the village via Plan Maison and Cime Bianche Laghi to Plateau Rosa, then the Matterhorn Alpine Crossing to Matterhorn Glacier Paradise, then gondolas down to Zermatt town. About an hour and a half each way. That gondola runs all year in good weather, even when no slope is open — then it says “Cable car only”. Crossing on skis is possible only when slopes are open.",
+     "k": "zermatt crossing switzerland צרמט שוויץ מעבר",
+     "go": "zermatt"
+    },
+    {
+     "cat": "zm",
+     "q": "Will I make it back from Zermatt before the lifts close?",
+     "a": "Tap the Zermatt badge on the first screen, then \"⏱️ Will I make it back from Zermatt?\". From where you are, the site works out when to head back to catch the last lift to Italy, with a 20-minute margin.",
+     "k": "back return last lift close חזרה מעלית אחרונה סגירה",
+     "go": "back"
+    },
+    {
+     "cat": "zm",
+     "q": "How long is Zermatt by lift only?",
+     "a": "Tap the Zermatt badge, then \"🚡 Zermatt by lift only - how long?\". It shows the time there and back, the lifts in order, and when to leave Zermatt. You need an international pass, or a Matterhorn Alpine Crossing ticket if you are not skiing.",
+     "k": "lifts only alpine crossing pedestrian מעליות בלבד הולך רגל בלי גלישה",
+     "go": "lifts"
+    },
+    {
+     "cat": "trip",
+     "q": "Where are the ski pass prices?",
+     "a": "In the \"Ski pass\" panel: the official prices for the season, the kinds of pass, and the link to buy on the official site.",
+     "k": "ski pass price ticket סקיפס מחיר כרטיס",
+     "go": "skipass"
+    },
+    {
+     "cat": "trip",
+     "q": "Where do I rent equipment?",
+     "a": "In the \"Equipment rental\" panel: prices, and a card for each shop in the village with address, phone and hours. A shop marked \"⭐ Recommended in the group\" was recommended in the Facebook group.",
+     "k": "rental rent skis boots shop השכרה ציוד חנות מגלשיים",
+     "go": "rental"
+    },
+    {
+     "cat": "trip",
+     "q": "Where do I find a ski instructor?",
+     "a": "In the \"Ski lessons\" panel: the ski schools in the village, and recommended private instructors with a WhatsApp link.",
+     "k": "instructor lessons school מדריך שיעור בית ספר",
+     "go": "lessons"
+    },
+    {
+     "cat": "trip",
+     "q": "Kosher food, Shabbat and mikveh",
+     "a": "In the \"Kosher and Shabbat\" panel: what there is in the village, deliveries, restaurants in Milan and Turin, Shabbat times, kosher products, and mikvaot in the region.",
+     "k": "kosher shabbat mikveh zmanim כשר כשרות שבת מקווה זמנים",
+     "go": "kosher"
+    },
+    {
+     "cat": "trip",
+     "q": "How do I get there and where do I park?",
+     "a": "In the \"Transport, parking and emergency\" panel: from the airport to the village, timetables, car hire, chains and the car parks in the village (free and paid).",
+     "k": "parking transport bus car chains airport חניה תחבורה אוטובוס רכב שרשראות שדה",
+     "go": "parking"
+    },
+    {
+     "cat": "trip",
+     "q": "How do I see what is happening on the mountain now?",
+     "a": "The \"Webcams\" panel has live cameras from the village and the summits. The forecast panel has a four-day forecast.",
+     "k": "webcam camera live forecast מצלמה חי תחזית",
+     "go": "webcam"
+    },
+    {
+     "cat": "trip",
+     "q": "What will the trip cost?",
+     "a": "The ☰ menu has \"What it will cost\": a calculator that estimates pass, gear, lodging and flight together. \"What is right for me?\" asks six short questions and shows what fits your trip.",
+     "k": "cost price budget calculator עלות מחיר תקציב מחשבון",
+     "go": "cost"
+    },
+    {
+     "cat": "trip",
+     "q": "Photos and videos of the area",
+     "a": "In \"Getting to know Cervinia\" there are map, photos and videos tabs. You can also send a photo of your own; it appears once approved.",
+     "k": "photos videos youtube upload תמונות סרטונים העלאה",
+     "go": "place"
+    },
+    {
+     "cat": "comm",
+     "q": "How do I write in the forum?",
+     "a": "You need to be signed in. Tap write a post, write, and pick up to three topics (tags). The tags help others find the post.",
+     "k": "forum post write פורום כתיבה הודעה",
+     "go": "forum"
+    },
+    {
+     "cat": "comm",
+     "q": "How do the forum tags work?",
+     "a": "When you write a post you pick its topics, and the site suggests one from your words. When reading, a tap on a topic at the top of the forum, or on a post's tag, shows only the posts on that topic.",
+     "k": "tags topics filter תגיות נושאים סינון",
+     "go": "forum"
+    },
+    {
+     "cat": "comm",
+     "q": "How do I get notifications on my phone?",
+     "a": "In the ☰ menu choose \"Notifications\". You can get snow and weather updates, and a message when someone answers you in the forum.",
+     "k": "notifications push alerts התראות עדכונים",
+     "go": "push"
+    },
+    {
+     "cat": "site",
+     "q": "How do I join?",
+     "a": "Tap “Sign in” in the top corner and choose “Join”.",
+     "k": "register sign up login הרשמה כניסה"
+    },
+    {
+     "cat": "site",
+     "q": "How do I install the site as an app?",
+     "a": "On Android there is an app in Google Play. On any phone you can also add the site to the home screen. The instructions are at the bottom of this window.",
+     "k": "install app android home screen התקנה אפליקציה מסך הבית",
+     "go": "install"
+    },
+    {
+     "cat": "site",
+     "q": "The data is not updating?",
+     "a": "The data updates itself every hour. Try refreshing the page.",
+     "k": "update refresh data עדכון רענון נתונים"
+    },
+    {
+     "cat": "site",
+     "q": "What do the numbers in the banner mean?",
+     "a": "The big number is the <b>whole ski area</b> — Cervinia, Valtournenche, Chamois, Torgnon and Zermatt together — the same figure the official website shows. The small number in brackets, when there is one, is Cervinia alone. When there is no separate Cervinia figure, there are no brackets.<br><br><b>The number after the slash is not the total number of lifts</b>, but how many of them are running in the current period. In October, for example, five lifts run in Cervinia and 15 in the whole area; at the height of winter these numbers are several times larger. This is exactly what the operator itself publishes.",
+     "k": "numbers banner lifts runs מספרים באנר"
+    },
+    {
+     "cat": "site",
+     "q": "How do I change the language?",
+     "a": "The EN / עב button at the top of the page switches between Hebrew and English.",
+     "k": "language english hebrew שפה אנגלית עברית"
     }
-   ]
+   ],
+   "cats": {
+    "home": "🏠 The first screen",
+    "nav": "🧭 Navigating the mountain",
+    "zm": "🏔️ Zermatt",
+    "trip": "🎒 Trip information",
+    "comm": "👥 Community",
+    "site": "📲 The site and the app"
+   }
   },
   "zermatt_link_conditions": [
    "🌡️ Temperature below 0° at Plateau Rosa",
@@ -4501,23 +4712,23 @@
   },
   "italy_top": "🗺️ The wider view: every ski area in northern Italy, as far as the Dolomites →"
  },
-  "lift_hours": {
-    "source": "https://www.cervinia.it/en/impianti",
-    "checked": "24/11/2026",
-    "until": "02/05/2027",
-    "note": "Official 2026/27 timetable. Times are the last ride up; Cime Bianche Laghi may close 20 minutes early in bad weather.",
-    "close": {
-      "FU Breuil-Plan Maison": "16:00",
-      "TC Breuil-Plan Maison": "16:00",
-      "Plateau Rosa": "16:10",
-      "Cime Bianche Laghi": "16:20",
-      "Bontadini": "16:00",
-      "Fornet": "16:00",
-      "Pancheron": "15:50",
-      "Plan Maison": "15:50",
-      "Goillet": "15:30",
-      "Gran Sometta": "15:30",
-      "Tappeto Plan Maison": "16:30"
-    }
+ "lift_hours": {
+  "source": "https://www.cervinia.it/en/impianti",
+  "checked": "24/11/2026",
+  "until": "02/05/2027",
+  "note": "Official 2026/27 timetable. Times are the last ride up; Cime Bianche Laghi may close 20 minutes early in bad weather.",
+  "close": {
+   "FU Breuil-Plan Maison": "16:00",
+   "TC Breuil-Plan Maison": "16:00",
+   "Plateau Rosa": "16:10",
+   "Cime Bianche Laghi": "16:20",
+   "Bontadini": "16:00",
+   "Fornet": "16:00",
+   "Pancheron": "15:50",
+   "Plan Maison": "15:50",
+   "Goillet": "15:30",
+   "Gran Sometta": "15:30",
+   "Tappeto Plan Maison": "16:30"
   }
+ }
 }

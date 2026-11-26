@@ -1225,13 +1225,13 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const el = document.getElementById(id);
     return el ? (el.getAttribute('onclick') || '') + '|' + el.style.cursor : null;
   }));
-  if (!tap.every(t => t && /helpModal/.test(t) && /pointer/.test(t)))
+  if (!tap.every(t => t && /helpModal|helpOpen/.test(t) && /pointer/.test(t)))
     fail('the counts say what the denominator is',
       `the cells are not tappable: ${JSON.stringify(tap)}`); else ok();
 
   // the answer it opens on has to carry the correction, not the old wording
   const faq = await page.evaluate(() =>
-    [...document.querySelectorAll('#helpModal p')].map(p => p.innerText).join(' ')
+    [...document.querySelectorAll('#helpModal p, #helpModal details')].map(p => p.textContent).join(' ')
   );
   if (!/אינו סך כל המעליות/.test(faq))
     fail('the counts say what the denominator is',
