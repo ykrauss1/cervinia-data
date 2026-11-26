@@ -1670,7 +1670,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.06';
+  var v='v19.07';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -1767,6 +1767,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
     <button id="sm-push" onclick="smGo('push')" data-en="&lt;span&gt;🔔&lt;/span&gt;Notifications — on and off"><span>🔔</span>התראות — הפעלה וביטול</button>
     <button onclick="smGo('sources')" data-en="&lt;span&gt;📚&lt;/span&gt;Sources and reliability"><span>📚</span>מקורות ואמינות</button>
     <button onclick="smGo('help')" data-en="&lt;span&gt;❓&lt;/span&gt;Help"><span>❓</span>עזרה</button>
+    <button onclick="smGo('vote')" data-en="&lt;span&gt;🗳️&lt;/span&gt;Navigation in another ski resort?"><span>🗳️</span>ניווט באתר סקי נוסף?</button>
     <button onclick="smGo('contact')" data-en="&lt;span&gt;✉️&lt;/span&gt;Contact us"><span>✉️</span>צור קשר</button>
     <button onclick="smGo('about')" data-en="&lt;span&gt;ℹ️&lt;/span&gt;About us"><span>ℹ️</span>עלינו</button>
   </div>
@@ -2181,6 +2182,22 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 </div>
 
 <!-- Modal צור קשר -->
+<!-- Which ski resort next: the readers vote (Yossi, 26.11 - a reader asked
+     for the navigation in Avoriaz). Reached from the help, the navigation's
+     help and the side menu, and by the link cervinialive.co.il/#vote. -->
+<div id="voteModal" class="modal" onclick="if(event.target===this)closeM('voteModal')">
+  <div class="modal-content" style="max-width:460px;">
+    <span class="close-btn" onclick="closeM('voteModal')">×</span>
+    <h3 style="margin:0 0 4px;font-size:1.1rem;" data-en="🗳️ Navigation in another ski resort?">🗳️ ניווט באתר סקי נוסף?</h3>
+    <p style="color:#666;font-size:0.82rem;margin:0 0 12px;line-height:1.6;" data-en="The navigation is built for Cervinia and Zermatt. We are thinking about more ski resorts for the coming seasons. Which would you like? Up to three, no need to sign in.">הניווט בנוי היום לצ'רוויניה ולצרמט. אנחנו חושבים על אתרי סקי נוספים לעונות הבאות. לאיזה אתר היית רוצה ניווט כזה? עד שלושה, בלי צורך להירשם.</p>
+    <div id="vote-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+    <input id="vote-other" type="text" maxlength="80" dir="auto" placeholder="אתר סקי אחר (לא חובה)" data-en-placeholder="Another ski resort (optional)"
+      style="width:100%;box-sizing:border-box;padding:8px 11px;border:1.5px solid #c9d6e3;border-radius:9px;font-family:inherit;font-size:0.86rem;margin-bottom:10px;">
+    <button type="button" id="vote-send" onclick="VOTE.send()" style="width:100%;padding:10px;border:none;border-radius:10px;background:#1a73e8;color:#fff;font-weight:bold;font-size:0.9rem;cursor:pointer;font-family:inherit;" data-en="Send">שליחה</button>
+    <div id="vote-msg" style="margin-top:10px;font-size:0.84rem;"></div>
+  </div>
+</div>
+
 <div id="contactModal" class="modal" onclick="if(event.target===this)closeM('contactModal')">
   <div class="modal-content" style="max-width:460px;">
     <span class="close-btn" onclick="closeM('contactModal')">×</span>
@@ -5590,6 +5607,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
 
             <!-- ══ סטטיסטיקות ══ -->
             <div id="adtab-content-stats">
+                <div style="background:white;border-radius:12px;padding:12px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:14px;font-size:0.84rem;">
+                    <div style="font-weight:bold;margin-bottom:6px;">🗳️ אתרי סקי מבוקשים לניווט</div>
+                    <div id="ad-votes" style="color:#444;">…</div>
+                </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
                     <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);text-align:center;">
                         <div style="font-size:2rem;font-weight:800;color:#4a1a6e;" id="stat-users">—</div>
@@ -6365,6 +6386,7 @@ window.addEventListener('resize', function () {
 // a person can read in a WhatsApp message and type from memory, and it
 // stays the same if the element behind it is ever renamed.
 var PANEL_LINKS = {
+  vote: 'voteModal',
   kosher:   'kosherModal',   pistes:  'pisteModal',
   webcams:  'webcamModal',   rental:  'rentalModal',
   lessons:  'lessonsModal',  skipass: 'skipassModal',
@@ -7127,6 +7149,7 @@ var PANEL_ACTIONS = {
       if (card && card.scrollIntoView && _forumIsOpen()) card.scrollIntoView({ block: 'start' });
     }, 900);
   },
+  vote: function () { VOTE.open(); },
   navigate: function () {
     if (_openModalId && _openModalId !== 'mapModal') closeM(_openModalId);
     openM('mapModal');
@@ -7349,6 +7372,72 @@ function _sideMenuOpen() {
 }
 // Close first, then open what was asked for: a panel opening behind the
 // drawer would be unreachable until the drawer was dismissed.
+// ── which ski resort next ──
+// the ids must match the list allowed in supabase/sql/cl_resort_votes.sql
+var VOTE = {
+  max: 3,
+  list: [
+    ['avoriaz', 'Avoriaz · Portes du Soleil'], ['val-thorens', 'Val Thorens'], ['courchevel', 'Courchevel'],
+    ['meribel', 'Méribel'], ['les-menuires', 'Les Menuires'], ['tignes-val-disere', "Tignes · Val d'Isère"],
+    ['alpe-dhuez', "Alpe d'Huez"], ['les-deux-alpes', 'Les Deux Alpes'], ['la-plagne', 'La Plagne · Les Arcs'],
+    ['livigno', 'Livigno'], ['bormio', 'Bormio'], ['madonna', 'Madonna di Campiglio'], ['val-di-fassa', 'Val di Fassa'],
+    ['val-gardena', 'Val Gardena'], ['solden', 'Sölden'], ['ischgl', 'Ischgl'], ['mayrhofen', 'Mayrhofen'],
+    ['bansko', 'Bansko'], ['jasna', 'Jasná'], ['gudauri', 'Gudauri']
+  ],
+  open: function () {
+    if (_openModalId && _openModalId !== 'voteModal') closeM(_openModalId);
+    var box = document.getElementById('vote-list');
+    var done = false; try { done = localStorage.getItem('voteSent') === '1'; } catch (e) {}
+    box.innerHTML = VOTE.list.map(function (r) {
+      return '<button type="button" class="tagpick" data-id="' + r[0] + '" aria-pressed="false" onclick="VOTE.pick(this)" dir="ltr">' + escHtml(r[1]) + '</button>';
+    }).join('');
+    document.getElementById('vote-other').value = '';
+    document.getElementById('vote-send').disabled = false;
+    VOTE.say(done ? L('כבר הצבעת, תודה. אפשר להצביע שוב אם נזכרת באתר נוסף.', 'You have voted already, thank you. You can vote again if another resort comes to mind.') : '', true);
+    openM('voteModal');
+  },
+  pick: function (b) {
+    var on = !b.classList.contains('on');
+    if (on && document.querySelectorAll('#vote-list .on').length >= VOTE.max) { VOTE.say(L('אפשר לבחור עד שלושה.', 'Up to three.'), false); return; }
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); VOTE.say('', true);
+  },
+  say: function (t, ok) { var m = document.getElementById('vote-msg'); if (m) { m.textContent = t; m.style.color = ok ? '#1d7a63' : '#c0392b'; } },
+  send: async function () {
+    var picks = Array.from(document.querySelectorAll('#vote-list .on')).map(function (b) { return b.dataset.id; });
+    var other = document.getElementById('vote-other').value.trim().slice(0, 80);
+    if (!picks.length && !other) { VOTE.say(L('בחר אתר סקי, או כתוב אחד.', 'Pick a ski resort, or write one in.'), false); return; }
+    var btn = document.getElementById('vote-send'); btn.disabled = true;
+    VOTE.say(L('שולח…', 'Sending…'), true);
+    try {
+      // straight to the table, as a visitor: no sign-in needed to vote
+      var r = await fetch(SUPABASE_URL + '/rest/v1/cl_resort_votes', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ resorts: picks, other: other, lang: L('he', 'en') })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      try { localStorage.setItem('voteSent', '1'); } catch (e) {}
+      VOTE.say(L('תודה! ההצבעה התקבלה.', 'Thank you! Your vote is in.'), true);
+    } catch (e) {
+      btn.disabled = false;
+      VOTE.say(L('השליחה לא הצליחה. נסה שוב בעוד רגע.', 'Sending failed. Try again in a moment.'), false);
+    }
+  },
+  // the admin's counts, in the statistics tab
+  load: async function () {
+    var box = document.getElementById('ad-votes'); if (!box || !_sb || !isAdmin()) return;
+    try {
+      var r = await _sb.rpc('cl_resort_votes_admin');
+      if (r.error) throw r.error;
+      var rows = r.data || [], name = {};
+      VOTE.list.forEach(function (x) { name[x[0]] = x[1]; });
+      box.innerHTML = rows.length ? rows.map(function (x) {
+        return '<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid #f0f0f5;"><span dir="auto">' + escHtml(name[x.resort] || x.resort) + '</span><b>' + x.votes + '</b></div>';
+      }).join('') : '<div style="color:#888;">' + L('עדיין אין הצבעות.', 'No votes yet.') + '</div>';
+    } catch (e) { box.textContent = L('לא הצלחתי לקרוא. האם הורץ cl_resort_votes.sql?', 'Could not read. Was cl_resort_votes.sql run?'); }
+  }
+};
+
 // ── the help centre ──
 var HELPC = { faq: [], cats: {} };
 // where each topic's button leads: a fixed list, never text from the file
@@ -7371,6 +7460,7 @@ HELPC.go = {
   place:     function () { openM('placeModal'); },
   forum:     function () { PANEL_ACTIONS.forum(); },
   push:      function () { SIDE_MENU_ACTIONS.push(); },
+  vote:      function () { VOTE.open(); },
   install:   function () { var el = document.getElementById('help-install'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
 };
 HELPC.inNav = function (then) {
@@ -7437,6 +7527,7 @@ var SIDE_MENU_ACTIONS = {
   about:   function () { openM('aboutModal'); },
   contact: function () { openM('contactModal'); },
   help:    function () { helpOpen(''); },
+  vote:    function () { VOTE.open(); },
   sources: function () { openSources(); },
   // The invitation at the top of the page shows once and is gone for good
   // once it is turned down. Somebody who said "not now" in October and
@@ -10483,7 +10574,8 @@ PHELP.text = {
     + '6. <b>⏱️</b> תכנון לפי זמן: כמה אפשר להספיק, ומתי לצאת כדי לחזור בזמן.<br>'
     + '7. <b>👥</b> חברים: לראות על המפה איפה החברים מהקבוצה שלך.<br>'
     + '8. <b>🔋 חיסכון בסוללה:</b> בקור הסוללה נגמרת מהר. במצב חיסכון המיקום מתעדכן פעם בדקה והמסך יכול לכבות. ההדרכה הקולית שותקת כשהמסך כבוי. <b>⏹️ לכבות בהגעה</b> מכבה את המיקום כשמגיעים ליעד. כדאי לשמור את הטלפון בכיס פנימי חם, לקחת סוללה ניידת (פאוור בנק), ומפת מסלולים מודפסת כגיבוי. את מפות המסלולים אפשר להוריד מלשונית המפות ולהדפיס.<br>'
-    + 'רחוק מצ\'רוויניה? האתר עובר להדגמה, ואפשר לנסות הכל כאילו אתה על ההר.',
+    + 'רחוק מצ\'רוויניה? האתר עובר להדגמה, ואפשר לנסות הכל כאילו אתה על ההר.<br>'
+    + '🗳️ רוצה ניווט כזה גם באתר סקי אחר? <a href="#" onclick="VOTE.open();return false;" style="color:#1a73e8;font-weight:bold;">ספר לנו ←</a>',
     '<b>Navigation on the mountain</b><br>'
     + '1. <b>🔍 Where to?</b> Choose where you want to get: a lift, a hut, a run or a place in the village. The site shows the way from where you are, by runs and lifts.<br>'
     + '2. <b>Level:</b> the hardest run colour the way may use. "Blue runs only" will not send you down a red.<br>'
@@ -10494,7 +10586,8 @@ PHELP.text = {
     + '6. <b>⏱️</b> Planning by time: how much you can fit in, and when to leave to be back in time.<br>'
     + '7. <b>👥</b> Friends: see where the people in your group are on the map.<br>'
     + '8. <b>🔋 Save battery:</b> the cold drains batteries fast. In saving mode your position updates once a minute and the screen may go dark; voice guidance is silent while it is dark. <b>⏹️ Off on arrival</b> turns the location off when you reach the destination. Keep the phone in a warm inside pocket, take a power bank, and carry a printed piste map as a backup - the piste maps can be downloaded from the maps tab and printed.<br>'
-    + 'Far from Cervinia? The site switches to a demo, and you can try everything as if you were on the mountain.'); },
+    + 'Far from Cervinia? The site switches to a demo, and you can try everything as if you were on the mountain.<br>'
+    + '🗳️ Want this navigation in another ski resort too? <a href="#" onclick="VOTE.open();return false;" style="color:#1a73e8;font-weight:bold;">Tell us →</a>'); },
   time: function () { return L(
     '<b>איך זה עובד</b><br>'
     + 'כתוב בשורה מה יש לך, במילים שלך, ולחץ <b>חשב</b>. למשל: "יש לי שעה וחצי", "הסקיפס עד 12:30 ואני רוצה להיות למטה ב-14:00", "כמה זמן אפשר להישאר בצרמט?". אפשר גם ללחוץ על אחת השאלות המוכנות.<br>'
@@ -26751,6 +26844,7 @@ function switchAdminTab(tab) {
         }
         if (tab === 'msgs' && typeof CM !== 'undefined') { try { CM.load(); } catch (e) { console.warn(e); } }
         if (tab === 'photos' && typeof AP !== 'undefined') { try { AP.load(); } catch (e) { console.warn(e); } }
+        if (tab === 'stats' && typeof VOTE !== 'undefined') { try { VOTE.load(); } catch (e) { console.warn(e); } }
         ['stats','msgs','photos','chan','content','users','system'].forEach(t => {
             const btn = document.getElementById('adtab-' + t);
             const panel = document.getElementById('adtab-content-' + t);
@@ -26775,6 +26869,7 @@ function switchAdminTab(tab) {
         openM('adminModal');
         try { CM.count(); } catch (e) {}
         try { AP.count(); } catch (e) {}
+        try { VOTE.load(); } catch (e) {}
     }
 
 // The users tab was a placeholder reading "full user management will need

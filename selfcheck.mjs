@@ -8105,7 +8105,8 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     const missing = must.filter(m => joined.indexOf(m) < 0);
     if (missing.length) fail('the standing links are reachable without scrolling',
       `the menu lost ${missing.join(', ')}: ${JSON.stringify(r.items)}`); else ok();
-    if (r.items.length < 4 || r.items.length > 9)
+    // 10 since 26.11 (the ski-resort vote); the last still ends above the fold on a 360x640 phone
+    if (r.items.length < 4 || r.items.length > 10)
       fail('the standing links are reachable without scrolling',
         `the menu holds ${r.items.length} items`); else ok();
   }
@@ -8716,7 +8717,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     // and the six-question guide first (Yossi, 19.11: "add the guide to the side menu too")
     // the language switch stays hidden in Hebrew until the English is ready
     const order = [...document.querySelectorAll('#side-menu-links button')].map(b => (b.getAttribute('onclick') || '').replace(/.*smGo\('([a-z]+)'\).*/, '$1')).join(',');
-    out.menuOrder = order === 'guide,why,cost,install,push,sources,help,contact,about' ? 'ok' : order;
+    out.menuOrder = order === 'guide,why,cost,install,push,sources,help,vote,contact,about' ? 'ok' : order;
     out.pushLabel = /התראות — הפעלה וביטול/.test(document.getElementById('sm-push').textContent);
     SIDE_MENU_ACTIONS.cost();
     await new Promise(res => setTimeout(res, 60));
