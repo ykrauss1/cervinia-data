@@ -1702,7 +1702,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.11';
+  var v='v19.12';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7464,7 +7464,7 @@ var VOTE = {
       var rows = r.data || [], name = {};
       VOTE.list.forEach(function (x) { name[x[0]] = x[1]; });
       box.innerHTML = rows.length ? rows.map(function (x) {
-        return '<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid #f0f0f5;"><span dir="auto">' + escHtml(name[x.resort] || x.resort) + '</span><b>' + x.votes + '</b></div>';
+        return '<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid #f0f0f5;"><span dir="' + (/[\u0590-\u05FF]/.test(name[x.resort] || x.resort) ? 'rtl' : 'ltr') + '">' + escHtml(name[x.resort] || x.resort) + '</span><b>' + x.votes + '</b></div>';
       }).join('') : '<div style="color:#888;">' + L('עדיין אין הצבעות.', 'No votes yet.') + '</div>';
     } catch (e) { box.textContent = L('לא הצלחתי לקרוא. האם הורץ cl_resort_votes.sql?', 'Could not read. Was cl_resort_votes.sql run?'); }
   }
@@ -9577,16 +9577,38 @@ function _skiClosedDraw() {
   if (GEO.closedSig === sig && GEO.closedOn === GEO.map) return;
   GEO.closedSig = sig; GEO.closedOn = GEO.map;
   if (GEO.closedRuns) { try { GEO.map.removeLayer(GEO.closedRuns); } catch (e) {} GEO.closedRuns = null; }
+  if (GEO.closedKey) { try { GEO.map.removeControl(GEO.closedKey); } catch (e) {} GEO.closedKey = null; }
   if (!sig || !_skiRunIdx(d)) return;
-  var grp = lf.layerGroup(), n = 0;
+  var grp = lf.layerGroup(), n = 0, known = 0;
   g.edges.forEach(function (e) {
     if (e[4] !== 's' && e[4] !== 'f') return;
     var w = e[2] >= 0 ? g.ways[e[2]] : null;
-    if (!w || w.k !== 'p' || skiRunState(w, e[2]) !== 'closed') return;
+    if (!w || w.k !== 'p') return;
+    var st = skiRunState(w, e[2]);
+    if (st !== 'unknown') known++;
+    if (st !== 'closed') return;
     lf.polyline(_skiGeom(e), { color: '#5f6368', weight: 6, opacity: 0.55, dashArray: '3 7', lineCap: 'butt', interactive: false }).addTo(grp);
     n++;
   });
-  if (n) { GEO.closedRuns = grp.addTo(GEO.map); try { if (SKI.layer) SKI.layer.eachLayer(function (l) { if (l.bringToFront) l.bringToFront(); }); } catch (e) {} }
+  // In the evening the operator marks every run closed, and a map dashed
+  // from end to end says nothing (Yossi, 26.11). When nearly all are shut
+  // the map says so in one line instead.
+  var allShut = known > 10 && n >= known * 0.95;
+  var key = lf.control({ position: 'topleft' });
+  key.onAdd = function () {
+    var el = document.createElement('div');
+    el.className = 'ski-closed-key';
+    el.style.cssText = 'background:rgba(255,255,255,0.92);border:1px solid #c9d6e3;border-radius:8px;padding:4px 8px;font-size:0.7rem;color:#33475b;line-height:1.4;';
+    el.innerHTML = allShut
+      ? L('🌙 כל המסלולים סגורים עכשיו (מחוץ לשעות הפעילות). המפה מוצגת כרגיל.', '🌙 Every run is closed now (outside opening hours). The map is shown as usual.')
+      : '<svg width="26" height="8" style="vertical-align:middle;margin-inline-end:5px;"><line x1="0" y1="4" x2="26" y2="4" stroke="#5f6368" stroke-width="5" stroke-dasharray="3 5" opacity="0.7"/></svg>' + L('מסלול סגור כרגע', 'Run closed now');
+    return el;
+  };
+  if (!n) return;
+  GEO.closedKey = key.addTo(GEO.map);
+  if (allShut) return;
+  GEO.closedRuns = grp.addTo(GEO.map);
+  try { if (SKI.layer) SKI.layer.eachLayer(function (l) { if (l.bringToFront) l.bringToFront(); }); } catch (e) {}
 }
 function skiRunState(w, wi) {
   if (!w || w.k !== 'p') return 'unknown';
@@ -10868,11 +10890,12 @@ TP.reset = function () {
 TP.say = function (html) {
   if (TP.heard && !/^(מחשב|Working|קורא|Reading)/.test(html)) { html = '<div style="color:#4b5d70;font-size:0.74rem;margin-bottom:4px;">💬 ' + escHtml(TP.heard) + '</div>' + html; }
   var note = TP.assumed ? '<div style="color:#8a6d00;font-size:0.72rem;margin-bottom:4px;">' + L('🕐 מחוץ לשעות הגלישה (או בהדגמה) החישוב מניח שהשעה עכשיו 10:30.', '🕐 Outside skiing hours (or in the demo) the reckoning assumes it is 10:30 now.') + '</div>' : '';
+  if (TP.fromNote && !/^(מחשב|Working)/.test(html)) note = '<div style="color:#1d5fb8;font-size:0.72rem;margin-bottom:4px;">' + TP.fromNote + '</div>' + note;
   TP.out = note + html + '<div style="color:#7b8798;font-size:0.7rem;margin-top:6px;">' + L('הזמנים הם הערכה לפי מפת המסלולים ושעות המעליות הרשמיות, כולל המתנה ממוצעת. בתורים ארוכים ובמזג אוויר רע זה לוקח יותר, ומעליות נסגרות לפעמים מוקדם.', 'Times are an estimate from the piste map and the official lift hours, with average waits. Long queues and bad weather take longer, and lifts sometimes close early.') + '</div>';
   _tpPaint();
 };
 TP.here = function () {
-  var h = _navHere();
+  var h = _navHere() || TP.forceHere || null;
   if (!h) TP.say(L('צריך קודם את המיקום שלך על המפה (או נקודת התחלה בהדגמה).', 'First I need your position on the map (or a starting point in the demo).'));
   return h;
 };
@@ -10924,6 +10947,7 @@ TP.read = async function (q) {
   finally { clearTimeout(timer); }
 };
 TP.ask = async function () {
+  TP.fromNote = '';
   var q = ((document.getElementById('tp-q') || {}).value || '').trim();
   if (!q) return;
   TP.say(L('קורא את השאלה…', 'Reading the question…'));
@@ -10967,17 +10991,34 @@ function geoPlan(k) {
   PANEL_ACTIONS.navigate();
   var tries = 0;
   (function wait() {
-    if (SKI.graph && _navHere() && document.getElementById('map-geo-time')) {
+    var ready = SKI.graph && GEO.map && document.getElementById('map-geo-time');
+    // a real position, or - far from the resort, in the demo, or with no fix
+    // after a few seconds - a sensible start of our own (Yossi, 26.11: the
+    // button left him on the plain navigation screen)
+    if (ready && (_navHere() || SIM.on || tries > 24)) {
       if (!TP.open) geoTime();
-      TP.quick(k);
+      var note = '';
+      if (!_navHere()) {
+        var zm = (k === 'back' || k === 'stay');
+        var at = zm ? TP.ZV : GEO_HOME;
+        // in the demo the pretend skier is put there; with no position at
+        // all the answer is reckoned from there without moving anything
+        if (SIM.on && typeof _simFix === 'function') _simFix(at); else TP.forceHere = at;
+        try { GEO.map.setView(at, 14); } catch (e) {}
+        note = zm
+          ? L('📍 חישבתי כאילו אתה עכשיו בצרמט, ליד הרכבל. לחץ על המפה כדי להתחיל ממקום אחר ושאל שוב.', '📍 Worked out as if you are in Zermatt now, by the lift. Tap the map to start somewhere else and ask again.')
+          : L('📍 חישבתי מהכפר צ\'רוויניה. לחץ על המפה כדי להתחיל ממקום אחר ושאל שוב.', '📍 Worked out from Cervinia village. Tap the map to start somewhere else and ask again.');
+      }
+      TP.quick(k, note);
+      TP.forceHere = null;
       return;
     }
-    if (++tries < 60) setTimeout(wait, 250);
+    if (++tries < 80) setTimeout(wait, 250);
   })();
 }
-TP.quick = function (k) {
-  TP.heard = '';
-  if (k === 'lifts') { var h = _navHere(); TP.say(h ? TP.lifts(h) : L('צריך קודם את המיקום שלך.', 'Your position is needed first.')); return; }
+TP.quick = function (k, note) {
+  TP.heard = ''; TP.fromNote = note || '';
+  if (k === 'lifts') { var h = _navHere() || TP.forceHere; TP.say(h ? TP.lifts(h) : L('צריך קודם את המיקום שלך.', 'Your position is needed first.')); return; }
   if (k === 'back') TP.run({ kind: 'zermatt', stay: null });
   else if (k === 'stay') TP.run({ kind: 'zermatt', stay: 60 });
   else if (k === 'hour') TP.run({ kind: 'budget', min: 60 });
@@ -11670,8 +11711,12 @@ function _renderPdfPage(pageNum) {
     if (gen !== _mapRenderGen) return;
     var container = document.getElementById('map-container');
     var containerW = container ? container.clientWidth - 20 : 800;
+    var containerH = container ? container.clientHeight - 20 : 600;
     var viewport0 = page.getViewport({ scale: 1 });
+    var fs = _mapFsOn();
     var baseScale = containerW / viewport0.width;
+    // full screen shows the whole sheet, however the screen is turned
+    if (fs) baseScale = Math.min(baseScale, containerH / viewport0.height);
     // How far in you may go depends on the page. "All the area" is a sheet
     // 3412pt across, so fitting it to a phone already shrinks it to an eighth
     // of itself, and the old flat limit of 5x left the lettering unreadable.
@@ -11679,6 +11724,14 @@ function _renderPdfPage(pageNum) {
     // which on a wide sheet is roughly twice the zoom it used to allow and on
     // a small one still stops well short of exhausting a phone's memory.
     _mapMaxZoom = _mapZoomCeiling(viewport0, baseScale);
+    // entering full screen with a route on: zoom so the whole route fits
+    // (Yossi, 26.11: it opened too close and cut the route)
+    var box = null;
+    if (_mapFit) {
+      _mapFit = false; _mapZoomLevel = 1;
+      box = fs ? _mapRouteBox(viewport0) : null;
+      if (box) _mapZoomLevel = Math.max(1, Math.min(containerW / (box.w * 1.2), containerH / (box.h * 1.2)) / baseScale);
+    }
     if (_mapZoomLevel > _mapMaxZoom) _mapZoomLevel = _mapMaxZoom;
     var scale     = baseScale * _mapZoomLevel;
     var viewport  = page.getViewport({ scale: scale });
@@ -11692,7 +11745,8 @@ function _renderPdfPage(pageNum) {
     canvas.style.height = viewport.height + 'px';
     // centred while it fits, flush once it is wider - "margin:0 auto" on a box
     // wider than its parent puts part of it out of reach of the scrollbar.
-    canvas.style.margin = (viewport.width <= containerW) ? '0 auto' : '0';
+    var padTop = fs ? Math.max(0, Math.floor((containerH + 20 - viewport.height) / 2)) : 0;
+    canvas.style.margin = padTop + 'px ' + ((viewport.width <= containerW) ? 'auto' : '0') + ' 0';
     var ctx = canvas.getContext('2d');
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -11708,6 +11762,10 @@ function _renderPdfPage(pageNum) {
       if (zl) zl.textContent = Math.round(_mapZoomLevel * 100) + '%';
       _mapPaintRoute();        // the marks follow the canvas, zoom included
       _mapMarkRouteBtns();
+      if (box && pdfWrap) {
+        pdfWrap.scrollLeft = Math.max(0, box.cx * scale - pdfWrap.clientWidth / 2);
+        pdfWrap.scrollTop  = Math.max(0, box.cy * scale + padTop - pdfWrap.clientHeight / 2);
+      }
     }).catch(function () { /* cancelled on purpose */ });
   });
 }
@@ -11765,13 +11823,44 @@ function _mapFsOn() {
 function _mapFsPaint() {
   var c = document.getElementById('map-fs-controls');
   if (c) c.style.display = _mapFsOn() ? 'flex' : 'none';
+  // a wide sheet on an upright phone fills only a strip across the middle;
+  // turned sideways it fills the screen (Yossi, 26.11)
+  var hint = document.getElementById('map-fs-turn');
+  if (!hint && c) {
+    hint = document.createElement('div'); hint.id = 'map-fs-turn';
+    hint.style.cssText = 'position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:30;background:rgba(10,25,47,0.85);color:#fff;border-radius:10px;padding:8px 14px;font-size:0.82rem;white-space:nowrap;pointer-events:none;';
+    c.parentNode.appendChild(hint);
+  }
+  if (hint) {
+    var show = _mapFsOn() && _mapCurrentPdf && window.innerHeight > window.innerWidth;
+    hint.textContent = L('📱↻ סובב את הטלפון לרוחב למפה גדולה יותר', '📱↻ Turn the phone sideways for a bigger map');
+    hint.style.display = show ? 'block' : 'none';
+    clearTimeout(_mapFsPaint.t);
+    if (show) _mapFsPaint.t = setTimeout(function () { hint.style.display = 'none'; }, 5000);
+  }
   // the container just changed width, so the page has to be drawn again
   setTimeout(_applyMapZoom, 60);
+}
+var _mapFit = false;
+// the drawn route's box, in the page's units at scale 1
+function _mapRouteBox(viewport0) {
+  var rd = _mapRouteData(), r = rd && rd.routes_drawn && rd.routes_drawn[_mapRoute];
+  if (!_mapRoute || !r || _mapCurrentType !== rd.map || !rd.page) return null;
+  var k = viewport0.width / rd.page.w, x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  (r.layers || []).forEach(function (l) {
+    var n = (String(l.d).match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+    for (var i = 0; i + 1 < n.length; i += 2) {
+      x0 = Math.min(x0, n[i]); x1 = Math.max(x1, n[i]); y0 = Math.min(y0, n[i + 1]); y1 = Math.max(y1, n[i + 1]);
+    }
+  });
+  if (!isFinite(x0) || x1 <= x0 || y1 <= y0) return null;
+  return { w: (x1 - x0) * k, h: (y1 - y0) * k, cx: (x0 + x1) / 2 * k, cy: (y0 + y1) / 2 * k };
 }
 function mapFullscreen() {
   var el = document.getElementById('map-container');
   if (!el) return;
   if (_mapFsOn()) { mapExitFullscreen(); return; }
+  _mapFit = true;
   var req = el.requestFullscreen || el.webkitRequestFullscreen
          || el.mozRequestFullScreen || el.msRequestFullscreen;
   var done = null;
@@ -11785,6 +11874,7 @@ function mapFullscreen() {
   _mapFsPaint();
 }
 function mapExitFullscreen() {
+  _mapFit = true;
   var el = document.getElementById('map-container');
   if (el) el.classList.remove('map-faux-full');
   var ex = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
@@ -11794,6 +11884,7 @@ function mapExitFullscreen() {
   _mapFsPaint();
 }
 document.addEventListener('fullscreenchange', _mapFsPaint);
+window.addEventListener('orientationchange', function () { if (_mapFsOn()) { _mapFit = true; setTimeout(_mapFsPaint, 300); } });
 document.addEventListener('webkitfullscreenchange', _mapFsPaint);
 
 // ── the wheel zooms the map ───────────────────────────────────────────────
