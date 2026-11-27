@@ -1715,7 +1715,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.18';
+  var v='v19.19';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5922,9 +5922,24 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
         <div onclick="openAvatarMenu()" style="position:absolute;bottom:-2px;inset-inline-end:-2px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:0.7rem;cursor:pointer;border:2px solid white;">📷</div>
       </div>
       <div>
-        <div id="profile-name-display" style="font-weight:bold;font-size:1.02rem;"></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div id="profile-name-display" style="font-weight:bold;font-size:1.02rem;"></div>
+          <button type="button" onclick="profRenameOpen(true)" style="border:0;background:none;color:#1a73e8;cursor:pointer;font-family:inherit;font-size:0.76rem;padding:0;" data-en="✏️ Change name">✏️ שינוי שם</button>
+        </div>
         <div id="profile-joined" style="font-size:0.72rem;color:#aaa;margin-top:1px;"></div>
       </div>
+    </div>
+    <!-- a new display name (Yossi, 27.11): the profile and everything already written under the old one -->
+    <div id="prof-rename" style="display:none;margin:-4px 0 12px;padding:10px 12px;border:1px solid #d6e2ef;border-radius:10px;background:#fbfdff;">
+      <label for="prof-rename-in" style="font-size:0.76rem;color:#555;display:block;margin-bottom:4px;" data-en="The new name">השם החדש</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <input id="prof-rename-in" type="text" dir="auto" maxlength="30" autocomplete="off"
+          style="flex:1;min-width:150px;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:0.9rem;font-family:inherit;">
+        <button type="button" onclick="profRename()" style="padding:7px 14px;border:0;border-radius:8px;background:#1a73e8;color:#fff;font-weight:bold;cursor:pointer;font-family:inherit;" data-en="Save">שמירה</button>
+        <button type="button" onclick="profRenameOpen(false)" style="padding:7px 12px;border:1px solid #d0dae6;border-radius:8px;background:#fff;color:#41556b;cursor:pointer;font-family:inherit;" data-en="Cancel">ביטול</button>
+      </div>
+      <div style="font-size:0.72rem;color:#6b7c8f;margin-top:5px;line-height:1.5;" data-en="The name changes on everything you have already written too. From now on you sign in with the new name; the password stays the same.">השם יתחלף גם בכל מה שכבר כתבת. מעכשיו נכנסים לאתר עם השם החדש, והסיסמה נשארת אותה סיסמה.</div>
+      <div id="prof-rename-msg" style="font-size:0.78rem;margin-top:4px;"></div>
     </div>
 
     <!-- About me -->
@@ -20394,6 +20409,43 @@ function updateBioCounter() {
   const ta = document.getElementById('prof-bio');
   const ct = document.getElementById('bio-counter');
   if (ta && ct) ct.textContent = ta.value.length;
+}
+
+function profRenameOpen(on) {
+  var box = document.getElementById('prof-rename'), i = document.getElementById('prof-rename-in'), m = document.getElementById('prof-rename-msg');
+  if (!box) return;
+  box.style.display = on ? 'block' : 'none';
+  if (m) m.textContent = '';
+  if (on && i) { i.value = (user && user.name) || ''; try { i.focus(); i.select(); } catch (e) {} }
+}
+async function profRename() {
+  var i = document.getElementById('prof-rename-in'), m = document.getElementById('prof-rename-msg');
+  var say = function (t, bad) { if (m) { m.textContent = t; m.style.color = bad ? '#c0392b' : '#1d6b35'; } };
+  var nn = (i && i.value || '').trim();
+  if (!user || !user.sbId) { say(L('צריך להיות מחובר כדי לשנות שם', 'You need to be signed in to change your name'), true); return; }
+  if (nn.length < 2 || nn.length > 30) { say(L('השם צריך להיות באורך 2 עד 30 תווים', 'The name needs 2 to 30 characters'), true); return; }
+  if (/[<>"'`\\]/.test(nn)) { say(L('אפשר להשתמש באותיות, מספרים ורווחים', 'Letters, digits and spaces, please'), true); return; }
+  if (nn === user.name) { profRenameOpen(false); return; }
+  var sb = getSB();
+  if (!sb) { say(L('אין חיבור לשרת כרגע. נסה שוב בעוד רגע.', 'No connection to the server just now. Try again in a moment.'), true); return; }
+  say(L('שומר…', 'Saving…'));
+  var res = await sb.rpc('cl_rename_me', { p_new: nn });
+  if (res.error) {
+    var e = String(res.error.message || '');
+    say(/taken/.test(e) ? L('השם הזה כבר תפוס. בחר שם אחר.', 'That name is taken. Choose another.')
+      : /bad_/.test(e) ? L('השם לא תקין. אפשר אותיות, מספרים ורווחים, 2 עד 30 תווים.', 'That name will not do: letters, digits and spaces, 2 to 30 characters.')
+      : L('לא הצלחתי לשנות את השם. נסה שוב בעוד רגע.', 'The name could not be changed. Try again in a moment.'), true);
+    return;
+  }
+  user.name = res.data || nn;
+  try { localStorage.setItem('skiUser', JSON.stringify(_userForStore())); } catch (e) {}
+  try { renderHeader(); } catch (e) {}
+  try { if (typeof loadPostsFromSupabase === 'function') await loadPostsFromSupabase(); } catch (e) {}
+  try { renderPosts(''); } catch (e) {}
+  try { if (typeof fetchReviews === 'function') { await fetchReviews(true); renderReviews(); } } catch (e) {}
+  populateProfileModal();
+  profRenameOpen(false);
+  _backToast(L('השם שונה ל־', 'Your name is now ') + user.name + L('. מעכשיו נכנסים לאתר בשם הזה.', '. Sign in with it from now on.'));
 }
 
 function populateProfileModal() {

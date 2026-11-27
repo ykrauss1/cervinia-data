@@ -5645,6 +5645,34 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `the zmanim show ${r.zmanimDrawn} drawn candles`); else ok();
 }
 
+// ── a new display name ────────────────────────────────────────────────
+// Yossi, 27.11: anyone can change his name, from the profile. The server
+// function (cl_rename_me) renames the profile and everything already
+// written; here, with the server played by a stand-in: a taken name and a
+// name with markup are refused, a good one is taken up at once.
+{
+  const r = await page.evaluate(async () => {
+    const keepU = user, keepSB = window.getSB, calls = [];
+    user = { name: 'Old Name', sbId: 'u1', level: null, discipline: 'ski' };
+    window.getSB = () => ({ rpc: async (fn, a) => { calls.push(fn + ':' + a.p_new); return a.p_new === 'Taken' ? { error: { message: 'taken' } } : { data: a.p_new }; },
+      from() { const q = { select() { return q; }, eq() { return q; }, order() { return q; }, limit() { return q; }, single: async () => ({ data: null }), then(f) { f({ data: [] }); } }; return q; } });
+    const i = document.getElementById('prof-rename-in'), m = document.getElementById('prof-rename-msg');
+    const out = {};
+    i.value = 'Taken'; await profRename(); out.taken = m.textContent;
+    i.value = '<b>x'; await profRename(); out.bad = m.textContent;
+    i.value = 'New Name'; await profRename(); out.name = user.name;
+    out.calls = calls;
+    user = keepU; window.getSB = keepSB;
+    try { localStorage.removeItem('skiUser'); } catch (e) {}
+    try { closeM('profileModal'); } catch (e) {}
+    return out;
+  });
+  const T = 'a new display name';
+  if (!/תפוס/.test(r.taken)) fail(T, 'a taken name is not refused: ' + r.taken); else ok();
+  if (r.calls.some(c => /<b>/.test(c))) fail(T, 'a name with markup reached the server'); else ok();
+  if (r.name !== 'New Name' || !r.calls.includes('cl_rename_me:New Name')) fail(T, 'the new name was not taken up: ' + JSON.stringify(r)); else ok();
+}
+
 // ── the arrival day and the departure day ─────────────────────────────
 // Yossi, 27.11: landing early leaves half a day on the snow; arriving while
 // the rental shops are open - fit the gear today and leave it there; after
