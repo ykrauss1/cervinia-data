@@ -1715,7 +1715,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.16';
+  var v='v19.17';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5511,6 +5511,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <input type="checkbox" id="map-geo-warm" onchange="geoWarm(this.checked)">
               <span data-en="💬 Personal messages">💬 הודעות אישיות</span>
             </label>
+            <button type="button" onclick="skiDaysOpen()" style="padding:3px 10px;border-radius:14px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;color:#16314f;" data-en="📊 My ski days">📊 ימי הגלישה שלי</button>
             </div>
           </div>
           <div id="map-geo-dest-info" style="display:none;margin-top:5px;line-height:1.5;max-height:34vh;overflow:auto;"></div>
@@ -9058,10 +9059,10 @@ function geoHomeClear() {
 function _romeDate() { try { return new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Rome' }); } catch (e) { return new Date().toISOString().slice(0, 10); } }
 function _romeClock() {
   try {
-    var p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', weekday: 'short', hour: '2-digit', hour12: false }).formatToParts(new Date());
+    var p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
     var o = {}; p.forEach(function (x) { o[x.type] = x.value; });
-    return { day: o.weekday, hour: +o.hour % 24 };
-  } catch (e) { var d = new Date(); return { day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()], hour: d.getHours() }; }
+    return { day: o.weekday, hour: +o.hour % 24, min: +o.minute };
+  } catch (e) { var d = new Date(); return { day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()], hour: d.getHours(), min: d.getMinutes() }; }
 }
 function _day() {
   var today = _romeDate();
@@ -9111,6 +9112,7 @@ function _dayLog(ll, c, acc) {
   if (dist < 3 && dt >= 5 && dt <= 15) { if (GEO.dayMoving) { day.stops = (day.stops || 0) + 1; GEO.dayMoving = false; } return; }
   if (dist < 5 || dz <= 0 || dist > 2500) return;      // downhill only: a lift goes up
   GEO.dayMoving = true;
+  if (!day.start) { var ck0 = _romeClock(); day.start = ck0.hour * 60 + (ck0.min || 0); }   // minutes after midnight
   day.m += dist; day.vert += dz;
   if (dt <= 15) { day.tdown = (day.tdown || 0) + dt; day.mdown = (day.mdown || 0) + dist; }
   day.runs[here.wi] = (day.runs[here.wi] || 0) + dist;
@@ -9123,7 +9125,81 @@ function _dayLog(ll, c, acc) {
   if (v > 0 && v < 28) day.vmax = Math.max(day.vmax || 0, v);
   if (GEO.dayPrev) GEO.dayPrev.p = { ll: p.ll, t: p.t };
   if (day.runs[here.wi] >= 200) { var tr = _trip(); if (tr.ways[here.wi] !== day.date) { tr.ways[here.wi] = day.date; _tripSave(); } }
-  if (!SIM.on) { try { localStorage.setItem('skiDay', JSON.stringify(day)); } catch (e) {} }
+  if (!SIM.on) { try { localStorage.setItem('skiDay', JSON.stringify(day)); } catch (e) {} _daysPut(day); }
+}
+// ── the ski days, kept as long as the skier chooses (Yossi, 27.11) ──
+// Today's summary is always there; keeping more is his choice - two weeks
+// for a trip, the season, or until he deletes it - so that after a week he
+// can compare the days. Only the numbers are kept, on this device.
+var SKI_KEEP = { day: 0, trip: 14, season: 183, all: 36500 };
+function _daysKeep() { try { return localStorage.getItem('skiKeep') || 'day'; } catch (e) { return 'day'; } }
+function _days() {
+  var d = null;
+  try { d = JSON.parse(localStorage.getItem('skiDays') || 'null'); } catch (e) {}
+  d = d || {};
+  var keep = SKI_KEEP[_daysKeep()] || 0, today = _romeDate();
+  var cut = new Date(Date.parse(today + 'T12:00:00Z') - keep * 864e5).toISOString().slice(0, 10);
+  Object.keys(d).forEach(function (k) { if (k < cut && k !== today) delete d[k]; });
+  return d;
+}
+function _daysPut(day) {
+  var d = _days(), s = _daySum(day);
+  if (s.km < 0.2) return;
+  d[day.date] = { km: s.km, vert: s.vert, kmh: s.kmh, runs: s.runs, blue: s.blue, red: s.red, black: s.black, start: day.start || null };
+  try { localStorage.setItem('skiDays', JSON.stringify(d)); } catch (e) {}
+}
+function skiKeep(v) {
+  try { localStorage.setItem('skiKeep', v); } catch (e) {}
+  var d = _days();                                   // prunes to the new choice
+  try { localStorage.setItem('skiDays', JSON.stringify(d)); } catch (e) {}
+  _tripPrune();
+  skiDaysOpen();
+}
+function skiDaysClear() {
+  uiConfirm(L('למחוק את כל ימי הגלישה השמורים?', 'Delete all the saved ski days?'), L('מחק', 'Delete'), true).then(function (ok) {
+    if (!ok) return;
+    ['skiDays', 'skiDay', 'skiTrip'].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+    delete GEO.day; delete GEO.trip;
+    skiDaysOpen();
+  });
+}
+function skiDaysOpen() {
+  var box = document.getElementById('ski-days');
+  if (!box) {
+    box = document.createElement('div'); box.id = 'ski-days'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true');
+    box.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(10,20,35,0.45);display:flex;align-items:center;justify-content:center;padding:14px;';
+    box.onclick = function (e) { if (e.target === box) box.style.display = 'none'; };
+    document.body.appendChild(box);
+  }
+  var d = _days(), keys = Object.keys(d).sort().reverse(), best = { km: 0, vert: 0, kmh: 0 };
+  keys.forEach(function (k) { ['km', 'vert', 'kmh'].forEach(function (f) { best[f] = Math.max(best[f], d[k][f] || 0); }); });
+  var tot = { km: 0, vert: 0, runs: 0 };
+  keys.forEach(function (k) { tot.km += d[k].km; tot.vert += d[k].vert; tot.runs += d[k].runs; });
+  var td = 'padding:6px 5px;border-bottom:1px solid #eef2f6;text-align:center;white-space:nowrap;';
+  var star = function (v, f) { return (keys.length > 1 && v && v === best[f]) ? ' 🏅' : ''; };
+  var fmtD = function (k) { var p = k.split('-'); return '<bdi dir="ltr">' + (+p[2]) + '.' + (+p[1]) + '</bdi>'; };
+  var rows = keys.map(function (k) {
+    var x = d[k];
+    return '<tr><td style="' + td + '">' + fmtD(k) + '</td><td style="' + td + '">' + x.km + star(x.km, 'km') + '</td><td style="' + td + '">' + (x.vert || 0).toLocaleString('en-US') + star(x.vert, 'vert')
+      + '</td><td style="' + td + '">' + (x.kmh || '–') + star(x.kmh, 'kmh') + '</td><td dir="ltr" style="' + td + '">' + (x.blue ? '🔵' + x.blue + ' ' : '') + (x.red ? '🔴' + x.red + ' ' : '') + (x.black ? '⚫' + x.black : '') + '</td></tr>';
+  }).join('');
+  var th = 'padding:6px 5px;border-bottom:2px solid #dde5ee;font-size:0.72rem;color:#5f6b7a;text-align:center;font-weight:600;';
+  var keep = _daysKeep();
+  var opt = function (v, he, en) { return '<option value="' + v + '"' + (keep === v ? ' selected' : '') + '>' + L(he, en) + '</option>'; };
+  box.innerHTML = '<div dir="' + L('rtl', 'ltr') + '" style="background:#fff;border-radius:16px;max-width:460px;width:100%;max-height:88vh;overflow:auto;padding:16px 16px 12px;box-shadow:0 12px 40px rgba(0,0,0,0.25);font-family:inherit;color:#17324c;">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><b style="flex:1;font-size:1rem;">📊 ' + L('ימי הגלישה שלי', 'My ski days') + '</b>'
+    + '<button type="button" onclick="document.getElementById(\'ski-days\').style.display=\'none\'" aria-label="' + L('סגירה', 'Close') + '" style="border:0;background:none;font-size:1.15rem;cursor:pointer;color:#6b7c8f;">✕</button></div>'
+    + (keys.length
+      ? '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;"><thead><tr><th style="' + th + '">' + L('יום', 'Day') + '</th><th style="' + th + '">' + L('ק"מ', 'km') + '</th><th style="' + th + '">' + L('ירידה (מ\')', 'Descent (m)') + '</th><th style="' + th + '">' + L('שיא קמ"ש', 'Top km/h') + '</th><th style="' + th + '">' + L('מסלולים', 'Runs') + '</th></tr></thead><tbody>' + rows + '</tbody></table>'
+        + (keys.length > 1 ? '<div style="margin-top:8px;font-size:0.8rem;">' + L('סה"כ: ', 'In all: ') + '<b>' + Math.round(tot.km * 10) / 10 + L(' ק"מ', ' km') + '</b> · ' + tot.vert.toLocaleString('en-US') + L(' מ\' ירידה', ' m of descent') + ' · ' + keys.length + L(' ימים', ' days') + '. 🏅 ' + L('השיא בכל עמודה.', 'the best in each column.') + '</div>' : '')
+      : '<div style="font-size:0.84rem;color:#5f6b7a;line-height:1.6;">' + L('עוד אין ימים שמורים. כשהמיקום פועל בזמן הגלישה, היום נרשם כאן.', 'No days saved yet. With your location on while you ski, the day is recorded here.') + '</div>')
+    + '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #eef2f6;font-size:0.8rem;line-height:1.7;">'
+    + L('כמה זמן לשמור: ', 'Keep them for: ') + '<select onchange="skiKeep(this.value)" style="padding:3px 6px;border-radius:7px;border:1px solid #c9d6e3;font-family:inherit;font-size:0.8rem;">'
+    + opt('day', 'רק היום', 'Today only') + opt('trip', 'שבועיים (טיול)', 'Two weeks (a trip)') + opt('season', 'כל העונה', 'The season') + opt('all', 'עד שאמחק', 'Until I delete them') + '</select>'
+    + '<div style="color:#5f6b7a;font-size:0.74rem;">' + L('נשמרים רק המספרים, ורק במכשיר שלך.', 'Only the numbers are kept, and only on your device.') + '</div>'
+    + (keys.length ? '<button type="button" onclick="skiDaysClear()" style="margin-top:6px;border:0;background:none;color:#b3261e;cursor:pointer;font-family:inherit;font-size:0.8rem;padding:0;">🗑️ ' + L('מחק את כל הימים', 'Delete all the days') + '</button>' : '')
+    + '</div></div>';
+  box.style.display = 'flex';
 }
 // the runs skied on this trip - the last two weeks - so tomorrow's idea is
 // a run not done yet
@@ -9131,9 +9207,15 @@ function _trip() {
   if (SIM.on) return SIM.trip || (SIM.trip = { ways: {} });
   if (GEO.trip === undefined) { try { GEO.trip = JSON.parse(localStorage.getItem('skiTrip') || 'null'); } catch (e) { GEO.trip = null; } }
   if (!GEO.trip) GEO.trip = { ways: {} };
-  var cut = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
-  Object.keys(GEO.trip.ways).forEach(function (k) { if (GEO.trip.ways[k] < cut) delete GEO.trip.ways[k]; });
+  _tripPrune();
   return GEO.trip;
+}
+// the trip's runs are kept no longer than the days themselves (at most two weeks)
+function _tripPrune() {
+  if (!GEO.trip || SIM.on) return;
+  var keep = Math.min(14, SKI_KEEP[_daysKeep()] || 0);
+  var cut = new Date(Date.parse(_romeDate() + 'T12:00:00Z') - keep * 864e5).toISOString().slice(0, 10);
+  Object.keys(GEO.trip.ways).forEach(function (k) { if (GEO.trip.ways[k] < cut) delete GEO.trip.ways[k]; });
 }
 function _tripSave() { if (!SIM.on) try { localStorage.setItem('skiTrip', JSON.stringify(GEO.trip)); } catch (e) {} }
 
@@ -9177,16 +9259,16 @@ function _nextCard(name) {
   openM('pisteModal');
   setTimeout(function () { pisteSearch(name); }, 200);
 }
-function _daySum() {
-  var g = SKI.graph, day = _day(), red = 0, black = 0, n = 0;
+function _daySum(dayIn) {
+  var g = SKI.graph, day = dayIn || _day(), red = 0, black = 0, blue = 0, n = 0;
   Object.keys(day.runs).forEach(function (wi) {
     if (day.runs[wi] < 200) return;
     n++;
     var d = g && g.ways[wi] ? g.ways[wi].d : 0;
-    if (d === 3) black++; else if (d === 2) red++;
+    if (d === 3) black++; else if (d === 2) red++; else blue++;
   });
   var avg = day.tdown >= 300 ? day.mdown / day.tdown * 3.6 : 0;
-  return { km: Math.round(day.m / 100) / 10, vert: Math.round(day.vert / 10) * 10, kmh: Math.round((day.vmax || 0) * 3.6), runs: n, red: red, black: black,
+  return { km: Math.round(day.m / 100) / 10, vert: Math.round(day.vert / 10) * 10, kmh: Math.round((day.vmax || 0) * 3.6), runs: n, red: red, black: black, blue: blue,
            avg: Math.round(avg), stopsKm: day.mdown >= 1000 ? (day.stops || 0) / (day.mdown / 1000) : 0 };
 }
 // A phone's GPS (a fix a second, metres off) cannot see the turns - a
@@ -9225,8 +9307,8 @@ function _warmFor(d) {
       say.push(L('שַׁבָּת שָׁלוֹם!', 'Shabbat shalom!'));
     }
     if (s.km >= 1 || ck.hour >= 13) {
-      lines.push(L(_pick(['היה יום גלישה נהדר!', 'איזה יום! כל הכבוד.', 'יום יפה על ההר, וחזרת בשלום.']),
-                   _pick(['What a great day on the snow!', 'What a day! Well done.', 'A fine day on the mountain, and home safe.'])));
+      lines.push(L(_pick(['היה יום גלישה נהדר!', 'איזה יום! כל הכבוד.', 'יום יפה על ההר, וחזרת בשלום.', 'חזרת בשלום, וזה העיקר. יום טוב היה!', 'עוד יום מוצלח על השלג ⛷️']),
+                   _pick(['What a great day on the snow!', 'What a day! Well done.', 'A fine day on the mountain, and home safe.', 'Home safe, and that is what counts. A good day!', 'Another good day on the snow ⛷️'])));
       say.push(L('הָיָה יוֹם גְּלִישָׁה נֶהְדָּר!', 'What a great day on the snow!'));
     }
     if (s.km >= 1) {
@@ -9238,6 +9320,18 @@ function _warmFor(d) {
            : s.red >= 2 ? ' ' + L('כולל ' + s.red + ' מסלולים אדומים 💪', 'Including ' + s.red + ' red runs 💪') : ''));
       say.push(L('גָּלַשְׁתָּ הַיּוֹם ' + s.km + ' קִילוֹמֶטֶר.', 'You skied ' + s.km + ' kilometres today.'));
     }
+    // started late, but not on an afternoon pass: a kind word about tomorrow morning
+    var st = _day().start, oh = /(\d{1,2}[:.]\d{2})\s*[-–]/.exec(String((window._liveData || {}).opening_hours || ''));
+    if (!fri && st && st >= 11 * 60 && st < 12 * 60 + 30) lines.push('☀️ ' + L(
+      'מחר אולי להתחיל קצת יותר מוקדם?' + (oh ? ' המעליות נפתחות ב־<span dir="ltr">' + oh[1].replace('.', ':') + '</span>,' : '') + ' ובבוקר השלג המוכן הכי טוב והתורים הכי קצרים. שעון מעורר, ארוחת בוקר טובה, וקפה בדרך ☕',
+      'Maybe start a little earlier tomorrow?' + (oh ? ' The lifts open at ' + oh[1].replace('.', ':') + ',' : '') + ' and the morning has the best groomed snow and the shortest queues. An alarm, a good breakfast, and a coffee on the way ☕'));
+    // home early: half a day is still ahead
+    if (!fri && ck.hour < 15 && s.km >= 1) {
+      var ideas = L(['סיבוב ב־Via Carrel, הרחוב הראשי של הכפר, עם החנויות 🛍️', 'משחק חברה או קלפים בבית, עם תה חם 🎲', 'מנוחה עם ספר מול הנוף ההררי 📖', 'שיחת וידאו הביתה, לספר איך היה 📱', 'להכין את הציוד למחר בנחת: לייבש כפפות ומגפיים 🧤', 'שנ"צ טובה. גם זה חלק מהחופשה 😴'],
+                    ['A stroll down Via Carrel, the village\'s main street, with its shops 🛍️', 'A board game or cards at home, with a hot tea 🎲', 'A rest with a book and the mountain view 📖', 'A video call home, to tell them how it was 📱', 'Get tomorrow\'s gear ready at leisure: dry the gloves and boots 🧤', 'A good afternoon nap. That is part of the holiday too 😴']);
+      var two = []; while (two.length < 2) { var x = _pick(ideas); if (two.indexOf(x) < 0) two.push(x); }
+      lines.push(L('נשאר עוד חצי יום. אולי: ', 'Half the day is still ahead. Perhaps: ') + two.join(L(', או ', ', or ')) + '.');
+    }
     var idea = null;
     if (s.km >= 1 && !fri) idea = _dayHesitant(s)
       ? '🎿 ' + L('רוצה להתקדם מהר יותר? כמה שעות עם מדריך עושות הבדל גדול: סיבובים בטוחים, שליטה במהירות וביטחון במסלול. ',
@@ -9246,13 +9340,14 @@ function _warmFor(d) {
       : _nextIdea(s);
     lines.push(fri
       ? L('עכשיו מקלחת חמה, מנוחה, ושבת שלום ומבורכת.', 'Now a hot shower, a rest, and a blessed Shabbat.')
-      : L(_pick(['עכשיו ארוחה חמה ומנוחה, ואחר כך בירה טובה 🍺', 'עכשיו מקלחת חמה, ארוחה טובה, ואחר כך בירה טובה 🍺', 'זמן למנוחה: ארוחה חמה, ואחר כך בירה טובה 🍺 או כוסית גראפה 🥃']),
-          _pick(['Now a hot meal and a rest, and then a good beer 🍺', 'Now a hot shower, a good meal, and then a good beer 🍺', 'Time to rest: a hot meal, then a good beer 🍺 or a little grappa 🥃'])));
+      : L(_pick(['עכשיו ארוחה חמה ומנוחה, ואחר כך בירה טובה 🍺', 'עכשיו מקלחת חמה, ארוחה טובה, ואחר כך בירה טובה 🍺', 'זמן למנוחה: ארוחה חמה, ואחר כך בירה טובה 🍺 או כוסית גראפה 🥃', 'הרגליים הרוויחו מנוחה. מקלחת חמה, ארוחה טובה, ובירה קרה 🍺', 'עכשיו להוריד את המגפיים, לאכול משהו חם, ולהרים כוסית לחיים 🥃']),
+          _pick(['Now a hot meal and a rest, and then a good beer 🍺', 'Now a hot shower, a good meal, and then a good beer 🍺', 'Time to rest: a hot meal, then a good beer 🍺 or a little grappa 🥃', 'Your legs have earned a rest. A hot shower, a good meal and a cold beer 🍺', 'Now off with the boots, something hot to eat, and a toast: l\'chaim 🥃'])));
     if (!fri) say.push(L('עַכְשָׁיו אֲרוּחָה חַמָּה וּמְנוּחָה.', 'Now a hot meal and a rest.'));
     if (idea) lines.push('<span style="display:block;margin-top:6px;padding-top:6px;border-top:1px solid #e6edf4;font-size:0.84rem;">' + idea + '</span>');
+    if (s.km >= 1) lines.push('<a href="#" onclick="skiDaysOpen();return false;" style="font-size:0.8rem;color:#1a73e8;">' + L('📊 ימי הגלישה שלי', '📊 My ski days') + '</a>');
   } else if (/^h:/.test(d.id) && ck.hour < 16) {
-    lines.push(L(_pick(['הפסקה טובה! ☕ שתייה חמה, וגם מים: בגובה מתייבשים מהר.', 'זמן להתחמם ולנוח ☕. ואל תשכח לשתות מים.']),
-                 _pick(['Enjoy the break! ☕ Something hot, and water too: you dry out fast up high.', 'Time to warm up and rest ☕. And drink some water.'])));
+    lines.push(L(_pick(['הפסקה טובה! ☕ שתייה חמה, וגם מים: בגובה מתייבשים מהר.', 'זמן להתחמם ולנוח ☕. ואל תשכח לשתות מים.', 'הגעת. להוריד את הכפפות, להתחמם, וכוס מים לפני שממשיכים ☕', 'הפסקה טובה! זה הזמן לבדוק את הבטריה בטלפון ולשתות משהו חם ☕']),
+                 _pick(['Enjoy the break! ☕ Something hot, and water too: you dry out fast up high.', 'Time to warm up and rest ☕. And drink some water.', 'You are here. Gloves off, warm up, and a glass of water before you go on ☕', 'Enjoy the break! A good moment to check the phone battery and drink something hot ☕'])));
     say.push(L('הַפְסָקָה טוֹבָה! שְׁתֵה גַּם מַיִם.', 'Enjoy the break, and drink some water.'));
   } else return null;
   return { html: lines.join('<br>'), say: say.join(' ') };
@@ -11187,6 +11282,7 @@ PHELP.text = {
     + '2. <b>רמה:</b> בחר עד איזה צבע מסלול הדרך מותרת. "רק כחולים" לא ישלח אותך לאדום. מעליות ומסלולים שסגורים היום, לפי האתר הרשמי, לא נכנסים לדרך. מסלול סגור מופיע במפה בקו אפור מקווקו.<br>'
     + '3. <b>לרדת גם בקבינות:</b> סמן אם נוח לך לרדת ברכבל או בגונדולה במקום לגלוש למטה.<br>'
     + '🏠 <b>הבית:</b> ב"לאן?" קבע את המלון או הדירה כבית. אחר כך "הביתה" מופיע ראשון ברשימה. נשמר רק במכשיר שלך.<br>'
+    + '📊 <b>ימי הגלישה שלי:</b> טבלה של הימים, עם השיא בכל עמודה. אתה קובע כמה זמן לשמור: רק היום, שבועיים, כל העונה או עד שתמחק.<br>'
     + '💬 <b>הודעות אישיות:</b> כשאתה מגיע הביתה, סיכום היום (קילומטרים, ירידה, מהירות שיא) ורעיון למסלול למחר, או המלצה על מדריך אם הגלישה הייתה איטית ועם הרבה עצירות. בבקתה הפסקה טובה, ובשישי שבת שלום. אפשר לכבות בהגדרות.<br>'
     + '🏂 <b>סנובורד:</b> הדרך עוקפת קטעים כמעט שטוחים, שבהם בסנובורד צריך לדחוף. קו צהוב מקווקו על הדרך מסמן קטע כמעט שטוח או עלייה קלה, והוראות הדרך מזהירות מראש לשמור על מהירות.<br>'
     + '4. <b>🔈 הדרכה קולית:</b> הוראות בקול בזמן הגלישה, כמו בניווט ברכב. '
@@ -11202,6 +11298,7 @@ PHELP.text = {
     + '2. <b>Level:</b> the hardest run colour the way may use. "Blue runs only" will not send you down a red. Lifts and runs that are closed today, by the official site, are left out of the way; a closed run shows on the map as a grey dashed line.<br>'
     + '3. <b>Ride down in cabins:</b> tick it if you would rather ride a cable car or gondola down than ski.<br>'
     + '🏠 <b>Home:</b> in "Where to?" set your hotel or flat as home; "Home" then heads the list. Kept on your device only.<br>'
+    + '📊 <b>My ski days:</b> a table of the days, with the best in each column. You decide how long they are kept: today only, two weeks, the season, or until you delete them.<br>'
     + '💬 <b>Personal messages:</b> arriving home, the day in numbers (distance, descent, top speed) and an idea for tomorrow\'s run; at a hut, a good break; on Friday, Shabbat shalom. You can turn them off in the settings.<br>'
     + '🏂 <b>Snowboard:</b> the way avoids near-flat stretches, where a board has to push. A yellow stitched line on the way marks a near-flat stretch or a small rise, and the directions warn you in advance to keep your speed.<br>'
     + '4. <b>🔈 Voice guidance:</b> spoken directions while you ski, as in a car. '
@@ -22288,12 +22385,12 @@ function planTrip() {
 
   if (A) {
     html += '<div style="font-size:0.75rem;color:#8a95a3;margin:10px 0 7px;">🛬 ' + A.head + '</div>'
-          + A.cards.join('') + _stayCard(ap, 'in', A, null);
+          + A.cards.join('') + _stayCard(ap, 'in', A, null) + _dayCard(ap, 'in', A, null);
     if (!B) html += _tripDrive(pl, ap, pax, 'in', A);
   }
   if (B) {
     html += '<div style="font-size:0.75rem;color:#8a95a3;margin:10px 0 7px;">🛫 ' + B.head + '</div>'
-          + B.cards.join('') + _stayCard(ap, 'out', null, B);
+          + B.cards.join('') + _stayCard(ap, 'out', null, B) + _dayCard(ap, 'out', null, B);
   }
   html += _tripDrive(pl, ap, pax, (A && B) ? 'both' : (B ? 'out' : 'in'), A, B);
 
@@ -22359,6 +22456,57 @@ function _stayCard(ap, kind, A, B) {
     + '<br><a href="#" onclick="event.preventDefault();_showStay()" style="color:#1a4b8c;">'
     + L('הטלפונים והקישורים — בסעיף "לינה ליד שדה התעופה"', 'Phones and links — in "A night near the airport"') + '</a>';
   return _apCard('#f6f3ff', '#b7a6e8', '#4b3a8c', L('🛏️ שווה לשקול: לילה ליד השדה', '🛏️ Worth considering: a night near the airport'), body);
+}
+// ── the day itself (Yossi, 27.11) ──
+// The arrival and the departure decide more than the ride: landing early
+// leaves half a day on the snow; arriving while the rental shops are open
+// means the gear can be fitted today and left in the shop for the morning;
+// arriving in the middle of the night is easier with a night down in the
+// valley, at Châtillon or Saint-Vincent, than with the serpentines in the
+// dark. And going home: when to stop skiing, whether the morning is worth a
+// pass at all, or a stop on the way at Forte di Bard. The times are by car,
+// as in the rest of the planner; the facts are the site's own (lift_hours,
+// the rental card, the "around" card).
+function _dayCard(ap, kind, A, B) {
+  var T = function (m) { return '<bdi dir="ltr">' + _hhmm(m) + '</bdi>'; };
+  var lastUp = 16 * 60;                       // most lifts' last ride up, lift_hours
+  if (kind === 'in' && A) {
+    if (A.desk && A.desk.level === 2) return '';      // no car tonight: the night-by-the-airport card says it
+    var eta = A.arriveBy + ap.drive_min;
+    if (eta <= 12 * 60) return _apCard('#f2fbf6', '#8fcfa3', '#1d6b35', L('⛷️ אפשר להספיק חצי יום סקי', '⛷️ There is time for half a day on the snow'),
+      L('ברכב תגיע כ-' + T(eta) + '. נכנסים לחנות השכרה, קונים פס של חצי יום, ועולים. העלייה האחרונה ברוב המעליות בסביבות ' + T(lastUp) + '. ואחרי לילה של טיסה, גם מנוחה ומדידת ציוד בנחת זו בחירה טובה.',
+        'By car you will be there at about ' + T(eta) + '. Into a rental shop, a half-day pass, and up. Most lifts take their last ride up at about ' + T(lastUp) + '. And after a night of travelling, a rest and an unhurried fitting are a fine choice too.'));
+    if (eta <= 18 * 60 + 30) return _apCard('#f2fbf6', '#8fcfa3', '#1d6b35', L('🎿 תגיע כשחנויות ההשכרה פתוחות', '🎿 You arrive while the rental shops are open'),
+      L('ברכב תגיע כ-' + T(eta) + '. כדאי להיכנס למדוד את הציוד כבר היום ולהשאיר אותו בחנות: הביקור הראשון הוא הארוך, ובבוקר החנויות עמוסות. כך מחר יוצאים ישר לשלג. ברוב החנויות אפשר להשאיר ציוד ללילה, לפעמים בתשלום קטן.'
+        + (eta >= 12 * 60 + 30 && eta < 14 * 60 + 30 ? ' שים לב: Genzianella ו-Noleggio Cretaz סגורות בצהריים, בערך 12:30–14:30.' : eta > 17 * 60 ? ' חלק מהחנויות נסגרות ב-18:00, אחרות ב-19:00 ומאוחר יותר. כדאי להתקשר לפני.' : ''),
+        'By car you will be there at about ' + T(eta) + '. Go in and fit your gear today and leave it in the shop: the first visit is the long one, and the shops are crowded in the morning. Tomorrow you head straight for the snow. Most shops keep gear overnight, sometimes for a small fee.'
+        + (eta >= 12 * 60 + 30 && eta < 14 * 60 + 30 ? ' Note: Genzianella and Noleggio Cretaz close at midday, about 12:30–14:30.' : eta > 17 * 60 ? ' Some shops close at 18:00, others at 19:00 or later. Worth a phone call first.' : ''))
+      + ' <a href="#" onclick="event.preventDefault();openFrom(_openModalId,\'rentalModal\')" style="color:#1a4b8c;">' + L('חנויות ההשכרה ←', 'The rental shops →') + '</a>');
+    if (eta < 24 * 60) return _apCard('#f7f8fa', '#d8dde4', '#444', L('🌙 מגיעים בערב', '🌙 Arriving in the evening'),
+      L('ברכב תגיע כ-' + T(eta) + ', כשחנויות ההשכרה כבר סגורות. מחר בבוקר כדאי להגיע לחנות עם הפתיחה, לפני העומס של פתיחת המעליות.',
+        'By car you will be there at about ' + T(eta) + ', with the rental shops already shut. Tomorrow morning, be at the shop when it opens, before the rush for the first lifts.'));
+    // after midnight: the second way, beside the night by the airport
+    var low = eta - 45;
+    return _apCard('#f6f3ff', '#b7a6e8', '#4b3a8c', L('🛏️ או: לקחת את הרכב ולישון בדרך', '🛏️ Or: take the car and sleep on the way'),
+      L('בתחתית העמק, בשאטיון (Châtillon) או בסן־ונסן (Saint-Vincent), 27–30 ק"מ מתחת לצ\'רוויניה, תהיה כבר בערך ב-' + T(low) + '. כך חוסכים את הסרפנטינות בחושך, ובבוקר עולים 40–50 דקות באור יום. אפשר גם לישון בצ\'רוויניה עצמה, אם ההגעה המאוחרת מתאימה לך ולמקום הלינה.',
+        'At the bottom of the valley, in Châtillon or Saint-Vincent, 27–30 km below Cervinia, you will be there at about ' + T(low) + '. That saves the serpentines in the dark, and in the morning it is 40–50 minutes up in daylight. Sleeping in Cervinia itself works too, if the late arrival suits you and your lodging.'));
+  }
+  if (kind === 'out' && B && B.leaveBy != null) {
+    var go = B.leaveBy - ap.drive_min - 30;          // leave the hotel, by car
+    if (go < STAY_EARLY_OUT) return '';                 // the night-by-the-airport card says it
+    var stop = go - 75;                                  // gear back, change, load the car
+    if (stop >= 12 * 60) return _apCard('#f2fbf6', '#8fcfa3', '#1d6b35', L('⛷️ יש בוקר של סקי', '⛷️ A morning on the snow'),
+      L('יוצאים מהמלון ברכב ב-' + T(go) + '. כדי להספיק בנחת, כדאי לסיים לגלוש עד כ-' + T(Math.min(stop, lastUp)) + ': להחזיר ציוד, להחליף בגדים ולהעמיס את הרכב לוקח כשעה ורבע. בבוקר האחרון עדיף מסלולים מוכרים ולא שיאים חדשים.',
+        'You leave the hotel by car at ' + T(go) + '. To make it calmly, stop skiing by about ' + T(Math.min(stop, lastUp)) + ': returning gear, changing and loading the car take about an hour and a quarter. On the last morning, familiar runs rather than new records.'));
+    var bard = go - 3 * 60 >= 8 * 60;
+    return _apCard('#fffaf0', '#e8c488', '#8a5a00', L('🧳 יום הנסיעה בלי סקי', '🧳 A travel day without skiing'),
+      L('יוצאים מהמלון ברכב ב-' + T(go) + ', כך שבוקר גלישה כבר לא באמת שווה עוד יום פס. כדאי להחזיר את הציוד אתמול בערב, אחרי הגלישה האחרונה, ולהתחיל את הבוקר בנחת.'
+        + (bard ? ' רוצה לנצל את הזמן? אפשר לצאת כשלוש שעות מוקדם יותר ולעצור בדרך במבצר <bdi>Forte di Bard</bdi>, ליד הכביש המהיר, כשעה ורבע מצ\'רוויניה. כדאי לבדוק את שעות הפתיחה לפני.' : ''),
+        'You leave the hotel by car at ' + T(go) + ', so a morning on the snow is no longer worth another day\'s pass. Return the gear yesterday evening, after the last run, and start the morning calmly.'
+        + (bard ? ' Want to use the time? Leave about three hours earlier and stop on the way at <bdi>Forte di Bard</bdi>, beside the motorway, about an hour and a quarter from Cervinia. Check its opening hours first.' : ''))
+      + (bard ? ' <a href="#" onclick="event.preventDefault();openFrom(_openModalId,\'aroundModal\')" style="color:#1a4b8c;">' + L('עוד מקומות בדרך ←', 'More places on the way →') + '</a>' : ''));
+  }
+  return '';
 }
 function _showStay() {
   var el = [].slice.call(document.querySelectorAll('#transport-body [data-toc]'))

@@ -5645,6 +5645,33 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `the zmanim show ${r.zmanimDrawn} drawn candles`); else ok();
 }
 
+// ── the arrival day and the departure day ─────────────────────────────
+// Yossi, 27.11: landing early leaves half a day on the snow; arriving while
+// the rental shops are open - fit the gear today and leave it there; after
+// midnight - a night down in the valley instead of the serpentines in the
+// dark; and going home - when to stop skiing, or no skiing at all and a
+// stop at Forte di Bard. By car, from Malpensa (136 minutes' drive).
+{
+  const r = await page.evaluate(() => {
+    const ap = window._texts.transport.planner.airports.find(a => a.id === 'mxp');
+    const txt = h => h.replace(/<[^>]+>/g, '');
+    const inn = t => txt(_dayCard(ap, 'in', { arriveBy: t + 60, desk: null }, null));
+    const out = t => txt(_dayCard(ap, 'out', null, { leaveBy: t - 150 }));
+    return { early: inn(7 * 60 + 30), noon: inn(12 * 60), eve: inn(17 * 60), night: inn(22 * 60),
+             deskShut: _dayCard(ap, 'in', { arriveBy: 23 * 60, desk: { level: 2 } }, null),
+             late: out(20 * 60), mid: out(17 * 60), early2: out(15 * 60) };
+  });
+  const T = 'the arrival and departure day';
+  if (!/חצי יום/.test(r.early)) fail(T, 'landing 07:30 does not offer half a day: ' + r.early); else ok();
+  if (!/למדוד/.test(r.noon) || !/להשאיר/.test(r.noon)) fail(T, 'landing 12:00 does not say to fit the gear today'); else ok();
+  if (!/בערב/.test(r.eve)) fail(T, 'landing 17:00 is not an evening arrival'); else ok();
+  if (!/Châtillon/.test(r.night) || !/Saint-Vincent/.test(r.night)) fail(T, 'landing 22:00 offers no night down in the valley'); else ok();
+  if (r.deskShut) fail(T, 'with the hire desks shut it still talks about the car'); else ok();
+  if (!/לסיים לגלוש/.test(r.late)) fail(T, 'a 20:00 flight leaves no morning on the snow'); else ok();
+  if (!/בלי סקי/.test(r.mid) || !/Forte di Bard/.test(r.mid)) fail(T, 'a 17:00 flight: no "without skiing" and Forte di Bard'); else ok();
+  if (/Forte di Bard/.test(r.early2)) fail(T, 'a 15:00 flight still suggests a stop at Bard'); else ok();
+}
+
 // ── home, the day on the mountain, and a few warm words ──────────────
 // Yossi, 27.11: "Home" as in a car's navigation - the hotel or the flat -
 // kept on the device and first in the list; arriving there sums up the day
@@ -5682,9 +5709,27 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     GEO.day.tdown = 600; GEO.day.stops = 2;                 // the same blues at 18 km/h, hardly stopping
     const easy = _warmFor(home);
     out.coach = !!slow && /lessonsModal|_coachOpen/.test(slow.html); out.noCoach = !!easy && !/_coachOpen/.test(easy.html);
+    // a late start (11:15) gets a word about tomorrow morning; home at 14:00 gets ideas for the afternoon
+    GEO.day.start = 11 * 60 + 15; window._romeClock = () => ({ day: 'Wed', hour: 14, min: 0 });
+    const lateEarly = _warmFor(home);
+    out.late = !!lateEarly && /יותר מוקדם/.test(lateEarly.html); out.early = !!lateEarly && /חצי יום/.test(lateEarly.html);
+    GEO.day.start = 9 * 60; window._romeClock = () => ({ day: 'Wed', hour: 17, min: 0 });
+    const usual = _warmFor(home);
+    out.usual = !!usual && !/יותר מוקדם|חצי יום/.test(usual.html);
     window._romeClock = keepC; delete GEO.day;
     localStorage.setItem('geoWarm', '0'); window._romeClock = () => ({ day: 'Wed', hour: 17 });
     const off = _warmFor(home); localStorage.removeItem('geoWarm'); window._romeClock = keepC;
+    // the saved days: kept as long as the skier chose, and no longer
+    const keepK = localStorage.getItem('skiKeep'), keepS = localStorage.getItem('skiDays');
+    const today = _romeDate(), ago = n => new Date(Date.parse(today + 'T12:00:00Z') - n * 864e5).toISOString().slice(0, 10);
+    const seed = {}; [0, 3, 20, 400].forEach(n => seed[ago(n)] = { km: 10, vert: 1000, kmh: 40, runs: 3 });
+    const kept = {};
+    for (const k of ['day', 'trip', 'season', 'all']) { localStorage.setItem('skiDays', JSON.stringify(seed)); localStorage.setItem('skiKeep', k); kept[k] = Object.keys(_days()).length; }
+    localStorage.removeItem('skiKeep');
+    kept.byDefault = (localStorage.setItem('skiDays', JSON.stringify(seed)), Object.keys(_days()).length);
+    if (keepK == null) localStorage.removeItem('skiKeep'); else localStorage.setItem('skiKeep', keepK);
+    if (keepS == null) localStorage.removeItem('skiDays'); else localStorage.setItem('skiDays', keepS);
+    out.kept = kept;
     // put the reader's own things back
     [['geoHome', keepH], ['skiDay', keepD], ['skiTrip', keepT]].forEach(([k, v]) => { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); });
     delete GEO.home; delete GEO.day; delete GEO.trip; SKI.ignoreLive = keepL;
@@ -5699,6 +5744,9 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   if (!r.out.hut || /בירה|גראפה|יין|🍺|🥃/.test(r.out.hut.html)) fail(T, 'the hut at midday offers alcohol, or nothing'); else ok();
   if (r.out.hutLate) fail(T, 'a hut late in the day got the midday message'); else ok();
   if (r.off) fail(T, 'the messages, turned off, still came'); else ok();
+  const kp = r.out.kept;
+  if (kp.day !== 1 || kp.trip !== 2 || kp.season !== 3 || kp.all !== 4 || kp.byDefault !== 1) fail(T, 'the saved days do not follow the chosen keeping time: ' + JSON.stringify(kp)); else ok();
+  if (!r.out.late || !r.out.early || !r.out.usual) fail(T, `late start ${r.out.late}, home early ${r.out.early}, an ordinary day without either ${r.out.usual}`); else ok();
   if (!r.out.coach || !r.out.noCoach) fail(T, `the instructor word: slow day ${r.out.coach}, easy day without it ${r.out.noCoach}`); else ok();
   if (!/[\u05B0-\u05BC]/.test(r.out.wed.said) || /[A-Za-z]{3,}/.test(r.out.wed.said)) fail(T, 'the spoken words are not pointed Hebrew: ' + r.out.wed.said); else ok();
 }
