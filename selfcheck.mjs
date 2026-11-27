@@ -5645,6 +5645,38 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `the zmanim show ${r.zmanimDrawn} drawn candles`); else ok();
 }
 
+// ── home by way of the rental shop ────────────────────────────────────
+// Yossi, 27.11: often the gear goes back first. "Home by way of <shop>"
+// leads to the shop, says so on arrival, and once he walks away from it
+// carries on home by itself. (Arriving and walking away need the map,
+// which this page runs without; navtest/via.mjs drives them with one.)
+{
+  const r = await page.evaluate(async () => {
+    await _skiLoad();
+    const keepH = localStorage.getItem('geoHome'); delete GEO.home; localStorage.removeItem('geoHome');
+    GEO.dests = GEO.dests || {};
+    geoHomeSave([45.93520, 7.63060], 'Hotel Test');
+    geoHomeVia();                                   // no shop yet: the list of rental shops
+    const listed = GEO.viaPick && GEO.nearRes && GEO.nearRes.k === 'rental';
+    const it = GEO.nearRes.items[0]; geoPickSet(it.id);
+    const out = { listed, dest: GEO.dest && GEO.dest.id, then: GEO.thenHome, shop: GEO.home.shop && GEO.home.shop.name };
+    // every shop is there to choose from, with its phone, and one not on the list can be marked
+    geoHomeViaPick();
+    out.all = GEO.nearRes.items.length; out.tels = GEO.nearRes.items.filter(d => d.tel).length;
+    out.other = /map-geo-shop-name/.test(document.getElementById('map-geo-picklist').innerHTML);
+    out.card = (renderRentAll(), document.querySelectorAll('#rental-all-list > div').length);
+    GEO.viaPick = false;
+    geoDest(''); if (keepH == null) localStorage.removeItem('geoHome'); else localStorage.setItem('geoHome', keepH); delete GEO.home;
+    return out;
+  });
+  const T = 'home by way of the rental shop';
+  if (r.all < 15 || r.tels < 13) fail(T, `choosing one's shop shows ${r.all} shops, ${r.tels} with a phone`); else ok();
+  if (!r.other) fail(T, 'no way to mark a shop that is not on the list'); else ok();
+  if (r.card < 18) fail(T, 'the rental card lists ' + r.card + ' shops'); else ok();
+  if (!r.listed) fail(T, 'with no shop saved it does not offer the rental shops'); else ok();
+  if (r.dest !== 'via' || !r.then || !r.shop || / · /.test(r.shop)) fail(T, 'the shop is not the first stop, or its name was kept with the address: ' + JSON.stringify(r)); else ok();
+}
+
 // ── a new display name ────────────────────────────────────────────────
 // Yossi, 27.11: anyone can change his name, from the profile. The server
 // function (cl_rename_me) renames the profile and everything already
@@ -5766,7 +5798,7 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
   const T = 'home and the warm words on arrival';
   if (!r.home || !r.stored) fail(T, 'the home was not kept on the device or is not in the list'); else ok();
   if (!(r.sum.km >= 1 && r.sum.vert >= 100 && r.sum.kmh > 0 && r.sum.kmh < 100)) fail(T, 'the day was not recorded: ' + JSON.stringify(r.sum)); else ok();
-  if (!r.out.wed || !/ק"מ/.test(r.out.wed.html) || !/בירה/.test(r.out.wed.html) || !/💡/.test(r.out.wed.html)) fail(T, 'the evening at home lacks the summary, the beer or the idea for tomorrow'); else ok();
+  if (!r.out.wed || !/ק"מ/.test(r.out.wed.html) || !/בירה|כוסית/.test(r.out.wed.html) || !/💡/.test(r.out.wed.html)) fail(T, 'the evening at home lacks the summary, the beer or the idea for tomorrow'); else ok();
   if (!r.out.fri || !/#ico-candle/.test(r.out.fri.html) || !/שבת שלום/.test(r.out.fri.html)) fail(T, 'Friday has no Shabbat shalom with the two candles'); else ok();
   if (r.out.morning) fail(T, 'home in the morning, before any skiing, got a message'); else ok();
   if (!r.out.hut || /בירה|גראפה|יין|🍺|🥃/.test(r.out.hut.html)) fail(T, 'the hut at midday offers alcohol, or nothing'); else ok();

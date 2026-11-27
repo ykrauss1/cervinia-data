@@ -1715,7 +1715,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.19';
+  var v='v19.22';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -4432,6 +4432,13 @@ A &lt;b&gt;neck gaiter&lt;/b&gt; — a closed tube of fabric pulled over the hea
 
       </div>
     </div>
+
+    <!-- Every rental shop, a line each (Yossi, 27.11): name, address, phone, map -->
+    <details style="border-top:1px solid #eee;padding:12px 0 6px;">
+      <summary style="cursor:pointer;font-size:0.84rem;font-weight:bold;color:#16314f;" data-en="📋 All the rental shops: phone and map">📋 כל חנויות ההשכרה: טלפון ומפה</summary>
+      <div style="font-size:0.72rem;color:#8a95a3;margin:6px 0 2px;" data-en="From the Aosta Valley's register of rental shops. Worth calling before you go.">מתוך רשימת חנויות ההשכרה של עמק אאוסטה. כדאי להתקשר לפני שמגיעים.</div>
+      <div id="rental-all-list"></div>
+    </details>
 
     <!-- Shops on the way from Milan — SECOND -->
     <div style="border-top:1px solid #eee;padding-top:14px;">
@@ -8390,7 +8397,17 @@ function geoPickOpen(force, typing) {
   // look for a place, not when a chip opened it
   if (typing || force == null) { var i = document.getElementById('map-geo-pick-q'); if (i) try { i.focus(); } catch (e) {} }
 }
-function geoPickSet(id) { geoPickOpen(false); geoDest(id); _geoPickLabel(); }
+function geoPickSet(id) {
+  if (GEO.viaPick && GEO.dests && GEO.dests[id] && _geoHome()) {
+    var d = GEO.dests[id];
+    GEO.viaPick = false;
+    GEO.home.shop = { name: String(d.name).replace(/^\S+\s/, '').split(' · ')[0], ll: d.ll };
+    try { localStorage.setItem('geoHome', JSON.stringify(GEO.home)); } catch (e) {}
+    geoPickOpen(false); geoHomeVia(); return;
+  }
+  GEO.viaPick = false;
+  geoPickOpen(false); geoDest(id); _geoPickLabel();
+}
 function geoPickFilter(v) { GEO.pickQ = v; _geoPickPaint(true); }
 // written the way it is typed: no case, no geresh, no niqqud, no dashes
 function _geoNorm(v) {
@@ -8400,12 +8417,13 @@ function _geoNorm(v) {
 function _geoPickRow(d, extra) {
   var on = GEO.dest && GEO.dest.id === d.id;
   var row = _geoPickRow1(d, extra, on);
-  if (!d.q && !d.site) return row;
+  if (!d.q && !d.site && !d.tel) return row;
   // a button cannot hold a link, so they stand side by side: what the site
   // writes about it, and the place in Google Maps (hours, phone)
   var ls = 'flex:none;display:flex;align-items:center;padding:0 10px;text-decoration:none;font-size:0.74rem;color:#1a73e8;background:#fff;border:none;border-inline-start:1px solid #f0f3f7;cursor:pointer;font-family:inherit;white-space:nowrap;';
   return '<div style="display:flex;align-items:stretch;border-bottom:1px solid #f0f3f7;">' + row.replace('style="display:flex;width:100%;', 'style="display:flex;flex:1;min-width:0;width:auto;')
-    + (d.site ? '<button type="button" onclick="geoSiteOpen(\'' + d.site + '\')" title="' + L('מה כתוב על זה באתר', 'What the site says about it') + '" style="' + ls + '">📖 ' + L('באתר', 'On site') + '</button>' : '')
+    + (d.tel ? '<a href="tel:' + d.tel + '" title="' + L('טלפון', 'Phone') + '" style="' + ls + '">📞</a>' : '')
+    + (d.site && !GEO.viaPick ? '<button type="button" onclick="geoSiteOpen(\'' + d.site + '\')" title="' + L('מה כתוב על זה באתר', 'What the site says about it') + '" style="' + ls + '">📖 ' + L('באתר', 'On site') + '</button>' : '')
     + (d.q ? '<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(d.q) + '" target="_blank" rel="noopener"'
       + ' title="' + L('פרטים ב-Google Maps: שעות, טלפון', 'Details in Google Maps: hours, phone') + '" style="' + ls + '">ℹ️ ' + L('פרטים', 'Info') + '</a>' : '')
     + '</div>';
@@ -8455,6 +8473,11 @@ function _geoPickPaint(keepInput) {
       list += _geoPickRow(d, t + dist);
     });
     if (!nr.items.length) list += '<div style="padding:14px;text-align:center;color:#8a97a5;font-size:0.82rem;">' + L('לא נמצא מקום כזה באזור', 'None found in the area') + '</div>';
+    // choosing one's own shop: one that is not on the list is marked on the map
+    if (GEO.viaPick && nr.k === 'rental') list += '<div style="padding:10px 14px;border-top:1px solid #e3e9f1;background:#fbfdff;">'
+      + '<div style="font-size:0.78rem;color:#16314f;font-weight:700;margin-bottom:5px;">' + L('החנות שלך לא ברשימה?', 'Your shop is not on the list?') + '</div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;"><input id="map-geo-shop-name" type="text" maxlength="50" autocomplete="off" placeholder="' + L('שם החנות', 'The shop\'s name') + '" style="flex:1;min-width:140px;padding:7px 10px;border:1px solid #d6e2ef;border-radius:8px;font-family:inherit;font-size:0.84rem;">'
+      + '<button type="button" onclick="geoShopMap()" style="padding:7px 12px;border-radius:8px;border:1px solid #1a73e8;background:#fff;color:#1a73e8;cursor:pointer;font-family:inherit;font-size:0.8rem;">📌 ' + L('סמן על המפה', 'Mark it on the map') + '</button></div></div>';
   } else {
     var cur = GEO.pickCat || GEO.destCat || 'v';
     list += '<div role="tablist" style="display:flex;gap:0;border-bottom:1px solid #e3e9f1;background:#fff;">' + GEO_CATS.map(function (c) {
@@ -8468,6 +8491,10 @@ function _geoPickPaint(keepInput) {
       ? '<div style="display:flex;align-items:stretch;border-bottom:1px solid #f0f3f7;"><button type="button" onclick="geoPickSet(\'home\')" style="' + act + 'border-bottom:0;flex:1;font-weight:700;color:#0b6b3a;">'
         + '<svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-house"/></svg> ' + L('הביתה', 'Home') + ' · ' + esc(hm.name) + '</button>'
         + '<button type="button" onclick="geoHomeSetup()" aria-label="' + L('שינוי הבית', 'Change home') + '" style="border:0;background:#fff;padding:0 14px;cursor:pointer;font-size:0.9rem;">✏️</button></div>'
+        // home by way of the rental shop, to give the gear back first (Yossi, 27.11)
+        + '<div style="display:flex;align-items:stretch;border-bottom:1px solid #f0f3f7;"><button type="button" onclick="geoHomeVia()" style="' + act + 'border-bottom:0;flex:1;font-size:0.8rem;color:#0b6b3a;padding-inline-start:34px;">'
+        + GEO_BOOTS + ' ' + (hm.shop ? L('הביתה דרך ', 'Home by way of ') + esc(hm.shop.name) : L('הביתה, ובדרך להחזיר ציוד', 'Home, returning the gear on the way')) + '</button>'
+        + (hm.shop ? '<button type="button" onclick="geoHomeViaPick()" aria-label="' + L('חנות אחרת', 'Another shop') + '" style="border:0;background:#fff;padding:0 14px;cursor:pointer;font-size:0.76rem;color:#1a73e8;">' + L('חנות אחרת', 'Other shop') + '</button>' : '') + '</div>'
       : '<button type="button" onclick="geoHomeSetup()" style="' + act + '"><svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-house"/></svg> ' + L('קבע את הבית שלך: המלון או הדירה', 'Set your home: the hotel or flat') + '</button>';
     list += '<button type="button" onclick="geoPickMap()" style="' + act + '">📌 ' + L('סמן את היעד על המפה', 'Mark the destination on the map') + '</button>';
     if ((GEO.destCat || 'v') === 'p') list += '<button type="button" onclick="navToGuide()" style="' + act + '">📖 ' + L('לבחור מתוך מדריך המסלולים, עם הפרטים של כל מסלול', 'Choose from the piste guide, with each run\'s details') + '</button>';
@@ -8486,6 +8513,7 @@ function geoDest(id) {
   var lf = window.Leaflet;
   var d = id && GEO.dests ? GEO.dests[id] : null;
   GEO.warmFor = null;
+  if (id !== 'via') { GEO.thenHome = false; GEO.viaArrived = false; }
   if (d && !GEO.dest) geoFull(true);
   GEO.dest = d || null;
   GEO.nearRes = null; GEO.pickMap = false;
@@ -8568,7 +8596,7 @@ function _geoDestPaint0() {
   if (!info) return;
   if (!d) { info.style.display = 'none'; info.innerHTML = ''; return; }
   info.style.display = 'block';
-  var name = '<b>' + escHtml(d.name) + '</b>';
+  var name = '<b>' + escHtml(d.name).replace('\uD83C\uDFBF', GEO_BOOTS) + '</b>';
   var lineNote = '<br><span style="color:#6b7c8f;">' + L('קו ישר, לא מסלול: את המסלולים בוחרים לפי המפה ולפי היכולת שלך.',
                                                     'A straight line, not a route: choose the runs by the map and by what you can ski.') + '</span>';
   function straight(here) {
@@ -8585,6 +8613,26 @@ function _geoDestPaint0() {
   }
   var me = GEO.me.getLatLng(), here = [me.lat, me.lng];
   var m = GEO.map.distance(here, d.ll);
+  // the rental shop on the way home: once he walks away from it, the way
+  // goes on home by itself
+  if (d.via && GEO.thenHome && GEO.viaArrived && m > 150 && _geoHome()) {
+    GEO.viaArrived = false; GEO.thenHome = false;
+    if (VOICE.on) voiceSay(VL('מַמְשִׁיכִים הַבַּיְתָה', 'On we go, home'), true);
+    geoDest('home');
+    return;
+  }
+  if (m < 60 && d.via && GEO.thenHome) {
+    noStraight(); skiClear();
+    GEO.viaArrived = true;
+    info.innerHTML = '✅ ' + L('הגעת אל ', 'You have reached ') + name + '. '
+      + L('אחרי שתחזיר את הציוד, ממשיכים הביתה. הניווט ימשיך לבד כשתצא מהחנות.', 'Once the gear is back, on we go home; the navigation carries on by itself when you leave the shop.')
+      + '<br><button type="button" onclick="GEO.thenHome=false;geoDest(\'home\')" style="margin-top:6px;padding:6px 14px;border-radius:16px;border:1px solid #8fcfa3;background:#f2fbf6;color:#0b6b3a;font-weight:700;cursor:pointer;font-family:inherit;">🏠 ' + L('ממשיכים הביתה', 'On, home') + '</button>';
+    if (VOICE.on && !VOICE.arrived) {
+      VOICE.arrived = true;
+      voiceSay(VL('הגעת אל ', 'You have reached ') + _voiceDest(d) + VL('. אַחֲרֵי הַחְזָרַת הַצִּיּוּד מַמְשִׁיכִים הַבַּיְתָה.', '. After the gear, on we go home.'), true);
+    }
+    return;
+  }
   if (m < 60) {
     noStraight(); skiClear();
     info.innerHTML = '✅ ' + L('הגעת אל ', 'You have reached ') + name;
@@ -8749,21 +8797,86 @@ function _navPoiLoad() {
 // neighbour on the same street whose address the site already holds.
 // Valle Ski Service, 20 m from the Cielo Alto chairlift, also sells ski
 // passes (its own description) - so it is a ticket office too (Yossi, 23.11).
-var NAV_EXTRA = [
-  ['rental', 'Genzianella Sport · Piazzale Funivie 14', 45.93428, 7.63366],
-  ['rental', 'Adriano Sport · Plan Maison', 45.9408, 7.65418],
-  ['rental', 'Valle Ski Service · Cielo Alto', 45.92934, 7.63326],
-  ['ticket', 'Valle Ski Service · Cielo Alto', 45.92934, 7.63326],
-  ['rental', 'GalSport · Valtournenche, at the gondola', 45.88823, 7.62400],
+// ── every rental shop, short: name, address, phone, place (Yossi, 27.11) ──
+// The list is the Aosta Valley's own register of rental shops in
+// Breuil-Cervinia (lovevda.it, "Noleggi Sport", 15 ski rentals) with the
+// phone each one gives there; Ski 2.0 and the Valtournenche shops from the
+// site's rental card. Places: a lift or square the shop stands at, or the
+// street between two addresses we hold - Via Carrel 11 (a map database,
+// 45.93510, 7.63050) and Via Carrel 34 (by the Cretaz chairlift) - so a few
+// are within some tens of metres, not surveyed; the row says the address.
+// A shop with no place we trust would be in the card's list with its phone,
+// and not on the map.
+var RENT_SHOPS = [
+  // name, address, phone, [lat, lng] or null, in Valtournenche
+  ['Genzianella Sport', 'Piazzale Funivie 14', '+390166550102', [45.93428, 7.63366]],
+  ['Ski 2.0', 'Via Carrel 2', '+390166691210', [45.93475, 7.63042]],
+  ['Cervinia 2001', 'Via Carrel 11', '+390166948713', [45.93510, 7.63050]],
+  ['Uainot (snowboard)', 'Via Carrel 10', '+390166940231', [45.93502, 7.63046]],
+  ['Edelweiss Sport · Pro Shop', 'Via Carrel 27', '+390166949576', [45.93612, 7.63072]],
+  ['Top One', 'Via Carrel 34', '+390166948792', [45.93660, 7.63080]],
+  ['Nol-Ski', 'Via Bich 2', '+390166949550', [45.93600, 7.63065]],
+  ['Cervinia Ski Service', 'Via Bich 7', '+393398511092', [45.93620, 7.63060]],
+  ['Noleggio Cretaz', 'Via Bich 15', '+390166949484', [45.93645, 7.63055]],
+  ['Sport Center', 'Piazza Guide Maquignaz', '+390166948077', [45.93713, 7.62954]],
+  ['Ivo del Brallo', 'Strada Funivie 2', '+393293269662', [45.933567, 7.631056]],
+  ['Scuola di Sci del Cervino', 'Via Guido Rey, Piazza Breithorn', '+390166940245', [45.93300, 7.62820]],
+  ['White Rent', 'Via Guido Rey, Piazza Breithorn', '+393471414414', [45.93312, 7.62836]],
+  // its own site (cerviniaski.com) places it on its map, Via Cristallo 2 (Yossi, 27.11)
+  ['Corradi Nicola', 'Via Cristallo 2', '+393713705176', [45.93310, 7.62862]],
+  ['Adriano Sport', 'Plan Maison', '+390166949220', [45.9408, 7.65418]],
+  ['Valle Ski Service', 'Cielo Alto', '+390166545917', [45.92934, 7.63326]],
+  ['GalSport', 'Valtournenche, at the gondola', '', [45.88823, 7.62400], 1],
   // on the SR46 in the village, Capoluogo 20 (Yossi's map, 23.11)
-  ['rental', 'Pellissier Sport · Valtournenche', 45.87520, 7.62260],
-  ['rental', 'Cervinia Ski Service · Via Bich 7', 45.93620, 7.63060],
-  ['rental', 'Noleggio Cretaz · Via Bich 15', 45.93645, 7.63055],
-  ['rental', 'Nol-Ski · Via Bich 2', 45.93600, 7.63065],
-  // Via Carrel 34, about 100 m from the Cretaz chairlift - placed by that, not surveyed
-  ['rental', 'Top One · Via Carrel 34', 45.93660, 7.63080],
-  ['rental', 'Sport Center · Piazza Guide Maquignaz', 45.93713, 7.62954]
+  ['Pellissier Sport', 'Valtournenche', '', [45.87520, 7.62260], 1]
 ];
+var NAV_EXTRA = [
+  // Valle Ski Service, 20 m from the Cielo Alto chairlift, also sells ski
+  // passes (its own description) - so it is a ticket office too (Yossi, 23.11)
+  ['ticket', 'Valle Ski Service · Cielo Alto', 45.92934, 7.63326]
+].concat(RENT_SHOPS.filter(function (r) { return r[3]; }).map(function (r) {
+  return ['rental', r[0] + ' · ' + r[1], r[3][0], r[3][1], r[2]];
+}));
+// opening hours, short, for the shops the site knows them for (Yossi, 27.11:
+// hours only, no description) - from each shop's card above, and Uainot's
+// midday break from its Google listing
+var RENT_HOURS = {
+  // each part: a time range, or [a word in Hebrew, in English, a time range]
+  'Genzianella Sport': ['08:30–12:30', '14:30–18:30', ['סופ״ש', 'weekends', '08:00–18:30']],
+  'Ski 2.0': ['08:00–19:00'],
+  'Top One': ['08:00–12:30', '14:00–19:30', ['סופ״ש', 'weekends', '08:00–19:30']],
+  'Cervinia Ski Service': ['08:30–18:00', ['סופ״ש עד', 'weekends until', '18:30']],
+  'Noleggio Cretaz': ['08:30–12:20', '14:30–18:00', ['סופ״ש', 'weekends', '08:00–18:30']],
+  'Adriano Sport': [['מ-', 'from', '09:00']],
+  'Uainot (snowboard)': [['הפסקה', 'closed', '12:30–15:00']]
+};
+function _rentTel(name) {
+  var n = String(name || '').toLowerCase(), hit = null;
+  // the same shop under OpenStreetMap's name: one name holds the other ("Del Brallo" / "Ivo del Brallo")
+  RENT_SHOPS.forEach(function (r) {
+    var m = r[0].toLowerCase().split(' (')[0].split(' · ')[0];
+    if (!hit && r[2] && n && (n.indexOf(m) >= 0 || m.indexOf(n) >= 0)) hit = r[2];
+  });
+  return hit;
+}
+// the card's short list: every shop, a line each - name, address, phone, map
+function renderRentAll() {
+  var el = document.getElementById('rental-all-list');
+  if (!el) return;
+  el.innerHTML = RENT_SHOPS.map(function (r) {
+    var tel = r[2] ? '<a href="tel:' + r[2] + '" style="color:#1a73e8;text-decoration:none;white-space:nowrap;"><bdi dir="ltr">' + r[2].replace(/^\+39(3\d\d)(\d{3})(\d+)$/, '$1 $2 $3').replace(/^\+39(0\d{3})(\d+)$/, '$1 $2') + '</bdi></a>' : '';
+    var q = encodeURIComponent(r[0].split(' (')[0] + ', ' + r[1] + ', ' + (r[4] ? 'Valtournenche' : 'Breuil-Cervinia'));
+    return '<div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid #f1f4f7;font-size:0.8rem;">'
+      + '<span style="flex:1;min-width:0;"><b><bdi>' + escHtml(r[0]) + '</bdi></b> <span style="color:#6b7c8f;"><bdi>' + escHtml(r[1]) + '</bdi></span>'
+      + (RENT_HOURS[r[0]] ? '<span style="display:block;font-size:0.72rem;color:#5f6b7a;">🕐 ' + RENT_HOURS[r[0]].map(function (h) {
+          var t = typeof h === 'string' ? h : h[2], w = typeof h === 'string' ? '' : L(h[0], h[1]);
+          return '<span style="white-space:nowrap;">' + (w ? w + (/-$/.test(w) ? '' : ' ') : '') + '<bdi dir="ltr">' + t + '</bdi></span>';
+        }).join(' · ') + '</span>' : '')
+      + '</span>'
+      + tel
+      + '<a href="https://www.google.com/maps/search/?api=1&query=' + q + '" target="_blank" rel="noopener" style="color:#1a73e8;text-decoration:none;white-space:nowrap;">📍 ' + L('מפה', 'Map') + '</a></div>';
+  }).join('');
+}
 // which town a place is in - a pharmacy "in Zermatt" is a different trip
 // from one in Cervinia (Yossi, 25.11). Within 2.5 km of the centre; up on
 // the mountain the nearest station says it instead.
@@ -8806,14 +8919,18 @@ function _navPoi(k) {
     if (it[0] !== k) return;
     var town = _navTown([it[2], it[3]]);
     out.push({ id: 'x:' + i, name: nk.ico + ' ' + it[1] + (one ? ' · ' + one : ''), en: it[1], ll: [it[2], it[3]], site: NAV_SITE[k],
-               q: it[1].split(' · ')[0] + (town ? ', ' + town[2] : '') });
+               q: it[1].split(' · ')[0] + (town ? ', ' + town[2] : ''), tel: k === 'rental' ? it[4] || '' : '' });
   });
   (NAV_POI.items || []).forEach(function (it, i) {
     // the same place twice - ours and OpenStreetMap's, or two of the map's
     // own points for one block of toilets (Yossi, 23.11: the valley station
     // came up twice); and toilets at a station already on the list
     var q = [+it[2], +it[3]];
-    if (it[0] === k && out.some(function (o) { return _skiDist(o.ll, q) < 70 && (!it[1] || o.en === it[1] || o.id.indexOf('x:') === 0); })) return;
+    if (it[0] === k && out.some(function (o) {
+      // two rental shops can stand 50 m apart: one of ours drops the map's only if it is the same shop
+      if (k === 'rental' && it[1]) return _skiDist(o.ll, q) < 120 && String(o.en).toLowerCase().indexOf(String(it[1]).toLowerCase()) >= 0;
+      return _skiDist(o.ll, q) < 70 && (!it[1] || o.en === it[1] || o.id.indexOf('x:') === 0);
+    })) return;
     if (it[0] === 'wc' && k === 'wc' && _navWcStations().some(function (o) { return _skiDist(o.ll, q) < 120; })) return;
     if (it[0] !== k) return;
     // no name on the map: say where it is instead - "toilets · near Plan Maison"
@@ -8840,7 +8957,7 @@ function _navPoi(k) {
                en: it[1] || nk.en, ll: [+it[2], +it[3]],
                site: NAV_SITE[k] || (/Traumatologico/i.test(it[1] || '') ? 'parkingModal' : ''),
                // a named place opens in Google Maps too: opening hours, phone, reviews
-               q: it[1] ? it[1] + (town ? ', ' + town[2] : '') : '' });
+               q: it[1] ? it[1] + (town ? ', ' + town[2] : '') : '', tel: k === 'rental' ? _rentTel(it[1]) || '' : '' });
   });
   return out;
 }
@@ -8914,9 +9031,10 @@ function geoNear(k) {
   var here = _navHere(), from = here;
   if (!from && GEO.map) { var c = GEO.map.getCenter(); from = [c.lat, c.lng]; }
   if (!from) from = GEO_HOME;
-  var items = _navNearItems(k).map(function (d) { return { id: d.id, name: d.name, en: d.en, ll: d.ll, q: d.q, site: d.site, m: _skiDist(from, d.ll) }; });
+  var items = _navNearItems(k).map(function (d) { return { id: d.id, name: d.name, en: d.en, ll: d.ll, q: d.q, site: d.site, tel: d.tel, m: _skiDist(from, d.ll) }; });
   items.sort(function (a, b) { return a.m - b.m; });
-  items = items.slice(0, 8);
+  // choosing one's own rental shop: all of them, not the nearest eight
+  if (!(GEO.viaPick && k === 'rental')) items = items.slice(0, 8);
   if (here && SKI.graph) {
     var prof = SKI.prof;
     if (!GEO.level) GEO.level = 2;
@@ -8949,6 +9067,12 @@ function _navMapEvents() {
   GEO.map.on('click', function (ev) {
     if (!GEO.pickMap) return;
     if (GEO.pickMap === 'home') { GEO.pickMap = false; GEO.pickedAt = Date.now(); geoHomeSave([ev.latlng.lat, ev.latlng.lng]); return; }
+    if (GEO.pickMap === 'shop' && _geoHome()) {
+      GEO.pickMap = false; GEO.pickedAt = Date.now();
+      GEO.home.shop = { name: GEO.shopDraft || L('חנות ההשכרה', 'The rental shop'), ll: [+ev.latlng.lat.toFixed(6), +ev.latlng.lng.toFixed(6)] };
+      try { localStorage.setItem('geoHome', JSON.stringify(GEO.home)); } catch (e) {}
+      geoHomeVia(); return;
+    }
     GEO.pickMap = false; GEO.pickedAt = Date.now();
     _navCustomDest([ev.latlng.lat, ev.latlng.lng]);
   });
@@ -9034,6 +9158,32 @@ function _geoHomeView() {
   if (h) out += '<button type="button" onclick="geoHomeClear()" style="' + b + 'color:#b3261e;">🗑️ ' + L('מחק את הבית', 'Remove home') + '</button>';
   out += '<button type="button" onclick="geoHomeSetup(false)" style="' + b + 'color:#5f6b7a;">' + L('→ חזרה', '← Back') + '</button>';
   return out;
+}
+// home by way of the rental shop: the shop first, then on home by itself
+function geoHomeVia() {
+  var h = _geoHome();
+  if (!h) return;
+  if (!h.shop) { geoHomeViaPick(); return; }
+  GEO.dests = GEO.dests || {};
+  GEO.dests.via = { id: 'via', name: '🎿 ' + h.shop.name, ll: h.shop.ll, via: true };
+  geoPickOpen(false);
+  geoDest('via');
+  GEO.thenHome = true; GEO.viaArrived = false;
+  _geoPickLabel();
+}
+function geoHomeViaPick() {
+  GEO.viaPick = true;
+  geoNear('rental');
+  _backToast(L('בחר את החנות שבה הציוד שלך', 'Choose the shop your gear is from'));
+}
+// a shop that is not on the list: its name, then a tap on the map
+function geoShopMap() {
+  var i = document.getElementById('map-geo-shop-name');
+  GEO.shopDraft = i ? i.value.trim().slice(0, 50) : '';
+  GEO.viaPick = false;
+  geoPickOpen(false);
+  GEO.pickMap = 'shop';
+  _backToast(L('לחץ על המפה במקום של החנות', 'Tap the map where the shop is'));
 }
 function geoHomeMap() {
   GEO.homeDraft = _geoHomeName();
@@ -11294,7 +11444,7 @@ PHELP.text = {
     + '1. <b>🔍 לאן?</b> בחר לאן אתה רוצה להגיע: מעלית, בקתה, מסלול או מקום בכפר. האתר יראה את הדרך מהמקום שלך, במסלולים ובמעליות.<br>'
     + '2. <b>רמה:</b> בחר עד איזה צבע מסלול הדרך מותרת. "רק כחולים" לא ישלח אותך לאדום. מעליות ומסלולים שסגורים היום, לפי האתר הרשמי, לא נכנסים לדרך. מסלול סגור מופיע במפה בקו אפור מקווקו.<br>'
     + '3. <b>לרדת גם בקבינות:</b> סמן אם נוח לך לרדת ברכבל או בגונדולה במקום לגלוש למטה.<br>'
-    + '🏠 <b>הבית:</b> ב"לאן?" קבע את המלון או הדירה כבית. אחר כך "הביתה" מופיע ראשון ברשימה. נשמר רק במכשיר שלך.<br>'
+    + '🏠 <b>הבית:</b> ב"לאן?" קבע את המלון או הדירה כבית. אחר כך "הביתה" מופיע ראשון ברשימה. נשמר רק במכשיר שלך. "הביתה דרך..." עובר קודם בחנות ההשכרה, וכשאתה יוצא ממנה הניווט ממשיך הביתה לבד.<br>'
     + '📊 <b>ימי הגלישה שלי:</b> טבלה של הימים, עם השיא בכל עמודה. אתה קובע כמה זמן לשמור: רק היום, שבועיים, כל העונה או עד שתמחק.<br>'
     + '💬 <b>הודעות אישיות:</b> כשאתה מגיע הביתה, סיכום היום (קילומטרים, ירידה, מהירות שיא) ורעיון למסלול למחר, או המלצה על מדריך אם הגלישה הייתה איטית ועם הרבה עצירות. בבקתה הפסקה טובה, ובשישי שבת שלום. אפשר לכבות בהגדרות.<br>'
     + '🏂 <b>סנובורד:</b> הדרך עוקפת קטעים כמעט שטוחים, שבהם בסנובורד צריך לדחוף. קו צהוב מקווקו על הדרך מסמן קטע כמעט שטוח או עלייה קלה, והוראות הדרך מזהירות מראש לשמור על מהירות.<br>'
@@ -11310,7 +11460,7 @@ PHELP.text = {
     + '1. <b>🔍 Where to?</b> Choose where you want to get: a lift, a hut, a run or a place in the village. The site shows the way from where you are, by runs and lifts.<br>'
     + '2. <b>Level:</b> the hardest run colour the way may use. "Blue runs only" will not send you down a red. Lifts and runs that are closed today, by the official site, are left out of the way; a closed run shows on the map as a grey dashed line.<br>'
     + '3. <b>Ride down in cabins:</b> tick it if you would rather ride a cable car or gondola down than ski.<br>'
-    + '🏠 <b>Home:</b> in "Where to?" set your hotel or flat as home; "Home" then heads the list. Kept on your device only.<br>'
+    + '🏠 <b>Home:</b> in "Where to?" set your hotel or flat as home; "Home" then heads the list. Kept on your device only. "Home by way of..." goes to the rental shop first, and once you leave it the navigation carries on home by itself.<br>'
     + '📊 <b>My ski days:</b> a table of the days, with the best in each column. You decide how long they are kept: today only, two weeks, the season, or until you delete them.<br>'
     + '💬 <b>Personal messages:</b> arriving home, the day in numbers (distance, descent, top speed) and an idea for tomorrow\'s run; at a hut, a good break; on Friday, Shabbat shalom. You can turn them off in the settings.<br>'
     + '🏂 <b>Snowboard:</b> the way avoids near-flat stretches, where a board has to push. A yellow stitched line on the way marks a near-flat stretch or a small rise, and the directions warn you in advance to keep your speed.<br>'
@@ -22528,9 +22678,9 @@ function _dayCard(ap, kind, A, B) {
         'By car you will be there at about ' + T(eta) + '. Into a rental shop, a half-day pass, and up. Most lifts take their last ride up at about ' + T(lastUp) + '. And after a night of travelling, a rest and an unhurried fitting are a fine choice too.'));
     if (eta <= 18 * 60 + 30) return _apCard('#f2fbf6', '#8fcfa3', '#1d6b35', L('🎿 תגיע כשחנויות ההשכרה פתוחות', '🎿 You arrive while the rental shops are open'),
       L('ברכב תגיע כ-' + T(eta) + '. כדאי להיכנס למדוד את הציוד כבר היום ולהשאיר אותו בחנות: הביקור הראשון הוא הארוך, ובבוקר החנויות עמוסות. כך מחר יוצאים ישר לשלג. ברוב החנויות אפשר להשאיר ציוד ללילה, לפעמים בתשלום קטן.'
-        + (eta >= 12 * 60 + 30 && eta < 14 * 60 + 30 ? ' שים לב: Genzianella ו-Noleggio Cretaz סגורות בצהריים, בערך 12:30–14:30.' : eta > 17 * 60 ? ' חלק מהחנויות נסגרות ב-18:00, אחרות ב-19:00 ומאוחר יותר. כדאי להתקשר לפני.' : ''),
+        + (eta >= 12 * 60 + 30 && eta < 15 * 60 ? ' שים לב: בצהריים חלק מהחנויות סגורות. Genzianella ו-Noleggio Cretaz בערך 12:30–14:30, ו-Uainot (סנובורד) 12:30–15:00.' : eta > 17 * 60 ? ' חלק מהחנויות נסגרות ב-18:00, אחרות ב-19:00 ומאוחר יותר. כדאי להתקשר לפני.' : ''),
         'By car you will be there at about ' + T(eta) + '. Go in and fit your gear today and leave it in the shop: the first visit is the long one, and the shops are crowded in the morning. Tomorrow you head straight for the snow. Most shops keep gear overnight, sometimes for a small fee.'
-        + (eta >= 12 * 60 + 30 && eta < 14 * 60 + 30 ? ' Note: Genzianella and Noleggio Cretaz close at midday, about 12:30–14:30.' : eta > 17 * 60 ? ' Some shops close at 18:00, others at 19:00 or later. Worth a phone call first.' : ''))
+        + (eta >= 12 * 60 + 30 && eta < 15 * 60 ? ' Note: some shops close at midday. Genzianella and Noleggio Cretaz about 12:30–14:30, and Uainot (snowboards) 12:30–15:00.' : eta > 17 * 60 ? ' Some shops close at 18:00, others at 19:00 or later. Worth a phone call first.' : ''))
       + ' <a href="#" onclick="event.preventDefault();openFrom(_openModalId,\'rentalModal\')" style="color:#1a4b8c;">' + L('חנויות ההשכרה ←', 'The rental shops →') + '</a>');
     if (eta < 24 * 60) return _apCard('#f7f8fa', '#d8dde4', '#444', L('🌙 מגיעים בערב', '🌙 Arriving in the evening'),
       L('ברכב תגיע כ-' + T(eta) + ', כשחנויות ההשכרה כבר סגורות. מחר בבוקר כדאי להגיע לחנות עם הפתיחה, לפני העומס של פתיחת המעליות.',
@@ -23667,6 +23817,7 @@ function _applyTexts(t) {
       tbl.innerHTML = h + '</tbody>';
     }
     _set('rental-shops-village-title', r.shops_in_village_title);
+    try { renderRentAll(); } catch (e) {}
     _set('rental-shops-way-title',     r.shops_on_way_title);
     _set('rental-shops-way-sub',       r.shops_on_way_sub);
     if (r.shops_on_way) {
