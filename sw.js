@@ -44,7 +44,7 @@ const STATIC = ['./index.html', './manifest.json', './icon-192.png',
                 // the ski router's map of runs and lifts: routing is wanted
                 // most exactly where there is no signal
                 './data/ski-graph-cervinia.json',
-                './img/piste-map.jpg', './img/logo.png', './img/cup.png', './img/montblanc.webp',
+                './img/piste-map.jpg', './img/logo.png', './img/cup.png', './img/rental-gear.png', './img/rental-boots.png', './img/montblanc.webp',
                 './hero-cervino.jpg', './mymap.jpg', './town-map.jpg',
                 './maps/route-grand_tour.jpg', './maps/route-ventina.jpg', './maps/route-warmup.jpg',
                 './files/packing-list.pdf',
