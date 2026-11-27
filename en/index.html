@@ -754,7 +754,9 @@ mark.cl-hit {
   background: #0f2a4a; color: #fff;
 }
 #svc-webcam.has-live .svc-live {
-  position: absolute; inset: 0; background-size: cover; background-position: center;
+  /* the card is wide and low, so it shows a strip of the picture: the one
+     with the sky and the peaks, not only the snow (Yossi, 27.11) */
+  position: absolute; inset: 0; background-size: cover; background-position: center 30%;
   opacity: 1; transition: opacity 0.6s;
   /* the rule that lifts the card's children above the picture also catches
      this layer, so it is pinned back down below the darkening overlay */
@@ -764,19 +766,20 @@ mark.cl-hit {
    is darkened hard and the far side is left showing the mountain. */
 #svc-webcam.has-live::after {
   content: ''; position: absolute; inset: 0; z-index: 0;
-  /* lighter (Yossi, 26.11): only the strip under the words is shaded,
-     and the letters carry their own shadow */
+  /* lighter still (Yossi, 26.11 and 27.11, set beside the camera's own
+     picture): the shade stops two thirds of the way across, and the
+     letters carry their own shadow */
   background: linear-gradient(270deg,
-    rgba(8,22,42,0.62) 0%, rgba(8,22,42,0.4) 45%, rgba(8,22,42,0) 100%);
+    rgba(8,22,42,0.58) 0%, rgba(8,22,42,0.32) 38%, rgba(8,22,42,0) 68%);
 }
 html[dir="ltr"] #svc-webcam.has-live::after {
   background: linear-gradient(90deg,
-    rgba(8,22,42,0.62) 0%, rgba(8,22,42,0.4) 45%, rgba(8,22,42,0) 100%);
+    rgba(8,22,42,0.58) 0%, rgba(8,22,42,0.32) 38%, rgba(8,22,42,0) 68%);
 }
-#svc-webcam.has-live .svc-txt { text-shadow: 0 1px 3px rgba(0,0,0,0.85), 0 0 10px rgba(0,0,0,0.5); }
+#svc-webcam.has-live .svc-txt { text-shadow: 0 1px 2px rgba(0,0,0,0.95), 0 0 8px rgba(0,0,0,0.75); }
 #svc-webcam.has-live > * { position: relative; z-index: 1; }
 #svc-webcam.has-live .svc-txt b { color: #fff; }
-#svc-webcam.has-live .svc-txt small { color: rgba(255,255,255,0.78); }
+#svc-webcam.has-live .svc-txt small { color: #fff; }
 #svc-webcam.has-live .svc-ico {
   background: rgba(255,255,255,0.14); backdrop-filter: blur(3px);
 }
@@ -1715,7 +1718,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.22';
+  var v='v19.23';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
