@@ -884,6 +884,7 @@ th { background: #f8f9fa; font-size: 0.9rem; color: #555; }
         #mapModal.geo-full.geo-nav #map-geo-friends { order: 3; }
         #mapModal.geo-full.geo-nav #nav-more { order: 4; }
         #mapModal.geo-full.geo-nav #map-geo-level-row { order: 5; }
+        @media (max-width: 520px) { #map-geo-level-row .lv-more { display: none; } #map-geo-level-row { gap: 4px 8px !important; font-size: 0.76rem; } }
         #mapModal.geo-full.geo-nav #map-geo-dest-info { order: 6; max-height: none !important; }
         #mapModal.geo-full.geo-nav #map-geo-picklist { order: 7; }
         #mapModal.geo-full.geo-nav:not(.nav-open) #map-geo-level-row,
@@ -1714,7 +1715,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.14';
+  var v='v19.15';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5474,6 +5475,15 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
           </div>
           <div id="map-geo-picklist" role="listbox" style="display:none;margin-top:6px;border:1px solid #d6e2ef;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(16,40,70,0.16);max-height:46vh;overflow:auto;"></div>
           <div id="map-geo-level-row" style="display:none;margin-top:5px;align-items:center;gap:6px 10px;flex-wrap:wrap;">
+            <!-- one narrow line with what is chosen; a tap opens the choices (Yossi, 27.11) -->
+            <button type="button" id="map-geo-opts-btn" onclick="geoOpts()" aria-expanded="false" aria-controls="map-geo-opts"
+              style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:16px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;color:#16314f;max-width:100%;">
+              <span>⚙️</span><span id="map-geo-opts-sum" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span><span id="map-geo-opts-arr" style="color:#1a73e8;">▾</span>
+            </button>
+            <button type="button" id="map-geo-voice" onclick="geoVoice(!VOICE.on)" style="display:none;padding:4px 9px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;">🔈 הדרכה קולית</button>
+            <!-- the voice language, beside the voice button (Yossi, 19.11) -->
+            <span id="map-geo-vlang" style="display:inline-flex;"></span>
+            <div id="map-geo-opts" style="display:none;flex-basis:100%;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:6px 8px;border:1px solid #e3eaf2;border-radius:10px;background:#fff;">
             <span data-en="Level:">רמה:</span>
             <select id="map-geo-level" onchange="geoLevel(this.value)"
               style="padding:4px 6px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;font-family:inherit;font-size:0.78rem;color:#16314f;">
@@ -5487,7 +5497,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
             </label>
             <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;">
               <input type="checkbox" id="map-geo-ridedown" onchange="geoRideDown(this.checked)">
-              <span data-en="Ride down in cabins too (gondola, cable car, train)">לרדת גם בקבינות (גונדולה, רכבל, רכבת)</span>
+              <span data-en="Ride down in cabins too&lt;span class=&quot;lv-more&quot;&gt; (gondola, cable car, train)&lt;/span&gt;">לרדת גם בקבינות<span class="lv-more"> (גונדולה, רכבל, רכבת)</span></span>
             </label>
             <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;" title="המיקום מתעדכן פעם בדקה והמסך יכול לכבות. ההדרכה הקולית שותקת כשהמסך כבוי." data-en-title="Your position updates once a minute and the screen may go dark. Voice guidance is silent while the screen is off.">
               <input type="checkbox" id="map-geo-eco" onchange="geoEco(this.checked)">
@@ -5497,9 +5507,7 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <input type="checkbox" id="map-geo-autostop" onchange="geoAutoStop(this.checked)">
               <span data-en="⏹️ Off on arrival">⏹️ לכבות בהגעה</span>
             </label>
-            <button type="button" id="map-geo-voice" onclick="geoVoice(!VOICE.on)" style="display:none;padding:4px 9px;border-radius:7px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.78rem;">🔈 הדרכה קולית</button>
-            <!-- the voice language, beside the voice button (Yossi, 19.11) -->
-            <span id="map-geo-vlang" style="display:inline-flex;"></span>
+            </div>
           </div>
           <div id="map-geo-dest-info" style="display:none;margin-top:5px;line-height:1.5;max-height:34vh;overflow:auto;"></div>
           <!-- simulation: a pretend skier along the route, for trying the navigation from home (?sim=1) -->
@@ -8134,6 +8142,7 @@ function geoEco(on) {
   if (on) _wakeOff(); else if (VOICE.on && GEO.dest) _wakeOn();
   if (GEO.watch !== null && navigator.geolocation) _geoWatch(GEO.hi !== false);
   var c = document.getElementById('map-geo-eco'); if (c) c.checked = GEO.eco;
+  _geoOptsSum();
 }
 
 function _geoFix(pos) {
@@ -8511,7 +8520,11 @@ function _geoDestPaint0() {
   var as = document.getElementById('map-geo-autostop');
   if (as) as.checked = _geoAutoStop();
   if (x) x.style.display = d ? '' : 'none';
-  if (lvRow) lvRow.style.display = d ? 'flex' : 'none';
+  // shown from the start, destination or not: level, snowboard and riding
+  // down are chosen before "where to" (Yossi, 27.11); during navigation the
+  // row folds away with the rest (CSS, .geo-nav:not(.nav-open))
+  if (lvRow) lvRow.style.display = 'flex';
+  try { _geoOptsSum(); } catch (e) {}
   var mm = document.getElementById('mapModal');   // while navigating, full screen keeps only what the way needs
   if (mm) { if (d) mm.classList.add('geo-nav'); else mm.classList.remove('geo-nav'); }
   // On the way the kinds of place step aside, the friends do not (Yossi,
@@ -10109,6 +10122,26 @@ function geoRideDown(on) {
 function _geoBoard() {
   if (GEO.board === undefined) { try { GEO.board = localStorage.getItem('geoBoard') === '1'; } catch (e) { GEO.board = false; } }
   return !!GEO.board;
+}
+function geoOpts(open) {
+  var box = document.getElementById('map-geo-opts'), arr = document.getElementById('map-geo-opts-arr'), b = document.getElementById('map-geo-opts-btn');
+  if (!box) return;
+  if (open === undefined) open = box.style.display === 'none';
+  box.style.display = open ? 'flex' : 'none';
+  if (arr) arr.textContent = open ? '▴' : '▾';
+  if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+// the closed line says what is chosen: the level, then a mark for each option on
+function _geoOptsSum() {
+  var el = document.getElementById('map-geo-opts-sum'), lv = document.getElementById('map-geo-level');
+  if (!el) return;
+  var t = lv && lv.options[lv.selectedIndex] ? lv.options[lv.selectedIndex].textContent : '';
+  var on = [];
+  if (_geoBoard()) on.push(L('🏂 סנובורד', '🏂 Snowboard'));
+  if (GEO.rideDown) on.push(L('🚡 ירידה בקבינות', '🚡 Ride down'));
+  var eco = document.getElementById('map-geo-eco');
+  if (eco && eco.checked) on.push('🔋');
+  el.textContent = [t].concat(on).join(' · ');
 }
 function geoBoard(on) {
   GEO.board = !!on;
