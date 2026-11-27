@@ -1715,7 +1715,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.15';
+  var v='v19.16';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -5507,6 +5507,10 @@ In January Shabbat begins in the village after four in the afternoon, and it is 
               <input type="checkbox" id="map-geo-autostop" onchange="geoAutoStop(this.checked)">
               <span data-en="⏹️ Off on arrival">⏹️ לכבות בהגעה</span>
             </label>
+            <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;" title="כמה מילים חמות בהגעה: סיכום היום כשמגיעים הביתה, הפסקה טובה בבקתה, שבת שלום ביום שישי." data-en-title="A few warm words on arrival: the day's summary at home, a good break at a hut, Shabbat shalom on Friday.">
+              <input type="checkbox" id="map-geo-warm" onchange="geoWarm(this.checked)">
+              <span data-en="💬 Personal messages">💬 הודעות אישיות</span>
+            </label>
             </div>
           </div>
           <div id="map-geo-dest-info" style="display:none;margin-top:5px;line-height:1.5;max-height:34vh;overflow:auto;"></div>
@@ -8179,6 +8183,7 @@ function _geoFix(pos) {
     }
     return;
   }
+  _dayLog(ll, c, acc);
   var alt = (c.altitude !== null && c.altitude !== undefined && !isNaN(c.altitude))
     ? ' · ' + L('גובה כ-', 'altitude about ') + (Math.round(c.altitude / 10) * 10).toLocaleString('en-US') + L(' מ\'', ' m') : '';
   _geoMsg('🔵 <b>' + L('אתה כאן', 'You are here') + '</b> · ' + L('דיוק של כ-', 'accurate to about ') + acc + L(' מ\'', ' m') + alt
@@ -8325,6 +8330,7 @@ function _geoDestFill() {
   // a point marked on the map, or one of "the nearest", is not in the lists
   if (GEO.dest && !GEO.dests[GEO.dest.id]) GEO.dests[GEO.dest.id] = GEO.dest;
   if (GEO.nearRes) GEO.nearRes.items.forEach(function (d) { GEO.dests[d.id] = d; });
+  _geoHomeDest();
   if (GEO.dest && GEO.dest.id && /^[hasp]:/.test(GEO.dest.id) && !GEO.destCat) {
     GEO.destCat = /^[ha]:/.test(GEO.dest.id) ? 'h' : GEO.dest.id.charAt(0) === 'p' ? 'p' : 's';
   }
@@ -8362,7 +8368,7 @@ function geoPickOpen(force, typing) {
   var box = document.getElementById('map-geo-picklist');
   if (!box) return;
   box.style.display = GEO.pickOpen ? 'block' : 'none';
-  if (!GEO.pickOpen) { GEO.nearRes = null; return; }
+  if (!GEO.pickOpen) { GEO.nearRes = null; GEO.homeSetup = false; return; }
   box.setAttribute('dir', L('rtl', 'ltr'));   // the rows read from the right in Hebrew
   GEO.pickQ = '';
   _geoPickPaint();
@@ -8404,6 +8410,7 @@ function _geoPickHead(t) {
 function _geoPickPaint(keepInput) {
   var box = document.getElementById('map-geo-picklist');
   if (!box) return;
+  if (GEO.homeSetup) { box.innerHTML = _geoHomeView(); return; }
   var q = _geoNorm(GEO.pickQ);
   var count = 0, list = '';
   var act = 'display:block;width:100%;text-align:start;padding:10px 14px;border:none;border-bottom:1px solid #f0f3f7;background:#fff;font-family:inherit;font-size:0.84rem;color:#1a5fb4;cursor:pointer;';
@@ -8441,6 +8448,13 @@ function _geoPickPaint(keepInput) {
       return '<button type="button" role="tab" aria-selected="' + on + '" onclick="geoCat(\'' + c[0] + '\')" style="flex:1;padding:9px 2px 7px;border:0;border-bottom:3px solid ' + (on ? '#1a73e8' : 'transparent')
         + ';background:none;cursor:pointer;font-family:inherit;font-size:0.76rem;white-space:nowrap;font-weight:' + (on ? '700' : '500') + ';color:' + (on ? '#174ea6' : '#5f6b7a') + ';">' + L(c[1], c[2]) + '</button>';
     }).join('') + '</div>';
+    // home first, as in a car's navigation (Yossi, 27.11)
+    var hm = _geoHome();
+    list += hm
+      ? '<div style="display:flex;align-items:stretch;border-bottom:1px solid #f0f3f7;"><button type="button" onclick="geoPickSet(\'home\')" style="' + act + 'border-bottom:0;flex:1;font-weight:700;color:#0b6b3a;">'
+        + '<svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-house"/></svg> ' + L('הביתה', 'Home') + ' · ' + esc(hm.name) + '</button>'
+        + '<button type="button" onclick="geoHomeSetup()" aria-label="' + L('שינוי הבית', 'Change home') + '" style="border:0;background:#fff;padding:0 14px;cursor:pointer;font-size:0.9rem;">✏️</button></div>'
+      : '<button type="button" onclick="geoHomeSetup()" style="' + act + '"><svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-house"/></svg> ' + L('קבע את הבית שלך: המלון או הדירה', 'Set your home: the hotel or flat') + '</button>';
     list += '<button type="button" onclick="geoPickMap()" style="' + act + '">📌 ' + L('סמן את היעד על המפה', 'Mark the destination on the map') + '</button>';
     if ((GEO.destCat || 'v') === 'p') list += '<button type="button" onclick="navToGuide()" style="' + act + '">📖 ' + L('לבחור מתוך מדריך המסלולים, עם הפרטים של כל מסלול', 'Choose from the piste guide, with each run\'s details') + '</button>';
     (GEO.pickGroups || []).forEach(function (g) {
@@ -8457,6 +8471,7 @@ function _geoPickPaint(keepInput) {
 function geoDest(id) {
   var lf = window.Leaflet;
   var d = id && GEO.dests ? GEO.dests[id] : null;
+  GEO.warmFor = null;
   if (d && !GEO.dest) geoFull(true);
   GEO.dest = d || null;
   GEO.nearRes = null; GEO.pickMap = false;
@@ -8515,6 +8530,8 @@ function _geoDestPaint0() {
   if (rd) rd.checked = !!GEO.rideDown;
   var bd = document.getElementById('map-geo-board');
   if (bd) bd.checked = _geoBoard();
+  var wm = document.getElementById('map-geo-warm');
+  if (wm) wm.checked = _geoWarmOn();
   var ec = document.getElementById('map-geo-eco');
   if (ec) ec.checked = _geoEco();
   var as = document.getElementById('map-geo-autostop');
@@ -8557,9 +8574,12 @@ function _geoDestPaint0() {
   if (m < 60) {
     noStraight(); skiClear();
     info.innerHTML = '✅ ' + L('הגעת אל ', 'You have reached ') + name;
+    var warm = GEO.warmFor !== d.id ? _warmFor(d) : null;
+    if (GEO.warmFor !== d.id) { GEO.warmFor = d.id; if (warm) _warmShow(warm); }
     if (VOICE.on && !VOICE.arrived) {
       VOICE.arrived = true;
       voiceSay(VL('הגעת אל ', 'You have reached ') + _voiceDest(d), true);
+      if (warm && warm.say) voiceSay(warm.say, false);
       _wakeOff();
     }
     // At the end of the way the GPS goes off by itself, if he asked for it
@@ -8914,6 +8934,7 @@ function geoPickMap() {
 function _navMapEvents() {
   GEO.map.on('click', function (ev) {
     if (!GEO.pickMap) return;
+    if (GEO.pickMap === 'home') { GEO.pickMap = false; GEO.pickedAt = Date.now(); geoHomeSave([ev.latlng.lat, ev.latlng.lng]); return; }
     GEO.pickMap = false; GEO.pickedAt = Date.now();
     _navCustomDest([ev.latlng.lat, ev.latlng.lng]);
   });
@@ -8962,6 +8983,294 @@ function _navPlaceName(ll) {
   });
   if (near) return L('ליד ', 'Near ') + near.n;
   return L('נקודה על המפה', 'A point on the map');
+}
+
+// ── home: the hotel or the flat (Yossi, 27.11: "like Waze's Home") ──
+// Kept on this device only, like the position itself. It heads the
+// "where to" list, and arriving there closes the day with a few warm words.
+function _geoHome() {
+  if (GEO.home === undefined) { try { GEO.home = JSON.parse(localStorage.getItem('geoHome') || 'null'); } catch (e) { GEO.home = null; } }
+  return GEO.home && GEO.home.ll ? GEO.home : null;
+}
+function _geoHomeDest() {
+  var h = _geoHome();
+  if (!GEO.dests) return null;
+  if (!h) { delete GEO.dests.home; return null; }
+  return (GEO.dests.home = { id: 'home', name: '🏠 ' + h.name, ll: h.ll, home: true });
+}
+function geoHomeSetup(on) {
+  GEO.homeSetup = on !== false;
+  if (!GEO.pickOpen) geoPickOpen(true); else _geoPickPaint();
+}
+function _geoHomeName() {
+  var i = document.getElementById('map-geo-home-name');
+  return i ? i.value.trim().slice(0, 60) : '';
+}
+function _geoHomeView() {
+  var h = _geoHome(), here = _navHere();
+  var b = 'display:block;width:100%;text-align:start;padding:10px 14px;border:none;border-bottom:1px solid #f0f3f7;background:#fff;font-family:inherit;font-size:0.84rem;color:#1a5fb4;cursor:pointer;';
+  var out = '<div style="padding:10px 14px 6px;font-weight:700;color:#16314f;"><svg class="ico-inline" viewBox="0 0 128 128" aria-hidden="true"><use href="#ico-house"/></svg> '
+    + L('הבית שלך: המלון או הדירה', 'Your home: the hotel or flat') + '</div>'
+    + '<div style="padding:0 14px 8px;font-size:0.74rem;color:#5f6b7a;">' + L('נשמר רק במכשיר שלך. אחר כך "הביתה" יופיע ראשון ברשימה.', 'Kept on your device only. "Home" then heads the list.') + '</div>'
+    + '<div style="padding:0 14px 8px;"><input id="map-geo-home-name" type="text" maxlength="60" autocomplete="off" value="' + esc(h ? h.name : '') + '" placeholder="'
+    + L('שם, למשל Hotel Bucaneve (לא חובה)', 'A name, e.g. Hotel Bucaneve (optional)') + '" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d6e2ef;border-radius:8px;font-family:inherit;font-size:0.86rem;"></div>';
+  if (here) out += '<button type="button" onclick="geoHomeSave(_navHere())" style="' + b + '">📍 ' + L('אני בבית עכשיו: שמור את המיקום שלי', 'I am home now: save my position') + '</button>';
+  out += '<button type="button" onclick="geoHomeMap()" style="' + b + '">📌 ' + L('לחץ על המפה במקום של הבית', 'Tap the map where home is') + '</button>';
+  if (GEO.dest && !GEO.dest.home) out += '<button type="button" onclick="geoHomeSave(GEO.dest.ll, GEO.dest.name.replace(/^\S+\s/, \'\'))" style="' + b + '">🎯 ' + L('היעד שבחרת: ', 'The destination you chose: ') + esc(GEO.dest.name) + '</button>';
+  if (h) out += '<button type="button" onclick="geoHomeClear()" style="' + b + 'color:#b3261e;">🗑️ ' + L('מחק את הבית', 'Remove home') + '</button>';
+  out += '<button type="button" onclick="geoHomeSetup(false)" style="' + b + 'color:#5f6b7a;">' + L('→ חזרה', '← Back') + '</button>';
+  return out;
+}
+function geoHomeMap() {
+  GEO.homeDraft = _geoHomeName();
+  geoPickOpen(false);
+  GEO.pickMap = 'home';
+  _backToast(L('לחץ על המפה במקום של המלון או הדירה', 'Tap the map where the hotel or flat is'));
+}
+function geoHomeSave(ll, name) {
+  if (!ll) return;
+  var nm = (name || _geoHomeName() || GEO.homeDraft || '').trim().slice(0, 60);
+  GEO.homeDraft = '';
+  GEO.home = { ll: [+(+ll[0]).toFixed(6), +(+ll[1]).toFixed(6)], name: nm || L('הבית', 'Home') };
+  try { localStorage.setItem('geoHome', JSON.stringify(GEO.home)); } catch (e) {}
+  _geoHomeDest();
+  GEO.homeSetup = false;
+  if (GEO.pickOpen) geoPickOpen(false);
+  _backToast(L('🏠 הבית נשמר: ', '🏠 Home saved: ') + GEO.home.name);
+}
+function geoHomeClear() {
+  uiConfirm(L('למחוק את הבית?', 'Remove your home?'), L('מחק', 'Remove'), true).then(function (ok) {
+    if (!ok) return;
+    GEO.home = null;
+    try { localStorage.removeItem('geoHome'); } catch (e) {}
+    _geoHomeDest();
+    if (GEO.dest && GEO.dest.home) geoDest('');
+    GEO.homeSetup = false; _geoPickPaint();
+  });
+}
+
+// ── the day on the mountain (Yossi, 27.11) ──
+// While the position is on, each fix on a run that goes down adds its
+// distance, the height lost and the run itself to today's record; the
+// speed comes from the GPS, or from two fixes a few seconds apart (in the
+// battery saving mode, a fix a minute, there is no speed). Kept on the
+// device and begun again each morning, by the resort's clock.
+function _romeDate() { try { return new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Rome' }); } catch (e) { return new Date().toISOString().slice(0, 10); } }
+function _romeClock() {
+  try {
+    var p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', weekday: 'short', hour: '2-digit', hour12: false }).formatToParts(new Date());
+    var o = {}; p.forEach(function (x) { o[x.type] = x.value; });
+    return { day: o.weekday, hour: +o.hour % 24 };
+  } catch (e) { var d = new Date(); return { day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()], hour: d.getHours() }; }
+}
+function _day() {
+  var today = _romeDate();
+  if (SIM.on) { if (!SIM.day || SIM.day.date !== today) SIM.day = { date: today, m: 0, vert: 0, vmax: 0, runs: {} }; return SIM.day; }
+  if (GEO.day === undefined) { try { GEO.day = JSON.parse(localStorage.getItem('skiDay') || 'null'); } catch (e) { GEO.day = null; } }
+  if (!GEO.day || GEO.day.date !== today) GEO.day = { date: today, m: 0, vert: 0, vmax: 0, runs: {} };
+  return GEO.day;
+}
+// the run under a point, and the height there, between the heights of the
+// stretch's two ends
+function _dayNear(g, ll) {
+  var kx = Math.cos(ll[0] * Math.PI / 180) * 111320, ky = 110540, best = null;
+  g.edges.forEach(function (e) {
+    if ((e[4] !== 's' && e[4] !== 'f') || e[2] < 0) return;
+    var a = g.nodes[e[0]], b = g.nodes[e[1]];
+    if (!a || !b || a[2] == null || b[2] == null) return;
+    var pts = _skiGeom(e), run = 0, tot = 0, segs = [];
+    for (var i = 0; i + 1 < pts.length; i++) {
+      var ax = (pts[i][1] - ll[1]) * kx, ay = (pts[i][0] - ll[0]) * ky;
+      var bx = (pts[i + 1][1] - ll[1]) * kx, by = (pts[i + 1][0] - ll[0]) * ky;
+      var dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy, l = Math.sqrt(l2);
+      segs.push([ax, ay, dx, dy, l2, l]); tot += l;
+    }
+    segs.forEach(function (q) {
+      var t = q[4] ? Math.max(0, Math.min(1, -(q[0] * q[2] + q[1] * q[3]) / q[4])) : 0;
+      var px = q[0] + t * q[2], py = q[1] + t * q[3], d = Math.sqrt(px * px + py * py);
+      if (d <= 30 && (!best || d < best.d)) {
+        var f = tot ? (run + t * q[5]) / tot : 0;
+        best = { d: d, wi: e[2], z: a[2] + (b[2] - a[2]) * f };
+      }
+      run += q[5];
+    });
+  });
+  return best;
+}
+function _dayLog(ll, c, acc) {
+  var g = SKI.graph;
+  if (!g || acc > 40) { GEO.dayPrev = null; return; }
+  var now = Date.now(), here = _dayNear(g, ll), p = GEO.dayPrev;
+  GEO.dayPrev = here ? { ll: ll, t: now, z: here.z } : null;
+  if (!here || !p) return;
+  var dt = (now - p.t) / 1000;
+  if (dt <= 0 || dt > 150) return;
+  var dist = _skiDist(p.ll, ll), dz = p.z - here.z, day = _day();
+  // a stop on the way down: standing still on the run after moving (only
+  // with fixes seconds apart; the battery mode's minute says nothing)
+  if (dist < 3 && dt >= 5 && dt <= 15) { if (GEO.dayMoving) { day.stops = (day.stops || 0) + 1; GEO.dayMoving = false; } return; }
+  if (dist < 5 || dz <= 0 || dist > 2500) return;      // downhill only: a lift goes up
+  GEO.dayMoving = true;
+  day.m += dist; day.vert += dz;
+  if (dt <= 15) { day.tdown = (day.tdown || 0) + dt; day.mdown = (day.mdown || 0) + dist; }
+  day.runs[here.wi] = (day.runs[here.wi] || 0) + dist;
+  // the speed: the GPS's own when it gives one; else over the last two
+  // gaps between fixes 3-10 s apart, which irons out a single jump. Over
+  // 100 km/h is the GPS, not the skier.
+  var v = 0;
+  if (c && c.speed != null && !isNaN(c.speed) && dt <= 15) v = c.speed;
+  else if (dt >= 3 && dt <= 10 && p.p && (p.t - p.p.t) / 1000 <= 10) v = (dist + _skiDist(p.p.ll, p.ll)) / ((now - p.p.t) / 1000);
+  if (v > 0 && v < 28) day.vmax = Math.max(day.vmax || 0, v);
+  if (GEO.dayPrev) GEO.dayPrev.p = { ll: p.ll, t: p.t };
+  if (day.runs[here.wi] >= 200) { var tr = _trip(); if (tr.ways[here.wi] !== day.date) { tr.ways[here.wi] = day.date; _tripSave(); } }
+  if (!SIM.on) { try { localStorage.setItem('skiDay', JSON.stringify(day)); } catch (e) {} }
+}
+// the runs skied on this trip - the last two weeks - so tomorrow's idea is
+// a run not done yet
+function _trip() {
+  if (SIM.on) return SIM.trip || (SIM.trip = { ways: {} });
+  if (GEO.trip === undefined) { try { GEO.trip = JSON.parse(localStorage.getItem('skiTrip') || 'null'); } catch (e) { GEO.trip = null; } }
+  if (!GEO.trip) GEO.trip = { ways: {} };
+  var cut = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
+  Object.keys(GEO.trip.ways).forEach(function (k) { if (GEO.trip.ways[k] < cut) delete GEO.trip.ways[k]; });
+  return GEO.trip;
+}
+function _tripSave() { if (!SIM.on) try { localStorage.setItem('skiTrip', JSON.stringify(GEO.trip)); } catch (e) {} }
+
+// ── an idea for tomorrow, by what was skied today (Yossi, 27.11) ──
+// Blacks today: the big descents (Klein Matterhorn to Zermatt, Furgg-Furi,
+// the Wall). Reds: the long classics (the Ventina, the Reine Blanche) and
+// then a first black. Blues only: a long blue, then a first red. Always a
+// run of the guide not skied on this trip, with its card a tap away.
+var SKI_NEXT = {
+  black: [['zermatt', 'Z1'], ['zermatt', '62'], ['advanced', '59'], ['zermatt', '54'], ['zermatt', '8'], ['advanced', '12'], ['advanced', '5BIS'], ['advanced', '22']],
+  red: [['intermediate', '7'], ['intermediate', '1'], ['zermatt', '85'], ['intermediate', '9BIS'], ['intermediate', '29'], ['advanced', '24BI'], ['advanced', '62']],
+  blue: [['beginner', '4'], ['zermatt', '86'], ['intermediate', '24'], ['intermediate', '29'], ['intermediate', '3BIS']]
+};
+function _nextIdea(s) {
+  var P = (window._texts && window._texts.pistes) || {}, g = SKI.graph;
+  if (!g || !s.runs) return null;
+  var lvl = s.black ? 'black' : s.red ? 'red' : 'blue';
+  var done = {};
+  Object.keys(_trip().ways).concat(Object.keys(_day().runs)).forEach(function (wi) { var w = g.ways[wi]; if (w && w.name) done[w.name] = 1; });
+  var pick = null;
+  SKI_NEXT[lvl].some(function (k) {
+    var arr = P[k[0]] || [], i = -1;
+    arr.forEach(function (r, j) { if (i < 0 && String(r.num) === k[1]) i = j; });
+    if (i < 0) return false;
+    var r = arr[i], names = r.runs || (r.trail ? [r.trail] : []);
+    if (names.some(function (n) { return done[n]; })) return false;
+    pick = { r: r, sec: k[0] };
+    return true;
+  });
+  if (!pick) return null;
+  var r = pick.r, black = r.diff === '⚫';
+  var lead = lvl === 'black' ? L('מחר, משהו מאתגר: ', 'Tomorrow, a challenge: ')
+    : lvl === 'red' ? (black ? L('מרגיש בטוח? מחר אולי שחור ראשון: ', 'Feeling confident? Tomorrow maybe a first black: ') : L('רעיון למחר: ', 'An idea for tomorrow: '))
+    : (r.diff === '🔴' ? L('הכחולים הלכו טוב? מחר אולי אדום ראשון: ', 'Blues went well? Tomorrow maybe a first red: ') : L('רעיון למחר: ', 'An idea for tomorrow: '));
+  var nm = String(r.name).replace(/\s*[⭐⚫🏔️🏆]+\s*$/u, '');
+  return '💡 ' + lead + '<b>' + esc(r.num + ' ' + nm) + '</b> ' + (r.diff || '') + (r.len ? ' · ' + esc(r.len) : '')
+    + ' · <a href="#" onclick="_nextCard(' + esc(JSON.stringify(nm)) + ');return false;" style="color:#1a73e8;">' + L('📖 לכרטיס המסלול', '📖 The run\'s card') + '</a>';
+}
+function _nextCard(name) {
+  try { closeM('mapModal'); } catch (e) {}
+  openM('pisteModal');
+  setTimeout(function () { pisteSearch(name); }, 200);
+}
+function _daySum() {
+  var g = SKI.graph, day = _day(), red = 0, black = 0, n = 0;
+  Object.keys(day.runs).forEach(function (wi) {
+    if (day.runs[wi] < 200) return;
+    n++;
+    var d = g && g.ways[wi] ? g.ways[wi].d : 0;
+    if (d === 3) black++; else if (d === 2) red++;
+  });
+  var avg = day.tdown >= 300 ? day.mdown / day.tdown * 3.6 : 0;
+  return { km: Math.round(day.m / 100) / 10, vert: Math.round(day.vert / 10) * 10, kmh: Math.round((day.vmax || 0) * 3.6), runs: n, red: red, black: black,
+           avg: Math.round(avg), stopsKm: day.mdown >= 1000 ? (day.stops || 0) / (day.mdown / 1000) : 0 };
+}
+// A phone's GPS (a fix a second, metres off) cannot see the turns - a
+// snowplough from parallel skiing - but it does see a slow pace and many
+// stops. A day of blues only, slow and halting, gets a kind word about a
+// few hours with an instructor (Yossi, 27.11) instead of tomorrow's run.
+function _dayHesitant(s) {
+  return s.km >= 1.5 && !s.red && !s.black && s.avg > 0 && (s.avg < 10 || (s.avg < 14 && s.stopsKm >= 2.5));
+}
+function _coachOpen() {
+  try { closeM('mapModal'); } catch (e) {}
+  openM('lessonsModal');
+  setTimeout(function () { try { switchLessonTab('private'); } catch (e) {} }, 120);
+}
+
+// ── a few warm words on arrival (Yossi, 27.11) ──
+// Home at the end of the day: what was skied today, then a hot meal, a rest
+// and a good beer. At a hut in the middle of the day: a hot drink and water -
+// no alcohol while there is still skiing ahead. On a Friday: Shabbat shalom,
+// with the two candles and the lighting time. One short message an arrival,
+// several wordings in turn, and it can be turned off.
+function _geoWarmOn() { try { return localStorage.getItem('geoWarm') !== '0'; } catch (e) { return true; } }
+function geoWarm(on) { try { localStorage.setItem('geoWarm', on ? '1' : '0'); } catch (e) {} _geoOptsSum(); }
+function _pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+function _warmFor(d) {
+  if (!d || !_geoWarmOn()) return null;
+  var ck = _romeClock(), lines = [], say = [];
+  if (d.home) {
+    var s = _daySum(), fri = ck.day === 'Fri' && ck.hour >= 12;
+    // home before one o'clock is a break, not the end of the day: no "great
+    // day" and no beer yet
+    if (!fri && ck.hour < 13) return null;
+    if (fri) {
+      var ct = window.candleToday ? window.candleToday() : null;
+      lines.push('<b>' + L('שבת שלום!', 'Shabbat shalom!') + '</b> ' + _candles() + (ct ? ' ' + L('הדלקת נרות ב־', 'Candle lighting at ') + '<span dir="ltr">' + ct + '</span>' : ''));
+      say.push(L('שַׁבָּת שָׁלוֹם!', 'Shabbat shalom!'));
+    }
+    if (s.km >= 1 || ck.hour >= 13) {
+      lines.push(L(_pick(['היה יום גלישה נהדר!', 'איזה יום! כל הכבוד.', 'יום יפה על ההר, וחזרת בשלום.']),
+                   _pick(['What a great day on the snow!', 'What a day! Well done.', 'A fine day on the mountain, and home safe.'])));
+      say.push(L('הָיָה יוֹם גְּלִישָׁה נֶהְדָּר!', 'What a great day on the snow!'));
+    }
+    if (s.km >= 1) {
+      var bits = [L('כ־' + s.km + ' ק"מ', 'about ' + s.km + ' km')];
+      if (s.vert >= 100) bits.push(L(s.vert.toLocaleString('en-US') + ' מ\' ירידה', s.vert.toLocaleString('en-US') + ' m of descent'));
+      if (s.kmh >= 15) bits.push(L('מהירות שיא של ' + s.kmh + ' קמ"ש', 'a top speed of ' + s.kmh + ' km/h'));
+      lines.push(L('היום גלשת ', 'Today you skied ') + bits.join(L(', ', ', ')) + '.'
+        + (s.black ? ' ' + L(s.black === 1 ? 'כולל מסלול שחור אחד 💪' : 'כולל ' + s.black + ' מסלולים שחורים 💪', s.black === 1 ? 'Including one black run 💪' : 'Including ' + s.black + ' black runs 💪')
+           : s.red >= 2 ? ' ' + L('כולל ' + s.red + ' מסלולים אדומים 💪', 'Including ' + s.red + ' red runs 💪') : ''));
+      say.push(L('גָּלַשְׁתָּ הַיּוֹם ' + s.km + ' קִילוֹמֶטֶר.', 'You skied ' + s.km + ' kilometres today.'));
+    }
+    var idea = null;
+    if (s.km >= 1 && !fri) idea = _dayHesitant(s)
+      ? '🎿 ' + L('רוצה להתקדם מהר יותר? כמה שעות עם מדריך עושות הבדל גדול: סיבובים בטוחים, שליטה במהירות וביטחון במסלול. ',
+                   'Want to progress faster? A few hours with an instructor make a big difference: safe turns, speed control and confidence on the run. ')
+        + '<a href="#" onclick="_coachOpen();return false;" style="color:#1a73e8;">' + L('👨‍🏫 שיעורים ומדריכים', '👨‍🏫 Lessons and instructors') + '</a>'
+      : _nextIdea(s);
+    lines.push(fri
+      ? L('עכשיו מקלחת חמה, מנוחה, ושבת שלום ומבורכת.', 'Now a hot shower, a rest, and a blessed Shabbat.')
+      : L(_pick(['עכשיו ארוחה חמה ומנוחה, ואחר כך בירה טובה 🍺', 'עכשיו מקלחת חמה, ארוחה טובה, ואחר כך בירה טובה 🍺', 'זמן למנוחה: ארוחה חמה, ואחר כך בירה טובה 🍺 או כוסית גראפה 🥃']),
+          _pick(['Now a hot meal and a rest, and then a good beer 🍺', 'Now a hot shower, a good meal, and then a good beer 🍺', 'Time to rest: a hot meal, then a good beer 🍺 or a little grappa 🥃'])));
+    if (!fri) say.push(L('עַכְשָׁיו אֲרוּחָה חַמָּה וּמְנוּחָה.', 'Now a hot meal and a rest.'));
+    if (idea) lines.push('<span style="display:block;margin-top:6px;padding-top:6px;border-top:1px solid #e6edf4;font-size:0.84rem;">' + idea + '</span>');
+  } else if (/^h:/.test(d.id) && ck.hour < 16) {
+    lines.push(L(_pick(['הפסקה טובה! ☕ שתייה חמה, וגם מים: בגובה מתייבשים מהר.', 'זמן להתחמם ולנוח ☕. ואל תשכח לשתות מים.']),
+                 _pick(['Enjoy the break! ☕ Something hot, and water too: you dry out fast up high.', 'Time to warm up and rest ☕. And drink some water.'])));
+    say.push(L('הַפְסָקָה טוֹבָה! שְׁתֵה גַּם מַיִם.', 'Enjoy the break, and drink some water.'));
+  } else return null;
+  return { html: lines.join('<br>'), say: say.join(' ') };
+}
+function _warmShow(w) {
+  var box = document.getElementById('nav-warm');
+  if (!box) {
+    var host = document.getElementById('map-geo');
+    if (!host || !host.parentNode) return;
+    box = document.createElement('div'); box.id = 'nav-warm'; box.setAttribute('role', 'status');
+    box.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:64px;z-index:1250;width:min(92%,420px);box-sizing:border-box;background:#fff;color:#17324c;border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,0.28);padding:14px 16px 12px;font-size:0.9rem;line-height:1.6;border-top:4px solid #0b8043;';
+    host.parentNode.appendChild(box);
+  }
+  box.setAttribute('dir', L('rtl', 'ltr'));
+  box.innerHTML = '<button type="button" onclick="this.parentNode.style.display=\'none\'" aria-label="' + L('סגירה', 'Close') + '" style="float:' + L('left', 'right') + ';border:0;background:none;font-size:1.1rem;cursor:pointer;color:#6b7c8f;line-height:1;">✕</button>' + w.html;
+  box.style.display = 'block';
+  clearTimeout(_warmShow.t);
+  _warmShow.t = setTimeout(function () { box.style.display = 'none'; }, 30000);
 }
 function _navCustomDest(ll) {
   if (!ll) return;
@@ -10877,6 +11186,8 @@ PHELP.text = {
     + '1. <b>🔍 לאן?</b> בחר לאן אתה רוצה להגיע: מעלית, בקתה, מסלול או מקום בכפר. האתר יראה את הדרך מהמקום שלך, במסלולים ובמעליות.<br>'
     + '2. <b>רמה:</b> בחר עד איזה צבע מסלול הדרך מותרת. "רק כחולים" לא ישלח אותך לאדום. מעליות ומסלולים שסגורים היום, לפי האתר הרשמי, לא נכנסים לדרך. מסלול סגור מופיע במפה בקו אפור מקווקו.<br>'
     + '3. <b>לרדת גם בקבינות:</b> סמן אם נוח לך לרדת ברכבל או בגונדולה במקום לגלוש למטה.<br>'
+    + '🏠 <b>הבית:</b> ב"לאן?" קבע את המלון או הדירה כבית. אחר כך "הביתה" מופיע ראשון ברשימה. נשמר רק במכשיר שלך.<br>'
+    + '💬 <b>הודעות אישיות:</b> כשאתה מגיע הביתה, סיכום היום (קילומטרים, ירידה, מהירות שיא) ורעיון למסלול למחר, או המלצה על מדריך אם הגלישה הייתה איטית ועם הרבה עצירות. בבקתה הפסקה טובה, ובשישי שבת שלום. אפשר לכבות בהגדרות.<br>'
     + '🏂 <b>סנובורד:</b> הדרך עוקפת קטעים כמעט שטוחים, שבהם בסנובורד צריך לדחוף. קו צהוב מקווקו על הדרך מסמן קטע כמעט שטוח או עלייה קלה, והוראות הדרך מזהירות מראש לשמור על מהירות.<br>'
     + '4. <b>🔈 הדרכה קולית:</b> הוראות בקול בזמן הגלישה, כמו בניווט ברכב. '
     + '<button type="button" onclick="voiceSample()" style="padding:2px 9px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.74rem;">▶ שמע דוגמה</button><br>'
@@ -10890,6 +11201,8 @@ PHELP.text = {
     + '1. <b>🔍 Where to?</b> Choose where you want to get: a lift, a hut, a run or a place in the village. The site shows the way from where you are, by runs and lifts.<br>'
     + '2. <b>Level:</b> the hardest run colour the way may use. "Blue runs only" will not send you down a red. Lifts and runs that are closed today, by the official site, are left out of the way; a closed run shows on the map as a grey dashed line.<br>'
     + '3. <b>Ride down in cabins:</b> tick it if you would rather ride a cable car or gondola down than ski.<br>'
+    + '🏠 <b>Home:</b> in "Where to?" set your hotel or flat as home; "Home" then heads the list. Kept on your device only.<br>'
+    + '💬 <b>Personal messages:</b> arriving home, the day in numbers (distance, descent, top speed) and an idea for tomorrow\'s run; at a hut, a good break; on Friday, Shabbat shalom. You can turn them off in the settings.<br>'
     + '🏂 <b>Snowboard:</b> the way avoids near-flat stretches, where a board has to push. A yellow stitched line on the way marks a near-flat stretch or a small rise, and the directions warn you in advance to keep your speed.<br>'
     + '4. <b>🔈 Voice guidance:</b> spoken directions while you ski, as in a car. '
     + '<button type="button" onclick="voiceSample()" style="padding:2px 9px;border-radius:12px;border:1px solid #c9d6e3;background:#fff;cursor:pointer;font-family:inherit;font-size:0.74rem;">▶ Hear a sample</button><br>'
@@ -16165,6 +16478,10 @@ function sharePost(postId) {
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // the navigation's Friday greeting asks for today's lighting time in Cervinia
+  window.candleToday = function () {
+    try { var o = dayInfo(new Date(), 0); return o.isFriday ? o.candle : null; } catch (e) { return null; }
+  };
   window.renderShabbatTimes = function(locIdx) {
     var el = document.getElementById('shabbat-times-widget');
     if (!el) return;

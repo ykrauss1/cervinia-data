@@ -5645,6 +5645,64 @@ if (parkTabs !== 'ok') fail('road/transport/emergency tabs switch cleanly', park
     `the zmanim show ${r.zmanimDrawn} drawn candles`); else ok();
 }
 
+// ── home, the day on the mountain, and a few warm words ──────────────
+// Yossi, 27.11: "Home" as in a car's navigation - the hotel or the flat -
+// kept on the device and first in the list; arriving there sums up the day
+// (distance, descent, top speed, the hard runs) with an idea for tomorrow;
+// a hut in the middle of the day gets a hot drink and water, never alcohol;
+// Friday gets Shabbat shalom with the two candles and the lighting time.
+{
+  const r = await page.evaluate(async () => {
+    const g = await _skiLoad(); const keepL = SKI.ignoreLive; SKI.ignoreLive = true;
+    const keepH = localStorage.getItem('geoHome'), keepD = localStorage.getItem('skiDay'), keepT = localStorage.getItem('skiTrip');
+    delete GEO.home; delete GEO.day; delete GEO.trip;
+    localStorage.removeItem('geoHome'); localStorage.removeItem('skiDay'); localStorage.removeItem('skiTrip');
+    GEO.dests = GEO.dests || {};
+    geoHomeSave([45.93520, 7.63060], 'Hotel Test');
+    const home = GEO.dests.home, stored = JSON.parse(localStorage.getItem('geoHome') || 'null');
+    const rt = skiRoute([45.9408, 7.65418], [45.93520, 7.63060], 3);
+    const pts = []; rt.edges.forEach(ei => { const e = g.edges[ei]; if (e[4] === 's' || e[4] === 'f') _skiGeom(e).forEach(q => pts.push(q)); });
+    let t = Date.now(); const real = Date.now; Date.now = () => t;
+    for (let i = 0; i + 1 < pts.length; i++) { const a = pts[i], b = pts[i + 1], n = Math.max(1, Math.round(_skiDist(a, b) / 40));
+      for (let k = 0; k < n; k++) { t += 4000; _dayLog([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n], { speed: null }, 5); } }
+    Date.now = real;
+    const sum = _daySum();
+    const keepC = window._romeClock, out = {};
+    for (const [k, c] of [['wed', { day: 'Wed', hour: 17 }], ['fri', { day: 'Fri', hour: 15 }], ['morning', { day: 'Wed', hour: 9 }], ['hut', { day: 'Wed', hour: 12 }], ['hutLate', { day: 'Wed', hour: 17 }]]) {
+      window._romeClock = () => c;
+      const w = _warmFor(k.startsWith('hut') ? { id: 'h:0', name: 'x' } : home);
+      out[k] = w ? { html: w.html, said: _sayHe(w.say) } : null;
+    }
+    window._romeClock = keepC;
+    // a halting day of blues: slow, with many stops, gets a word about an instructor
+    window._romeClock = () => ({ day: 'Wed', hour: 17 });
+    const blue = g.ways.findIndex(w => w.k === 'p' && w.d === 1);
+    GEO.day = { date: _romeDate(), m: 3000, vert: 400, vmax: 6, runs: { [blue]: 3000 }, tdown: 1200, mdown: 3000, stops: 12 };
+    const slow = _warmFor(home);
+    GEO.day.tdown = 600; GEO.day.stops = 2;                 // the same blues at 18 km/h, hardly stopping
+    const easy = _warmFor(home);
+    out.coach = !!slow && /lessonsModal|_coachOpen/.test(slow.html); out.noCoach = !!easy && !/_coachOpen/.test(easy.html);
+    window._romeClock = keepC; delete GEO.day;
+    localStorage.setItem('geoWarm', '0'); window._romeClock = () => ({ day: 'Wed', hour: 17 });
+    const off = _warmFor(home); localStorage.removeItem('geoWarm'); window._romeClock = keepC;
+    // put the reader's own things back
+    [['geoHome', keepH], ['skiDay', keepD], ['skiTrip', keepT]].forEach(([k, v]) => { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); });
+    delete GEO.home; delete GEO.day; delete GEO.trip; SKI.ignoreLive = keepL;
+    return { home: !!home && home.home, stored: !!stored && stored.name === 'Hotel Test', sum, out, off };
+  });
+  const T = 'home and the warm words on arrival';
+  if (!r.home || !r.stored) fail(T, 'the home was not kept on the device or is not in the list'); else ok();
+  if (!(r.sum.km >= 1 && r.sum.vert >= 100 && r.sum.kmh > 0 && r.sum.kmh < 100)) fail(T, 'the day was not recorded: ' + JSON.stringify(r.sum)); else ok();
+  if (!r.out.wed || !/ק"מ/.test(r.out.wed.html) || !/בירה/.test(r.out.wed.html) || !/💡/.test(r.out.wed.html)) fail(T, 'the evening at home lacks the summary, the beer or the idea for tomorrow'); else ok();
+  if (!r.out.fri || !/#ico-candle/.test(r.out.fri.html) || !/שבת שלום/.test(r.out.fri.html)) fail(T, 'Friday has no Shabbat shalom with the two candles'); else ok();
+  if (r.out.morning) fail(T, 'home in the morning, before any skiing, got a message'); else ok();
+  if (!r.out.hut || /בירה|גראפה|יין|🍺|🥃/.test(r.out.hut.html)) fail(T, 'the hut at midday offers alcohol, or nothing'); else ok();
+  if (r.out.hutLate) fail(T, 'a hut late in the day got the midday message'); else ok();
+  if (r.off) fail(T, 'the messages, turned off, still came'); else ok();
+  if (!r.out.coach || !r.out.noCoach) fail(T, `the instructor word: slow day ${r.out.coach}, easy day without it ${r.out.noCoach}`); else ok();
+  if (!/[\u05B0-\u05BC]/.test(r.out.wed.said) || /[A-Za-z]{3,}/.test(r.out.wed.said)) fail(T, 'the spoken words are not pointed Hebrew: ' + r.out.wed.said); else ok();
+}
+
 // ── flat stretches: a snowboard goes round them, everyone is warned ──
 // A boarder's request (26.11): blues so flat a board has to be pushed. With
 // the snowboard box ticked the router steers round them where it can; on
