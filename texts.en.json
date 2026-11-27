@@ -108,6 +108,20 @@
     },
     {
      "cat": "nav",
+     "q": "Is there navigation for snowboarders?",
+     "a": "Yes. Tick \"🏂 Snowboard\" in the navigation options. Where there is a reasonable choice, the way goes round near-flat stretches, where a board has to be pushed. Where there is none, the directions and the voice warn you in advance: \"A flat stretch, keep your speed\". The choice is kept for next time.",
+     "k": "snowboard board flat push slope",
+     "go": "nav"
+    },
+    {
+     "cat": "nav",
+     "q": "What do the dashed lines on the navigation map mean?",
+     "a": "A grey dashed line is a run closed right now, by the official site. After opening hours, when every run is closed, the map is not dashed; it says the resort is closed instead. A yellow dashed line on your way is a near-flat stretch or a small rise: keep your speed there, on skis too. The directions warn you about it in advance as well.",
+     "k": "dashed grey yellow closed flat rise",
+     "go": "nav"
+    },
+    {
+     "cat": "nav",
      "q": "How do I turn on voice guidance?",
      "a": "While navigating tap \"🔈 Voice guidance\". The directions are spoken, as in a car. To hear it before the mountain, open the \"?\" in the navigation and tap \"▶ Hear a sample\".",
      "k": "voice speech spoken sound קול דיבור הדרכה קולית שמע",
