@@ -1706,7 +1706,7 @@ html[dir="ltr"] #side-menu:not(.on) { transform: translateX(-100%); }  /* it com
 <div id="version-badge" style="position:fixed;bottom:6px;inset-inline-end:6px;z-index:9999;background:rgba(0,0,0,0.55);color:#fff;font-size:0.62rem;padding:3px 8px;border-radius:6px;font-family:monospace;pointer-events:none;opacity:0.75;"></div>
 <script>
 (function(){
-  var v='v19.23';
+  var v='v19.26';
   var now=new Date();
   var d=now.getDate().toString().padStart(2,'0')+'.'+
         (now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getFullYear();
@@ -7221,6 +7221,7 @@ var PANEL_ACTIONS = {
     }, 900);
   },
   vote: function () { VOTE.open(); },
+  location: function () { geoDiag(); },
   navigate: function () {
     if (_openModalId && _openModalId !== 'mapModal') closeM(_openModalId);
     openM('mapModal');
@@ -7532,6 +7533,7 @@ HELPC.go = {
   forum:     function () { PANEL_ACTIONS.forum(); },
   push:      function () { SIDE_MENU_ACTIONS.push(); },
   vote:      function () { VOTE.open(); },
+  location:  function () { geoDiag(); },
   install:   function () { var el = document.getElementById('help-install'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
 };
 HELPC.inNav = function (then) {
@@ -8106,12 +8108,137 @@ function geoStop() {
   if (b) { b.style.display = ''; }
 }
 
+
+// ── a location check, on the reader's own phone (Yossi, 28.11) ──
+// A skier in Cervinia said the site did not find him. This checks, in his
+// own browser, what stands in the way - the browser, the site's permission,
+// the phone's location - asks for a real position, and says in his phone's
+// own words what to do. The report can be copied and sent to us.
+// Opened from the navigation's error line, from the help, or by #location.
+function _geoEnv() {
+  var ua = navigator.userAgent || '';
+  var ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var android = /Android/i.test(ua);
+  var br = /FBAN|FBAV|FB_IAB/i.test(ua) ? 'facebook' : /Instagram/i.test(ua) ? 'instagram' : /WhatsApp/i.test(ua) ? 'whatsapp'
+    : /SamsungBrowser/i.test(ua) ? 'samsung' : /CriOS/i.test(ua) ? 'chrome-ios' : /FxiOS|Firefox/i.test(ua) ? 'firefox'
+    : /EdgA|EdgiOS|Edg\//i.test(ua) ? 'edge' : /Chrome\//i.test(ua) ? 'chrome' : /Safari/i.test(ua) ? 'safari' : 'other';
+  var ver = (/(?:Chrome|CriOS|SamsungBrowser|Version|Firefox|FxiOS)\/(\d+)/.exec(ua) || [])[1] || '';
+  return { ios: ios, android: android, br: br, ver: ver, os: ios ? 'iPhone' : android ? 'Android' : 'computer' };
+}
+function _geoSteps(env, kind) {
+  var S = function (he, en) { return L(he, en); };
+  var ol = function (a) { return '<ol style="margin:6px 0 0;padding-inline-start:20px;line-height:1.75;">' + a.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol>'; };
+  if (env.br === 'facebook' || env.br === 'instagram' || env.br === 'whatsapp')
+    return S('הדפדפן הפנימי של האפליקציה הזו לא נותן גישה למיקום. פתח את האתר בדפדפן רגיל:', 'This app\'s built-in browser gives no access to location. Open the site in a regular browser:')
+      + ol([S('לחץ על ⋮ (או ⋯) בפינה', 'Tap ⋮ (or ⋯) in the corner'), S('"פתח בדפדפן" / "פתח ב-Chrome" / "פתח ב-Safari"', '"Open in browser" / "Open in Chrome" / "Open in Safari"'), S('שם לחץ שוב על "📍 הצג את המיקום שלי"', 'There tap "📍 Show my position" again')]);
+  if (env.ios) {
+    var app = env.br === 'chrome-ios' ? 'Chrome' : env.br === 'firefox' ? 'Firefox' : env.br === 'edge' ? 'Edge' : '';
+    var os = ol([
+      S('פתח את <b>הגדרות</b> ← <b>פרטיות ואבטחה</b> ← <b>שירותי מיקום</b>, וודא שהמתג למעלה פועל.', 'Open <b>Settings</b> → <b>Privacy &amp; Security</b> → <b>Location Services</b>, and make sure the switch at the top is on.'),
+      app ? S('באותו מסך גלול ל-<b>' + app + '</b> ← בחר <b>"בזמן השימוש ביישום"</b>, והפעל <b>"מיקום מדויק"</b>.', 'On the same screen scroll to <b>' + app + '</b> → choose <b>"While Using the App"</b>, and turn on <b>"Precise Location"</b>.')
+          : S('באותו מסך גלול ל-<b>אתרי Safari</b> ← בחר <b>"בזמן השימוש ביישום"</b>, והפעל <b>"מיקום מדויק"</b>.', 'On the same screen scroll to <b>Safari Websites</b> → choose <b>"While Using the App"</b>, and turn on <b>"Precise Location"</b>.'),
+      app ? S('חזור לאתר, רענן את הדף, ולחץ שוב על "📍 הצג את המיקום שלי". כשהדפדפן שואל, לחץ <b>"אפשר"</b>.', 'Back on the site, reload the page and tap "📍 Show my position" again. When the browser asks, tap <b>"Allow"</b>.')
+          : S('חזור לספארי: לחץ על <b>aA</b> (או ⋯) ליד הכתובת ← <b>הגדרות אתר</b> ← <b>מיקום</b> ← <b>"אפשר"</b>. רענן את הדף ולחץ שוב על "📍 הצג את המיקום שלי".', 'Back in Safari: tap <b>aA</b> (or ⋯) by the address → <b>Website Settings</b> → <b>Location</b> → <b>"Allow"</b>. Reload the page and tap "📍 Show my position" again.')
+    ]);
+    return os;
+  }
+  if (env.android) {
+    var bn = env.br === 'samsung' ? 'Samsung Internet' : env.br === 'firefox' ? 'Firefox' : env.br === 'edge' ? 'Edge' : 'Chrome';
+    var site = ol([
+      S('בשורת הכתובת למעלה, לחץ על הסמל שמשמאל לכתובת (🔒 או ⚙️).', 'In the address bar, tap the icon left of the address (🔒 or ⚙️).'),
+      S('<b>הרשאות</b> ← <b>מיקום</b> ← <b>"אפשר"</b>.', '<b>Permissions</b> → <b>Location</b> → <b>"Allow"</b>.'),
+      S('רענן את הדף ולחץ שוב על "📍 הצג את המיקום שלי".', 'Reload the page and tap "📍 Show my position" again.')
+    ]);
+    var os = ol([
+      S('פתח את <b>הגדרות</b> הטלפון ← <b>מיקום</b>, וודא שהמתג פועל.', 'Open the phone\'s <b>Settings</b> → <b>Location</b>, and make sure it is on.'),
+      S('באותו מסך: <b>הרשאות אפליקציות</b> ← <b>' + bn + '</b> ← <b>"אפשר רק בזמן השימוש באפליקציה"</b>, והפעל <b>"שימוש במיקום מדויק"</b>.', 'On the same screen: <b>App permissions</b> → <b>' + bn + '</b> → <b>"Allow only while using the app"</b>, and turn on <b>"Use precise location"</b>.'),
+      S('חזור לאתר, רענן את הדף ולחץ שוב על "📍 הצג את המיקום שלי".', 'Back on the site, reload the page and tap "📍 Show my position" again.')
+    ]);
+    return kind === 'site' ? site : kind === 'os' ? os : site + '<div style="margin-top:8px;">' + S('ואם זה לא עזר, בהגדרות הטלפון:', 'And if that did not help, in the phone\'s settings:') + '</div>' + os;
+  }
+  return S('במחשב: לחץ על סמל המנעול ליד הכתובת ← הרשאות ← מיקום ← "אפשר", ורענן. במחשב אין GPS, והמיקום לפי הרשת בלבד.', 'On a computer: click the lock by the address → Permissions → Location → "Allow", and reload. A computer has no GPS; the position comes from the network only.');
+}
+async function geoDiag() {
+  var box = document.getElementById('geo-diag');
+  if (!box) {
+    box = document.createElement('div'); box.id = 'geo-diag'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true');
+    box.style.cssText = 'position:fixed;inset:0;z-index:99991;background:rgba(10,20,35,0.45);display:flex;align-items:center;justify-content:center;padding:12px;';
+    box.onclick = function (e) { if (e.target === box) box.style.display = 'none'; };
+    document.body.appendChild(box);
+  }
+  var env = _geoEnv(), rep = [], perm = '?';
+  var card = function (inner) {
+    box.innerHTML = '<div dir="' + L('rtl', 'ltr') + '" style="background:#fff;border-radius:16px;max-width:470px;width:100%;max-height:90vh;overflow:auto;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,0.25);font-family:inherit;color:#17324c;font-size:0.86rem;line-height:1.6;">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><b style="flex:1;font-size:1rem;">🔎 ' + L('בדיקת מיקום', 'Location check') + '</b>'
+      + '<button type="button" onclick="document.getElementById(\'geo-diag\').style.display=\'none\'" aria-label="' + L('סגירה', 'Close') + '" style="border:0;background:none;font-size:1.15rem;cursor:pointer;color:#6b7c8f;">✕</button></div>' + inner + '</div>';
+    box.style.display = 'flex';
+  };
+  card('⏳ ' + L('בודק את הדפדפן וההרשאות…', 'Checking the browser and permissions…'));
+  var ver = ((document.getElementById('version-badge') || {}).textContent || '').split(' ')[0];
+  rep.push('CerviniaLive · ' + ver + ' · ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC');
+  rep.push(L('מכשיר: ', 'Device: ') + env.os + ' · ' + env.br + (env.ver ? ' ' + env.ver : ''));
+  var stop = function (html) {
+    rep.push(L('תוצאה: ', 'Result: ') + html.replace(/<[^>]+>/g, '').slice(0, 140));
+    card(html + _geoDiagFoot(rep));
+  };
+  if (!window.isSecureContext) return stop('❌ ' + L('הדף לא נפתח בכתובת מאובטחת (https), ולכן אין גישה למיקום. פתח את cervinialive.co.il ישירות.', 'The page is not on a secure address (https), so there is no location. Open cervinialive.co.il directly.'));
+  if (!navigator.geolocation) return stop('❌ ' + L('הדפדפן הזה לא תומך במיקום.', 'This browser cannot give a location.') + '<div style="margin-top:8px;">' + _geoSteps(env) + '</div>');
+  try { if (navigator.permissions && navigator.permissions.query) perm = (await navigator.permissions.query({ name: 'geolocation' })).state; } catch (e) {}
+  rep.push(L('הרשאת האתר: ', 'Site permission: ') + perm);
+  if (perm === 'denied') return stop('❌ <b>' + L('האתר חסום מלקבל מיקום בדפדפן הזה.', 'The site is blocked from the location in this browser.') + '</b> ' + L('כך משחררים:', 'To unblock it:') + _geoSteps(env, 'site'));
+  card('⏳ ' + L('מבקש מיקום מהטלפון… (עד חצי דקה). אם הדפדפן שואל, לחץ "אפשר".', 'Asking the phone for a position… (up to half a minute). If the browser asks, tap "Allow".'));
+  var t0 = Date.now();
+  var res = await new Promise(function (ok) {
+    navigator.geolocation.getCurrentPosition(function (p) { ok({ p: p }); }, function (e) { ok({ e: e }); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
+  });
+  if (res.e && res.e.code === 3) {
+    // no GPS answer in time: is there at least a rough one?
+    res = await new Promise(function (ok) {
+      navigator.geolocation.getCurrentPosition(function (p) { ok({ p: p, rough: true }); }, function (e) { ok({ e: e, t3: true }); }, { enableHighAccuracy: false, maximumAge: 60000, timeout: 15000 });
+    });
+  }
+  var secs = Math.round((Date.now() - t0) / 1000);
+  if (res.e) {
+    var c = res.e.code;
+    rep.push(L('שגיאה: ', 'Error: ') + c + ' (' + (res.e.message || '') + ') · ' + secs + 's');
+    if (c === 1) return stop('❌ <b>' + L('אין הרשאה למיקום.', 'No permission for the location.') + '</b> '
+      + (perm === 'granted' ? L('האתר מורשה, אבל הטלפון לא נותן לדפדפן מיקום. בהגדרות הטלפון:', 'The site is allowed, but the phone gives the browser no location. In the phone\'s settings:') + _geoSteps(env, 'os')
+         : L('כך מאשרים:', 'To allow it:') + _geoSteps(env)));
+    if (c === 2) return stop('❌ <b>' + L('הטלפון לא מצליח למצוא מיקום.', 'The phone cannot find a position.') + '</b> ' + L('כנראה המיקום (GPS) כבוי בטלפון:', 'Location (GPS) is probably off on the phone:') + _geoSteps(env, 'os'));
+    return stop('⏳ <b>' + L('לא התקבל מיקום בזמן.', 'No position in time.') + '</b> '
+      + L('ה-GPS צריך שמיים פתוחים: צא החוצה, רחוק מקירות גבוהים, וחכה דקה. מצב חיסכון בסוללה מאט את ה-GPS, כדאי לכבות אותו. ה-GPS עובד גם בלי חבילת גלישה, אבל עם רשת הוא מוצא מהר יותר.', 'GPS needs open sky: step outside, away from tall walls, and wait a minute. Battery saver slows the GPS; turn it off. GPS works without data too, but with a network it is found faster.')
+      + '<div style="margin-top:8px;">' + L('אם עדיין לא עובד, בדוק את ההגדרות:', 'If it still does not work, check the settings:') + '</div>' + _geoSteps(env, 'os'));
+  }
+  var c2 = res.p.coords, acc = Math.round(c2.accuracy || 0), d = _skiDist([c2.latitude, c2.longitude], GEO_HOME);
+  var dTxt = d < 1000 ? Math.round(d) + L(' מ\'', ' m') : (d / 1000).toFixed(d < 20000 ? 1 : 0) + L(' ק"מ', ' km');
+  rep.push(L('מיקום: דיוק ', 'Position: accuracy ') + acc + 'm · ' + L('מרחק מצ\'רוויניה ', 'from Cervinia ') + dTxt + (res.rough ? ' · rough' : '') + ' · ' + secs + 's');
+  if (d > 25000 && acc < d / 2) return stop('✅ <b>' + L('המיקום עובד.', 'Location works.') + '</b> ' + L('הטלפון אומר שאתה כ-' + dTxt + ' מצ\'רוויניה, ולכן הניווט מציג הדגמה. כשתהיה באזור, הוא יראה את המיקום האמיתי.', 'The phone says you are about ' + dTxt + ' from Cervinia, so the navigation shows the demo. In the area it shows your real position.'));
+  if (acc > 300 || res.rough) return stop('⚠️ <b>' + L('יש מיקום, אבל גס (דיוק של כ-' + acc + ' מ\').', 'There is a position, but a rough one (about ' + acc + ' m).') + '</b> '
+    + L('זה מיקום לפי הרשת, לא GPS. צא לשמיים פתוחים וחכה דקה, ובדוק ש"מיקום מדויק" פועל:', 'That is the network\'s position, not GPS. Step out under open sky, wait a minute, and check that precise location is on:') + _geoSteps(env, 'os'));
+  return stop('✅ <b>' + L('המיקום עובד!', 'Location works!') + '</b> ' + L('דיוק של כ-' + acc + ' מ\', ' + dTxt + ' ממרכז הכפר.', 'Accurate to about ' + acc + ' m, ' + dTxt + ' from the village centre.')
+    + '<div style="margin-top:10px;"><button type="button" onclick="document.getElementById(\'geo-diag\').style.display=\'none\';PANEL_ACTIONS.navigate()" style="padding:8px 16px;border-radius:18px;border:0;background:#0b8043;color:#fff;font-weight:700;cursor:pointer;font-family:inherit;">🧭 ' + L('פתח את הניווט', 'Open the navigation') + '</button></div>');
+}
+function _geoDiagFoot(rep) {
+  var txt = rep.join('\n');
+  _geoDiagFoot.txt = txt;
+  var b = 'padding:7px 13px;border-radius:16px;border:1px solid #c9d6e3;background:#fff;color:#16314f;cursor:pointer;font-family:inherit;font-size:0.8rem;';
+  return '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #eef2f6;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
+    + '<button type="button" onclick="geoDiag()" style="' + b + '">🔄 ' + L('בדוק שוב', 'Check again') + '</button>'
+    + '<button type="button" onclick="_geoDiagCopy(this)" style="' + b + '">📋 ' + L('העתק דוח לשליחה אלינו', 'Copy a report to send us') + '</button></div>'
+    + '<pre dir="ltr" style="margin-top:8px;font-size:0.7rem;color:#5f6b7a;background:#f6f8fb;border-radius:8px;padding:8px;white-space:pre-wrap;">' + escHtml(txt) + '</pre>';
+}
+function _geoDiagCopy(btn) {
+  var t = _geoDiagFoot.txt || '';
+  var done = function () { if (btn) btn.textContent = '✅ ' + L('הועתק. אפשר להדביק בוואטסאפ', 'Copied. Paste it in WhatsApp'); };
+  if (navigator.share) { navigator.share({ text: t }).catch(function () {}); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () {});
+}
 function geoLocate() {
   if (SIM.on) simExit();
   if (!navigator.geolocation) { _geoMsg(L('הדפדפן הזה לא תומך במיקום.', 'This browser cannot give a location.')); return; }
   if (!GEO.map) return;
   geoStop();
-  GEO.first = true;
+  GEO.first = true; GEO.farRough = 0; GEO.farSure = false;
   _geoMsg(L('⏳ מחפש את המיקום שלך…', '⏳ Finding your position…'));
   // A rough position first, from Wi-Fi or the network, in a few seconds -
   // then the GPS sharpens it. A computer has no GPS at all: asked only for
@@ -8165,6 +8292,27 @@ function _geoFix(pos) {
   if (!lf || !GEO.map) return;
   var c = pos.coords, ll = [c.latitude, c.longitude];
   var acc = Math.round(c.accuracy || 0);
+  // "Away from Cervinia" only on a position worth believing (28.11: a skier
+  // in Cervinia was told he was away). The first, rough answer comes from the
+  // network - in the mountains it can be a valley or a country off, or the
+  // last position the phone kept from home - and it used to send him to the
+  // demo and stop the search for good. A far fix that is rough is dropped and
+  // the GPS goes on looking; a far one that is accurate is believed.
+  var dHome = GEO.map.distance(ll, GEO_HOME);
+  // Far, but within twice its own error of the area, or an old answer: not
+  // believed yet. From home in Israel, 3,000 km off, it is believed at once.
+  var unsure = !acc ? dHome < 200000 : dHome - 2 * acc < 25000;
+  if (pos.timestamp && Date.now() - pos.timestamp > 120000) unsure = true;
+  if (dHome > 25000 && unsure && !GEO.farSure) {
+    GEO.farRough = (GEO.farRough || 0) + 1;
+    // the same far answer again and again, a few minutes on, is the truth
+    if (GEO.farRough < 4) {
+      _geoMsg('⏳ ' + L('מחפש מיקום מדויק… בחוץ, עם שמיים פתוחים, זה מהיר יותר.', 'Looking for an accurate position… Outdoors, under open sky, it is quicker.')
+        + (GEO.farRough > 2 ? '<div style="font-size:0.92em;">' + L('אם זה נמשך: ודא שבהגדרות הטלפון "מיקום" פועל, וש-Chrome מורשה ל"מיקום מדויק".', 'If it goes on: make sure Location is on in the phone\'s settings, and Chrome is allowed precise location.') + '</div>' : ''));
+      return;
+    }
+  }
+  if (dHome > 25000) GEO.farSure = true;
   GEO.alt = (c.altitude !== null && c.altitude !== undefined && !isNaN(c.altitude)) ? c.altitude : null;
   if (!GEO.me) {
     GEO.acc = lf.circle(ll, { radius: acc, color: '#1a73e8', weight: 1, fillColor: '#1a73e8', fillOpacity: 0.12, interactive: false }).addTo(GEO.map);
@@ -9754,7 +9902,11 @@ function _navFabs() {
   a.innerHTML = '<button type="button" onclick="geoFriends();navSheet(GEO.dest?true:NAV.open)" aria-label="' + L('חברים', 'Friends') + '" title="' + L('חברים', 'Friends') + '" style="background:linear-gradient(135deg,#7b4fd6,#5a33b0);color:#fff;"><svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" aria-hidden="true" style="display:block"><circle cx="9" cy="8" r="3.6"/><path d="M2 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5z"/><circle cx="17" cy="9" r="2.9" opacity=".78"/><path d="M15.6 13.7c3.6-.4 6.4 1.9 6.4 5.8h-4.6c0-2.3-.7-4.3-1.8-5.8z" opacity=".78"/></svg></button>'
     + '<button type="button" onclick="navPanel(\'sos\')" aria-label="' + L('עזרה דחופה', 'Emergency help') + '" title="' + L('עזרה דחופה', 'Emergency help') + '" style="background:#d93025;color:#fff;font-size:0.78rem;font-weight:800;letter-spacing:0.03em;">SOS</button>'
     + '<button type="button" onclick="navPanel(\'report\')" aria-label="' + L('דיווח על המסלול', 'Report on the run') + '" title="' + L('דיווח: קרח, מכשול, ערפל…', 'Report: ice, obstacle, fog…') + '" style="width:56px;height:56px;background:#f29900;color:#fff;"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" style="display:block"><path d="M12 2.6 22.6 20.8H1.4Z" fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 8.8v6" stroke="#f29900" stroke-width="2.5" stroke-linecap="round"/><circle cx="12" cy="17.9" r="1.45" fill="#f29900"/></svg></button>';
-  b.innerHTML = (GEO.dest && window.speechSynthesis
+  // the settings - level, snowboard, home by the shop - one tap away while
+  // navigating; folded into the route's steps they were not found (Yossi, 28.11)
+  b.innerHTML = (GEO.dest
+      ? '<button type="button" onclick="navOpts()" aria-label="' + L('הגדרות הניווט: רמה, סנובורד', 'Navigation settings: level, snowboard') + '" title="' + L('הגדרות: רמה, סקי או סנובורד', 'Settings: level, ski or snowboard') + '" style="font-size:1.25rem;">' + (_geoBoard() ? '🏂' : '⚙️') + '</button>' : '')
+    + (GEO.dest && window.speechSynthesis
       ? '<button type="button" onclick="geoVoice(!VOICE.on)" aria-label="' + (VOICE.on ? L('השתק הדרכה קולית', 'Mute voice guidance') : L('הדרכה קולית', 'Voice guidance')) + '" aria-pressed="' + !!VOICE.on + '">' + (VOICE.on ? '🔊' : '🔇') + '</button>' : '')
     + (me ? '<button type="button" onclick="navCenter()" aria-label="' + L('למיקום שלי', 'To my position') + '" title="' + L('למיקום שלי', 'To my position') + '" style="color:#1a73e8;font-size:1.35rem;">◎</button>' : '');
   _navLayout();
@@ -9772,6 +9924,11 @@ function navNew() {
   geoDest('');
   GEO.nearRes = null;
   setTimeout(function () { geoPickOpen(true, true); }, 60);
+}
+function navOpts() {
+  navSheet(true);
+  geoOpts(true);
+  setTimeout(function () { var o = document.getElementById('map-geo-opts'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest' }); }, 120);
 }
 function navCenter() {
   if (!GEO.me || !GEO.map) return;
@@ -10703,6 +10860,7 @@ function _geoOptsSum() {
 }
 function geoBoard(on) {
   GEO.board = !!on;
+  try { if (GEO.full) _navFabs(); } catch (e) {}
   try { localStorage.setItem('geoBoard', on ? '1' : ''); } catch (e) {}
   SKI.key = '';
   _geoDestPaint();
@@ -12156,13 +12314,28 @@ function _geoErr(err) {
     return;
   }
   geoStop();
-  var t;
-  if (err && err.code === 1) t = L('לא ניתנה הרשאה למיקום. אפשר לאשר אותה בהגדרות הדפדפן (סמל המנעול ליד הכתובת), ולנסות שוב.',
-                                   'Location permission was not given. Allow it in the browser settings (the lock icon by the address) and try again.');
-  else if (err && err.code === 3) t = L('לא נמצא מיקום בזמן. בחוץ, עם שמיים פתוחים, זה עובד טוב יותר. נסה שוב.',
-                                        'No position in time. Outdoors, under open sky, it works better. Try again.');
-  else t = L('לא הצלחתי לקבל מיקום. נסה שוב.', 'Could not get a position. Try again.');
-  _geoMsg('⚠️ ' + t);
+  // The error says, on its own, what to do on this phone, in its own
+  // words: the reader does not have to look for a check (Yossi, 28.11).
+  var env = _geoEnv(), code = err && err.code;
+  var inApp = /android-app:\/\//.test(document.referrer || '') || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  var tail = '<div style="margin-top:4px;font-size:0.92em;"><a href="#" onclick="geoLocate();return false;">🔄 ' + L('נסה שוב', 'Try again') + '</a> · '
+    + '<a href="#" onclick="geoDiag();return false;">📋 ' + L('שלח לנו דוח', 'Send us a report') + '</a></div>';
+  var show = function (head, steps) { _geoMsg('⚠️ <b>' + head + '</b>' + (steps || '') + tail); };
+  if (code === 1) {
+    if (/facebook|instagram|whatsapp/.test(env.br)) return show(L('הדפדפן של האפליקציה הזו לא נותן מיקום.', 'This app\'s browser gives no location.'), _geoSteps(env));
+    if (inApp) return show(L('לא ניתנה הרשאה למיקום.', 'No location permission.'), _geoSteps(env, 'os'));
+    var q = navigator.permissions && navigator.permissions.query ? navigator.permissions.query({ name: 'geolocation' }) : Promise.reject();
+    q.then(function (r) { return r.state; }, function () { return '?'; }).then(function (st) {
+      // blocked for the site → the lock icon; allowed for the site and still
+      // refused → the phone keeps the location from the browser
+      if (st === 'granted') show(L('הטלפון לא נותן לדפדפן מיקום.', 'The phone gives the browser no location.'), _geoSteps(env, 'os'));
+      else show(L('המיקום חסום לאתר בדפדפן.', 'Location is blocked for the site in the browser.'), _geoSteps(env, 'site'));
+    });
+    return;
+  }
+  if (code === 2) return show(L('המיקום כבוי בטלפון.', 'Location is off on the phone.'), _geoSteps(env, 'os'));
+  if (code === 3) return show(L('לא נמצא מיקום בזמן.', 'No position in time.'), '<div>' + L('ה-GPS צריך שמיים פתוחים: צא החוצה, רחוק מקירות גבוהים, וחכה דקה. מצב חיסכון בסוללה מאט אותו.', 'GPS needs open sky: step outside, away from tall walls, and wait a minute. Battery saver slows it down.') + '</div>');
+  show(L('לא הצלחתי לקבל מיקום.', 'Could not get a position.'));
 }
 
 var _mapRender = null;      // the render in flight, if any
