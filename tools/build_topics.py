@@ -108,67 +108,104 @@ def place_cards(places, city, lang):
     return '\n'.join(out)
 
 
+def page_links(s):
+    """A link in the texts that calls one of the site's own functions has no
+    function to call here. The tab switches become jumps within the page;
+    anything else that needs a script loses its link and keeps its words."""
+    tabs = {'milan': 'milan', 'torino': 'turin', 'cervinia': 'village', 'delivery': 'delivery'}
+
+    def fix(m):
+        tag, inner = m.group(1), m.group(2)
+        t = re.search(r"switchKoshTab\('(\w+)'\)", tag)
+        if t and t.group(1) in tabs:
+            return '<a href="#%s">%s</a>' % (tabs[t.group(1)], inner)
+        return inner
+    return re.sub(r'(<a\b[^>]*\bonclick=[^>]*>)(.*?)</a>', fix, s, flags=re.S)
+
+
+def fold(title, inner, count=None, cls=''):
+    """A closed section the reader opens with a tap, as the panels in the
+    site do. A search engine reads what is inside it all the same."""
+    n = (' <span class="n">%s</span>' % count) if count else ''
+    return ('<details class="fold%s"><summary>%s%s</summary><div class="fb">\n%s\n</div></details>'
+            % (' ' + cls if cls else '', title, n, inner))
+
+
 def kosher_body(ko, lang, today):
     T = (lambda he, en: en) if lang == 'en' else (lambda he, en: he)
     b = []
     add = b.append
 
-    add('<h2>%s</h2>' % unmark(ko['cervinia_title']))
-    add('<p>%s</p>' % ko['cervinia_text'])
+    # the way round the page: a row of buttons, one per part
+    nav = [('village', T('🏔️ בכפר', '🏔️ In the village')),
+           ('products', T('🛒 מוצרים בסופר', '🛒 Supermarket products')),
+           ('delivery', T('📦 משלוח', '📦 Delivery')),
+           ('milan', T('🏙️ מילאנו', '🏙️ Milan')),
+           ('turin', T('🏛️ טורינו', '🏛️ Turin'))]
+    if ko.get('mikveh_text'):
+        nav.append(('mikveh', T('💧 מקווה', '💧 Mikveh')))
+    add('<nav class="toc">' + ''.join('<a href="#%s">%s</a>' % x for x in nav) + '</nav>')
 
+    add('<h2 id="village">%s</h2>' % ko['cervinia_title'])
+    add('<p>%s</p>' % ko['cervinia_text'])
+    if ko.get('cervinia_tips'):
+        add(fold(ko['cervinia_tips_title'],
+                 '<ul>' + ''.join('<li>%s</li>' % t for t in ko['cervinia_tips']) + '</ul>'))
+    # An organised trip is one answer among several, not the headline: it
+    # stays folded, as it is in the site, and after its date only the short
+    # general line is left.
     g = ko.get('cervinia_group') or {}
     if g.get('text'):
         past = bool(g.get('until')) and g['until'] < today
-        add('<h3>%s</h3>' % unmark(g.get('title', '')))
-        add('<p>%s</p>' % ((past and g.get('text_after')) or g['text']))
+        add(fold(g.get('title', ''), '<p>%s</p>' % ((past and g.get('text_after')) or g['text']), cls='group'))
 
-    add('<h2>%s</h2>' % unmark(ko['cervinia_products_title']))
-    in_list = False
+    # the product list: what it is stays open, each group of products folds
+    groups, intro, cur = [], [], None
     for ln in ko.get('cervinia_products', []):
         if str(ln).startswith('##'):
-            if in_list:
-                add('</ul>')
-            add('<h3>%s</h3>' % ln[2:].strip())
-            add('<ul class="prod">')
-            in_list = True
-        elif in_list:
-            add('<li>%s</li>' % ltr_split(ln))
+            cur = [ln[2:].strip(), []]
+            groups.append(cur)
+        elif cur is None:
+            intro.append(ln)
         else:
-            add('<p>%s</p>' % ltr_split(ln))
-    if in_list:
-        add('</ul>')
+            cur[1].append(ln)
+    n_products = sum(len(g2[1]) for g2 in groups)
+    add('<h2 id="products">%s</h2>' % ko['cervinia_products_title'])
+    for ln in intro:
+        add('<p>%s</p>' % ltr_split(ln))
+    for title, lines in groups:
+        add(fold(title, '<ul class="prod">' + ''.join('<li>%s</li>' % ltr_split(x) for x in lines) + '</ul>',
+                 len(lines)))
 
-    if ko.get('cervinia_tips'):
-        add('<h2>%s</h2>' % unmark(ko['cervinia_tips_title']))
-        add('<ul>' + ''.join('<li>%s</li>' % t for t in ko['cervinia_tips']) + '</ul>')
-
-    add('<h2>%s</h2>' % unmark(ko['delivery_title']))
+    add('<h2 id="delivery">📦 %s</h2>' % ko['delivery_title'])
     add('<p>%s</p>' % ko['delivery_desc'])
     add('<p>%s</p>' % ko['delivery_tip'])
 
-    add('<h2>%s</h2>' % T('אוכל כשר במילאנו (Milano), בדרך לצ\'רוויניה', 'Kosher food in Milan, on the way to Cervinia'))
+    add('<h2 id="milan">🏙️ %s</h2>' % T('אוכל כשר במילאנו (Milano), בדרך לצ\'רוויניה',
+                                        'Kosher food in Milan, on the way to Cervinia'))
     add('<p>%s</p>' % ko['milan_note'])
-    add('<h3>%s</h3>' % unmark(ko['milan_restaurants_title']))
-    add(place_cards(ko.get('milan_places'), 'Milano', lang))
-    add('<p class="src">%s</p>' % ko['milan_restaurants_footer'])
-    add('<p>%s</p>' % ko['milan_shopping_tip'])
-    add('<h3>%s</h3>' % unmark(ko['milan_shuls_title']))
-    add('<p>%s</p>' % ko['milan_shuls_note'])
-    add(place_cards(ko.get('milan_shuls'), 'Milano', lang))
-    add('<h3>%s</h3>' % unmark(ko['milan_stays_title']))
-    add('<p>%s</p>' % ko['milan_stays_note'])
-    add(place_cards(ko.get('milan_stays'), 'Milano', lang))
+    add('<p class="tip">%s</p>' % ko['milan_shopping_tip'])
+    add(fold(ko['milan_restaurants_title'],
+             place_cards(ko.get('milan_places'), 'Milano', lang) + '\n<p class="src">%s</p>' % ko['milan_restaurants_footer'],
+             len(ko.get('milan_places') or [])))
+    add(fold(ko['milan_shuls_title'],
+             '<p>%s</p>\n' % ko['milan_shuls_note'] + place_cards(ko.get('milan_shuls'), 'Milano', lang),
+             len(ko.get('milan_shuls') or [])))
+    add(fold(ko['milan_stays_title'],
+             '<p>%s</p>\n' % ko['milan_stays_note'] + place_cards(ko.get('milan_stays'), 'Milano', lang),
+             len(ko.get('milan_stays') or [])))
 
-    add('<h2>%s</h2>' % T('אוכל כשר בטורינו (Torino)', 'Kosher food in Turin'))
+    add('<h2 id="turin">🏛️ %s</h2>' % T('אוכל כשר בטורינו (Torino)', 'Kosher food in Turin'))
     add('<p>%s</p>' % ko['torino_note'])
-    add(place_cards(ko.get('torino_places'), 'Torino', lang))
-    add('<p>%s</p>' % ko['torino_restaurants_footer'])
-    add('<p>%s</p>' % ko['torino_tip'])
+    add(fold(T('🍽️ מסעדות ובתי כנסת בטורינו', '🍽️ Restaurants and synagogues in Turin'),
+             place_cards(ko.get('torino_places'), 'Torino', lang)
+             + '\n<p>%s</p>\n<p>%s</p>' % (ko['torino_restaurants_footer'], ko['torino_tip']),
+             len(ko.get('torino_places') or [])))
 
     if ko.get('mikveh_text'):
-        add('<h2>%s</h2>' % unmark(ko['mikveh_title']))
-        add('<p>%s</p>' % ko['mikveh_text'])
-    return '\n'.join(b)
+        add('<h2 id="mikveh">%s</h2>' % ko['mikveh_title'])
+        add(fold(T('פרטים ותיאום', 'Details and how to arrange'), '<p>%s</p>' % ko['mikveh_text']))
+    return page_links('\n'.join(b))
 
 
 TOPICS = {
@@ -227,6 +264,23 @@ ul.prod{list-style:none;padding:0}
 ul.prod li{background:#fff;border:1px solid #e3e9f0;border-radius:8px;padding:8px 11px;margin:6px 0;font-size:.93rem}
 .ph{display:block;font-weight:600;color:#24405f}
 .brands{display:block;text-align:left;line-height:1.8}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.toc a{background:#fff;border:1.5px solid #b9c8d8;border-radius:22px;padding:7px 13px;text-decoration:none;color:#12365e;font-weight:600;font-size:.9rem}
+.toc a:active,.toc a:hover{background:#e8f0f8}
+html{scroll-behavior:smooth}
+h2{scroll-margin-top:10px}
+details.fold{background:#fff;border:1.5px solid #d3dde8;border-radius:12px;margin:9px 0}
+details.fold>summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:700;color:#12365e;display:flex;align-items:center;gap:8px}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"";margin-inline-start:auto;width:9px;height:9px;border-inline-end:2.5px solid #5d7389;border-bottom:2.5px solid #5d7389;transform:rotate(45deg);transition:transform .15s;flex:none}
+details.fold[open]>summary::after{transform:rotate(-135deg)}
+details.fold[open]>summary{border-bottom:1px solid #e3e9f0}
+details.fold>.fb{padding:6px 14px 12px}
+details.fold.group{border-color:#c5cae9;border-inline-start:4px solid #3f51b5;background:#f5f6fc}
+.n{background:#e8f0f8;color:#12365e;border-radius:11px;padding:1px 9px;font-size:.8rem;font-weight:700}
+.tip{background:#eef7f1;border:1px solid #cfe6d7;border-radius:10px;padding:10px 13px}
+details.fold .card{background:#f8fafc}
+details.fold ul.prod li{background:#f8fafc}
 footer{max-width:780px;margin:0 auto;padding:0 16px 34px;color:#6b7a89;font-size:.84rem}
 """.strip()
 
