@@ -1,6 +1,7 @@
 name: Build the topic pages
 
-# /kosher/ and /en/kosher/ are one panel of the site at an address of its own
+# /kosher/, /skipass/, /getting-there/ and /ski-italy/ (and the same under
+# /en/) are each one panel of the site at an address of its own
 # (Yossi, 28.11: the site is one page, so a search engine knew one address
 # only and could not show "kosher food in Cervinia" to anyone searching for
 # it). Each is the site itself opened on that panel with nothing around it,
@@ -30,13 +31,13 @@ jobs:
         run: python3 tools/build_topics.py
       - name: Commit them if they changed
         run: |
-          git add -A kosher en/kosher
+          git add -A kosher skipass getting-there ski-italy en/kosher en/skipass en/getting-there en/ski-italy
           if git diff --cached --quiet; then echo "topic pages already up to date"; exit 0; fi
           git config user.name "cervinia-bot"
           git config user.email "cervinia-bot@users.noreply.github.com"
           git commit -m "topics: the topic pages, made from index.html"
           for i in 1 2 3; do
-            git pull --rebase --autostash && python3 tools/build_topics.py && git add -A kosher en/kosher \
+            git pull --rebase --autostash && python3 tools/build_topics.py && git add -A kosher skipass getting-there ski-italy en/kosher en/skipass en/getting-there en/ski-italy \
               && (git diff --cached --quiet || git commit -m "topics: the topic pages, made from index.html") \
               && git push && exit 0
             sleep 5

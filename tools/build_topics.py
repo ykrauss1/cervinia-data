@@ -54,6 +54,70 @@ TOPICS = {
             'other': 'עברית',
         },
     },
+    'skipass': {
+        'modal': 'skipassModal',
+        'he': {
+            'title': 'סקי פס בצ\'רוויניה 2026/27: מחירים, סוגים והנחות · צ׳רוויניה לייב',
+            'h1': 'סקי פס בצ\'רוויניה (Cervinia): מחירים, סוגים והנחות',
+            'desc': 'מחירי הסקי פס בצ\'רוויניה לעונת 2026/27: יומי ורב-יומי, צ\'רוויניה בלבד או בינלאומי עם צרמט, '
+                    'הנחות לילדים, לצעירים ולמבוגרים, איפה קונים ואיך חוסכים.',
+            'full': 'לאתר המלא',
+            'full_long': 'לאתר המלא: מצב רכבלים ומסלולים, ניווט על ההר, שלג ותכנון טיול',
+            'other': 'English',
+        },
+        'en': {
+            'title': 'Cervinia ski pass 2026/27: prices, types and discounts · Cervinia Live',
+            'h1': 'Cervinia ski pass: prices, types and discounts',
+            'desc': 'Cervinia ski pass prices for the 2026/27 season: day and multi-day passes, Cervinia only or '
+                    'international with Zermatt, discounts for children, juniors and seniors, where to buy and how to save.',
+            'full': 'The full site',
+            'full_long': 'The full site: live lifts and runs, navigation on the mountain, snow and trip planning',
+            'other': 'עברית',
+        },
+    },
+    'getting-there': {
+        'modal': 'parkingModal',
+        'he': {
+            'title': 'איך מגיעים לצ\'רוויניה: משדה התעופה, ברכב, חניה וכביש · צ׳רוויניה לייב',
+            'h1': 'איך מגיעים לצ\'רוויניה (Cervinia): הגעה, חניה וכביש',
+            'desc': 'הדרך לצ\'רוויניה משדות התעופה של מילאנו, טורינו וברגמו: הסעות, אוטובוסים ורכב שכור, לפי שעת '
+                    'הנחיתה והטיסה חזרה; חניה בכפר, מצב הכביש בחורף ומספרי חירום.',
+            'full': 'לאתר המלא',
+            'full_long': 'לאתר המלא: מצב רכבלים ומסלולים, ניווט על ההר, שלג ותכנון טיול',
+            'other': 'English',
+        },
+        'en': {
+            'title': 'Getting to Cervinia: from the airport, by car, parking and the road · Cervinia Live',
+            'h1': 'Getting to Cervinia: arrival, parking and the road',
+            'desc': 'The way to Cervinia from the Milan, Turin and Bergamo airports: transfers, buses and hire cars, '
+                    'worked out from your landing and return times; parking in the village, the road in winter and '
+                    'emergency numbers.',
+            'full': 'The full site',
+            'full_long': 'The full site: live lifts and runs, navigation on the mountain, snow and trip planning',
+            'other': 'עברית',
+        },
+    },
+    'ski-italy': {
+        'modal': 'skiItalyModal',
+        'he': {
+            'title': 'אתרי הסקי של צפון איטליה: איזה שדה תעופה משרת כל אתר · צ׳רוויניה לייב',
+            'h1': 'אתרי הסקי של צפון איטליה',
+            'desc': 'מפת אתרי הסקי של צפון איטליה לפי אזור: עמק אאוסטה, פיימונטה, לומברדיה והדולומיטים; איזה שדה '
+                    'תעופה משרת כל אתר, מרחקי נסיעה, השמות הגדולים והחלופות.',
+            'full': 'לאתר המלא',
+            'full_long': 'לאתר המלא: מצב רכבלים ומסלולים, ניווט על ההר, שלג ותכנון טיול',
+            'other': 'English',
+        },
+        'en': {
+            'title': 'The ski resorts of northern Italy: which airport serves which · Cervinia Live',
+            'h1': 'The ski resorts of northern Italy',
+            'desc': 'The ski resorts of northern Italy by region: the Aosta Valley, Piedmont, Lombardy and the '
+                    'Dolomites; which airport serves each resort, driving distances, the big names and the alternatives.',
+            'full': 'The full site',
+            'full_long': 'The full site: live lifts and runs, navigation on the mountain, snow and trip planning',
+            'other': 'עברית',
+        },
+    },
 }
 
 esc = build_en.esc
