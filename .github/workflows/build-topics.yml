@@ -1,0 +1,47 @@
+name: Build the topic pages
+
+# /kosher/ and /en/kosher/ are one subject of the site at an address of its
+# own, made from texts.json and texts.en.json by tools/build_topics.py (Yossi,
+# 28.11: the site is one page, so a search engine knew one address only and
+# could not show "kosher food in Cervinia" to anyone searching for it). Only
+# the texts are ever edited; this makes the pages after every change to them.
+# Once a day as well, because a page can hold a dated line (a holiday that
+# has passed) that changes with the calendar and not with a push.
+
+on:
+  push:
+    branches: [main]
+    paths: ['texts.json', 'texts.en.json', 'tools/build_topics.py']
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-topics
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make the topic pages from the texts
+        run: python3 tools/build_topics.py
+      - name: Commit them if they changed
+        run: |
+          git add -A kosher en/kosher
+          if git diff --cached --quiet; then echo "topic pages already up to date"; exit 0; fi
+          git config user.name "cervinia-bot"
+          git config user.email "cervinia-bot@users.noreply.github.com"
+          git commit -m "topics: the topic pages, made from the texts"
+          for i in 1 2 3; do
+            git pull --rebase --autostash && python3 tools/build_topics.py && git add -A kosher en/kosher \
+              && (git diff --cached --quiet || git commit -m "topics: the topic pages, made from the texts") \
+              && git push && exit 0
+            sleep 5
+          done
+          exit 1

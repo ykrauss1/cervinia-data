@@ -21,6 +21,24 @@
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
+  <!-- Topic pages: one subject of the site at its own address, made from
+       the texts by tools/build_topics.py. -->
+  <url>
+    <loc>https://cervinialive.co.il/kosher/</loc>
+    <xhtml:link rel="alternate" hreflang="he" href="https://cervinialive.co.il/kosher/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cervinialive.co.il/en/kosher/"/>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cervinialive.co.il/en/kosher/</loc>
+    <xhtml:link rel="alternate" hreflang="he" href="https://cervinialive.co.il/kosher/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cervinialive.co.il/en/kosher/"/>
+    <lastmod>2026-11-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://cervinialive.co.il/privacy.html</loc>
     <lastmod>2026-11-16</lastmod>
